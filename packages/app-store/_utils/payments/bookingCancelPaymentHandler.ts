@@ -20,7 +20,8 @@ const log = logger.getSubLogger({ prefix: ["bookingCancelPaymentHandler"] });
 
 const bookingCancelPaymentHandler = async (booking: BookingCancelPaymentHandlerInput) => {
   if (booking.payment.length === 0) {
-    throw new Error("No payments found to process");
+    log.info("No payments associated with this booking, skipping payment handling");
+    return;
   }
 
   let eventTypeOwnerId;

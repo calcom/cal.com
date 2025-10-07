@@ -21,7 +21,6 @@ import {
   MOBILE_NOTIFICATIONS_ENABLED,
 } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -75,6 +74,20 @@ export type HandleCancelBookingResponse = {
   bookingUid: string;
 };
 
+/**
+ * Helper function to get team name from event type
+ */
+function getTeamNameFromEventType(eventType: BookingToDelete["eventType"]): string | null {
+  if (!eventType) return null;
+
+  // Priority: calIdTeam > team
+  if (eventType.calIdTeam?.name) {
+    return eventType.calIdTeam.name;
+  }
+
+  return null;
+}
+
 async function handler(input: CancelBookingInput) {
   const body = input.bookingData;
   const {
@@ -87,6 +100,7 @@ async function handler(input: CancelBookingInput) {
     cancelSubsequentBookings,
     internalNote,
     autoRefund,
+    fromApi,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -145,16 +159,19 @@ async function handler(input: CancelBookingInput) {
   // get webhooks
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
+  // Get team ID from CalIdTeam (new model)
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: bookingToDelete.eventType?.team?.id ?? null },
+      calIdTeam: { id: bookingToDelete.eventType?.calIdTeamId ?? null },
       parentId: bookingToDelete?.eventType?.parentId ?? null,
     },
   });
-  const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
+  // Since CalIdTeam doesn't have parent/organization concept, we always trigger for user when there's a team
+  const triggerForUser = !teamId;
   const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
 
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+  // No organization support in CalIdTeam, so orgId is always null
+  const orgId = null;
 
   const subscriberOptions: GetSubscriberOptions = {
     userId: organizerUserId,
@@ -235,9 +252,8 @@ async function handler(input: CancelBookingInput) {
     },
   });
 
-  const bookerUrl = await getBookerBaseUrl(
-    bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
-  );
+  // CalIdTeam doesn't have parent organization, so we only use ownerProfile's organizationId
+  const bookerUrl = await getBookerBaseUrl(ownerProfile?.organizationId ?? null);
 
   const evt: CalendarEvent = {
     bookerUrl,
@@ -280,7 +296,7 @@ async function handler(input: CancelBookingInput) {
     ...(teamMembers &&
       teamId && {
         team: {
-          name: bookingToDelete?.eventType?.team?.name || "Nameless",
+          name: getTeamNameFromEventType(bookingToDelete.eventType) || "Nameless",
           members: teamMembers,
           id: teamId,
         },
@@ -390,7 +406,8 @@ async function handler(input: CancelBookingInput) {
     payment: true,
     eventType: {
       select: {
-        teamId: true,
+        calIdTeamId: true,
+        teamId: true, // Keep for backwards compatibility
         owner: true,
       },
     },
@@ -466,7 +483,8 @@ async function handler(input: CancelBookingInput) {
   if (bookingToDelete.location === DailyLocationType) {
     bookingToDelete.user.credentials.push({
       ...FAKE_DAILY_CREDENTIAL,
-      teamId: bookingToDelete.eventType?.team?.id || null,
+      // Use calIdTeamId, fallback to team.id for backwards compatibility
+      teamId: bookingToDelete.eventType?.calIdTeamId || bookingToDelete.eventType?.team?.id || null,
     });
   }
 
@@ -586,7 +604,7 @@ async function handler(input: CancelBookingInput) {
 
   try {
     // TODO: if emails fail try to requeue them
-    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+    if ((!platformClientId || (platformClientId && arePlatformEmailsEnabled)) && !fromApi)
       await sendCancelledEmailsAndSMS(
         evt,
         { eventName: bookingToDelete?.eventType?.eventName },

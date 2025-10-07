@@ -3,14 +3,14 @@ import prisma from "@calcom/prisma";
 export async function getTeamIdFromEventType({
   eventType,
 }: {
-  eventType: { team: { id: number | null } | null; parentId: number | null };
+  eventType: { calIdTeam: { id: number | null } | null; parentId: number | null };
 }) {
   if (!eventType) {
     return null;
   }
 
-  if (eventType?.team?.id) {
-    return eventType.team.id;
+  if (eventType?.calIdTeam?.id) {
+    return eventType.calIdTeam.id;
   }
 
   // If it's a managed event we need to find the teamId for it from the parent

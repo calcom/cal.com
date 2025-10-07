@@ -282,7 +282,7 @@ export type PlatformClientParams = z.infer<typeof PlatformClientParamsSchema>;
 export const bookingConfirmPatchBodySchema = z.object({
   bookingId: z.number(),
   confirmed: z.boolean(),
-  recurringEventId: z.string().optional(),
+  recurringEventId: z.string().optional().nullable().default(null),
   reason: z.string().optional(),
   emailsEnabled: z.boolean().default(true),
   platformClientParams: PlatformClientParamsSchema.optional(),
@@ -307,6 +307,7 @@ export const bookingCancelSchema = z.object({
     .optional()
     .nullable(),
   autoRefund: z.boolean(),
+  fromApi: z.boolean().optional().default(false),
 });
 
 export const bookingCancelAttendeeSeatSchema = z.object({

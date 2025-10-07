@@ -8,73 +8,57 @@ const BookingStatus = z.enum(["PENDING", "ACCEPTED", "CANCELLED", "REJECTED"]);
 const attendeeEmailTransform = z.string().transform((val) => val.trim().replace(/\s+/g, "+"));
 
 export const bookingsQueryRequestSchema = z.object({
-  // Filters
   status: z
-    .union([
-      z.string().transform((val) => val.split(",").map((status) => status.trim())),
-      z.array(z.string()),
-    ])
-    .pipe(z.array(Status).min(1, "status cannot be empty."))
-    .optional(),
+    .enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"])
+    .optional()
+    .default("upcoming")
+    .describe("Filter bookings by status"),
 
-  attendeeEmail: attendeeEmailTransform.optional(),
+  teamIds: z.array(z.number().int().positive()).optional().describe("Filter by team IDs"),
 
-  attendeeName: z.string().optional(),
+  userIds: z.array(z.number().int().positive()).optional().describe("Filter by user IDs"),
 
-  bookingUid: z.string().optional(),
+  eventTypeIds: z.array(z.number().int().positive()).optional().describe("Filter by event type IDs"),
 
-  eventTypeIds: z.array(z.number()).min(1, "eventTypeIds must contain at least 1 event type id").optional(),
+  attendeeEmail: z.string().email().optional().describe("Filter by attendee email"),
 
-  teamsIds: z.array(z.number()).min(1, "eventTypeIds must contain at least 1 event type id").optional(),
+  attendeeName: z.string().optional().describe("Filter by attendee name"),
 
-  // Date filters (ISO 8601 strings)
-  afterStart: z.string().datetime({ message: "afterStart must be a valid ISO 8601 date." }).optional(),
+  bookingUid: z.string().optional().describe("Filter by booking UID"),
 
-  beforeEnd: z.string().datetime({ message: "beforeEnd must be a valid ISO 8601 date." }).optional(),
+  afterStartDate: z.string().datetime().optional().describe("Filter bookings starting after this date"),
 
-  afterCreatedAt: z
-    .string()
-    .datetime({ message: "afterCreatedAt must be a valid ISO 8601 date." })
-    .optional(),
+  beforeEndDate: z.string().datetime().optional().describe("Filter bookings ending before this date"),
 
-  beforeCreatedAt: z
-    .string()
-    .datetime({ message: "beforeCreatedAt must be a valid ISO 8601 date." })
-    .optional(),
+  afterUpdatedDate: z.string().datetime().optional().describe("Filter bookings updated after this date"),
 
-  afterUpdatedAt: z
-    .string()
-    .datetime({ message: "afterUpdatedAt must be a valid ISO 8601 date." })
-    .optional(),
+  beforeUpdatedDate: z.string().datetime().optional().describe("Filter bookings updated before this date"),
 
-  beforeUpdatedAt: z
-    .string()
-    .datetime({ message: "beforeUpdatedAt must be a valid ISO 8601 date." })
-    .optional(),
+  afterCreatedDate: z.string().datetime().optional().describe("Filter bookings created after this date"),
 
-  // Sort options
-  sortStart: z.enum(["asc", "desc"]).optional(),
+  beforeCreatedDate: z.string().datetime().optional().describe("Filter bookings created before this date"),
 
-  sortEnd: z.enum(["asc", "desc"]).optional(),
+  sortStart: z.enum(["asc", "desc"]).optional().describe("Sort by booking start time"),
 
-  sortCreated: z.enum(["asc", "desc"]).optional(),
+  sortEnd: z.enum(["asc", "desc"]).optional().describe("Sort by booking end time"),
 
-  sortUpdatedAt: z.enum(["asc", "desc"]).optional(),
+  sortCreated: z.enum(["asc", "desc"]).optional().describe("Sort by booking creation time"),
 
-  // Pagination
-  page: z
-    .union([z.string().transform((val) => parseInt(val)), z.number()])
-    .pipe(z.number().int().min(1))
-    .optional(),
+  sortUpdated: z.enum(["asc", "desc"]).optional().describe("Sort by booking update time"),
+
+  page: z.number().int().positive().default(1).describe("Page number (default: 1)"),
 
   limit: z
-    .union([z.string().transform((val) => parseInt(val)), z.number()])
-    .pipe(z.number().int().min(1).max(100))
-    .optional(),
+    .number()
+    .int()
+    .positive()
+    .max(500)
+    .default(100)
+    .describe("Number of results per page (default: 100)"),
 });
 
 // Type inference
-export type GetBookingsInput = z.infer<typeof bookingsQuerySchema>;
+export type GetBookingsInput = z.infer<typeof bookingsQueryRequestSchema>;
 
 // ---------------------------------------------
 // Create Booking (body & response) schemas
@@ -87,53 +71,93 @@ const nameObjectSchema = z.object({
 
 export const createBookingBodySchema = z
   .object({
-    eventTypeId: z.number().int().positive().optional(),
-    eventTypeSlug: z.string().min(1).optional(),
+    // Event type identification (required: either ID or slug)
+    eventTypeId: z.number().int().positive().optional().describe("Unique identifier for the event type"),
+    eventTypeSlug: z.string().min(1).optional().describe("URL-friendly slug for the event type"),
 
-    start: z.string().min(1),
-    end: z.string().min(1),
-    timeZone: z.string().min(1),
+    // Booking time (required) - accepts timezone-aware format
+    start: z
+      .string()
+      .datetime({ offset: true })
+      .describe("Booking start time (ISO 8601, e.g., '2025-10-09T14:30:00+05:30')"),
+    end: z
+      .string()
+      .datetime({ offset: true })
+      .describe("Booking end time (ISO 8601, e.g., '2025-10-09T15:00:00+05:30')"),
+    timeZone: z
+      .string()
+      .describe("IANA timezone identifier (e.g., 'Asia/Calcutta', 'America/New_York')")
+      .default("Asia/Kolkata"),
 
-    email: z.string().email().optional(),
-    name: z.union([z.string().min(1), nameObjectSchema]).optional(),
-    attendeePhoneNumber: z.string().min(1).optional(),
-    language: z.string().optional(),
+    // Responses object containing attendee information (required)
+    responses: z
+      .object({
+        name: z
+          .union([z.string().min(1), nameObjectSchema])
+          .default("John Doe")
+          .describe("Booker's full name or name object with firstName/lastName"),
+        email: z.string().email().describe("Booker's email address"),
 
-    guests: z.array(z.string().email()).optional(),
+        // Location can be either a string OR an object with value/optionValue
+        location: z
+          .union([
+            z.string(),
+            z.object({
+              value: z.string(),
+              optionValue: z.string(),
+            }),
+          ])
+          .default({
+            value: "integrations:google:meet",
+            optionValue: "",
+          })
+          .describe(
+            "Meeting location - string like 'integrations:google:meet' or object with value/optionValue"
+          ),
 
-    location: z.string().optional(),
-    notes: z.string().optional(),
-    noEmail: z.boolean().optional(),
+        // Optional response fields
+        phone: z.string().optional().describe("Booker's phone number").default("+91XXXXXXXXXX"),
+        guests: z.array(z.string().email()).optional().default([]).describe("Array of guest email addresses"),
+        notes: z.string().optional().describe("Additional notes or comments from the booker"),
+      })
+      .describe("Booking form responses containing attendee details"),
 
-    teamMemberEmail: z.string().email().optional(),
-    routedTeamMemberIds: z.array(z.number().int()).optional(),
-    routingFormResponseId: z.number().int().optional(),
+    // User/team identification
+    // user: z.string().optional().describe("Username for the booking (e.g., 'john doe')"),
 
-    rescheduleUid: z.string().optional(),
-    rescheduleReason: z.string().optional(),
+    // Language & locale
+    language: z
+      .string()
+      .optional()
+      .default("en")
+      .describe("Language code for email communications (e.g., 'en', 'es', 'fr')"),
 
-    recurringEventId: z.string().optional(),
-    recurringCount: z.number().int().positive().optional(),
+    // Metadata
+    metadata: z.record(z.any()).optional().default({}).describe("Additional metadata for the booking"),
 
-    responses: z.record(z.any()).optional(),
-    calEventResponses: z.record(z.any()).optional(),
-    calEventUserFieldsResponses: z.record(z.any()).optional(),
+    // Optional fields
+    // hasHashedBookingLink: z.boolean().optional().default(false),
+    // routedTeamMemberIds: z.array(z.number()).nullable().optional().default(null),
+    // skipContactOwner: z.boolean().optional().default(false),
+    // _isDryRun: z.boolean().optional().default(false),
+    // dub_id: z.string().nullable().optional().default(null),
+    // CreationSource: z.enum(["API"]).optional().default("API"),
 
-    _isDryRun: z.boolean().optional(),
-    _shouldServeCache: z.boolean().optional(),
-
-    tracking: z.record(z.any()).optional(),
-    metadata: z.record(z.any()).optional(),
-    bookingUid: z.string().optional(),
-    orgSlug: z.string().optional(),
-    locationUrl: z.string().url().optional(),
-    platformRescheduleUrl: z.string().url().optional(),
-    platformCancelUrl: z.string().url().optional(),
-    platformBookingUrl: z.string().url().optional(),
+    // Deprecated but still supported
+    // guests: z
+    //   .array(z.string().email())
+    //   .optional()
+    //   .default([])
+    //   .describe("Deprecated: Use responses.guests instead"),
   })
+  .strict()
   .refine((data) => Boolean(data.eventTypeId) || Boolean(data.eventTypeSlug), {
     message: "Either eventTypeId or eventTypeSlug is required",
     path: ["eventTypeId"],
+  })
+  .refine((data) => data.responses?.email && data.responses?.name, {
+    message: "Responses object must contain both email and name",
+    path: ["responses"],
   });
 
 export type CreateBookingBody = z.infer<typeof createBookingBodySchema>;
@@ -183,6 +207,11 @@ export type DeleteBookingParams = z.infer<typeof deleteBookingParamsSchema>;
 // Cancel Booking (body & response) schemas
 // ---------------------------------------------
 
+export const cancelBookingParamsSchema = z.object({
+  id: z.number().int().positive(),
+});
+
+// Body schema matching handleCancelBooking
 export const cancelBookingBodySchema = z
   .object({
     uid: z.string().optional(),
@@ -192,14 +221,16 @@ export const cancelBookingBodySchema = z
     seatReferenceUid: z.string().optional(),
     cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
     internalNote: z
-      .object({
-        id: z.number(),
-        name: z.string(),
-        cancellationReason: z.string().optional().nullable(),
-      })
-      .optional()
-      .nullable(),
-    autoRefund: z.boolean().optional(),
+      .union([
+        z.object({
+          id: z.number(),
+          name: z.string(),
+          cancellationReason: z.string().optional().nullable(),
+        }),
+        z.null(),
+      ])
+      .optional(),
+    autoRefund: z.boolean().optional().default(false),
   })
   .strict();
 
@@ -213,26 +244,6 @@ export const cancelBookingResponseSchema = z.object({
   bookingUid: z.string(),
 });
 
-
-import { z } from "zod";
-
-const attendeeSchema = z.object({
-  id: z.number(),
-  email: z.string().email(),
-  name: z.string(),
-  timeZone: z.string(),
-  bookingId: z.number(),
-  locale: z.string(),
-  phoneNumber: z.string().nullable(),
-  noShow: z.boolean(),
-});
-
-const userSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  email: z.string().email(),
-});
-
 const locationOptionSchema = z.object({
   value: z.string(),
   optionValue: z.string(),
@@ -242,60 +253,122 @@ const responsesSchema = z.object({
   name: z.string(),
   email: z.string().email(),
   guests: z.array(z.unknown()),
-  location: locationOptionSchema,
+  location: locationOptionSchema.optional(),
 });
 
+const bookingStatusEnum = z.enum(["ACCEPTED", "CANCELLED", "REJECTED", "PENDING", "AWAITING_HOST"]);
+
+const schedulingTypeEnum = z.enum(["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]);
+
+const hostSchema = z.object({
+  user: z
+    .object({
+      id: z.number().optional(),
+      email: z.string().email(),
+    })
+    .nullable(),
+});
+
+const calIdTeamSchema = z
+  .object({
+    id: z.number().optional(),
+    name: z.string(),
+    slug: z.string(),
+  })
+  .nullable();
+
 const eventTypeSchema = z.object({
-  slug: z.string(),
-  id: z.number(),
-  title: z.string(),
-  eventName: z.string().nullable(),
-  price: z.number(),
-  recurringEvent: z.unknown().nullable(),
-  currency: z.string(),
-  metadata: z.record(z.unknown()),
-  disableGuests: z.boolean(),
-  seatsShowAttendees: z.boolean(),
-  seatsShowAvailabilityCount: z.boolean(),
-  eventTypeColor: z.string().nullable(),
-  customReplyToEmail: z.string().nullable(),
-  allowReschedulingPastBookings: z.boolean(),
-  hideOrganizerEmail: z.boolean(),
-  disableCancelling: z.boolean(),
-  disableRescheduling: z.boolean(),
-  schedulingType: z.string().nullable(),
-  hosts: z.array(z.unknown()),
-  length: z.number(),
-  team: z.unknown().nullable(),
+  id: z.number().optional(),
+  title: z.string().optional(),
+  slug: z.string().optional(),
+  eventName: z.string().optional(),
+  price: z.number().optional(),
+  currency: z.string().optional(),
+  recurringEvent: z.any(),
+  metadata: z.record(z.unknown()).optional(),
+  schedulingType: schedulingTypeEnum.optional(),
+  seatsShowAttendees: z.boolean().optional(),
+  hosts: z.array(hostSchema).optional(),
+  calIdTeam: calIdTeamSchema.optional(),
+  length: z.number().optional(),
+  customReplyToEmail: z.string().nullable().optional(),
+  allowReschedulingPastBookings: z.boolean().optional(),
+  hideOrganizerEmail: z.boolean().optional(),
+  disableCancelling: z.boolean().optional(),
+  disableRescheduling: z.boolean().optional(),
+  eventTypeColor: z.string().nullable().optional(),
+});
+
+const userSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().nullable(),
+  email: z.string().email(),
+});
+
+const attendeeSchema = z.object({
+  email: z.string().email(),
+  name: z.string().nullable().optional(),
 });
 
 export const bookingsQueryResponseSchema = z.object({
   id: z.number(),
-  title: z.string(),
+  title: z.string().nullable(),
   userPrimaryEmail: z.string().email(),
-  description: z.string(),
-  customInputs: z.record(z.unknown()),
-  startTime: z.string(),
+  description: z.string().nullable(),
+  customInputs: z.record(z.unknown()).nullable(),
+  startTime: z.string(), // ISO string
+  endTime: z.string(), // ISO string
   createdAt: z.string(),
   updatedAt: z.string(),
-  endTime: z.string(),
-  metadata: z.record(z.unknown()),
+  metadata: z.record(z.unknown()).nullable(),
   uid: z.string(),
   responses: responsesSchema,
-  recurringEventId: z.number().nullable(),
-  location: z.string(),
-  status: z.string(),
+  recurringEventId: z.string().nullable(),
+  location: z.string().nullable().optional(),
+  status: bookingStatusEnum,
   paid: z.boolean(),
-  fromReschedule: z.unknown().nullable(),
-  rescheduled: z.unknown().nullable(),
+  fromReschedule: z.string().nullable().optional(),
+  rescheduled: z.boolean().nullable().optional(),
   isRecorded: z.boolean(),
-  routedFromRoutingFormReponse: z.unknown().nullable(),
-  eventType: eventTypeSchema,
-  references: z.array(z.unknown()),
-  payment: z.array(z.unknown()),
-  user: userSchema,
+  routedFromRoutingFormReponse: z.any().nullable().optional(),
+  eventType: eventTypeSchema.optional(),
+  references: z.array(z.any()),
+  payment: z.array(z.any()),
+  user: userSchema.optional(),
   attendees: z.array(attendeeSchema),
-  seatsReferences: z.array(z.unknown()),
-  assignmentReason: z.array(z.unknown()),
-  rescheduler: z.unknown().nullable(),
+  seatsReferences: z.array(z.any()),
+  assignmentReason: z.array(z.any()),
+  rescheduler: z.string().nullable().optional(),
+});
+
+const paymentSchema = z.object({
+  id: z.number(),
+  paymentOption: z.string().nullable(),
+  amount: z.number(),
+  currency: z.string(),
+  success: z.boolean(),
+});
+
+export const singleBookingQueryResponseSchema = z.object({
+  id: z.number(),
+  title: z.string().nullable(),
+  description: z.string().nullable(),
+  customInputs: z.record(z.unknown()).nullable().optional(),
+  startTime: z.string().nullable(),
+  endTime: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  metadata: z.record(z.unknown()).nullable().optional(),
+  uid: z.string().nullable(),
+  recurringEventId: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+  paid: z.boolean().optional(),
+  fromReschedule: z.string().nullable().optional(),
+  rescheduled: z.boolean().nullable().optional(),
+  isRecorded: z.boolean().optional(),
+  eventType: eventTypeSchema.optional(),
+  user: userSchema.optional(),
+  attendees: z.array(attendeeSchema).optional(),
+  payment: z.array(paymentSchema).optional(),
 });
