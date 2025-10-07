@@ -5,13 +5,14 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { User as PrismaUser } from "@calcom/prisma/client";
+import type { PrismaClient, User as PrismaUser } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
 
 import logger from "../../logger";
+import type { IProfileRepository } from "./dto/IProfileRepository";
 import { getParsedTeam } from "./teamUtils";
 
 const userSelect = {
@@ -64,7 +65,13 @@ export enum LookupTarget {
   Profile,
 }
 
-export class ProfileRepository {
+export class ProfileRepository implements IProfileRepository {
+  private prismaClient: PrismaClient;
+
+  constructor(deps: { prismaClient: PrismaClient }) {
+    this.prismaClient = deps.prismaClient;
+  }
+
   static generateProfileUid() {
     return uuidv4();
   }
@@ -722,6 +729,14 @@ export class ProfileRepository {
             }),
       },
     };
+  }
+
+  async findFirstByUserId({ userId }: { userId: number }) {
+    return this.prismaClient.profile.findFirst({
+      where: {
+        userId,
+      },
+    });
   }
 }
 
