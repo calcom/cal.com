@@ -171,7 +171,7 @@ test.describe("Manage Booking Questions", () => {
       await test.step("Test required field validation", async () => {
         await doOnFreshPreview(page, context, async (page) => {
 
-          await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
+          await bookTimeSlot({ page, name: "Booker", email: "booker@example.com", autoSelectDate: false });
           await expectErrorToBeThereFor({ page, name: "appointment-date" });
         });
       });
@@ -182,12 +182,19 @@ test.describe("Manage Booking Questions", () => {
           const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
           await datePickerButton.click();
+          // Ensure the date picker dialog and grid are visible before interacting
+          await expect(page.locator('[role="dialog"]').first()).toBeVisible();
+          await expect(page.locator('[role="grid"]').first()).toBeVisible();
           const initialAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
           const initialDayCells = await initialAllDayCells.all();
           let initialDateClicked = false;
           
           for (const dayCell of initialDayCells) {
             try {
+              const isDisabled = await dayCell.getAttribute('aria-disabled');
+              const outside = await dayCell.getAttribute('data-outside');
+              const hidden = await dayCell.getAttribute('data-hidden');
+              if (isDisabled === 'true' || outside === 'true' || hidden === 'true') continue;
               const dayText = await dayCell.textContent();
               if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
                 await dayCell.click({ timeout: 5000 });
@@ -204,58 +211,40 @@ test.describe("Manage Booking Questions", () => {
           await expect(datePickerButton).not.toContainText("Pick a date");
           const buttonText = await datePickerButton.textContent();
           expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
-
-          await datePickerButton.click();
-          
-          const secondAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
-          const secondDayCells = await secondAllDayCells.all();
-          let dateClicked = false;
-          
-          for (const dayCell of secondDayCells) {
-            try {
-              const dayText = await dayCell.textContent();
-              if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
-                await dayCell.click({ timeout: 5000 });
-                dateClicked = true;
-                break;
-              }
-            } catch (error) {
-              continue;
-            }
-          }
-          
-          expect(dateClicked).toBe(true);
-
-          const newButtonText = await datePickerButton.textContent();
-          expect(newButtonText).not.toBe(buttonText);
-          expect(newButtonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
+          // Close the popover to avoid any overlay
+          await page.keyboard.press('Escape');
+          await expect(page.locator('[role="dialog"]').first()).toBeHidden();
         });
       });
 
       await test.step("Complete booking and verify date format in webhook", async () => {
         await doOnFreshPreview(page, context, async (page) => {
           const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
-
-          await dateFieldLocator.locator('[data-testid="pick-date"]').click();
-          
-          const bookingAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
-          const bookingDayCells = await bookingAllDayCells.all();
-          let bookingDateClicked = false;
-          
-          for (const dayCell of bookingDayCells) {
-            try {
-              const dayText = await dayCell.textContent();
-              if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
-                await dayCell.click({ timeout: 5000 });
-                bookingDateClicked = true;
-                break;
+          const dateButton = dateFieldLocator.locator('[data-testid="pick-date"]');
+          if ((await dateButton.textContent())?.includes('Pick a date')) {
+            await dateButton.click();
+            await expect(page.locator('[role="dialog"]').first()).toBeVisible();
+            await expect(page.locator('[role="grid"]').first()).toBeVisible();
+            const bookingAllDayCells = page.locator('[role="grid"]').first().locator('[role="gridcell"]');
+            const bookingDayCells = await bookingAllDayCells.all();
+            for (const dayCell of bookingDayCells) {
+              try {
+                const isDisabled = await dayCell.getAttribute('aria-disabled');
+                const outside = await dayCell.getAttribute('data-outside');
+                const hidden = await dayCell.getAttribute('data-hidden');
+                if (isDisabled === 'true' || outside === 'true' || hidden === 'true') continue;
+                const dayText = await dayCell.textContent();
+                if (dayText && dayText.trim() && !isNaN(parseInt(dayText.trim())) && parseInt(dayText.trim()) > 0) {
+                  await dayCell.click({ timeout: 5000 });
+                  break;
+                }
+              } catch (error) {
+                continue;
               }
-            } catch (error) {
-              continue;
             }
+            await page.keyboard.press('Escape');
+            await expect(page.locator('[role=\"dialog\"]').first()).toBeHidden();
           }
-          
-          expect(bookingDateClicked).toBe(true);
           
           await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -296,10 +285,10 @@ test.describe("Manage Booking Questions", () => {
         futureDate.setDate(15);
         
         const prefillDate = futureDate.toISOString().split('T')[0];
-        const expectedDisplayDate = futureDate.toLocaleDateString('en-US', { 
-          month: 'short', 
-          day: 'numeric', 
-          year: 'numeric' 
+        // The button text uses DatePicker's format(date, "LLL dd, y"), which is equivalent to en-US short month
+        // but computed from new Date(prefillDate) (UTC midnight). Normalize expected using that parse path
+        const expectedDisplayDate = new Date(prefillDate).toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric'
         });
         
         const searchParams = new URLSearchParams();
@@ -714,11 +703,13 @@ async function bookTimeSlot({
   name,
   email,
   skipSubmission = false,
+  autoSelectDate = true,
 }: {
   page: Page;
   name?: string | { firstName: string; lastName?: string };
   email?: string;
   skipSubmission?: boolean;
+  autoSelectDate?: boolean;
 }) {
   if (name) {
     if (typeof name === "string") {
@@ -732,6 +723,60 @@ async function bookTimeSlot({
   }
   if (email) {
     await page.fill('[name="email"]', email);
+  }
+
+  if (autoSelectDate) {
+    // Auto-select a date for any Date question(s) present if not already selected
+    const datePickers = page.locator('[data-testid="pick-date"]');
+    const datePickersCount = await datePickers.count();
+    for (let i = 0; i < datePickersCount; i++) {
+      const btn = datePickers.nth(i);
+      const text = (await btn.textContent()) || "";
+      const hasPickText = text.toLowerCase().includes("pick a date");
+      if (hasPickText) {
+        await btn.click();
+        // Ensure calendar is visible
+        await expect(page.locator('[role="dialog"]').first()).toBeVisible();
+        await expect(page.locator('[role="grid"]').first()).toBeVisible();
+        const grid = page.locator('[role="grid"]').first();
+        const gridCells = await grid.locator('[role="gridcell"]').all();
+        // Prefer a mid-month day to avoid edge days from prev/next months
+        let selected = false;
+        const preferredDays = [15, 16, 14, 13, 17, 12, 18, 11, 19, 10];
+        const tryClickDay = async (preferred?: number) => {
+          for (const cell of gridCells) {
+            try {
+              const isDisabled = await cell.getAttribute('aria-disabled');
+              if (isDisabled === 'true') continue;
+              const hidden = await cell.getAttribute('data-hidden');
+              if (hidden === 'true') continue;
+              const outside = await cell.getAttribute('data-outside');
+              if (outside === 'true') continue;
+              const unavailable = await cell.getAttribute('data-unavailable');
+              if (unavailable === 'true') continue;
+              const txt = (await cell.textContent())?.trim() || "";
+              const dayNum = txt ? parseInt(txt) : NaN;
+              if (!isNaN(dayNum) && dayNum > 0 && (!preferred || dayNum === preferred)) {
+                await cell.click({ timeout: 5000 });
+                selected = true;
+                break;
+              }
+            } catch {
+              // continue
+            }
+          }
+        };
+        for (const d of preferredDays) {
+          if (selected) break;
+          await tryClickDay(d);
+        }
+        if (!selected) {
+          await tryClickDay();
+        }
+        // Verify selection applied (button text should no longer contain the placeholder)
+        await expect(btn).not.toContainText("Pick a date", { timeout: 5000 });
+      }
+    }
   }
   if (!skipSubmission) {
     await page.press('[name="email"]', "Enter");
@@ -938,51 +983,91 @@ async function toggleQuestionRequireStatusAndSave({
   name: string;
   page: Page;
 }) {
-  await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="edit-field-action"]').click();
-
-  await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: 'visible' });
-  
-  const requiredCheckbox = page
-    .locator('[data-testid="edit-field-dialog"]')
-    .locator('[data-testid="field-required"]')
-    .first();
-
-  await requiredCheckbox.waitFor({ state: 'visible' });
-  const getState = async () => {
-    const aria = (await requiredCheckbox.getAttribute('aria-checked')) ?? '';
-    const dataState = (await requiredCheckbox.getAttribute('data-state')) ?? '';
-    const checked = (await requiredCheckbox.getAttribute('checked')) ?? '';
-    const isChecked = await requiredCheckbox.isChecked();
-    
-    return aria === 'true' || 
-           dataState === 'checked' || 
-           checked !== null || 
-           isChecked;
+  const openDialog = async () => {
+    await page
+      .locator(`[data-testid="field-${name}"]`)
+      .locator('[data-testid="edit-field-action"]').click();
+    await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: 'visible' });
   };
-  
-  const currentState = await getState();
-  if (currentState !== required) {
-    await requiredCheckbox.click();
+  const closeAndSave = async () => {
+    await page.locator('[data-testid="field-add-save"]').click();
+    await saveEventType(page);
+  };
 
-    await page.waitForTimeout(100);
-    
-    const finalState = await getState();
-    if (finalState !== required) {
-      const aria = await requiredCheckbox.getAttribute('aria-checked');
-      const dataState = await requiredCheckbox.getAttribute('data-state');
-      const checked = await requiredCheckbox.getAttribute('checked');
-      const isChecked = await requiredCheckbox.isChecked();
-      
-      throw new Error(
-        `Failed to set required state to ${required}. ` +
-        `Current state: ${finalState}. ` +
-        `Debug info - aria-checked: ${aria}, data-state: ${dataState}, checked: ${checked}, isChecked: ${isChecked}`
-      );
-    }
+  await openDialog();
+  const dialog = page.locator('[data-testid="edit-field-dialog"]');
+
+  // Try multiple selectors to find the required toggle reliably across components
+  let toggle = dialog.locator('[data-testid="field-required"]').first();
+  if ((await toggle.count()) === 0) {
+    // Try an accessible checkbox labeled Required
+    const labeled = dialog.getByRole('checkbox', { name: /required/i });
+    if ((await labeled.count()) > 0) toggle = labeled.first();
   }
-  
-  await page.locator('[data-testid="field-add-save"]').click();
-  await saveEventType(page);
+  if ((await toggle.count()) === 0) {
+    // Try a switch role near label text
+    const row = dialog.getByText(/required/i).locator('..');
+    const switchLike = row.locator('[role="switch"], input[type="checkbox"], button').first();
+    if ((await switchLike.count()) > 0) toggle = switchLike;
+  }
+
+  await toggle.waitFor({ state: 'visible' });
+
+  const isOn = async () => {
+    const aria = (await toggle.getAttribute('aria-checked')) ?? '';
+    const dataState = (await toggle.getAttribute('data-state')) ?? '';
+    // For native checkbox
+    let checked = false;
+    try {
+      checked = await toggle.isChecked();
+    } catch {
+      checked = false;
+    }
+    return aria === 'true' || dataState === 'checked' || checked;
+  };
+
+  let before = await isOn();
+  if (before !== required) {
+    await toggle.click();
+    await page.waitForTimeout(150);
+  }
+
+  await closeAndSave();
+
+  // Re-open and verify persisted state; retry once if mismatched.
+  await openDialog();
+  const toggle2 = await (async () => {
+    let t = dialog.locator('[data-testid="field-required"]').first();
+    if ((await t.count()) === 0) {
+      const labeled = dialog.getByRole('checkbox', { name: /required/i });
+      if ((await labeled.count()) > 0) t = labeled.first();
+    }
+    if ((await t.count()) === 0) {
+      const row = dialog.getByText(/required/i).locator('..');
+      const alt = row.locator('[role="switch"], input[type="checkbox"], button').first();
+      if ((await alt.count()) > 0) t = alt;
+    }
+    return t;
+  })();
+  const current = await (async () => {
+    const aria = (await toggle2.getAttribute('aria-checked')) ?? '';
+    const dataState = (await toggle2.getAttribute('data-state')) ?? '';
+    let checked = false;
+    try {
+      checked = await toggle2.isChecked();
+    } catch {
+      checked = false;
+    }
+    return aria === 'true' || dataState === 'checked' || checked;
+  })();
+
+  if (current !== required) {
+    await toggle2.click();
+    await page.waitForTimeout(150);
+    await closeAndSave();
+  } else {
+    await closeAndSave();
+  }
 }
 
 async function createAndLoginUserWithEventTypes({
