@@ -32,8 +32,7 @@ import { schemaPaymentPublic } from "~/lib/validations/payment";
  *                   $ref: "#/components/schemas/ArrayOfPayments"
  *       401:
  *         description: Authorization information is missing or invalid.
- *       404:
- *         description: No payments were found
+ *
  */
 async function allPayments({ userId }: NextApiRequest, res: NextApiResponse<PaymentsResponse>) {
   const userWithBookings = await prisma.user.findUnique({
@@ -46,13 +45,7 @@ async function allPayments({ userId }: NextApiRequest, res: NextApiResponse<Paym
   const data = await prisma.payment.findMany({ where: { bookingId: { in: bookingIds } } });
   const payments = data.map((payment) => schemaPaymentPublic.parse(payment));
 
-  if (payments) {
-    res.status(200).json({ payments });
-  } else {
-    res.status(404).json({
-      message: "No Payments were found",
-    });
-  }
+  res.status(200).json({ payments });
 }
 // NO POST FOR PAYMENTS FOR NOW
 export default withMiddleware("HTTP_GET")(allPayments);
