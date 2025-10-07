@@ -1,21 +1,20 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { OrganizationPaymentService } from "../OrganizationPaymentService";
 import { OrganizationPermissionService } from "../OrganizationPermissionService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
-import type { TeamInput, InvitedMemberInput, CreateOnboardingIntentInput } from "./types";
+import type { TeamInput, InvitedMemberInput, CreateOnboardingIntentInput, OnboardingUser } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["BaseOnboardingService"] });
 
 export abstract class BaseOnboardingService implements IOrganizationOnboardingService {
-  protected user: NonNullable<TrpcSessionUser>;
+  protected user: OnboardingUser;
   protected paymentService: OrganizationPaymentService;
   protected permissionService: OrganizationPermissionService;
 
   constructor(
-    user: NonNullable<TrpcSessionUser>,
+    user: OnboardingUser,
     paymentService?: OrganizationPaymentService,
     permissionService?: OrganizationPermissionService
   ) {

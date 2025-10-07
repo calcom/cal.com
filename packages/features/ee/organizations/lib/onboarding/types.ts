@@ -42,3 +42,9 @@ export type OnboardingIntentResult = {
   checkoutUrl: string | null;
   organizationId?: number | null;
 };
+
+export interface OnboardingUser {
+  id: number;
+  email: string;
+  role: "ADMIN" | "USER";
+}

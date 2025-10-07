@@ -7,6 +7,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { BillingEnabledOnboardingService } from "./BillingEnabledOnboardingService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
 import { SelfHostedOnboardingService } from "./SelfHostedOnboardingService";
+import type { OnboardingUser } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
 
@@ -17,7 +18,7 @@ const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
  * Otherwise, billing is enabled (Stripe flow).
  */
 export class OrganizationOnboardingFactory {
-  static create(user: NonNullable<TrpcSessionUser>): IOrganizationOnboardingService {
+  static create(user: OnboardingUser): IOrganizationOnboardingService {
     const isBillingEnabled = this.isBillingEnabled(user);
 
     log.debug(
@@ -38,7 +39,7 @@ export class OrganizationOnboardingFactory {
     }
   }
 
-  private static isBillingEnabled(user: NonNullable<TrpcSessionUser>): boolean {
+  private static isBillingEnabled(user: OnboardingUser): boolean {
     // E2E tests always use billing flow
     if (process.env.NEXT_PUBLIC_IS_E2E) {
       return true;
