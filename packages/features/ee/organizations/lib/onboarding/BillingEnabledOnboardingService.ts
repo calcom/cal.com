@@ -1,5 +1,6 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 import { BaseOnboardingService } from "./BaseOnboardingService";
 import type { CreateOnboardingIntentInput, OnboardingIntentResult } from "./types";
@@ -19,23 +20,30 @@ const log = logger.getSubLogger({ prefix: ["BillingEnabledOnboardingService"] })
 export class BillingEnabledOnboardingService extends BaseOnboardingService {
   async createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<OnboardingIntentResult> {
     log.debug(
-      "Starting billing-enabled onboarding flow",
+      "BillingEnabledOnboardingService.createOnboardingIntent - INPUT",
       safeStringify({
-        slug: input.slug,
-        teamsCount: input.teams?.length ?? 0,
-        invitesCount: input.invitedMembers?.length ?? 0,
+        invitedMembers: input.invitedMembers,
+        teams: input.teams,
       })
     );
 
-    // Step 1: Create onboarding record
     const organizationOnboarding = await this.createOnboardingRecord(input);
     const onboardingId = organizationOnboarding.id;
 
-    // Step 2: Filter and normalize teams/invites
     const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
 
-    // Step 3: Create Stripe payment intent with teams/invites
-    log.debug("Creating Stripe payment intent", safeStringify({ onboardingId }));
+    log.debug(
+      "BillingEnabledOnboardingService - After filterTeamsAndInvites",
+      safeStringify({
+        teamsData,
+        invitedMembersData,
+      })
+    );
+
+    await OrganizationOnboardingRepository.update(onboardingId, {
+      teams: teamsData,
+      invitedMembers: invitedMembersData,
+    });
 
     const paymentIntent = await this.paymentService.createPaymentIntent(
       {
@@ -58,12 +66,6 @@ export class BillingEnabledOnboardingService extends BaseOnboardingService {
       }
     );
 
-    log.debug(
-      "Payment intent created successfully",
-      safeStringify({ onboardingId, checkoutUrl: paymentIntent.checkoutUrl })
-    );
-
-    // Step 4: Return checkout URL (organization will be created after payment)
     return {
       userId: this.user.id,
       orgOwnerEmail: input.orgOwnerEmail,

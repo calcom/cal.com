@@ -10,6 +10,8 @@ export type TeamInput = {
 export type InvitedMemberInput = {
   email: string;
   name?: string;
+  teamId?: number;
+  teamName?: string;
 };
 
 export type CreateOnboardingIntentInput = {

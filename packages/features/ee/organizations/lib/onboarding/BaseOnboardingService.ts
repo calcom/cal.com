@@ -70,6 +70,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       .map((invite) => ({
         email: invite.email,
         name: invite.name,
+        teamId: invite.teamId,
+        teamName: invite.teamName,
       }));
 
     return { teamsData, invitedMembersData };

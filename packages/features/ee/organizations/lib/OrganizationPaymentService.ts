@@ -26,7 +26,7 @@ type CreatePaymentIntentInput = {
   brandColor?: string | null;
   bannerUrl?: string | null;
   teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
-  invitedMembers?: { email: string }[];
+  invitedMembers?: { email: string; name?: string; teamId?: number; teamName?: string }[];
 };
 
 type CreateOnboardingInput = {

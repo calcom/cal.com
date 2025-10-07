@@ -65,6 +65,8 @@ type TeamData = {
 type InvitedMember = {
   email: string;
   name?: string;
+  teamId?: number;
+  teamName?: string;
 };
 
 type OrgOwner = Awaited<ReturnType<typeof findUserToBeOrgOwner>>;
@@ -295,22 +297,152 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
   );
 }
 
-async function inviteMembers(invitedMembers: InvitedMember[], organization: Team) {
+async function inviteMembers(
+  invitedMembers: InvitedMember[],
+  organization: Team,
+  teamsData: TeamData[]
+) {
   if (invitedMembers.length === 0) return;
 
-  log.info(`Inviting ${invitedMembers.length} members to organization ${organization.id}`);
-  await inviteMembersWithNoInviterPermissionCheck({
-    inviterName: null,
-    teamId: organization.id,
-    language: "en",
-    creationSource: CreationSource.WEBAPP,
-    orgSlug: organization.slug || null,
-    invitations: invitedMembers.map((member) => ({
-      usernameOrEmail: member.email,
-      role: MembershipRole.MEMBER,
-    })),
-    isDirectUserAction: false,
+  log.info(
+    `Processing ${invitedMembers.length} member invites for organization ${organization.id}`,
+    safeStringify({
+      invitedMembers: invitedMembers.map((m) => ({
+        email: m.email,
+        teamId: m.teamId,
+        teamName: m.teamName,
+      })),
+    })
+  );
+
+  // Fetch all teams in this organization to map names to IDs
+  const createdTeams = await prisma.team.findMany({
+    where: {
+      parentId: organization.id,
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+    },
   });
+
+  log.info(
+    `Found ${createdTeams.length} teams in organization`,
+    safeStringify({
+      teams: createdTeams.map((t) => ({ id: t.id, name: t.name })),
+    })
+  );
+
+  // Build mapping from team names (case-insensitive) to team IDs
+  const teamNameToId = new Map<string, number>();
+  createdTeams.forEach((team) => {
+    teamNameToId.set(team.name.toLowerCase(), team.id);
+  });
+
+  // Build mapping from input teamIds to actual team IDs
+  // For new teams (id: -1), we need to map by name
+  const teamIdMap = new Map<number, number>();
+  teamsData.forEach((teamData) => {
+    if (teamData.isBeingMigrated) {
+      // Migrated teams keep their ID
+      teamIdMap.set(teamData.id, teamData.id);
+    } else {
+      // New teams need to be looked up by name
+      const createdTeam = createdTeams.find((t) => t.name === teamData.name);
+      if (createdTeam) {
+        teamIdMap.set(teamData.id, createdTeam.id);
+      }
+    }
+  });
+
+  // Group invites by target (organization or specific team)
+  const invitesToOrg: InvitedMember[] = [];
+  const invitesToTeams = new Map<number, InvitedMember[]>();
+
+  // Categorize each invited member
+  for (const member of invitedMembers) {
+    let targetTeamId: number | undefined;
+
+    // Try to resolve team by teamId first
+    if (member.teamId !== undefined) {
+      targetTeamId = teamIdMap.get(member.teamId) || member.teamId;
+      log.debug(
+        `Member ${member.email}: teamId ${member.teamId} -> resolved to ${targetTeamId}`
+      );
+    }
+    // Otherwise try by teamName
+    else if (member.teamName) {
+      targetTeamId = teamNameToId.get(member.teamName.toLowerCase());
+      log.debug(
+        `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${targetTeamId || "not found"}`
+      );
+    }
+
+    // Add to appropriate group
+    if (targetTeamId && createdTeams.some((t) => t.id === targetTeamId)) {
+      // Team-specific invite
+      if (!invitesToTeams.has(targetTeamId)) {
+        invitesToTeams.set(targetTeamId, []);
+      }
+      invitesToTeams.get(targetTeamId)!.push(member);
+      log.debug(`Member ${member.email} will be invited to team ${targetTeamId}`);
+    } else {
+      // Organization-level invite
+      invitesToOrg.push(member);
+      log.debug(`Member ${member.email} will be invited to organization (no team specified or team not found)`);
+    }
+  }
+
+  log.info(
+    "Invite categorization complete",
+    safeStringify({
+      orgInvites: invitesToOrg.length,
+      teamInvites: invitesToTeams.size,
+      teamBreakdown: Array.from(invitesToTeams.entries()).map(([teamId, members]) => ({
+        teamId,
+        count: members.length,
+        emails: members.map((m) => m.email),
+      })),
+    })
+  );
+
+  // Send organization-level invites
+  if (invitesToOrg.length > 0) {
+    log.info(`Inviting ${invitesToOrg.length} members to organization ${organization.id}`);
+    await inviteMembersWithNoInviterPermissionCheck({
+      inviterName: null,
+      teamId: organization.id,
+      language: "en",
+      creationSource: CreationSource.WEBAPP,
+      orgSlug: organization.slug || null,
+      invitations: invitesToOrg.map((member) => ({
+        usernameOrEmail: member.email,
+        role: MembershipRole.MEMBER,
+      })),
+      isDirectUserAction: false,
+    });
+  }
+
+  // Send team-specific invites
+  for (const [teamId, members] of Array.from(invitesToTeams.entries())) {
+    const teamName = createdTeams.find((t) => t.id === teamId)?.name || `team ${teamId}`;
+    log.info(`Inviting ${members.length} members to team "${teamName}" (${teamId})`);
+    await inviteMembersWithNoInviterPermissionCheck({
+      inviterName: null,
+      teamId: teamId,
+      language: "en",
+      creationSource: CreationSource.WEBAPP,
+      orgSlug: organization.slug || null,
+      invitations: members.map((member: InvitedMember) => ({
+        usernameOrEmail: member.email,
+        role: MembershipRole.MEMBER,
+      })),
+      isDirectUserAction: false,
+    });
+  }
+
+  log.info("All member invites processed successfully");
 }
 
 async function ensureStripeCustomerIdIsUpdated({
@@ -535,12 +667,18 @@ export const createOrganizationFromOnboarding = async ({
     paymentSubscriptionItemId,
   });
 
-  await inviteMembers(invitedMembersSchema.parse(organizationOnboarding.invitedMembers), organization);
+  // Parse teams data once for reuse
+  const teamsData = teamsSchema.parse(organizationOnboarding.teams);
 
-  await createOrMoveTeamsToOrganization(
-    teamsSchema.parse(organizationOnboarding.teams),
-    owner,
-    organization.id
+  // IMPORTANT: Create teams FIRST before inviting members
+  // This ensures team IDs exist when we need to invite members to specific teams
+  await createOrMoveTeamsToOrganization(teamsData, owner, organization.id);
+
+  // Now invite members - they can be assigned to specific teams
+  await inviteMembers(
+    invitedMembersSchema.parse(organizationOnboarding.invitedMembers),
+    organization,
+    teamsData
   );
 
   // If the organization was created with slug=null, then set the slug now, assuming that the team having the same slug is migrated now

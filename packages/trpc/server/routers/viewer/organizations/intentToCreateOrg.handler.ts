@@ -86,9 +86,11 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     restrictBasedOnMinimumPublishedTeams: !IS_USER_ADMIN,
   });
 
-  // Use the factory to get the appropriate onboarding service
-  // Factory returns either BillingEnabledOnboardingService or SelfHostedOnboardingService
-  const onboardingService = OrganizationOnboardingFactory.create(ctx.user);
+  const onboardingService = OrganizationOnboardingFactory.create({
+    id: ctx.user.id,
+    email: ctx.user.email,
+    role: ctx.user.role,
+  });
   const result = await onboardingService.createOnboardingIntent(input);
 
   log.debug("Organization creation intent successful", safeStringify({ slug, orgOwnerId: orgOwner.id }));
