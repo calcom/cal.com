@@ -1,16 +1,20 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { TeamBillingInfo, TeamMetadata, TeamPaymentHistory } from "@calcom/features/teams/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Team } from "@calcom/prisma/client";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
 import { Form } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+
+type Metadata = z.infer<typeof teamMetadataSchema>;
 
 type FormValues = {
   name: Team["name"];
@@ -25,7 +29,7 @@ export const TeamForm = ({
     id: number;
     name: string;
     slug: string | null;
-    metadata: Team["metadata"];
+    metadata: Metadata;
     isOrganization: boolean;
     parentId: number | null;
   };
@@ -97,7 +101,7 @@ export const AdminTeamEditPage = ({
     id: number;
     name: string;
     slug: string | null;
-    metadata: Team["metadata"];
+    metadata: Metadata;
     isOrganization: boolean;
     parentId: number | null;
   };

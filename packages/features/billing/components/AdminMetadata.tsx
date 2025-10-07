@@ -75,8 +75,8 @@ export const AdminMetadata = ({
     );
   }
 
-  const metadataObj = metadata as Metadata;
-  const entries = Object.entries(metadataObj);
+  const metadataObj = metadata;
+  const entries = Object.entries(metadataObj) as [string, unknown][];
 
   const hasChanges = Object.keys(editedValues).length > 0;
 
@@ -276,7 +276,7 @@ export const AdminMetadata = ({
             <p className="text-default text-sm">You are about to update the following metadata fields:</p>
             <div className="bg-muted border-muted max-h-[400px] space-y-3 overflow-y-auto rounded border p-3">
               {Object.entries(editedValues).map(([key, value]) => {
-                const oldValue = metadataObj[key];
+                const oldValue = metadataObj?.[key as keyof typeof metadataObj];
 
                 return (
                   <div key={key} className="space-y-2">
@@ -286,7 +286,7 @@ export const AdminMetadata = ({
                       <div className="flex items-start gap-2">
                         <div className="flex-1 rounded border border-red-200 bg-red-50 p-2">
                           <div className="break-all font-mono text-xs text-red-900">
-                            {oldValue || "(empty)"}
+                            {String(oldValue ?? "(empty)")}
                           </div>
                         </div>
                       </div>
