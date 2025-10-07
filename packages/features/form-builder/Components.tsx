@@ -115,11 +115,10 @@ function EmailWithTypoCheck({
   return (
     <div>
       <EmailField
-        id={`${name || "email"}.${index}`}
         disabled={readOnly}
         value={localEmail}
         onChange={(e) => {
-          const newValue = e.target.value.toLowerCase();
+          const newValue = e.target.value;
           setLocalEmail(newValue);
           const newArray = [...value];
           newArray[index] = newValue;
@@ -128,15 +127,19 @@ function EmailWithTypoCheck({
         placeholder={placeholder}
         label={<></>}
         required
-        onClickAddon={() => {
-          const newArray = [...value];
-          newArray.splice(index, 1);
-          setValue(newArray);
-        }}
+        id={`${name || "email"}.${index}`}
         addOnSuffix={
           !readOnly ? (
             <Tooltip content={t("form_builder_remove_email")}>
-              <button className="m-1" type="button">
+              <button
+                className="m-1"
+                type="button"
+                aria-label="Remove guest"
+                onClick={() => {
+                  const newArray = [...value];
+                  newArray.splice(index, 1);
+                  setValue(newArray);
+                }}>
                 <Icon name="x" width={12} className="text-default" />
               </button>
             </Tooltip>
@@ -290,9 +293,9 @@ export const Components: Record<FieldType, Component> = {
         <>
           <InputField
             type="email"
-            id={props.name}
             noLabel={true}
             {...props}
+            id={props.name}
             value={email}
             onChange={(e) => {
               const newEmail = e.target.value;
@@ -339,9 +342,7 @@ export const Components: Record<FieldType, Component> = {
         <>
           {value.length ? (
             <div>
-              <label htmlFor="guests" className="text-default mb-1 block text-sm font-medium">
-                {label}
-              </label>
+              <div className="text-default mb-1 block text-sm font-medium">{label}</div>
               <ul>
                 {value.map((email, index) => (
                   <li key={index}>
