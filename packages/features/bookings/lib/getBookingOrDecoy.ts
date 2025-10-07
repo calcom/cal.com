@@ -1,3 +1,4 @@
+import { PrismaDecoyBookingRepository } from "@calcom/lib/server/repository/PrismaDecoyBookingRepository";
 import prisma from "@calcom/prisma";
 
 /**
@@ -81,20 +82,8 @@ export async function getBookingOrDecoyForViewing(uid: string) {
     return regularBooking;
   }
 
-  const decoyBooking = await prisma.decoyBooking.findUnique({
-    where: { uid },
-    include: {
-      eventType: {
-        select: {
-          eventName: true,
-          slug: true,
-          timeZone: true,
-          schedulingType: true,
-          hideOrganizerEmail: true,
-        },
-      },
-    },
-  });
+  const decoyBookingRepo = new PrismaDecoyBookingRepository(prisma);
+  const decoyBooking = await decoyBookingRepo.getByUidForViewing(uid);
 
   if (!decoyBooking) {
     return null;

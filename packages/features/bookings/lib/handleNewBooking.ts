@@ -62,6 +62,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { PrismaDecoyBookingRepository } from "@calcom/lib/server/repository/PrismaDecoyBookingRepository";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
@@ -300,30 +301,36 @@ export const buildDecoyBooking = async ({
     return `${sanitizedLocal}@${sanitizedDomain}`;
   };
 
-  const decoyBooking = await prisma.decoyBooking.create({
-    data: {
-      uid: short.uuid(),
-      title: eventName,
-      startTime: new Date(startTime),
-      endTime: new Date(endTime),
-      location: location || "Online Meeting",
-      status: BookingStatus.ACCEPTED,
-      organizerName: organizerUser.name || "Organizer",
-      organizerEmail: sanitizeEmail(organizerUser.email),
-      attendees: [
-        {
-          name: bookerName,
-          email: sanitizeEmail(bookerEmail),
-          timeZone: "UTC",
-          phoneNumber: "***-***-****",
-        },
-      ],
-      responses: responses,
-      metadata: {},
-      description: null,
-      eventTypeId: eventTypeId,
-      watchlistEventAuditId: watchlistEventAuditId,
-    },
+  const decoyBookingRepo = new PrismaDecoyBookingRepository();
+  const decoyBooking = await decoyBookingRepo.create({
+    title: eventName,
+    startTime: new Date(startTime),
+    endTime: new Date(endTime),
+    location: location || "Online Meeting",
+    status: BookingStatus.ACCEPTED,
+    organizerName: organizerUser.name || "Organizer",
+    organizerEmail: sanitizeEmail(organizerUser.email),
+    attendees: [
+      {
+        name: bookerName,
+        email: sanitizeEmail(bookerEmail),
+        timeZone: "UTC",
+        phoneNumber: "***-***-****",
+      },
+    ],
+    responses: responses,
+    metadata: {},
+    description: null,
+    ...(eventTypeId && {
+      eventType: {
+        connect: { id: eventTypeId },
+      },
+    }),
+    ...(watchlistEventAuditId && {
+      watchlistEventAudit: {
+        connect: { id: watchlistEventAuditId },
+      },
+    }),
   });
 
   return decoyBooking;
