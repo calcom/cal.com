@@ -1,7 +1,7 @@
 import { captureException } from "@sentry/nextjs";
 
 import db from "@calcom/prisma";
-import { WatchlistType, WatchlistSeverity } from "@calcom/prisma/enums";
+import { WatchlistType } from "@calcom/prisma/enums";
 
 import type { IWatchlistRepository } from "./watchlist.repository.interface";
 
@@ -11,7 +11,6 @@ export class WatchlistRepository implements IWatchlistRepository {
     try {
       const emailInWatchlist = await db.watchlist.findFirst({
         where: {
-          severity: WatchlistSeverity.CRITICAL,
           OR: [
             { type: WatchlistType.EMAIL, value: email },
             { type: WatchlistType.DOMAIN, value: domain },
@@ -53,7 +52,6 @@ export class WatchlistRepository implements IWatchlistRepository {
     try {
       const blockedRecords = await db.watchlist.findMany({
         where: {
-          severity: WatchlistSeverity.CRITICAL,
           OR: [
             ...(usernames.length > 0
               ? [
