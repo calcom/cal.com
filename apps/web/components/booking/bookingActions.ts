@@ -172,8 +172,8 @@ export function getReportAction(context: BookingActionContext): ActionType | nul
     return null;
   }
 
-  // For cancelled/rejected: only show if others already reported
-  if ((isCancelled || isRejected) && (!booking.reports || booking.reports.length === 0)) {
+  // Don't allow reporting cancelled or rejected bookings
+  if (isCancelled || isRejected) {
     return null;
   }
 

@@ -42,14 +42,12 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
   }
 
-  // Check cancellation status - allow reporting cancelled bookings ONLY if others already reported
+  // Prevent reporting cancelled or rejected bookings
   if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
-    if (booking.reports.length === 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cannot report cancelled or rejected bookings",
-      });
-    }
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Cannot report cancelled or rejected bookings",
+    });
   }
 
   const userReport = booking.reports.find((r) => r.reportedById === user.id);
@@ -111,11 +109,13 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   const reportedBooking = { id: reportedBookingIds[0] };
 
   let cancellationError = null;
+  let cancellationAttempted = false;
   if (
     cancelBooking &&
     (booking.status === BookingStatus.ACCEPTED || booking.status === BookingStatus.PENDING) &&
     new Date(booking.startTime) > new Date()
   ) {
+    cancellationAttempted = true;
     try {
       const userSeat = booking.seatsReferences.find((seat) => seat.attendee?.email === user.email);
       const seatReferenceUid = userSeat?.referenceUid;
@@ -147,7 +147,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     success: true,
     message: cancellationError
       ? `${baseMessage} successfully, but cancellation failed`
-      : cancelBooking
+      : cancellationAttempted
       ? `${baseMessage} and cancelled successfully`
       : `${baseMessage} successfully`,
     bookingId: reportedBooking.id,
