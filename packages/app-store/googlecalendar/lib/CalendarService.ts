@@ -38,7 +38,7 @@ interface GoogleCalError extends Error {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
- 
+
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 
@@ -203,13 +203,13 @@ export default class GoogleCalendarService implements Calendar {
       },
       attendees: this.getAttendees({ event: calEvent, hostExternalCalendarId: externalCalendarId }),
       reminders:
-        customReminderMinutes && Number.isFinite(customReminderMinutes)
+        customReminderMinutes !== undefined && Number.isFinite(customReminderMinutes)
           ? {
               useDefault: false,
               overrides: [
                 {
                   method: "popup",
-                  minutes: Math.max(0, Math.floor(customReminderMinutes as number)),
+                  minutes: Math.max(0, Math.floor(customReminderMinutes)),
                 },
               ],
             }
@@ -381,13 +381,13 @@ export default class GoogleCalendarService implements Calendar {
       },
       attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
       reminders:
-        updateCustomReminderMinutes && Number.isFinite(updateCustomReminderMinutes)
+        updateCustomReminderMinutes !== undefined && Number.isFinite(updateCustomReminderMinutes)
           ? {
               useDefault: false,
               overrides: [
                 {
                   method: "popup",
-                  minutes: Math.max(0, Math.floor(updateCustomReminderMinutes as number)),
+                  minutes: Math.max(0, Math.floor(updateCustomReminderMinutes)),
                 },
               ],
             }
