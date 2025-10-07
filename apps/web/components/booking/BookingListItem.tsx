@@ -52,6 +52,7 @@ import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -60,6 +61,7 @@ import {
   getCancelEventAction,
   getEditEventActions,
   getAfterEventActions,
+  getReportAction,
   shouldShowPendingActions,
   shouldShowEditActions,
   shouldShowRecurringCancelAction,
@@ -292,6 +294,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
+  const [isOpenReportDialog, setIsOpenReportDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
@@ -402,6 +405,14 @@ function BookingListItem(booking: BookingItemProps) {
       (action.id === "view_recordings" && !booking.isRecorded),
   })) as ActionType[];
 
+  const reportAction = getReportAction(actionContext);
+  const reportActionWithHandler = reportAction
+    ? {
+        ...reportAction,
+        onClick: () => setIsOpenReportDialog(true),
+      }
+    : null;
+
   return (
     <>
       <RescheduleDialog
@@ -429,6 +440,12 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenAddGuestsDialog}
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
+      />
+      <ReportBookingDialog
+        isOpenDialog={isOpenReportDialog}
+        setIsOpenDialog={setIsOpenReportDialog}
+        bookingId={booking.id}
+        isRecurring={isRecurring}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
@@ -685,6 +702,21 @@ function BookingListItem(booking: BookingItemProps) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     ))}
+                    {reportActionWithHandler && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="rounded-lg" key={reportActionWithHandler.id}>
+                          <DropdownItem
+                            type="button"
+                            color={reportActionWithHandler.color}
+                            StartIcon={reportActionWithHandler.icon}
+                            onClick={reportActionWithHandler.onClick}
+                            data-testid={reportActionWithHandler.id}>
+                            {reportActionWithHandler.label}
+                          </DropdownItem>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="rounded-lg"
@@ -775,6 +807,13 @@ const BookingItemBadges = ({
       )}
       {booking?.assignmentReason.length > 0 && (
         <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
+      )}
+      {booking.reports && booking.reports.length > 0 && (
+        <Badge className="ltr:mr-2 rtl:ml-2" variant="red">
+          {booking.reportedByCurrentUser
+            ? t("reported_by_you")
+            : t("reported_count", { count: booking.reports.length })}
+        </Badge>
       )}
       {booking.paid && !booking.payment[0] ? (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
