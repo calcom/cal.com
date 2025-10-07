@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 export default function BookingSuccessful() {
   const { t } = useLocale();

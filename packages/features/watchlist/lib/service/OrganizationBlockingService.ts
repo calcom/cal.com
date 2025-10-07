@@ -1,6 +1,7 @@
 import type { IAuditService } from "../interface/IAuditService";
 import type { IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
 import type { Watchlist, WatchlistType } from "../types";
+import { normalizeEmail, extractDomainFromEmail } from "../utils/normalization";
 
 export interface OrganizationBlockingResult {
   isBlocked: boolean;
@@ -19,12 +20,14 @@ export class OrganizationBlockingService {
   ) {}
 
   async isEmailBlocked(email: string, organizationId: number): Promise<OrganizationBlockingResult> {
+    const normalizedEmail = normalizeEmail(email);
+
     // Check for exact email match
-    const emailEntry = await this.orgRepo.findBlockedEmail(email, organizationId);
+    const emailEntry = await this.orgRepo.findBlockedEmail(normalizedEmail, organizationId);
     if (emailEntry) {
       if (this.auditService) {
         await this.auditService.logBlockedBookingAttempt({
-          email,
+          email: normalizedEmail,
           organizationId,
           watchlistId: emailEntry.id,
         });
@@ -38,24 +41,22 @@ export class OrganizationBlockingService {
     }
 
     // Check for domain match
-    const domain = email.split("@")[1];
-    if (domain) {
-      const domainEntry = await this.orgRepo.findBlockedDomain(`@${domain}`, organizationId);
-      if (domainEntry) {
-        if (this.auditService) {
-          await this.auditService.logBlockedBookingAttempt({
-            email,
-            organizationId,
-            watchlistId: domainEntry.id,
-          });
-        }
-
-        return {
-          isBlocked: true,
-          reason: "DOMAIN" as WatchlistType,
-          watchlistEntry: domainEntry,
-        };
+    const normalizedDomain = extractDomainFromEmail(normalizedEmail);
+    const domainEntry = await this.orgRepo.findBlockedDomain(normalizedDomain, organizationId);
+    if (domainEntry) {
+      if (this.auditService) {
+        await this.auditService.logBlockedBookingAttempt({
+          email: normalizedEmail,
+          organizationId,
+          watchlistId: domainEntry.id,
+        });
       }
+
+      return {
+        isBlocked: true,
+        reason: "DOMAIN" as WatchlistType,
+        watchlistEntry: domainEntry,
+      };
     }
 
     return { isBlocked: false };
