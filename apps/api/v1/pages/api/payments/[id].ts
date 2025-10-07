@@ -46,25 +46,23 @@ export async function paymentById(
   if (safeQuery.success && method === "GET") {
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
-      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       include: { bookings: true },
     });
-    await prisma.payment
-      .findUnique({ where: { id: safeQuery.data.id } })
-      .then((data) => schemaPaymentPublic.parse(data))
-      .then((payment) => {
-        if (!userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
-          res.status(401).json({ message: "Unauthorized" });
-        } else {
-          res.status(200).json({ payment });
-        }
-      })
-      .catch((error: Error) =>
-        res.status(404).json({
-          message: `Payment with id: ${safeQuery.data.id} not found`,
-          error,
-        })
-      );
+    const data = await prisma.payment.findUnique({ where: { id: safeQuery.data.id } });
+
+    if (!data) {
+      return res.status(404).json({
+        message: `Payment with id: ${safeQuery.data.id} not found`,
+      });
+    }
+
+    const payment = schemaPaymentPublic.parse(data);
+
+    if (!userWithBookings?.bookings.map((b) => b.id).includes(payment.bookingId)) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    res.status(200).json({ payment });
   }
 }
 export default withMiddleware("HTTP_GET")(withValidQueryIdTransformParseInt(paymentById));
