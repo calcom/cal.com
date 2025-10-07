@@ -58,13 +58,15 @@ export function AgentConfigForm({
 
   return (
     <div className="space-y-4">
-      <EventTypeSelector
-        control={form.control}
-        name="eventTypeId"
-        disabled={readOnly}
-        eventTypeOptions={eventTypeOptions}
-        callType={callType}
-      />
+      {callType === "outgoing" && (
+        <EventTypeSelector
+          control={form.control}
+          name="eventTypeId"
+          disabled={readOnly}
+          eventTypeOptions={eventTypeOptions}
+          callType={callType}
+        />
+      )}
       <LanguageSelector control={form.control} name="language" disabled={readOnly} />
 
       <VoiceSelector
@@ -74,7 +76,7 @@ export function AgentConfigForm({
       />
 
       <div>
-        <Label className="text-emphasis mb-1 block text-sm font-medium">{t("initial_message")} *</Label>
+        <Label className="block mb-1 text-sm font-medium text-emphasis">{t("initial_message")} *</Label>
         <p className="text-subtle mb-1.5 text-xs">{t("initial_message_description")}</p>
         <Input
           type="text"
@@ -86,10 +88,10 @@ export function AgentConfigForm({
 
       <div>
         <div className="mb-1.5">
-          <Label className="text-emphasis mb-1 block text-sm font-medium">{t("general_prompt")} *</Label>
-          <p className="text-subtle text-xs">{t("general_prompt_description")}</p>
+          <Label className="block mb-1 text-sm font-medium text-emphasis">{t("general_prompt")} *</Label>
+          <p className="text-xs text-subtle">{t("general_prompt_description")}</p>
         </div>
-        <div className="flex items-center justify-between rounded-t-lg border border-b-0 p-2">
+        <div className="flex justify-between items-center p-2 rounded-t-lg border border-b-0">
           {!readOnly && (
             <AddVariablesDropdown
               addVariable={addVariableToGeneralPrompt}

@@ -99,6 +99,7 @@ export function AgentConfigurationSheet({
       beginMessage: data.beginMessage,
       language: data.language as Language,
       voiceId: data.voiceId,
+      eventTypeId: data.eventTypeId,
     };
 
     await updateAgentMutation.mutateAsync({
