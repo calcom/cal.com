@@ -105,6 +105,7 @@ function EmailWithTypoCheck({
 }) {
   const [localEmail, setLocalEmail] = useState(email);
   const suggestion = useEmailTypoDetection(localEmail);
+  const { t } = useLocale();
 
   // Sync with prop changes
   useEffect(() => {
@@ -114,7 +115,7 @@ function EmailWithTypoCheck({
   return (
     <div>
       <EmailField
-        id={`${name}.${index}`}
+        id={`${name || "email"}.${index}`}
         disabled={readOnly}
         value={localEmail}
         onChange={(e) => {
@@ -134,7 +135,7 @@ function EmailWithTypoCheck({
         }}
         addOnSuffix={
           !readOnly ? (
-            <Tooltip content="Remove email">
+            <Tooltip content={t("form_builder_remove_email")}>
               <button className="m-1" type="button">
                 <Icon name="x" width={12} className="text-default" />
               </button>
@@ -276,6 +277,10 @@ export const Components: Record<FieldType, Component> = {
     factory: (props) => {
       const [email, setEmail] = useState((props.value as string) || "");
       const suggestion = useEmailTypoDetection(email);
+
+      useEffect(() => {
+        setEmail((props.value as string) || "");
+      }, [props.value]);
 
       if (!props) {
         return <div />;
