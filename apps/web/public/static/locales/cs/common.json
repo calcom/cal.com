@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "E-mail organizátora",
   "webhook_organizer_timezone": "Časové pásmo organizátora (např. 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Lokalizace organizátora (např. 'en', 'fr')",
+  "webhook_organizer_username": "Uživatelské jméno organizátora (např. 'john.doe')",
+  "webhook_organizer_username_in_org": "Uživatelské jméno organizátora v jeho organizaci (např. 'john.doe')",
   "webhook_attendee_name": "Jméno prvního účastníka",
   "webhook_attendee_email": "E-mail prvního účastníka",
   "webhook_attendee_timezone": "Časové pásmo prvního účastníka",
