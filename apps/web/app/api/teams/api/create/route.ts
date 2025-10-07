@@ -8,7 +8,7 @@ import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipSchema } from "@calcom/prisma/zod/modelSchema/MembershipSchema";
 import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
