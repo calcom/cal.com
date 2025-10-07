@@ -41,10 +41,8 @@ import {
   type SplitNameDefaultFieldOutput_2024_06_14,
   type UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import {
-  FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE,
-  HAS_MISSING_ACTIVE_BOOKER_LIMIT_ERROR_MESSAGE,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
+import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
+import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
 import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
@@ -1496,9 +1494,7 @@ describe("Event types Endpoints", () => {
             .send(body)
             .expect(400);
 
-          expect(response.body.error.message.includes(HAS_MISSING_ACTIVE_BOOKER_LIMIT_ERROR_MESSAGE)).toBe(
-            true
-          );
+          expect(response.body.error.message.includes(REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR)).toBe(true);
         });
       });
 

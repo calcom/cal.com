@@ -6,9 +6,6 @@ import { BaseCreateEventTypeInput } from "../create-event-type.input";
 export const FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE =
   "Can't have `recurrence` and `bookerActiveBookingsLimit` enabled at the same time - recurring events do not support maximum active bookings limit setting.";
 
-export const HAS_MISSING_ACTIVE_BOOKER_LIMIT_ERROR_MESSAGE =
-  "If you pass disabled: false to bookerActiveBookingsLimit, you must provide maximumActiveBookings and / or offerReschedule.";
-
 export function CantHaveRecurrenceAndBookerActiveBookingsLimit(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (object: any) {
@@ -31,12 +28,6 @@ export function CantHaveRecurrenceAndBookerActiveBookingsLimit(validationOptions
 
           if (hasActiveRecurrence && hasActiveBookerLimit) {
             throw new BadRequestException(FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE);
-          }
-
-          const hasMissingActiveBookerLimit =
-            obj?.bookerActiveBookingsLimit?.disabled === false && !hasActiveBookerLimit;
-          if (hasMissingActiveBookerLimit) {
-            throw new BadRequestException(HAS_MISSING_ACTIVE_BOOKER_LIMIT_ERROR_MESSAGE);
           }
           return true;
         },

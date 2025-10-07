@@ -21,6 +21,7 @@ import {
 
 import { SchedulingType } from "@calcom/platform-enums";
 
+import { RequiresAtLeastOnePropertyWhenNotDisabled } from "../../../utils/RequiresOneOfPropertiesWhenNotDisabled";
 import { BookerActiveBookingsLimit_2024_06_14 } from "./booker-active-booking-limit.input";
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
 import {
@@ -303,12 +304,13 @@ export class BaseCreateEventTypeInput {
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
+  @RequiresAtLeastOnePropertyWhenNotDisabled()
   @Transform(({ value }) => {
     if (value && typeof value === "object") {
-      if ("maximumActiveBookings" in value || "offerReschedule" in value) {
-        return Object.assign(new BookerActiveBookingsLimit_2024_06_14(), value);
-      } else if ("disabled" in value) {
+      if ("disabled" in value && value.disabled) {
         return Object.assign(new Disabled_2024_06_14(), value);
+      } else {
+        return Object.assign(new BookerActiveBookingsLimit_2024_06_14(), value);
       }
     }
     return value;
