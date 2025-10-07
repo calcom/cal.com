@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { shallow } from "zustand/shallow";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
@@ -176,12 +177,16 @@ export const useBookings = ({
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
 
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const [rescheduleUid, setRescheduleUid] = useBookerStoreContext(
+    (state) => [state.rescheduleUid, state.setRescheduleUid],
+    shallow
+  );
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
-  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const [bookingData, setBookingData] = useBookerStoreContext(
+    (state) => [state.bookingData, state.setBookingData],
+    shallow
+  );
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
-  const setBookingData = useBookerStoreContext((state) => state.setBookingData);
-  const setRescheduleUid = useBookerStoreContext((state) => state.setRescheduleUid);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
