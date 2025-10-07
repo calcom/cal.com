@@ -51,6 +51,7 @@ const createMockStore = (initialState?: Partial<BookerStore>): StoreApi<BookerSt
     bookingUid: null,
     bookingData: null,
     setBookingData: vi.fn(),
+    setRescheduleUid: vi.fn(),
     initialize: vi.fn(),
     formValues: {},
     setFormValues: vi.fn(),

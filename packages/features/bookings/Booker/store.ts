@@ -138,6 +138,7 @@ export type BookerStore = {
    * object is something that's fetched server side.
    */
   rescheduleUid: string | null;
+  setRescheduleUid: (rescheduleUid: string | null) => void;
   rescheduledBy: string | null;
   bookingUid: string | null;
   bookingData: GetBookingType | null;
@@ -414,6 +415,9 @@ export const createBookerStore = () =>
     },
     setBookingData: (bookingData: GetBookingType | null | undefined) => {
       set({ bookingData: bookingData ?? null });
+    },
+    setRescheduleUid: (rescheduleUid: string | null) => {
+      set({ rescheduleUid });
     },
     recurringEventCount: null,
     setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
