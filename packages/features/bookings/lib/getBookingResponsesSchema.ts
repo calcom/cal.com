@@ -106,17 +106,21 @@ function preprocess<T extends z.ZodType>({
             optionValue: "",
             value: "",
           };
+          let isParseSuccessful = true;
           try {
             parsedValue = JSON.parse(value);
           } catch {
-            // If parsing fails, we don't add the field to newResponses
+            // Parsing failed; skip setting this field to avoid introducing invalid structure
+            isParseSuccessful = false;
           }
-          const optionsInputs = field.optionsInputs;
-          const optionInputField = optionsInputs?.[parsedValue.value];
-          if (optionInputField && optionInputField.type === "phone") {
-            parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
+          if (isParseSuccessful) {
+            const optionsInputs = field.optionsInputs;
+            const optionInputField = optionsInputs?.[parsedValue.value];
+            if (optionInputField && optionInputField.type === "phone") {
+              parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
+            }
+            newResponses[field.name] = parsedValue;
           }
-          newResponses[field.name] = parsedValue;
         } else if (field.type === "phone") {
           newResponses[field.name] = ensureValidPhoneNumber(value);
         } else {
@@ -352,16 +356,14 @@ function preprocess<T extends z.ZodType>({
         if (!emailConfirmation) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Invalid input",
-            path: ["emailConfirmation"],
+            message: "{emailConfirmation}error_required_field",
           });
         }
         // check if emails don't match
         else if (email && emailConfirmation && email !== emailConfirmation) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Invalid input",
-            path: ["emailConfirmation"],
+            message: "{emailConfirmation}email_confirmation_mismatch_error",
           });
         }
       }
