@@ -41,20 +41,18 @@ describe("reportBookingHandler", () => {
     reports: [],
   };
 
-  let mockBookingRepo: any;
-  let mockReportRepo: any;
+  const mockBookingRepo = {
+    doesUserIdHaveAccessToBooking: vi.fn(),
+    getBookingForReporting: vi.fn(),
+  };
+
+  const mockReportRepo = {
+    createReport: vi.fn(),
+    hasUserReportedSeries: vi.fn(),
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
-
-    mockBookingRepo = {
-      doesUserIdHaveAccessToBooking: vi.fn(),
-      getBookingForReporting: vi.fn(),
-    };
-    mockReportRepo = {
-      createReport: vi.fn(),
-      hasUserReportedSeries: vi.fn(),
-    };
 
     vi.mocked(BookingRepository).mockImplementation(() => mockBookingRepo);
     vi.mocked(BookingReportRepository).mockImplementation(() => mockReportRepo);
