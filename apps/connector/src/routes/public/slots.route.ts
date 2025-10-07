@@ -15,7 +15,6 @@ export async function slotsRoutes(fastify: FastifyInstance) {
   fastify.get(
     "/",
     {
-      preHandler: AuthGuards.authenticateFlexible(),
       schema: {
         description: "Get available slots for an event type or users",
         tags: ["Slots"],

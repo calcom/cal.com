@@ -2414,6 +2414,8 @@ model InternalNotePreset {
 
   createdAt           DateTime              @default(now())
   BookingInternalNote BookingInternalNote[]
+  calIdTeam           CalIdTeam?            @relation(fields: [calIdTeamId], references: [id], onDelete: Cascade)
+  calIdTeamId         Int?
 
   @@unique([teamId, name])
   @@index([teamId])
@@ -2589,6 +2591,7 @@ model CalIdTeam {
   activeWorkflows          CalIdWorkflowsOnTeams[]
   roundRobinResetInterval  RoundRobinResetInterval?  @default(MONTH)
   roundRobinTimestampBasis RoundRobinTimestampBasis? @default(CREATED_AT)
+  internalNotePresets      InternalNotePreset[]
 
   @@unique([slug])
 }
@@ -2650,6 +2653,7 @@ model CalIdWorkflowStep {
   numberVerificationPending Boolean                 @default(true)
   includeCalendarEvent      Boolean                 @default(false)
   verifiedAt                DateTime?
+
   @@index([workflowId])
 }
 

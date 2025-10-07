@@ -15,7 +15,6 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
   const availabilityService = new AvailabilityService(prisma);
   // Route with specific auth methods allowed
   fastify.get('/', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Get current user availability',
       tags: ['Availability'],
@@ -45,7 +44,6 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
   }),
 
   fastify.post('/', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Create availability for the current user and given schedule',
       tags: ['Availability'],
@@ -65,7 +63,6 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
   }),
 
   fastify.delete<{ Params: { availability: string } }>('/:availability', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Delete an availability',
       tags: ['Availability'],
@@ -91,7 +88,6 @@ export async function availabilityRoutes(fastify: FastifyInstance): Promise<void
   })
 
   fastify.patch<{ Params: { availability: string } }>('/:availability', { 
-    preHandler: AuthGuards.authenticateFlexible(),
     schema: {
       description: 'Update an availability',
       tags: ['Availability'],

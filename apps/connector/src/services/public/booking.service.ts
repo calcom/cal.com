@@ -33,9 +33,9 @@ export class BookingService extends BaseService {
     }
   }
 
-  async getBookingById(id: number, expand: string[] = []) {
+  async getBookingById(id: number) {
     try {
-      const booking = await this.bookingRepository.getBookingById(id, expand);
+      const booking = await this.bookingRepository.getBookingById(id);
       return booking;
     } catch (error) {
       this.logError("getBookingById", error);
@@ -54,6 +54,7 @@ export class BookingService extends BaseService {
   }
 
   async getOAuthClientParams(eventTypeId: number) {
+    
     const eventType = await this.eventTypesRepository.findById(eventTypeId);
 
     let oAuthClient: PlatformOAuthClient | null = null;
@@ -79,6 +80,23 @@ export class BookingService extends BaseService {
     }
     return undefined;
   }
+
+  async getOAuthClientParamsByUserId(userId: number) {
+    const oAuthClient = await this.oAuthClientRepository.getByUserId(userId);
+    if (oAuthClient) {
+      return {
+        platformClientId: oAuthClient.id,
+        platformCancelUrl: oAuthClient.bookingCancelRedirectUri,
+        platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
+        platformBookingUrl: oAuthClient.bookingRedirectUri,
+        arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
+        areCalendarEventsEnabled: oAuthClient.areCalendarEventsEnabled,
+      };
+    }
+    return undefined;
+  }
+
+ 
 
   async bookingExists(userId: number, id: number): Promise<boolean> {
     try {
@@ -172,9 +190,9 @@ export class BookingService extends BaseService {
       userId: resolvedUserId,
       headers: { host: headers.host },
       platformClientId: platformClientParams?.platformClientId,
-      platformRescheduleUrl: platformClientParams?.platformRescheduleUrl,
-      platformCancelUrl: platformClientParams?.platformCancelUrl,
-      platformBookingUrl: platformClientParams?.platformBookingUrl,
+      platformRescheduleUrl: platformClientParams?.platformRescheduleUrl ?? undefined,
+      platformCancelUrl: platformClientParams?.platformCancelUrl ?? undefined,
+      platformBookingUrl: platformClientParams?.platformBookingUrl ?? undefined,
       platformBookingLocation: (booking as any).location || undefined,
       arePlatformEmailsEnabled: platformClientParams?.arePlatformEmailsEnabled ?? true,
       areCalendarEventsEnabled: platformClientParams?.areCalendarEventsEnabled ?? true,
