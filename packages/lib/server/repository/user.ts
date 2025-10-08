@@ -843,6 +843,8 @@ export class UserRepository {
       select: {
         completedOnboarding: true,
         metadata: true,
+        email: true,
+        identityProvider: true,
         teams: {
           select: {
             accepted: true,
