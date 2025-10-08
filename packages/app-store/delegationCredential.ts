@@ -675,6 +675,11 @@ export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
   return allCredentials;
 }
 
+export async function getUsersCredentials(user: User) {
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
+  return credentials.map(({ delegatedTo: _1, ...rest }) => rest);
+}
+
 /**
  * Find the credential for a selected calendar
  * @param selectedCalendar
