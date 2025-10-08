@@ -32,6 +32,7 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { captureAndStoreUtmParams } from "@calcom/lib/utm";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/components/alert";
@@ -179,6 +180,10 @@ export default function Signup({
     formState: { isSubmitting, errors, isSubmitSuccessful },
     formState,
   } = formMethods;
+
+  useEffect(() => {
+    captureAndStoreUtmParams();
+  }, []);
 
   useEffect(() => {
     if (redirectUrl) {
