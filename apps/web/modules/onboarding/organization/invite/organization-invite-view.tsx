@@ -43,7 +43,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invites: storedInvites.length > 0 ? storedInvites : [{ email: "", team: "", role: "MEMBER" }],
+      invites: storedInvites.length > 0 ? storedInvites : [{ email: "", team: "", role: inviteRole }],
     },
   });
 
@@ -165,8 +165,8 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                             value={inviteRole}
                             onValueChange={(value) => value && setInviteRole(value as "MEMBER" | "ADMIN")}
                             options={[
-                              { value: "admin", label: "Admins" },
-                              { value: "member", label: "Members" },
+                              { value: "ADMIN", label: "Admins" },
+                              { value: "MEMBER", label: "Members" },
                             ]}
                           />
                         </div>
