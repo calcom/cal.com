@@ -443,9 +443,6 @@ async function handler(
     skipEventLimitsCheck = false,
     skipCalendarSyncTaskCreation = false,
   } = input;
-  console.log("--------------------------------------");
-  console.log(rawBookingData.responses);
-  console.log("--------------------------------------");
 
   const isPlatformBooking = !!platformClientId;
 
