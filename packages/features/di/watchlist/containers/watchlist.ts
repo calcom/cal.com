@@ -1,4 +1,5 @@
 import { createContainer } from "@evyweb/ioctopus";
+import type { Container } from "@evyweb/ioctopus";
 
 import { loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { taskerServiceModule } from "@calcom/features/di/shared/services/tasker.service";
@@ -52,9 +53,15 @@ export function getOrganizationWatchlistRepository() {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY);
 }
 
-export async function getWatchlistFeature(prisma?: PrismaClient) {
-  if (prisma) {
+export async function getWatchlistFeature(containerOrPrisma?: Container | PrismaClient) {
+  if (containerOrPrisma && "get" in containerOrPrisma) {
+    // Use provided container
+    return createWatchlistFeature(containerOrPrisma);
+  }
+
+  if (containerOrPrisma) {
     // For tests, create services directly without DI container complexity
+    const prisma = containerOrPrisma as PrismaClient;
     const { GlobalWatchlistRepository } = await import(
       "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository"
     );

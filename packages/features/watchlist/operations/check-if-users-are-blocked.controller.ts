@@ -1,7 +1,9 @@
+import type { Container } from "@evyweb/ioctopus";
 import { startSpan } from "@sentry/nextjs";
 
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
+import type { PrismaClient } from "@calcom/prisma/client";
 
 function presenter(containsBlockedUser: boolean) {
   return startSpan({ name: "checkIfUsersAreBlocked Presenter", op: "serialize" }, () => {
@@ -11,7 +13,8 @@ function presenter(containsBlockedUser: boolean) {
 
 export async function checkIfUsersAreBlocked(
   users: { email: string; username: string | null; locked: boolean }[],
-  organizationId?: number
+  organizationId?: number,
+  containerOrPrisma?: Container | PrismaClient
 ): Promise<ReturnType<typeof presenter>> {
   // If any user is locked, return true immediately
   if (users.some((user) => user.locked)) {
@@ -19,7 +22,7 @@ export async function checkIfUsersAreBlocked(
   }
 
   // Use façade for clean DX - check both global and org-specific blocking
-  const watchlist = await getWatchlistFeature();
+  const watchlist = await getWatchlistFeature(containerOrPrisma);
 
   // Check each user's email for blocking
   for (const user of users) {
