@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "E-post til organisator",
   "webhook_organizer_timezone": "Tidssone for organisator (f.eks. 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Språk for organisator (f.eks. 'en', 'fr')",
+  "webhook_organizer_username": "Brukernavn til arrangøren (f.eks. 'john.doe')",
+  "webhook_organizer_username_in_org": "Brukernavn til arrangøren i deres organisasjon (f.eks. 'john.doe')",
   "webhook_attendee_name": "Navn på første deltaker",
   "webhook_attendee_email": "E-post til første deltaker",
   "webhook_attendee_timezone": "Tidssone for første deltaker",

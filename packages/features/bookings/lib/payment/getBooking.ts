@@ -173,15 +173,16 @@ export async function getBooking(bookingId: number) {
     }),
     organizer: {
       email: booking?.userPrimaryEmail ?? user.email,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       name: user.name!,
+      username: user.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
       language: { translate: t, locale: user.locale ?? "en" },
       id: user.id,
     },
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
-    team: !!booking.eventType?.team
+    team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
           id: booking.eventType.team.id,

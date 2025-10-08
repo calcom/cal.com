@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Correo electrónico del organizador",
   "webhook_organizer_timezone": "Zona horaria del organizador (por ejemplo, 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Configuración regional del organizador (por ejemplo, 'en', 'fr')",
+  "webhook_organizer_username": "Nombre de usuario del organizador (p. ej., 'john.doe')",
+  "webhook_organizer_username_in_org": "Nombre de usuario del organizador en su organización (p. ej., 'john.doe')",
   "webhook_attendee_name": "Nombre del primer asistente",
   "webhook_attendee_email": "Correo electrónico del primer asistente",
   "webhook_attendee_timezone": "Zona horaria del primer asistente",
