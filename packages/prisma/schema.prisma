@@ -451,7 +451,6 @@ model User {
   updatedAttributeToUsers        AttributeToUser[]             @relation("updatedBy")
   createdTranslations            EventTypeTranslation[]        @relation("CreatedEventTypeTranslations")
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
-  reportedBookings               BookingReport[]               @relation("ReportedBookings")
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -2366,9 +2365,8 @@ model BookingReport {
 
   watchlistId String? @db.Uuid
 
-  booking    Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  reportedBy User       @relation("ReportedBookings", fields: [reportedById], references: [id], onDelete: Cascade)
-  watchlist  Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+  booking   Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  watchlist Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
 
   @@index([bookerEmail])
   @@index([reportedById])

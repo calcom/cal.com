@@ -4,9 +4,9 @@ import type {
   IBookingReportRepository,
   CreateBookingReportInput,
   BookingReportSummary,
-} from "./booking-report.repository.interface";
+} from "./bookingReport.interface";
 
-export class BookingReportRepository implements IBookingReportRepository {
+export class PrismaBookingReportRepository implements IBookingReportRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
   async createReport(input: CreateBookingReportInput): Promise<{ id: string }> {

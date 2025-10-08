@@ -3,7 +3,7 @@ import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
-import { BookingReportRepository } from "@calcom/features/bookings/lib/booking-report.repository";
+import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
@@ -690,7 +690,7 @@ export async function getBookings({
     });
   };
 
-  const bookingReportRepo = new BookingReportRepository(prisma);
+  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
 
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {

@@ -1,4 +1,4 @@
-import { BookingReportRepository } from "@calcom/features/bookings/lib/booking-report.repository";
+import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import logger from "@calcom/lib/logger";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
@@ -24,7 +24,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   const { bookingId, reason, description, allRemainingBookings } = input;
 
   const bookingRepo = new BookingRepository(prisma);
-  const bookingReportRepo = new BookingReportRepository(prisma);
+  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
 
   const hasAccess = await bookingRepo.doesUserIdHaveAccessToBooking({
     userId: user.id,

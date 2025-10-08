@@ -3,15 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { PrismaClient } from "@calcom/prisma";
 import { ReportReason } from "@calcom/prisma/enums";
 
-import { BookingReportRepository } from "./booking-report.repository";
-import type { CreateBookingReportInput } from "./booking-report.repository.interface";
+import { PrismaBookingReportRepository } from "./bookingReport";
+import type { CreateBookingReportInput } from "./bookingReport.interface";
 
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),
 }));
 
-describe("BookingReportRepository", () => {
-  let repository: BookingReportRepository;
+describe("PrismaBookingReportRepository", () => {
+  let repository: PrismaBookingReportRepository;
 
   const mockPrisma = {
     bookingReport: {
@@ -24,7 +24,7 @@ describe("BookingReportRepository", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    repository = new BookingReportRepository(mockPrisma);
+    repository = new PrismaBookingReportRepository(mockPrisma);
   });
 
   describe("createReport", () => {
