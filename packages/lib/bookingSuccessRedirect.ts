@@ -1,5 +1,4 @@
 import { useRouter } from "next/navigation";
-import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
@@ -7,7 +6,6 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
-import { localStorage } from "@calcom/lib/webstorage";
 import type { EventType } from "@calcom/prisma/client";
 
 import { getSafe } from "./getSafe";
@@ -235,29 +233,20 @@ export const useBookingSuccessRedirect = () => {
       return;
     }
 
-    const localStorageUid = uuidv4();
-
-    const bookingSuccessData = {
-      bookingUid: booking.uid,
-      query,
-      timestamp: Date.now(),
-    };
-
-    localStorage.setItem(`cal.booking-success.${localStorageUid}`, JSON.stringify(bookingSuccessData));
-
+    // TODO: Abstract it out and reuse at other places where we navigate within the embed. Though this is needed only in case of hard navigation happening but we aren't sure where hard navigation happens and where a soft navigation
+    // This is specially true after App Router it seems
     const headersRelatedSearchParams = searchParams
       ? {
           "flag.coep": searchParams.get("flag.coep") ?? "false",
         }
       : undefined;
 
+    // We don't want to forward all search params, as they could possibly break the booking page.
     const newSearchParams = getNewSearchParams({
-      query: {},
+      query,
       searchParams: new URLSearchParams(headersRelatedSearchParams),
     });
-    return router.push(
-      `/booking-successful/${localStorageUid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`
-    );
+    return router.push(`/booking/${booking.uid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`);
   };
 
   return bookingSuccessRedirect;
