@@ -5,6 +5,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
@@ -17,10 +18,10 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -239,6 +240,39 @@ async function handler(input: CancelBookingInput) {
     bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
   );
 
+  // For user events, we need to fetch the user's profile to get the organization ID
+  const userOrganizationId = !bookingToDelete.eventType?.team
+    ? (
+        await prisma.profile.findFirst({
+          where: {
+            userId: bookingToDelete.userId,
+          },
+          select: {
+            organizationId: true,
+          },
+        })
+      )?.organizationId
+    : null;
+
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: bookingToDelete.eventTypeId ?? 0,
+    team: bookingToDelete.eventType?.team ?? null,
+    owner: bookingToDelete.user ?? null,
+    organizationId: bookingToDelete.eventType?.team?.parentId ?? userOrganizationId ?? null,
+  });
+
+  log.debug("Branding configuration", {
+    hideBranding,
+    eventTypeId: bookingToDelete.eventTypeId,
+    teamHideBranding: bookingToDelete.eventType?.team?.hideBranding,
+    teamParentHideBranding: bookingToDelete.eventType?.team?.parent?.hideBranding,
+    ownerHideBranding: bookingToDelete.user?.hideBranding,
+    teamParentId: bookingToDelete.eventType?.team?.parentId,
+    userOrganizationId,
+    finalOrganizationId: bookingToDelete.eventType?.team?.parentId ?? userOrganizationId,
+    isTeamEvent: !!bookingToDelete.eventType?.team,
+  });
+
   const evt: CalendarEvent = {
     bookerUrl,
     title: bookingToDelete?.title,
@@ -291,6 +325,7 @@ async function handler(input: CancelBookingInput) {
     iCalUID: bookingToDelete.iCalUID,
     iCalSequence: bookingToDelete.iCalSequence + 1,
     platformClientId,
+    hideBranding,
     platformRescheduleUrl,
     platformCancelUrl,
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
@@ -354,7 +389,7 @@ async function handler(input: CancelBookingInput) {
         },
       },
     },
-    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+    hideBranding,
   });
 
   let updatedBookings: {
@@ -569,12 +604,19 @@ async function handler(input: CancelBookingInput) {
 
   try {
     // TODO: if emails fail try to requeue them
-    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled)) {
+      log.debug("Sending cancellation emails with branding config", {
+        hideBranding: evt.hideBranding,
+        platformClientId,
+        arePlatformEmailsEnabled,
+      });
+
       await sendCancelledEmailsAndSMS(
         evt,
         { eventName: bookingToDelete?.eventType?.eventName },
         bookingToDelete?.eventType?.metadata as EventTypeMetadata
       );
+    }
   } catch (error) {
     log.error("Error deleting event", error);
   }
