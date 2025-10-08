@@ -18,8 +18,10 @@ import {
   getBusyTimesFromLimits,
   getBusyTimesFromTeamLimits,
 } from "@calcom/lib/intervalLimits/server/getBusyTimesFromLimits";
+import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withReporting } from "@calcom/lib/sentryWrapper";
 import { findUsersForAvailabilityCheck } from "@calcom/lib/server/findUsersForAvailabilityCheck";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
@@ -36,9 +38,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
-
-import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "./intervalLimits/utils/getPeriodStartDatesBetween";
-import { withReporting } from "./sentryWrapper";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 const availabilitySchema = z

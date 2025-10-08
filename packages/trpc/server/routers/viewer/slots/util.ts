@@ -26,7 +26,7 @@ import type {
   UserAvailabilityService,
   IFromUser,
   IToUser,
-} from "@calcom/lib/getUserAvailability";
+} from "@calcom/features/availability/lib/getUserAvailability";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
