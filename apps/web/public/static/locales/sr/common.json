@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "Email organizatora",
   "webhook_organizer_timezone": "Vremenska zona organizatora (npr. 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Lokalizacija organizatora (npr. 'en', 'fr')",
+  "webhook_organizer_username": "Korisničko ime organizatora (npr. 'john.doe')",
+  "webhook_organizer_username_in_org": "Korisničko ime organizatora u njihovoj organizaciji (npr. 'john.doe')",
   "webhook_attendee_name": "Ime prvog učesnika",
   "webhook_attendee_email": "Email prvog učesnika",
   "webhook_attendee_timezone": "Vremenska zona prvog učesnika",

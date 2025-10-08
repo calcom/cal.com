@@ -3680,6 +3680,8 @@
   "webhook_organizer_email": "Email of the organizer",
   "webhook_organizer_timezone": "Timezone of the organizer (e.g., 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Locale of the organizer (e.g., 'en', 'fr')",
+  "webhook_organizer_username": "Username of the organizer (e.g., 'john.doe')",
+  "webhook_organizer_username_in_org": "Username of the organizer in their organization (e.g., 'john.doe')",
   "webhook_attendee_name": "Name of the first attendee",
   "webhook_attendee_email": "Email of the first attendee",
   "webhook_attendee_timezone": "Timezone of the first attendee",
