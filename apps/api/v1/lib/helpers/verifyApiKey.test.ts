@@ -19,36 +19,7 @@ vi.mock("@calcom/lib/crypto", () => ({
   symmetricEncrypt: vi.fn().mockReturnValue("mocked-encrypted-value"),
 }));
 
-// Mock the watchlist controller to use our test stubs
-const mockWatchlistFeature = {
-  globalBlocking: {
-    isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-  },
-  orgBlocking: {
-    isEmailBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-  },
-};
-
-vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
-  checkIfEmailIsBlockedInWatchlistController: vi
-    .fn()
-    .mockImplementation(async (email: string, organizationId?: number) => {
-      // Use our mock watchlist feature
-      const globalResult = await mockWatchlistFeature.globalBlocking.isBlocked(email, organizationId);
-      if (globalResult.isBlocked) {
-        return { isBlocked: true };
-      }
-
-      if (organizationId) {
-        const orgResult = await mockWatchlistFeature.orgBlocking.isEmailBlocked(email, organizationId);
-        if (orgResult.isBlocked) {
-          return { isBlocked: true };
-        }
-      }
-
-      return { isBlocked: false };
-    }),
-}));
+// No need to mock the watchlist controller - it will use prismock through DI!
 
 type CustomNextApiRequest = NextApiRequest &
   Request & {
@@ -59,10 +30,6 @@ type CustomNextApiResponse = NextApiResponse & Response;
 
 beforeEach(() => {
   vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "22gfxhWUlcKliUeXcu8xNah2+HP/29ZX");
-
-  // Reset watchlist mocks to default (not blocked)
-  mockWatchlistFeature.globalBlocking.isBlocked.mockReset().mockResolvedValue({ isBlocked: false });
-  mockWatchlistFeature.orgBlocking.isEmailBlocked.mockReset().mockResolvedValue({ isBlocked: false });
 });
 
 afterEach(() => {
@@ -250,6 +217,60 @@ describe("Verify API key", () => {
             locked: true,
           },
         },
+      },
+    });
+
+    const middleware = {
+      fn: verifyApiKey,
+    };
+
+    vi.mocked(service.checkLicense).mockResolvedValue(true);
+
+    const serverNext = vi.fn((next: void) => Promise.resolve(next));
+    const middlewareSpy = vi.spyOn(middleware, "fn");
+
+    await middleware.fn(req, res, serverNext);
+
+    expect(middlewareSpy).toBeCalled();
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res._getData())).toEqual({ error: "You are not authorized to perform this request." });
+    expect(serverNext).not.toHaveBeenCalled();
+  });
+
+  it("should return 403 if user email is in watchlist", async () => {
+    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "POST",
+      body: {},
+      query: {
+        apiKey: "cal_test_key",
+      },
+      prisma,
+    });
+    const hashedKey = hashAPIKey("test_key");
+
+    // Create a user that is not locked
+    await prismock.apiKey.create({
+      data: {
+        hashedKey,
+        user: {
+          create: {
+            email: "blocked@example.com",
+            role: UserPermissionRole.USER,
+            locked: false, // Not locked, but will be blocked by watchlist
+          },
+        },
+      },
+    });
+
+    // Add the user's email to the watchlist
+    await prismock.watchlist.create({
+      data: {
+        type: "EMAIL",
+        value: "blocked@example.com",
+        action: "BLOCK",
+        isGlobal: true,
+        organizationId: null,
+        source: "MANUAL",
       },
     });
 

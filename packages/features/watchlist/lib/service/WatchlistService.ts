@@ -128,18 +128,27 @@ export class WatchlistService implements IWatchlistService {
     }
   }
 
-  async listEntries(organizationId?: number): Promise<WatchlistEntry[]> {
+  async listAllEntries(organizationId?: number): Promise<WatchlistEntry[]> {
     try {
       this.log.debug("Listing watchlist entries", { organizationId });
 
-      const entries = await this.globalRepo.listAllBlockedEntries();
+      const globalEntries = await this.globalRepo.listBlockedEntries();
+
+      let combinedEntries: WatchlistEntry[] = [...globalEntries];
+
+      if (organizationId) {
+        const orgEntries = await this.orgRepo.listBlockedEntries(organizationId);
+        combinedEntries = [...globalEntries, ...orgEntries];
+      }
 
       this.log.debug("Watchlist entries retrieved", {
-        count: entries.length,
+        globalCount: globalEntries.length,
+        orgCount: organizationId ? combinedEntries.length - globalEntries.length : 0,
+        totalCount: combinedEntries.length,
         organizationId,
       });
 
-      return entries;
+      return combinedEntries;
     } catch (error) {
       this.log.error("Failed to list watchlist entries", {
         error: error instanceof Error ? error.message : String(error),

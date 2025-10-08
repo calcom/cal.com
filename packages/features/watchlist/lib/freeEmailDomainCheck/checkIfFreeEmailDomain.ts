@@ -9,6 +9,6 @@ export const checkIfFreeEmailDomain = async (email: string) => {
   if (emailDomain === "gmail.com" || emailDomain === "outlook.com") return true;
 
   // Check if email domain is marked as a free email domain using the façade
-  const watchlist = getWatchlistFeature();
+  const watchlist = await getWatchlistFeature();
   return await watchlist.globalBlocking.isFreeEmailDomain(emailDomain);
 };

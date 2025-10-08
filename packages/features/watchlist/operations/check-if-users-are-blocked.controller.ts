@@ -18,7 +18,7 @@ export async function checkIfUsersAreBlocked(
   }
 
   // Use façade for clean DX - only check global blocking since no organizationId context
-  const watchlist = getWatchlistFeature();
+  const watchlist = await getWatchlistFeature();
 
   // Check each user's email for global blocking
   for (const user of users) {

@@ -9,8 +9,7 @@ export interface IGlobalWatchlistRepository {
   findBlockedDomain(domain: string): Promise<Watchlist | null>;
   findFreeEmailDomain(domain: string): Promise<Watchlist | null>;
   findById(id: string): Promise<Watchlist | null>;
-  listAllBlockedEntries(): Promise<Watchlist[]>;
-  listGlobalBlockedEntries(): Promise<Watchlist[]>;
+  listBlockedEntries(): Promise<Watchlist[]>;
 
   // Write operations
   createEntry(data: {
