@@ -119,6 +119,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validate
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
 import type { IBookingService } from "./interfaces/IBookingService";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -1212,6 +1213,12 @@ async function handler(
   });
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: eventType.id,
+    team: eventType.team ?? null,
+    owner: organizerUser ?? null,
+    organizationId: organizerOrganizationId ?? null,
+  });
   const bookerUrl = eventType.team
     ? await getBookerBaseUrl(eventType.team.parentId)
     : await getBookerBaseUrl(organizerOrganizationId ?? null);
@@ -1295,6 +1302,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withBranding(hideBranding)
     .build();
 
   if (!builtEvt) {
