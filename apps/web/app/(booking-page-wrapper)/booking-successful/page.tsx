@@ -10,13 +10,13 @@ export default function BookingSuccessful() {
   const { t } = useLocale();
   const searchParams = useSearchParams();
 
-  const title = searchParams.get("title") || t("booking_confirmed");
-  const startTime = searchParams.get("startTime");
-  const location = searchParams.get("location");
-  const attendeeName = searchParams.get("attendeeName");
-  const attendeeEmail = searchParams.get("email");
-  const hostName = searchParams.get("hostName");
-  const attendeeStartTime = searchParams.get("attendeeStartTime");
+  const title = searchParams?.get("title") || t("booking_confirmed");
+  const startTime = searchParams?.get("startTime");
+  const location = searchParams?.get("location");
+  const attendeeName = searchParams?.get("attendeeName");
+  const attendeeEmail = searchParams?.get("email");
+  const hostName = searchParams?.get("hostName");
+  const attendeeStartTime = searchParams?.get("attendeeStartTime");
 
   const formattedDate = startTime ? dayjs(startTime).format("dddd, MMMM D, YYYY") : "";
   const formattedTime = attendeeStartTime ? dayjs(attendeeStartTime).format("h:mm A") : "";

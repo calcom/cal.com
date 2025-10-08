@@ -22,14 +22,6 @@ export class OrganizationBlockingService {
     // Check for exact email match
     const emailEntry = await this.orgRepo.findBlockedEmail({ email, organizationId });
     if (emailEntry) {
-      if (this.auditService) {
-        await this.auditService.logBlockedBookingAttempt({
-          email,
-          organizationId,
-          watchlistId: emailEntry.id,
-        });
-      }
-
       return {
         isBlocked: true,
         reason: "EMAIL" as WatchlistType,
@@ -42,14 +34,6 @@ export class OrganizationBlockingService {
     if (domain) {
       const domainEntry = await this.orgRepo.findBlockedDomain(`@${domain}`, organizationId);
       if (domainEntry) {
-        if (this.auditService) {
-          await this.auditService.logBlockedBookingAttempt({
-            email,
-            organizationId,
-            watchlistId: domainEntry.id,
-          });
-        }
-
         return {
           isBlocked: true,
           reason: "DOMAIN" as WatchlistType,

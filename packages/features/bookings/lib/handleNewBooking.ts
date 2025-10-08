@@ -1408,8 +1408,10 @@ async function handler(
     });
 
     const fakeUid = uuidv4();
+    const fakeICalUID = `${fakeUid}@Cal.com`;
     return {
       uid: fakeUid,
+      iCalUID: fakeICalUID,
       id: 0,
       title: eventName,
       description: eventType.description || "",
@@ -1450,7 +1452,9 @@ async function handler(
       responses: null,
       isDryRun: false,
       paymentUid: null,
+      paymentId: null,
       paymentRequired: false,
+      luckyUsers: undefined,
     };
   }
 

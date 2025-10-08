@@ -1,16 +1,19 @@
 import type { IAuditService } from "../interface/IAuditService";
 import type { IBlockingService, BlockingResult } from "../interface/IBlockingService";
-import type { IGlobalWatchlistRepository, IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
+import type {
+  IGlobalWatchlistRepository,
+  IOrganizationWatchlistRepository,
+} from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
 import { normalizeEmail, extractDomainFromEmail } from "../utils/normalization";
 
 /**
  * Combined Blocking Service - checks both global and organization-level blocking
- * 
+ *
  * Priority order:
  * 1. Global blocking (applies to all organizations)
  * 2. Organization-level blocking (if organizationId is provided)
- * 
+ *
  * Returns blocked if either global or organization-level blocking matches.
  */
 export class CombinedBlockingService implements IBlockingService {
@@ -40,16 +43,13 @@ export class CombinedBlockingService implements IBlockingService {
     return { isBlocked: false };
   }
 
-  private async checkGlobalBlocking(normalizedEmail: string, organizationId?: number): Promise<BlockingResult> {
+  private async checkGlobalBlocking(
+    normalizedEmail: string,
+    _organizationId?: number
+  ): Promise<BlockingResult> {
     // Check global email blocking
     const globalEmailEntry = await this.globalRepo.findBlockedEmail(normalizedEmail);
     if (globalEmailEntry) {
-      await this.auditService.logBlockedBookingAttempt({
-        email: normalizedEmail,
-        organizationId,
-        watchlistId: globalEmailEntry.id,
-      });
-
       return {
         isBlocked: true,
         reason: WatchlistType.EMAIL,
@@ -61,12 +61,6 @@ export class CombinedBlockingService implements IBlockingService {
     const normalizedDomain = extractDomainFromEmail(normalizedEmail);
     const globalDomainEntry = await this.globalRepo.findBlockedDomain(normalizedDomain);
     if (globalDomainEntry) {
-      await this.auditService.logBlockedBookingAttempt({
-        email: normalizedEmail,
-        organizationId,
-        watchlistId: globalDomainEntry.id,
-      });
-
       return {
         isBlocked: true,
         reason: WatchlistType.DOMAIN,
@@ -77,16 +71,13 @@ export class CombinedBlockingService implements IBlockingService {
     return { isBlocked: false };
   }
 
-  private async checkOrganizationBlocking(normalizedEmail: string, organizationId: number): Promise<BlockingResult> {
+  private async checkOrganizationBlocking(
+    normalizedEmail: string,
+    organizationId: number
+  ): Promise<BlockingResult> {
     // Check organization-level email blocking
-    const orgEmailEntry = await this.orgRepo.findBlockedEmail(normalizedEmail, organizationId);
+    const orgEmailEntry = await this.orgRepo.findBlockedEmail({ email: normalizedEmail, organizationId });
     if (orgEmailEntry) {
-      await this.auditService.logBlockedBookingAttempt({
-        email: normalizedEmail,
-        organizationId,
-        watchlistId: orgEmailEntry.id,
-      });
-
       return {
         isBlocked: true,
         reason: WatchlistType.EMAIL,
@@ -98,12 +89,6 @@ export class CombinedBlockingService implements IBlockingService {
     const normalizedDomain = extractDomainFromEmail(normalizedEmail);
     const orgDomainEntry = await this.orgRepo.findBlockedDomain(normalizedDomain, organizationId);
     if (orgDomainEntry) {
-      await this.auditService.logBlockedBookingAttempt({
-        email: normalizedEmail,
-        organizationId,
-        watchlistId: orgDomainEntry.id,
-      });
-
       return {
         isBlocked: true,
         reason: WatchlistType.DOMAIN,
