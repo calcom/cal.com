@@ -3,21 +3,17 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type { BlockingResult } from "../interface/IBlockingService";
 import type { GlobalBlockingService } from "./GlobalBlockingService";
-import type { OrganizationBlockingService } from "./OrganizationBlockingService";
 
 /**
  * Spam Check Service - Orchestrates spam checking by coordinating blocking checks
  *
- * This service checks both global and organization-level blocking in parallel
- * and returns blocked if either check matches.
+ * GlobalBlockingService handles both global and organization-level blocking internally,
+ * so this service only needs to call that single service.
  */
 export class SpamCheckService {
   private spamCheckPromise: Promise<BlockingResult> | null = null;
 
-  constructor(
-    private readonly globalBlockingService: GlobalBlockingService,
-    private readonly organizationBlockingService: OrganizationBlockingService
-  ) {}
+  constructor(private readonly globalBlockingService: GlobalBlockingService) {}
 
   startCheck(email: string, organizationId?: number): void {
     this.spamCheckPromise = this.isBlocked(email, organizationId).catch((error) => {
@@ -42,9 +38,7 @@ export class SpamCheckService {
     const globalCheckPromise = this.globalBlockingService.isBlocked(email, organizationId);
 
     // Run both checks in parallel for better performance
-    const [globalResult] = await Promise.all([
-      globalCheckPromise,
-    ]);
+    const [globalResult] = await Promise.all([globalCheckPromise]);
 
     return {
       isBlocked: globalResult.isBlocked,
