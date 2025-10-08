@@ -9,6 +9,7 @@ import { useAtomDuplicateSchedule } from "../../hooks/schedules/useAtomDuplicate
 import { useAtomGetAllSchedules } from "../../hooks/schedules/useAtomGetAllSchedules";
 import { useAtomUpdateSchedule } from "../../hooks/schedules/useAtomUpdateSchedule";
 import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
+import { useEnsureDefaultSchedule } from "../../hooks/schedules/useEnsureDefaultSchedule";
 import { useMe } from "../../hooks/useMe";
 import { useToast } from "../../src/components/ui/use-toast";
 
@@ -67,6 +68,15 @@ export const ListSchedulesPlatformWrapper = ({ getRedirectUrl }: ListSchedulesPl
         description: `Could not delete schedule: ${err.error.message}`,
       });
     },
+  });
+
+  useEnsureDefaultSchedule(userSchedules?.schedules ?? [], (id) => {
+    updateSchedule({
+      scheduleId: id,
+      body: {
+        isDefault: true,
+      },
+    });
   });
 
   const transformedSchedules = getTransformedSchedules(userSchedules?.schedules ?? []);
