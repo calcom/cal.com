@@ -30,6 +30,7 @@ describe("Me Endpoints", () => {
     let profilesRepositoryFixture: ProfileRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     const userEmail = `me-controller-user-${randomString()}@api.com`;
+    const name = "Me Controller User";
     let user: User;
     let org: Team;
 
@@ -55,6 +56,7 @@ describe("Me Endpoints", () => {
       user = await userRepositoryFixture.create({
         email: userEmail,
         username: userEmail,
+        name,
       });
 
       org = await organizationsRepositoryFixture.create({
