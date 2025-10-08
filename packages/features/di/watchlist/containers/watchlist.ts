@@ -3,13 +3,18 @@ import { createContainer } from "@evyweb/ioctopus";
 import { loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { taskerServiceModule } from "@calcom/features/di/shared/services/tasker.service";
 import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
+import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { createWatchlistFeature } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma/client";
 
 import { watchlistModule } from "../modules/Watchlist.module";
 import { WATCHLIST_DI_TOKENS } from "../tokens";
 
 export const watchlistContainer = createContainer();
+
+// Bind PrismaClient
+watchlistContainer.bind(DI_TOKENS.PRISMA_CLIENT).toValue(defaultPrisma);
 
 // Load shared infrastructure
 watchlistContainer.load(SHARED_TOKENS.LOGGER, loggerServiceModule);
@@ -50,14 +55,7 @@ export function getOrganizationWatchlistRepository() {
 
 export async function getWatchlistFeature(prisma?: PrismaClient) {
   if (prisma) {
-    // Create a test-specific container with the provided prisma
-    const testContainer = createContainer();
-
-    // Load shared infrastructure
-    testContainer.load(SHARED_TOKENS.LOGGER, loggerServiceModule);
-    testContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
-
-    // Create repositories with the provided prisma
+    // For tests, create services directly without DI container complexity
     const { GlobalWatchlistRepository } = await import(
       "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository"
     );
@@ -74,45 +72,27 @@ export async function getWatchlistFeature(prisma?: PrismaClient) {
     const { WatchlistService } = await import("@calcom/features/watchlist/lib/service/WatchlistService");
     const { AuditService } = await import("@calcom/features/watchlist/lib/service/AuditService");
 
-    // Bind repositories with the provided prisma
-    testContainer
-      .bind(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY)
-      .toValue(new GlobalWatchlistRepository(prisma));
-    testContainer
-      .bind(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY)
-      .toValue(new OrganizationWatchlistRepository(prisma));
-    testContainer.bind(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY).toValue(new AuditRepository(prisma));
+    // Create repositories with test prisma
+    const globalRepo = new GlobalWatchlistRepository(prisma);
+    const orgRepo = new OrganizationWatchlistRepository(prisma);
+    const auditRepo = new AuditRepository(prisma);
 
-    // Bind services
-    testContainer
-      .bind(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE)
-      .toValue(
-        new GlobalBlockingService(
-          testContainer.get(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY),
-          testContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY)
-        )
-      );
-    testContainer
-      .bind(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE)
-      .toValue(
-        new OrganizationBlockingService(
-          testContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY)
-        )
-      );
-    testContainer
-      .bind(WATCHLIST_DI_TOKENS.AUDIT_SERVICE)
-      .toValue(new AuditService(testContainer.get(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY)));
-    testContainer
-      .bind(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE)
-      .toValue(
-        new WatchlistService(
-          testContainer.get(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY),
-          testContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY),
-          testContainer.get(SHARED_TOKENS.LOGGER)
-        )
-      );
+    // Create services with simple mock logger for tests
+    const createMockLogger = () => ({
+      debug: () => {},
+      error: () => {},
+      info: () => {},
+      warn: () => {},
+      getSubLogger: createMockLogger,
+    });
+    const mockLogger = createMockLogger();
 
-    return createWatchlistFeature(testContainer);
+    return {
+      globalBlocking: new GlobalBlockingService(globalRepo, orgRepo),
+      orgBlocking: new OrganizationBlockingService(orgRepo),
+      watchlist: new WatchlistService(globalRepo, orgRepo, mockLogger),
+      audit: new AuditService(auditRepo),
+    };
   }
 
   // Use the default container for production
