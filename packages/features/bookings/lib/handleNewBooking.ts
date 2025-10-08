@@ -47,9 +47,9 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/lib/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
+import { getCacheService } from "@calcom/features/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -1208,7 +1208,6 @@ async function handler(
   const organizerOrganizationProfile = await prisma.profile.findFirst({
     where: {
       userId: organizerUser.id,
-      username: dynamicUserList[0],
     },
   });
 
@@ -1268,6 +1267,7 @@ async function handler(
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
       username: organizerUser.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
@@ -1480,7 +1480,7 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
