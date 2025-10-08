@@ -29,8 +29,16 @@ declare global {
       open: () => void;
       shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
+    Beacon?: BeaconFunction;
   }
 }
+
+// NOTE: This interface only includes types for commands we currently use.
+type BeaconFunction = {
+  (command: "session-data", data: Record<string, string | number>): void;
+  // Catch-all for other methods - add explicit types above if using new commands
+  (...args: unknown[]): void;
+};
 
 interface UserDropdownProps {
   small?: boolean;
@@ -44,12 +52,10 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const isPlatformPages = pathname?.startsWith("/settings/platform");
 
   useEffect(() => {
-    // guard added to make SSR safe
     if (typeof window === "undefined") return;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     const Beacon = window.Beacon;
+
     // window.Beacon is defined when user actually opens up HelpScout and username is available here. On every re-render update session info, so that it is always latest.
     if (Beacon) {
       Beacon("session-data", {
@@ -71,6 +77,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!menuOpen && openSupportAfterClose) {
       setTimeout(() => {
         window.Support?.open();
