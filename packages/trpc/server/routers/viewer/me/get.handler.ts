@@ -140,6 +140,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     allowDynamicBooking: user.allowDynamicBooking,
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
+    preventEmailImpersonation: user.preventEmailImpersonation,
     ...profileData,
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,

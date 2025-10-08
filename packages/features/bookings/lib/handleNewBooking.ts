@@ -1,4 +1,3 @@
- 
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -25,6 +24,9 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
+import { getCacheService } from "@calcom/features/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -47,9 +49,6 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/features/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -1138,17 +1137,67 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
+  // Get emails that have preventEmailImpersonation enabled
+  const usersWithPreventImpersonation = await prisma.user.findMany({
+    where: {
+      OR: [
+        {
+          email: {
+            in: (reqGuests || []).map(extractBaseEmail),
+          },
+          emailVerified: {
+            not: null,
+          },
+          preventEmailImpersonation: true,
+        },
+        {
+          secondaryEmails: {
+            some: {
+              email: {
+                in: (reqGuests || []).map(extractBaseEmail),
+              },
+              emailVerified: {
+                not: null,
+              },
+            },
+          },
+          preventEmailImpersonation: true,
+        },
+      ],
+    },
+    select: {
+      email: true,
+      secondaryEmails: {
+        select: {
+          email: true,
+        },
+      },
+    },
+  });
+
+  const protectedEmails = new Set<string>();
+  usersWithPreventImpersonation.forEach((user) => {
+    protectedEmails.add(user.email.toLowerCase());
+    user.secondaryEmails.forEach((se) => protectedEmails.add(se.email.toLowerCase()));
+  });
+
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
-    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
+
+    if (
+      blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail) ||
+      protectedEmails.has(baseGuestEmail)
+    ) {
       guestsRemoved.push(guest);
       return guestArray;
     }
+
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
     }
+
     guestArray.push({
       email: guest,
       name: "",
@@ -1158,7 +1207,7 @@ async function handler(
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;
-  }, [] as Invitee);
+  }, [] as Invitee[]);
 
   if (guestsRemoved.length > 0) {
     log.info("Removed guests from the booking", guestsRemoved);
@@ -1480,7 +1529,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;

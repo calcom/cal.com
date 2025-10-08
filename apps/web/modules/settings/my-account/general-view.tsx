@@ -147,6 +147,9 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
     !!user.receiveMonthlyDigestEmail
   );
+  const [isPreventEmailImpersonationChecked, setIsPreventEmailImpersonationChecked] = useState(
+    !!user.preventEmailImpersonation
+  );
 
   const watchedTzSchedules = formMethods.watch("travelSchedules");
 
@@ -353,6 +356,20 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           }}
           switchContainerClassName="mt-6"
         />
+
+        <SettingsToggle
+          toggleSwitchAtTheEnd={true}
+          title={t("prevent_email_impersonation")}
+          description={t("prevent_email_impersonation_description")}
+          disabled={mutation.isPending}
+          checked={isPreventEmailImpersonationChecked}
+          onCheckedChange={(checked) => {
+            setIsPreventEmailImpersonationChecked(checked);
+            mutation.mutate({ preventEmailImpersonation: checked });
+          }}
+          switchContainerClassName="mt-6"
+        />
+
         <TravelScheduleModal
           open={isTZScheduleOpen}
           onOpenChange={() => setIsTZScheduleOpen(false)}
