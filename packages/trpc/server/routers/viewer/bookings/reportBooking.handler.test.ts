@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { BookingReportRepository } from "@calcom/features/bookings/lib/booking-report.repository";
+import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { BookingStatus, ReportReason } from "@calcom/prisma/enums";
@@ -9,7 +9,7 @@ import { TRPCError } from "@trpc/server";
 
 import { reportBookingHandler } from "./reportBooking.handler";
 
-vi.mock("@calcom/features/bookings/lib/booking-report.repository");
+vi.mock("@calcom/lib/server/repository/bookingReport");
 vi.mock("@calcom/features/bookings/lib/handleCancelBooking");
 vi.mock("@calcom/lib/server/repository/booking");
 vi.mock("@calcom/lib/logger", () => ({
@@ -55,7 +55,7 @@ describe("reportBookingHandler", () => {
     vi.clearAllMocks();
 
     vi.mocked(BookingRepository).mockImplementation(() => mockBookingRepo);
-    vi.mocked(BookingReportRepository).mockImplementation(() => mockReportRepo);
+    vi.mocked(PrismaBookingReportRepository).mockImplementation(() => mockReportRepo);
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
   });
 
