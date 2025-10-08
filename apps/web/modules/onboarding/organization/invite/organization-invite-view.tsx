@@ -23,7 +23,7 @@ const formSchema = z.object({
     z.object({
       email: z.string().email("Invalid email address"),
       team: z.string().min(1, "Team is required"),
-      role: z.enum(["member", "admin"]),
+      role: z.enum(["MEMBER", "ADMIN"]),
     })
   ),
 });
@@ -43,13 +43,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invites:
-        storedInvites.length > 0
-          ? storedInvites
-          : [
-              { email: "", team: "", role: "member" },
-              { email: "", team: "", role: "member" },
-            ],
+      invites: storedInvites.length > 0 ? storedInvites : [{ email: "", team: "", role: "MEMBER" }],
     },
   });
 
@@ -169,7 +163,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                           <span className="text-emphasis text-sm">Invite all as</span>
                           <ToggleGroup
                             value={inviteRole}
-                            onValueChange={(value) => value && setInviteRole(value as "member" | "admin")}
+                            onValueChange={(value) => value && setInviteRole(value as "MEMBER" | "ADMIN")}
                             options={[
                               { value: "admin", label: "Admins" },
                               { value: "member", label: "Members" },
@@ -232,7 +226,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                             size="sm"
                             StartIcon="plus"
                             className="w-fit"
-                            onClick={() => append({ email: "", team: "", role: "member" })}>
+                            onClick={() => append({ email: "", team: "", role: "MEMBER" })}>
                             Add
                           </Button>
                         </div>
@@ -243,10 +237,10 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                             <span className="text-emphasis text-sm">Invite all as</span>
                             <ToggleGroup
                               value={inviteRole}
-                              onValueChange={(value) => value && setInviteRole(value as "member" | "admin")}
+                              onValueChange={(value) => value && setInviteRole(value as "MEMBER" | "ADMIN")}
                               options={[
-                                { value: "member", label: "Members" },
-                                { value: "admin", label: "Admins" },
+                                { value: "MEMBER", label: "Members" },
+                                { value: "ADMIN", label: "Admins" },
                               ]}
                             />
                           </div>
