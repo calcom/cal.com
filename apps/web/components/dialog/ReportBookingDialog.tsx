@@ -13,14 +13,14 @@ import { Select, Label } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
+type BookingReportStatus = "upcoming" | "past" | "cancelled" | "rejected";
+
 interface IReportBookingDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   bookingId: number;
   isRecurring: boolean;
-  isUpcoming: boolean;
-  isCancelled: boolean;
-  isRejected: boolean;
+  status: BookingReportStatus;
 }
 
 interface FormValues {
@@ -32,9 +32,9 @@ interface FormValues {
 export const ReportBookingDialog = (props: IReportBookingDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingId, isRecurring, isUpcoming, isCancelled, isRejected } = props;
+  const { isOpenDialog, setIsOpenDialog, bookingId, isRecurring, status } = props;
 
-  const willBeCancelled = isUpcoming && !isCancelled && !isRejected;
+  const willBeCancelled = status === "upcoming";
 
   const {
     control,
