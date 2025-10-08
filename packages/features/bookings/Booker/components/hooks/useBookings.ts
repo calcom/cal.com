@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
@@ -15,11 +16,7 @@ import { createBooking, createRecurringBooking, createInstantBooking } from "@ca
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import {
-  useBookingSuccessRedirect,
-  getBookingRedirectExtraParams,
-  getNewSearchParams,
-} from "@calcom/lib/bookingSuccessRedirect";
+import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -169,6 +166,16 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
+const storeBookingSuccessData = (booking: Record<string, unknown>): string => {
+  const localStorageUid = uuidv4();
+  const bookingSuccessData = {
+    booking,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(`cal.booking-success.${localStorageUid}`, JSON.stringify(bookingSuccessData));
+  return localStorageUid;
+};
+
 export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookingDryRun }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStoreContext((state) => state.eventSlug);
@@ -251,12 +258,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
-        const _validDuration = event.data?.isDynamic
-          ? duration || event.data?.length
-          : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-          ? duration
-          : event.data?.length;
-
         if (isRescheduling) {
           sdkActionManager?.fire(
             "dryRunRescheduleBookingSuccessfulV2",
@@ -280,17 +281,17 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       }
 
       if ("isSpamDecoy" in booking && booking.isSpamDecoy) {
-        const bookingExtraParams = getBookingRedirectExtraParams(booking);
-        const query = {
-          uid: booking.uid,
-          email: bookingForm.getValues("responses.email"),
-          eventTypeSlug: eventSlug,
-          isSuccessBookingPage: true,
-          ...bookingExtraParams,
+        const bookingData = {
+          title: booking.title ?? null,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          booker: booking.attendees?.[0] ?? null,
+          host: booking.user ?? null,
+          location: booking.location ?? null,
         };
 
-        const newSearchParams = getNewSearchParams({ query });
-        router.push(`/booking-successful?${newSearchParams.toString()}`);
+        const localStorageUid = storeBookingSuccessData(bookingData);
+        router.push(`/booking-successful/${localStorageUid}`);
         return;
       }
 
@@ -388,7 +389,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
             : event?.data?.forwardParamsSuccessRedirect,
       });
     },
-    onError: (err, _, _ctx) => {
+    onError: (err) => {
       if (bookerFormErrorRef?.current) {
         bookerFormErrorRef.current.scrollIntoView({ behavior: "smooth" });
       }

@@ -44,7 +44,10 @@ const defaultSpan: SpanFn = <T>(options: SpanOptions, fn: () => T | Promise<T>):
   return fn();
 };
 
-function presenter(isBlocked: boolean, span: SpanFn): EmailBlockedCheckResponseDTO {
+function presenter(
+  isBlocked: boolean,
+  span: SpanFn
+): EmailBlockedCheckResponseDTO | Promise<EmailBlockedCheckResponseDTO> {
   return span({ name: "checkIfEmailInWatchlist Presenter", op: "serialize" }, () => {
     return { isBlocked };
   });

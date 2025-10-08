@@ -1,5 +1,5 @@
 import short, { uuid } from "short-uuid";
-import { v4 as uuidv4, v5 as uuidv5 } from "uuid";
+import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
@@ -1407,54 +1407,38 @@ async function handler(
       reason: spamCheckResult.reason,
     });
 
-    const fakeUid = uuidv4();
-    const fakeICalUID = `${fakeUid}@Cal.com`;
     return {
-      uid: fakeUid,
-      iCalUID: fakeICalUID,
-      id: 0,
+      uid,
+
       title: eventName,
       description: eventType.description || "",
-      customInputs: {},
       startTime: reqBody.start,
       endTime: reqBody.end,
+      location: bookingLocation,
+      isSpamDecoy: true,
+      isDryRun: false,
+      paymentRequired: false,
+      paymentUid: null,
+      userPrimaryEmail: null,
+      user: {
+        name: organizerUser.name,
+        timeZone: organizerUser.timeZone,
+        email: null,
+      },
+      status: BookingStatus.ACCEPTED,
+      responses: null,
       attendees: [
         {
           email: bookerEmail,
           name: fullName,
           timeZone: reqBody.timeZone,
-          locale: language || "en",
-          noShow: false,
-          id: 0,
-          bookingId: 0,
         },
       ],
-      user: {
-        id: organizerUser.id,
-        email: null,
-        name: organizerUser.name,
-        timeZone: organizerUser.timeZone,
-        username: organizerUser.username,
-      },
-      userPrimaryEmail: null,
-      location: bookingLocation,
-      eventTypeId: eventType.id,
-      eventType: {
-        slug: eventType.slug,
-      },
-      status: BookingStatus.ACCEPTED,
-      paid: false,
-      payment: [],
+      iCalUID: "",
+      luckyUsers: [],
       references: [],
-      isRecorded: false,
-      seatsReferences: [],
-      isSpamDecoy: true,
-      responses: null,
-      isDryRun: false,
-      paymentUid: null,
+      id: 0,
       paymentId: null,
-      paymentRequired: false,
-      luckyUsers: undefined,
     };
   }
 
