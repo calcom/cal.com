@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "E-mail van de organisator",
   "webhook_organizer_timezone": "Tijdzone van de organisator (bijv. 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "Taalinstelling van de organisator (bijv. 'en', 'fr')",
+  "webhook_organizer_username": "Gebruikersnaam van de organisator (bijv. 'john.doe')",
+  "webhook_organizer_username_in_org": "Gebruikersnaam van de organisator in hun organisatie (bijv. 'john.doe')",
   "webhook_attendee_name": "Naam van de eerste deelnemer",
   "webhook_attendee_email": "E-mail van de eerste deelnemer",
   "webhook_attendee_timezone": "Tijdzone van de eerste deelnemer",

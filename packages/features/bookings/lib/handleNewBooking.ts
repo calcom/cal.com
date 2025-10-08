@@ -1261,7 +1261,6 @@ async function handler(
   const organizerOrganizationProfile = await prisma.profile.findFirst({
     where: {
       userId: organizerUser.id,
-      username: dynamicUserList[0],
     },
   });
 
@@ -1321,6 +1320,7 @@ async function handler(
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
       username: organizerUser.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
