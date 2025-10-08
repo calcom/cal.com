@@ -65,7 +65,7 @@ export const useHandleBookEvent = ({
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
   const handleError = (err: unknown) => {
-    const errorMessage = err?.message ? t(err.message) : t("can_you_try_again");
+    const errorMessage = err instanceof Error ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
   };
   const searchParams = useSearchParams();
