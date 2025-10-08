@@ -81,6 +81,7 @@ const querySchema = z.object({
   seatReferenceUid: z.string().optional(),
   rating: z.string().optional(),
   noShow: stringToBoolean,
+  localStorageUid: z.string().optional(),
 });
 
 const useBrandColors = ({
@@ -106,6 +107,34 @@ export default function Success(props: PageProps) {
 
   const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
 
+  const parsedRouterQuery = querySchema.parse(routerQuery);
+  let finalQuery = { ...parsedRouterQuery };
+
+  if (parsedRouterQuery.localStorageUid && typeof window !== "undefined") {
+    try {
+      const storageKey = `cal.booking-success.${parsedRouterQuery.localStorageUid}`;
+      const dataStr = localStorage.getItem(storageKey);
+
+      if (dataStr) {
+        const data = JSON.parse(dataStr);
+
+        const dataAge = Date.now() - data.timestamp;
+        const maxAge = 24 * 60 * 60 * 1000;
+
+        if (dataAge <= maxAge) {
+          finalQuery = {
+            ...data.query,
+            ...finalQuery,
+          };
+        }
+
+        localStorage.removeItem(storageKey);
+      }
+    } catch (err) {
+      console.error("Error reading booking data from localStorage:", err);
+    }
+  }
+
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -115,7 +144,7 @@ export default function Success(props: PageProps) {
     seatReferenceUid,
     noShow,
     rating,
-  } = querySchema.parse(routerQuery);
+  } = finalQuery;
 
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 

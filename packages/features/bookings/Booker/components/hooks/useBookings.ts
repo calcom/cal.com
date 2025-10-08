@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
@@ -163,6 +164,16 @@ const storeInLocalStorage = ({
 }) => {
   const value = JSON.stringify({ eventTypeId, expiryTime, bookingId });
   localStorage.setItem(STORAGE_KEY, value);
+};
+
+const storeBookingSuccessData = (query: Record<string, unknown>): string => {
+  const localStorageUid = uuidv4();
+  const bookingSuccessData = {
+    query,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(`cal.booking-success.${localStorageUid}`, JSON.stringify(bookingSuccessData));
+  return localStorageUid;
 };
 
 export const useBookings = ({
@@ -361,12 +372,14 @@ export const useBookings = ({
         seatReferenceUid: "seatReferenceUid" in booking ? (booking.seatReferenceUid as string) : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
-        rescheduledBy, // ensure further reschedules performed on the success page are recorded correctly
+        rescheduledBy,
       };
+
+      const localStorageUid = storeBookingSuccessData(query);
 
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",
-        query,
+        query: { localStorageUid },
         booking: booking,
         forwardParamsSuccessRedirect:
           event?.data?.forwardParamsSuccessRedirect === undefined
@@ -470,7 +483,6 @@ export const useBookings = ({
       };
 
       if (isRescheduling) {
-        // NOTE: It is recommended to define the event payload in the argument itself to provide a better type safety.
         sdkActionManager?.fire("rescheduleBookingSuccessfulV2", {
           ...getRescheduleBookingSuccessfulEventPayload({
             ...booking,
@@ -494,9 +506,11 @@ export const useBookings = ({
         });
       }
 
+      const localStorageUid = storeBookingSuccessData(query);
+
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",
-        query,
+        query: { localStorageUid },
         booking,
         forwardParamsSuccessRedirect:
           event?.data?.forwardParamsSuccessRedirect === undefined

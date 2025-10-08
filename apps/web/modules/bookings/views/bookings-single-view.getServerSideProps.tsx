@@ -34,6 +34,7 @@ const querySchema = z.object({
   isSuccessBookingPage: stringToBoolean,
   formerTime: z.string().optional(),
   seatReferenceUid: z.string().optional(),
+  localStorageUid: z.string().optional(),
 });
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
