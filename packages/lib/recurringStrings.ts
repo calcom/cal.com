@@ -34,7 +34,7 @@ export const getEveryFreqFor = ({
   recurringCount?: number;
   recurringFreq?: string;
 }): string => {
-  if (recurringEvent.freq) {
+  if (recurringEvent.freq != null) {
     return `${recurringFreq || getRecurringFreq({ t, recurringEvent })} ${
       recurringCount || recurringEvent.count
     } ${t("occurrence", {
