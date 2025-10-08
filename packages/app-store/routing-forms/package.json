@@ -7,6 +7,7 @@
   "description": "It would allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user  ",
   "dependencies": {
     "@calcom/lib": "workspace:*",
+    "@react-awesome-query-builder/core": "6.6.15",
     "@react-awesome-query-builder/ui": "6.6.15",
     "dotenv": "^16.3.1",
     "json-logic-js": "^2.0.2"

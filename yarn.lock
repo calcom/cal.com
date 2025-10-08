@@ -3916,6 +3916,7 @@ __metadata:
     "@calcom/eslint-config": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/types": "workspace:*"
+    "@react-awesome-query-builder/core": 6.6.15
     "@react-awesome-query-builder/ui": 6.6.15
     "@types/json-logic-js": ^1.2.1
     dotenv: ^16.3.1
@@ -14309,7 +14310,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-awesome-query-builder/core@npm:^6.6.15":
+"@react-awesome-query-builder/core@npm:6.6.15, @react-awesome-query-builder/core@npm:^6.6.15":
   version: 6.6.15
   resolution: "@react-awesome-query-builder/core@npm:6.6.15"
   dependencies:
