@@ -95,6 +95,7 @@
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^16.0.1",
+    "@types/uuid": "^11.0.0",
     "@vitest/ui": "^2.1.9",
     "c8": "^7.13.0",
     "checkly": "latest",
@@ -126,7 +127,8 @@
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
     "date-fns-tz": "^3.2.0",
-    "p-limit": "^6.2.0"
+    "p-limit": "^6.2.0",
+    "uuid": "^13.0.0"
   },
   "resolutions": {
     "types-ramda": "0.29.4",
