@@ -390,8 +390,8 @@ describe("intentToCreateOrgHandler", () => {
           { id: -1, name: "team", isBeingMigrated: false, slug: null },
         ],
         invitedMembers: [
-          { email: "new@new.com", teamName: "new", teamId: -1, role: "admin" },
-          { email: "team@new.com", teamName: "team", teamId: -1, role: "admin" },
+          { email: "new@new.com", teamName: "new", teamId: -1, role: "ADMIN" },
+          { email: "team@new.com", teamName: "team", teamId: -1, role: "ADMIN" },
         ],
       };
 
@@ -422,13 +422,13 @@ describe("intentToCreateOrgHandler", () => {
         email: "new@new.com",
         teamName: "new",
         teamId: -1,
-        role: "admin",
+        role: "ADMIN",
       });
       expect(invitedMembers[1]).toMatchObject({
         email: "team@new.com",
         teamName: "team",
         teamId: -1,
-        role: "admin",
+        role: "ADMIN",
       });
     });
   });

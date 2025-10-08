@@ -63,7 +63,7 @@ export const orgOnboardingInvitedMembersSchema = z.array(
     name: z.string().optional(),
     teamId: z.number().optional(),
     teamName: z.string().optional(),
-    role: z.string().optional().default("MEMBER"),
+    role: z.enum(["MEMBER", "ADMIN"]).optional().default("MEMBER"),
   })
 );
 

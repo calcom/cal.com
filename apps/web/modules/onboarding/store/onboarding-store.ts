@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type PlanType = "personal" | "team" | "organization";
-export type InviteRole = "member" | "admin";
+export type InviteRole = "MEMBER" | "ADMIN";
 
 export interface OrganizationDetails {
   name: string;
@@ -64,7 +64,7 @@ const initialState = {
   },
   teams: [],
   invites: [],
-  inviteRole: "member" as InviteRole,
+  inviteRole: "MEMBER" as InviteRole,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
