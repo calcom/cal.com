@@ -17,7 +17,7 @@ CREATE TABLE "BookingReport" (
 );
 
 -- CreateIndex
-CREATE INDEX "BookingReport_bookingId_idx" ON "BookingReport"("bookingId");
+CREATE UNIQUE INDEX "BookingReport_bookingId_key" ON "BookingReport"("bookingId");
 
 -- CreateIndex
 CREATE INDEX "BookingReport_bookerEmail_idx" ON "BookingReport"("bookerEmail");
@@ -30,9 +30,6 @@ CREATE INDEX "BookingReport_watchlistId_idx" ON "BookingReport"("watchlistId");
 
 -- CreateIndex
 CREATE INDEX "BookingReport_createdAt_idx" ON "BookingReport"("createdAt");
-
--- CreateIndex
-CREATE UNIQUE INDEX "BookingReport_bookingId_reportedById_key" ON "BookingReport"("bookingId", "reportedById");
 
 -- AddForeignKey
 ALTER TABLE "BookingReport" ADD CONSTRAINT "BookingReport_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE CASCADE ON UPDATE CASCADE;

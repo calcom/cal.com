@@ -166,20 +166,15 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
 }
 
 export function getReportAction(context: BookingActionContext): ActionType | null {
-  const { booking, isCancelled, isRejected, t } = context;
+  const { booking, t } = context;
 
-  if (booking.reportedByCurrentUser) {
-    return null;
-  }
-
-  // Don't allow reporting cancelled or rejected bookings
-  if (isCancelled || isRejected) {
+  if (booking.report) {
     return null;
   }
 
   return {
     id: "report",
-    label: booking.reports && booking.reports.length > 0 ? t("add_to_report") : t("report_booking"),
+    label: t("report_booking"),
     icon: "flag",
     color: "destructive",
     disabled: false,
@@ -227,8 +222,8 @@ export function shouldShowRecurringCancelAction(context: BookingActionContext): 
 }
 
 export function shouldShowIndividualReportButton(context: BookingActionContext): boolean {
-  const { isPending, isUpcoming, isCancelled } = context;
-  return isPending && isUpcoming && !isCancelled;
+  const { booking, isBookingInPast } = context;
+  return !booking.report && !isBookingInPast;
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {

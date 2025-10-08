@@ -849,7 +849,7 @@ model Booking {
   tracking                     Tracking?
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
-  reports                      BookingReport[]
+  report                       BookingReport?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -2356,7 +2356,7 @@ enum ReportReason {
 
 model BookingReport {
   id           String       @id @default(uuid()) @db.Uuid
-  bookingId    Int
+  bookingId    Int          @unique
   bookerEmail  String
   reportedById Int
   reason       ReportReason
@@ -2370,8 +2370,6 @@ model BookingReport {
   reportedBy User       @relation("ReportedBookings", fields: [reportedById], references: [id], onDelete: Cascade)
   watchlist  Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
 
-  @@unique([bookingId, reportedById])
-  @@index([bookingId])
   @@index([bookerEmail])
   @@index([reportedById])
   @@index([watchlistId])

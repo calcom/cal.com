@@ -213,10 +213,9 @@ export class BookingRepository {
             },
           },
         },
-        reports: {
+        report: {
           select: {
             id: true,
-            reportedById: true,
           },
         },
       },
