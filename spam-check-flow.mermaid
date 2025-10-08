@@ -31,18 +31,16 @@ sequenceDiagram
             GlobalDB-->>GlobalSvc: Result
             GlobalSvc->>GlobalDB: Check global domain
             GlobalDB-->>GlobalSvc: Result
-            GlobalSvc-->>SpamCheck: Global result
             
             alt If orgId provided
-                SpamCheck->>OrgSvc: isEmailBlocked(email, orgId)
-                OrgSvc->>OrgDB: Check org email
-                OrgDB-->>OrgSvc: Result
-                OrgSvc->>OrgDB: Check org domain
-                OrgDB-->>OrgSvc: Result
-                OrgSvc-->>SpamCheck: Org result
+                Note over GlobalSvc: GlobalSvc also handles<br/>org-level checks internally
+                GlobalSvc->>OrgDB: Check org email
+                OrgDB-->>GlobalSvc: Result
+                GlobalSvc->>OrgDB: Check org domain
+                OrgDB-->>GlobalSvc: Result
             end
             
-            Note over SpamCheck: Returns blocked if<br/>EITHER check matches
+            GlobalSvc-->>SpamCheck: Blocking result<br/>(checked global + org)
         end
     and
         Handler->>Handler: Load availability
@@ -76,4 +74,4 @@ sequenceDiagram
         end
     end
     
-    Note over Handler,FakePage: Architecture:<br/>✅ SpamCheckService.ts (NEW) - Orchestrates parallel global + org checks<br/>✅ GlobalBlockingService.ts (EXISTING) - Checks global email/domain blocking<br/>✅ OrganizationBlockingService.ts (EXISTING) - Checks org-level email/domain blocking<br/>✅ spamCheck.ts container (NEW) - DI container for spam check<br/>✅ /booking-successful/page.tsx (NEW) - Fake success page<br/>📝 handleNewBooking.ts (MODIFIED) - Async spam check + fake booking<br/>📝 useBookings.ts (MODIFIED) - Redirect logic for isSpamDecoy<br/>📝 bookings/types.ts (MODIFIED) - Added isSpamDecoy flag
+    Note over Handler,FakePage: Architecture:<br/>✅ SpamCheckService.ts (NEW) - Async wrapper with startCheck/waitForCheck<br/>✅ GlobalBlockingService.ts (MODIFIED) - Now handles both global + org blocking internally<br/>✅ /booking-successful/[localStorageUid]/page.tsx (NEW) - Secure localStorage-based success page<br/>✅ SpamCheckService.container.ts (NEW) - DI container for spam check<br/>📝 handleNewBooking.ts (MODIFIED) - Async spam check + fake booking<br/>📝 useBookings.ts (MODIFIED) - Redirect with localStorage storage<br/>📝 bookings/types.ts (MODIFIED) - Added isSpamDecoy flag
