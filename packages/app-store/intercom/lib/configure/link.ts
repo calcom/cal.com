@@ -24,13 +24,13 @@ export async function handleLinkStep(req: NextApiRequest): Promise<NewCanvas | s
   const input: InputComponent = {
     type: "input",
     id: "submit_booking_url",
-    label: "Enter your Cal.com link",
-    placeholder: "https://cal.com/valentinchmara/30min",
+    label: "Enter your Cal ID link",
+    placeholder: "https://cal.id/manas/quick-chat",
     save_state: "unsaved",
     action: {
       type: "submit",
     },
-    aria_label: "Enter your Cal.com link",
+    aria_label: "Enter your Cal ID link",
   };
 
   const defaultCanvasData: NewCanvas = {

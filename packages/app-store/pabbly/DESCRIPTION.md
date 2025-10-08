@@ -6,4 +6,4 @@ items:
   - 4.jpeg
 ---
 
-Workflow automation for everyone. Use the "Cal ID" Pabbly app to automate your workflows when a booking is created, rescheduled, cancelled.
+Workflow automation for everyone. Use the [Cal ID](https://cal.id) Pabbly app to automate your workflows when a booking is created, rescheduled, cancelled.
