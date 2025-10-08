@@ -1,3 +1,4 @@
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { IBlockingService, BlockingResult } from "../interface/IBlockingService";
 import type {
   IGlobalWatchlistRepository,
@@ -40,6 +41,14 @@ export class GlobalBlockingService implements IBlockingService {
 
     // Add org specific check here
     if (organizationId) {
+      const orgEmailEntry = await this.orgRepo.findBlockedEmail({ email: normalizedEmail, organizationId });
+      if (orgEmailEntry) {
+        return {
+          isBlocked: true,
+          reason: WatchlistType.EMAIL,
+          watchlistEntry: orgEmailEntry,
+        };
+      }
       const orgDomainEntry = await this.orgRepo.findBlockedDomain(normalizedDomain, organizationId);
       if (orgDomainEntry) {
         // TODO: Add audit logging when audit service is injected

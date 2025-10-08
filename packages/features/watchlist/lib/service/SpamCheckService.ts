@@ -41,20 +41,13 @@ export class SpamCheckService {
     // Always check global blocking
     const globalCheckPromise = this.globalBlockingService.isBlocked(email, organizationId);
 
-    // Only check organization blocking if we have a valid organizationId
-    const organizationCheckPromise =
-      organizationId && organizationId > 0
-        ? this.organizationBlockingService.isEmailBlocked(email, organizationId)
-        : null;
-
     // Run both checks in parallel for better performance
-    const [globalResult, organizationResult] = await Promise.all([
+    const [globalResult] = await Promise.all([
       globalCheckPromise,
-      organizationCheckPromise,
     ]);
 
     return {
-      isBlocked: globalResult.isBlocked || (organizationResult?.isBlocked ?? false),
+      isBlocked: globalResult.isBlocked,
     };
   }
 }
