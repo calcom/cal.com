@@ -1,0 +1,17 @@
+{
+  "name": "Pabbly",
+  "slug": "pabbly",
+  "type": "pabbly_automation",
+  "logo": "icon.svg",
+  "url": "https://www.pabbly.com/connect/integrations/cal-id/",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Cal ID",
+  "email": "support@cal.id",
+  "description": "Build and automate anything in one powerful visual platform.",
+  "extendsFeature": "EventType",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-app-card",
+  "dirName": "pabbly"
+}

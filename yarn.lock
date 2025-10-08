@@ -3122,6 +3122,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/pabbly@workspace:packages/app-store/pabbly":
+  version: 0.0.0-use.local
+  resolution: "@calcom/pabbly@workspace:packages/app-store/pabbly"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/paypal@workspace:packages/app-store/paypal":
   version: 0.0.0-use.local
   resolution: "@calcom/paypal@workspace:packages/app-store/paypal"
