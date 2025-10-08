@@ -2,6 +2,7 @@ import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/boo
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import logger from "@calcom/lib/logger";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingAccessService } from "@calcom/lib/server/service/bookingAccessService";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -25,8 +26,9 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
 
   const bookingRepo = new BookingRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+  const bookingAccessService = new BookingAccessService(prisma);
 
-  const hasAccess = await bookingRepo.doesUserIdHaveAccessToBooking({
+  const hasAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
     userId: user.id,
     bookingId,
   });
