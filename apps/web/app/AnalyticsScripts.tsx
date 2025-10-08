@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { useEffect } from "react";
 
+import { GTM_ID } from "@calcom/lib/constants";
+
 // Helper function to determine if scripts should be allowed
 function shouldAllowScripts(pathname: string | null): boolean {
   if (!pathname) return false;
@@ -47,7 +49,7 @@ interface AnalyticsScriptsProps {
 
 export function AnalyticsScripts({ nonce }: AnalyticsScriptsProps) {
   const pathname = usePathname();
-  console.log("AnalyticsScripts - pathname:", pathname);
+  console.log("AnalyticsScripts - pathname:", pathname, "And gtm id: ", GTM_ID);
 
   const allowScript = shouldAllowScripts(pathname);
   const allowMetaPixel = shouldAllowMetaPixel(pathname);
@@ -65,7 +67,7 @@ export function AnalyticsScripts({ nonce }: AnalyticsScriptsProps) {
       {allowScript && (
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-N7JCMTN4"
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
@@ -103,7 +105,7 @@ export function AnalyticsScripts({ nonce }: AnalyticsScriptsProps) {
                 j.async=true;
                 j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
                 f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','GTM-N7JCMTN4');
+              })(window,document,'script','dataLayer','${GTM_ID}');
             `,
           }}
         />

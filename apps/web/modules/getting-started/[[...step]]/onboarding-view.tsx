@@ -92,15 +92,17 @@ const OnboardingPage = (props: PageProps) => {
   const params = useParamsWithFallback();
 
   useEffect(() => {
-    if (!props.google_signup_tracked) {
+    if (props.google_signup_to_be_tracked) {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
         event: "gmail_signup_success",
         signup_method: "google",
         email_address: props.email,
       });
+      console.log("Gmail event pushed");
     }
-  }, [props.google_signup_tracked, props.email]);
+  }, [props.google_signup_to_be_tracked, props.email]);
+  console.log("Props got were: ", props);
 
   const router = useRouter();
   const [user] = trpc.viewer.me.calid_get.useSuspenseQuery();
