@@ -15,5 +15,5 @@
   "devDependencies": {
     "@calcom/types": "*"
   },
-  "description": "Your Bitcoin & Nostr companion for the web. Use Alby to charge Satoshi for your Cal.com meetings.\r"
+  "description": "Your Bitcoin & Nostr companion for the web. Use Alby to charge Satoshi for your Cal ID meetings.\r"
 }
