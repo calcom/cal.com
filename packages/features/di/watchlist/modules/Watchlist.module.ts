@@ -6,7 +6,6 @@ import { AuditRepository } from "@calcom/features/watchlist/lib/repository/Audit
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { OrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/repository/OrganizationWatchlistRepository";
 import { AuditService } from "@calcom/features/watchlist/lib/service/AuditService";
-import { CombinedBlockingService } from "@calcom/features/watchlist/lib/service/CombinedBlockingService";
 import { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/GlobalBlockingService";
 import { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 import { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
@@ -41,14 +40,6 @@ watchlistModule
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE)
   .toClass(OrganizationBlockingService, [
-    WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY,
-    WATCHLIST_DI_TOKENS.AUDIT_SERVICE,
-  ]);
-
-watchlistModule
-  .bind(WATCHLIST_DI_TOKENS.COMBINED_BLOCKING_SERVICE)
-  .toClass(CombinedBlockingService, [
-    WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY,
     WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY,
     WATCHLIST_DI_TOKENS.AUDIT_SERVICE,
   ]);

@@ -99,6 +99,7 @@ const getEventTypesFromDBSelect = {
           id: true,
           bookingLimits: true,
           includeManagedEventsInLimits: true,
+          parentId: true,
         },
       },
     },

@@ -27,7 +27,7 @@ import type { CacheService } from "@calcom/features/calendar-cache/lib/getShould
 import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
 import { getCacheService } from "@calcom/features/di/containers/Cache";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
-import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/spamCheck";
+import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -498,8 +498,8 @@ async function handler(
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
   const spamCheckService = getSpamCheckService();
-  const organizationIdForSpamCheck = eventType.team?.parentId ?? null;
-  spamCheckService.startCheck(bookerEmail, organizationIdForSpamCheck ?? undefined);
+  const eventOrganizationId = eventType.team?.parentId ?? eventType.parent?.team?.parentId ?? null;
+  spamCheckService.startCheck(bookerEmail, eventOrganizationId ?? undefined);
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({

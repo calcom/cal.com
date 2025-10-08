@@ -26,7 +26,6 @@ watchlistContainer.load(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.AUDIT_SERVICE, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE, watchlistModule);
-watchlistContainer.load(WATCHLIST_DI_TOKENS.COMBINED_BLOCKING_SERVICE, watchlistModule);
 
 export function getWatchlistService() {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE);
@@ -38,10 +37,6 @@ export function getGlobalBlockingService() {
 
 export function getOrganizationBlockingService() {
   return watchlistContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE);
-}
-
-export function getCombinedBlockingService() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.COMBINED_BLOCKING_SERVICE);
 }
 
 export function getAuditService() {

@@ -1,8 +1,14 @@
 import type { User } from "@calcom/prisma/client";
-import type { WatchlistType } from "@calcom/prisma/enums";
 
-import type { Watchlist } from "../types";
-import type { WatchlistEntryDTO, WatchlistListResponseDTO, BlockingCheckResultDTO } from "./types";
+import type { BlockedBooking, Watchlist, WatchlistType } from "../types";
+import type {
+  WatchlistEntryDTO,
+  BlockedBookingLogDTO,
+  WatchlistListResponseDTO,
+  BlockingStatsDTO,
+  BlockedBookingLogsResponseDTO,
+  BlockingCheckResultDTO,
+} from "./types";
 
 /**
  * Maps a Watchlist domain model to a WatchlistEntryDTO
@@ -43,6 +49,32 @@ export function mapWatchlistToDTO(
 }
 
 /**
+ * Maps a BlockedBooking domain model to a BlockedBookingLogDTO
+ */
+export function mapBlockedBookingToDTO(
+  blockedBooking: BlockedBooking & {
+    watchlistEntry?: Watchlist | null;
+  }
+): BlockedBookingLogDTO {
+  return {
+    id: blockedBooking.id,
+    email: blockedBooking.watchlistEntry?.value,
+    eventTypeId: blockedBooking.eventTypeId,
+    organizationId: blockedBooking.watchlistEntry?.organizationId,
+    createdAt: blockedBooking.timestamp.toISOString(),
+    watchlistId: blockedBooking.watchlistId,
+    watchlistEntry: blockedBooking.watchlistEntry
+      ? {
+          id: blockedBooking.watchlistEntry.id,
+          type: blockedBooking.watchlistEntry.type,
+          value: blockedBooking.watchlistEntry.value,
+          action: blockedBooking.watchlistEntry.action,
+        }
+      : null,
+  };
+}
+
+/**
  * Maps an array of Watchlist entries to a paginated response DTO
  */
 export function mapWatchlistListToDTO(
@@ -70,12 +102,61 @@ export function mapWatchlistListToDTO(
 }
 
 /**
+ * Maps blocking statistics to DTO
+ */
+export function mapBlockingStatsToDTO(
+  stats: {
+    totalBlocked: number;
+    blockedByEmail: number;
+    blockedByDomain: number;
+  },
+  organizationId: number,
+  periodStart?: Date,
+  periodEnd?: Date
+): BlockingStatsDTO {
+  return {
+    totalBlocked: stats.totalBlocked,
+    blockedByEmail: stats.blockedByEmail,
+    blockedByDomain: stats.blockedByDomain,
+    organizationId,
+    periodStart: periodStart?.toISOString(),
+    periodEnd: periodEnd?.toISOString(),
+  };
+}
+
+/**
+ * Maps blocked booking logs to paginated response DTO
+ */
+export function mapBlockedBookingLogsToDTO(
+  logs: Array<
+    BlockedBooking & {
+      watchlistEntry?: Watchlist | null;
+    }
+  >,
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+  }
+): BlockedBookingLogsResponseDTO {
+  return {
+    logs: logs.map(mapBlockedBookingToDTO),
+    pagination: pagination
+      ? {
+          ...pagination,
+          hasMore: pagination.page * pagination.limit < pagination.total,
+        }
+      : undefined,
+  };
+}
+
+/**
  * Maps blocking check result to DTO
  */
 export function mapBlockingResultToDTO(result: {
   isBlocked: boolean;
   reason?: WatchlistType;
-  watchlistEntry?: WatchlistEntryDTO | null;
+  watchlistEntry?: Watchlist | null;
 }): BlockingCheckResultDTO {
   return {
     isBlocked: result.isBlocked,
