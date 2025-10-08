@@ -6,7 +6,7 @@ import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalizati
 import type { PrismaClient } from "@calcom/prisma/client";
 
 function presenter(containsBlockedUser: boolean) {
-  return startSpan({ name: "checkIfUsersAreBlocked Presenter", op: "serialize" }, () => {
+  return startSpan({ name: "checkIfUsersAreBlocked Presenter", op: "serialize" }, async () => {
     return !!containsBlockedUser;
   });
 }
