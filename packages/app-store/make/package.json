@@ -4,7 +4,7 @@
   "name": "@calcom/make",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "Workflow automation for everyone. Use the Cal.com Make app to trigger your workflows when a booking is created, rescheduled, or cancelled, or after a meeting ends.",
+  "description": "Workflow automation for everyone. Use the Cal ID Make app to trigger your workflows when a booking is created, rescheduled, or cancelled, or after a meeting ends.",
   "dependencies": {
     "@calcom/lib": "*"
   },

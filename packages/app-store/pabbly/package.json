@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,
-  "name": "@calcom/autocheckin",
+  "name": "@calcom/pabbly",
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
@@ -10,5 +10,5 @@
   "devDependencies": {
     "@calcom/types": "*"
   },
-  "description": "You simply paste a Cal ID link of someone, select a frequency and we will take care of the scheduling for you.\r\r"
+  "description": "Workflow automation for everyone. Use the \"Cal ID\" Pabbly app to trigger your workflows when a booking is created, rescheduled, or cancelled. "
 }

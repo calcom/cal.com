@@ -29,6 +29,7 @@ import { appKeysSchema as mock_payment_app_zod_ts } from "./mock-payment-app/zod
 import { appKeysSchema as nextcloudtalk_zod_ts } from "./nextcloudtalk/zod";
 import { appKeysSchema as office365calendar_zod_ts } from "./office365calendar/zod";
 import { appKeysSchema as office365video_zod_ts } from "./office365video/zod";
+import { appKeysSchema as pabbly_zod_ts } from "./pabbly/zod";
 import { appKeysSchema as paypal_zod_ts } from "./paypal/zod";
 import { appKeysSchema as pipedrive_crm_zod_ts } from "./pipedrive-crm/zod";
 import { appKeysSchema as plausible_zod_ts } from "./plausible/zod";
@@ -81,6 +82,7 @@ export const appKeysSchemas = {
   nextcloudtalk: nextcloudtalk_zod_ts,
   office365calendar: office365calendar_zod_ts,
   office365video: office365video_zod_ts,
+  pabbly: pabbly_zod_ts,
   paypal: paypal_zod_ts,
   "pipedrive-crm": pipedrive_crm_zod_ts,
   plausible: plausible_zod_ts,
