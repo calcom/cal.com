@@ -1,10 +1,9 @@
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import logger from "@calcom/lib/logger";
+import type { LuckyUserService, RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
 import type { RRResetInterval, SelectedCalendar } from "@calcom/prisma/client";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
-import type { LuckyUserService, RoutingFormResponse } from "../server/getLuckyUser";
 
 export const errorCodes = {
   MAX_LEAD_THRESHOLD_FALSY: "Max lead threshold should be null or > 1, not 0.",
