@@ -1,7 +1,8 @@
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 
 import slugify from "../../slugify";
@@ -31,14 +32,18 @@ interface CreateUserInput {
 const log = logger.getSubLogger({ prefix: ["[userCreationService]"] });
 
 export class UserCreationService {
-  static async createUser({ data }: { data: CreateUserInput }) {
+  static async createUser({ data, prisma: customPrisma }: { data: CreateUserInput; prisma?: PrismaClient }) {
     const { email, password, username } = data;
 
-    const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
+    const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(
+      email,
+      undefined,
+      customPrisma
+    );
 
     const hashedPassword = password ? await hashPassword(password) : null;
 
-    const userRepo = new UserRepository(prisma);
+    const userRepo = new UserRepository(customPrisma || prisma);
     const user = await userRepo.create({
       ...data,
       username: slugify(username),
