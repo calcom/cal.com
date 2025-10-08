@@ -769,7 +769,6 @@
   "cancel_event": "Cancel event",
   "report_booking": "Report booking",
   "report_booking_will_cancel_description": "Reporting this booking will automatically cancel it",
-  "report_booking_will_not_cancel_description": "This booking will be reported only",
   "add_to_report": "Add to report",
   "reported": "Reported",
   "continue": "Continue",
