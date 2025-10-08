@@ -73,7 +73,7 @@ const createOrganizationWatchlistEntry = async (
 };
 
 const expectDecoyBookingResponse = (booking: Record<string, unknown>) => {
-  expect(booking).toHaveProperty("isSpamDecoy", true);
+  expect(booking).toHaveProperty("isShortCircuitedBooking", true);
   expect(booking).toHaveProperty("uid");
   expect(booking.uid).toBeTruthy();
   expect(booking).toHaveProperty("status", BookingStatus.ACCEPTED);
@@ -123,7 +123,7 @@ describe("handleNewBooking - Spam Detection", () => {
           action: "BLOCK",
         });
 
-        console.log('watchlists', await prismaMock.watchlist.findMany());
+        console.log("watchlists", await prismaMock.watchlist.findMany());
 
         await createBookingScenario(
           getScenarioData({
@@ -379,7 +379,7 @@ describe("handleNewBooking - Spam Detection", () => {
         );
         const spamCheckService = getSpamCheckService();
         const originalIsBlocked = spamCheckService["isBlocked"].bind(spamCheckService);
-        
+
         // Use vi.spyOn to mock the private method
         const isBlockedSpy = vi.spyOn(spamCheckService as never, "isBlocked");
         isBlockedSpy.mockRejectedValue(new Error("Database connection failed"));
@@ -390,7 +390,7 @@ describe("handleNewBooking - Spam Detection", () => {
           });
 
           // Should NOT be a decoy response - booking should succeed due to fail-open behavior
-          expect(createdBooking).not.toHaveProperty("isSpamDecoy");
+          expect(createdBooking).not.toHaveProperty("isShortCircuitedBooking");
           expect(createdBooking.status).toBe(BookingStatus.ACCEPTED);
           expect(createdBooking.id).not.toBe(0);
           expect(createdBooking.attendees[0].email).toBe(bookerEmail);
@@ -436,7 +436,7 @@ describe("handleNewBooking - Spam Detection", () => {
         await createOrganizationWatchlistEntry(org.id, {
           type: WatchlistType.EMAIL,
           value: blockedEmail,
-          action: "BLOCK",  
+          action: "BLOCK",
         });
 
         // Use the child team ID for the eventType
@@ -675,7 +675,7 @@ describe("handleNewBooking - Spam Detection", () => {
         });
 
         // Should NOT be a decoy response - booking should succeed
-        expect(createdBooking).not.toHaveProperty("isSpamDecoy");
+        expect(createdBooking).not.toHaveProperty("isShortCircuitedBooking");
         expect(createdBooking.status).toBe(BookingStatus.ACCEPTED);
         expect(createdBooking.id).not.toBe(0);
         expect(createdBooking.attendees[0].email).toBe(blockedEmail);

@@ -1407,6 +1407,10 @@ async function handler(
       reason: spamCheckResult.reason,
     });
 
+    const DECOY_ORGANIZER_NAMES = ["Alex Smith", "Jordan Taylor", "Sam Johnson", "Chris Morgan"];
+    const randomOrganizerName =
+      DECOY_ORGANIZER_NAMES[Math.floor(Math.random() * DECOY_ORGANIZER_NAMES.length)];
+
     return {
       uid,
 
@@ -1415,14 +1419,14 @@ async function handler(
       startTime: reqBody.start,
       endTime: reqBody.end,
       location: bookingLocation,
-      isSpamDecoy: true,
+      isShortCircuitedBooking: true, // Renamed from isSpamDecoy to avoid exposing spam detection to blocked users (important-comment)
       isDryRun: false,
       paymentRequired: false,
       paymentUid: null,
       userPrimaryEmail: null,
       user: {
-        name: organizerUser.name,
-        timeZone: organizerUser.timeZone,
+        name: randomOrganizerName,
+        timeZone: "UTC",
         email: null,
       },
       status: BookingStatus.ACCEPTED,

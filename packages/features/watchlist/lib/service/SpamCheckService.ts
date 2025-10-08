@@ -31,14 +31,9 @@ export class SpamCheckService {
 
   /**
    * Checks if an email is blocked by either global or organization-level rules
-   * Runs both checks in parallel for performance when organizationId is provided
    */
   private async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
-    // Always check global blocking
-    const globalCheckPromise = this.globalBlockingService.isBlocked(email, organizationId);
-
-    // Run both checks in parallel for better performance
-    const [globalResult] = await Promise.all([globalCheckPromise]);
+    const globalResult = await this.globalBlockingService.isBlocked(email, organizationId);
 
     return {
       isBlocked: globalResult.isBlocked,

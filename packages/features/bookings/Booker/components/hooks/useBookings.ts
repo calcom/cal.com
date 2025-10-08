@@ -280,7 +280,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
         return;
       }
 
-      if ("isSpamDecoy" in booking && booking.isSpamDecoy) {
+      if ("isShortCircuitedBooking" in booking && booking.isShortCircuitedBooking) {
         const bookingData = {
           title: booking.title ?? null,
           startTime: booking.startTime,
