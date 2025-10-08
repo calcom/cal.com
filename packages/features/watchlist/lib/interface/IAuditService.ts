@@ -1,26 +1,17 @@
-export interface BlockingStats {
-  totalBlocked: number;
-  blockedByEmail: number;
-  blockedByDomain: number;
-}
+import type { WatchlistAudit } from "../types";
+import type { CreateWatchlistAuditInput, UpdateWatchlistAuditInput } from "./IAuditRepository";
 
 export interface IAuditService {
-  logBlockedBookingAttempt(data: {
-    email: string;
-    organizationId?: number;
-    watchlistId: string;
-    eventTypeId?: number;
-    bookingData?: Record<string, unknown>;
-  }): Promise<void>;
-
-  getBlockingStats(organizationId: number): Promise<BlockingStats>;
-
-  logWatchlistChange(data: {
-    watchlistId: string;
-    type: string;
-    value: string;
-    description?: string;
-    action: string;
+  // Basic CRUD operations for WatchlistAudit
+  createAuditEntry(data: CreateWatchlistAuditInput): Promise<WatchlistAudit>;
+  getAuditEntry(id: string): Promise<WatchlistAudit | null>;
+  getAuditHistory(watchlistId: string): Promise<WatchlistAudit[]>;
+  updateAuditEntry(id: string, data: UpdateWatchlistAuditInput): Promise<WatchlistAudit>;
+  deleteAuditEntry(id: string): Promise<void>;
+  getAuditEntries(filters?: {
+    watchlistId?: string;
     changedByUserId?: number;
-  }): Promise<void>;
+    limit?: number;
+    offset?: number;
+  }): Promise<WatchlistAudit[]>;
 }

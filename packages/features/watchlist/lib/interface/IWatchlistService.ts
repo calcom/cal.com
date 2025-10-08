@@ -6,5 +6,4 @@ export interface IWatchlistService {
   deleteEntry(id: string): Promise<void>;
   getEntry(id: string): Promise<WatchlistEntry | null>;
   listEntries(organizationId?: number): Promise<WatchlistEntry[]>;
-  isBlocked(email: string, organizationId?: number): Promise<boolean>;
 }

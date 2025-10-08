@@ -70,7 +70,7 @@ export class WatchlistService implements IWatchlistService {
     try {
       this.log.debug("Updating watchlist entry", { id });
 
-      const entry = await this.globalRepo.update(id, data);
+      const entry = await this.globalRepo.updateEntry(id, data);
 
       this.log.info("Watchlist entry updated successfully", {
         id: entry.id,
@@ -92,7 +92,7 @@ export class WatchlistService implements IWatchlistService {
     try {
       this.log.debug("Deleting watchlist entry", { id });
 
-      await this.globalRepo.delete(id);
+      await this.globalRepo.deleteEntry(id);
 
       this.log.info("Watchlist entry deleted successfully", { id });
     } catch (error) {
@@ -108,15 +108,17 @@ export class WatchlistService implements IWatchlistService {
     try {
       this.log.debug("Fetching watchlist entry", { id });
 
-      const entry = await this.globalRepo.findById(id);
-
-      if (entry) {
-        this.log.debug("Watchlist entry found", { id, type: entry.type });
-      } else {
-        this.log.debug("Watchlist entry not found", { id });
+      // First try to find in global entries
+      const globalEntry = await this.globalRepo.findById(id);
+      if (globalEntry) {
+        this.log.debug("Global watchlist entry found", { id, type: globalEntry.type });
+        return globalEntry;
       }
 
-      return entry;
+      // If not found in global, it might be an organization-specific entry
+      // Since we don't have organizationId, we can only find global entries with this method
+      this.log.debug("Entry not found in global repository", { id });
+      return null;
     } catch (error) {
       this.log.error("Failed to fetch watchlist entry", {
         error: error instanceof Error ? error.message : String(error),
@@ -130,7 +132,7 @@ export class WatchlistService implements IWatchlistService {
     try {
       this.log.debug("Listing watchlist entries", { organizationId });
 
-      const entries = await this.globalRepo.findMany({ organizationId });
+      const entries = await this.globalRepo.listAllBlockedEntries();
 
       this.log.debug("Watchlist entries retrieved", {
         count: entries.length,
@@ -144,49 +146,6 @@ export class WatchlistService implements IWatchlistService {
         organizationId,
       });
       throw error;
-    }
-  }
-
-  async isBlocked(email: string, organizationId?: number): Promise<boolean> {
-    try {
-      this.log.debug("Checking if email is blocked", { email, organizationId });
-
-      // Check for exact email match
-      const emailEntry = await this.globalRepo.findBlockedEntry(email, organizationId);
-      if (emailEntry) {
-        this.log.info("Email blocked by exact match", {
-          email,
-          organizationId,
-          entryId: emailEntry.id,
-        });
-        return true;
-      }
-
-      // Check for domain match
-      const domain = email.split("@")[1];
-      if (domain) {
-        const domainEntry = await this.globalRepo.findBlockedDomain(`@${domain}`, organizationId);
-        if (domainEntry) {
-          this.log.info("Email blocked by domain match", {
-            email,
-            domain,
-            organizationId,
-            entryId: domainEntry.id,
-          });
-          return true;
-        }
-      }
-
-      this.log.debug("Email not blocked", { email, organizationId });
-      return false;
-    } catch (error) {
-      this.log.error("Failed to check if email is blocked", {
-        error: error instanceof Error ? error.message : String(error),
-        email,
-        organizationId,
-      });
-      // In case of error, default to not blocked to avoid false positives
-      return false;
     }
   }
 }

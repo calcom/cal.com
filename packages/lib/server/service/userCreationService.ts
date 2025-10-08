@@ -44,12 +44,12 @@ export class UserCreationService {
       username: slugify(username),
       ...(hashedPassword && { hashedPassword }),
       organizationId: data?.organizationId ?? null,
-      locked: shouldLockByDefault,
+      locked: shouldLockByDefault.isBlocked,
     });
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
 
-    const { locked, ...restUser } = user;
+    const { locked: _locked, ...restUser } = user;
 
     return restUser;
   }

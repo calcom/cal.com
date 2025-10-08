@@ -1,10 +1,4 @@
-import type { WatchlistEventAudit, WatchlistAudit } from "../types";
-
-export interface CreateWatchlistEventAuditInput {
-  watchlistId: string;
-  eventTypeId: number;
-  actionTaken: string;
-}
+import type { WatchlistAudit } from "../types";
 
 export interface CreateWatchlistAuditInput {
   type: string;
@@ -15,24 +9,25 @@ export interface CreateWatchlistAuditInput {
   watchlistId: string;
 }
 
-export interface IAuditRepository {
-  // WatchlistEventAudit methods (replaces BlockedBookingLog)
-  createEventAudit(data: CreateWatchlistEventAuditInput): Promise<WatchlistEventAudit>;
-  getEventAuditsByOrganization(organizationId: number): Promise<WatchlistEventAudit[]>;
-  getBlockingStats(organizationId: number): Promise<{
-    totalBlocked: number;
-    blockedByEmail: number;
-    blockedByDomain: number;
-  }>;
-
-  // WatchlistAudit methods for tracking changes
-  createChangeAudit(data: CreateWatchlistAuditInput): Promise<WatchlistAudit>;
-  getChangeHistory(watchlistId: string): Promise<WatchlistAudit[]>;
-
-  // Legacy method names for backward compatibility
-  createBlockedBookingEntry(data: CreateWatchlistEventAuditInput): Promise<WatchlistEventAudit>;
-  getBlockedBookingsByOrganization(organizationId: number): Promise<WatchlistEventAudit[]>;
+export interface UpdateWatchlistAuditInput {
+  type?: string;
+  value?: string;
+  description?: string;
+  action?: string;
+  changedByUserId?: number;
 }
 
-// Export input types
-export type { CreateWatchlistEventAuditInput, CreateWatchlistAuditInput };
+export interface IAuditRepository {
+  // Basic CRUD operations for WatchlistAudit table
+  create(data: CreateWatchlistAuditInput): Promise<WatchlistAudit>;
+  findById(id: string): Promise<WatchlistAudit | null>;
+  findByWatchlistId(watchlistId: string): Promise<WatchlistAudit[]>;
+  update(id: string, data: UpdateWatchlistAuditInput): Promise<WatchlistAudit>;
+  delete(id: string): Promise<void>;
+  findMany(filters?: {
+    watchlistId?: string;
+    changedByUserId?: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<WatchlistAudit[]>;
+}

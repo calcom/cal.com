@@ -1,12 +1,9 @@
 // Export all DTO types
 export type {
   WatchlistEntryDTO,
-  BlockedBookingLogDTO,
   CreateWatchlistEntryDTO,
   UpdateWatchlistEntryDTO,
   WatchlistListResponseDTO,
-  BlockingStatsDTO,
-  BlockedBookingLogsResponseDTO,
   WatchlistSearchDTO,
   BlockingCheckResultDTO,
   EmailBlockedCheckResponseDTO,
@@ -19,10 +16,7 @@ export type {
 // Export all mappers
 export {
   mapWatchlistToDTO,
-  mapBlockedBookingToDTO,
   mapWatchlistListToDTO,
-  mapBlockingStatsToDTO,
-  mapBlockedBookingLogsToDTO,
   mapBlockingResultToDTO,
   sanitizeWatchlistEntryDTO,
   sanitizeWatchlistValue,

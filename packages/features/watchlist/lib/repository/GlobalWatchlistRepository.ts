@@ -19,7 +19,8 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
           type: WatchlistType.EMAIL,
           value: email.toLowerCase(),
           action: WatchlistAction.BLOCK,
-          organizationId: null, // Global entries only
+          organizationId: null,
+          isGlobal: true,
         },
       });
     } catch (err) {
@@ -35,7 +36,8 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
           type: WatchlistType.DOMAIN,
           value: domain.toLowerCase(),
           action: WatchlistAction.BLOCK,
-          organizationId: null, // Global entries only
+          organizationId: null,
+          isGlobal: true,
         },
       });
     } catch (err) {
@@ -51,7 +53,8 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
           type: WatchlistType.DOMAIN,
           value: domain.toLowerCase(),
           source: WatchlistSource.FREE_DOMAIN_POLICY,
-          organizationId: null, // Global entries only
+          organizationId: null,
+          isGlobal: true,
         },
       });
     } catch (err) {
@@ -60,14 +63,11 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     }
   }
 
-  async findReportedEmail(email: string): Promise<Watchlist | null> {
+  async findById(id: string): Promise<Watchlist | null> {
     try {
-      return await this.prisma.watchlist.findFirst({
+      return await this.prisma.watchlist.findUnique({
         where: {
-          type: WatchlistType.EMAIL,
-          value: email.toLowerCase(),
-          action: WatchlistAction.REPORT,
-          organizationId: null, // Global entries only
+          id,
         },
       });
     } catch (err) {
@@ -76,27 +76,11 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     }
   }
 
-  async findReportedDomain(domain: string): Promise<Watchlist | null> {
-    try {
-      return await this.prisma.watchlist.findFirst({
-        where: {
-          type: WatchlistType.DOMAIN,
-          value: domain.toLowerCase(),
-          action: WatchlistAction.REPORT,
-          organizationId: null, // Global entries only
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
-  }
-
-  async listAllGlobalEntries(): Promise<Watchlist[]> {
+  async listAllBlockedEntries(): Promise<Watchlist[]> {
     try {
       return await this.prisma.watchlist.findMany({
         where: {
-          organizationId: null, // Global entries only
+          action: WatchlistAction.BLOCK,
         },
       });
     } catch (err) {
@@ -109,87 +93,9 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     try {
       return await this.prisma.watchlist.findMany({
         where: {
-          organizationId: null, // Global entries only
+          organizationId: null,
+          isGlobal: true,
           action: WatchlistAction.BLOCK,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
-  }
-
-  async listGlobalReportedEntries(): Promise<Watchlist[]> {
-    try {
-      return await this.prisma.watchlist.findMany({
-        where: {
-          organizationId: null, // Global entries only
-          action: WatchlistAction.REPORT,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
-  }
-
-  async searchGlobalBlockedRecords(params: {
-    usernames: string[];
-    emails: string[];
-    domains: string[];
-  }): Promise<Watchlist[]> {
-    try {
-      return await this.prisma.watchlist.findMany({
-        where: {
-          organizationId: null, // Global entries only
-          action: WatchlistAction.BLOCK,
-          OR: [
-            ...(params.usernames.length > 0
-              ? [
-                  {
-                    type: WatchlistType.USERNAME,
-                    value: {
-                      in: params.usernames,
-                    },
-                  },
-                ]
-              : []),
-            ...(params.emails.length > 0
-              ? [
-                  {
-                    type: WatchlistType.EMAIL,
-                    value: {
-                      in: params.emails,
-                    },
-                  },
-                ]
-              : []),
-            ...(params.domains.length > 0
-              ? [
-                  {
-                    type: WatchlistType.DOMAIN,
-                    value: {
-                      in: params.domains,
-                    },
-                  },
-                ]
-              : []),
-          ],
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
-  }
-
-  async getFreeEmailDomainInWatchlist(emailDomain: string): Promise<Watchlist | null> {
-    try {
-      return await this.prisma.watchlist.findFirst({
-        where: {
-          type: WatchlistType.DOMAIN,
-          value: emailDomain,
-          organizationId: null, // Global entries only
         },
       });
     } catch (err) {
@@ -212,8 +118,8 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
           type: data.type,
           value: data.value.toLowerCase(),
           description: data.description,
-          isGlobal: true, // Always global
-          organizationId: null, // Always null for global
+          isGlobal: true,
+          organizationId: null,
           action: data.action,
           source: data.source || WatchlistSource.MANUAL,
         },
@@ -237,7 +143,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       return await this.prisma.watchlist.update({
         where: {
           id,
-          organizationId: null, // Ensure we only update global entries
+          organizationId: null,
         },
         data: {
           ...(data.value && { value: data.value.toLowerCase() }),
@@ -257,7 +163,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       await this.prisma.watchlist.delete({
         where: {
           id,
-          organizationId: null, // Ensure we only delete global entries
+          organizationId: null,
         },
       });
     } catch (err) {
