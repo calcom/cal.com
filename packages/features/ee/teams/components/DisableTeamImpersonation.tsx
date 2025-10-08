@@ -36,6 +36,7 @@ const DisableTeamImpersonation = ({
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("user_impersonation_heading")}
+        labelClassName="text-sm"
         disabled={disabled || mutation?.isPending}
         description={t("team_impersonation_description")}
         checked={allowImpersonation}

@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +22,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import type { Prisma } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -42,6 +42,7 @@ import {
 } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
@@ -283,6 +284,14 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
       // TODO: Not all changes require list invalidation
       await utils.viewer.teams.list.invalidate();
       revalidateTeamsList();
+
+      if (res?.slug) {
+        await revalidateTeamDataCache({
+          teamSlug: res.slug,
+          orgSlug: team?.parent?.slug ?? null,
+        });
+      }
+
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
@@ -457,7 +466,12 @@ const TeamProfileForm = ({ team, teamId }: TeamProfileFormProps) => {
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
+        <Button
+          color="primary"
+          type="submit"
+          loading={mutation.isPending}
+          disabled={isDisabled}
+          data-testid="update-team-profile">
           {t("update")}
         </Button>
         {IS_TEAM_BILLING_ENABLED &&

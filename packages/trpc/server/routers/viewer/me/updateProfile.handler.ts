@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
@@ -13,11 +12,12 @@ import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries/teams";
+import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -40,7 +40,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const billingService = new StripeBillingService();
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
-  const featuresRepository = new FeaturesRepository();
+  const featuresRepository = new FeaturesRepository(prisma);
   const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
   const { travelSchedules, ...rest } = input;

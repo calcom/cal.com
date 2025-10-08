@@ -2,17 +2,18 @@ import { createRouterCaller } from "app/_trpc/context";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
-import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -77,7 +78,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let rescheduledToUid: string | null = null;
   if (bookingInfo.rescheduled) {
-    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+    const bookingRepo = new BookingRepository(prisma);
+    const rescheduledTo = await bookingRepo.findFirstBookingByReschedule({
       originalBookingUid: bookingInfo.uid,
     });
     rescheduledToUid = rescheduledTo?.uid ?? null;
@@ -89,7 +91,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } | null = null;
 
   if (bookingInfo.fromReschedule) {
-    previousBooking = await BookingRepository.findReschedulerByUid({
+    const bookingRepo = new BookingRepository(prisma);
+    previousBooking = await bookingRepo.findReschedulerByUid({
       uid: bookingInfo.fromReschedule,
     });
   }
@@ -182,6 +185,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookingId: bookingInfo.id,
     },
     select: {
+      appId: true,
       success: true,
       refunded: true,
       currency: true,
@@ -226,16 +230,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
       : previousBooking;
 
+  const isPlatformBooking = eventType.users[0]?.isPlatformManaged || eventType.team?.createdByOAuthClientId;
+
   return {
     props: {
       orgSlug: currentOrgDomain,
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
-      hideBranding: await shouldHideBrandingForEvent({
-        eventTypeId: eventType.id,
-        team: eventType.team,
-        owner: eventType.users[0] ?? null,
-        organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
-      }),
+      hideBranding: isPlatformBooking
+        ? true
+        : await shouldHideBrandingForEvent({
+            eventTypeId: eventType.id,
+            team: eventType?.parent?.team ?? eventType?.team,
+            owner: eventType.users[0] ?? null,
+            organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
+          }),
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),

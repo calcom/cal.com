@@ -159,7 +159,7 @@ class BaseUpdateEventTypeInput {
   @ValidateInputBookingFields_2024_06_14()
   @DocsPropertyOptional({
     description:
-      "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
+      "Complete set of booking form fields. This array replaces all existing booking fields. To modify existing fields, first fetch the current event type, then include all desired fields in this array. Sending only one field will remove all other custom fields, keeping only default fields plus the provided one.",
     oneOf: [
       { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
@@ -414,6 +414,20 @@ class BaseUpdateEventTypeInput {
     type: CalVideoSettings,
   })
   calVideoSettings?: CalVideoSettings;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional()
+  hidden?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @DocsPropertyOptional({
+    default: false,
+    description:
+      "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
+  })
+  bookingRequiresAuthentication?: boolean;
 }
 export class UpdateEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInput {
   @IsOptional()
@@ -441,14 +455,16 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
   @Type(() => Host)
   @IsArray()
   @IsOptional()
-  @DocsPropertyOptional({ type: [Host] })
+  @DocsPropertyOptional({ type: [Host],
+    description:
+      "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
+   })
   hosts?: Host[];
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type",
+    description: "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 

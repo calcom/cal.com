@@ -11,7 +11,7 @@ import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { apiToInternalintegrationsMapping } from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { defaultBookingResponses } from "@/lib/safe-parse/default-responses-booking";
 import { safeParse } from "@/lib/safe-parse/safe-parse";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
@@ -22,7 +22,6 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { CreationSource } from "@prisma/client";
 import { isURL, isPhoneNumber } from "class-validator";
 import { Request } from "express";
 import { DateTime } from "luxon";
@@ -30,8 +29,9 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
-import {
+import type {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
@@ -44,8 +44,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
-import { EventType } from "@calcom/prisma/client";
+import type { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
+import type { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & {
   userId: number | undefined;
@@ -176,6 +176,7 @@ export class InputBookingsService_2024_08_13 {
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
       guests,
+      verificationCode: inputBooking.emailVerificationCode,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: {
         ...(inputBooking.bookingFieldsResponses || {}),
@@ -190,9 +191,20 @@ export class InputBookingsService_2024_08_13 {
     };
   }
 
-  private getRoutingFormData(routing: { teamMemberIds?: number[]; responseId?: number; teamMemberEmail?: string; skipContactOwner?: boolean; crmAppSlug?: string; crmOwnerRecordType?: string } | undefined) {
+  private getRoutingFormData(
+    routing:
+      | {
+          teamMemberIds?: number[];
+          responseId?: number;
+          teamMemberEmail?: string;
+          skipContactOwner?: boolean;
+          crmAppSlug?: string;
+          crmOwnerRecordType?: string;
+        }
+      | undefined
+  ) {
     if (!routing) return null;
-    
+
     return {
       routedTeamMemberIds: routing.teamMemberIds,
       routingFormResponseId: routing.responseId,
@@ -409,6 +421,9 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }
 
+    this.validateBookingLengthInMinutes(inputBooking, eventType);
+    const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
+
     const occurrence = recurringEventSchema.parse(eventType.recurringEvent);
     const repeatsEvery = occurrence.interval;
 
@@ -445,7 +460,7 @@ export class InputBookingsService_2024_08_13 {
     const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
     for (let i = 0; i < repeatsTimes; i++) {
-      const endTime = startTime.plus({ minutes: eventType.length });
+      const endTime = startTime.plus({ minutes: lengthInMinutes });
 
       events.push({
         start: startTime.toISO(),
@@ -457,6 +472,7 @@ export class InputBookingsService_2024_08_13 {
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
         guests,
+        verificationCode: inputBooking.emailVerificationCode,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: {
           ...(inputBooking.bookingFieldsResponses || {}),
@@ -586,6 +602,7 @@ export class InputBookingsService_2024_08_13 {
       guests: [],
       responses: { ...bookingResponses },
       rescheduleUid: inputBooking.seatUid,
+      verificationCode: inputBooking.emailVerificationCode,
     };
   }
 
@@ -647,6 +664,7 @@ export class InputBookingsService_2024_08_13 {
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
       rescheduleUid: bookingUid,
+      verificationCode: inputBooking.emailVerificationCode,
     };
   }
 
@@ -664,7 +682,7 @@ export class InputBookingsService_2024_08_13 {
       if (bearerToken) {
         if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
           const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
-          const apiKeyHash = hashAPIKey(strippedApiKey);
+          const apiKeyHash = sha256Hash(strippedApiKey);
           const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
           return keyData?.userId;
         } else {
@@ -691,6 +709,7 @@ export class InputBookingsService_2024_08_13 {
       beforeUpdatedDate: queryParams.beforeUpdatedAt,
       afterCreatedDate: queryParams.afterCreatedAt,
       beforeCreatedDate: queryParams.beforeCreatedAt,
+      bookingUid: queryParams.bookingUid,
     };
   }
 

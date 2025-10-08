@@ -1,10 +1,10 @@
-import type { Payment, Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
@@ -142,6 +142,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     cancellationReason: data.cancellationReason,
     user: {
       username: data.organizer.username,
+      usernameInOrg: data.organizer.usernameInOrg,
       name: data.organizer.name,
       email: data.organizer.email,
       timeZone: data.organizer.timeZone,

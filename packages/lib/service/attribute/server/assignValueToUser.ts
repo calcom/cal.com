@@ -2,8 +2,8 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 
-import { AttributeRepository } from "../../../server/repository/attribute";
-import { AttributeOptionRepository } from "../../../server/repository/attributeOption";
+import { PrismaAttributeOptionRepository } from "../../../server/repository/PrismaAttributeOptionRepository";
+import { PrismaAttributeRepository } from "../../../server/repository/PrismaAttributeRepository";
 import { MembershipRepository } from "../../../server/repository/membership";
 import type { AttributeId, AttributeName, BulkAttributeAssigner, AttributeOptionAssignment } from "../types";
 import {
@@ -37,7 +37,8 @@ const findAttributesByName = async ({
   orgId: number;
   attributeNames: AttributeName[];
 }) => {
-  const attributesFromDb = await AttributeRepository.findManyByNamesAndOrgIdIncludeOptions({
+  const attributeRepo = new PrismaAttributeRepository(prisma);
+  const attributesFromDb = await attributeRepo.findManyByNamesAndOrgIdIncludeOptions({
     attributeNames,
     orgId,
   });
@@ -325,13 +326,13 @@ const createMissingOptionsAndReturnAlongWithExisting = async <
     ),
   });
 
-  await AttributeOptionRepository.createMany({
+  await PrismaAttributeOptionRepository.createMany({
     createManyInput: attributeOptionCreateManyInput,
   });
 
   // We need fetch all the attribute options to ensure that we have the newly created options as well.
   const allAttributeOptions = (
-    await AttributeOptionRepository.findMany({
+    await PrismaAttributeOptionRepository.findMany({
       orgId,
     })
   ).map((attributeOption) => ({

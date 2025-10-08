@@ -80,7 +80,7 @@ function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
       constraints: [],
       validator: {
         validate(_: unknown, args: ValidationArguments) {
-          const obj = args.object as Attendee;
+          const obj = args.object as CreateBookingAttendee;
 
           const hasPhoneNumber = !!obj.phoneNumber;
           const hasEmail = !!obj.email;
@@ -95,7 +95,7 @@ function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
 }
 
 @RequireEmailOrPhone()
-class Attendee {
+class CreateBookingAttendee {
   @ApiProperty({
     type: String,
     description: "The name of the attendee.",
@@ -222,13 +222,13 @@ export class CreateBookingInput_2024_08_13 {
   start!: string;
 
   @ApiProperty({
-    type: Attendee,
+    type: CreateBookingAttendee,
     description: "The attendee's details.",
   })
   @IsDefined()
   @ValidateNested()
-  @Type(() => Attendee)
-  attendee!: Attendee;
+  @Type(() => CreateBookingAttendee)
+  attendee!: CreateBookingAttendee;
 
   @ApiPropertyOptional({
     type: Object,
@@ -371,6 +371,15 @@ export class CreateBookingInput_2024_08_13 {
   @ValidateNested()
   @Type(() => Routing)
   routing?: Routing;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "Email verification code required when event type has email verification enabled.",
+    example: "123456",
+  })
+  @IsOptional()
+  @IsString()
+  emailVerificationCode?: string;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

@@ -2,13 +2,13 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import type { LocationObject } from "@calcom/lib/location";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -18,7 +18,8 @@ import { STEPS } from "~/apps/installation/[[...step]]/constants";
 import type { OnboardingPageProps, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
 
 const getUser = async (userId: number) => {
-  const userAdminTeams = await UserRepository.getUserAdminTeams(userId);
+  const userRepo = new UserRepository(prisma);
+  const userAdminTeams = await userRepo.getUserAdminTeams({ userId });
 
   if (!userAdminTeams?.id) {
     return null;
@@ -96,6 +97,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     bookingFields: true,
     calVideoSettings: true,
   } satisfies Prisma.EventTypeSelect;
+
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
   if (teamIds && teamIds.length > 0) {
@@ -316,7 +318,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       isConferencing,
       isOrg,
       // conferencing apps dont support team install
-      installableOnTeams: !isConferencing,
+      installableOnTeams: !!appMetadata?.concurrentMeetings || !isConferencing,
     } as OnboardingPageProps,
   };
 };

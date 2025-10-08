@@ -23,8 +23,8 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs.utc().startOf("day").day(2).add(1, "week");
     const dateTo = dayjs.utc().endOf("day").day(3).add(1, "week");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
-
+    const indexedResults = processWorkingHours({}, { item, timeZone, dateFrom, dateTo, travelSchedules: [] });
+    const results = Object.values(indexedResults);
     expect(results.length).toBe(2); // There should be two working days between the range
     // "America/New_York" day shifts -1, so we need to add a day to correct this shift.
     expect(results[0]).toEqual({
@@ -48,7 +48,9 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs().month(9).date(24); // starts before DST change
     const dateTo = dayjs().startOf("day").month(10).date(1); // first day of November
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
+    const results = Object.values(
+      processWorkingHours({}, { item, timeZone, dateFrom, dateTo, travelSchedules: [] })
+    );
 
     const lastAvailableSlot = results[results.length - 1];
 
@@ -69,7 +71,9 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs();
     const dateTo = dayjs().endOf("month");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
+    const results = Object.values(
+      processWorkingHours({}, { item, timeZone, dateFrom, dateTo, travelSchedules: [] })
+    );
 
     expect(results).toStrictEqual([
       {
@@ -173,7 +177,9 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs().month(10).date(1).startOf("day");
     const dateTo = dayjs().month(10).endOf("month");
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
+    const results = Object.values(
+      processWorkingHours({}, { item, timeZone, dateFrom, dateTo, travelSchedules: [] })
+    );
 
     const allDSTStartAt12 = results
       .filter((res) => res.start.isBefore(firstSundayOfNovember))
@@ -197,7 +203,9 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
     const dateTo = dayjs("2023-11-08T00:00:00Z").tz(timeZone); // 2023-11-08T00:00:00 (America/New_York)
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
+    const results = Object.values(
+      processWorkingHours({}, { item, timeZone, dateFrom, dateTo, travelSchedules: [] })
+    );
 
     expect(results).toEqual([]);
   });
@@ -213,7 +221,9 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs("2023-11-07T00:00:00Z").tz(timeZone); // 2023-11-07T00:00:00 (America/New_York)
     const dateTo = dayjs("2023-11-07T23:59:59Z").tz(timeZone); // 2023-11-07T23:59:59 (America/New_York)
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
+    const results = Object.values(
+      processWorkingHours({}, { item, timeZone, dateFrom, dateTo, travelSchedules: [] })
+    );
 
     expect(results).toEqual([]);
   });
@@ -244,13 +254,18 @@ describe("processWorkingHours", () => {
       },
     ];
 
-    const resultsWithTravelSchedule = processWorkingHours({
-      item,
-      timeZone,
-      dateFrom,
-      dateTo,
-      travelSchedules,
-    });
+    const resultsWithTravelSchedule = Object.values(
+      processWorkingHours(
+        {},
+        {
+          item,
+          timeZone,
+          dateFrom,
+          dateTo,
+          travelSchedules,
+        }
+      )
+    );
 
     const resultWithOriginalTz = resultsWithTravelSchedule.filter((result) => {
       return (
@@ -563,6 +578,144 @@ describe("buildDateRanges", () => {
     expect(oooExcludedDateRanges[0]).toEqual({
       start: dayjs("2023-06-14T12:00:00Z").tz(timeZone),
       end: dayjs("2023-06-14T21:00:00Z").tz(timeZone),
+    });
+  });
+  it("supports availability past midnight through merging adjacent date ranges", () => {
+    // tests a 90 minute slot remains available
+    const items = [
+      {
+        days: [1, 2, 3, 4, 5],
+        startTime: new Date(Date.UTC(0, 0, 0, 23, 0)), // 11 PM
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
+      },
+      {
+        days: [2, 3, 4, 5, 6],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 12 AM
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 30)), // 12:30 AM
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-13T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-15T00:00:00Z");
+
+    const timeZone = "Europe/London";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(2);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-13T22:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-13T23:30:00Z").tz(timeZone),
+    });
+
+    expect(results[1]).toEqual({
+      start: dayjs("2023-06-14T22:00:00Z").tz(timeZone),
+      end: dayjs("2023-06-14T23:30:00Z").tz(timeZone),
+    });
+  });
+  it("supports multi-day availability past midnight through merging adjacent date ranges", () => {
+    // tests a 2 day date range remains available
+    const items = [
+      {
+        days: [1, 2],
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 12 AM
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-11T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-14T00:00:00Z");
+
+    const timeZone = "Europe/London";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(1);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-11T23:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-13T23:00:00Z").tz(timeZone),
+    });
+  });
+  it("supports multi-day availability past midnight through merging adjacent date ranges (date overrides)", () => {
+    // tests a 2 day date range remains available
+    const items = [
+      {
+        date: new Date("2023-06-12T00:00:00Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 11 PM
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
+      },
+      {
+        date: new Date("2023-06-13T00:00:00Z"),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)), // 11 PM
+        endTime: new Date(Date.UTC(0, 0, 0, 23, 59)), // 11:59 PM (EOD)
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-11T00:00:00Z"); // 2023-06-12T20:00:00-04:00 (America/New_York)
+    const dateTo = dayjs("2023-06-14T00:00:00Z");
+
+    const timeZone = "Europe/London";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(1);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-11T23:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-13T23:00:00Z").tz(timeZone),
+    });
+  });
+  it("should not lose earlier time slots when overlapping ranges have the same end time", () => {
+    const items = [
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(0, 0, 0, 6, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 10, 0)),
+      },
+      {
+        days: [1],
+        startTime: new Date(Date.UTC(0, 0, 0, 8, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 10, 0)),
+      },
+    ];
+
+    const dateFrom = dayjs("2023-06-12T00:00:00Z");
+    const dateTo = dayjs("2023-06-13T00:00:00Z");
+    const timeZone = "UTC";
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    expect(results.length).toBe(1);
+
+    expect(results[0]).toEqual({
+      start: dayjs.utc("2023-06-12T06:00:00Z").tz(timeZone),
+      end: dayjs.utc("2023-06-12T10:00:00Z").tz(timeZone),
     });
   });
 });
@@ -957,14 +1110,6 @@ describe("intersect function comprehensive tests", () => {
       const endTime = performance.now();
       const executionTime = endTime - startTime;
 
-      console.log(`Intersect function execution time: ${executionTime.toFixed(2)}ms`);
-      console.log(
-        `Processed ${
-          commonAvailability.length + userRanges1.length + userRanges2.length + userRanges3.length
-        } total date ranges`
-      );
-      console.log(`Found ${result.length} intersections`);
-
       expect(executionTime).toBeLessThan(100);
       expect(result.length).toBeGreaterThanOrEqual(0);
 
@@ -1036,6 +1181,82 @@ describe("intersect function comprehensive tests", () => {
 
       const result = intersect([userA_Availability, userB_Availability]);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("timezone offset exclusion bug", () => {
+    it("should succesfully mix UTC and timezone-aware dayjs objects in subtract", () => {
+      const TIMEZONE = "Asia/Kolkata"; // IST timezone (+05:30)
+
+      const sourceRanges = [
+        { start: dayjs.utc("2024-05-31T12:30:00.000Z"), end: dayjs.utc("2024-05-31T13:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T13:30:00.000Z"), end: dayjs.utc("2024-05-31T14:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T14:30:00.000Z"), end: dayjs.utc("2024-05-31T15:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T15:30:00.000Z"), end: dayjs.utc("2024-05-31T16:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T16:30:00.000Z"), end: dayjs.utc("2024-05-31T17:30:00.000Z") },
+        { start: dayjs.utc("2024-05-31T17:30:00.000Z"), end: dayjs.utc("2024-05-31T18:30:00.000Z") },
+      ];
+
+      const excludedRanges = [
+        {
+          start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
+          end: dayjs("2024-05-31T23:59:59.999Z").tz(TIMEZONE),
+        },
+      ];
+
+      const result = subtract(sourceRanges, excludedRanges);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("should demonstrate timezone handling when same timezone", () => {
+      const TIMEZONE = "Asia/Kolkata";
+
+      const sourceRange = {
+        start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
+        end: dayjs("2024-05-31T13:30:00.000Z").tz(TIMEZONE),
+      };
+
+      const excludedRange = {
+        start: dayjs("2024-05-31T12:30:00.000Z").tz(TIMEZONE),
+        end: dayjs("2024-05-31T18:00:00.000Z").tz(TIMEZONE),
+      };
+
+      const result = subtract([sourceRange], [excludedRange]);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("should not extend ranges instead of excluding busy times", () => {
+      const dateRanges = [
+        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
+        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
+        { start: dayjs("2024-06-02T04:00:00.000Z"), end: dayjs("2024-06-02T12:30:00.000Z") },
+        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
+        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
+        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
+      ];
+
+      // formattedBusyTimes from failing ROLLING_WINDOW test - this is the booking that should NOT affect dateRanges
+      const formattedBusyTimes = [
+        { start: dayjs("2024-06-01T18:30:00.000Z"), end: dayjs("2024-06-02T18:30:00.000Z") },
+      ];
+
+      const result = subtract(dateRanges, formattedBusyTimes);
+
+      // What the result SHOULD be (correct behavior): June 2 range is properly excluded due to overlapping busy time
+      const expectedCorrectedOutput = [
+        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
+        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
+        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
+        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
+        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
+      ];
+
+      expect(result).toHaveLength(5); // Correct: June 2 range is properly excluded
+      expect(result[0].end.toISOString()).toBe("2024-05-31T12:30:00.000Z"); // Correct: no extension
+      expect(result[1].end.toISOString()).toBe("2024-06-01T12:30:00.000Z"); // Correct: no extension
+      expect(result.find((r) => r.start.toISOString() === "2024-06-02T04:00:00.000Z")).toBeUndefined(); // Correct: June 2 excluded
     });
   });
 });

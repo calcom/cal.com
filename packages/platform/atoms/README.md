@@ -37,3 +37,19 @@ changesets will publish atoms to npm only if the `"version"` in the atoms `packa
 The following 2 articles teach how to write good change summaries for each PR when it deserves to end up in CHANGELOG.md
 - https://keepachangelog.com/en/1.0.0/
 - https://docs.gitlab.com/development/changelog/
+
+### Testing
+Atoms are tested in CI using e2e tests within the example platform app. To run them locally:
+1. Go to "packages/platform/atoms" and run `yarn dev-on` and then `yarn build` - this will create local build of atoms.
+2. Setup environment variables in "packages/platform/examples/base/.env" file. You will need your own platform oAuth client to populate NEXT_PUBLIC_X_CAL_ID (oAuth id), X_CAL_SECRET_KEY (oAuth secret), VITE_BOOKER_EMBED_OAUTH_CLIENT_ID (oAuth id) and ORGANIZATION_ID (organization id to which oAuth client belongs) - all of these are available in the platform settings dashboard after creating the oAuth client.
+```
+NEXT_PUBLIC_X_CAL_ID=""
+X_CAL_SECRET_KEY=""
+NEXT_PUBLIC_CALCOM_API_URL="https://api.cal.com/v2"
+VITE_BOOKER_EMBED_OAUTH_CLIENT_ID=""
+VITE_BOOKER_EMBED_API_URL="https://api.cal.com/v2"
+ORGANIZATION_ID=""
+```
+3. Go to "packages/platform/examples/base" and run `yarn dev:e2e` - this will start the example platform app and run e2e tests by using locally built atoms. Because it is not running within CI it will open a browser and run tests.
+
+

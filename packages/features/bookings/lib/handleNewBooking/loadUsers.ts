@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getRoutedUsersWithContactOwnerAndFixedUsers,
@@ -11,6 +9,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
@@ -85,12 +84,13 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
     eventType,
     hosts: hosts ?? fallbackHosts,
   });
-  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
+  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt, groupId }) => ({
     ...user,
     isFixed,
     priority,
     weight,
     createdAt,
+    groupId,
   }));
 };
 
@@ -116,7 +116,7 @@ export const findUsersByUsername = async ({
   usernameList: string[];
 }) => {
   log.debug("findUsersByUsername", { usernameList, orgSlug });
-  const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
+  const { where, profiles } = await new UserRepository(prisma)._getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   });
@@ -124,7 +124,7 @@ export const findUsersByUsername = async ({
     await prisma.user.findMany({
       where,
       select: {
-        ...userSelect.select,
+        ...userSelect,
         credentials: {
           select: credentialForCalendarServiceSelect,
         },

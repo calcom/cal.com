@@ -7,6 +7,7 @@ import { registerDecorator, validate, ValidatorConstraint } from "class-validato
 
 const inputBookingFieldTypes = [
   "name",
+  "splitName",
   "email",
   "phone",
   "address",
@@ -50,7 +51,7 @@ export class NameDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&name=bob`,\
-      the name field will be prefilled with this value and disabled.",
+      the name field will be prefilled with this value and disabled. In case of Booker atom need to pass 'name' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{name: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-fields",
   })
   disableOnPrefill?: boolean;
 }
@@ -96,7 +97,7 @@ export class SplitNameDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&firstName=bob&lastName=jones`,\
-      the first name and last name fields will be prefilled with this value and disabled. In case of Booker atom need to pass firstName and lastName to defaultFormValues prop or pass name prop but as a string containing name and surname.",
+      the first name and last name fields will be prefilled with this value and disabled. In case of Booker atom need to pass 'firstName' and 'lastName' to defaultFormValues prop e.g. `defaultFormValues={{firstName: 'bob', lastName: 'doe'}}` or pass 'name' prop but as a string containing name and surname e.g. `defaultFormValues={{name: 'bob doe'}}`.  See guide https://cal.com/docs/platform/guides/booking-fields",
   })
   disableOnPrefill?: boolean;
 }
@@ -144,7 +145,7 @@ export class EmailDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&email=bob@gmail.com`,\
-      the email field will be prefilled with this value and disabled.",
+      the email field will be prefilled with this value and disabled. In case of Booker atom need to pass 'email' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{email: 'bob@gmail.com'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 }
@@ -184,7 +185,7 @@ export class TitleDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&title=journey`,\
-      the title field will be prefilled with this value and disabled.",
+      the title field will be prefilled with this value and disabled. In case of Booker atom need to pass 'title' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{title: 'very important meeting'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 }
@@ -239,7 +240,7 @@ export class NotesDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&notes=journey`,\
-      the notes field will be prefilled with this value and disabled.",
+      the notes field will be prefilled with this value and disabled. In case of Booker atom need to pass 'notes' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{notes: 'bring notebook and paper'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 }
@@ -279,7 +280,7 @@ export class GuestsDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&guests=bob@cal.com`,\
-      the guests field will be prefilled with this value and disabled.",
+      the guests field will be prefilled with this value and disabled. In case of Booker atom need to pass 'guests' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{guests: ['bob@gmail.com', 'alice@gmail.com']}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 }
@@ -322,7 +323,7 @@ export class RescheduleReasonDefaultFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&rescheduleReason=travel`,\
-      the rescheduleReason field will be prefilled with this value and disabled.",
+      the rescheduleReason field will be prefilled with this value and disabled. In case of Booker atom need to pass 'rescheduleReason' to defaultFormValues prop with the desired value e.g. `defaultFormValues={{rescheduleReason: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 }
@@ -360,7 +361,7 @@ export class PhoneFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,\
-      the phone field will be prefilled with this value and disabled.",
+      the phone field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{phone: '+37122222222'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -407,7 +408,7 @@ export class AddressFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,\
-      the address field will be prefilled with this value and disabled.",
+      the address field will be prefilled with this value and disabled.  In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{address: 'mainstreat 10, new york'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -453,8 +454,8 @@ export class TextFieldInput_2024_06_14 {
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
-      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,\
-      the text field will be prefilled with this value and disabled.",
+      For example, if the slug is `friend` and the URL contains query parameter `&friend=bob`,\
+      the text field will be prefilled with this value and disabled.  In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{friend: 'bob'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -500,7 +501,8 @@ export class UrlFieldInput_2024_06_14 {
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
-      For example, if the slug is `video-url` and the URL contains query parameter `&video-url=https://youtube.com/abc`the url field will be prefilled with this value and disabled.",
+      For example, if the slug is `videourl` and the URL contains query parameter `&videourl=https://youtube.com/abc`the url field will be prefilled with this value and disabled. \
+      In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{videourl: 'https://caltube.com/123'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -546,8 +548,8 @@ export class NumberFieldInput_2024_06_14 {
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
-      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,\
-      the number field will be prefilled with this value and disabled.",
+      For example, if the slug is `calories` and the URL contains query parameter `&calories=3000`,\
+      the number field will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{calories: 3000}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -593,8 +595,8 @@ export class TextAreaFieldInput_2024_06_14 {
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
-      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,\
-      the text area will be prefilled with this value and disabled.",
+      For example, if the slug is `reflection` and the URL contains query parameter `&reflection=Today I shipped a feature`,\
+      the text area will be prefilled with this value and disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{reflection: 'Today i shipped a feature'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -645,7 +647,7 @@ export class SelectFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,\
-      the 'italian' will be selected and the select field will be disabled.",
+      the 'italian' will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: 'italian'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -689,8 +691,8 @@ export class MultiSelectFieldInput_2024_06_14 {
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
-      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,\
-      the 'en' and 'it' will be selected and the select field will be disabled.",
+      For example, if the slug is `language` and the URL contains query parameter `&language=en&language=it`,\
+      the 'en' and 'it' will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: ['en', 'it']}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -737,7 +739,7 @@ export class MultiEmailFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,\
-      the these emails will be added and none more can be added.",
+      the these emails will be added and none more can be added. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{consultants: ['alice@gmail.com', 'bob@gmail.com']}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -781,8 +783,8 @@ export class CheckboxGroupFieldInput_2024_06_14 {
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
-      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,\
-      the checkbox will be selected and the checkbox field will be disabled.",
+      For example, if the slug is `notify` and the URL contains query parameter `&notify=true`,\
+      the checkbox will be selected and the checkbox field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{notify: true}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -827,7 +829,7 @@ export class RadioGroupFieldInput_2024_06_14 {
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,\
-      the 'italian' radio button will be selected and the select field will be disabled.",
+      the 'italian' radio button will be selected and the select field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{language: 'italian'}}`. See guide https://cal.com/docs/platform/guides/booking-field",
   })
   disableOnPrefill?: boolean;
 
@@ -863,7 +865,13 @@ export class BooleanFieldInput_2024_06_14 {
 
   @IsBoolean()
   @IsOptional()
-  @DocsPropertyOptional({ type: Boolean })
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if the slug is `notify` and the URL contains query parameter `&notify=true`,\
+      the checkbox will be selected and the checkbox field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value  e.g. `defaultFormValues={{notify: true}}`. See guide https://cal.com/docs/platform/guides/booking-field",
+  })
   disableOnPrefill?: boolean;
 
   @IsBoolean()

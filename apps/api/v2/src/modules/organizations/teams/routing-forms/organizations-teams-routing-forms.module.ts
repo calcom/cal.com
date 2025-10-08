@@ -1,7 +1,9 @@
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/routing-forms/organizations-routing-forms.repository";
 import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
+import { SharedRoutingFormResponseService } from "@/modules/organizations/routing-forms/services/shared-routing-form-response.service";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -20,10 +22,18 @@ import { OrganizationsTeamsRoutingFormsResponsesService } from "./services/organ
 import { OrganizationsTeamsRoutingFormsService } from "./services/organizations-teams-routing-forms.service";
 
 @Module({
-  imports: [PrismaModule, StripeModule, RedisModule, RoutingFormsModule, SlotsModule_2024_09_04, TeamsEventTypesModule],
+  imports: [
+    PrismaModule,
+    StripeModule,
+    RedisModule,
+    RoutingFormsModule,
+    SlotsModule_2024_09_04,
+    TeamsEventTypesModule,
+  ],
   providers: [
     OrganizationsTeamsRoutingFormsService,
     OrganizationsTeamsRoutingFormsResponsesService,
+    SharedRoutingFormResponseService,
     OrganizationsTeamsRoutingFormsResponsesOutputService,
     OrganizationsTeamsRoutingFormsResponsesRepository,
     OrganizationsTeamsRoutingFormsRepository,
@@ -32,6 +42,7 @@ import { OrganizationsTeamsRoutingFormsService } from "./services/organizations-
     MembershipsRepository,
     OrganizationsRoutingFormsResponsesService,
     OrganizationsRoutingFormsRepository,
+    EventTypesRepository_2024_06_14,
   ],
   controllers: [OrganizationsTeamsRoutingFormsResponsesController, OrganizationsTeamsRoutingFormsController],
 })

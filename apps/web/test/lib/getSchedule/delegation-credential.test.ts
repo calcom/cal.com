@@ -12,14 +12,16 @@ import { expectNoAttemptToGetAvailability } from "../../utils/bookingScenario/ex
 
 import { describe, test } from "vitest";
 
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 
 describe("getSchedule", () => {
+  const availableSlotsService = getAvailableSlotsService();
   setupAndTeardown();
+
   describe("Delegation Credential", () => {
     test("correctly identifies unavailable slots using DelegationCredential credentials", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -58,7 +60,7 @@ describe("getSchedule", () => {
 
       await createDelegationCredential(org.id);
 
-      const googleCalendarMock = mockCalendar("googlecalendar", {
+      const googleCalendarMock = await mockCalendar("googlecalendar", {
         create: {
           uid: "MOCK_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -89,8 +91,7 @@ describe("getSchedule", () => {
       };
 
       await createBookingScenario(scenarioData);
-
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
+      const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -150,7 +151,7 @@ describe("getSchedule", () => {
       // Create Delegation credential for the org user isn't part of
       await createDelegationCredential(org.id);
 
-      const googleCalendarMock = mockCalendar("googlecalendar", {
+      const googleCalendarMock = await mockCalendar("googlecalendar", {
         create: {
           uid: "MOCK_ID",
           iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -181,8 +182,7 @@ describe("getSchedule", () => {
       };
 
       await createBookingScenario(scenarioData);
-
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
+      const scheduleForDayWithAGoogleCalendarBooking = await availableSlotsService.getAvailableSlots({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",

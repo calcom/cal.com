@@ -1,3 +1,5 @@
+"use client";
+
 import * as SheetPrimitives from "@radix-ui/react-dialog";
 import * as React from "react";
 
@@ -151,7 +153,7 @@ const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={classNames(
-        "border-muted x flex flex-col-reverse border-t pt-4 sm:flex-row sm:justify-end sm:space-x-2",
+        "border-muted flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end",
         className
       )}
       {...props}

@@ -21,5 +21,14 @@ export type AppFlags = {
   "workflow-smtp-emails": boolean;
   "cal-video-log-in-overlay": boolean;
   "use-api-v2-for-team-slots": boolean;
+  pbac: boolean;
   "restriction-schedule": boolean;
+  "team-booking-page-cache": boolean;
+  "cal-ai-voice-agents": boolean;
+  "tiered-support-chat": boolean;
+  "calendar-subscription-cache": boolean;
+  "calendar-subscription-sync": boolean;
+  "booker-botid": boolean;
 };
+
+export type TeamFeatures = Record<keyof AppFlags, boolean>;

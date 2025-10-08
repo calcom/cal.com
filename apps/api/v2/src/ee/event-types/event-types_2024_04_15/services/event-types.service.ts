@@ -19,7 +19,7 @@ import {
   EventTypesPublic,
   getEventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import { EventType } from "@calcom/prisma/client";
+import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesService_2024_04_15 {

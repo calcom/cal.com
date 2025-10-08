@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ArrayPath,
   Control,
@@ -10,7 +10,7 @@ import type {
   UseFieldArrayRemove,
 } from "react-hook-form";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
-import type { GroupBase, Props } from "react-select";
+import { createFilter, type GroupBase, type Props } from "react-select";
 
 import type { scheduleClassNames } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
@@ -34,6 +34,14 @@ export type ScheduleLabelsType = {
   addTime: string;
   copyTime: string;
   deleteTime: string;
+};
+
+export type SelectInnerClassNames = {
+  control?: string;
+  singleValue?: string;
+  valueContainer?: string;
+  input?: string;
+  menu?: string;
 };
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
@@ -105,6 +113,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
               classNames={{
                 dayRanges: classNames?.dayRanges,
                 timeRangeField: classNames?.timeRangeField,
+                timePicker: classNames?.timePicker,
               }}
             />
             {!disabled && <div className="block">{CopyButton}</div>}
@@ -237,7 +246,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   disabled?: boolean;
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
-  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField">;
+  classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField" | "timePicker">;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -260,6 +269,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 <TimeRangeField
                   className={classNames?.timeRangeField}
                   userTimeFormat={userTimeFormat}
+                  timePickerClassNames={classNames?.timePicker}
                   {...field}
                 />
               )}
@@ -335,11 +345,27 @@ const TimeRangeField = ({
   onChange,
   disabled,
   userTimeFormat,
+  timePickerClassNames,
 }: {
   className?: string;
   disabled?: boolean;
   userTimeFormat: number | null;
+  timePickerClassNames?: {
+    container?: string;
+    value?: string;
+    valueContainer?: string;
+    input?: string;
+    dropdown?: string;
+  };
 } & ControllerRenderProps) => {
+  const innerClassNames: SelectInnerClassNames = {
+    control: timePickerClassNames?.container,
+    singleValue: timePickerClassNames?.value,
+    valueContainer: timePickerClassNames?.valueContainer,
+    input: timePickerClassNames?.input,
+    menu: timePickerClassNames?.dropdown,
+  };
+
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
     <div className={cn("flex flex-row gap-2 sm:gap-3", className)}>
@@ -349,6 +375,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.start}
         menuPlacement="bottom"
+        innerClassNames={innerClassNames}
         onChange={(option) => {
           const newStart = new Date(option?.value as number);
           if (newStart >= new Date(value.end)) {
@@ -367,6 +394,7 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.end}
         min={value.start}
+        innerClassNames={innerClassNames}
         menuPlacement="bottom"
         onChange={(option) => {
           onChange({ ...value, end: new Date(option?.value as number) });
@@ -388,6 +416,7 @@ const LazySelect = ({
   min?: ConfigType;
   max?: ConfigType;
   userTimeFormat: number | null;
+  innerClassNames?: SelectInnerClassNames;
 }) => {
   // Lazy-loaded options, otherwise adding a field has a noticeable redraw delay.
   const { options, filter } = useOptions(userTimeFormat);
@@ -396,9 +425,36 @@ const LazySelect = ({
     filter({ current: value });
   }, [filter, value]);
 
+  const [inputValue, setInputValue] = React.useState("");
+  const defaultFilter = React.useMemo(() => createFilter(), []);
+  const filteredOptions = React.useMemo(() => {
+    const regex = /^(\d{1,2})(a|p|am|pm)$/i;
+    const match = inputValue.replaceAll(" ", "").match(regex);
+    if (!match) {
+      return options.filter((option) =>
+        defaultFilter({ ...option, data: option.label, value: option.label }, inputValue)
+      );
+    }
+
+    const [, numberPart, periodPart] = match;
+    const periodLower = periodPart.toLowerCase();
+    const scoredOptions = options
+      .filter((option) => option.label && option.label.toLowerCase().includes(periodLower))
+      .map((option) => {
+        const labelLower = option.label.toLowerCase();
+        const index = labelLower.indexOf(numberPart);
+        const score = index >= 0 ? index + labelLower.length : Infinity;
+        return { score, option };
+      })
+      .sort((a, b) => a.score - b.score);
+
+    const maxScore = scoredOptions[0]?.score;
+    return scoredOptions.filter((item) => item.score === maxScore).map((item) => item.option);
+  }, [inputValue, options, defaultFilter]);
+
   return (
     <Select
-      options={options}
+      options={filteredOptions}
       onMenuOpen={() => {
         if (min) filter({ offset: min });
         if (max) filter({ limit: max });
@@ -408,6 +464,8 @@ const LazySelect = ({
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
       onMenuClose={() => filter({ current: value })}
       components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}
+      onInputChange={setInputValue}
+      filterOption={() => true}
       {...props}
     />
   );
@@ -556,60 +614,55 @@ const CopyTimes = ({
         <p className="h6 text-emphasis pb-3 pl-1 text-xs font-medium uppercase">{t("copy_times_to")}</p>
         <ol className="space-y-2">
           <li key="select all">
-            <label className="text-default flex w-full items-center justify-between">
-              <span className="px-1">{t("select_all")}</span>
-              <CheckboxField
-                description=""
-                value={t("select_all")}
-                checked={selected.length === 7}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setSelected([0, 1, 2, 3, 4, 5, 6]);
-                  } else if (!e.target.checked) {
-                    setSelected([]);
-                  }
-                }}
-                ref={(ref) => {
-                  if (ref) {
-                    itteratablesByKeyRef.current.push(ref as HTMLInputElement);
-                  }
-                }}
-              />
-            </label>
+            <CheckboxField
+              description={t("select_all")}
+              descriptionAsLabel
+              value={t("select_all")}
+              checked={selected.length === 7}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelected([0, 1, 2, 3, 4, 5, 6]);
+                } else if (!e.target.checked) {
+                  setSelected([]);
+                }
+              }}
+              ref={(ref) => {
+                if (ref) {
+                  itteratablesByKeyRef.current.push(ref as HTMLInputElement);
+                }
+              }}
+            />
           </li>
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
             return (
               <li key={weekday}>
-                <label className="text-default flex w-full items-center justify-between">
-                  <span className="px-1">{weekday}</span>
-                  <CheckboxField
-                    description=""
-                    value={weekdayIndex}
-                    checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
-                    disabled={disabled === weekdayIndex}
-                    onChange={(e) => {
-                      if (e.target.checked && !selected.includes(weekdayIndex)) {
-                        setSelected(selected.concat([weekdayIndex]));
-                      } else if (!e.target.checked && selected.includes(weekdayIndex)) {
-                        setSelected(selected.filter((item) => item !== weekdayIndex));
-                      }
-                    }}
-                    ref={(ref) => {
-                      if (ref && disabled !== weekdayIndex) {
-                        //we don't need to iterate over disabled elements
-                        itteratablesByKeyRef.current.push(ref as HTMLInputElement);
-                      }
-                    }}
-                  />
-                </label>
+                <CheckboxField
+                  description={weekday}
+                  descriptionAsLabel
+                  value={weekdayIndex}
+                  checked={selected.includes(weekdayIndex) || disabled === weekdayIndex}
+                  disabled={disabled === weekdayIndex}
+                  onChange={(e) => {
+                    if (e.target.checked && !selected.includes(weekdayIndex)) {
+                      setSelected(selected.concat([weekdayIndex]));
+                    } else if (!e.target.checked && selected.includes(weekdayIndex)) {
+                      setSelected(selected.filter((item) => item !== weekdayIndex));
+                    }
+                  }}
+                  ref={(ref) => {
+                    if (ref && disabled !== weekdayIndex) {
+                      itteratablesByKeyRef.current.push(ref as HTMLInputElement);
+                    }
+                  }}
+                />
               </li>
             );
           })}
         </ol>
       </div>
       <hr className="border-subtle" />
-      <div className="space-x-2 px-2 rtl:space-x-reverse">
+      <div className="flex justify-end space-x-2 px-2 rtl:space-x-reverse">
         <Button
           color="minimal"
           onClick={() => onCancel()}

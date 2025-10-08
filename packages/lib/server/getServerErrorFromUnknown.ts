@@ -1,16 +1,16 @@
-import { Prisma } from "@prisma/client";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
-import { stripeInvalidRequestErrorSchema } from "@calcom/app-store/_utils/stripe.types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";
+import { stripeInvalidRequestErrorSchema } from "../stripe-error";
 
 function hasName(cause: unknown): cause is { name: string } {
   return !!cause && typeof cause === "object" && "name" in cause;
@@ -111,16 +111,19 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.BookingNotAllowedByRestrictionSchedule:
     case ErrorCode.BookerLimitExceeded:
     case ErrorCode.BookerLimitExceededReschedule:
+    case ErrorCode.EventTypeNoHosts:
+    case ErrorCode.RequestBodyInvalid:
+    case ErrorCode.ChargeCardFailure:
       return 400;
     // 409 Conflict
     case ErrorCode.NoAvailableUsersFound:
-    case ErrorCode.HostsUnavailableForBooking:
+    case ErrorCode.FixedHostsUnavailableForBooking:
+    case ErrorCode.RoundRobinHostsUnavailableForBooking:
     case ErrorCode.AlreadySignedUpForBooking:
     case ErrorCode.BookingSeatsFull:
     case ErrorCode.NotEnoughAvailableSeats:
     case ErrorCode.BookingConflict:
     case ErrorCode.PaymentCreationFailure:
-    case ErrorCode.ChargeCardFailure:
       return 409;
     // 404 Not Found
     case ErrorCode.EventTypeNotFound:

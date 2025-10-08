@@ -1,8 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
+import { describe, expect, it, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 
-import { getBusyTimes } from "./getBusyTimes";
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 const startOfTomorrow = dayjs().add(1, "day").startOf("day");
 const tomorrowDate = startOfTomorrow.format("YYYY-MM-DD");
@@ -58,7 +63,8 @@ const mockBookings = ({
 
 describe("getBusyTimes", () => {
   it("blocks a regular time slot", async () => {
-    const busyTimes = await getBusyTimes({
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimes({
       credentials: [],
       userId: 1,
       userEmail: "exampleuser1@example.com",
@@ -85,7 +91,8 @@ describe("getBusyTimes", () => {
     ]);
   });
   it("should block before and after buffer times", async () => {
-    const busyTimes = await getBusyTimes({
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimes({
       credentials: [],
       userId: 1,
       userEmail: "exampleuser1@example.com",
@@ -106,7 +113,8 @@ describe("getBusyTimes", () => {
     ]);
   });
   it("should have busy times only if seated with remaining seats when buffers exist", async () => {
-    const busyTimes = await getBusyTimes({
+    const busyTimesService = getBusyTimesService();
+    const busyTimes = await busyTimesService.getBusyTimes({
       credentials: [],
       userId: 1,
       eventTypeId: 1,

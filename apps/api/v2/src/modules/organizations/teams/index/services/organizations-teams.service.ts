@@ -24,6 +24,15 @@ export class OrganizationsTeamsService {
     return teams;
   }
 
+  async getPaginatedOrgTeamsWithMembers(organizationId: number, skip = 0, take = 250) {
+    const teams = await this.organizationsTeamRepository.findOrgTeamsPaginatedWithMembers(
+      organizationId,
+      skip,
+      take
+    );
+    return teams;
+  }
+
   async getPaginatedOrgTeams(organizationId: number, skip = 0, take = 250) {
     const teams = await this.organizationsTeamRepository.findOrgTeamsPaginated(organizationId, skip, take);
     return teams;

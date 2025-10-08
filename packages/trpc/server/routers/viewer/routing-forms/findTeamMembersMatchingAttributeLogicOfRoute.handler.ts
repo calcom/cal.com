@@ -3,20 +3,20 @@
  * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
-import type { App_RoutingForms_Form } from "@prisma/client";
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
-import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
 import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
@@ -51,10 +51,10 @@ async function getEnrichedSerializableForm<
       metadata: unknown;
     } | null;
   }
->(form: TForm) {
+>({ form, prisma }: { prisma: PrismaClient; form: TForm }) {
   const formWithUserInfoProfile = {
     ...form,
-    user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
+    user: await new UserRepository(prisma).enrichUserWithItsProfile({ user: form.user }),
   };
 
   const serializableForm = await getSerializableForm({
@@ -70,7 +70,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 }: FindTeamMembersMatchingAttributeLogicOfRouteHandlerOptions) => {
   const { prisma, user } = ctx;
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/lib/server/getTeamMemberEmailFromCrm"
+    "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
   );
 
   const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
@@ -125,7 +125,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const beforeEnrichedForm = performance.now();
-  const serializableForm = await getEnrichedSerializableForm(form);
+  const serializableForm = await getEnrichedSerializableForm({ form, prisma });
   const afterEnrichedForm = performance.now();
   const timeTakenToEnrichForm = afterEnrichedForm - beforeEnrichedForm;
 
@@ -176,7 +176,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
-  const eventType = await EventTypeRepository.findByIdIncludeHostsAndTeam({ id: eventTypeId });
+  const eventTypeRepo = new EventTypeRepository(prisma);
+  const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({ id: eventTypeId });
 
   if (!eventType) {
     throw new TRPCError({
@@ -268,12 +269,13 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
   }
 
   const timeBeforeGetOrderedLuckyUsers = performance.now();
+  const luckyUserService = getLuckyUserService();
   const {
     users: orderedLuckyUsers,
     perUserData,
     isUsingAttributeWeights,
   } = matchingHosts.length
-    ? await getOrderedListOfLuckyUsers({
+    ? await luckyUserService.getOrderedListOfLuckyUsers({
         // Assuming all are available
         availableUsers: [
           {

@@ -1,19 +1,19 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getStartEndDateforLimitCheck } from "@calcom/lib/getBusyTimes";
+import { getCheckBookingLimitsService } from "@calcom/features/di/containers/BookingLimits";
+import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import type { EventType } from "@calcom/lib/getUserAvailability";
-import { getPeriodStartDatesBetween } from "@calcom/lib/getUserAvailability";
+import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { getTotalBookingDuration } from "@calcom/lib/server/queries/booking";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
 import type { IntervalLimit } from "../intervalLimitSchema";
 import LimitManager from "../limitManager";
 import { isBookingWithinPeriod } from "../utils";
-import { checkBookingLimit } from "./checkBookingLimits";
 
 const _getBusyTimesFromLimits = async (
   bookingLimits: IntervalLimit | null,
@@ -112,7 +112,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
       // special handling of yearly limits to improve performance
       if (unit === "year") {
         try {
-          await checkBookingLimit({
+          const checkBookingLimitsService = getCheckBookingLimitsService();
+          await checkBookingLimitsService.checkBookingLimit({
             eventStartDate: periodStart.toDate(),
             limitingNumber: limit,
             eventId: eventTypeId,
@@ -179,7 +180,8 @@ const _getBusyTimesFromDurationLimits = async (
 
       // special handling of yearly limits to improve performance
       if (unit === "year") {
-        const totalYearlyDuration = await getTotalBookingDuration({
+        const bookingRepo = new BookingRepository(prisma);
+        const totalYearlyDuration = await bookingRepo.getTotalBookingDuration({
           eventId: eventType.id,
           startDate: periodStart.toDate(),
           endDate: periodStart.endOf(unit).toDate(),
@@ -227,13 +229,15 @@ const _getBusyTimesFromTeamLimits = async (
   timeZone: string,
   rescheduleUid?: string
 ) => {
-  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+  const busyTimesService = getBusyTimesService();
+  const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
     dateFrom.toISOString(),
     dateTo.toISOString(),
     bookingLimits
   );
 
-  const bookings = await BookingRepository.getAllAcceptedTeamBookingsOfUser({
+  const bookingRepo = new BookingRepository(prisma);
+  const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUser({
     user,
     teamId,
     startDate: limitDateFrom.toDate(),

@@ -1,8 +1,7 @@
-import type { Availability } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/dayjs";
+import type { Availability } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime">[];
@@ -31,7 +30,7 @@ export function transformDateOverridesForAtom(
   schedule: { availability: ScheduleOverride },
   timeZone: string
 ) {
-  return schedule.availability.reduce((acc, override) => {
+  const acc = schedule.availability.reduce((acc, override) => {
     // only if future date override
     const currentUtcOffset = dayjs().tz(timeZone).utcOffset();
     const currentTimeInTz = dayjs().utc().add(currentUtcOffset, "minute");
@@ -63,10 +62,17 @@ export function transformDateOverridesForAtom(
     acc[dayRangeIndex].ranges.push(newValue);
     return acc;
   }, [] as { ranges: TimeRange[] }[]);
+
+  acc.sort((a, b) => {
+    const aTime = a.ranges?.[0]?.start?.getTime?.() ?? 0;
+    const bTime = b.ranges?.[0]?.start?.getTime?.() ?? 0;
+    return aTime - bTime;
+  });
+  return acc;
 }
 
 export const transformScheduleToAvailabilityForAtom = (schedule: { availability: ScheduleAvailability }) => {
-  return schedule.availability.reduce(
+  const result = schedule.availability.reduce(
     (schedule: Schedule, availability) => {
       availability.days.forEach((day) => {
         schedule[day].push({
@@ -94,4 +100,14 @@ export const transformScheduleToAvailabilityForAtom = (schedule: { availability:
     },
     Array.from([...Array(7)]).map(() => [])
   );
+
+  result.forEach((daySlots) => {
+    daySlots.sort((a, b) => {
+      const aTime = a?.start?.getTime?.() ?? 0;
+      const bTime = b?.start?.getTime?.() ?? 0;
+      return aTime - bTime;
+    });
+  });
+
+  return result;
 };

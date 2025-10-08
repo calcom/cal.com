@@ -1,12 +1,18 @@
-import { describe, expect, it, vi, afterEach } from "vitest";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
-import prisma from "@calcom/prisma";
-import { RRResetInterval } from "@calcom/prisma/client";
+import type { Mock } from "vitest";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
 
-import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import { RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
+
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
 
-// Import the original Prisma client
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
+
+const luckyUserService = getLuckyUserService();
 
 // Mocking setup
 const prismaMock = {
@@ -16,15 +22,21 @@ const prismaMock = {
 };
 
 // Use `vi.spyOn` to make `prisma.booking.groupBy` call the mock instead
-vi.spyOn(prisma.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
+vi.spyOn(prismaMock.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
 
-vi.mock("../server/getLuckyUser", () => ({
-  getOrderedListOfLuckyUsers: vi.fn(),
-}));
+// This variable will hold our mock function
+let getOrderedListOfLuckyUsersMock: Mock;
+
+beforeEach(() => {
+  // Clear all mocks and spies before each test
+  vi.clearAllMocks();
+  // Spy on the real method and explicitly cast it as a Mock
+  getOrderedListOfLuckyUsersMock = vi.spyOn(luckyUserService, "getOrderedListOfLuckyUsers") as Mock;
+});
 
 afterEach(() => {
-  // Clear call history before each test to avoid cross-test interference
-  prismaMock.booking.groupBy.mockClear();
+  // Restore all spies to their original implementation
+  vi.restoreAllMocks();
 });
 
 describe("filterHostByLeadThreshold", () => {
@@ -51,7 +63,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -69,7 +83,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -100,7 +116,7 @@ describe("filterHostByLeadThreshold", () => {
       },
     ];
 
-    getOrderedListOfLuckyUsers.mockResolvedValue({
+    getOrderedListOfLuckyUsersMock.mockResolvedValue({
       perUserData: {
         bookingsCount: { 1: 10, 2: 6 },
       },
@@ -116,7 +132,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })
@@ -157,27 +175,13 @@ describe("filterHostByLeadThreshold", () => {
       },
     ];
 
-    getOrderedListOfLuckyUsers.mockResolvedValue({
+    getOrderedListOfLuckyUsersMock.mockResolvedValue({
       perUserData: {
         bookingsCount: { 1: 7, 2: 5, 3: 0 },
         weights: { 1: 100, 2: 50, 3: 20 },
         bookingShortfalls: { 1: 1, 2: -3, 3: 0 },
         calibrations: { 1: 1, 2: 2, 3: 1 },
       },
-    });
-
-    const test = filterHostsByLeadThreshold({
-      hosts,
-      maxLeadThreshold: 3,
-      eventType: {
-        id: 1,
-        isRRWeightsEnabled: true,
-        team: {
-          parentId: null,
-          rrResetInterval: RRResetInterval.MONTH,
-        },
-      },
-      routingFormResponse: null,
     });
 
     expect(
@@ -190,7 +194,9 @@ describe("filterHostByLeadThreshold", () => {
           team: {
             parentId: null,
             rrResetInterval: RRResetInterval.MONTH,
+            rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         routingFormResponse: null,
       })

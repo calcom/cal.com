@@ -47,7 +47,7 @@ import {
   X_CAL_CLIENT_ID,
 } from "@calcom/platform-constants";
 import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries/event-types";
-import { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "/v2/event-types",
@@ -124,7 +124,9 @@ export class EventTypesController_2024_04_15 {
       let orgSlug = queryParams.org;
 
       if (clientId && !orgSlug && username.includes(`-${clientId}`)) {
-        const org = await this.organizationsRepository.findTeamIdAndSlugFromClientId(clientId).catch(() => null);
+        const org = await this.organizationsRepository
+          .findTeamIdAndSlugFromClientId(clientId)
+          .catch(() => null);
         if (org) {
           orgSlug = org.slug;
         }

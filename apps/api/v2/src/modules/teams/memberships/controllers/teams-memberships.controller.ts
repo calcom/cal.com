@@ -3,8 +3,8 @@ import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
+import { GetTeamMembershipsInput } from "@/modules/teams/memberships/inputs/get-team-memberships.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { CreateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/create-team-membership.output";
 import { DeleteTeamMembershipOutput } from "@/modules/teams/memberships/outputs/delete-team-membership.output";
@@ -33,7 +33,6 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/teams/:teamId/memberships",
@@ -45,10 +44,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 export class TeamsMembershipsController {
   private logger = new Logger("TeamsMembershipsController");
 
-  constructor(
-    private teamsMembershipsService: TeamsMembershipsService,
-    private teamsEventTypesService: TeamsEventTypesService
-  ) {}
+  constructor(private teamsMembershipsService: TeamsMembershipsService) {}
 
   @Roles("TEAM_ADMIN")
   @Post("/")
@@ -89,16 +85,20 @@ export class TeamsMembershipsController {
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get all memberships" })
+  @ApiOperation({
+    summary: "Get all memberships",
+    description: "Retrieve team memberships with optional filtering by email addresses. Supports pagination.",
+  })
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
   async getTeamMemberships(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Query() queryParams: SkipTakePagination
+    @Query() queryParams: GetTeamMembershipsInput
   ): Promise<GetTeamMembershipsOutput> {
-    const { skip, take } = queryParams;
+    const { skip, take, emails } = queryParams;
     const orgTeamMemberships = await this.teamsMembershipsService.getPaginatedTeamMemberships(
       teamId,
+      emails,
       skip ?? 0,
       take ?? 250
     );
@@ -127,7 +127,6 @@ export class TeamsMembershipsController {
       membershipId,
       body
     );
-
     if (!currentMembership.accepted && updatedMembership.accepted) {
       try {
         await updateNewTeamMemberEventTypes(updatedMembership.userId, teamId);
@@ -150,8 +149,6 @@ export class TeamsMembershipsController {
     @Param("membershipId", ParseIntPipe) membershipId: number
   ): Promise<DeleteTeamMembershipOutput> {
     const membership = await this.teamsMembershipsService.deleteTeamMembership(teamId, membershipId);
-
-    await this.teamsEventTypesService.deleteUserTeamEventTypesAndHosts(membership.userId, teamId);
 
     return {
       status: SUCCESS_STATUS,

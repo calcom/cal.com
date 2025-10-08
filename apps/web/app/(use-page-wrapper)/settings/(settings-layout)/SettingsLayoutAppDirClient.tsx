@@ -10,6 +10,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { OrganizationBranding } from "@calcom/features/ee/organizations/context/provider";
+import type { TeamFeatures } from "@calcom/features/flags/config";
+import { useIsFeatureEnabledForTeam } from "@calcom/features/flags/hooks/useIsFeatureEnabledForTeam";
 import Shell from "@calcom/features/shell/Shell";
 import { HOSTED_CAL_FEATURES, IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -90,7 +92,8 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           ? [
               {
                 name: "members",
-                href: `/settings/organizations/${orgBranding.slug}/members`,
+                href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
+                isExternalLink: true,
               },
             ]
           : []),
@@ -98,10 +101,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "privacy",
           href: "/settings/organizations/privacy",
         },
-        {
-          name: "billing",
-          href: "/settings/organizations/billing",
-        },
+
         { name: "OAuth Clients", href: "/settings/organizations/platform/oauth-clients" },
         {
           name: "SSO",
@@ -114,6 +114,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "admin_api",
           href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
+          isExternalLink: true,
         },
       ],
     },
@@ -144,6 +145,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
         { name: "oAuth", href: "/settings/admin/oAuth" },
         { name: "Workspace Platforms", href: "/settings/admin/workspace-platforms" },
+        { name: "Playground", href: "/settings/admin/playground" },
       ],
     },
   ];
@@ -168,21 +170,27 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = [
-  "privacy",
-  "billing",
-  "OAuth Clients",
-  "SSO",
-  "directory_sync",
-  "delegation_credential",
-];
+const organizationAdminKeys = ["privacy", "OAuth Clients", "SSO", "directory_sync", "delegation_credential"];
 
-const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnabled: boolean }) => {
+export interface SettingsPermissions {
+  canViewRoles?: boolean;
+  canViewOrganizationBilling?: boolean;
+  canUpdateOrganization?: boolean;
+}
+
+const useTabs = ({
+  isDelegationCredentialEnabled,
+  isPbacEnabled,
+  permissions,
+}: {
+  isDelegationCredentialEnabled: boolean;
+  isPbacEnabled: boolean;
+  permissions?: SettingsPermissions;
+}) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
-  const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
   const processTabsMemod = useMemo(() => {
     const processedTabs = getTabs(orgBranding).map((tab) => {
@@ -195,10 +203,10 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
         };
       } else if (tab.href === "/settings/organizations") {
         const newArray = (tab?.children ?? []).filter(
-          (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
+          (child) => permissions?.canUpdateOrganization || !organizationAdminKeys.includes(child.name)
         );
 
-        if (isOrgAdminOrOwner) {
+        if (permissions?.canUpdateOrganization) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
@@ -211,6 +219,31 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
             name: "delegation_credential",
             href: "/settings/organizations/delegation-credential",
           });
+        }
+
+        // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
+        // This prevents showing the menu item when user has no organization permissions
+        if (isPbacEnabled) {
+          if (permissions?.canViewRoles) {
+            newArray.push({
+              name: "roles_and_permissions",
+              href: "/settings/organizations/roles",
+            });
+          }
+
+          if (permissions?.canViewOrganizationBilling) {
+            newArray.push({
+              name: "billing",
+              href: "/settings/organizations/billing",
+            });
+          }
+        } else {
+          if (permissions?.canUpdateOrganization) {
+            newArray.push({
+              name: "billing",
+              href: "/settings/organizations/billing",
+            });
+          }
         }
 
         return {
@@ -231,7 +264,7 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
         return { ...tab, children: filtered };
       } else if (tab.href === "/settings/developer") {
         const filtered = tab?.children?.filter(
-          (childTab) => isOrgAdminOrOwner || childTab.name !== "admin_api"
+          (childTab) => permissions?.canUpdateOrganization || childTab.name !== "admin_api"
         );
         return { ...tab, children: filtered };
       }
@@ -241,12 +274,12 @@ const useTabs = ({ isDelegationCredentialEnabled }: { isDelegationCredentialEnab
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {
       if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
-      if (tab.name === "other_teams" && !isOrgAdminOrOwner) return false;
+      if (tab.name === "other_teams" && !permissions?.canUpdateOrganization) return false;
 
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDelegationCredentialEnabled]);
+  }, [isAdmin, orgBranding, user, isDelegationCredentialEnabled, isPbacEnabled, permissions]);
 
   return processTabsMemod;
 };
@@ -272,9 +305,40 @@ interface SettingsSidebarContainerProps {
   className?: string;
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
+  teamFeatures?: Record<number, TeamFeatures>;
+  permissions?: SettingsPermissions;
 }
 
-const TeamListCollapsible = () => {
+const TeamRolesNavItem = ({
+  team,
+  teamFeatures,
+}: {
+  team: { id: number; parentId?: number | null };
+  teamFeatures?: Record<number, TeamFeatures>;
+}) => {
+  const { t } = useLocale();
+
+  // Always call the hook first (Rules of Hooks)
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: team.parentId || 0, // Use 0 as fallback when no parentId
+    feature: "pbac",
+  });
+
+  // Only show for sub-teams (teams with parentId) AND when parent has PBAC enabled
+  if (!team.parentId || !isPbacEnabled) return null;
+
+  return (
+    <VerticalTabItem
+      name={t("roles_and_permissions")}
+      href={`/settings/teams/${team.id}/roles`}
+      textClassNames="px-3 text-emphasis font-medium text-sm"
+      disableChevron
+    />
+  );
+};
+
+const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, TeamFeatures> }) => {
   const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { t } = useLocale();
   const [teamMenuState, setTeamMenuState] =
@@ -374,6 +438,7 @@ const TeamListCollapsible = () => {
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
+                      className="me-5 h-7 w-auto !px-2"
                       disableChevron
                     />
                   )}
@@ -381,14 +446,11 @@ const TeamListCollapsible = () => {
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
+                    className="me-5 h-7 w-auto !px-2"
                     disableChevron
                   />
-                  <VerticalTabItem
-                    name={t("event_types_page_title")}
-                    href={`/event-types?teamId=${team.id}`}
-                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                    disableChevron
-                  />
+                  {/* Show roles only for sub-teams with PBAC-enabled parent */}
+                  <TeamRolesNavItem team={team} teamFeatures={teamFeatures} />
                   {(checkAdminOrOwner(team.role) ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore this exists wtf?
@@ -405,6 +467,7 @@ const TeamListCollapsible = () => {
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         disableChevron
                       />
                       {/* Hide if there is a parent ID */}
@@ -414,6 +477,7 @@ const TeamListCollapsible = () => {
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
+                            className="me-5 h-7 w-auto !px-2"
                             disableChevron
                           />
                         </>
@@ -422,6 +486,7 @@ const TeamListCollapsible = () => {
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         disableChevron
                       />
                     </>
@@ -438,6 +503,8 @@ const SettingsSidebarContainer = ({
   className = "",
   navigationIsOpenedOnMobile,
   bannersHeight,
+  teamFeatures,
+  permissions,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const orgBranding = useOrgBranding();
@@ -449,11 +516,25 @@ const SettingsSidebarContainer = ({
     }[]
   >();
   const session = useSession();
-  const { data } = trpc.viewer.delegationCredential.check.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
+
+  const organizationId = session.data?.user?.org?.id;
+
+  const isDelegationCredentialEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: organizationId,
+    feature: "delegation-credential",
   });
+
+  const isPbacEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: organizationId,
+    feature: "pbac",
+  });
+
   const tabsWithPermissions = useTabs({
-    isDelegationCredentialEnabled: data?.hasDelegationCredential ?? false,
+    isDelegationCredentialEnabled,
+    isPbacEnabled,
+    permissions,
   });
 
   const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
@@ -478,8 +559,6 @@ const SettingsSidebarContainer = ({
       }, 100);
     }
   }, [searchParams?.get("id"), otherTeams]);
-
-  const isOrgAdminOrOwner = checkAdminOrOwner(orgBranding?.role);
 
   return (
     <nav
@@ -557,16 +636,17 @@ const SettingsSidebarContainer = ({
                           as="p"
                           className="text-subtle truncate text-sm font-medium leading-5"
                           loadingClassName="ms-3">
-                          {t(isOrgAdminOrOwner ? "my_teams" : tab.name)}
+                          {t("my_teams")}
                         </Skeleton>
                       </div>
                     </Link>
-                    <TeamListCollapsible />
-                    {(!orgBranding?.id || isOrgAdminOrOwner) && (
+                    <TeamListCollapsible teamFeatures={teamFeatures} />
+                    {(!orgBranding?.id || permissions?.canUpdateOrganization) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
+                        className="me-5 h-7 w-auto !px-2"
                         icon="plus"
                         disableChevron
                       />
@@ -668,12 +748,14 @@ const SettingsSidebarContainer = ({
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  className="me-5 h-7 w-auto !px-2"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  className="me-5 h-7 w-auto !px-2"
                                   disableChevron
                                 />
                                 <>
@@ -727,9 +809,16 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 export type SettingsLayoutProps = {
   children: React.ReactNode;
   containerClassName?: string;
+  teamFeatures?: Record<number, TeamFeatures>;
+  permissions?: SettingsPermissions;
 } & ComponentProps<typeof Shell>;
 
-export default function SettingsLayoutAppDirClient({ children, ...rest }: SettingsLayoutProps) {
+export default function SettingsLayoutAppDirClient({
+  children,
+  teamFeatures,
+  permissions,
+  ...rest
+}: SettingsLayoutProps) {
   const pathname = usePathname();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
@@ -761,6 +850,8 @@ export default function SettingsLayoutAppDirClient({ children, ...rest }: Settin
         <SidebarContainerElement
           sideContainerOpen={sideContainerOpen}
           setSideContainerOpen={setSideContainerOpen}
+          teamFeatures={teamFeatures}
+          permissions={permissions}
         />
       }
       drawerState={state}
@@ -778,10 +869,20 @@ export default function SettingsLayoutAppDirClient({ children, ...rest }: Settin
   );
 }
 
+type SidebarContainerElementProps = {
+  sideContainerOpen: boolean;
+  bannersHeight?: number;
+  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  teamFeatures?: Record<number, TeamFeatures>;
+  permissions?: SettingsPermissions;
+};
+
 const SidebarContainerElement = ({
   sideContainerOpen,
   bannersHeight,
   setSideContainerOpen,
+  teamFeatures,
+  permissions,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -797,13 +898,9 @@ const SidebarContainerElement = ({
       <SettingsSidebarContainer
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
+        teamFeatures={teamFeatures}
+        permissions={permissions}
       />
     </>
   );
-};
-
-type SidebarContainerElementProps = {
-  sideContainerOpen: boolean;
-  bannersHeight?: number;
-  setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };

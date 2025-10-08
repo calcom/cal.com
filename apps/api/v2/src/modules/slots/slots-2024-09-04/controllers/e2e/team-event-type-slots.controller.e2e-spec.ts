@@ -13,7 +13,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
@@ -21,17 +20,17 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { SelectedSlotsRepositoryFixture } from "test/fixtures/repository/selected-slots.repository.fixture";
+import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
-import {
+import type {
   CreateScheduleInput_2024_06_11,
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("Team event type slots", () => {
@@ -44,7 +43,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
-    let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
 
     const teammateEmailOne = `slots-2024-09-04-user-1-team-slots-${randomString()}`;
     let teammateApiKeyString: string;
@@ -93,7 +92,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
-      selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
+      selectedSlotRepositoryFixture = new SelectedSlotRepositoryFixture(moduleRef);
 
       teammateOne = await userRepositoryFixture.create({
         email: teammateEmailOne,
@@ -368,14 +367,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
       if (dbSlot) {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
         const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
       }
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
+      await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       clear();
     });
 

@@ -5,15 +5,13 @@ import { v4 as uuid } from "uuid";
 import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
 import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
 
-import {
-  getLuckyUser,
-  prepareQueuesAndAttributesData,
-  getIntervalStartDate,
-  getIntervalEndDate,
-} from "./getLuckyUser";
+import { getIntervalStartDate, getIntervalEndDate } from "./getLuckyUser";
+
+const luckyUserService = getLuckyUserService();
 
 type NonEmptyArray<T> = [T, ...T[]];
 type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>>;
@@ -55,21 +53,21 @@ it("can find lucky user with maximize availability", async () => {
     }),
   ];
 
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
   prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
-  // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
   prismaMock.booking.findMany.mockResolvedValue([]);
 
   await expect(
-    getLuckyUser({
+    luckyUserService.getLuckyUser({
       availableUsers: users,
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
         team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -107,25 +105,25 @@ it("can find lucky user with maximize availability and priority ranking", async 
     }),
   ];
 
-  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
   prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
-  // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
   prismaMock.booking.findMany.mockResolvedValue([]);
 
   // both users have medium priority (one user has no priority set, default to medium) so pick least recently booked
   await expect(
-    getLuckyUser({
+    luckyUserService.getLuckyUser({
       availableUsers: users,
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
         team: {
           rrResetInterval: RRResetInterval.MONTH,
-          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
         },
+        includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -171,18 +169,18 @@ it("can find lucky user with maximize availability and priority ranking", async 
   });
 
   const usersWithPriorities: GetLuckyUserAvailableUsersType = [userLowest, userMedium, userHighest];
-  // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(usersWithPriorities);
   prismaMock.booking.findMany.mockResolvedValue([]);
   prismaMock.host.findMany.mockResolvedValue([]);
   // pick the user with the highest priority
   await expect(
-    getLuckyUser({
+    luckyUserService.getLuckyUser({
       availableUsers: usersWithPriorities,
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
         team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -232,19 +230,19 @@ it("can find lucky user with maximize availability and priority ranking", async 
     userHighLeastRecentBooking,
     userHighRecentBooking,
   ];
-  // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(usersWithSamePriorities);
   prismaMock.booking.findMany.mockResolvedValue([]);
   prismaMock.host.findMany.mockResolvedValue([]);
 
   // pick the least recently booked user of the two with the highest priority
   await expect(
-    getLuckyUser({
+    luckyUserService.getLuckyUser({
       availableUsers: usersWithSamePriorities,
       eventType: {
         id: 1,
         isRRWeightsEnabled: false,
         team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+        includeNoShowInRRCalculation: false,
       },
       allRRHosts: [],
       routingFormResponse: null,
@@ -289,7 +287,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -318,24 +316,35 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
     await expect(
-      getLuckyUser({
+      luckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
           team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
         },
         allRRHosts,
         routingFormResponse: null,
@@ -392,7 +401,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -426,24 +435,35 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
     await expect(
-      getLuckyUser({
+      luckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
           team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
         },
         allRRHosts,
         routingFormResponse: null,
@@ -500,7 +520,7 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
@@ -534,24 +554,35 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
     await expect(
-      getLuckyUser({
+      luckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
           team: { rrResetInterval: RRResetInterval.DAY, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
         },
         allRRHosts,
         routingFormResponse: null,
@@ -589,18 +620,28 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
 
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
       {
@@ -641,17 +682,18 @@ describe("maximize availability and weights", () => {
     ]);
 
     await expect(
-      getLuckyUser({
+      luckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
           team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
         },
         allRRHosts,
         routingFormResponse: null,
       })
-    ).resolves.toStrictEqual(users[1]); // user[1] has one more bookings, but user[0] has calibration 2
+    ).resolves.toStrictEqual(users[1]);
 
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
@@ -695,25 +737,38 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
     CalendarManagerMock.getBusyCalendarTimes
-      .mockResolvedValueOnce([
-        {
-          start: dayjs().utc().startOf("month").toDate(),
-          end: dayjs().utc().startOf("month").add(3, "day").toDate(),
-          timeZone: "UTC",
-        },
-      ])
+      .mockResolvedValueOnce({
+        success: true,
+        data: [
+          {
+            start: dayjs().utc().startOf("month").toDate(),
+            end: dayjs().utc().startOf("month").add(3, "day").toDate(),
+            timeZone: "UTC",
+          },
+        ],
+      })
       .mockResolvedValue([]);
 
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
@@ -748,17 +803,18 @@ describe("maximize availability and weights", () => {
     ]);
 
     await expect(
-      getLuckyUser({
+      luckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
           team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
         },
         allRRHosts,
         routingFormResponse: null,
       })
-    ).resolves.toStrictEqual(users[1]); // user[1] has one more booking, but user[0] has calibration 2
+    ).resolves.toStrictEqual(users[1]);
 
     const queryArgs = prismaMock.booking.findMany.mock.calls[0][0];
 
@@ -806,21 +862,30 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: middleOfMonth,
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
-    // TODO: we may be able to use native prisma generics somehow?
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([
       {
@@ -829,8 +894,10 @@ describe("maximize availability and weights", () => {
         createdAt: allRRHosts[0].createdAt,
       },
     ]);
-    // findMany bookings are BEFORE the new host (user 1) was added, calibration=2.
-    prismaMock.booking.findMany.mockResolvedValue([
+    prismaMock.booking.findMany.mockResolvedValueOnce([]);
+    prismaMock.booking.findMany.mockResolvedValueOnce([]);
+    prismaMock.booking.findMany.mockResolvedValueOnce([]);
+    prismaMock.booking.findMany.mockResolvedValueOnce([
       buildBooking({
         id: 4,
         userId: 2,
@@ -843,19 +910,24 @@ describe("maximize availability and weights", () => {
       }),
     ]);
     await expect(
-      getLuckyUser({
+      luckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
           team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
         },
         allRRHosts,
         routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]);
-    // findMany bookings are AFTER the new host (user 1) was added, calibration=0.
-    prismaMock.booking.findMany.mockResolvedValue([
+
+    prismaMock.booking.findMany.mockResolvedValueOnce([]);
+    prismaMock.booking.findMany.mockResolvedValueOnce([]);
+    prismaMock.booking.findMany.mockResolvedValueOnce([]);
+    prismaMock.booking.findMany.mockResolvedValueOnce([
+      // Mock 6: All hosts
       buildBooking({
         id: 4,
         userId: 2,
@@ -868,12 +940,13 @@ describe("maximize availability and weights", () => {
       }),
     ]);
     await expect(
-      getLuckyUser({
+      luckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
           isRRWeightsEnabled: true,
           team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
         },
         allRRHosts,
         routingFormResponse: null,
@@ -1016,11 +1089,16 @@ describe("attribute weights and virtual queues", () => {
       ],
     });
 
-    const queuesAndAttributesData = await prepareQueuesAndAttributesData({
+    const queuesAndAttributesData = await luckyUserService.prepareQueuesAndAttributesData({
       eventType: {
         id: 1,
         isRRWeightsEnabled: true,
-        team: { parentId: 1, rrResetInterval: RRResetInterval.DAY },
+        team: {
+          parentId: 1,
+          rrResetInterval: RRResetInterval.DAY,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+        },
+        includeNoShowInRRCalculation: false,
       },
       routingFormResponse,
       allRRHosts: [
@@ -1029,7 +1107,7 @@ describe("attribute weights and virtual queues", () => {
             id: 1,
             email: "test1@example.com",
             credentials: [],
-            selectedCalendars: [],
+            userLevelSelectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 10,
@@ -1039,7 +1117,7 @@ describe("attribute weights and virtual queues", () => {
             id: 2,
             email: "test2@example.com",
             credentials: [],
-            selectedCalendars: [],
+            userLevelSelectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 150,
@@ -1155,11 +1233,16 @@ describe("attribute weights and virtual queues", () => {
       ],
     });
 
-    const queuesAndAttributesData = await prepareQueuesAndAttributesData({
+    const queuesAndAttributesData = await luckyUserService.prepareQueuesAndAttributesData({
       eventType: {
         id: 1,
         isRRWeightsEnabled: true,
-        team: { parentId: 1, rrResetInterval: RRResetInterval.DAY },
+        team: {
+          parentId: 1,
+          rrResetInterval: RRResetInterval.DAY,
+          rrTimestampBasis: RRTimestampBasis.CREATED_AT,
+        },
+        includeNoShowInRRCalculation: false,
       },
       routingFormResponse,
       allRRHosts: [
@@ -1168,7 +1251,7 @@ describe("attribute weights and virtual queues", () => {
             id: 1,
             email: "test1@example.com",
             credentials: [],
-            selectedCalendars: [],
+            userLevelSelectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 10,
@@ -1178,7 +1261,7 @@ describe("attribute weights and virtual queues", () => {
             id: 2,
             email: "test2@example.com",
             credentials: [],
-            selectedCalendars: [],
+            userLevelSelectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 150,
@@ -1279,7 +1362,7 @@ describe("attribute weights and virtual queues", () => {
       chosenRouteId: routeId,
     };
 
-    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
     prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     prismaMock.user.findMany.mockResolvedValue(users);
@@ -1297,7 +1380,7 @@ describe("attribute weights and virtual queues", () => {
           response: {
             [fieldId]: {
               label: "company_size",
-              value: attributeOptionIdFirst, // booking part of virtual queue
+              value: attributeOptionIdFirst,
             },
           },
           createdAt: new Date("2022-01-25T06:30:00.000Z"),
@@ -1316,7 +1399,7 @@ describe("attribute weights and virtual queues", () => {
           response: {
             [fieldId]: {
               label: "company_size",
-              value: attributeOptionIdFirst, // booking part of virtual queue
+              value: attributeOptionIdFirst,
             },
           },
           createdAt: new Date("2022-01-25T05:30:00.000Z"),
@@ -1335,7 +1418,7 @@ describe("attribute weights and virtual queues", () => {
           response: {
             [fieldId]: {
               label: "company_size",
-              value: attributeOptionIdSecond, // different queue, booking doesn't count
+              value: attributeOptionIdSecond,
             },
           },
           createdAt: new Date("2022-01-25T05:30:00.000Z"),
@@ -1374,19 +1457,29 @@ describe("attribute weights and virtual queues", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[0].id,
+          email: users[0].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        user: {
+          id: users[1].id,
+          email: users[1].email,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
 
     await expect(
-      getLuckyUser({
+      luckyUserService.getLuckyUser({
         availableUsers: users,
         eventType: {
           id: 1,
@@ -1396,6 +1489,7 @@ describe("attribute weights and virtual queues", () => {
             rrResetInterval: RRResetInterval.DAY,
             rrTimestampBasis: RRTimestampBasis.CREATED_AT,
           },
+          includeNoShowInRRCalculation: false,
         },
         allRRHosts,
         routingFormResponse,

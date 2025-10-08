@@ -10,7 +10,7 @@ import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
-import type { BillingPeriod } from "@calcom/prisma/enums";
+import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -105,7 +105,7 @@ export class OrganizationPaymentService {
 
     const stripeCustomerId = customer.stripeCustomerId;
     if (existingCustomer && parsedMetadata) {
-      await UserRepository.updateStripeCustomerId({
+      await new UserRepository(prisma).updateStripeCustomerId({
         id: existingCustomer.id,
         stripeCustomerId,
         existingMetadata: parsedMetadata,
@@ -294,7 +294,7 @@ export class OrganizationPaymentService {
 
     const { orgOwnerEmail, pricePerSeat, slug, billingPeriod, seats } = organizationOnboarding;
 
-    if (this.user.role === "ADMIN") {
+    if (this.user.role === UserPermissionRole.ADMIN) {
       log.debug("Admin flow, skipping checkout", safeStringify({ organizationOnboarding }));
       return {
         organizationOnboarding,

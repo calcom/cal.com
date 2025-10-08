@@ -1,4 +1,4 @@
-import { getCancelLink, getRescheduleLink, getBookingUrl } from "@calcom/lib/CalEventParser";
+import { getBookingUrl, getCancelLink, getRescheduleLink } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person }) {
@@ -11,8 +11,8 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
 
   const isOriginalAttendee = props.attendee.email === props.calEvent.attendees[0]?.email;
   const isOrganizer = props.calEvent.organizer.email === props.attendee.email;
-  const hasCancelLink = Boolean(cancelLink);
-  const hasRescheduleLink = Boolean(rescheduleLink);
+  const hasCancelLink = Boolean(cancelLink) && !props.calEvent.disableCancelling;
+  const hasRescheduleLink = Boolean(rescheduleLink) && !props.calEvent.disableRescheduling;
   const hasBookingLink = Boolean(bookingLink);
   const isRecurringEvent = props.calEvent.recurringEvent;
   const shouldDisplayRescheduleLink = Boolean(hasRescheduleLink && !isRecurringEvent);
@@ -39,8 +39,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
             textAlign: "center",
             width: "100%",
           }}>
-          <>{t("need_to_make_a_change")}</>
-
+          {(shouldDisplayRescheduleLink || hasCancelLink) && <>{t("need_to_make_a_change")}</>}
           {shouldDisplayRescheduleLink && (
             <span>
               <a

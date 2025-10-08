@@ -1,5 +1,5 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { PrismaClient } from "@calcom/prisma";
@@ -53,6 +53,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
   const parentOrgHasLockedEventTypes =
     profile?.organization?.organizationSettings?.lockEventTypeCreationForUsers;
 
+  const eventTypeRepo = new EventTypeRepository(ctx.prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
     MembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
       {
@@ -67,7 +68,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
     ),
     teamId
       ? []
-      : EventTypeRepository.findAllByUpIdWithMinimalData(
+      : eventTypeRepo.findAllByUpIdWithMinimalData(
           {
             upId: userProfile.upId,
             userId: user.id,
