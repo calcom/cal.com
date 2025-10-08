@@ -99,7 +99,7 @@ export function AgentConfigurationSheet({
       beginMessage: data.beginMessage,
       language: data.language as Language,
       voiceId: data.voiceId,
-      eventTypeId: data.eventTypeId,
+      outboundEventTypeId: data.eventTypeId,
     };
 
     await updateAgentMutation.mutateAsync({
@@ -151,6 +151,7 @@ export function AgentConfigurationSheet({
                 outboundAgentForm={outboundAgentForm}
                 readOnly={readOnly}
                 eventTypeOptions={eventTypeOptions}
+                trigger={form.watch("trigger")}
               />
             )}
 

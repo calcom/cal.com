@@ -623,6 +623,7 @@ export class AgentService {
     generalTools,
     voiceId,
     language,
+    outboundEventTypeId,
     updateLLMConfiguration,
   }: {
     id: string;
@@ -634,6 +635,7 @@ export class AgentService {
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
     language?: Language;
+    outboundEventTypeId?: number;
     updateLLMConfiguration: (
       llmId: string,
       data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
@@ -710,6 +712,14 @@ export class AgentService {
           message: "Unable to update agent configuration. Please try again.",
         });
       }
+    }
+
+    // Update outbound event type ID in database if provided
+    if (outboundEventTypeId) {
+      await this.deps.agentRepository.updateOutboundEventTypeId({
+        agentId: id,
+        eventTypeId: outboundEventTypeId,
+      });
     }
 
     return { message: "Agent updated successfully" };

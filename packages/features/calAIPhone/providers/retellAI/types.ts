@@ -114,6 +114,7 @@ export type RetellAgentWithDetails = {
   userId: number | null;
   teamId: number | null;
   inboundEventTypeId?: number | null;
+  outboundEventTypeId?: number | null;
   outboundPhoneNumbers: Array<{
     id: number;
     phoneNumber: string;

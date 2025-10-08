@@ -247,7 +247,6 @@ model EventType {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
-
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -1427,8 +1426,8 @@ model WorkflowStep {
   agentId                   String?            @unique
   agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
 
-  inboundAgentId            String?            @unique
-  inboundAgent              Agent?             @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
+  inboundAgentId String? @unique
+  inboundAgent   Agent?  @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
 }
@@ -2555,7 +2554,6 @@ enum PhoneNumberSubscriptionStatus {
   UNPAID
 }
 
-
 // Cal AI Voice Agent
 model Agent {
   id   String @id @default(uuid())
@@ -2571,7 +2569,9 @@ model Agent {
   providerAgentId String @unique
 
   // Event type association for inbound agents
-  inboundEventTypeId Int?
+  inboundEventTypeId  Int?
+  // Event type association for outbound agents
+  outboundEventTypeId Int?
 
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -2580,11 +2580,12 @@ model Agent {
   inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
   outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
   workflowStep         WorkflowStep?
-  inboundWorkflowStep  WorkflowStep?     @relation("WorkflowStepInboundAgent")
+  inboundWorkflowStep  WorkflowStep?      @relation("WorkflowStepInboundAgent")
 
   @@index([userId])
   @@index([teamId])
   @@index([inboundEventTypeId])
+  @@index([outboundEventTypeId])
 }
 
 model CalAiPhoneNumber {

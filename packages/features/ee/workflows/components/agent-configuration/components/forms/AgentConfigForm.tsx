@@ -4,11 +4,9 @@ import type { UseFormReturn } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Input, Label, TextArea } from "@calcom/ui/components/form";
-import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../../../../lib/constants";
 import type { AgentFormValues } from "../../types/schemas";
-import { EventTypeSelector } from "./EventTypeSelector";
 import { LanguageSelector } from "./LanguageSelector";
 import { VoiceSelector } from "./VoiceSelector";
 
@@ -17,8 +15,6 @@ interface AgentConfigFormProps {
   readOnly?: boolean;
   selectedVoiceId?: string;
   onVoiceDialogOpen: () => void;
-  eventTypeOptions?: Option[];
-  callType: "incoming" | "outgoing";
 }
 
 export function AgentConfigForm({
@@ -26,8 +22,6 @@ export function AgentConfigForm({
   readOnly = false,
   selectedVoiceId,
   onVoiceDialogOpen,
-  eventTypeOptions = [],
-  callType,
 }: AgentConfigFormProps) {
   const { t } = useLocale();
   const generalPromptRef = useRef<HTMLTextAreaElement | null>(null);
@@ -58,15 +52,6 @@ export function AgentConfigForm({
 
   return (
     <div className="space-y-4">
-      {callType === "outgoing" && (
-        <EventTypeSelector
-          control={form.control}
-          name="eventTypeId"
-          disabled={readOnly}
-          eventTypeOptions={eventTypeOptions}
-          callType={callType}
-        />
-      )}
       <LanguageSelector control={form.control} name="language" disabled={readOnly} />
 
       <VoiceSelector
@@ -76,7 +61,7 @@ export function AgentConfigForm({
       />
 
       <div>
-        <Label className="block mb-1 text-sm font-medium text-emphasis">{t("initial_message")} *</Label>
+        <Label className="text-emphasis mb-1 block text-sm font-medium">{t("initial_message")} *</Label>
         <p className="text-subtle mb-1.5 text-xs">{t("initial_message_description")}</p>
         <Input
           type="text"
@@ -88,10 +73,10 @@ export function AgentConfigForm({
 
       <div>
         <div className="mb-1.5">
-          <Label className="block mb-1 text-sm font-medium text-emphasis">{t("general_prompt")} *</Label>
-          <p className="text-xs text-subtle">{t("general_prompt_description")}</p>
+          <Label className="text-emphasis mb-1 block text-sm font-medium">{t("general_prompt")} *</Label>
+          <p className="text-subtle text-xs">{t("general_prompt_description")}</p>
         </div>
-        <div className="flex justify-between items-center p-2 rounded-t-lg border border-b-0">
+        <div className="flex items-center justify-between rounded-t-lg border border-b-0 p-2">
           {!readOnly && (
             <AddVariablesDropdown
               addVariable={addVariableToGeneralPrompt}

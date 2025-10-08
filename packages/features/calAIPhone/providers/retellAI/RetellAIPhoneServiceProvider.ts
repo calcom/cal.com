@@ -264,6 +264,7 @@ export class RetellAIPhoneServiceProvider
     generalTools?: AIPhoneServiceTools<AIPhoneServiceProviderType.RETELL_AI>;
     voiceId?: string;
     language?: Language;
+    outboundEventTypeId?: number;
   }): Promise<{ message: string }> {
     return await this.service.updateAgentConfiguration(params);
   }
