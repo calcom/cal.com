@@ -159,18 +159,38 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     return { decimal, minus, group };
   }, [nf]);
 
+  // Escape special regex characters
+  const escapeRegex = useCallback((str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), []);
+
+  // function to normalize raw value
+  const normalizeRawValue = useCallback(
+    (raw: string) => {
+      let normalized = raw;
+      if (symbols.group) {
+        normalized = normalized.replace(new RegExp(escapeRegex(symbols.group), "g"), "");
+      }
+      normalized = normalized
+        .replace(new RegExp(escapeRegex(symbols.decimal), "g"), ".")
+        .replace(new RegExp(escapeRegex(symbols.minus), "g"), "-");
+      return normalized;
+    },
+    [symbols]
+  );
+
   // generate the formatted value to display in input
   // maximum significant digits allowed is 15 - because precision issue with Number()
   // why need to use Number() - Intl.NumberFormat only accept Number
   // since we are using Number() the no of decimal digits is varies based on total digits
   const formattedValue = useMemo(() => {
-    const significantDigits = (value || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
+    // Use rawValue (which updates immediately) instead of value prop
+    const normalized = normalizeRawValue(rawValue);
+    const significantDigits = (normalized || "").replace(/[^0-9]/g, "").replace(/^0+/, "").length;
 
-    let processedValue = value || "";
+    let processedValue = normalized || "";
 
     // Truncate to 15 significant digits if exceeded
     if (significantDigits > 15) {
-      processedValue = trimToMaxSignifcantDigits(value);
+      processedValue = trimToMaxSignifcantDigits(normalized);
     }
 
     const numberValue = Number(processedValue);
@@ -193,7 +213,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     }
 
     return rawValue;
-  }, [rawValue, language, symbols, value]);
+  }, [rawValue, language, symbols, normalizeRawValue]);
 
   // function to remove more than 15 significant digits
   function trimToMaxSignifcantDigits(value: string) {
@@ -207,24 +227,6 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     // Join with decimal part (keep all decimals)
     return (isNegative ? "-" : "") + first15Int + (decPart ? "." + decPart : "");
   }
-
-  // Escape special regex characters
-  const escapeRegex = useCallback((str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), []);
-
-  // function to normalize raw value
-  const normalizeRawValue = useCallback(
-    (raw: string) => {
-      let normalized = raw;
-      if (symbols.group) {
-        normalized = normalized.replace(new RegExp(escapeRegex(symbols.group), "g"), "");
-      }
-      normalized = normalized
-        .replace(new RegExp(escapeRegex(symbols.decimal), "g"), ".")
-        .replace(new RegExp(escapeRegex(symbols.minus), "g"), "-");
-      return normalized;
-    },
-    [symbols]
-  );
 
   // useEffect to detect external change in value and set raw value based on it
   useEffect(() => {
@@ -306,7 +308,9 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
     setRawValue(val);
 
     // Normalize for parent: remove group separators, then replace decimal and minus
-    const normalized = normalizeRawValue(val);
+    let normalized = normalizeRawValue(val);
+    // Strip leading zeros (except "0" or "0.xxx" or "-0" or "-0.xxx")
+    normalized = normalized.replace(/^(-?)0+(?=\d)/, "$1");
     setValue(normalized);
   };
 

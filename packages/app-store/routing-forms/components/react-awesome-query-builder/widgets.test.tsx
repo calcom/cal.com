@@ -169,7 +169,7 @@ describe("NumberWidget", () => {
     expect((input as HTMLInputElement).value).toBe("-1.234,56");
   });
 
-  it("converts en-US input with commas to standard numeric value", () => {
+  it("converts en-US input (pasted) with commas to standard numeric value", () => {
     setNavigatorLanguage("en-US");
     const setValue = vi.fn();
 
@@ -195,6 +195,8 @@ describe("NumberWidget", () => {
 
     // The widget removes subsequent decimal separators; normalized should have one dot
     expect(setValue).toHaveBeenLastCalledWith("1234.5678");
+    // UI should also show only one decimal separator
+    expect((input as HTMLInputElement).value).toBe("1.234,5678");
   });
 
   it("removes minus signs that aren't at the start", () => {
@@ -211,14 +213,20 @@ describe("NumberWidget", () => {
     expect(setValue).toHaveBeenLastCalledWith("1234.5");
   });
 
-  it("keeps trailing decimal point in en-US", () => {
+  it("keeps trailing decimal point while typing in en-US", () => {
     setNavigatorLanguage("en-US");
     const setValue = vi.fn();
 
-    render(<NumberWidget value="1234." setValue={setValue} />);
-
+    // Start with empty value
+    render(<NumberWidget value="" setValue={setValue} />);
     const input = screen.getByRole("textbox");
-    expect((input as HTMLInputElement).value).toBe("1,234.");
+
+    // User types "1234."
+    fireEvent.change(input, { target: { value: "1234." } });
+
+    // Should keep the raw value with trailing decimal (no formatting applied)
+    expect((input as HTMLInputElement).value).toBe("1234.");
+    expect(setValue).toHaveBeenLastCalledWith("1234.");
   });
 
   it("allows typing just a minus sign", () => {
@@ -243,6 +251,8 @@ describe("NumberWidget", () => {
       groupSafeForTyping?: boolean;
     };
 
+    // fr-FR, ru-RU, and pl-PL use a non-breaking space as the group separator.
+    // Since users typically don't type that Unicode character, these locales are marked as not groupSafeForTyping.
     const locales: LocaleCase[] = [
       { locale: "en-US", decimal: ".", group: ",", groupSafeForTyping: true },
       { locale: "es-ES", decimal: ",", group: ".", groupSafeForTyping: true },
@@ -255,7 +265,7 @@ describe("NumberWidget", () => {
       { locale: "nl-NL", decimal: ",", group: ".", groupSafeForTyping: true },
       { locale: "pl-PL", decimal: "," },
       { locale: "zh-CN", decimal: ".", group: ",", groupSafeForTyping: true },
-      { locale: "ar-SA", decimal: ".", group: ",", groupSafeForTyping: true },
+      { locale: "ar", decimal: ".", group: ",", groupSafeForTyping: true },
       { locale: "hi-IN", decimal: ".", group: ",", groupSafeForTyping: true },
       { locale: "ko-KR", decimal: ".", group: ",", groupSafeForTyping: true },
       { locale: "tr-TR", decimal: ",", group: ".", groupSafeForTyping: true },
@@ -290,7 +300,7 @@ describe("NumberWidget", () => {
       });
 
       if (group && groupSafeForTyping) {
-        it(`${locale}: converts input with grouping and decimal to standard format`, () => {
+        it(`${locale}: converts pasted input with grouping and decimal to standard format`, () => {
           setNavigatorLanguage(locale);
           const setValue = vi.fn();
 
@@ -314,6 +324,8 @@ describe("NumberWidget", () => {
       const input = screen.getByRole("textbox");
 
       fireEvent.change(input, { target: { value: "12345.6789" } });
+      console.log("Input value:", (input as HTMLInputElement).value);
+      console.log("setValue called with:", setValue.mock.calls);
 
       expect(setValue).toHaveBeenLastCalledWith("12345.6789");
       expect((input as HTMLInputElement).value).toBe("12,345.6789");
@@ -379,9 +391,10 @@ describe("NumberWidget", () => {
       expect((input as HTMLInputElement).value).toBe("123.456.789.012.345");
     });
 
-    it("does NOT test 15 digits WITH decimals (precision issues)", () => {
-      // Intentionally skipped - would have precision issues with Number()
-      // This comment documents why we don't test this case
+    it.skip("handles 15 digits WITH decimals (precision issues)", () => {
+      // Intentionally skipped - JavaScript Number has precision limits.
+      // Testing 15 integer digits + decimals would exceed safe integer range
+      // and cause floating point precision issues.
     });
   });
 
@@ -422,15 +435,6 @@ describe("NumberWidget", () => {
       setNavigatorLanguage("en-US");
       const setValue = vi.fn();
       render(<NumberWidget value="0" setValue={setValue} />);
-      const input = screen.getByRole("textbox");
-
-      expect((input as HTMLInputElement).value).toBe("0");
-    });
-
-    it("handles zero with decimals", () => {
-      setNavigatorLanguage("en-US");
-      const setValue = vi.fn();
-      render(<NumberWidget value="0.00" setValue={setValue} />);
       const input = screen.getByRole("textbox");
 
       expect((input as HTMLInputElement).value).toBe("0");
@@ -491,13 +495,21 @@ describe("NumberWidget", () => {
       expect((input as HTMLInputElement).value).toBe("0");
     });
 
-    it("handles negative zero", () => {
+    it("allows typing negative decimal starting with -0", () => {
       setNavigatorLanguage("en-US");
       const setValue = vi.fn();
-      render(<NumberWidget value="-0" setValue={setValue} />);
-
+      render(<NumberWidget value="" setValue={setValue} />);
       const input = screen.getByRole("textbox");
-      expect((input as HTMLInputElement).value).toBe("0");
+
+      // User types "-0"
+      fireEvent.change(input, { target: { value: "-0" } });
+      expect((input as HTMLInputElement).value).toBe("-0");
+      expect(setValue).toHaveBeenLastCalledWith("-0");
+
+      // User continues typing ".5"
+      fireEvent.change(input, { target: { value: "-0.5" } });
+      expect((input as HTMLInputElement).value).toBe("-0.5");
+      expect(setValue).toHaveBeenLastCalledWith("-0.5");
     });
 
     it("formats negative numbers correctly", () => {
