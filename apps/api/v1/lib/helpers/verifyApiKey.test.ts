@@ -19,11 +19,50 @@ vi.mock("@calcom/lib/crypto", () => ({
   symmetricEncrypt: vi.fn().mockReturnValue("mocked-encrypted-value"),
 }));
 
-type CustomNextApiRequest = NextApiRequest & Request;
+// Mock the watchlist controller to use our test stubs
+const mockWatchlistFeature = {
+  globalBlocking: {
+    isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
+  },
+  orgBlocking: {
+    isEmailBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
+  },
+};
+
+vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
+  checkIfEmailIsBlockedInWatchlistController: vi
+    .fn()
+    .mockImplementation(async (email: string, organizationId?: number) => {
+      // Use our mock watchlist feature
+      const globalResult = await mockWatchlistFeature.globalBlocking.isBlocked(email, organizationId);
+      if (globalResult.isBlocked) {
+        return { isBlocked: true };
+      }
+
+      if (organizationId) {
+        const orgResult = await mockWatchlistFeature.orgBlocking.isEmailBlocked(email, organizationId);
+        if (orgResult.isBlocked) {
+          return { isBlocked: true };
+        }
+      }
+
+      return { isBlocked: false };
+    }),
+}));
+
+type CustomNextApiRequest = NextApiRequest &
+  Request & {
+    isSystemWideAdmin?: boolean;
+    isOrganizationOwnerOrAdmin?: boolean;
+  };
 type CustomNextApiResponse = NextApiResponse & Response;
 
 beforeEach(() => {
   vi.stubEnv("CALENDSO_ENCRYPTION_KEY", "22gfxhWUlcKliUeXcu8xNah2+HP/29ZX");
+
+  // Reset watchlist mocks to default (not blocked)
+  mockWatchlistFeature.globalBlocking.isBlocked.mockReset().mockResolvedValue({ isBlocked: false });
+  mockWatchlistFeature.orgBlocking.isEmailBlocked.mockReset().mockResolvedValue({ isBlocked: false });
 });
 
 afterEach(() => {
