@@ -1,7 +1,6 @@
 import { captureException } from "@sentry/nextjs";
 
-import { prisma as defaultPrisma } from "@calcom/prisma";
-import type { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 
 import type {
@@ -12,7 +11,7 @@ import type {
 import type { WatchlistAudit } from "../types";
 
 export class AuditRepository implements IAuditRepository {
-  constructor(private readonly prisma: PrismaClient = defaultPrisma) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateWatchlistAuditInput): Promise<WatchlistAudit> {
     try {
