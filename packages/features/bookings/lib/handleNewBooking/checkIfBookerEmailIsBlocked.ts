@@ -41,12 +41,11 @@ export const checkIfBookerEmailIsBlocked = async ({
     },
     select: {
       id: true,
-      email: true,
       preventEmailImpersonation: true,
     },
   });
 
-  const isBlocked = blacklistedEmail || user?.preventEmailImpersonation;
+  const isBlocked = Boolean(blacklistedEmail) || !!user?.preventEmailImpersonation;
 
   if (!isBlocked) {
     return false;

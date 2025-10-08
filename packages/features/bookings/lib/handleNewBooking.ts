@@ -1175,10 +1175,12 @@ async function handler(
     },
   });
 
-  const protectedEmails = new Set<string>();
+  const protectedBaseEmails = new Set<string>();
   usersWithPreventImpersonation.forEach((user) => {
-    protectedEmails.add(user.email.toLowerCase());
-    user.secondaryEmails.forEach((se) => protectedEmails.add(se.email.toLowerCase()));
+    protectedBaseEmails.add(extractBaseEmail(user.email).toLowerCase());
+    user.secondaryEmails.forEach((se) =>
+      protectedBaseEmails.add(extractBaseEmail(se.email).toLowerCase())
+    );
   });
 
   const guestsRemoved: string[] = [];
@@ -1186,8 +1188,8 @@ async function handler(
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
 
     if (
-      blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail) ||
-      protectedEmails.has(baseGuestEmail)
+          blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail) ||
+          protectedBaseEmails.has(baseGuestEmail)
     ) {
       guestsRemoved.push(guest);
       return guestArray;

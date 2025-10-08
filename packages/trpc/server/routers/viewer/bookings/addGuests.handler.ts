@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -80,7 +81,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     : [];
 
   // Get emails that have preventEmailImpersonation enabled
-  const usersWithPreventImpersonation = await ctx.prisma.user.findMany({
+  const usersWithPreventImpersonation = await prisma.user.findMany({
     where: {
       OR: [
         {
@@ -112,6 +113,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       secondaryEmails: {
         select: {
           email: true,
+          emailVerified: true,
         },
       },
     },
@@ -120,7 +122,9 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   const protectedEmails = new Set<string>();
   usersWithPreventImpersonation.forEach((user) => {
     protectedEmails.add(user.email.toLowerCase());
-    user.secondaryEmails.forEach((se) => protectedEmails.add(se.email.toLowerCase()));
+    user.secondaryEmails.forEach((se) => {
+      if (se.emailVerified) protectedEmails.add(se.email.toLowerCase());
+    });
   });
 
   const uniqueGuests = guests.filter(

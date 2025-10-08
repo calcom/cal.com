@@ -358,6 +358,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
         />
 
         <SettingsToggle
+          data-testid="prevent-my-email-impersonation-switch"
           toggleSwitchAtTheEnd={true}
           title={t("prevent_email_impersonation")}
           description={t("prevent_email_impersonation_description")}
