@@ -222,8 +222,9 @@ export function shouldShowRecurringCancelAction(context: BookingActionContext): 
 }
 
 export function shouldShowIndividualReportButton(context: BookingActionContext): boolean {
-  const { booking, isBookingInPast } = context;
-  return !booking.report && !isBookingInPast;
+  const { booking, isPending, isUpcoming, isCancelled, isRejected } = context;
+  const hasDropdown = shouldShowEditActions(context);
+  return !booking.report && !hasDropdown && (isCancelled || isRejected || (isPending && isUpcoming));
 }
 
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {

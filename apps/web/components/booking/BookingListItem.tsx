@@ -184,6 +184,13 @@ function BookingListItem(booking: BookingItemProps) {
   const isPending = booking.status === BookingStatus.PENDING;
   const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
+
+  const getReportStatus = (): "upcoming" | "past" | "cancelled" | "rejected" => {
+    if (isCancelled) return "cancelled";
+    if (isRejected) return "rejected";
+    if (isBookingInPast) return "past";
+    return "upcoming";
+  };
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
   const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
@@ -447,9 +454,7 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenReportDialog}
         bookingId={booking.id}
         isRecurring={isRecurring}
-        isUpcoming={isUpcoming}
-        isCancelled={isCancelled}
-        isRejected={isRejected}
+        status={getReportStatus()}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
