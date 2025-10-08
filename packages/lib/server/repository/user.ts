@@ -908,6 +908,7 @@ export class UserRepository {
         trialEndsAt: true,
         metadata: true,
         role: true,
+        preventBookings: true,
         allowDynamicBooking: true,
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,

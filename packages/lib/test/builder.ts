@@ -246,6 +246,7 @@ type UserPayload = Prisma.UserGetPayload<{
     timeZone: true;
     username: true;
     id: true;
+    preventBookings: true;
     allowDynamicBooking: true;
     credentials: true;
     destinationCalendar: true;
@@ -299,6 +300,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     timeZone: faker.address.timeZone(),
     username: faker.internet.userName(),
     id: 0,
+    preventBookings: false,
     allowDynamicBooking: true,
     availability: [],
     avatarUrl: "",

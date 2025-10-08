@@ -395,6 +395,10 @@ model User {
   darkBrandColor      String?
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
+
+  // prevent others from using your email to create bookings
+  preventBookings Boolean? @default(false)
+
   // participate in dynamic group booking or not
   allowDynamicBooking Boolean?             @default(true)
 

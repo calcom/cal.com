@@ -18,11 +18,7 @@ export const checkIfBookerEmailIsBlocked = async ({
     (guestEmail: string) => guestEmail.toLowerCase() === baseEmail.toLowerCase()
   );
 
-  if (!blacklistedEmail) {
-    return false;
-  }
-
-  const user = await prisma.user.findFirst({
+  const userWithEmail = await prisma.user.findFirst({
     where: {
       OR: [
         {
@@ -46,17 +42,36 @@ export const checkIfBookerEmailIsBlocked = async ({
     select: {
       id: true,
       email: true,
+      preventBookings: true,
     },
   });
 
-  if (!user) {
-    throw new HttpError({ statusCode: 403, message: "Cannot use this email to create the booking." });
+  // If email is in env blacklist
+  if (blacklistedEmail) {
+    // If no user found with this email, block the booking
+    if (!userWithEmail) {
+      throw new HttpError({ statusCode: 403, message: "Cannot use this email to create the booking." });
+    }
+
+    // If user found but not logged in as that user, block the booking
+    if (userWithEmail.id !== loggedInUserId) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `Attendee email has been blocked. Make sure to login as ${bookerEmail} to use this email for creating a booking.`,
+      });
+    }
   }
 
-  if (user.id !== loggedInUserId) {
-    throw new HttpError({
-      statusCode: 403,
-      message: `Attendee email has been blocked. Make sure to login as ${bookerEmail} to use this email for creating a booking.`,
-    });
+  // If user has preventBookings enabled
+  if (userWithEmail?.preventBookings) {
+    // Only allow if logged in as that user
+    if (userWithEmail.id !== loggedInUserId) {
+      throw new HttpError({
+        statusCode: 403,
+        message: `This email owner has disabled bookings with their email. Make sure to login as ${bookerEmail} to use this email for creating a booking.`,
+      });
+    }
   }
+
+  return false;
 };

@@ -147,6 +147,9 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
     !!user.receiveMonthlyDigestEmail
   );
+  const [isPreventBookingsChecked, setIsPreventBookingsChecked] = useState(
+    !!user.preventBookings
+  );
 
   const watchedTzSchedules = formMethods.watch("travelSchedules");
 
@@ -313,6 +316,19 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
             </Button>
           </SectionBottomActions>
         </Form>
+
+        <SettingsToggle
+          toggleSwitchAtTheEnd={true}
+          title={t("prevent_bookings")}
+          description={t("allow_prevent_bookings")}
+          disabled={mutation.isPending}
+          checked={isPreventBookingsChecked}
+          onCheckedChange={(checked) => {
+            setIsPreventBookingsChecked(checked);
+            mutation.mutate({ preventBookings: checked });
+          }}
+          switchContainerClassName="mt-6"
+        />
 
         <SettingsToggle
           toggleSwitchAtTheEnd={true}
