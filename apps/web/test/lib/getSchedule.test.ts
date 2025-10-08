@@ -1410,7 +1410,7 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
         [
-          // `05:30:00.000Z`, // - 5:30 AM is not available because of afterBuffer(120 mins) of the existing booking(3:30-5:59AM slot)
+          // `05:30:00.000Z`, // - 5:30 AM is not available because of afterBuffer(120 mins) of the existing booking(4:00-5:59AM slot)
           // `08:30:00.000Z`, // - 8:30 AM is not available because of beforeBuffer(120mins) of possible booking at 08:30
           `10:30:00.000Z`,
         ],
