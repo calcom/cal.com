@@ -7,8 +7,8 @@ import { createWatchlistFeature } from "@calcom/features/watchlist/lib/facade/Wa
 import type { PrismaClient } from "@calcom/prisma/client";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 
+import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
 import { watchlistModule } from "../modules/Watchlist.module";
-import { WATCHLIST_DI_TOKENS } from "../tokens";
 
 export const watchlistContainer = createContainer();
 
@@ -76,20 +76,10 @@ export async function getWatchlistFeature(prisma?: PrismaClient) {
     const orgRepo = new OrganizationWatchlistRepository(prisma);
     const auditRepo = new AuditRepository(prisma);
 
-    // Create services with simple mock logger for tests
-    const createMockLogger = () => ({
-      debug: () => {},
-      error: () => {},
-      info: () => {},
-      warn: () => {},
-      getSubLogger: createMockLogger,
-    });
-    const mockLogger = createMockLogger();
-
     return {
       globalBlocking: new GlobalBlockingService(globalRepo, orgRepo),
       orgBlocking: new OrganizationBlockingService(orgRepo),
-      watchlist: new WatchlistService(globalRepo, orgRepo, mockLogger),
+      watchlist: new WatchlistService(globalRepo, orgRepo),
       audit: new AuditService(auditRepo),
     };
   }

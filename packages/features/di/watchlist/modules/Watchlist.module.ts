@@ -1,6 +1,5 @@
 import { createModule } from "@evyweb/ioctopus";
 
-import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { AuditRepository } from "@calcom/features/watchlist/lib/repository/AuditRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
@@ -10,7 +9,7 @@ import { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/Gl
 import { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 import { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
 
-import { WATCHLIST_DI_TOKENS } from "../tokens";
+import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
 
 export const watchlistModule = createModule();
 
@@ -46,5 +45,4 @@ watchlistModule
   .toClass(WatchlistService, [
     WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY,
     WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY,
-    SHARED_TOKENS.LOGGER,
   ]);

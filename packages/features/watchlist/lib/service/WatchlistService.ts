@@ -1,4 +1,4 @@
-import type { ILogger } from "@calcom/features/webhooks/lib/interface/infrastructure";
+import logger from "@calcom/lib/logger";
 
 import type {
   IGlobalWatchlistRepository,
@@ -7,20 +7,17 @@ import type {
 import type { IWatchlistService } from "../interface/IWatchlistService";
 import type { WatchlistEntry, CreateWatchlistEntryData, UpdateWatchlistEntryData } from "../types";
 
-export class WatchlistService implements IWatchlistService {
-  private readonly log: ILogger;
+const log = logger.getSubLogger({ prefix: ["[WatchlistService]"] });
 
+export class WatchlistService implements IWatchlistService {
   constructor(
     private readonly globalRepo: IGlobalWatchlistRepository,
-    private readonly orgRepo: IOrganizationWatchlistRepository,
-    logger: ILogger
-  ) {
-    this.log = logger.getSubLogger({ prefix: ["[WatchlistService]"] });
-  }
+    private readonly orgRepo: IOrganizationWatchlistRepository
+  ) {}
 
   async createEntry(data: CreateWatchlistEntryData): Promise<WatchlistEntry> {
     try {
-      this.log.debug("Creating watchlist entry", {
+      log.debug("Creating watchlist entry", {
         type: data.type,
         organizationId: data.organizationId,
         isGlobal: data.isGlobal,
@@ -49,7 +46,7 @@ export class WatchlistService implements IWatchlistService {
         });
       }
 
-      this.log.info("Watchlist entry created successfully", {
+      log.info("Watchlist entry created successfully", {
         id: entry.id,
         type: entry.type,
         isGlobal: entry.isGlobal,
@@ -58,7 +55,7 @@ export class WatchlistService implements IWatchlistService {
 
       return entry;
     } catch (error) {
-      this.log.error("Failed to create watchlist entry", {
+      log.error("Failed to create watchlist entry", {
         error: error instanceof Error ? error.message : String(error),
         data,
       });
@@ -68,18 +65,18 @@ export class WatchlistService implements IWatchlistService {
 
   async updateEntry(id: string, data: UpdateWatchlistEntryData): Promise<WatchlistEntry> {
     try {
-      this.log.debug("Updating watchlist entry", { id });
+      log.debug("Updating watchlist entry", { id });
 
       const entry = await this.globalRepo.updateEntry(id, data);
 
-      this.log.info("Watchlist entry updated successfully", {
+      log.info("Watchlist entry updated successfully", {
         id: entry.id,
         type: entry.type,
       });
 
       return entry;
     } catch (error) {
-      this.log.error("Failed to update watchlist entry", {
+      log.error("Failed to update watchlist entry", {
         error: error instanceof Error ? error.message : String(error),
         id,
         data,
@@ -90,13 +87,13 @@ export class WatchlistService implements IWatchlistService {
 
   async deleteEntry(id: string): Promise<void> {
     try {
-      this.log.debug("Deleting watchlist entry", { id });
+      log.debug("Deleting watchlist entry", { id });
 
       await this.globalRepo.deleteEntry(id);
 
-      this.log.info("Watchlist entry deleted successfully", { id });
+      log.info("Watchlist entry deleted successfully", { id });
     } catch (error) {
-      this.log.error("Failed to delete watchlist entry", {
+      log.error("Failed to delete watchlist entry", {
         error: error instanceof Error ? error.message : String(error),
         id,
       });
@@ -106,21 +103,21 @@ export class WatchlistService implements IWatchlistService {
 
   async getEntry(id: string): Promise<WatchlistEntry | null> {
     try {
-      this.log.debug("Fetching watchlist entry", { id });
+      log.debug("Fetching watchlist entry", { id });
 
       // First try to find in global entries
       const globalEntry = await this.globalRepo.findById(id);
       if (globalEntry) {
-        this.log.debug("Global watchlist entry found", { id, type: globalEntry.type });
+        log.debug("Global watchlist entry found", { id, type: globalEntry.type });
         return globalEntry;
       }
 
       // If not found in global, it might be an organization-specific entry
       // Since we don't have organizationId, we can only find global entries with this method
-      this.log.debug("Entry not found in global repository", { id });
+      log.debug("Entry not found in global repository", { id });
       return null;
     } catch (error) {
-      this.log.error("Failed to fetch watchlist entry", {
+      log.error("Failed to fetch watchlist entry", {
         error: error instanceof Error ? error.message : String(error),
         id,
       });
@@ -130,7 +127,7 @@ export class WatchlistService implements IWatchlistService {
 
   async listAllEntries(organizationId?: number): Promise<WatchlistEntry[]> {
     try {
-      this.log.debug("Listing watchlist entries", { organizationId });
+      log.debug("Listing watchlist entries", { organizationId });
 
       const globalEntries = await this.globalRepo.listBlockedEntries();
 
@@ -141,7 +138,7 @@ export class WatchlistService implements IWatchlistService {
         combinedEntries = [...globalEntries, ...orgEntries];
       }
 
-      this.log.debug("Watchlist entries retrieved", {
+      log.debug("Watchlist entries retrieved", {
         globalCount: globalEntries.length,
         orgCount: organizationId ? combinedEntries.length - globalEntries.length : 0,
         totalCount: combinedEntries.length,
@@ -150,7 +147,7 @@ export class WatchlistService implements IWatchlistService {
 
       return combinedEntries;
     } catch (error) {
-      this.log.error("Failed to list watchlist entries", {
+      log.error("Failed to list watchlist entries", {
         error: error instanceof Error ? error.message : String(error),
         organizationId,
       });
