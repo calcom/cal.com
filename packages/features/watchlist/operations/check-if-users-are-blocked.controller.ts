@@ -23,6 +23,7 @@ export async function checkIfUsersAreBlocked(
 
   // Check each user's email for blocking
   for (const user of users) {
+    if (!user.email) continue; // Skip users without email
     const normalizedEmail = normalizeEmail(user.email);
 
     // Check global blocking first
