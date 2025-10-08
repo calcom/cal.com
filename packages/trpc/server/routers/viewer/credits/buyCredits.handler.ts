@@ -5,7 +5,7 @@ import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";

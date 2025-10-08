@@ -14,9 +14,14 @@ import { InternalTeamBilling } from "./teams/internal-team-billing";
 
 const MOCK_TX = {};
 
-vi.mock("@calcom/prisma", () => {
+vi.mock("@calcom/prisma", async (importOriginal) => {
+  const actual = await importOriginal();
   return {
+    ...actual,
     default: {
+      $transaction: vi.fn((fn) => fn(MOCK_TX)),
+    },
+    prisma: {
       $transaction: vi.fn((fn) => fn(MOCK_TX)),
     },
   };
@@ -85,7 +90,7 @@ CreditsRepository.findCreditBalance.mockResolvedValueOnce({
 
 describe("CreditService", () => {
   let creditService: CreditService;
-  let stripeMock: any;
+  let stripeMock: Partial<Stripe>;
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -96,7 +101,7 @@ describe("CreditService", () => {
         retrieve: vi.fn().mockResolvedValue({ id: "price_123", unit_amount: 1000 }),
       },
     };
-    (Stripe as any).mockImplementation(() => stripeMock);
+    vi.mocked(Stripe).mockImplementation(() => stripeMock as Stripe);
     creditService = new CreditService();
 
     vi.mocked(CreditsRepository.findCreditExpenseLogByExternalRef).mockResolvedValue(null);
@@ -400,7 +405,7 @@ describe("CreditService", () => {
             members: [{ accepted: true }],
           }),
         };
-        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("trialing"),
@@ -421,7 +426,7 @@ describe("CreditService", () => {
             members: [{ accepted: true }, { accepted: true }, { accepted: true }],
           }),
         };
-        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
@@ -450,7 +455,7 @@ describe("CreditService", () => {
             members: [{ accepted: true }, { accepted: true }],
           }),
         };
-        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
@@ -473,7 +478,7 @@ describe("CreditService", () => {
             members: [{ accepted: true }, { accepted: true }, { accepted: true }],
           }),
         };
-        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
+        vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as unknown as TeamRepository);
 
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("active"),

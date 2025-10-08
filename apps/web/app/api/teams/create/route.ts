@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -83,6 +85,19 @@ async function getHandler(req: NextRequest) {
       },
     },
   });
+
+  if (checkoutSession && subscription) {
+    const internalBillingService = new InternalTeamBilling(team);
+    await internalBillingService.saveTeamBilling({
+      teamId: team.id,
+      subscriptionId: subscription.id,
+      subscriptionItemId: subscription.items.data[0].id,
+      customerId: subscription.customer as string,
+      // TODO: Implement true subscription status when webhook events are implemented
+      status: SubscriptionStatus.ACTIVE,
+      planName: Plan.TEAM,
+    });
+  }
 
   // redirect to team screen
   return NextResponse.redirect(
