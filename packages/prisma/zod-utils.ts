@@ -788,19 +788,19 @@ export type FieldType = z.infer<typeof fieldTypeEnum>;
 export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
   const allDomains = val.split(",").map((dom) => dom.trim());
 
-  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
+  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z0-9-]+)*)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
 
   /*
   Valid patterns - [ example, example.anything, anyone@example.anything ]
   Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
 */
 
-  const isValid = !allDomains.some((domain) => !regex.test(domain));
+  const invalidDomains = allDomains.filter((domain) => !regex.test(domain));
 
-  if (!isValid) {
+  if (invalidDomains.length > 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Enter valid domain or email",
+      message: `Invalid email : ${invalidDomains}`,
     });
   }
 });
