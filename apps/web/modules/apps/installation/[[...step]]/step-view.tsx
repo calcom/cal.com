@@ -9,15 +9,15 @@ import type { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { LocationObject } from "@calcom/lib/location";
+import type { LocationObject } from "@calcom/app-store/locations";
 import type { Team } from "@calcom/prisma/client";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
@@ -310,7 +310,6 @@ const OnboardingPage = ({
                   />
                 )}
               {currentStep === AppOnboardingSteps.CONFIGURE_STEP &&
-                formPortalRef.current &&
                 eventTypeGroups && (
                   <ConfigureStepCard
                     slug={appMetadata.slug}

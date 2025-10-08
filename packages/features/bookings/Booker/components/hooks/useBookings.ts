@@ -3,13 +3,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { shallow } from "zustand/shallow";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
@@ -114,6 +114,43 @@ export interface IUseBookingErrors {
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
 const STORAGE_KEY = "instantBookingData";
+const COOLDOWN_STORAGE_KEY = "instantBookingCooldownByEvent";
+const COOLDOWN_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+type InstantBookingCooldownMap = Record<string, number>;
+
+const readInstantCooldownMap = (): InstantBookingCooldownMap => {
+  try {
+    const raw = localStorage.getItem(COOLDOWN_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as InstantBookingCooldownMap) : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeInstantCooldownMap = (map: InstantBookingCooldownMap) => {
+  try {
+    localStorage.setItem(COOLDOWN_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    // don't do anything
+  }
+};
+
+const getInstantCooldownRemainingMs = (eventTypeId?: number | null): number => {
+  if (!eventTypeId) return 0;
+  const map = readInstantCooldownMap();
+  const lastTs = map[String(eventTypeId)];
+  if (!lastTs) return 0;
+  const remaining = lastTs + COOLDOWN_WINDOW_MS - Date.now();
+  return remaining > 0 ? remaining : 0;
+};
+
+const setInstantCooldownNow = (eventTypeId?: number | null) => {
+  if (!eventTypeId) return;
+  const map = readInstantCooldownMap();
+  map[String(eventTypeId)] = Date.now();
+  writeInstantCooldownMap(map);
+};
 
 const storeInLocalStorage = ({
   eventTypeId,
@@ -133,7 +170,6 @@ export const useBookings = ({
   hashedLink,
   bookingForm,
   metadata,
-  teamMemberEmail,
   isBookingDryRun,
 }: IUseBookings) => {
   const router = useRouter();
@@ -141,9 +177,15 @@ export const useBookings = ({
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
 
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const [rescheduleUid, setRescheduleUid] = useBookerStoreContext(
+    (state) => [state.rescheduleUid, state.setRescheduleUid],
+    shallow
+  );
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
-  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const [bookingData, setBookingData] = useBookerStoreContext(
+    (state) => [state.bookingData, state.setBookingData],
+    shallow
+  );
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
@@ -178,6 +220,8 @@ export const useBookings = ({
       }
     }
   }, [eventTypeId, isInstantMeeting]);
+
+  const instantConnectCooldownMs = getInstantCooldownRemainingMs(eventTypeId);
 
   const _instantBooking = trpc.viewer.bookings.getInstantBookingLocation.useQuery(
     {
@@ -245,7 +289,7 @@ export const useBookings = ({
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
-      const users = !!event.data?.subsetOfHosts?.length
+      const users = event.data?.subsetOfHosts?.length
         ? event.data?.subsetOfHosts.map((host) => host.user)
         : event.data?.subsetOfUsers;
 
@@ -345,16 +389,12 @@ export const useBookings = ({
       };
 
       if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
-        useBookerStore.setState({
-          rescheduleUid: error.data?.rescheduleUid,
-        });
-        useBookerStore.setState({
-          bookingData: {
-            uid: error.data?.rescheduleUid,
-            startTime: error.data?.startTime,
-            attendees: error.data?.attendees,
-          } as unknown as GetBookingType,
-        });
+        setRescheduleUid(error.data?.rescheduleUid);
+        setBookingData({
+          uid: error.data?.rescheduleUid,
+          startTime: error.data?.startTime,
+          attendees: error.data?.attendees,
+        } as unknown as GetBookingType);
       }
     },
   });
@@ -368,6 +408,7 @@ export const useBookings = ({
           expiryTime: responseData.expires,
           bookingId: responseData.bookingId,
         });
+        setInstantCooldownNow(eventTypeId);
       }
 
       updateQueryParam("bookingId", responseData.bookingId);
@@ -472,7 +513,19 @@ export const useBookings = ({
     bookingForm,
     hashedLink,
     metadata,
-    handleInstantBooking: createInstantBookingMutation.mutate,
+    handleInstantBooking: (
+      variables: Parameters<typeof createInstantBookingMutation.mutate>[0]
+    ) => {
+      const remaining = getInstantCooldownRemainingMs(eventTypeId);
+      if (remaining > 0) {
+        showToast(
+          t("please_try_again_later_or_book_another_slot"),
+          "error"
+        );
+        return;
+      }
+      createInstantBookingMutation.mutate(variables);
+    },
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,
     isBookingDryRun,
@@ -506,5 +559,6 @@ export const useBookings = ({
     errors,
     loadingStates,
     instantVideoMeetingUrl,
+    instantConnectCooldownMs,
   };
 };

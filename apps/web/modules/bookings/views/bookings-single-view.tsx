@@ -13,6 +13,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
@@ -45,7 +46,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -555,7 +556,9 @@ export default function Success(props: PageProps) {
                             <div className="font-medium">
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
-                            <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">
+                              <p className="break-words">{cancellationReason}</p>
+                            </div>
                           </>
                         )}
                         {isCancelled && bookingInfo?.cancelledBy && (
