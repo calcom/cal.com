@@ -3,10 +3,10 @@ sequenceDiagram
     participant Booker as Booker Form
     participant Handler as handleNewBooking
     participant SpamCheck as SpamCheckService<br/>(NEW)
-    participant CombinedSvc as CombinedBlockingService<br/>(NEW)
+    participant GlobalSvc as GlobalBlockingService<br/>(MODIFIED)
+    participant OrgSvc as OrganizationBlockingService<br/>(MODIFIED)
     participant GlobalDB as Global Watchlist DB
     participant OrgDB as Org Watchlist DB
-    participant AuditSvc as AuditService
     participant Router as Router
     participant FakePage as /booking-successful<br/>(NEW)
 
@@ -18,29 +18,32 @@ sequenceDiagram
     rect rgb(240, 248, 255)
         Note over Handler,SpamCheck: NEW: Spam check initialization
         Handler->>SpamCheck: startCheck(email, orgId)
-        SpamCheck->>CombinedSvc: isBlocked(email, orgId)
+        Note over SpamCheck: Starts parallel checks
     end
     
-    Note over Handler,CombinedSvc: ⚡ Spam check runs in PARALLEL<br/>with availability loading (zero delay)
+    Note over Handler,OrgSvc: ⚡ Spam check runs in PARALLEL<br/>with availability loading (zero delay)
     
     par Parallel Execution
         rect rgb(255, 250, 205)
-            Note over CombinedSvc,OrgDB: Check Global + Org Level Blocking
-            CombinedSvc->>GlobalDB: Check global email
-            GlobalDB-->>CombinedSvc: Result
-            CombinedSvc->>GlobalDB: Check global domain
-            GlobalDB-->>CombinedSvc: Result
+            Note over SpamCheck,OrgDB: Check Global + Org Level Blocking
+            SpamCheck->>GlobalSvc: isBlocked(email, orgId)
+            GlobalSvc->>GlobalDB: Check global email
+            GlobalDB-->>GlobalSvc: Result
+            GlobalSvc->>GlobalDB: Check global domain
+            GlobalDB-->>GlobalSvc: Result
+            GlobalSvc-->>SpamCheck: Global result
+            
             alt If orgId provided
-                CombinedSvc->>OrgDB: Check org email
-                OrgDB-->>CombinedSvc: Result
-                CombinedSvc->>OrgDB: Check org domain
-                OrgDB-->>CombinedSvc: Result
+                SpamCheck->>OrgSvc: isEmailBlocked(email, orgId)
+                OrgSvc->>OrgDB: Check org email
+                OrgDB-->>OrgSvc: Result
+                OrgSvc->>OrgDB: Check org domain
+                OrgDB-->>OrgSvc: Result
+                OrgSvc-->>SpamCheck: Org result
             end
-            alt If blocked found
-                CombinedSvc->>AuditSvc: Log blocked attempt
-            end
+            
+            Note over SpamCheck: Returns blocked if<br/>EITHER check matches
         end
-        CombinedSvc-->>SpamCheck: Promise<BlockingResult>
     and
         Handler->>Handler: Load availability
         Handler->>Handler: Process event type
@@ -73,4 +76,4 @@ sequenceDiagram
         end
     end
     
-    Note over Handler,FakePage: Architecture:<br/>✅ SpamCheckService.ts (NEW) - Async wrapper with startCheck/waitForCheck<br/>✅ CombinedBlockingService.ts (NEW) - Checks global + org blocking with audit logging<br/>✅ GlobalBlockingService.ts (MODIFIED) - Now takes orgRepo instead of auditService, checks global + org domains<br/>✅ OrganizationBlockingService.ts (MODIFIED) - Optional audit logging<br/>✅ spamCheck.ts container (NEW) - DI container for spam check<br/>✅ /booking-successful/page.tsx (NEW) - Fake success page<br/>📝 handleNewBooking.ts (MODIFIED) - Async spam check + fake booking<br/>📝 useBookings.ts (MODIFIED) - Redirect logic for isSpamDecoy<br/>📝 bookings/types.ts (MODIFIED) - Added isSpamDecoy flag
+    Note over Handler,FakePage: Architecture:<br/>✅ SpamCheckService.ts (NEW) - Orchestrates parallel global + org checks<br/>✅ GlobalBlockingService.ts (EXISTING) - Checks global email/domain blocking<br/>✅ OrganizationBlockingService.ts (EXISTING) - Checks org-level email/domain blocking<br/>✅ spamCheck.ts container (NEW) - DI container for spam check<br/>✅ /booking-successful/page.tsx (NEW) - Fake success page<br/>📝 handleNewBooking.ts (MODIFIED) - Async spam check + fake booking<br/>📝 useBookings.ts (MODIFIED) - Redirect logic for isSpamDecoy<br/>📝 bookings/types.ts (MODIFIED) - Added isSpamDecoy flag

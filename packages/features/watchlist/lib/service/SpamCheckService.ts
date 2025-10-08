@@ -1,3 +1,6 @@
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+
 import type { BlockingResult } from "../interface/IBlockingService";
 import type { GlobalBlockingService } from "./GlobalBlockingService";
 import type { OrganizationBlockingService } from "./OrganizationBlockingService";
@@ -17,7 +20,10 @@ export class SpamCheckService {
   ) {}
 
   startCheck(email: string, organizationId?: number): void {
-    this.spamCheckPromise = this.isBlocked(email, organizationId);
+    this.spamCheckPromise = this.isBlocked(email, organizationId).catch((error) => {
+      logger.error("Error starting spam check", safeStringify(error));
+      return { isBlocked: false };
+    });
   }
 
   async waitForCheck(): Promise<BlockingResult> {
