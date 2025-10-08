@@ -366,5 +366,70 @@ describe("intentToCreateOrgHandler", () => {
       expect(organizationOnboarding?.teams).toEqual(inputWithTeamsAndInvites.teams);
       expect(organizationOnboarding?.invitedMembers).toEqual(inputWithTeamsAndInvites.invitedMembers);
     });
+
+    it("should preserve teamName, teamId, and role in invites payload", async () => {
+      vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
+        checkLicense: vi.fn().mockResolvedValue(true),
+      });
+      const adminUser = await createTestUser({
+        email: "admin@example.com",
+        role: UserPermissionRole.ADMIN,
+      });
+
+      await createTestUser({
+        email: mockInput.orgOwnerEmail,
+        completedOnboarding: true,
+        emailVerified: new Date(),
+      });
+
+      // This matches the exact payload from the frontend
+      const inputWithTeamsAndInvites = {
+        ...mockInput,
+        teams: [
+          { id: -1, name: "New", isBeingMigrated: false, slug: null },
+          { id: -1, name: "team", isBeingMigrated: false, slug: null },
+        ],
+        invitedMembers: [
+          { email: "new@new.com", teamName: "new", teamId: -1, role: "admin" },
+          { email: "team@new.com", teamName: "team", teamId: -1, role: "admin" },
+        ],
+      };
+
+      const result = await intentToCreateOrgHandler({
+        input: inputWithTeamsAndInvites,
+        ctx: {
+          user: adminUser,
+        },
+      });
+
+      expect(result.organizationOnboardingId).toBeDefined();
+
+      const organizationOnboarding = await prismock.organizationOnboarding.findFirst({
+        where: {
+          slug: mockInput.slug,
+        },
+      });
+
+      expect(organizationOnboarding).toBeDefined();
+      expect(organizationOnboarding?.teams).toEqual(inputWithTeamsAndInvites.teams);
+
+      // Verify invitedMembers are stored with all fields including teamName, teamId, and role
+      expect(organizationOnboarding?.invitedMembers).toBeDefined();
+      expect(organizationOnboarding?.invitedMembers).toHaveLength(2);
+
+      const invitedMembers = organizationOnboarding?.invitedMembers as any[];
+      expect(invitedMembers[0]).toMatchObject({
+        email: "new@new.com",
+        teamName: "new",
+        teamId: -1,
+        role: "admin",
+      });
+      expect(invitedMembers[1]).toMatchObject({
+        email: "team@new.com",
+        teamName: "team",
+        teamId: -1,
+        role: "admin",
+      });
+    });
   });
 });
