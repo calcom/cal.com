@@ -7,7 +7,7 @@ import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_m
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { SMSLockState } from "@calcom/prisma/enums";
+import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import {
@@ -60,6 +60,8 @@ const mockDelegationCredential = {
   workspacePlatform: mockWorkspacePlatform,
   createdAt: new Date(),
   updatedAt: new Date(),
+  lastEnabledAt: new Date(),
+  lastDisabledAt: null,
 };
 
 // Mock organization data
@@ -103,6 +105,9 @@ const mockOrganization = {
   isPlatform: false,
   createdByOAuthClientId: null,
   bookingLimits: null,
+  hideTeamProfileLink: false,
+  rrResetInterval: null,
+  rrTimestampBasis: RRTimestampBasis.CREATED_AT,
 };
 
 // Credential Builders
