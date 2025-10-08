@@ -2,6 +2,7 @@ import type { User } from "@calcom/prisma/client";
 import type { WatchlistType } from "@calcom/prisma/enums";
 
 import type { Watchlist } from "../types";
+import { normalizeEmail, normalizeDomain, normalizeUsername } from "../utils/normalization";
 import type { WatchlistEntryDTO, WatchlistListResponseDTO, BlockingCheckResultDTO } from "./types";
 
 /**
@@ -123,11 +124,11 @@ export function sanitizeWatchlistEntryDTO(dto: WatchlistEntryDTO): WatchlistEntr
 export function sanitizeWatchlistValue(type: string, value: string): string {
   switch (type) {
     case "EMAIL":
-      return value.toLowerCase().trim();
+      return normalizeEmail(value);
     case "DOMAIN":
-      return value.toLowerCase().trim().startsWith("@") ? value : `@${value}`;
+      return normalizeDomain(value);
     case "USERNAME":
-      return value.toLowerCase().trim();
+      return normalizeUsername(value);
     default:
       return value.trim();
   }

@@ -5,6 +5,7 @@ import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
 import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
 import type { IGlobalWatchlistRepository } from "../interface/IWatchlistRepositories";
+import { normalizeEmail, normalizeDomain } from "../utils/normalization";
 
 /**
  * Repository for global watchlist operations (organizationId = null)
@@ -18,7 +19,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       return await this.prisma.watchlist.findFirst({
         where: {
           type: WatchlistType.EMAIL,
-          value: email.toLowerCase(),
+          value: normalizeEmail(email),
           action: WatchlistAction.BLOCK,
           organizationId: null,
           isGlobal: true,
@@ -35,7 +36,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       return await this.prisma.watchlist.findFirst({
         where: {
           type: WatchlistType.DOMAIN,
-          value: domain.toLowerCase(),
+          value: normalizeDomain(domain),
           action: WatchlistAction.BLOCK,
           organizationId: null,
           isGlobal: true,
@@ -52,7 +53,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       return await this.prisma.watchlist.findFirst({
         where: {
           type: WatchlistType.DOMAIN,
-          value: domain.toLowerCase(),
+          value: normalizeDomain(domain),
           source: WatchlistSource.FREE_DOMAIN_POLICY,
           organizationId: null,
           isGlobal: true,
@@ -106,7 +107,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       return await this.prisma.watchlist.create({
         data: {
           type: data.type,
-          value: data.value.toLowerCase(),
+          value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
           description: data.description,
           isGlobal: true,
           organizationId: null,
@@ -136,7 +137,12 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
           organizationId: null,
         },
         data: {
-          ...(data.value && { value: data.value.toLowerCase() }),
+          ...(data.value && {
+            value:
+              data.value.includes("@") && !data.value.startsWith("@")
+                ? normalizeEmail(data.value)
+                : normalizeDomain(data.value),
+          }),
           ...(data.description !== undefined && { description: data.description }),
           ...(data.action && { action: data.action }),
           ...(data.source && { source: data.source }),

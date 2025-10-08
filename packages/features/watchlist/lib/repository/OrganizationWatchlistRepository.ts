@@ -5,6 +5,7 @@ import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
 import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
 import type { IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
+import { normalizeEmail, normalizeDomain } from "../utils/normalization";
 
 /**
  * Repository for organization-specific watchlist operations
@@ -24,7 +25,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
       return await this.prisma.watchlist.findFirst({
         where: {
           type: WatchlistType.EMAIL,
-          value: email.toLowerCase(),
+          value: normalizeEmail(email),
           action: WatchlistAction.BLOCK,
           organizationId,
         },
@@ -40,7 +41,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
       return await this.prisma.watchlist.findFirst({
         where: {
           type: WatchlistType.DOMAIN,
-          value: domain.toLowerCase(),
+          value: normalizeDomain(domain),
           action: WatchlistAction.BLOCK,
           organizationId,
         },
@@ -94,7 +95,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
       return await this.prisma.watchlist.create({
         data: {
           type: data.type,
-          value: data.value.toLowerCase(),
+          value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
           description: data.description,
           isGlobal: false,
           organizationId,
@@ -125,7 +126,12 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
           organizationId,
         },
         data: {
-          ...(data.value && { value: data.value.toLowerCase() }),
+          ...(data.value && {
+            value:
+              data.value.includes("@") && !data.value.startsWith("@")
+                ? normalizeEmail(data.value)
+                : normalizeDomain(data.value),
+          }),
           ...(data.description !== undefined && { description: data.description }),
           ...(data.action && { action: data.action }),
           ...(data.source && { source: data.source }),
