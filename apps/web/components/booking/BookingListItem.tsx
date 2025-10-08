@@ -828,7 +828,7 @@ const RecurringBookingsTooltip = ({
 
   return (
     (booking.recurringInfo &&
-      booking.eventType?.recurringEvent?.freq &&
+      booking.eventType?.recurringEvent?.freq != null &&
       (booking.listingStatus === "recurring" ||
         booking.listingStatus === "unconfirmed" ||
         booking.listingStatus === "cancelled") && (
