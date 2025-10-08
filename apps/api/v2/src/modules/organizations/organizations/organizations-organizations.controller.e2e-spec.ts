@@ -61,6 +61,7 @@ describe("Organizations Organizations Endpoints", () => {
   let profilesRepositoryFixture: ProfileRepositoryFixture;
 
   let managerOrg: Team;
+  let basicPlanManagerOrg: Team;
   let managedOrg: ManagedOrganizationWithApiKeyOutput;
   let managedOrg2: ManagedOrganizationWithApiKeyOutput;
   const managerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
@@ -103,6 +104,12 @@ describe("Organizations Organizations Endpoints", () => {
       isOrganization: true,
       isPlatform: true,
     });
+    // Create a separate manager org with ESSENTIALS plan for testing plan restrictions
+    basicPlanManagerOrg = await organizationsRepositoryFixture.create({
+      name: `basic-plan-organization-${randomString()}`,
+      isOrganization: true,
+      isPlatform: true,
+    });
 
     await profilesRepositoryFixture.create({
       uid: "asd-asd",
@@ -111,13 +118,28 @@ describe("Organizations Organizations Endpoints", () => {
       organization: { connect: { id: managerOrg.id } },
       movedFromUser: { connect: { id: managerOrgAdmin.id } },
     });
+    await profilesRepositoryFixture.create({
+      uid: "basic-asd-asd",
+      username: managerOrgAdminEmail,
+      user: { connect: { id: managerOrgAdmin.id } },
+      organization: { connect: { id: basicPlanManagerOrg.id } },
+      movedFromUser: { connect: { id: managerOrgAdmin.id } },
+    });
 
     managerOrgBilling = await platformBillingRepositoryFixture.create(managerOrg.id, "SCALE");
+    await platformBillingRepositoryFixture.create(basicPlanManagerOrg.id, "ESSENTIALS");
 
     await membershipsRepositoryFixture.create({
       role: "ADMIN",
       user: { connect: { id: managerOrgAdmin.id } },
       team: { connect: { id: managerOrg.id } },
+      accepted: true,
+    });
+
+    await membershipsRepositoryFixture.create({
+      role: "ADMIN",
+      user: { connect: { id: managerOrgAdmin.id } },
+      team: { connect: { id: basicPlanManagerOrg.id } },
       accepted: true,
     });
 
@@ -170,6 +192,17 @@ describe("Organizations Organizations Endpoints", () => {
     slug: `org2-${suffix2}`,
     metadata: { key: "value" },
   };
+
+  it.only("should not allow to create managed organization if plan is below SCALE", async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/v2/organizations/${basicPlanManagerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .send(createManagedOrganizationBody)
+      .expect(403);
+    expect(response.body.error.message).toBe(
+      `PlatformPlanGuard - organization with id=${basicPlanManagerOrg.id} does not have required plan for this operation. Minimum plan is SCALE while the organization has ESSENTIALS.`
+    );
+  });
 
   it("should create managed organization", async () => {
     return request(app.getHttpServer())
