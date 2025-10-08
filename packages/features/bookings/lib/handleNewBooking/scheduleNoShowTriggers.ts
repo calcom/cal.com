@@ -4,6 +4,7 @@ import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { CalVideoSettings as PrismaCalVideoSettings } from "@calcom/prisma/client";
 
 type ScheduleNoShowTriggersArgs = {
   booking: {
@@ -19,10 +20,7 @@ type ScheduleNoShowTriggersArgs = {
   orgId?: number | null;
   oAuthClientId?: string | null;
   isDryRun?: boolean;
-  calVideoSettings?: {
-    enableAutomaticNoShowTrackingForHosts?: boolean;
-    enableAutomaticNoShowTrackingForGuests?: boolean;
-  } | null;
+  calVideoSettings?: PrismaCalVideoSettings | null;
 };
 
 const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {

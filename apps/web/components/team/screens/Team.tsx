@@ -39,7 +39,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
               <>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
+                   
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
                 />
               </>

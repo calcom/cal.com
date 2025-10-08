@@ -210,7 +210,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     exp: epochTimeFourteenDaysAfter,
   });
 
-  const sessionUserId = !!session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
+  const sessionUserId = session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
   const isOrganizer = await checkIfUserIsHost({
     booking: {
       eventTypeId: bookingObj.eventType?.id,
@@ -238,7 +238,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       videoReferencePassword,
       sessionUserId
     );
-    if (!!meetingPassword) {
+    if (meetingPassword) {
       bookingObj.references.forEach((bookRef) => {
         bookRef.meetingPassword = meetingPassword;
       });

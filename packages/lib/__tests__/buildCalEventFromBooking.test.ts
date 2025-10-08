@@ -63,7 +63,7 @@ describe("buildCalEventFromBooking", () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     getTranslation.mockImplementation((locale: string, namespace: string) => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+       
       const translate = () => {};
       translate.locale = locale;
       translate.namespace = namespace;

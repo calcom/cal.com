@@ -160,7 +160,7 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = !!jsonLogic.apply(attributeJsonLogic as any, attributesData)
+      const result = jsonLogic.apply(attributeJsonLogic as any, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 

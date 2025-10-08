@@ -2,7 +2,7 @@ import { it, expect, describe, beforeAll } from "vitest";
 
 import { getRegExpThatMatchesAllOrgDomains } from "../../getNextjsOrgRewriteConfig";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 const { match, pathToRegexp } = require("next/dist/compiled/path-to-regexp");
 type MatcherRes = (path: string) => { params: Record<string, string> };
 let orgUserTypeRouteMatch: MatcherRes;
@@ -15,7 +15,7 @@ beforeAll(async () => {
   const {
     orgUserRoutePath,
     orgUserTypeRoutePath,
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
   } = require("../../pagesAndRewritePaths");
 
   orgUserTypeRouteMatch = match(orgUserTypeRoutePath);

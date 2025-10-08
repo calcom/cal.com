@@ -3,7 +3,7 @@ import { PerformanceObserver } from "perf_hooks";
 import logger from "../logger";
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var perfObserver: PerformanceObserver | undefined;
 }
 export const perfObserver =

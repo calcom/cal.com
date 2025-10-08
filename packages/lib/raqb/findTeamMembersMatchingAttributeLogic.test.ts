@@ -64,13 +64,13 @@ function mockAttributesScenario({
             Object.entries(member.attributes).map(([attributeId, value]) => {
               return [
                 attributeId,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                 
                 {
                   attributeOption:
                     value instanceof Array
                       ? value.map((value) => ({ value, isGroup: false, contains: [] }))
                       : { value, isGroup: false, contains: [] },
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                   
                   type: attributes.find((attribute) => attribute.id === attributeId)!.type,
                 },
               ];

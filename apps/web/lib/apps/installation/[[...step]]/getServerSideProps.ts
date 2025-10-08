@@ -281,7 +281,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: user.id,
     name: user.name,
     avatarUrl: user.avatarUrl,
-    alreadyInstalled: appInstalls.some((install) => !Boolean(install.teamId) && install.userId === user.id),
+    alreadyInstalled: appInstalls.some((install) => !install.teamId && install.userId === user.id),
   };
 
   const teamsWithIsAppInstalled = hasTeams

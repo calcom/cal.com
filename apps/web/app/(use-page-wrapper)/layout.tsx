@@ -29,7 +29,7 @@ export default async function PageWrapperLayout({ children }: { children: React.
             key={script.id}
             nonce={nonce}
             id={script.id}
-            // eslint-disable-next-line react/no-danger
+             
             dangerouslySetInnerHTML={{
               __html: script.script,
             }}

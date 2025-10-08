@@ -387,7 +387,7 @@ export const methods = {
     setEmbedStyles(stylesConfig || {});
     setEmbedNonStyles(stylesConfig || {});
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
     // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.

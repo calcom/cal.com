@@ -1,6 +1,6 @@
 "use client";
 
-// eslint-disable-next-line no-restricted-imports
+ 
 import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "sonner";

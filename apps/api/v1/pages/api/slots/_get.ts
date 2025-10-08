@@ -48,7 +48,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       : availableSlots.slots;
 
     return { slots: slotsInProvidedTimeZone };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);

@@ -81,7 +81,7 @@ export default function EditOAuthClient() {
                 </p>
               </div>
             </div>
-            {(!Boolean(clientId) || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
+            {(!clientId || (isFetched && !data)) && <p>{t("oauth_client_not_found")}</p>}
             {isFetched && !!data && (
               <EditOAuthClientForm
                 defaultValues={{

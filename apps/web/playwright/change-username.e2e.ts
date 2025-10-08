@@ -123,7 +123,7 @@ test.describe("Change username on settings", () => {
       });
 
     await test.step("Changing username for another user to the previous username of migrated user - shouldn't be allowed", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       const previousUsername = existingUser.username!;
 
       const user = await users.create();

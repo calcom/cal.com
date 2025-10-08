@@ -654,7 +654,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 
   // self is a reflective method that return the Prisma object that references this fixture.
   const self = async () =>
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     (await prisma.user.findUnique({
       where: { id: store.user.id },
       include: { eventTypes: true },
@@ -997,7 +997,7 @@ export async function login(
   await page.waitForSelector("text=Welcome back");
 
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   await passwordLocator.fill(user.password ?? user.username!);
 
   // waiting for specific login request to resolve

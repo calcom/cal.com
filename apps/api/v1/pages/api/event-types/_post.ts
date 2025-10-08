@@ -282,8 +282,8 @@ async function postHandler(req: NextApiRequest) {
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
-    userId: !!parsedBody.teamId ? null : userId,
-    users: !!parsedBody.teamId ? undefined : { connect: { id: userId } },
+    userId: parsedBody.teamId ? null : userId,
+    users: parsedBody.teamId ? undefined : { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
     locations: locations === null ? Prisma.DbNull : locations,
