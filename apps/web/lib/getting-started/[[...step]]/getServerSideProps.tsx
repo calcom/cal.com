@@ -55,10 +55,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  if (session.user !== null && !session.user.metadata["google_signup_tracked"]) {
+  let google_signup_to_be_tracked = false;
+  const has_google_signup_tracked = !user.metadata?.hasOwnProperty("google_signup_tracked");
+
+  const hasNotStartedOnboarding = !user.metadata?.hasOwnProperty("currentOnboardingStep");
+
+  let google_signup_tracked = false;
+  if (user.metadata && typeof user.metadata === "object" && !Array.isArray(user.metadata)) {
+    google_signup_tracked = !("google_signup_tracked" in user.metadata)
+      ? false
+      : !user.metadata.google_signup_tracked;
+  }
+
+  if (!user.metadata || (has_google_signup_tracked && hasNotStartedOnboarding) || google_signup_tracked) {
+    console.log("Signup tracked: ", google_signup_tracked);
+    google_signup_to_be_tracked = true;
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { metadata: { ...session.user.metadata, google_signup_tracked: true } },
+      data: { metadata: { google_signup_tracked: true } },
     });
   }
 
@@ -68,6 +82,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
       country,
       email: user.email,
+      google_signup_to_be_tracked,
+      has_google_signup_tracked,
+      hasCompletedOnboarding: hasNotStartedOnboarding,
+      google_signup_tracked,
       metadata: user.metadata,
     },
   };
