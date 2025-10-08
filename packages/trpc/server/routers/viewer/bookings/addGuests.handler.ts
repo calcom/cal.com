@@ -6,6 +6,7 @@ import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
@@ -81,33 +82,8 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     : [];
 
   const guestEmails = guests.map((email) => extractBaseEmail(email).toLowerCase());
-  const guestUsers =
-    (await prisma.user.findMany({
-      where: {
-        OR: [
-          {
-            email: { in: guestEmails },
-            emailVerified: { not: null },
-          },
-          {
-            secondaryEmails: {
-              some: {
-                email: { in: guestEmails },
-                emailVerified: { not: null },
-              },
-            },
-          },
-        ],
-      },
-      select: {
-        email: true,
-        requiresBookerEmailVerification: true,
-        secondaryEmails: {
-          where: { emailVerified: { not: null } },
-          select: { email: true },
-        },
-      },
-    })) ?? [];
+  const userRepo = new UserRepository(prisma);
+  const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
 
   const emailToRequiresVerification = new Map<string, boolean>();
   for (const user of guestUsers) {

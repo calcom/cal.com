@@ -2296,8 +2296,6 @@ model Watchlist {
 
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
-  @@index([organizationId, isGlobal])
-  @@index([source])
 }
 
 model WatchlistAudit {
@@ -2313,7 +2311,6 @@ model WatchlistAudit {
 
   watchlistId String @db.Uuid
 
-  @@unique([id])
   @@index([watchlistId, changedAt])
 }
 

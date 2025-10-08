@@ -277,6 +277,62 @@ export class UserRepository {
     });
     return user;
   }
+  async findByEmailWithEmailVerificationSetting({ email }: { email: string }) {
+    const user = await this.prismaClient.user.findFirst({
+      where: {
+        OR: [
+          {
+            email: email.toLowerCase(),
+            emailVerified: { not: null },
+          },
+          {
+            secondaryEmails: {
+              some: {
+                email: email.toLowerCase(),
+                emailVerified: { not: null },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        requiresBookerEmailVerification: true,
+      },
+    });
+    return user;
+  }
+
+  async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    return this.prismaClient.user.findMany({
+      where: {
+        OR: [
+          {
+            email: { in: normalizedEmails },
+            emailVerified: { not: null },
+          },
+          {
+            secondaryEmails: {
+              some: {
+                email: { in: normalizedEmails },
+                emailVerified: { not: null },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        email: true,
+        requiresBookerEmailVerification: true,
+        secondaryEmails: {
+          where: { emailVerified: { not: null } },
+          select: { email: true },
+        },
+      },
+    });
+  }
 
   async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
     const user = await this.prismaClient.user.findUnique({
