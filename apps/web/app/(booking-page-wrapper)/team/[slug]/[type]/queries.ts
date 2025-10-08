@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { unstable_cache } from "next/cache";
 
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getTeamData } from "@calcom/features/ee/teams/lib/getTeamData";
 import {
   getEventTypeHosts,
@@ -17,7 +18,6 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 export async function getCachedTeamData(teamSlug: string, orgSlug: string | null) {
   return unstable_cache(async () => getTeamData(teamSlug, orgSlug), ["team-data", teamSlug, orgSlug ?? ""], {
@@ -134,7 +134,7 @@ export async function getCRMData(
 
   if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-      "@calcom/lib/server/getTeamMemberEmailFromCrm"
+      "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
     );
     const {
       email,

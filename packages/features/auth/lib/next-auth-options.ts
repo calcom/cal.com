@@ -16,6 +16,7 @@ import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/crea
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -38,15 +39,14 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import type { Membership, Team, UserPermissionRole } from "@calcom/prisma/client";
+import type { Membership, Team } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { getOrgUsernameFromEmail } from "../signup/utils/getOrgUsernameFromEmail";
 import { ErrorCode } from "./ErrorCode";
 import { dub } from "./dub";
-import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
 
@@ -249,7 +249,7 @@ const providers: Provider[] = [
       // authentication success- but does it meet the minimum password requirements?
       const validateRole = (role: UserPermissionRole) => {
         // User's role is not "ADMIN"
-        if (role !== "ADMIN") return role;
+        if (role !== UserPermissionRole.ADMIN) return role;
         // User's identity provider is not "CAL"
         if (user.identityProvider !== IdentityProvider.CAL) return role;
 
@@ -661,7 +661,7 @@ export const getOptions = ({
         if (
           account.provider === "google" &&
           !(await CredentialRepository.findFirstByAppIdAndUserId({
-            userId: user.id as number,
+            userId: Number(user.id),
             appId: "google-calendar",
           })) &&
           GOOGLE_CALENDAR_SCOPES.every((scope) => grantedScopes.includes(scope))
@@ -675,7 +675,7 @@ export const getOptions = ({
             expires_at: account.expires_at,
           };
           const gcalCredential = await CredentialRepository.create({
-            userId: user.id as number,
+            userId: Number(user.id),
             key: credentialkey,
             appId: "google-calendar",
             type: "google_calendar",
@@ -688,14 +688,14 @@ export const getOptions = ({
 
           if (
             !(await CredentialRepository.findFirstByUserIdAndType({
-              userId: user.id as number,
+              userId: Number(user.id),
               type: "google_video",
             }))
           ) {
             await CredentialRepository.create({
               type: "google_video",
               key: {},
-              userId: user.id as number,
+              userId: Number(user.id),
               appId: "google-meet",
             });
           }
@@ -709,10 +709,10 @@ export const getOptions = ({
           if (primaryCal?.id) {
             await gCalService.createSelectedCalendar({
               externalId: primaryCal.id,
-              userId: user.id as number,
+              userId: Number(user.id),
             });
           }
-          await updateProfilePhotoGoogle(oAuth2Client, user.id as number);
+          await updateProfilePhotoGoogle(oAuth2Client, Number(user.id));
         }
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
         const { upId } = determineProfile({ profiles: allProfiles, token });

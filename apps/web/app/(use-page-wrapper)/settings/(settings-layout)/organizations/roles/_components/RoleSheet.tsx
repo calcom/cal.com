@@ -56,9 +56,17 @@ interface RoleSheetProps {
   onOpenChange: (open: boolean) => void;
   teamId: number;
   scope?: Scope;
+  isPrivate?: boolean; // Add isPrivate prop to control permission visibility
 }
 
-export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Organization }: RoleSheetProps) {
+export function RoleSheet({
+  role,
+  open,
+  onOpenChange,
+  teamId,
+  scope = Scope.Organization,
+  isPrivate = false,
+}: RoleSheetProps) {
   const { t } = useLocale();
   const router = useRouter();
   const isEditing = Boolean(role);
@@ -107,9 +115,10 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
 
   const { isAdvancedMode, permissions, color } = form.watch();
 
-  const filteredResources = useMemo(() => {
-    const scopedRegistry = getPermissionsForScope(scope);
-    return Object.keys(scopedRegistry).filter((resource) =>
+  const { filteredResources, scopedRegistry } = useMemo(() => {
+    // Use privacy-aware filtering if we have privacy information
+    const scopedRegistry = getPermissionsForScope(scope, isPrivate);
+    const filteredResources = Object.keys(scopedRegistry).filter((resource) =>
       t(
         scopedRegistry[resource as Resource][CrudAction.All as keyof (typeof scopedRegistry)[Resource]]
           ?.i18nKey || ""
@@ -117,7 +126,8 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
         .toLowerCase()
         .includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery, t, scope]);
+    return { filteredResources, scopedRegistry };
+  }, [searchQuery, t, scope, isPrivate]);
 
   const createMutation = trpc.viewer.pbac.createRole.useMutation({
     onSuccess: async () => {
@@ -181,6 +191,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                   {...form.register("name")}
                   placeholder={t("role_name_placeholder")}
                   disabled={isSystemRole}
+                  maxLength={50}
                 />
               </div>
               <RoleColorPicker
@@ -198,10 +209,13 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       <Label className="mb-0">{t("permissions")}</Label>
                       <div className="flex items-center gap-2">
                         <Checkbox
+                          id="advanced_mode_checkbox"
                           checked={form.watch("isAdvancedMode")}
                           onCheckedChange={(checked: boolean) => form.setValue("isAdvancedMode", checked)}
                         />
-                        <span className="text-sm">{t("advanced")}</span>
+                        <label htmlFor="advanced_mode_checkbox" className="text-sm">
+                          {t("advanced")}
+                        </label>
                       </div>
                     </div>
                     <TextField
@@ -212,7 +226,6 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       disabled={isSystemRole}
                     />
                   </div>
-
                   {filteredResources.map((resource) => (
                     <AdvancedPermissionGroup
                       key={resource}
@@ -221,8 +234,9 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                       onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                       disabled={isSystemRole}
                       scope={scope}
+                      isPrivate={isPrivate}
                     />
-                  ))}
+                  ))}{" "}
                 </div>
               ) : (
                 <div className="bg-muted rounded-xl p-1">
@@ -237,7 +251,7 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                     </div>
                   </div>
                   <div className="bg-default border-subtle divide-subtle divide-y rounded-[10px] border">
-                    {Object.keys(getPermissionsForScope(scope)).map((resource) => (
+                    {Object.keys(scopedRegistry).map((resource) => (
                       <SimplePermissionItem
                         key={resource}
                         resource={resource}
@@ -245,9 +259,10 @@ export function RoleSheet({ role, open, onOpenChange, teamId, scope = Scope.Orga
                         onChange={(newPermissions) => form.setValue("permissions", newPermissions)}
                         disabled={isSystemRole}
                         scope={scope}
+                        isPrivate={isPrivate}
                       />
                     ))}
-                  </div>
+                  </div>{" "}
                 </div>
               )}
             </div>
