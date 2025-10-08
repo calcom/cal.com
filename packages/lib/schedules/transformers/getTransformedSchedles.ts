@@ -1,4 +1,4 @@
-type Schedule = {
+export type Schedule = {
   isDefault: boolean;
   id: number;
   name: string;
