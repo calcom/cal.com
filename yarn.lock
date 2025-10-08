@@ -3409,6 +3409,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/fonio-ai@workspace:packages/app-store/fonio-ai":
+  version: 0.0.0-use.local
+  resolution: "@calcom/fonio-ai@workspace:packages/app-store/fonio-ai"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/framer@workspace:packages/app-store/framer":
+  version: 0.0.0-use.local
+  resolution: "@calcom/framer@workspace:packages/app-store/framer"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ga4@workspace:packages/app-store/ga4":
   version: 0.0.0-use.local
   resolution: "@calcom/ga4@workspace:packages/app-store/ga4"
@@ -4117,7 +4135,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/types@workspace:*, @calcom/types@workspace:packages/types":
+"@calcom/types@*, @calcom/types@workspace:*, @calcom/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@calcom/types@workspace:packages/types"
   dependencies:
