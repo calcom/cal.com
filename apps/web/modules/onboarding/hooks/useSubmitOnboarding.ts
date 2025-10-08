@@ -19,7 +19,7 @@ export const useSubmitOnboarding = () => {
     setError(null);
 
     try {
-      const { selectedPlan, organizationDetails, organizationBrand, teams, invites } = store;
+      const { selectedPlan, organizationDetails, organizationBrand, teams, invites, inviteRole } = store;
 
       if (selectedPlan !== "organization") {
         throw new Error("Only organization plan is currently supported");
@@ -40,7 +40,9 @@ export const useSubmitOnboarding = () => {
         .filter((invite) => invite.email.trim().length > 0)
         .map((invite) => ({
           email: invite.email,
-          name: undefined,
+          teamName: invite.team,
+          teamId: -1,
+          role: inviteRole,
         }));
 
       const result = await intentToCreateOrg.mutateAsync({

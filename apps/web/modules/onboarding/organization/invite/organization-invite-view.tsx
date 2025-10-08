@@ -92,11 +92,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const teams =
     filteredTeams.length > 0
       ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
-      : [
-          { value: "sales", label: "Sales" },
-          { value: "engineering", label: "Engineering" },
-          { value: "marketing", label: "Marketing" },
-        ];
+      : [];
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">

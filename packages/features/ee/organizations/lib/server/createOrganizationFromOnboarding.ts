@@ -67,6 +67,7 @@ type InvitedMember = {
   name?: string;
   teamId?: number;
   teamName?: string;
+  role?: string;
 };
 
 type OrgOwner = Awaited<ReturnType<typeof findUserToBeOrgOwner>>;
@@ -297,11 +298,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
   );
 }
 
-async function inviteMembers(
-  invitedMembers: InvitedMember[],
-  organization: Team,
-  teamsData: TeamData[]
-) {
+async function inviteMembers(invitedMembers: InvitedMember[], organization: Team, teamsData: TeamData[]) {
   if (invitedMembers.length === 0) return;
 
   log.info(
@@ -311,6 +308,7 @@ async function inviteMembers(
         email: m.email,
         teamId: m.teamId,
         teamName: m.teamName,
+        role: m.role,
       })),
     })
   );
@@ -367,9 +365,7 @@ async function inviteMembers(
     // Try to resolve team by teamId first
     if (member.teamId !== undefined) {
       targetTeamId = teamIdMap.get(member.teamId) || member.teamId;
-      log.debug(
-        `Member ${member.email}: teamId ${member.teamId} -> resolved to ${targetTeamId}`
-      );
+      log.debug(`Member ${member.email}: teamId ${member.teamId} -> resolved to ${targetTeamId}`);
     }
     // Otherwise try by teamName
     else if (member.teamName) {
@@ -390,7 +386,9 @@ async function inviteMembers(
     } else {
       // Organization-level invite
       invitesToOrg.push(member);
-      log.debug(`Member ${member.email} will be invited to organization (no team specified or team not found)`);
+      log.debug(
+        `Member ${member.email} will be invited to organization (no team specified or team not found)`
+      );
     }
   }
 
@@ -418,7 +416,9 @@ async function inviteMembers(
       orgSlug: organization.slug || null,
       invitations: invitesToOrg.map((member) => ({
         usernameOrEmail: member.email,
-        role: MembershipRole.MEMBER,
+        // Casting this here because role can actually be PBAC role
+        // but we are relying on the trigger here for now
+        role: (member.role as MembershipRole) || MembershipRole.MEMBER,
       })),
       isDirectUserAction: false,
     });
@@ -436,7 +436,9 @@ async function inviteMembers(
       orgSlug: organization.slug || null,
       invitations: members.map((member: InvitedMember) => ({
         usernameOrEmail: member.email,
-        role: MembershipRole.MEMBER,
+        // Casting this here because role can actually be PBAC role
+        // but we are relying on the trigger here for now
+        role: (member.role as MembershipRole) || MembershipRole.MEMBER,
       })),
       isDirectUserAction: false,
     });

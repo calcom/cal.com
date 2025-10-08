@@ -72,6 +72,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
         name: invite.name,
         teamId: invite.teamId,
         teamName: invite.teamName,
+        role: invite.role,
       }));
 
     return { teamsData, invitedMembersData };
