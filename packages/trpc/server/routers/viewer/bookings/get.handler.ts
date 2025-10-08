@@ -728,17 +728,12 @@ export async function getBookings({
         }
       }
 
-      const reports = await bookingReportRepo.findAllReportsForBooking(booking.id);
-
-      // Check if current user reported
-      const reportedByCurrentUser = reports.some((r) => r.reportedById === user.id);
+      const report = await bookingReportRepo.findReportForBooking(booking.id);
 
       return {
         ...booking,
         rescheduler,
-        reports,
-        reportedByCurrentUser,
-        reportCount: reports.length,
+        report,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
