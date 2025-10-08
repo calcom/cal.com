@@ -62,6 +62,8 @@ const RetellWebhookSchema = z.object({
     .passthrough(),
 });
 
+type RetellCallData = z.infer<typeof RetellWebhookSchema>["call"];
+
 async function chargeCreditsForCall({
   userId,
   teamId,
@@ -119,7 +121,7 @@ async function chargeCreditsForCall({
   }
 }
 
-async function handleCallAnalyzed(callData: any) {
+async function handleCallAnalyzed(callData: RetellCallData) {
   const { from_number, call_id, call_cost, call_type, agent_id } = callData;
 
   if (
@@ -133,7 +135,7 @@ async function handleCallAnalyzed(callData: any) {
     );
     return {
       success: true,
-      message: `Invalid or missing call_cost.total_duration_seconds for call ${call_id}`
+      message: `Invalid or missing call_cost.total_duration_seconds for call ${call_id}`,
     };
   }
 
@@ -146,7 +148,7 @@ async function handleCallAnalyzed(callData: any) {
       log.error(`Web call ${call_id} missing agent_id, cannot charge credits`);
       return {
         success: false,
-        message: `Web call ${call_id} missing agent_id, cannot charge credits`
+        message: `Web call ${call_id} missing agent_id, cannot charge credits`,
       };
     }
 
@@ -158,13 +160,12 @@ async function handleCallAnalyzed(callData: any) {
       log.error(`No agent found for providerAgentId ${agent_id}, call ${call_id}`);
       return {
         success: false,
-        message: `No agent found for providerAgentId ${agent_id}, call ${call_id}`
+        message: `No agent found for providerAgentId ${agent_id}, call ${call_id}`,
       };
     }
 
-
     userId = agent.userId ?? undefined;
-    teamId = agent.teamId ?? undefined;
+    teamId = agent.team?.parentId ?? agent.teamId ?? undefined;
 
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
   } else {
@@ -179,7 +180,7 @@ async function handleCallAnalyzed(callData: any) {
     }
 
     userId = phoneNumber.userId ?? undefined;
-    teamId = phoneNumber.teamId ?? undefined;
+    teamId = phoneNumber.team?.parentId ?? phoneNumber.teamId ?? undefined;
 
     log.info(`Processing phone call ${call_id} from ${from_number}, user ${userId}, team ${teamId}`);
   }

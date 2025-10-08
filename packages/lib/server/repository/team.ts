@@ -437,4 +437,31 @@ export class TeamRepository {
 
     return !conflictingTeam;
   }
+
+  async findTeamWithAdminMembers({ teamId }: { teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: { id: teamId },
+      select: {
+        id: true,
+        name: true,
+        members: {
+          where: {
+            role: {
+              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            },
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                locale: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }

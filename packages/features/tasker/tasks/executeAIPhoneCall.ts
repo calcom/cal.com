@@ -1,10 +1,17 @@
+import type { TFunction } from "i18next";
+
 import dayjs from "@calcom/dayjs";
+import { sendCreditBalanceLimitReachedEmails } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import { CreditUsageType } from "@calcom/prisma/enums";
 
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
@@ -107,15 +114,78 @@ export async function executeAIPhoneCall(payload: string) {
       });
 
       if (!hasCredits) {
-        log.warn(`Insufficient credits for AI phone call`, {
+        log.warn(`Insufficient credits for AI phone call for workflow reminder ${data.workflowReminderId}`, {
           userId: data.userId,
           teamId: data.teamId,
           workflowReminderId: data.workflowReminderId,
           bookingUid: workflowReminder.booking?.uid,
         });
-        throw new Error(
-          `Insufficient credits to make AI phone call. Please purchase more credits. user: ${data?.userId}, team: ${data?.teamId}`
-        );
+
+        try {
+          let teamWithAdmins:
+            | {
+                id: number;
+                name: string;
+                adminAndOwners: { id: number; name: string | null; email: string; t: TFunction }[];
+              }
+            | undefined;
+          let user:
+            | {
+                id: number;
+                name: string | null;
+                email: string;
+                t: TFunction;
+              }
+            | undefined;
+
+          if (data.teamId) {
+            const teamRepository = new TeamRepository(prisma);
+            const team = await teamRepository.findTeamWithAdminMembers({ teamId: data.teamId });
+
+            if (team) {
+              teamWithAdmins = {
+                id: team.id,
+                name: team.name ?? "",
+                adminAndOwners: await Promise.all(
+                  team.members.map(async (member) => ({
+                    id: member.user.id,
+                    name: member.user.name,
+                    email: member.user.email,
+                    t: await getTranslation(member.user.locale ?? "en", "common"),
+                  }))
+                ),
+              };
+            }
+          } else if (data.userId) {
+            const userRepository = new UserRepository(prisma);
+            const userRecord = await userRepository.findById({ id: data.userId });
+
+            if (userRecord) {
+              user = {
+                id: userRecord.id,
+                name: userRecord.name,
+                email: userRecord.email,
+                t: await getTranslation(userRecord.locale ?? "en", "common"),
+              };
+            }
+          }
+
+          if (teamWithAdmins || user) {
+            await sendCreditBalanceLimitReachedEmails({
+              team: teamWithAdmins,
+              user,
+              creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
+            });
+            log.info("Credit limit reached email sent for AI phone call", {
+              userId: data.userId,
+              teamId: data.teamId,
+            });
+          }
+        } catch (emailError) {
+          log.error("Failed to send credit limit email for AI phone call", emailError);
+        }
+
+        return;
       }
     }
 

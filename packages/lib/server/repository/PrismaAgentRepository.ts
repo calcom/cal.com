@@ -177,6 +177,12 @@ export class PrismaAgentRepository {
         teamId: true,
         createdAt: true,
         updatedAt: true,
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+          },
+        },
       },
       where: {
         providerAgentId,

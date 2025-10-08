@@ -15,8 +15,7 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import type { CreditUsageType } from "@calcom/prisma/enums";
-import { CreditType } from "@calcom/prisma/enums";
+import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -37,6 +36,7 @@ type LowCreditBalanceResultBase = {
     email: string;
     t: TFunction;
   };
+  creditFor?: CreditUsageType;
 };
 
 type LowCreditBalanceLimitReachedResult = LowCreditBalanceResultBase & {
@@ -136,6 +136,7 @@ export class CreditService {
             teamId: teamIdToCharge,
             userId: userIdToCharge,
             remainingCredits: remainingCredits ?? 0,
+            creditFor,
             tx,
           });
         }
@@ -413,11 +414,13 @@ export class CreditService {
     teamId,
     userId,
     remainingCredits,
+    creditFor,
     tx,
   }: {
     teamId?: number | null;
     userId?: number | null;
     remainingCredits: number;
+    creditFor?: CreditUsageType;
     tx: PrismaTransaction;
   }): Promise<LowCreditBalanceResult> {
     let warningLimit = 0;
@@ -486,6 +489,7 @@ export class CreditService {
           user,
           teamId,
           userId,
+          creditFor,
         };
       }
 
@@ -512,6 +516,7 @@ export class CreditService {
         balance: remainingCredits,
         team: teamWithAdmins,
         user,
+        creditFor,
       };
     }
 
@@ -533,26 +538,37 @@ export class CreditService {
   private async _handleLowCreditBalanceResult(result: LowCreditBalanceResult) {
     if (!result) return;
 
+    console.log("handleLowCreditBalanceResult", result);
+
     try {
       if (result.type === "LIMIT_REACHED") {
-        await Promise.all([
+        const promises: Promise<unknown>[] = [
           sendCreditBalanceLimitReachedEmails({
             team: result.team,
             user: result.user,
+            creditFor: result.creditFor,
           }).catch((error) => {
             log.error("Failed to send credit limit reached email", error, { result });
           }),
-          cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
-            (error) => {
-              log.error("Failed to cancel scheduled messages", error, { result });
-            }
-          ),
-        ]);
+        ];
+
+        if (result.creditFor === CreditUsageType.SMS) {
+          promises.push(
+            cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
+              (error) => {
+                log.error("Failed to cancel scheduled messages", error, { result });
+              }
+            )
+          );
+        }
+
+        await Promise.all(promises);
       } else if (result.type === "WARNING") {
         await sendCreditBalanceLowWarningEmails({
           balance: result.balance,
           team: result.team,
           user: result.user,
+          creditFor: result.creditFor,
         }).catch((error) => {
           log.error("Failed to send credit warning email", error, { result });
         });
