@@ -3,18 +3,17 @@ import { createContainer } from "@evyweb/ioctopus";
 import { loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { taskerServiceModule } from "@calcom/features/di/shared/services/tasker.service";
 import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
-import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { createWatchlistFeature } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
-import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma/client";
+import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 
 import { watchlistModule } from "../modules/Watchlist.module";
 import { WATCHLIST_DI_TOKENS } from "../tokens";
 
 export const watchlistContainer = createContainer();
 
-// Bind PrismaClient
-watchlistContainer.bind(DI_TOKENS.PRISMA_CLIENT).toValue(defaultPrisma);
+// Load prisma module
+prismaModuleLoader.loadModule(watchlistContainer);
 
 // Load shared infrastructure
 watchlistContainer.load(SHARED_TOKENS.LOGGER, loggerServiceModule);
