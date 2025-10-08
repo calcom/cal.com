@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432"
+      - "0.0.0.0:5432:5432"  # Exposed on all interfaces, controlled by Security Group
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U calcom"]
       interval: 10s
