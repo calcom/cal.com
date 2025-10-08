@@ -40,7 +40,7 @@ import {
 @DocsTags("Schedules")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to ${VERSION_2024_06_11}`,
+  description: `Must be set to ${VERSION_2024_06_11}. If not set to this value, the endpoint will default to an older version.`,
   example: VERSION_2024_06_11,
   required: true,
   schema: {
@@ -69,6 +69,8 @@ export class SchedulesController_2024_06_11 {
       After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH \`event-types/{eventTypeId}\` endpoint.
 
       When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
   async createSchedule(
@@ -91,7 +93,10 @@ export class SchedulesController_2024_06_11 {
   })
   @ApiOperation({
     summary: "Get default schedule",
-    description: "Get the default schedule of the authenticated user.",
+    description: `Get the default schedule of the authenticated user.
+    
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetScheduleOutput_2024_06_11> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
@@ -104,7 +109,10 @@ export class SchedulesController_2024_06_11 {
 
   @Get("/:scheduleId")
   @Permissions([SCHEDULE_READ])
-  @ApiOperation({ summary: "Get a schedule" })
+  @ApiOperation({
+    summary: "Get a schedule",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number
@@ -121,7 +129,10 @@ export class SchedulesController_2024_06_11 {
   @Permissions([SCHEDULE_READ])
   @ApiOperation({
     summary: "Get all schedules",
-    description: "Get all schedules of the authenticated user.",
+    description: `Get all schedules of the authenticated user.
+    
+     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput_2024_06_11> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
@@ -134,7 +145,10 @@ export class SchedulesController_2024_06_11 {
 
   @Patch("/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
-  @ApiOperation({ summary: "Update a schedule" })
+  @ApiOperation({
+    summary: "Update a schedule",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async updateSchedule(
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput_2024_06_11,
@@ -155,7 +169,10 @@ export class SchedulesController_2024_06_11 {
   @Delete("/:scheduleId")
   @HttpCode(HttpStatus.OK)
   @Permissions([SCHEDULE_WRITE])
-  @ApiOperation({ summary: "Delete a schedule" })
+  @ApiOperation({
+    summary: "Delete a schedule",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number
