@@ -434,7 +434,7 @@ export const EventAdvancedTab = ({
       formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
   const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
-    !!formMethods.getValues("interfaceLanguage")
+    formMethods.getValues("interfaceLanguage") !== null
   );
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
 
