@@ -447,6 +447,9 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenReportDialog}
         bookingId={booking.id}
         isRecurring={isRecurring}
+        isUpcoming={isUpcoming}
+        isCancelled={isCancelled}
+        isRejected={isRejected}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
@@ -824,26 +827,21 @@ const BookingItemBadges = ({
       {booking?.assignmentReason.length > 0 && (
         <AssignmentReasonTooltip assignmentReason={booking.assignmentReason[0]} />
       )}
-      {booking.reports && booking.reports.length > 0 && (
+      {booking.report && (
         <Tooltip
           content={
-            <div className="space-y-1">
-              {booking.reports.map((report) => {
-                const reasonKey = `report_reason_${report.reason.toLowerCase()}`;
+            <div className="text-xs">
+              {(() => {
+                const reasonKey = `report_reason_${booking.report.reason.toLowerCase()}`;
                 const reasonText = t(reasonKey);
-                const displayText = report.description ? `${reasonText}: ${report.description}` : reasonText;
-                return (
-                  <div key={report.id} className="text-xs">
-                    {displayText}
-                  </div>
-                );
-              })}
+                return booking.report.description
+                  ? `${reasonText}: ${booking.report.description}`
+                  : reasonText;
+              })()}
             </div>
           }>
           <Badge className="ltr:mr-2 rtl:ml-2" variant="red">
-            {booking.reportedByCurrentUser
-              ? t("reported_by_you")
-              : t("reported_count", { count: booking.reports.length })}
+            {t("reported")}
           </Badge>
         </Tooltip>
       )}

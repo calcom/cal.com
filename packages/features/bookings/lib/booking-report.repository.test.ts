@@ -87,8 +87,8 @@ describe("BookingReportRepository", () => {
 
   });
 
-  describe("findUserReport", () => {
-    it("should find a report by booking ID and user ID", async () => {
+  describe("findReportForBooking", () => {
+    it("should find the report for a booking", async () => {
       const mockReport = {
         id: "report-123",
         reportedById: 1,
@@ -99,16 +99,11 @@ describe("BookingReportRepository", () => {
 
       mockPrisma.bookingReport.findUnique.mockResolvedValue(mockReport);
 
-      const result = await repository.findUserReport(100, 1);
+      const result = await repository.findReportForBooking(100);
 
       expect(result).toEqual(mockReport);
       expect(mockPrisma.bookingReport.findUnique).toHaveBeenCalledWith({
-        where: {
-          bookingId_reportedById: {
-            bookingId: 100,
-            reportedById: 1,
-          },
-        },
+        where: { bookingId: 100 },
         select: {
           id: true,
           reportedById: true,
@@ -118,10 +113,18 @@ describe("BookingReportRepository", () => {
         },
       });
     });
+
+    it("should return null when no report exists", async () => {
+      mockPrisma.bookingReport.findUnique.mockResolvedValue(null);
+
+      const result = await repository.findReportForBooking(100);
+
+      expect(result).toBeNull();
+    });
   });
 
-  describe("findAllReportsForBooking", () => {
-    it("should find all reports for a booking", async () => {
+  describe("findAllReportedBookings", () => {
+    it("should find all reported bookings with pagination", async () => {
       const mockReports = [
         {
           id: "report-1",
@@ -141,11 +144,12 @@ describe("BookingReportRepository", () => {
 
       mockPrisma.bookingReport.findMany.mockResolvedValue(mockReports);
 
-      const result = await repository.findAllReportsForBooking(100);
+      const result = await repository.findAllReportedBookings({ skip: 0, take: 10 });
 
       expect(result).toEqual(mockReports);
       expect(mockPrisma.bookingReport.findMany).toHaveBeenCalledWith({
-        where: { bookingId: 100 },
+        skip: 0,
+        take: 10,
         select: {
           id: true,
           reportedById: true,
@@ -153,36 +157,8 @@ describe("BookingReportRepository", () => {
           description: true,
           createdAt: true,
         },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: "desc" },
       });
-    });
-  });
-
-  describe("hasUserReportedSeries", () => {
-    it("should return true when user has reported a booking in the series", async () => {
-      const mockReport = { id: "report-123" };
-      mockPrisma.bookingReport.findFirst.mockResolvedValue(mockReport);
-
-      const result = await repository.hasUserReportedSeries("recurring-123", 1);
-
-      expect(result).toBe(true);
-      expect(mockPrisma.bookingReport.findFirst).toHaveBeenCalledWith({
-        where: {
-          reportedById: 1,
-          booking: {
-            recurringEventId: "recurring-123",
-          },
-        },
-        select: { id: true },
-      });
-    });
-
-    it("should return false when user has not reported any booking in the series", async () => {
-      mockPrisma.bookingReport.findFirst.mockResolvedValue(null);
-
-      const result = await repository.hasUserReportedSeries("recurring-123", 1);
-
-      expect(result).toBe(false);
     });
   });
 });

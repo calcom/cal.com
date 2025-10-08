@@ -1,5 +1,4 @@
 import { BookingReportRepository } from "@calcom/features/bookings/lib/booking-report.repository";
-import { extractBookerEmail } from "@calcom/features/bookings/lib/booking-report.utils";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import logger from "@calcom/lib/logger";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
@@ -22,7 +21,7 @@ const log = logger.getSubLogger({ prefix: ["reportBookingHandler"] });
 
 export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions) => {
   const { user } = ctx;
-  const { bookingId, reason, description, cancelBooking, allRemainingBookings } = input;
+  const { bookingId, reason, description, allRemainingBookings } = input;
 
   const bookingRepo = new BookingRepository(prisma);
   const bookingReportRepo = new BookingReportRepository(prisma);
@@ -42,35 +41,11 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
   }
 
-  // Prevent reporting cancelled or rejected bookings
-  if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Cannot report cancelled or rejected bookings",
-    });
+  if (booking.report) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "This booking has already been reported" });
   }
 
-  const userReport = booking.reports.find((r) => r.reportedById === user.id);
-  if (userReport) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "You have already reported this booking" });
-  }
-
-  if (booking.recurringEventId && allRemainingBookings) {
-    // For recurring bookings, check if THIS USER has reported any booking in the series
-    const hasReportedSeries = await bookingReportRepo.hasUserReportedSeries(
-      booking.recurringEventId,
-      user.id
-    );
-
-    if (hasReportedSeries) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "You have already reported this recurring booking series",
-      });
-    }
-  }
-
-  const bookerEmail = extractBookerEmail(booking.attendees);
+  const bookerEmail = booking.attendees[0]?.email;
   if (!bookerEmail) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking has no attendees" });
   }
@@ -88,11 +63,11 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   let cancellationError: unknown = null;
   let cancellationAttempted = false;
   let didCancel = false;
-  if (
-    cancelBooking &&
+  const isUpcoming =
     (booking.status === BookingStatus.ACCEPTED || booking.status === BookingStatus.PENDING) &&
-    new Date(booking.startTime) > new Date()
-  ) {
+    new Date(booking.startTime) > new Date();
+
+  if (isUpcoming) {
     cancellationAttempted = true;
     try {
       const userSeat = booking.seatsReferences.find((seat) => seat.attendee?.email === user.email);

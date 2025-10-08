@@ -2,7 +2,7 @@ import type { ReportReason } from "@calcom/prisma/enums";
 
 export interface CreateBookingReportInput {
   bookingId: number;
-  bookerEmail: string;
+  bookerEmail: string | null;
   reportedById: number;
   reason: ReportReason;
   description?: string;
@@ -18,23 +18,13 @@ export interface BookingReportSummary {
 }
 
 export interface IBookingReportRepository {
-  /**
-   * Creates a new booking report
-   */
   createReport(input: CreateBookingReportInput): Promise<{ id: string }>;
 
-  /**
-   * Finds a report by a specific user for a specific booking
-   */
-  findUserReport(bookingId: number, userId: number): Promise<BookingReportSummary | null>;
+  findReportForBooking(bookingId: number): Promise<BookingReportSummary | null>;
 
-  /**
-   * Finds all reports for a specific booking
-   */
-  findAllReportsForBooking(bookingId: number): Promise<BookingReportSummary[]>;
 
-  /**
-   * Checks if a user has reported any booking in a recurring series
-   */
-  hasUserReportedSeries(recurringEventId: string, userId: number): Promise<boolean>;
+  findAllReportedBookings(params: {
+    skip?: number;
+    take?: number;
+  }): Promise<BookingReportSummary[]>;
 }

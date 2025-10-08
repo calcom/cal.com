@@ -1,11 +1,11 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ReportReason } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Checkbox } from "@calcom/ui/components/form";
@@ -18,42 +18,35 @@ interface IReportBookingDialog {
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   bookingId: number;
   isRecurring: boolean;
+  isUpcoming: boolean;
+  isCancelled: boolean;
+  isRejected: boolean;
 }
 
 interface FormValues {
   reason: ReportReason;
   description: string;
-  cancelBooking: boolean;
   allRemainingBookings: boolean;
 }
 
 export const ReportBookingDialog = (props: IReportBookingDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingId, isRecurring } = props;
+  const { isOpenDialog, setIsOpenDialog, bookingId, isRecurring, isUpcoming, isCancelled, isRejected } = props;
+
+  const willBeCancelled = isUpcoming && !isCancelled && !isRejected;
 
   const {
     control,
     handleSubmit,
-    watch,
-    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
       reason: ReportReason.SPAM,
       description: "",
-      cancelBooking: false,
       allRemainingBookings: false,
     },
   });
-
-  const cancelBooking = watch("cancelBooking");
-
-  useEffect(() => {
-    if (!cancelBooking) {
-      setValue("allRemainingBookings", false);
-    }
-  }, [cancelBooking, setValue]);
 
   const { mutate: reportBooking, isPending } = trpc.viewer.bookings.reportBooking.useMutation({
     async onSuccess(data) {
@@ -71,7 +64,6 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
       bookingId,
       reason: data.reason,
       description: data.description || undefined,
-      cancelBooking: data.cancelBooking,
       allRemainingBookings: data.allRemainingBookings,
     });
   };
@@ -125,26 +117,17 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
               </div>
 
               <div className="mb-4">
-                <Controller
-                  name="cancelBooking"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="flex items-center">
-                      <Checkbox
-                        id="cancelBooking"
-                        checked={field.value}
-                        className="mb-2"
-                        onCheckedChange={field.onChange}
-                      />
-                      <Label htmlFor="cancelBooking" className="text-emphasis ml-2 text-sm">
-                        {t("cancel_booking_when_reporting")}
-                      </Label>
-                    </div>
-                  )}
+                <Alert
+                  severity={willBeCancelled ? "warning" : "info"}
+                  title={
+                    willBeCancelled
+                      ? t("report_booking_will_cancel_description")
+                      : t("report_booking_will_not_cancel_description")
+                  }
                 />
               </div>
 
-              {isRecurring && cancelBooking && (
+              {isRecurring && willBeCancelled && (
                 <div className="mb-4">
                   <Controller
                     name="allRemainingBookings"
