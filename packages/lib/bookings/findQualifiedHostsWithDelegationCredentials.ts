@@ -1,9 +1,9 @@
-import type { FilterHostsService } from "@calcom/lib/bookings/filterHostsBySameRoundRobinHost";
 import {
   findMatchingHostsWithEventSegment,
   getNormalizedHostsWithDelegationCredentials,
-} from "@calcom/lib/bookings/getRoutedUsers";
-import type { EventType } from "@calcom/lib/bookings/getRoutedUsers";
+} from "@calcom/features/users/lib/getRoutedUsers";
+import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
+import type { FilterHostsService } from "@calcom/lib/bookings/filterHostsBySameRoundRobinHost";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";

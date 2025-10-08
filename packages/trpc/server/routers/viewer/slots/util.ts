@@ -11,8 +11,8 @@ import type { CacheService } from "@calcom/features/calendar-cache/lib/getShould
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import type { QualifiedHostsService } from "@calcom/features/qualifiedHosts/services/findQualifiedHostsWithDelegationCredentials";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { buildDateRanges } from "@calcom/lib/date-ranges";
