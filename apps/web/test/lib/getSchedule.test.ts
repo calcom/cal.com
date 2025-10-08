@@ -1244,10 +1244,9 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
-          /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC which is 13hrs from 18:30*/
-          `08:00:00.000Z`,
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          /*`03:30:00.000Z`, `05:30:00.000Z`, - Minimum time slot is 07:30 UTC which is 13hrs from 18:30*/
+          `07:30:00.000Z`,
+          `09:30:00.000Z`,
         ],
         {
           dateString: todayDateString,
@@ -1267,10 +1266,11 @@ describe("getSchedule", () => {
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
-          /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC which is 10hrs from 18:30 */
-          `05:00:00.000Z`,
-          `07:00:00.000Z`,
-          `09:00:00.000Z`,
+          /*`03:30:00.000Z`, - Minimum bookable time slot is 04:30 UTC which is 10hrs from 18:30 */
+          `04:30:00.000Z`,
+          `06:30:00.000Z`,
+          `08:30:00.000Z`,
+          `10:30:00.000Z`,
         ],
         {
           dateString: todayDateString,
@@ -1334,11 +1334,9 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
         [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because 08:00AM slot has a `beforeEventBuffer`
-          `08:00:00.000Z`, // - 8 AM is available because of availability of 06:00 - 07:59
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          // `05:30:00.000Z`, // - 5:30 AM is not available because 08:30AM slot has a `beforeEventBuffer`
+          `08:30:00.000Z`, // - 8:30 AM is available (2 PM IST)
+          `10:30:00.000Z`,
         ],
         {
           dateString: plus3DateString,
@@ -1412,11 +1410,9 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
         [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because of afterBuffer(120 mins) of the existing booking(4-5:59AM slot)
-          // `08:00:00.000Z`, // - 8 AM is not available because of beforeBuffer(120mins) of possible booking at 08:00
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          // `05:30:00.000Z`, // - 5:30 AM is not available because of afterBuffer(120 mins) of the existing booking(3:30-5:59AM slot)
+          // `08:30:00.000Z`, // - 8:30 AM is not available because of beforeBuffer(120mins) of possible booking at 08:30
+          `10:30:00.000Z`,
         ],
         {
           dateString: plus2DateString,
