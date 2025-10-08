@@ -2,7 +2,7 @@ import type { ReportReason } from "@calcom/prisma/enums";
 
 export interface CreateBookingReportInput {
   bookingId: number;
-  bookerEmail: string | null;
+  bookerEmail: string;
   reportedById: number;
   reason: ReportReason;
   description?: string;

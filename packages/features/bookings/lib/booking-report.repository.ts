@@ -13,7 +13,7 @@ export class BookingReportRepository implements IBookingReportRepository {
     const report = await this.prismaClient.bookingReport.create({
       data: {
         bookingId: input.bookingId,
-        bookerEmail: input.bookerEmail ?? "",
+        bookerEmail: input.bookerEmail,
         reportedById: input.reportedById,
         reason: input.reason,
         description: input.description,
