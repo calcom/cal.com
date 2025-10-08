@@ -116,16 +116,11 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
                 />
               </div>
 
-              <div className="mb-4">
-                <Alert
-                  severity={willBeCancelled ? "warning" : "info"}
-                  title={
-                    willBeCancelled
-                      ? t("report_booking_will_cancel_description")
-                      : t("report_booking_will_not_cancel_description")
-                  }
-                />
-              </div>
+              {willBeCancelled && (
+                <div className="mb-4">
+                  <Alert severity="warning" title={t("report_booking_will_cancel_description")} />
+                </div>
+              )}
 
               {isRecurring && willBeCancelled && (
                 <div className="mb-4">
