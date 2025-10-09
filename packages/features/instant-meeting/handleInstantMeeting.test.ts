@@ -20,7 +20,7 @@ vi.mock("@calcom/features/notifications/sendNotification", () => ({
   sendNotification: vi.fn(),
 }));
 
-vi.mock("@calcom/app-store/videoClient", () => ({
+vi.mock("@calcom/features/conferencing/lib/videoClient", () => ({
   createInstantMeetingWithCalVideo: vi.fn().mockResolvedValue({
     type: "daily_video",
     id: "MOCK_INSTANT_MEETING_ID",
