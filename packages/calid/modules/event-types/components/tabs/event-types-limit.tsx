@@ -1,5 +1,3 @@
-import { Button } from "@calid/features/ui/components/button";
-import { Calendar } from "@calid/features/ui/components/calendar";
 import {
   Card,
   CardContent,
@@ -31,6 +29,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
 import { Select } from "@calcom/ui/components/form";
+import { DateRangePicker } from "@calcom/ui/components/form";
 
 import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 
@@ -340,30 +339,14 @@ const RangeLimitRadioItem = memo(
     watchPeriodTypeUiValue: IPeriodType;
   }) => {
     const { t } = useLocale();
-    const [dateRange, setDateRange] = useState<{ from: Date; to?: Date } | undefined>();
+    const [dateRange, setDateRange] = useState<{ startDate?: Date; endDate?: Date } | undefined>();
 
-    const formatDateRange = useCallback(() => {
-      if (!dateRange?.from) return "Pick a date range";
-      if (dateRange.to) {
-        return `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`;
-      }
-      return dateRange.from.toLocaleDateString();
-    }, [dateRange]);
-
-    const handleDateSelect = useCallback((range: any, onChange: (value: any) => void) => {
-      if (range && range.from) {
-        setDateRange(range as { from: Date; to?: Date });
-        onChange({
-          startDate: range.from,
-          endDate: range.to,
-        });
-      } else {
-        setDateRange(undefined);
-        onChange({
-          startDate: undefined,
-          endDate: undefined,
-        });
-      }
+    const handleDateChange = useCallback(({ startDate, endDate }: { startDate?: Date; endDate?: Date }, onChange: (value: any) => void) => {
+      setDateRange({ startDate, endDate });
+      onChange({
+        startDate,
+        endDate,
+      });
     }, []);
 
     return (
@@ -378,22 +361,15 @@ const RangeLimitRadioItem = memo(
             <Controller
               name="periodDates"
               render={({ field: { onChange } }) => (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button color="secondary" size="sm" disabled={isDisabled}>
-                      <Icon name="calendar" className="mr-2 h-4 w-4" />
-                      {formatDateRange()}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="bg-primary w-auto p-0" align="end">
-                    <Calendar
-                      mode="range"
-                      selected={dateRange && dateRange.from ? dateRange : undefined}
-                      onSelect={(range) => handleDateSelect(range, onChange)}
-                      className="pointer-events-auto mb-2 rounded-md border border-gray-300"
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="w-fit">
+                  <DateRangePicker
+                    dates={dateRange || { startDate: undefined, endDate: undefined }}
+                    onDatesChange={(dates) => handleDateChange(dates, onChange)}
+                    disabled={isDisabled}
+                    minDate={new Date()}
+                    data-testid="period-dates-picker"
+                  />
+                </div>
               )}
             />
           </div>
@@ -736,7 +712,7 @@ const BeforeAfterEventSection = memo(
           <CardContent>
             <div className="space-y-6">
               <div>
-                <Label className="flex items-center">
+                <Label>
                   {t("before_event")}
                   <FieldPermissionIndicator
                     fieldName="beforeEventBuffer"
@@ -759,7 +735,7 @@ const BeforeAfterEventSection = memo(
               </div>
 
               <div>
-                <Label className="flex items-center">
+                <Label>
                   {t("minimum_booking_notice")}
                   <FieldPermissionIndicator
                     fieldName="minimumBookingNotice"
@@ -780,7 +756,7 @@ const BeforeAfterEventSection = memo(
           <CardContent>
             <div className="space-y-6">
               <div>
-                <Label className="flex items-center">
+                <Label>
                   {t("after_event")}
                   <FieldPermissionIndicator
                     fieldName="afterEventBuffer"
@@ -803,7 +779,7 @@ const BeforeAfterEventSection = memo(
               </div>
 
               <div>
-                <Label className="flex items-center">
+                <Label>
                   {t("slot_interval")}
                   <FieldPermissionIndicator
                     fieldName="slotInterval"

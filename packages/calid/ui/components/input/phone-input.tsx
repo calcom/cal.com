@@ -3,7 +3,7 @@
 import { cn } from "@calid/features/lib/cn";
 import { isSupportedCountry } from "libphonenumber-js";
 import { useState, useEffect } from "react";
-import ReactPhoneInput2 from "react-phone-input-2";
+import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { trpc } from "@calcom/trpc/react";
@@ -25,15 +25,16 @@ function BasePhoneInput({
   className = "",
   onChange,
   value,
-  autoFormat = false,
+  autoFormat = true,
   ...rest
-}: PhoneInputProps) {
+}: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
-
   return (
-    <ReactPhoneInput2
+    <PhoneInput
       {...rest}
+      autoFormat={autoFormat}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
+      country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
       inputProps={{
@@ -45,7 +46,7 @@ function BasePhoneInput({
         onChange(`+${value}`);
       }}
       containerClass={cn(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
+        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:shadow-outline-gray-focused disabled:cursor-not-allowed",
         className
       )}
       inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"
@@ -64,8 +65,6 @@ function BasePhoneInput({
         marginLeft: "-4px",
       }}
       dropdownStyle={{ width: "max-content" }}
-      autoFormat={autoFormat}
-      country={defaultCountry}
     />
   );
 }

@@ -6,28 +6,26 @@ import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-f
 import type { z } from "zod";
 import { ZodError } from "zod";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogClose, DialogTitle, DialogDescription } from "@calid/features/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import {
-  Switch,
   CheckboxField,
   SelectField,
   Form,
-  Input,
-  InputField,
-  Label,
   BooleanToggleGroupField,
 } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { Switch } from "@calid/features/ui/components/switch";
+import { Input, InputField } from "@calid/features/ui/components/input/input";
+import { Label } from "@calid/features/ui/components/label";
+import { triggerToast } from "@calid/features/ui/components/toast";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
@@ -295,15 +293,15 @@ export const FormBuilder = function FormBuilder({
                     <div className="flex items-center space-x-2">
                       {field.hidden ? (
                         // Hidden field can't be required, so we don't need to show the Optional badge
-                        <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
+                        <Badge variant="secondary">{t("hidden")}</Badge>
                       ) : (
-                        <Badge variant="grayWithoutHover" data-testid={isRequired ? "required" : "optional"}>
+                        <Badge variant="secondary" data-testid={isRequired ? "required" : "optional"}>
                           {isRequired ? t("required") : t("optional")}
                         </Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
-                        <Badge key={key} variant="blue">
+                        <Badge key={key}>
                           {sources.length} {sources.length === 1 ? sourceLabel : `${sourceLabel}s`}
                         </Badge>
                       ))}
@@ -379,7 +377,7 @@ export const FormBuilder = function FormBuilder({
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
             if (isNewField && fields.some((f) => f.name === data.name)) {
-              showToast(t("form_builder_field_already_exists"), "error");
+              triggerToast(t("form_builder_field_already_exists"), "error");
               return;
             }
             if (fieldDialog.data) {
@@ -562,11 +560,19 @@ function FieldEditDialog({
   const fieldName = fieldForm.getValues("name");
 
   return (
-    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
-      <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
+    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
+      <DialogContent 
+        size="md" 
+        className="max-h-none" 
+        data-testid="edit-field-dialog" 
+        enableOverflow={true}
+      >
+        <DialogHeader>
+          <DialogTitle>{t("add_a_booking_question")}</DialogTitle>
+          <DialogDescription>{t("booking_questions_description")}</DialogDescription>
+        </DialogHeader>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto">
-            <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
+          <div className="h-auto max-h-[85vh] overflow-auto p-2">
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
@@ -878,7 +884,6 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (

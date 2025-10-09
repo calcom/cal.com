@@ -159,14 +159,14 @@ export function TimezoneSelectComponent({
           ),
         option: (state) =>
           classNames(
-            "bg-default py-2.5 px-3 rounded-md text-default ",
+            "bg-default py-2.5 px-2 rounded-md text-default ",
             state.isFocused && "bg-subtle",
             state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",
             timezoneClassNames?.option && timezoneClassNames.option(state)
           ),
         placeholder: (state) => classNames("text-muted", state.isFocused && "hidden"),
-        dropdownIndicator: () => "text-default",
+        dropdownIndicator: () => classNames("text-default", "w-4 h-4", "flex items-center justify-center"),
         control: (state) =>
           classNames(
             inputStyles({ size }),
@@ -175,10 +175,10 @@ export function TimezoneSelectComponent({
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2"
-              : "h-9 py-0 px-3",
+              ? "h-7 px-2 py-1"
+              : "h-8 px-3 py-1",
             props.isDisabled && "bg-subtle",
-            "rounded-md focus:ring-ring focus:ring-offset-2",
+            "rounded-md focus-within:shadow-outline-gray-focused focus-within:ring-offset-2",
             timezoneClassNames?.control && timezoneClassNames.control(state)
           ),
         singleValue: (state) =>
@@ -198,14 +198,14 @@ export function TimezoneSelectComponent({
           ),
         menu: (state) =>
           classNames(
-            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
+            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-muted p-1",
             state.selectProps.menuIsOpen && "shadow-dropdown", // Add box-shadow when menu is open
             timezoneClassNames?.menu && timezoneClassNames.menu(state)
           ),
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
         menuList: (state) =>
           classNames(
-            "scroll-bar scrollbar-track-w-20 rounded-md",
+            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-[1px]",
             timezoneClassNames?.menuList && timezoneClassNames.menuList(state)
           ),
         indicatorsContainer: (state) =>

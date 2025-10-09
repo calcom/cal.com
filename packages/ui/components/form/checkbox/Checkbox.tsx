@@ -63,7 +63,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
           </div>
         )}
         <div className="w-full">
-          <div className="hover:bg-subtle relative flex w-fit items-center rounded-md p-1">
+          <div className="relative flex w-fit items-center rounded-md p-1">
             {React.createElement(
               descriptionAsLabel ? "label" : "div",
               {

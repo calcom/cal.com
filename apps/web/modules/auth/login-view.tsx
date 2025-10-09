@@ -259,7 +259,7 @@ export default function Login({
                 className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
                 data-testid="submit">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed />}
+                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-brand" />}
               </Button>
             </div>
           </form>

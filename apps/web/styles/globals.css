@@ -160,7 +160,7 @@
   --cal-text-error: hsla(0, 84%, 60%, 1); /* Keeping existing error text */
 
   /* Brand */
-  --cal-brand: hsla(221, 39%, 11%, 1); /* Keeping existing brand color */
+  --cal-brand: hsla(207, 100%, 45%, 1); /* Keeping existing brand color */
   --cal-brand-emphasis: hsla(0, 0%, 6%, 1); /* Keeping existing brand emphasis */
   --cal-brand-text: hsla(0, 0%, 100%, 1); /* white */
 }

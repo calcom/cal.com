@@ -8,6 +8,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -73,6 +74,7 @@ export const EventTypeActions = ({
             id="hiddenSwitch"
             disabled={eventTypesLockedByOrg}
             tooltip={form.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+            tooltipSide="bottom"
             checked={(() => {
               try {
                 const hidden = form?.watch("hidden");
@@ -95,15 +97,16 @@ export const EventTypeActions = ({
       {/* Action buttons */}
       <ButtonGroup>
         {!shouldHideRedirectAndCopy && (
-          <Button
-            color="secondary"
-            tooltip={t("preview")}
-            variant="icon"
-            href={permalink}
-            target="_blank"
-            rel="noreferrer"
-            StartIcon="external-link"
-          />
+          <Tooltip content={t("preview")}>
+            <Button
+              color="secondary"
+              variant="icon"
+              href={permalink}
+              target="_blank"
+              rel="noreferrer"
+              StartIcon="external-link"
+            />
+          </Tooltip>
         )}
 
         {!shouldHideRedirectAndCopy && (

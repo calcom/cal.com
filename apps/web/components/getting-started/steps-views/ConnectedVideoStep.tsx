@@ -6,6 +6,9 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { List } from "@calcom/ui/components/list";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { useRouter } from "next/navigation";
+import { localStorage } from "@calcom/lib/webstorage";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
@@ -17,22 +20,12 @@ interface ConnectedAppStepProps {
 
 const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
   const { nextStep, isPageLoading } = props;
+  const router = useRouter();
+  const utils = trpc.useUtils();
 
-  const updateProfileMutation = trpc.viewer.me.updateProfile.useMutation({
-    onSuccess: async (_data, _context) => {
-      nextStep();
-    },
-    onError: () => {
-      showToast(t("problem_saving_user_profile"), "error");
-    },
-  });
-
-  const handleNextStep = () => {
-    updateProfileMutation.mutate({
-      metadata: {
-        currentOnboardingStep: "setup-availability",
-      },
-    });
+  const handleFinishSetup = () => {
+    // Let the main component handle the completion
+    nextStep();
   };
 
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.calid_integrations.useQuery({
@@ -94,19 +87,15 @@ const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
       {isPending && <StepConnectionLoader />}
       <Button
         color="primary"
-        EndIcon="arrow-right"
-        data-testid="save-video-button"
+        data-testid="finish-setup-button"
         className={cn(
-          "mt-8 flex w-full flex-row justify-center rounded-md border text-center text-sm",
-          !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
+          "mt-8 flex w-full flex-row justify-center rounded-md border text-center text-sm bg-active dark:bg-gray-200 border-active dark:border-default",
         )}
-        disabled={!hasAnyInstalledVideoApps}
         loading={isPageLoading}
         onClick={() => {
-          handleNextStep();
           nextStep();
         }}>
-        {t("next_step_text")}
+        {t("finish")}
       </Button>
     </>
   );

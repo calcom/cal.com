@@ -53,30 +53,13 @@ test.describe("Onboarding", () => {
         await expect(page).toHaveURL(/.*connected-video/);
       });
 
-      await test.step("step 3 - Connected Video", async () => {
-        const isDisabled = await page.locator("button[data-testid=save-video-button]").isDisabled();
+      await test.step("step 3 - Connected Video (Final Step)", async () => {
+        const isDisabled = await page.locator("button[data-testid=finish-setup-button]").isDisabled();
         await expect(isDisabled).toBe(true);
-        // tests skip button, we don't want to test entire flow.
-        await page.locator("button[data-testid=skip-step]").click();
-        await expect(page).toHaveURL(/.*setup-availability/);
-      });
-
-      await test.step("step 4 - Setup Availability", async () => {
-        const isDisabled = await page.locator("button[data-testid=save-availability]").isDisabled();
-        await expect(isDisabled).toBe(false);
-        // same here, skip this step.
-
-        await page.locator("button[data-testid=save-availability]").click();
-        await expect(page).toHaveURL(/.*user-profile/);
-      });
-
-      await test.step("step 5- User Profile", async () => {
-        await page.locator("button[type=submit]").click();
-        // should redirect to /event-types after onboarding
+        // Since we can't test the actual video app connection, we'll skip this step
+        // and expect to be redirected to /event-types
+        await page.locator("button[data-testid=finish-setup-button]").click();
         await page.waitForURL("/event-types");
-
-        const userComplete = await user.self();
-        expect(userComplete.bio?.replace("<p><br></p>", "").length).toBe(0);
       });
     });
   };

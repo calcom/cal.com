@@ -123,14 +123,14 @@ export function PhoneNumberField<T extends Record<string, any>>({
       <Label className="flex">
         <p className="text-sm">
           {t("phone_number")}
-          {isRequired && <span className="ml-1 text-red-500">*</span>}
+          {isRequired && <span className="text-default ml-1">*</span>}
         </p>
         {/* <InfoBadge content={t("number_in_international_format")} /> */}
       </Label>
 
       <div className="flex gap-3">
-        <div className="w-full md:w-1/3">
-          <PhoneInput value={getValue()} onChange={handlePhoneNumberChange} />
+        <div className="w-full">
+          <PhoneInput name={fieldName} value={getValue()} onChange={handlePhoneNumberChange} autoFormat={true} />
         </div>
 
         {isNumberVerificationRequired && (
@@ -156,7 +156,7 @@ export function PhoneNumberField<T extends Record<string, any>>({
         )}
       </div>
 
-      {errorMessage && <div className="mt-1 text-sm text-red-600">{errorMessage}</div>}
+      {errorMessage && <p className="mt-1 text-xs text-red-500">{errorMessage}</p>}
 
       {numberVerified ? (
         <div className="mt-1">

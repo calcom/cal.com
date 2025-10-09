@@ -4,7 +4,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { List } from "@calcom/ui/components/list";
-
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
 import { CreateEventsOnCalendarSelect } from "../components/CreateEventsOnCalendarSelect";
@@ -23,7 +23,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       nextStep();
     },
     onError: () => {
-      showToast(t("problem_saving_user_profile"), "error");
+      triggerToast(t("problem_saving_user_profile"), "error");
     },
   });
 
@@ -51,14 +51,18 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   );
   const disabledNextButton = firstCalendar === undefined;
   const destinationCalendar = queryConnectedCalendars.data?.destinationCalendar;
+  
+  // Show skeleton loader if any query is pending (like ConnectedVideoStep)
+  const isAnyQueryPending = queryConnectedCalendars.isPending || queryIntegrations.isPending;
   return (
     <>
-      {/* Already connected calendars  */}
-      {!queryConnectedCalendars.isPending &&
-        firstCalendar &&
-        firstCalendar.integration &&
-        firstCalendar.integration.title &&
-        firstCalendar.integration.logo && (
+      {!isAnyQueryPending && (
+        <>
+          {/* Already connected calendars  */}
+          {firstCalendar &&
+            firstCalendar.integration &&
+            firstCalendar.integration.title &&
+            firstCalendar.integration.logo && (
           <>
             <List className="bg-default border-subtle rounded-md border p-0 dark:bg-black ">
               <ConnectedCalendarItem
@@ -77,11 +81,11 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
             {/* Create event on selected calendar */}
             <CreateEventsOnCalendarSelect calendar={destinationCalendar} />
             <p className="text-subtle mt-4 text-sm">{t("connect_calendars_from_app_store")}</p>
-          </>
-        )}
+            </>
+          )}
 
-      {/* Connect calendars list */}
-      {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
+          {/* Connect calendars list */}
+          {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
         <List className="bg-default border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
           {queryIntegrations.data &&
             queryIntegrations.data.items.map((item) => (
@@ -92,21 +96,26 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
                     title={item.title}
                     description={item.description}
                     logo={item.logo}
+                    slug={item.slug}
+                    installed={item.userCredentialIds.length > 0}
+                    defaultInstall={item.appData?.location?.linkType === "dynamic"}
                   />
                 )}
               </li>
             ))}
-        </List>
+          </List>
+          )}
+        </>
       )}
 
-      {queryIntegrations.isPending && <StepConnectionLoader />}
+      {isAnyQueryPending && <StepConnectionLoader />}
 
       <Button
         color="primary"
         EndIcon="arrow-right"
         data-testid="save-calendar-button"
         className={cn(
-          "mt-8 flex w-full flex-row justify-center rounded-md border text-center text-sm",
+          "mt-8 flex w-full flex-row justify-center rounded-md border text-center text-sm bg-active dark:bg-gray-200 border-active dark:border-default",
           disabledNextButton ? "cursor-not-allowed opacity-20" : ""
         )}
         loading={isPageLoading}

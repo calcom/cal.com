@@ -9,7 +9,7 @@ import {
 } from "@calid/features/ui/components/input/phone-number-field";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
@@ -24,7 +24,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/toast";
+import { triggerToast } from "@calid/features/ui/components/toast";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -41,6 +41,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   const { setTimezone: setSelectedTimeZone, timezone: selectedTimeZone } = useTimePreferences();
   const telemetry = useTelemetry();
   const userSettingsSchema = z.object({
+    username: z.string().min(1, { message: t("username_required") }),
     name: z
       .string()
       .min(1)
@@ -70,6 +71,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   });
 
   const defaultValues = {
+    username: user?.username || "",
     name: user?.name || "",
     metadata: {
       phoneNumber: (isPrismaObjOrUndefined(user.metadata)?.phoneNumber as string) ?? "",
@@ -89,17 +91,12 @@ const UserSettings = (props: IUserSettingsProps) => {
     resolver: zodResolver(userSettingsSchema),
   });
 
-  const watchedPhoneNumber = useWatch({
-    control,
-    name: "metadata.phoneNumber",
-  });
-
   useEffect(() => {
     telemetry.event(telemetryEventTypes.onboardingStarted);
   }, [telemetry]);
 
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
-    (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || "recruiter"
+    (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || "founder"
   );
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
@@ -148,7 +145,7 @@ const UserSettings = (props: IUserSettingsProps) => {
       data.metadata.phoneNumber &&
       (PHONE_NUMBER_VERIFICATION_ENABLED ? !numberVerified : false)
     ) {
-      showToast(t("phone_verification_required"), "error");
+      triggerToast(t("phone_verification_required"), "error");
       return;
     }
 
@@ -158,6 +155,7 @@ const UserSettings = (props: IUserSettingsProps) => {
         phoneNumber: data.metadata.phoneNumber,
       },
       name: data.name,
+      username: data.username,
       timeZone: selectedTimeZone,
     });
   });
@@ -168,19 +166,28 @@ const UserSettings = (props: IUserSettingsProps) => {
         currentOnboardingStep: "connected-calendar",
       },
       name: getValues("name"),
+      username: getValues("username"),
       timeZone: selectedTimeZone,
     });
   };
 
   return (
     <form onSubmit={onSubmit} className=" space-y-6">
-      {/* Username textfield: when not coming from signup */}
-      {!props.hideUsername && <UsernameAvailabilityField />}
+      {!props.hideUsername && (
+        <div>
+          <UsernameAvailabilityField control={control} />
+          {errors.username && (
+            <p data-testid="username-required" className="mt-1 text-xs text-red-500">
+              {errors.username.message}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Full name textfield */}
       <div className="w-full ">
         <label htmlFor="name" className="text-emphasis block text-sm font-medium">
-          {t("full_name")}
+          {t("full_name")} *
         </label>
         <Input
           {...register("name", {
@@ -224,7 +231,7 @@ const UserSettings = (props: IUserSettingsProps) => {
           }}
           options={designationTypeOptions}
           placeholder={t("business_type")}
-          className="mt-2 w-full text-sm capitalize"
+          className="w-full text-sm capitalize"
         />
       </div>
 
@@ -249,7 +256,7 @@ const UserSettings = (props: IUserSettingsProps) => {
       <Button
         EndIcon="arrow-right"
         type="submit"
-        className="mt-8 w-full justify-center"
+        className="mt-8 w-full justify-center bg-active dark:bg-gray-200 border-active dark:border-default"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
         {t("next_step_text")}
