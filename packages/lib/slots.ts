@@ -1,6 +1,10 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/lib/getUserAvailability";
+import type {
+  IFromUser,
+  IOutOfOfficeData,
+  IToUser,
+} from "@calcom/features/availability/lib/getUserAvailability";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { DateRange } from "./date-ranges";
@@ -127,6 +131,11 @@ function buildSlotsWithDateRanges({
 
     // For current day bookings, normalizing the seconds to zero to avoid issues with time calculations
     slotStartTime = slotStartTime.set("second", 0).set("millisecond", 0);
+    
+    // Convert to target timezone BEFORE checking if rounding is needed
+    // This ensures we check minute alignment in the local timezone, not UTC
+    // This prevents issues with half-hour offset timezones like Asia/Kolkata (GMT+5:30)
+    slotStartTime = slotStartTime.tz(timeZone);
 
     if (slotStartTime.minute() % interval !== 0) {
       slotStartTime = getCorrectedSlotStartTime({
@@ -137,7 +146,7 @@ function buildSlotsWithDateRanges({
       });
     }
 
-    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes");
 
     // Find the nearest appropriate slot boundary if this time falls within an existing slot
     const slotBoundariesValueArray = Array.from(slotBoundaries.keys());

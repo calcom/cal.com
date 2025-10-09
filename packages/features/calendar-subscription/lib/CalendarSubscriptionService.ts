@@ -1,3 +1,4 @@
+import { getCredentialForSelectedCalendar } from "@calcom/app-store/delegationCredential";
 import type {
   AdapterFactory,
   CalendarSubscriptionProvider,
@@ -9,7 +10,6 @@ import type {
 import type { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { CalendarSyncService } from "@calcom/features/calendar-subscription/lib/sync/CalendarSyncService";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getCredentialForSelectedCalendar } from "@calcom/lib/delegationCredential/server";
 import logger from "@calcom/lib/logger";
 import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
 import { SelectedCalendar } from "@calcom/prisma/client";
