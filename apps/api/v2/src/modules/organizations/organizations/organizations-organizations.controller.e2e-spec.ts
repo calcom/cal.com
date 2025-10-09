@@ -61,11 +61,24 @@ describe("Organizations Organizations Endpoints", () => {
   let profilesRepositoryFixture: ProfileRepositoryFixture;
 
   let managerOrg: Team;
+  let payPerUserPlanManagerOrg: Team;
+  let essentialsPlanManagerOrg: Team;
+
   let managedOrg: ManagedOrganizationWithApiKeyOutput;
   let managedOrg2: ManagedOrganizationWithApiKeyOutput;
+
   const managerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
+  const payPerUserPlanManagerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
+  const essentialsPlanManagerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
+
   let managerOrgAdmin: User;
+  let payPerUserPlanManagerOrgAdmin: User;
+  let essentialsPlanManagerOrgAdmin: User;
+
   let managerOrgAdminApiKey: string;
+  let payPerUserPlanManagerOrgAdminApiKey: string;
+  let essentialsPlanManagerOrgAdminApiKey: string;
+
   let managerOrgBilling: PlatformBilling;
 
   let managedOrgApiKey: string;
@@ -93,40 +106,36 @@ describe("Organizations Organizations Endpoints", () => {
     oAuthClientsRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
-    managerOrgAdmin = await userRepositoryFixture.create({
-      email: managerOrgAdminEmail,
-      username: managerOrgAdminEmail,
-    });
-
-    managerOrg = await organizationsRepositoryFixture.create({
-      name: `organizations-organizations-organization-${randomString()}`,
-      isOrganization: true,
-      isPlatform: true,
-    });
-
-    await profilesRepositoryFixture.create({
-      uid: "asd-asd",
-      username: managerOrgAdminEmail,
-      user: { connect: { id: managerOrgAdmin.id } },
-      organization: { connect: { id: managerOrg.id } },
-      movedFromUser: { connect: { id: managerOrgAdmin.id } },
-    });
-
-    managerOrgBilling = await platformBillingRepositoryFixture.create(managerOrg.id, "SCALE");
-
-    await membershipsRepositoryFixture.create({
-      role: "ADMIN",
-      user: { connect: { id: managerOrgAdmin.id } },
-      team: { connect: { id: managerOrg.id } },
-      accepted: true,
-    });
-
-    const { keyString } = await apiKeysRepositoryFixture.createApiKey(
-      managerOrgAdmin.id,
-      null,
-      managerOrg.id
+    // Setup manager organization with SCALE plan
+    const managerSetup = await setupTestOrganization(
+      managerOrgAdminEmail,
+      `organizations-organizations-organization-${randomString()}`,
+      "SCALE"
     );
-    managerOrgAdminApiKey = `cal_test_${keyString}`;
+    managerOrgAdmin = managerSetup.admin;
+    managerOrg = managerSetup.org;
+    managerOrgBilling = managerSetup.billing;
+    managerOrgAdminApiKey = managerSetup.apiKey;
+
+    // Setup pay-per-user organization
+    const payPerUserSetup = await setupTestOrganization(
+      payPerUserPlanManagerOrgAdminEmail,
+      `pay-per-user-plan-organization-${randomString()}`,
+      "PER_ACTIVE_USER"
+    );
+    payPerUserPlanManagerOrgAdmin = payPerUserSetup.admin;
+    payPerUserPlanManagerOrg = payPerUserSetup.org;
+    payPerUserPlanManagerOrgAdminApiKey = payPerUserSetup.apiKey;
+
+    // Setup essentials organization
+    const essentialsSetup = await setupTestOrganization(
+      essentialsPlanManagerOrgAdminEmail,
+      `essentials-per-user-plan-organization-${randomString()}`,
+      "ESSENTIALS"
+    );
+    essentialsPlanManagerOrgAdmin = essentialsSetup.admin;
+    essentialsPlanManagerOrg = essentialsSetup.org;
+    essentialsPlanManagerOrgAdminApiKey = essentialsSetup.apiKey;
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
@@ -135,6 +144,57 @@ describe("Organizations Organizations Endpoints", () => {
 
     await app.init();
   });
+
+  async function setupTestOrganization(
+    adminEmail: string,
+    orgName: string,
+    plan: "SCALE" | "PER_ACTIVE_USER" | "ESSENTIALS"
+  ) {
+    const admin = await userRepositoryFixture.create({
+      email: adminEmail,
+      username: adminEmail,
+    });
+
+    const org = await organizationsRepositoryFixture.create({
+      name: orgName,
+      isOrganization: true,
+      isPlatform: true,
+    });
+
+    await profilesRepositoryFixture.create({
+      uid: `${randomString()}-uid`,
+      username: adminEmail,
+      user: { connect: { id: admin.id } },
+      organization: { connect: { id: org.id } },
+      movedFromUser: { connect: { id: admin.id } },
+    });
+
+    const billing = await platformBillingRepositoryFixture.create(org.id, plan);
+
+    await membershipsRepositoryFixture.create({
+      role: "ADMIN",
+      user: { connect: { id: admin.id } },
+      team: { connect: { id: org.id } },
+      accepted: true,
+    });
+
+    const { keyString } = await apiKeysRepositoryFixture.createApiKey(admin.id, null, org.id);
+    const apiKey = `cal_test_${keyString}`;
+
+    return { admin, org, billing, apiKey };
+  }
+
+  function createManagedOrgInput(
+    namePrefix: string,
+    metadata?: Record<string, string | number | boolean>
+  ): CreateOrganizationInput {
+    const suffix = randomString(5);
+    return {
+      name: `${namePrefix} ${suffix}`,
+      slug: `${namePrefix.toLowerCase().replace(/\s+/g, "-")}-${suffix}`,
+      metadata: metadata || { key: "value" },
+    };
+  }
 
   afterAll(() => {
     clear();
@@ -155,21 +215,44 @@ describe("Organizations Organizations Endpoints", () => {
       .expect(400);
   });
 
-  const suffix = randomString(5);
   const metadataKey = "first-org-metadata-key";
   const metadataValue = "first-org-metadata-value";
-  const createManagedOrganizationBody: CreateOrganizationInput = {
-    name: `org ${suffix}`,
-    slug: `org-${suffix}`,
-    metadata: { [metadataKey]: metadataValue },
-  };
+  const createManagedOrganizationBody: CreateOrganizationInput = createManagedOrgInput("org", {
+    [metadataKey]: metadataValue,
+  });
 
-  const suffix2 = randomString(5);
-  const createManagedOrganizationBodySecond: CreateOrganizationInput = {
-    name: `org2 ${suffix2}`,
-    slug: `org2-${suffix2}`,
-    metadata: { key: "value" },
-  };
+  const createManagedOrganizationBodySecond: CreateOrganizationInput = createManagedOrgInput("org2");
+
+  const createManagedOrganizationBodyThird: CreateOrganizationInput = createManagedOrgInput("org3");
+
+  it("should not allow to create managed organization if plan is below SCALE", async () => {
+    const response = await request(app.getHttpServer())
+      .post(`/v2/organizations/${essentialsPlanManagerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${essentialsPlanManagerOrgAdminApiKey}`)
+      .send(createManagedOrganizationBody)
+      .expect(403);
+    expect(response.body.error.message).toBe(
+      `PlatformPlanGuard - organization with id=${essentialsPlanManagerOrg.id} does not have required plan for this operation. Minimum plan is SCALE while the organization has ESSENTIALS.`
+    );
+  });
+
+  it("should allow to create managed organization if plan is SCALE or above", async () => {
+    return request(app.getHttpServer())
+      .post(`/v2/organizations/${payPerUserPlanManagerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${payPerUserPlanManagerOrgAdminApiKey}`)
+      .send(createManagedOrganizationBodyThird)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const managedOrg3 = responseBody.data;
+        expect(managedOrg3?.id).toBeDefined();
+        expect(managedOrg3?.name).toEqual(createManagedOrganizationBodyThird.name);
+        expect(managedOrg3?.slug).toEqual(createManagedOrganizationBodyThird.slug);
+        expect(managedOrg3?.metadata).toEqual(createManagedOrganizationBodyThird.metadata);
+        expect(managedOrg3?.apiKey).toBeDefined();
+      });
+  });
 
   it("should create managed organization", async () => {
     return request(app.getHttpServer())
@@ -625,7 +708,11 @@ describe("Organizations Organizations Endpoints", () => {
 
   afterAll(async () => {
     await userRepositoryFixture.deleteByEmail(managerOrgAdmin.email);
+    await userRepositoryFixture.deleteByEmail(payPerUserPlanManagerOrgAdmin.email);
+    await userRepositoryFixture.deleteByEmail(essentialsPlanManagerOrgAdmin.email);
     await organizationsRepositoryFixture.delete(managerOrg.id);
+    await organizationsRepositoryFixture.delete(payPerUserPlanManagerOrg.id);
+    await organizationsRepositoryFixture.delete(essentialsPlanManagerOrg.id);
     await app.close();
   });
 });
