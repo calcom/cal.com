@@ -98,50 +98,99 @@ export const createEventPbacProcedure = (
   permission: PermissionString,
   fallbackRoles: MembershipRole[] = ["ADMIN", "OWNER"]
 ) => {
-  return eventOwnerProcedure.use(async ({ ctx, input, next }) => {
-    const id = input.eventTypeId ?? input.id;
+  return authedProcedure
+    .input(
+      z
+        .object({
+          id: z.number().optional(),
+          eventTypeId: z.number().optional(),
+          users: z.array(z.number()).optional(),
+        })
+        .refine((data) => data.id !== undefined || data.eventTypeId !== undefined, {
+          message: "At least one of 'id' or 'eventTypeId' must be present",
+          path: ["id", "eventTypeId"],
+        })
+    )
+    .use(async ({ ctx, input, next }) => {
+      const id = input.eventTypeId ?? input.id;
 
-    const event = await ctx.prisma.eventType.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        userId: true,
-        teamId: true,
-      },
-    });
-
-    if (!event) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
-
-    // For team events, check PBAC permissions
-    if (event.teamId) {
-      const permissionCheckService = new PermissionCheckService();
-      const hasPermission = await permissionCheckService.checkPermission({
-        userId: ctx.user.id,
-        teamId: event.teamId,
-        permission,
-        fallbackRoles,
+      const event = await ctx.prisma.eventType.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          userId: true,
+          teamId: true,
+          users: {
+            select: {
+              id: true,
+            },
+          },
+          team: {
+            select: {
+              members: {
+                select: {
+                  userId: true,
+                },
+              },
+            },
+          },
+        },
       });
 
-      if (!hasPermission) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `Permission required: ${permission}`,
-        });
+      if (!event) {
+        throw new TRPCError({ code: "NOT_FOUND" });
       }
-    } else {
-      // For personal events, only the owner can manage
-      if (event.userId !== ctx.user.id) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: `Permission required: ${permission}`,
-        });
-      }
-    }
 
-    return next();
-  });
+      // Check if user has permission to access/modify this event
+      if (!event.teamId) {
+        // Personal event - must be owner or assigned user
+        if (event.userId !== ctx.user.id && !event.users.find((user) => user.id === ctx.user.id)) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `Permission required: ${permission}`,
+          });
+        }
+      } else {
+        // Team event - check PBAC/fallback permissions
+        const permissionCheckService = new PermissionCheckService();
+        const hasPermission = await permissionCheckService.checkPermission({
+          userId: ctx.user.id,
+          teamId: event.teamId,
+          permission,
+          fallbackRoles,
+        });
+
+        if (!hasPermission) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: `Permission required: ${permission}`,
+          });
+        }
+      }
+
+      // Validate that assigned users are allowed
+      if (input.users && input.users.length > 0) {
+        const isAllowed = (function () {
+          if (event.team) {
+            const allTeamMembers = event.team.members.map((member) => member.userId);
+            return input.users!.every((userId: number) => allTeamMembers.includes(userId));
+          }
+          return input.users!.every((userId: number) => userId === ctx.user.id);
+        })();
+
+        if (!isAllowed) {
+          console.warn(
+            `User ${ctx.user.id} attempted to assign event ${event.id} to users ${input.users.join(", ")}.`
+          );
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Cannot assign event to users outside of team membership",
+          });
+        }
+      }
+
+      return next();
+    });
 };
 
 export function isPeriodType(keyInput: string): keyInput is PeriodType {

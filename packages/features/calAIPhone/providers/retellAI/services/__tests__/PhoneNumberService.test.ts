@@ -20,12 +20,12 @@ describe("PhoneNumberService", () => {
     vi.clearAllMocks();
     mocks = setupBasicMocks();
 
-    service = new PhoneNumberService(
-      mocks.mockRetellRepository,
-      mocks.mockAgentRepository,
-      mocks.mockPhoneNumberRepository,
-      mocks.mockTransactionManager
-    );
+    service = new PhoneNumberService({
+      retellRepository: mocks.mockRetellRepository,
+      agentRepository: mocks.mockAgentRepository,
+      phoneNumberRepository: mocks.mockPhoneNumberRepository,
+      transactionManager: mocks.mockTransactionManager,
+    });
   });
 
   afterEach(() => {

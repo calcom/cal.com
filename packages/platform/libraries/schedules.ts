@@ -4,4 +4,4 @@ export {
 } from "@calcom/lib/server/repository/schedule";
 
 export { updateSchedule, type UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
-export {UserAvailabilityService} from "@calcom/lib/getUserAvailability"
+export { UserAvailabilityService } from "@calcom/features/availability/lib/getUserAvailability";

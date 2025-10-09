@@ -108,6 +108,7 @@ export type IconName =
   | "pause"
   | "pencil"
   | "phone-call"
+  | "phone-incoming"
   | "phone-off"
   | "phone-outgoing"
   | "phone"

@@ -9,6 +9,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import prisma from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["retell-ai-webhook"] });
@@ -133,7 +134,7 @@ async function handleCallAnalyzed(callData: any) {
     );
     return {
       success: true,
-      message: `Invalid or missing call_cost.total_duration_seconds for call ${call_id}`
+      message: `Invalid or missing call_cost.total_duration_seconds for call ${call_id}`,
     };
   }
 
@@ -146,11 +147,12 @@ async function handleCallAnalyzed(callData: any) {
       log.error(`Web call ${call_id} missing agent_id, cannot charge credits`);
       return {
         success: false,
-        message: `Web call ${call_id} missing agent_id, cannot charge credits`
+        message: `Web call ${call_id} missing agent_id, cannot charge credits`,
       };
     }
 
-    const agent = await PrismaAgentRepository.findByProviderAgentId({
+    const agentRepo = new PrismaAgentRepository(prisma);
+    const agent = await agentRepo.findByProviderAgentId({
       providerAgentId: agent_id,
     });
 
@@ -158,17 +160,17 @@ async function handleCallAnalyzed(callData: any) {
       log.error(`No agent found for providerAgentId ${agent_id}, call ${call_id}`);
       return {
         success: false,
-        message: `No agent found for providerAgentId ${agent_id}, call ${call_id}`
+        message: `No agent found for providerAgentId ${agent_id}, call ${call_id}`,
       };
     }
-
 
     userId = agent.userId ?? undefined;
     teamId = agent.teamId ?? undefined;
 
     log.info(`Processing web call ${call_id} for agent ${agent_id}, user ${userId}, team ${teamId}`);
   } else {
-    const phoneNumber = await PrismaPhoneNumberRepository.findByPhoneNumber({
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    const phoneNumber = await phoneNumberRepo.findByPhoneNumber({
       phoneNumber: from_number,
     });
 

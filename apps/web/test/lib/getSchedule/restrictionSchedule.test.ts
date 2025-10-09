@@ -173,13 +173,11 @@ describe("getSchedule", () => {
       // - User availability: 9 AM - 5 PM London
       // - Restriction: 10 AM - 6 PM Dubai
       const expectedUtcSlots = [
-        "2025-06-02T08:00:00.000Z", // 9 AM London, 12 PM Dubai, 1:30 PM Kolkata
-        "2025-06-02T09:00:00.000Z", // 10 AM London, 1 PM Dubai, 2:30 PM Kolkata
-        "2025-06-02T10:00:00.000Z", // 11 AM London, 2 PM Dubai, 3:30 PM Kolkata
-        "2025-06-02T11:00:00.000Z", // 12 PM London, 3 PM Dubai, 4:30 PM Kolkata
-        "2025-06-02T12:00:00.000Z", // 1 PM London, 4 PM Dubai, 5:30 PM Kolkata
-        "2025-06-02T13:00:00.000Z", // 2 PM London, 5 PM Dubai, 6:30 PM Kolkata
-        "2025-06-02T14:00:00.000Z", // 3 PM London, 6 PM Dubai, 7:30 PM Kolkata
+        "2025-06-02T08:30:00.000Z", // 9:30 AM London, 12:30 PM Dubai, 2:00 PM Kolkata
+        "2025-06-02T09:30:00.000Z", // 10:30 AM London, 1:30 PM Dubai, 3:00 PM Kolkata
+        "2025-06-02T10:30:00.000Z", // 11:30 AM London, 2:30 PM Dubai, 4:00 PM Kolkata
+        "2025-06-02T11:30:00.000Z", // 12:30 PM London, 3:30 PM Dubai, 5:00 PM Kolkata
+        "2025-06-02T12:30:00.000Z", // 1:30 PM London, 4:30 PM Dubai, 6:00 PM Kolkata
       ];
 
       expect(result).toHaveTimeSlots(expectedUtcSlots, {
@@ -269,12 +267,11 @@ describe("getSchedule", () => {
       // - User availability: 9 AM - 5 PM London
       // - Restriction: 10 AM - 6 PM Dubai, weekdays only
       const getExpectedSlotsForDate = (dateString: string) => [
-        `${dateString}T08:00:00.000Z`, // 9 AM London, 12 PM Dubai, 1:30 PM Kolkata
-        `${dateString}T09:00:00.000Z`, // 10 AM London, 1 PM Dubai, 2:30 PM Kolkata
-        `${dateString}T10:00:00.000Z`, // 11 AM London, 2 PM Dubai, 3:30 PM Kolkata
-        `${dateString}T11:00:00.000Z`, // 12 PM London, 3 PM Dubai, 4:30 PM Kolkata
-        `${dateString}T12:00:00.000Z`, // 1 PM London, 4 PM Dubai, 5:30 PM Kolkata
-        `${dateString}T13:00:00.000Z`, // 2 PM London, 5 PM Dubai, 6:30 PM Kolkata
+        `${dateString}T08:30:00.000Z`, // 9:30 AM London, 12:30 PM Dubai, 2:00 PM Kolkata
+        `${dateString}T09:30:00.000Z`, // 10:30 AM London, 1:30 PM Dubai, 3:00 PM Kolkata
+        `${dateString}T10:30:00.000Z`, // 11:30 AM London, 2:30 PM Dubai, 4:00 PM Kolkata
+        `${dateString}T11:30:00.000Z`, // 12:30 PM London, 3:30 PM Dubai, 5:00 PM Kolkata
+        `${dateString}T12:30:00.000Z`, // 1:30 PM London, 4:30 PM Dubai, 6:00 PM Kolkata
       ];
 
       // Verify weekday slots
@@ -370,11 +367,10 @@ describe("getSchedule", () => {
       // - User availability: 9 AM - 5 PM London (1:30 PM - 9:30 PM Kolkata)
       // - Restriction: 10 AM - 6 PM Kolkata
       const getExpectedSlotsForDate = (dateString: string) => [
-        `${dateString}T08:00:00.000Z`, // 1:30 PM Kolkata, 9 AM London
-        `${dateString}T09:00:00.000Z`, // 2:30 PM Kolkata, 10 AM London
-        `${dateString}T10:00:00.000Z`, // 3:30 PM Kolkata, 11 AM London
-        `${dateString}T11:00:00.000Z`, // 4:30 PM Kolkata, 12 PM London
-        `${dateString}T12:00:00.000Z`, // 5:30 PM Kolkata, 1 PM London
+        `${dateString}T08:30:00.000Z`, // 2:00 PM Kolkata, 9:30 AM London
+        `${dateString}T09:30:00.000Z`, // 3:00 PM Kolkata, 10:30 AM London
+        `${dateString}T10:30:00.000Z`, // 4:00 PM Kolkata, 11:30 AM London
+        `${dateString}T11:30:00.000Z`, // 5:00 PM Kolkata, 12:30 PM London
       ];
 
       // Verify weekday slots
@@ -453,15 +449,13 @@ describe("getSchedule", () => {
 
       // Expected slots based on user's availability: 9 AM - 5 PM London
       const getExpectedSlotsForDate = (dateString: string) => [
-        `${dateString}T08:00:00.000Z`, // 9 AM London, 1:30 PM Kolkata
-        `${dateString}T09:00:00.000Z`, // 10 AM London, 2:30 PM Kolkata
-        `${dateString}T10:00:00.000Z`, // 11 AM London, 3:30 PM Kolkata
-        `${dateString}T11:00:00.000Z`, // 12 PM London, 4:30 PM Kolkata
-        `${dateString}T12:00:00.000Z`, // 1 PM London, 5:30 PM Kolkata
-        `${dateString}T13:00:00.000Z`, // 2 PM London, 6:30 PM Kolkata
-        `${dateString}T14:00:00.000Z`, // 3 PM London, 7:30 PM Kolkata
-        `${dateString}T15:00:00.000Z`, // 4 PM London, 8:30 PM Kolkata
-        `${dateString}T16:00:00.000Z`, // 5 PM London, 9:30 PM Kolkata
+        `${dateString}T08:30:00.000Z`, // 9:30 AM London, 2:00 PM Kolkata
+        `${dateString}T09:30:00.000Z`, // 10:30 AM London, 3:00 PM Kolkata
+        `${dateString}T10:30:00.000Z`, // 11:30 AM London, 4:00 PM Kolkata
+        `${dateString}T11:30:00.000Z`, // 12:30 PM London, 5:00 PM Kolkata
+        `${dateString}T12:30:00.000Z`, // 1:30 PM London, 6:00 PM Kolkata
+        `${dateString}T13:30:00.000Z`, // 2:30 PM London, 7:00 PM Kolkata
+        `${dateString}T14:30:00.000Z`, // 3:30 PM London, 8:00 PM Kolkata
       ];
 
       // Verify weekday slots
@@ -472,8 +466,8 @@ describe("getSchedule", () => {
         });
       });
 
-      // Verify a late evening slot (8:30 PM Kolkata, 4 PM London) is present
-      const lateEveningSlot = `${plus2DateString}T15:00:00.000Z`;
+      // Verify a late evening slot (8:00 PM Kolkata, 3:30 PM London) is present
+      const lateEveningSlot = `${plus2DateString}T14:30:00.000Z`;
       expect(result.slots[plus2DateString].map((s) => s.time)).toContain(lateEveningSlot);
     });
   });

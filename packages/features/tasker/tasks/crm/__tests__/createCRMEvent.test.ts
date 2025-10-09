@@ -62,7 +62,7 @@ vi.mock("../lib/buildCalendarEvent", () => ({
 }));
 
 const mockCreateEvent = vi.fn().mockResolvedValue({ id: "sf-event-123" });
-vi.mock("@calcom/lib/crmManager/crmManager", () => ({
+vi.mock("@calcom/features/crmManager/crmManager", () => ({
   default: class MockCrmManager {
     private credential: CRMCredential;
 
