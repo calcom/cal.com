@@ -91,7 +91,8 @@ export async function bookingRoutes(fastify: FastifyInstance): Promise<void> {
 
       const booking = await handleNewBooking({
       bookingData: {...body,
-        CreationSource: "API"
+        CreationSource: "API",
+        guests: body.responses.guests || [],
       } as Record<string, unknown>,
 
       userId:-1,
