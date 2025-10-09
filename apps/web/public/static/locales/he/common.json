@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "אימייל של המארגן/ת",
   "webhook_organizer_timezone": "אזור הזמן של המארגן/ת (לדוגמה, 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "שפה של המארגן/ת (לדוגמה, 'en', 'fr')",
+  "webhook_organizer_username": "שם המשתמש של המארגן (לדוגמה, 'john.doe')",
+  "webhook_organizer_username_in_org": "שם המשתמש של המארגן בארגון שלהם (לדוגמה, 'john.doe')",
   "webhook_attendee_name": "שם המשתתף/ת הראשון/ה",
   "webhook_attendee_email": "אימייל של המשתתף/ת הראשון/ה",
   "webhook_attendee_timezone": "אזור הזמן של המשתתף/ת הראשון/ה",
