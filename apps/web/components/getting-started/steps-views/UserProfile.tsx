@@ -67,11 +67,27 @@ const UserProfile = () => {
       // }
 
       await utils.viewer.me.get.refetch();
+      const data = utils.viewer.me.get.getData();
+
+      window.dataLayer = window.dataLayer || [];
+
+      const gtmEvent = {
+        event: data.identifyProvider === "GOOGLE" ? "gmail_onboarding_success" : "email_onboarding_success",
+        signup_method: data.identifyProvider === "GOOGLE" ? "google" : "email",
+        user_name: data.username,
+        full_name: data.name,
+        email_address: data.email,
+      };
+
+      window.dataLayer.push(gtmEvent);
+
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
       redirectUrl ? router.push(redirectUrl) : router.push("/event-types");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Mutation failed:", error);
+
       triggerToast(t("problem_saving_user_profile"), "error");
     },
   });

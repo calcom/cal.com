@@ -556,6 +556,7 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
+                "BookingSeat.data",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")

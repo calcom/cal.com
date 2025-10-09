@@ -206,8 +206,12 @@ function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction
   }
 
   const translatedDefaultLabel = t(field.defaultLabel || "");
-  const label = field.labelAsSafeHtml || field.label || translatedDefaultLabel;
+  let label = field.label || translatedDefaultLabel;
   const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
+
+  if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
+    label = field.labelAsSafeHtml || label;
+  }
 
   if (field.variantsConfig?.variants) {
     Object.entries(field.variantsConfig.variants).forEach(([variantName, variant]) => {

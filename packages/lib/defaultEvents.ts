@@ -87,7 +87,7 @@ const commons = {
   price: 0,
   currency: "usd",
   schedulingType: SchedulingType.COLLECTIVE,
-  seatsPerTimeSlot: undefined,
+  seatsPerTimeSlot: null,
   seatsShowAttendees: null,
   seatsShowAvailabilityCount: null,
   disableCancelling: false,

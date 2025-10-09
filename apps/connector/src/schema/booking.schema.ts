@@ -296,7 +296,7 @@ const eventTypeSchema = z.object({
   hideOrganizerEmail: z.boolean().optional(),
   disableCancelling: z.boolean().optional(),
   disableRescheduling: z.boolean().optional(),
-  eventTypeColor: z.string().nullable().optional(),
+  eventTypeColor: z.any().nullable().optional(),
 });
 
 const userSchema = z.object({
@@ -322,7 +322,8 @@ export const bookingsQueryResponseSchema = z.object({
   updatedAt: z.string(),
   metadata: z.record(z.unknown()).nullable(),
   uid: z.string(),
-  responses: responsesSchema,
+  responses: z.any().nullable(),
+  // responsesSchema,
   recurringEventId: z.string().nullable(),
   location: z.string().nullable().optional(),
   status: bookingStatusEnum,
@@ -335,7 +336,8 @@ export const bookingsQueryResponseSchema = z.object({
   references: z.array(z.any()),
   payment: z.array(z.any()),
   user: userSchema.optional(),
-  attendees: z.array(attendeeSchema),
+  attendees: z.array(z.any()),
+  // attendeesWithSeats: z.array(z.any()),
   seatsReferences: z.array(z.any()),
   assignmentReason: z.array(z.any()),
   rescheduler: z.string().nullable().optional(),
