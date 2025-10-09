@@ -247,6 +247,7 @@ model EventType {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -587,6 +588,9 @@ model Team {
   managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
+
+  teamBilling         TeamBilling?         @relation("TeamBilling")
+  organizationBilling OrganizationBilling? @relation("OrganizationBilling")
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1422,6 +1426,9 @@ model WorkflowStep {
   verifiedAt                DateTime?
   agentId                   String?            @unique
   agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  inboundAgentId            String?            @unique
+  inboundAgent              Agent?             @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
 }
@@ -2535,6 +2542,7 @@ enum PhoneNumberSubscriptionStatus {
   UNPAID
 }
 
+
 // Cal AI Voice Agent
 model Agent {
   id   String @id @default(uuid())
@@ -2549,6 +2557,9 @@ model Agent {
   // Provider-specific agent ID (e.g., Retell AI agent ID)
   providerAgentId String @unique
 
+  // Event type association for inbound agents
+  inboundEventTypeId Int?
+
   enabled   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2556,9 +2567,11 @@ model Agent {
   inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
   outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
   workflowStep         WorkflowStep?
+  inboundWorkflowStep  WorkflowStep?     @relation("WorkflowStepInboundAgent")
 
   @@index([userId])
   @@index([teamId])
+  @@index([inboundEventTypeId])
 }
 
 model CalAiPhoneNumber {
@@ -2593,6 +2606,36 @@ model CalAiPhoneNumber {
   @@index([teamId])
   @@index([inboundAgentId])
   @@index([outboundAgentId])
+}
+
+model TeamBilling {
+  id     String @id @default(uuid())
+  teamId Int    @unique
+  team   Team?  @relation("TeamBilling", fields: [teamId], references: [id], onDelete: Cascade)
+
+  subscriptionId     String @unique
+  subscriptionItemId String
+  customerId         String
+  status             String
+  planName           String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrganizationBilling {
+  id     String @id @default(uuid())
+  teamId Int    @unique
+  team   Team   @relation("OrganizationBilling", fields: [teamId], references: [id], onDelete: Cascade)
+
+  subscriptionId     String @unique
+  subscriptionItemId String
+  customerId         String
+  status             String
+  planName           String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum CalendarCacheEventStatus {
