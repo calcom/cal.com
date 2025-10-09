@@ -1,6 +1,6 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { IOutOfOfficeData } from "@calcom/lib/getUserAvailability";
+import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
 import type { Availability } from "@calcom/prisma/client";
 
 export type DateRange = {

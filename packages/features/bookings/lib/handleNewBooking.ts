@@ -1,9 +1,10 @@
- 
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import { getFirstDelegationConferencingCredentialAppLocation } from "@calcom/app-store/delegationCredential";
+import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
@@ -25,6 +26,9 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
+import { getCacheService } from "@calcom/features/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -43,13 +47,6 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import {
-  enrichHostsWithDelegationCredentials,
-  getFirstDelegationConferencingCredentialAppLocation,
-} from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/lib/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -1208,7 +1205,6 @@ async function handler(
   const organizerOrganizationProfile = await prisma.profile.findFirst({
     where: {
       userId: organizerUser.id,
-      username: dynamicUserList[0],
     },
   });
 
@@ -1268,6 +1264,7 @@ async function handler(
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
       username: organizerUser.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
@@ -1480,7 +1477,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;

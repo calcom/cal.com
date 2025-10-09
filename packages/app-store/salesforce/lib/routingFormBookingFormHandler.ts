@@ -1,4 +1,5 @@
-import { CredentialRepository } from "../../../lib/server/repository/credential";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+
 import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
 import SalesforceCRMService from "./CrmService";
 import { SalesforceRecordEnum, RoutingReasons } from "./enums";
