@@ -1697,6 +1697,41 @@ export function enableEmailFeature() {
   });
 }
 
+// Helper function to enable email validation feature for a team
+export async function enableEmailValidationForTeam(teamId: number) {
+  // Create the feature if it doesn't exist
+  await prismock.feature.upsert({
+    where: { slug: "booking-email-validation" },
+    update: {
+      enabled: true,
+      type: "OPERATIONAL",
+    },
+    create: {
+      slug: "booking-email-validation",
+      enabled: true,
+      type: "OPERATIONAL",
+      description:
+        "Enable email validation during booking process using ZeroBounce API - Prevents bookings with invalid, spam, or abusive email addresses.",
+    },
+  });
+
+  // Associate the feature with the team
+  await prismock.teamFeatures.upsert({
+    where: {
+      teamId_featureId: {
+        teamId,
+        featureId: "booking-email-validation",
+      },
+    },
+    update: {},
+    create: {
+      teamId,
+      featureId: "booking-email-validation",
+      assignedBy: "test-setup",
+    },
+  });
+}
+
 export function mockNoTranslations() {
   log.silly("Mocking i18n.getTranslation to return identity function");
   i18nMock.getTranslation.mockImplementation(() => {
@@ -1796,6 +1831,7 @@ export async function mockCalendar(
     creationCrash?: boolean;
     updationCrash?: boolean;
     getAvailabilityCrash?: boolean;
+    getAvailabilitySlowDownTime?: number;
   }
 ): Promise<CalendarServiceMethodMock> {
   const appStoreLookupKey = metadataLookupKey;
@@ -1957,6 +1993,9 @@ export async function mockCalendar(
           ): Promise<EventBusyDate[]> => {
             if (calendarData?.getAvailabilityCrash) {
               throw new Error("MockCalendarService.getAvailability fake error");
+            }
+            if (calendarData?.getAvailabilitySlowDownTime) {
+              await new Promise((resolve) => setTimeout(resolve, calendarData.getAvailabilitySlowDownTime));
             }
             getAvailabilityCalls.push({
               args: {

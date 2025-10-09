@@ -28,6 +28,7 @@ const initialData: AppFlags = {
   "calendar-subscription-cache": false,
   "calendar-subscription-sync": false,
   "booker-botid": false,
+  "booking-email-validation": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
