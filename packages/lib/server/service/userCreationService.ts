@@ -35,11 +35,7 @@ export class UserCreationService {
   static async createUser({ data, prisma: customPrisma }: { data: CreateUserInput; prisma?: PrismaClient }) {
     const { email, password, username } = data;
 
-    const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(
-      email,
-      undefined,
-      customPrisma
-    );
+    const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email, undefined);
 
     const hashedPassword = password ? await hashPassword(password) : null;
 

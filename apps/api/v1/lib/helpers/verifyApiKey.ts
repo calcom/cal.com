@@ -52,7 +52,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   req.user = apiKey.user;
 
   const { isAdmin, scope } = await isAdminGuard(req);
-  const userIsLockedOrBlocked = await isLockedOrBlocked(req, prisma);
+  const userIsLockedOrBlocked = await isLockedOrBlocked(req);
 
   if (userIsLockedOrBlocked)
     return res.status(403).json({ error: "You are not authorized to perform this request." });
