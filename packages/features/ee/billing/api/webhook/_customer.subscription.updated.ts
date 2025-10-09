@@ -39,7 +39,8 @@ const handler = async (data: Data) => {
     return { success: true, subscriptionId: subscription.id, subscriptionStatus: subscription.status };
   }
 
-  const phoneNumber = await PrismaPhoneNumberRepository.findByStripeSubscriptionId({
+  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+  const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
     stripeSubscriptionId: subscription.id,
   });
 
