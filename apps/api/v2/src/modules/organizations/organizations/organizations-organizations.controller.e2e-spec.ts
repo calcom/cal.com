@@ -92,6 +92,69 @@ describe("Organizations Organizations Endpoints", () => {
 
   const newDate = new Date(2035, 0, 9, 15, 0, 0);
 
+  /**
+   * Helper function to create a complete organization setup with admin user, profile, billing, membership, and API key
+   */
+  async function setupTestOrganization(
+    email: string,
+    orgName: string,
+    plan: "SCALE" | "PER_ACTIVE_USER" | "ESSENTIALS"
+  ) {
+    // Create admin user
+    const admin = await userRepositoryFixture.create({
+      email,
+      username: email,
+    });
+
+    // Create organization
+    const org = await organizationsRepositoryFixture.create({
+      name: orgName,
+      isOrganization: true,
+      isPlatform: true,
+    });
+
+    // Create profile for admin in organization
+    await profilesRepositoryFixture.create({
+      uid: `${randomString()}-uid`,
+      username: email,
+      user: { connect: { id: admin.id } },
+      organization: { connect: { id: org.id } },
+      movedFromUser: { connect: { id: admin.id } },
+    });
+
+    // Create billing for organization
+    const billing = await platformBillingRepositoryFixture.create(org.id, plan);
+
+    // Create admin membership
+    await membershipsRepositoryFixture.create({
+      role: "ADMIN",
+      user: { connect: { id: admin.id } },
+      team: { connect: { id: org.id } },
+      accepted: true,
+    });
+
+    // Create API key for admin
+    const { keyString } = await apiKeysRepositoryFixture.createApiKey(admin.id, null, org.id);
+    const apiKey = `cal_test_${keyString}`;
+
+    return { admin, org, billing, apiKey };
+  }
+
+  /**
+   * Helper function to create managed organization input data
+   */
+  function createManagedOrgInput(
+    namePrefix: string,
+    metadata?: Record<string, string | number | boolean>
+  ): CreateOrganizationInput {
+    const suffix = randomString(5);
+    return {
+      name: `${namePrefix} ${suffix}`,
+      slug: `${namePrefix.toLowerCase().replace(/\s+/g, "-")}-${suffix}`,
+      metadata: metadata || { key: "value" },
+    };
+  }
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, PrismaModule, UsersModule, TokensModule],
@@ -106,108 +169,36 @@ describe("Organizations Organizations Endpoints", () => {
     oAuthClientsRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
-    managerOrgAdmin = await userRepositoryFixture.create({
-      email: managerOrgAdminEmail,
-      username: managerOrgAdminEmail,
-    });
-
-    payPerUserPlanManagerOrgAdmin = await userRepositoryFixture.create({
-      email: payPerUserPlanManagerOrgAdminEmail,
-      username: payPerUserPlanManagerOrgAdminEmail,
-    });
-
-    essentialsPlanManagerOrgAdmin = await userRepositoryFixture.create({
-      email: essentialsPlanManagerOrgAdminEmail,
-      username: essentialsPlanManagerOrgAdminEmail,
-    });
-
-    managerOrg = await organizationsRepositoryFixture.create({
-      name: `organizations-organizations-organization-${randomString()}`,
-      isOrganization: true,
-      isPlatform: true,
-    });
-
-    payPerUserPlanManagerOrg = await organizationsRepositoryFixture.create({
-      name: `pay-per-user-plan-organization-${randomString()}`,
-      isOrganization: true,
-      isPlatform: true,
-    });
-
-    essentialsPlanManagerOrg = await organizationsRepositoryFixture.create({
-      name: `essentials-per-user-plan-organization-${randomString()}`,
-      isOrganization: true,
-      isPlatform: true,
-    });
-
-    await profilesRepositoryFixture.create({
-      uid: "asd-asd",
-      username: managerOrgAdminEmail,
-      user: { connect: { id: managerOrgAdmin.id } },
-      organization: { connect: { id: managerOrg.id } },
-      movedFromUser: { connect: { id: managerOrgAdmin.id } },
-    });
-
-    await profilesRepositoryFixture.create({
-      uid: "pay-per-user-asd-asd",
-      username: payPerUserPlanManagerOrgAdminEmail,
-      user: { connect: { id: payPerUserPlanManagerOrgAdmin.id } },
-      organization: { connect: { id: payPerUserPlanManagerOrg.id } },
-      movedFromUser: { connect: { id: payPerUserPlanManagerOrgAdmin.id } },
-    });
-
-    await profilesRepositoryFixture.create({
-      uid: "essentials-asd-asd",
-      username: managerOrgAdminEmail,
-      user: { connect: { id: essentialsPlanManagerOrgAdmin.id } },
-      organization: { connect: { id: essentialsPlanManagerOrg.id } },
-      movedFromUser: { connect: { id: essentialsPlanManagerOrgAdmin.id } },
-    });
-
-    managerOrgBilling = await platformBillingRepositoryFixture.create(managerOrg.id, "SCALE");
-    await platformBillingRepositoryFixture.create(payPerUserPlanManagerOrg.id, "PER_ACTIVE_USER");
-    await platformBillingRepositoryFixture.create(essentialsPlanManagerOrg.id, "ESSENTIALS");
-
-    await membershipsRepositoryFixture.create({
-      role: "ADMIN",
-      user: { connect: { id: managerOrgAdmin.id } },
-      team: { connect: { id: managerOrg.id } },
-      accepted: true,
-    });
-
-    await membershipsRepositoryFixture.create({
-      role: "ADMIN",
-      user: { connect: { id: payPerUserPlanManagerOrgAdmin.id } },
-      team: { connect: { id: payPerUserPlanManagerOrg.id } },
-      accepted: true,
-    });
-
-    await membershipsRepositoryFixture.create({
-      role: "ADMIN",
-      user: { connect: { id: essentialsPlanManagerOrgAdmin.id } },
-      team: { connect: { id: essentialsPlanManagerOrg.id } },
-      accepted: true,
-    });
-
-    const { keyString } = await apiKeysRepositoryFixture.createApiKey(
-      managerOrgAdmin.id,
-      null,
-      managerOrg.id
+    // Setup manager organization with SCALE plan
+    const managerSetup = await setupTestOrganization(
+      managerOrgAdminEmail,
+      `organizations-organizations-organization-${randomString()}`,
+      "SCALE"
     );
-    managerOrgAdminApiKey = `cal_test_${keyString}`;
+    managerOrgAdmin = managerSetup.admin;
+    managerOrg = managerSetup.org;
+    managerOrgBilling = managerSetup.billing;
+    managerOrgAdminApiKey = managerSetup.apiKey;
 
-    const { keyString: keyString1 } = await apiKeysRepositoryFixture.createApiKey(
-      payPerUserPlanManagerOrgAdmin.id,
-      null,
-      payPerUserPlanManagerOrg.id
+    // Setup pay-per-user organization
+    const payPerUserSetup = await setupTestOrganization(
+      payPerUserPlanManagerOrgAdminEmail,
+      `pay-per-user-plan-organization-${randomString()}`,
+      "PER_ACTIVE_USER"
     );
-    payPerUserPlanManagerOrgAdminApiKey = `cal_test_${keyString1}`;
+    payPerUserPlanManagerOrgAdmin = payPerUserSetup.admin;
+    payPerUserPlanManagerOrg = payPerUserSetup.org;
+    payPerUserPlanManagerOrgAdminApiKey = payPerUserSetup.apiKey;
 
-    const { keyString: keyString2 } = await apiKeysRepositoryFixture.createApiKey(
-      essentialsPlanManagerOrgAdmin.id,
-      null,
-      essentialsPlanManagerOrg.id
+    // Setup essentials organization
+    const essentialsSetup = await setupTestOrganization(
+      essentialsPlanManagerOrgAdminEmail,
+      `essentials-per-user-plan-organization-${randomString()}`,
+      "ESSENTIALS"
     );
-    essentialsPlanManagerOrgAdminApiKey = `cal_test_${keyString2}`;
+    essentialsPlanManagerOrgAdmin = essentialsSetup.admin;
+    essentialsPlanManagerOrg = essentialsSetup.org;
+    essentialsPlanManagerOrgAdminApiKey = essentialsSetup.apiKey;
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
@@ -236,28 +227,15 @@ describe("Organizations Organizations Endpoints", () => {
       .expect(400);
   });
 
-  const suffix = randomString(5);
   const metadataKey = "first-org-metadata-key";
   const metadataValue = "first-org-metadata-value";
-  const createManagedOrganizationBody: CreateOrganizationInput = {
-    name: `org ${suffix}`,
-    slug: `org-${suffix}`,
-    metadata: { [metadataKey]: metadataValue },
-  };
+  const createManagedOrganizationBody: CreateOrganizationInput = createManagedOrgInput("org", {
+    [metadataKey]: metadataValue,
+  });
 
-  const suffix2 = randomString(5);
-  const createManagedOrganizationBodySecond: CreateOrganizationInput = {
-    name: `org2 ${suffix2}`,
-    slug: `org2-${suffix2}`,
-    metadata: { key: "value" },
-  };
+  const createManagedOrganizationBodySecond: CreateOrganizationInput = createManagedOrgInput("org2");
 
-  const suffix3 = randomString(5);
-  const createManagedOrganizationBodyThird: CreateOrganizationInput = {
-    name: `org3 ${suffix3}`,
-    slug: `org3-${suffix3}`,
-    metadata: { key: "value" },
-  };
+  const createManagedOrganizationBodyThird: CreateOrganizationInput = createManagedOrgInput("org3");
 
   it("should not allow to create managed organization if plan is below SCALE", async () => {
     const response = await request(app.getHttpServer())
@@ -742,7 +720,11 @@ describe("Organizations Organizations Endpoints", () => {
 
   afterAll(async () => {
     await userRepositoryFixture.deleteByEmail(managerOrgAdmin.email);
+    await userRepositoryFixture.deleteByEmail(payPerUserPlanManagerOrgAdmin.email);
+    await userRepositoryFixture.deleteByEmail(essentialsPlanManagerOrgAdmin.email);
     await organizationsRepositoryFixture.delete(managerOrg.id);
+    await organizationsRepositoryFixture.delete(payPerUserPlanManagerOrg.id);
+    await organizationsRepositoryFixture.delete(essentialsPlanManagerOrg.id);
     await app.close();
   });
 });
