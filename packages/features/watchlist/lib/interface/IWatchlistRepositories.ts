@@ -1,5 +1,7 @@
 import type { Watchlist } from "@calcom/prisma/client";
 
+import type { WatchlistAction, WatchlistSource, WatchlistType } from "../types";
+
 /**
  * Interface for Global Watchlist Repository
  * Follows Dependency Inversion Principle
@@ -13,11 +15,11 @@ export interface IGlobalWatchlistRepository {
 
   // Write operations
   createEntry(data: {
-    type: import("../types").WatchlistType;
+    type: WatchlistType;
     value: string;
     description?: string;
-    action: import("../types").WatchlistAction;
-    source?: import("../types").WatchlistSource;
+    action: WatchlistAction;
+    source?: WatchlistSource;
   }): Promise<Watchlist>;
 
   updateEntry(
@@ -25,8 +27,8 @@ export interface IGlobalWatchlistRepository {
     data: {
       value?: string;
       description?: string;
-      action?: import("../types").WatchlistAction;
-      source?: import("../types").WatchlistSource;
+      action?: WatchlistAction;
+      source?: WatchlistSource;
     }
   ): Promise<Watchlist>;
 
@@ -53,11 +55,11 @@ export interface IOrganizationWatchlistRepository {
   createEntry(
     organizationId: number,
     data: {
-      type: import("../types").WatchlistType;
+      type: WatchlistType;
       value: string;
       description?: string;
-      action: import("../types").WatchlistAction;
-      source?: import("../types").WatchlistSource;
+      action: WatchlistAction;
+      source?: WatchlistSource;
     }
   ): Promise<Watchlist>;
 
@@ -67,8 +69,8 @@ export interface IOrganizationWatchlistRepository {
     data: {
       value?: string;
       description?: string;
-      action?: import("../types").WatchlistAction;
-      source?: import("../types").WatchlistSource;
+      action?: WatchlistAction;
+      source?: WatchlistSource;
     }
   ): Promise<Watchlist>;
 
