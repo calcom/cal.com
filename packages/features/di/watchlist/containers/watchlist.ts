@@ -13,14 +13,11 @@ import { watchlistModule } from "../modules/Watchlist.module";
 
 export const watchlistContainer = createContainer();
 
-// Load prisma module
 prismaModuleLoader.loadModule(watchlistContainer);
 
-// Load shared infrastructure
 watchlistContainer.load(SHARED_TOKENS.LOGGER, loggerServiceModule);
 watchlistContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
-// Load watchlist module
 watchlistContainer.load(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY, watchlistModule);
 watchlistContainer.load(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY, watchlistModule);
@@ -55,7 +52,6 @@ export function getOrganizationWatchlistRepository() {
 
 export async function getWatchlistFeature(containerOrPrisma?: Container | PrismaClient) {
   if (containerOrPrisma && "get" in containerOrPrisma) {
-    // Use provided container
     return createWatchlistFeature(containerOrPrisma);
   }
 
@@ -84,13 +80,12 @@ export async function getWatchlistFeature(containerOrPrisma?: Container | Prisma
     const auditRepo = new AuditRepository(prisma);
 
     return {
-      globalBlocking: new GlobalBlockingService({ globalRepo, orgRepo }),
+      globalBlocking: new GlobalBlockingService({ globalRepo }),
       orgBlocking: new OrganizationBlockingService({ orgRepo }),
       watchlist: new WatchlistService({ globalRepo, orgRepo }),
       audit: new AuditService({ auditRepository: auditRepo }),
     };
   }
 
-  // Use the default container for production
   return createWatchlistFeature(watchlistContainer);
 }

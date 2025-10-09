@@ -35,7 +35,7 @@ export function createWatchlistFeature(container: Container): WatchlistFeature {
 
   // Create services with Deps pattern
   return {
-    globalBlocking: new GlobalBlockingService({ globalRepo, orgRepo }),
+    globalBlocking: new GlobalBlockingService({ globalRepo }),
     orgBlocking: new OrganizationBlockingService({ orgRepo }),
     watchlist: new WatchlistService({ globalRepo, orgRepo }),
     audit: new AuditService({ auditRepository: auditRepo }),
