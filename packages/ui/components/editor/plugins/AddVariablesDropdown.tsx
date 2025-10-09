@@ -44,46 +44,6 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
     }
   }, [selectedIndex]);
 
-  const handleOnOpen = (open: boolean) => {
-    setisOpen(open);
-    if (!open) setQuery("");
-    setSelectedIndex(open && props.variables.length > 0 ? 0 : -1);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (props.variables.length === 0 || !isOpen) return;
-
-    switch (e.key) {
-      case "Enter":
-        e.preventDefault();
-        if (selectedIndex >= 0) {
-          props.addVariable(t(`${props.variables[selectedIndex]}_variable`));
-        }
-        setisOpen(false);
-        setSelectedIndex(-1);
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setSelectedIndex((prev) => {
-          if (prev <= 0) return props.variables.length - 1;
-          return prev - 1;
-        });
-        break;
-      case "ArrowDown":
-        e.preventDefault();
-        setSelectedIndex((prev) => {
-          if (prev >= props.variables.length - 1) return 0;
-          return prev + 1;
-        });
-        break;
-      case "Escape":
-        e.preventDefault();
-        setisOpen(false);
-        setSelectedIndex(-1);
-        break;
-    }
-  };
-
   const filteredVariables = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return props.variables;
@@ -94,6 +54,50 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
       return key.includes(q) || name.includes(q) || info.includes(q);
     });
   }, [props.variables, query, t]);
+
+  const handleOnOpen = (open: boolean) => {
+    setisOpen(open);
+    if (!open) setQuery("");
+    setSelectedIndex(open && filteredVariables.length > 0 ? 0 : -1);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (filteredVariables.length === 0 || !isOpen) return;
+
+    switch (e.key) {
+      case "Enter":
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < filteredVariables.length) {
+          props.addVariable(t(`${filteredVariables[selectedIndex]}_variable`));
+        }
+        setisOpen(false);
+        setQuery("");
+        setSelectedIndex(-1);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setSelectedIndex((prev) => {
+          if (filteredVariables.length === 0) return -1;
+          if (prev <= 0 || prev === -1) return filteredVariables.length - 1;
+          return prev - 1;
+        });
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        setSelectedIndex((prev) => {
+          if (filteredVariables.length === 0) return -1;
+          if (prev >= filteredVariables.length - 1) return 0;
+          return prev + 1;
+        });
+        break;
+      case "Escape":
+        e.preventDefault();
+        setisOpen(false);
+        setQuery("");
+        setSelectedIndex(-1);
+        break;
+    }
+  };
 
   return (
     <Dropdown onOpenChange={handleOnOpen} open={isOpen}>
