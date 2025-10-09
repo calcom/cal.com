@@ -96,7 +96,6 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
-  // Compute hideBranding early for use in confirmation emails
   const teamId = await getTeamIdFromEventType({
     eventType: {
       team: { id: eventType?.teamId ?? null },
@@ -107,10 +106,11 @@ export async function handleConfirmation(args: {
   const userId = triggerForUser ? booking.userId : null;
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
+  const eventTypeId = eventType?.id ?? booking.eventTypeId ?? null;
   // Fetch full event type data for hideBranding logic
-  const fullEventType = eventType?.id 
+  const fullEventType = eventTypeId
     ? await prisma.eventType.findUnique({
-        where: { id: eventType.id },
+        where: { id: eventTypeId },
         select: {
           id: true,
           team: {
@@ -130,12 +130,24 @@ export async function handleConfirmation(args: {
       })
     : null;
 
-  const hideBranding = await shouldHideBrandingForEvent({
-    eventTypeId: eventType?.id ?? 0,
-    team: fullEventType?.team ?? null,
-    owner: user as any ?? null,
-    organizationId: orgId ?? null,
-  });
+    const userForBranding = !fullEventType?.teamId && booking.userId
+      ? await prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        })
+      : null;
+
+    const hideBranding = eventTypeId
+        ? await shouldHideBrandingForEvent({
+            eventTypeId,
+            team: fullEventType?.team ?? null,
+            owner: userForBranding,
+            organizationId: orgId ?? null,
+          })
+        : false;
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -174,7 +186,7 @@ export async function handleConfirmation(args: {
 
       if (emailsEnabled) {
         await sendScheduledEmailsAndSMS(
-          { ...evt, additionalInformation: metadata, hideBranding },
+          ({ ...evt, additionalInformation: metadata, hideBranding } as any),
           undefined,
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,

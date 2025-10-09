@@ -12,6 +12,7 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
@@ -345,10 +346,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
 
-    if (emailsEnabled) {
-      await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
-    }
-
     const teamId = await getTeamIdFromEventType({
       eventType: {
         team: { id: booking.eventType?.teamId ?? null },
@@ -357,6 +354,54 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    if (emailsEnabled) {
+      const fullEventType = booking.eventTypeId
+        ? await prisma.eventType.findUnique({
+            where: { id: booking.eventTypeId },
+            select: {
+              id: true,
+              team: {
+                select: {
+                  id: true,
+                  hideBranding: true,
+                  parentId: true,
+                  parent: {
+                    select: {
+                      hideBranding: true,
+                    },
+                  },
+                },
+              },
+              teamId: true,
+            },
+          })
+        : null;
+
+      const userForBranding = !fullEventType?.teamId && booking.userId
+        ? await prisma.user.findUnique({
+            where: { id: booking.userId },
+            select: {
+              id: true,
+              hideBranding: true,
+            },
+          })
+        : null;
+
+      const hideBranding = booking.eventTypeId
+        ? await shouldHideBrandingForEvent({
+            eventTypeId: booking.eventTypeId,
+            team: fullEventType?.team ?? null,
+            owner: userForBranding,
+            organizationId: orgId ?? null,
+          })
+        : false;
+
+      await sendDeclinedEmailsAndSMS(
+        ({ ...evt, hideBranding } as any),
+        booking.eventType?.metadata as EventTypeMetadata
+      );
+    }
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
