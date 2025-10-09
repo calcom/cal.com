@@ -38,7 +38,7 @@ export async function executeAIPhoneCall(payload: string) {
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
 
   if (!calAIVoiceAgents) {
-    log.warn("Cal AI voice agents are disabled - skipping AI phone call");
+    log.warn("Cal.ai voice agents are disabled - skipping AI phone call");
     return;
   }
 

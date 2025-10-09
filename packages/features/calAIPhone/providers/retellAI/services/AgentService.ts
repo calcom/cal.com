@@ -32,7 +32,7 @@ export class AgentService {
       userId,
       teamId,
       expiresAt: null,
-      note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
+      note: `Cal.ai Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
     });
   }
 

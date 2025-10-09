@@ -876,7 +876,7 @@ describe("Retell AI Webhook Handler", () => {
     });
   });
 
-  describe("Cal AI Credit Type", () => {
+  describe("Cal.ai Credit Type", () => {
     beforeEach(() => {
       vi.clearAllMocks();
       vi.mocked(Retell.verify).mockReturnValue(true);
@@ -1037,7 +1037,7 @@ describe("Retell AI Webhook Handler", () => {
     });
   });
 
-  describe("Cal AI Credit Email Integration", () => {
+  describe("Cal.ai Credit Email Integration", () => {
     beforeEach(() => {
       vi.clearAllMocks();
       vi.mocked(Retell.verify).mockReturnValue(true);
@@ -1182,7 +1182,7 @@ describe("Retell AI Webhook Handler", () => {
       );
     });
 
-    it("should not pass SMS creditFor for Cal AI calls", async () => {
+    it("should not pass SMS creditFor for Cal.ai calls", async () => {
       const mockPhoneNumber: MockPhoneNumberWithTeam = {
         id: 2,
         phoneNumber: "+1234567890",
