@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { prisma } from "@calcom/prisma";
 import type { Team, User, Membership, Profile } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import inviteMemberHandler, { inviteMembersWithNoInviterPermissionCheck } from "./inviteMember.handler";
@@ -30,7 +31,7 @@ async function verifyMembershipExists(userId: number, teamId: number): Promise<M
   });
 }
 
-async function verifyUserOrganizationConsistency(userId: number): Promise<{
+async function _verifyUserOrganizationConsistency(userId: number): Promise<{
   profileCount: number;
   acceptedMembershipCount: number;
   pendingMembershipCount: number;
@@ -67,7 +68,9 @@ async function createTestUser(data: { email: string; username: string; name?: st
     await prisma.user.deleteMany({
       where: { OR: [{ email: uniqueEmail }, { username: uniqueUsername }] },
     });
-  } catch {}
+  } catch {
+    // Ignore cleanup errors
+  }
 
   return await prisma.user.create({
     data: {
@@ -83,7 +86,7 @@ async function createTestTeam(data: {
   slug: string;
   isOrganization?: boolean;
   parentId?: number;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   organizationSettings?: {
     orgAutoAcceptEmail: string;
     isOrganizationVerified?: boolean;
@@ -269,6 +272,20 @@ describe("inviteMember.handler Integration Tests", () => {
     return baseUser as unknown as NonNullable<TrpcSessionUser>;
   }
 
+  async function createManagedEventType(teamId: number, title: string) {
+    return await prisma.eventType.create({
+      data: {
+        title,
+        slug: `managed-${generateUniqueId()}`,
+        schedulingType: SchedulingType.MANAGED,
+        length: 30,
+        teamId,
+        assignAllTeamMembers: true,
+        locations: [{ type: DailyLocationType }],
+      },
+    });
+  }
+
   describe("Organization Direct Invite Flow", () => {
     it("should not auto-accept user's membership that was unaccepted when migrating to org with non-matching autoAcceptEmailDomain", async () => {
       const organization = trackTeam(
@@ -329,8 +346,7 @@ describe("inviteMember.handler Integration Tests", () => {
       await inviteMemberHandler({
         ctx: {
           user: createUserContext(inviterUser, organization.id),
-          session: {} as any,
-        } as any,
+        },
         input: {
           teamId: organization.id,
           usernameOrEmail: nonMatchingUser.email,
@@ -418,7 +434,7 @@ describe("inviteMember.handler Integration Tests", () => {
         ],
       });
 
-      const orgMembership = await verifyMembershipExists(
+      const _orgMembership = await verifyMembershipExists(
         unverifiedUserWithUnacceptedMembership.id,
         organization.id
       );
@@ -433,6 +449,196 @@ describe("inviteMember.handler Integration Tests", () => {
         regularTeam.id
       );
       expect(originalMembership?.accepted).toBe(true);
+    });
+
+    it("should add existing user to sub-team managed event types when auto-accepted to org", async () => {
+      // Setup: Organization with auto-accept domain
+      const organization = trackTeam(
+        await createTestTeam({
+          name: "Test Organization",
+          slug: "test-org",
+          isOrganization: true,
+          metadata: {},
+          organizationSettings: {
+            orgAutoAcceptEmail: "company.com",
+            isOrganizationVerified: true,
+          },
+        })
+      );
+
+      const subTeam = trackTeam(
+        await createTestTeam({
+          name: "Sub Team",
+          slug: "sub-team",
+          isOrganization: false,
+          parentId: organization.id,
+        })
+      );
+
+      // Create managed event type on sub-team with assignAllTeamMembers
+      const managedEventType = await createManagedEventType(subTeam.id, "Team Meeting");
+
+      const inviterUser = trackUser(
+        await createTestUser({
+          email: "inviter@company.com",
+          username: "inviter",
+        })
+      );
+
+      await prisma.membership.create({
+        data: {
+          userId: inviterUser.id,
+          teamId: organization.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      // Create existing user with matching domain
+      const existingUser = trackUser(
+        await createTestUser({
+          email: "user@company.com",
+          username: "user",
+        })
+      );
+
+      // Create pending sub-team membership
+      await prisma.membership.create({
+        data: {
+          userId: existingUser.id,
+          teamId: subTeam.id,
+          role: MembershipRole.MEMBER,
+          accepted: false,
+        },
+      });
+
+      // Act: Invite user to org (should auto-accept and trigger sub-team event type assignment)
+      await inviteMembersWithNoInviterPermissionCheck({
+        inviterName: null,
+        teamId: organization.id,
+        language: "en",
+        creationSource: "WEBAPP" as const,
+        orgSlug: organization.slug,
+        invitations: [
+          {
+            usernameOrEmail: existingUser.email,
+            role: MembershipRole.MEMBER,
+          },
+        ],
+      });
+
+      // Assert: User should have child event type created for managed event type
+      const childEventType = await prisma.eventType.findFirst({
+        where: {
+          userId: existingUser.id,
+          parentId: managedEventType.id,
+        },
+      });
+
+      expect(childEventType).toBeTruthy();
+      expect(childEventType?.parentId).toBe(managedEventType.id);
+      expect(childEventType?.userId).toBe(existingUser.id);
+
+      if (childEventType) {
+        await prisma.eventType.delete({ where: { id: childEventType.id } });
+      }
+      await prisma.eventType.delete({ where: { id: managedEventType.id } });
+    });
+
+    it("should add new user to managed event types when invited to sub-team with auto-accept domain", async () => {
+      // Setup: Organization with auto-accept domain
+      const organization = trackTeam(
+        await createTestTeam({
+          name: "Test Organization",
+          slug: "test-org",
+          isOrganization: true,
+          metadata: {},
+          organizationSettings: {
+            orgAutoAcceptEmail: "company.com",
+            isOrganizationVerified: true,
+          },
+        })
+      );
+
+      const subTeam = trackTeam(
+        await createTestTeam({
+          name: "Sub Team",
+          slug: "sub-team",
+          isOrganization: false,
+          parentId: organization.id,
+        })
+      );
+
+      // Create managed event type on sub-team with assignAllTeamMembers
+      const managedEventType = await createManagedEventType(subTeam.id, "Team Meeting");
+
+      const inviterUser = trackUser(
+        await createTestUser({
+          email: "inviter@company.com",
+          username: "inviter",
+        })
+      );
+
+      await prisma.membership.create({
+        data: {
+          userId: inviterUser.id,
+          teamId: subTeam.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: inviterUser.id,
+          teamId: organization.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      // Act: Invite new user to sub-team with matching domain
+      const newUserEmail = `newuser-${generateUniqueId()}@company.com`;
+
+      await inviteMemberHandler({
+        ctx: {
+          user: createUserContext(inviterUser, organization.id),
+        },
+        input: {
+          teamId: subTeam.id,
+          usernameOrEmail: newUserEmail,
+          role: MembershipRole.MEMBER,
+          language: "en",
+          creationSource: "WEBAPP" as const,
+        },
+      });
+
+      const newUser = await prisma.user.findUnique({
+        where: { email: newUserEmail },
+      });
+
+      expect(newUser).toBeTruthy();
+      if (newUser) {
+        trackUser(newUser);
+
+        // Assert: New user should have child event type created for managed event type
+        const childEventType = await prisma.eventType.findFirst({
+          where: {
+            userId: newUser.id,
+            parentId: managedEventType.id,
+          },
+        });
+
+        expect(childEventType).toBeTruthy();
+        expect(childEventType?.parentId).toBe(managedEventType.id);
+        expect(childEventType?.userId).toBe(newUser.id);
+
+        if (childEventType) {
+          await prisma.eventType.delete({ where: { id: childEventType.id } });
+        }
+      }
+
+      await prisma.eventType.delete({ where: { id: managedEventType.id } });
     });
   });
 });
