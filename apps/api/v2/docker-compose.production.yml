@@ -88,6 +88,10 @@ services:
       # Sentry (optional)
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
       
+      # Web Push VAPID Keys (required)
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      
     ports:
       - "127.0.0.1:5555:80"
     networks:
