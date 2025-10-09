@@ -1,5 +1,3 @@
-import { captureException } from "@sentry/nextjs";
-
 import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
 import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
@@ -14,84 +12,59 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findBlockedEmail(email: string): Promise<Watchlist | null> {
-    try {
-      return await this.prisma.watchlist.findFirst({
-        where: {
-          type: WatchlistType.EMAIL,
-          value: normalizeEmail(email),
-          action: WatchlistAction.BLOCK,
-          organizationId: null,
-          isGlobal: true,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prisma.watchlist.findFirst({
+      where: {
+        type: WatchlistType.EMAIL,
+        value: normalizeEmail(email),
+        action: WatchlistAction.BLOCK,
+        organizationId: null,
+        isGlobal: true,
+      },
+    });
   }
 
   async findBlockedDomain(domain: string): Promise<Watchlist | null> {
-    try {
-      return await this.prisma.watchlist.findFirst({
-        where: {
-          type: WatchlistType.DOMAIN,
-          value: normalizeDomain(domain),
-          action: WatchlistAction.BLOCK,
-          organizationId: null,
-          isGlobal: true,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prisma.watchlist.findFirst({
+      where: {
+        type: WatchlistType.DOMAIN,
+        value: normalizeDomain(domain),
+        action: WatchlistAction.BLOCK,
+        organizationId: null,
+        isGlobal: true,
+      },
+    });
   }
 
   async findFreeEmailDomain(domain: string): Promise<Watchlist | null> {
-    try {
-      return await this.prisma.watchlist.findFirst({
-        where: {
-          type: WatchlistType.DOMAIN,
-          value: normalizeDomain(domain),
-          source: WatchlistSource.FREE_DOMAIN_POLICY,
-          organizationId: null,
-          isGlobal: true,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prisma.watchlist.findFirst({
+      where: {
+        type: WatchlistType.DOMAIN,
+        value: normalizeDomain(domain),
+        source: WatchlistSource.FREE_DOMAIN_POLICY,
+        organizationId: null,
+        isGlobal: true,
+      },
+    });
   }
 
   async findById(id: string): Promise<Watchlist | null> {
-    try {
-      return await this.prisma.watchlist.findUnique({
-        where: {
-          id,
-          organizationId: null,
-          isGlobal: true,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prisma.watchlist.findUnique({
+      where: {
+        id,
+        organizationId: null,
+        isGlobal: true,
+      },
+    });
   }
 
   async listBlockedEntries(): Promise<Watchlist[]> {
-    try {
-      return await this.prisma.watchlist.findMany({
-        where: {
-          organizationId: null,
-          isGlobal: true,
-          action: WatchlistAction.BLOCK,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prisma.watchlist.findMany({
+      where: {
+        organizationId: null,
+        isGlobal: true,
+        action: WatchlistAction.BLOCK,
+      },
+    });
   }
 
   // Write operations for global entries
@@ -102,22 +75,17 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     action: WatchlistAction;
     source?: WatchlistSource;
   }): Promise<Watchlist> {
-    try {
-      return await this.prisma.watchlist.create({
-        data: {
-          type: data.type,
-          value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
-          description: data.description,
-          isGlobal: true,
-          organizationId: null,
-          action: data.action,
-          source: data.source || WatchlistSource.MANUAL,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prisma.watchlist.create({
+      data: {
+        type: data.type,
+        value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
+        description: data.description,
+        isGlobal: true,
+        organizationId: null,
+        action: data.action,
+        source: data.source || WatchlistSource.MANUAL,
+      },
+    });
   }
 
   async updateEntry(
@@ -129,41 +97,31 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       source?: WatchlistSource;
     }
   ): Promise<Watchlist> {
-    try {
-      return await this.prisma.watchlist.update({
-        where: {
-          id,
-          organizationId: null,
-        },
-        data: {
-          ...(data.value && {
-            value:
-              data.value.includes("@") && !data.value.startsWith("@")
-                ? normalizeEmail(data.value)
-                : normalizeDomain(data.value),
-          }),
-          ...(data.description !== undefined && { description: data.description }),
-          ...(data.action && { action: data.action }),
-          ...(data.source && { source: data.source }),
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    return await this.prisma.watchlist.update({
+      where: {
+        id,
+        organizationId: null,
+      },
+      data: {
+        ...(data.value && {
+          value:
+            data.value.includes("@") && !data.value.startsWith("@")
+              ? normalizeEmail(data.value)
+              : normalizeDomain(data.value),
+        }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.action && { action: data.action }),
+        ...(data.source && { source: data.source }),
+      },
+    });
   }
 
   async deleteEntry(id: string): Promise<void> {
-    try {
-      await this.prisma.watchlist.delete({
-        where: {
-          id,
-          organizationId: null,
-        },
-      });
-    } catch (err) {
-      captureException(err);
-      throw err;
-    }
+    await this.prisma.watchlist.delete({
+      where: {
+        id,
+        organizationId: null,
+      },
+    });
   }
 }
