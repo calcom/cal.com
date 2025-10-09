@@ -1,6 +1,7 @@
 import type { Logger } from "tslog";
 
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
+import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
 import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -8,7 +9,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";

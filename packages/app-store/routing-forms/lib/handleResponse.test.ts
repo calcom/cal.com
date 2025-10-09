@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 
 import isRouter from "../lib/isRouter";
