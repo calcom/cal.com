@@ -18,7 +18,7 @@ type Deps = {
 export class GlobalBlockingService implements IBlockingService {
   constructor(private readonly deps: Deps) {}
 
-  async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
+  async isBlocked(email: string, organizationId?: number | null): Promise<BlockingResult> {
     const normalizedEmail = normalizeEmail(email);
     const normalizedDomain = extractDomainFromEmail(normalizedEmail);
 

@@ -7,5 +7,5 @@ export interface BlockingResult {
 }
 
 export interface IBlockingService {
-  isBlocked(email: string, organizationId?: number): Promise<BlockingResult>;
+  isBlocked(email: string, organizationId?: number | null): Promise<BlockingResult>;
 }

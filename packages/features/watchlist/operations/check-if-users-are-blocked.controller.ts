@@ -34,7 +34,7 @@ export async function checkIfUsersAreBlocked(
 
     // Check org-specific blocking if organizationId is provided
     if (organizationId) {
-      const orgResult = await watchlist.orgBlocking.isEmailBlocked(normalizedEmail, organizationId);
+      const orgResult = await watchlist.orgBlocking.isBlocked(normalizedEmail, organizationId);
       if (orgResult.isBlocked) {
         return presenter(true);
       }

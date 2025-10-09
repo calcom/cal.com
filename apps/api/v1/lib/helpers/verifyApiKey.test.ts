@@ -20,12 +20,10 @@ vi.mock("@calcom/lib/crypto", () => ({
   symmetricEncrypt: vi.fn().mockReturnValue("mocked-encrypted-value"),
 }));
 
-// Mock the watchlist feature to return controlled responses
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
   getWatchlistFeature: vi.fn(),
 }));
 
-// Mock prisma for API key and user queries
 vi.mock("@calcom/prisma", () => {
   const mockPrisma = {
     apiKey: {
@@ -134,7 +132,6 @@ describe("Verify API key", () => {
     });
     const hashedKey = hashAPIKey("test_key");
 
-    // Mock API key lookup for admin user
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
       id: "test-api-key-id",
       hashedKey,
@@ -148,7 +145,6 @@ describe("Verify API key", () => {
       },
     } as unknown as ApiKey);
 
-    // Mock user lookup
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 123,
       email: "admin@example.com",
@@ -157,7 +153,6 @@ describe("Verify API key", () => {
       memberships: [],
     } as unknown as User);
 
-    // Mock watchlist feature (admin won't be blocked)
     const mockWatchlistFeature = {
       globalBlocking: {
         isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
@@ -196,7 +191,6 @@ describe("Verify API key", () => {
     });
     const hashedKey = hashAPIKey("test_key");
 
-    // Mock API key lookup for org admin user
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
       id: "test-api-key-id",
       hashedKey,
@@ -224,7 +218,6 @@ describe("Verify API key", () => {
       },
     } as unknown as ApiKey);
 
-    // Mock user lookup
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 123,
       email: "org-admin@acme.com",
@@ -247,7 +240,6 @@ describe("Verify API key", () => {
       ],
     } as unknown as User);
 
-    // Mock membership lookup for org admin
     vi.mocked(prisma.membership.findMany).mockResolvedValue([
       {
         accepted: true,
@@ -264,7 +256,6 @@ describe("Verify API key", () => {
       },
     ] as unknown as Membership[]);
 
-    // Mock watchlist feature (org admin won't be blocked)
     const mockWatchlistFeature = {
       globalBlocking: {
         isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
@@ -303,7 +294,6 @@ describe("Verify API key", () => {
     });
     const hashedKey = hashAPIKey("test_key");
 
-    // Mock API key lookup with locked user
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
       id: "test-api-key-id",
       hashedKey,
@@ -312,12 +302,11 @@ describe("Verify API key", () => {
         id: 123,
         email: "locked@example.com",
         role: UserPermissionRole.USER,
-        locked: true, // User is locked
+        locked: true,
         memberships: [],
       },
     } as unknown as ApiKey);
 
-    // Mock user lookup
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 123,
       email: "locked@example.com",
@@ -326,10 +315,8 @@ describe("Verify API key", () => {
       memberships: [],
     } as unknown as User);
 
-    // Mock membership lookup (empty for locked user)
     vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
 
-    // Mock watchlist feature (won't be called since user is already locked)
     const mockWatchlistFeature = {
       globalBlocking: {
         isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
@@ -367,7 +354,6 @@ describe("Verify API key", () => {
     });
     const hashedKey = hashAPIKey("test_key");
 
-    // Mock API key lookup
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
       id: "test-api-key-id",
       hashedKey,
@@ -376,12 +362,11 @@ describe("Verify API key", () => {
         id: 123,
         email: "blocked@example.com",
         role: UserPermissionRole.USER,
-        locked: false, // Not locked, but will be blocked by watchlist
+        locked: false,
         memberships: [],
       },
     } as unknown as ApiKey);
 
-    // Mock user lookup
     vi.mocked(prisma.user.findUnique).mockResolvedValue({
       id: 123,
       email: "blocked@example.com",
@@ -390,10 +375,8 @@ describe("Verify API key", () => {
       memberships: [],
     } as unknown as User);
 
-    // Mock membership lookup (empty for regular user)
     vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
 
-    // Mock watchlist feature to return blocked result
     const mockWatchlistFeature = {
       globalBlocking: {
         isBlocked: vi.fn().mockResolvedValue({ isBlocked: true }),
@@ -420,10 +403,6 @@ describe("Verify API key", () => {
     expect(JSON.parse(res._getData())).toEqual({ error: "You are not authorized to perform this request." });
     expect(serverNext).not.toHaveBeenCalled();
 
-    // Verify watchlist was checked
-    expect(mockWatchlistFeature.globalBlocking.isBlocked).toHaveBeenCalledWith(
-      "blocked@example.com",
-      undefined
-    );
+    expect(mockWatchlistFeature.globalBlocking.isBlocked).toHaveBeenCalledWith("blocked@example.com", null);
   });
 });

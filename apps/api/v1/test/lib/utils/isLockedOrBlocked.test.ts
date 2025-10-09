@@ -93,7 +93,7 @@ describe("isLockedOrBlocked", () => {
 
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
       "test@blocked.com",
-      undefined
+      null
     );
   });
 
@@ -113,7 +113,7 @@ describe("isLockedOrBlocked", () => {
 
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
       "test@example.com",
-      undefined
+      null
     );
   });
 
@@ -133,7 +133,7 @@ describe("isLockedOrBlocked", () => {
 
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
       "test@blocked.com",
-      undefined
+      null
     );
   });
 });

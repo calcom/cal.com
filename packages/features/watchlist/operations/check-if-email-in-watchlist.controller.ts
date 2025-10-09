@@ -13,7 +13,7 @@ function presenter(isBlocked: boolean): EmailBlockedCheckResponseDTO {
 
 interface CheckEmailBlockedParams {
   email: string;
-  organizationId?: number;
+  organizationId?: number | null;
 }
 
 /**
@@ -27,18 +27,15 @@ export async function checkIfEmailIsBlockedInWatchlistController(
     const { email, organizationId } = params;
     const normalizedEmail = normalizeEmail(email);
 
-    // Get the watchlist feature through DI
     const watchlist = await getWatchlistFeature();
 
-    // Global first
     const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail, organizationId);
     if (globalResult.isBlocked) {
       return presenter(true);
     }
 
-    // Then org
     if (organizationId) {
-      const orgResult = await watchlist.orgBlocking.isEmailBlocked(normalizedEmail, organizationId);
+      const orgResult = await watchlist.orgBlocking.isBlocked(normalizedEmail, organizationId);
       if (orgResult.isBlocked) {
         return presenter(true);
       }

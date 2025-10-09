@@ -7,7 +7,6 @@ export async function isLockedOrBlocked(req: NextApiRequest) {
   if (!user?.email) return false;
   return (
     user.locked ||
-    (await checkIfEmailIsBlockedInWatchlistController({ email: user.email, organizationId: undefined }))
-      .isBlocked
+    (await checkIfEmailIsBlockedInWatchlistController({ email: user.email, organizationId: null })).isBlocked
   );
 }
