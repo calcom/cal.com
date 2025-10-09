@@ -113,7 +113,12 @@ import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { IEventTypePaymentCredentialType, Invitee, InviteeItem, IsFixedAwareUser } from "./handleNewBooking/types";
+import type {
+  IEventTypePaymentCredentialType,
+  Invitee,
+  InviteeItem,
+  IsFixedAwareUser,
+} from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
@@ -1185,7 +1190,9 @@ async function handler(
   const protectedBaseEmails = new Set<string>();
   usersWithPreventImpersonation.forEach((user) => {
     protectedBaseEmails.add(extractBaseEmail(user.email).toLowerCase());
-    user.secondaryEmails.forEach((se: { email: string }) => protectedBaseEmails.add(extractBaseEmail(se.email).toLowerCase()));
+    user.secondaryEmails.forEach((se: { email: string }) =>
+      protectedBaseEmails.add(extractBaseEmail(se.email).toLowerCase())
+    );
   });
 
   const guestsRemoved: string[] = [];
