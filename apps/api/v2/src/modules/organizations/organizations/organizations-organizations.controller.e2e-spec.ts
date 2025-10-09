@@ -61,12 +61,24 @@ describe("Organizations Organizations Endpoints", () => {
   let profilesRepositoryFixture: ProfileRepositoryFixture;
 
   let managerOrg: Team;
-  let basicPlanManagerOrg: Team;
+  let payPerUserPlanManagerOrg: Team;
+  let essentialsPlanManagerOrg: Team;
+
   let managedOrg: ManagedOrganizationWithApiKeyOutput;
   let managedOrg2: ManagedOrganizationWithApiKeyOutput;
+
   const managerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
+  const payPerUserPlanManagerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
+  const essentialsPlanManagerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
+
   let managerOrgAdmin: User;
+  let payPerUserPlanManagerOrgAdmin: User;
+  let essentialsPlanManagerOrgAdmin: User;
+
   let managerOrgAdminApiKey: string;
+  let payPerUserPlanManagerOrgAdminApiKey: string;
+  let essentialsPlanManagerOrgAdminApiKey: string;
+
   let managerOrgBilling: PlatformBilling;
 
   let managedOrgApiKey: string;
@@ -99,14 +111,30 @@ describe("Organizations Organizations Endpoints", () => {
       username: managerOrgAdminEmail,
     });
 
+    payPerUserPlanManagerOrgAdmin = await userRepositoryFixture.create({
+      email: payPerUserPlanManagerOrgAdminEmail,
+      username: payPerUserPlanManagerOrgAdminEmail,
+    });
+
+    essentialsPlanManagerOrgAdmin = await userRepositoryFixture.create({
+      email: essentialsPlanManagerOrgAdminEmail,
+      username: essentialsPlanManagerOrgAdminEmail,
+    });
+
     managerOrg = await organizationsRepositoryFixture.create({
       name: `organizations-organizations-organization-${randomString()}`,
       isOrganization: true,
       isPlatform: true,
     });
-    // Create a separate manager org with ESSENTIALS plan for testing plan restrictions
-    basicPlanManagerOrg = await organizationsRepositoryFixture.create({
-      name: `basic-plan-organization-${randomString()}`,
+
+    payPerUserPlanManagerOrg = await organizationsRepositoryFixture.create({
+      name: `pay-per-user-plan-organization-${randomString()}`,
+      isOrganization: true,
+      isPlatform: true,
+    });
+
+    essentialsPlanManagerOrg = await organizationsRepositoryFixture.create({
+      name: `essentials-per-user-plan-organization-${randomString()}`,
       isOrganization: true,
       isPlatform: true,
     });
@@ -118,16 +146,26 @@ describe("Organizations Organizations Endpoints", () => {
       organization: { connect: { id: managerOrg.id } },
       movedFromUser: { connect: { id: managerOrgAdmin.id } },
     });
+
     await profilesRepositoryFixture.create({
-      uid: "basic-asd-asd",
+      uid: "pay-per-user-asd-asd",
+      username: payPerUserPlanManagerOrgAdminEmail,
+      user: { connect: { id: payPerUserPlanManagerOrgAdmin.id } },
+      organization: { connect: { id: payPerUserPlanManagerOrg.id } },
+      movedFromUser: { connect: { id: payPerUserPlanManagerOrgAdmin.id } },
+    });
+
+    await profilesRepositoryFixture.create({
+      uid: "essentials-asd-asd",
       username: managerOrgAdminEmail,
-      user: { connect: { id: managerOrgAdmin.id } },
-      organization: { connect: { id: basicPlanManagerOrg.id } },
-      movedFromUser: { connect: { id: managerOrgAdmin.id } },
+      user: { connect: { id: essentialsPlanManagerOrgAdmin.id } },
+      organization: { connect: { id: essentialsPlanManagerOrg.id } },
+      movedFromUser: { connect: { id: essentialsPlanManagerOrgAdmin.id } },
     });
 
     managerOrgBilling = await platformBillingRepositoryFixture.create(managerOrg.id, "SCALE");
-    await platformBillingRepositoryFixture.create(basicPlanManagerOrg.id, "ESSENTIALS");
+    await platformBillingRepositoryFixture.create(payPerUserPlanManagerOrg.id, "PER_ACTIVE_USER");
+    await platformBillingRepositoryFixture.create(essentialsPlanManagerOrg.id, "ESSENTIALS");
 
     await membershipsRepositoryFixture.create({
       role: "ADMIN",
@@ -138,8 +176,15 @@ describe("Organizations Organizations Endpoints", () => {
 
     await membershipsRepositoryFixture.create({
       role: "ADMIN",
-      user: { connect: { id: managerOrgAdmin.id } },
-      team: { connect: { id: basicPlanManagerOrg.id } },
+      user: { connect: { id: payPerUserPlanManagerOrgAdmin.id } },
+      team: { connect: { id: payPerUserPlanManagerOrg.id } },
+      accepted: true,
+    });
+
+    await membershipsRepositoryFixture.create({
+      role: "ADMIN",
+      user: { connect: { id: essentialsPlanManagerOrgAdmin.id } },
+      team: { connect: { id: essentialsPlanManagerOrg.id } },
       accepted: true,
     });
 
@@ -149,6 +194,20 @@ describe("Organizations Organizations Endpoints", () => {
       managerOrg.id
     );
     managerOrgAdminApiKey = `cal_test_${keyString}`;
+
+    const { keyString: keyString1 } = await apiKeysRepositoryFixture.createApiKey(
+      payPerUserPlanManagerOrgAdmin.id,
+      null,
+      payPerUserPlanManagerOrg.id
+    );
+    payPerUserPlanManagerOrgAdminApiKey = `cal_test_${keyString1}`;
+
+    const { keyString: keyString2 } = await apiKeysRepositoryFixture.createApiKey(
+      essentialsPlanManagerOrgAdmin.id,
+      null,
+      essentialsPlanManagerOrg.id
+    );
+    essentialsPlanManagerOrgAdminApiKey = `cal_test_${keyString2}`;
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
@@ -193,15 +252,40 @@ describe("Organizations Organizations Endpoints", () => {
     metadata: { key: "value" },
   };
 
-  it.only("should not allow to create managed organization if plan is below SCALE", async () => {
+  const suffix3 = randomString(5);
+  const createManagedOrganizationBodyThird: CreateOrganizationInput = {
+    name: `org3 ${suffix3}`,
+    slug: `org3-${suffix3}`,
+    metadata: { key: "value" },
+  };
+
+  it("should not allow to create managed organization if plan is below SCALE", async () => {
     const response = await request(app.getHttpServer())
-      .post(`/v2/organizations/${basicPlanManagerOrg.id}/organizations`)
-      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .post(`/v2/organizations/${essentialsPlanManagerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${essentialsPlanManagerOrgAdminApiKey}`)
       .send(createManagedOrganizationBody)
       .expect(403);
     expect(response.body.error.message).toBe(
-      `PlatformPlanGuard - organization with id=${basicPlanManagerOrg.id} does not have required plan for this operation. Minimum plan is SCALE while the organization has ESSENTIALS.`
+      `PlatformPlanGuard - organization with id=${essentialsPlanManagerOrg.id} does not have required plan for this operation. Minimum plan is SCALE while the organization has ESSENTIALS.`
     );
+  });
+
+  it("should allow to create managed organization if plan is SCALE or above", async () => {
+    return request(app.getHttpServer())
+      .post(`/v2/organizations/${payPerUserPlanManagerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${payPerUserPlanManagerOrgAdminApiKey}`)
+      .send(createManagedOrganizationBodyThird)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const managedOrg3 = responseBody.data;
+        expect(managedOrg3?.id).toBeDefined();
+        expect(managedOrg3?.name).toEqual(createManagedOrganizationBodyThird.name);
+        expect(managedOrg3?.slug).toEqual(createManagedOrganizationBodyThird.slug);
+        expect(managedOrg3?.metadata).toEqual(createManagedOrganizationBodyThird.metadata);
+        expect(managedOrg3?.apiKey).toBeDefined();
+      });
   });
 
   it("should create managed organization", async () => {
