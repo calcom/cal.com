@@ -34,66 +34,6 @@ import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTrigger
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
-type BookingWithBranding = {
-  eventTypeId?: number | null;
-  eventType?: {
-    id?: number | null;
-    owner?: {
-      id?: number | null;
-      hideBranding?: boolean | null;
-    } | null;
-    team?: {
-      hideBranding?: boolean | null;
-      parentId?: number | null;
-      parent?: {
-        hideBranding?: boolean | null;
-      } | null;
-    } | null;
-  } | null;
-};
-
-async function calculateHideBrandingForBooking(
-  booking: BookingWithBranding,
-  fallbackOrganizationId: number | null
-) {
-  const eventTypeId = booking.eventType?.id ?? booking.eventTypeId ?? null;
-  if (!eventTypeId) {
-    return false;
-  }
-
-  const team = booking.eventType?.team
-    ? {
-        hideBranding: booking.eventType.team.hideBranding ?? null,
-        parent: booking.eventType.team.parent
-          ? {
-              hideBranding: booking.eventType.team.parent.hideBranding ?? null,
-            }
-          : null,
-      }
-    : null;
-
-  const owner = booking.eventType?.owner?.id
-    ? {
-        id: booking.eventType.owner.id,
-        hideBranding: booking.eventType.owner.hideBranding ?? null,
-      }
-    : null;
-
-  const organizationId = booking.eventType?.team?.parentId ?? fallbackOrganizationId;
-
-  try {
-    return await shouldHideBrandingForEvent({
-      eventTypeId,
-      team,
-      owner,
-      organizationId,
-    });
-  } catch (error) {
-    log.warn("Failed to calculate hideBranding for booking", safeStringify({ eventTypeId, error }));
-    return !!booking.eventType?.owner?.hideBranding;
-  }
-}
-
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
   evt: CalendarEvent;
@@ -158,6 +98,47 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
+  // Compute hideBranding early for use in confirmation emails
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: eventType?.teamId ?? null },
+      parentId: eventType?.parentId ?? null,
+    },
+  });
+  const triggerForUser = !teamId || (teamId && eventType?.parentId);
+  const userId = triggerForUser ? booking.userId : null;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+  // Fetch full event type data for hideBranding logic
+  const fullEventType = eventType?.id
+    ? await prisma.eventType.findUnique({
+        where: { id: eventType.id },
+        select: {
+          id: true,
+          team: {
+            select: {
+              id: true,
+              hideBranding: true,
+              parentId: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
+          teamId: true,
+        },
+      })
+    : null;
+
+  const calculatedHideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: eventType?.id ?? 0,
+    team: fullEventType?.team ?? null,
+    owner: user ?? null,
+    organizationId: orgId ?? null,
+  });
+
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
       errorCode: "BookingCreatingMeetingFailed",
@@ -173,7 +154,7 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
+      const _eventType = booking.eventType;
 
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
@@ -195,7 +176,7 @@ export async function handleConfirmation(args: {
 
       if (emailsEnabled) {
         await sendScheduledEmailsAndSMS(
-          { ...evt, additionalInformation: metadata },
+          { ...evt, additionalInformation: metadata, hideBranding: calculatedHideBranding },
           undefined,
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,
@@ -424,19 +405,6 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
-  const teamId = await getTeamIdFromEventType({
-    eventType: {
-      team: { id: eventType?.teamId ?? null },
-      parentId: eventType?.parentId ?? null,
-    },
-  });
-
-  const triggerForUser = !teamId || (teamId && eventType?.parentId);
-
-  const userId = triggerForUser ? booking.userId : null;
-
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
   //Workflows - set reminders for confirmed events
@@ -464,7 +432,7 @@ export async function handleConfirmation(args: {
           evt: evtOfBooking,
           workflows,
           requiresConfirmation: false,
-          hideBranding: hideBranding,
+          hideBranding: calculatedHideBranding,
           seatReferenceUid: evt.attendeeSeatId,
           isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
         });
@@ -474,7 +442,7 @@ export async function handleConfirmation(args: {
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
-        hideBranding: await calculateHideBrandingForBooking(updatedBookings[index], orgId ?? null),
+        hideBranding: hideBranding,
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
@@ -685,7 +653,7 @@ export async function handleConfirmation(args: {
           workflows,
           smsReminderNumber: booking.smsReminderNumber,
           calendarEvent: calendarEventForWorkflow,
-          hideBranding: hideBranding,
+          hideBranding: calculatedHideBranding,
           triggers: [WorkflowTriggerEvents.BOOKING_PAID],
         });
       } catch (error) {

@@ -83,26 +83,37 @@ async function handler(input: CancelBookingInput) {
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
 
-  // Calculate hide branding setting using comprehensive logic that considers team and organization settings
+  // For user events, we need to fetch the user's profile to get the organization ID
+  const userOrganizationId = !bookingToDelete.eventType?.team
+    ? (
+        await prisma.profile.findFirst({
+          where: {
+            userId: bookingToDelete.userId,
+          },
+          select: {
+            organizationId: true,
+          },
+        })
+      )?.organizationId
+    : null;
+
   const hideBranding = await shouldHideBrandingForEvent({
-    eventTypeId: bookingToDelete.eventType?.id || 0,
-    team: bookingToDelete.eventType?.team
-      ? {
-          hideBranding: bookingToDelete.eventType.team.hideBranding,
-          parent: bookingToDelete.eventType.team.parent
-            ? {
-                hideBranding: bookingToDelete.eventType.team.parent.hideBranding,
-              }
-            : null,
-        }
-      : null,
-    owner: bookingToDelete.eventType?.owner
-      ? {
-          id: bookingToDelete.eventType.owner.id,
-          hideBranding: bookingToDelete.eventType.owner.hideBranding,
-        }
-      : null,
-    organizationId: bookingToDelete.eventType?.team?.parentId || null,
+    eventTypeId: bookingToDelete.eventTypeId ?? 0,
+    team: bookingToDelete.eventType?.team ?? null,
+    owner: bookingToDelete.user ?? null,
+    organizationId: bookingToDelete.eventType?.team?.parentId ?? userOrganizationId ?? null,
+  });
+
+  log.debug("Branding configuration", {
+    hideBranding,
+    eventTypeId: bookingToDelete.eventTypeId,
+    teamHideBranding: bookingToDelete.eventType?.team?.hideBranding,
+    teamParentHideBranding: bookingToDelete.eventType?.team?.parent?.hideBranding,
+    ownerHideBranding: bookingToDelete.user?.hideBranding,
+    teamParentId: bookingToDelete.eventType?.team?.parentId,
+    userOrganizationId,
+    finalOrganizationId: bookingToDelete.eventType?.team?.parentId ?? userOrganizationId,
+    isTeamEvent: !!bookingToDelete.eventType?.team,
   });
 
   const {
@@ -315,12 +326,12 @@ async function handler(input: CancelBookingInput) {
     iCalUID: bookingToDelete.iCalUID,
     iCalSequence: bookingToDelete.iCalSequence + 1,
     platformClientId,
+    hideBranding,
     platformRescheduleUrl,
     platformCancelUrl,
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
     platformBookingUrl,
     customReplyToEmail: bookingToDelete.eventType?.customReplyToEmail,
-    hideBranding,
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
@@ -594,12 +605,19 @@ async function handler(input: CancelBookingInput) {
 
   try {
     // TODO: if emails fail try to requeue them
-    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled)) {
+      log.debug("Sending cancellation emails with branding config", {
+        hideBranding: evt.hideBranding,
+        platformClientId,
+        arePlatformEmailsEnabled,
+      });
+
       await sendCancelledEmailsAndSMS(
         evt,
         { eventName: bookingToDelete?.eventType?.eventName },
         bookingToDelete?.eventType?.metadata as EventTypeMetadata
       );
+    }
   } catch (error) {
     log.error("Error deleting event", error);
   }
