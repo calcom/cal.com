@@ -77,14 +77,12 @@ export const handleRescheduleEventManager = async ({
   const results = updateManager.results ?? [];
 
   const calVideoResult = results.find((result) => result.type === "daily_video");
-  // Check if Cal Video Creation Failed - That is the fallback for Cal.com and is expected to always work
+  // Log warning if Cal Video creation failed but don't block (consistent with initial booking)
   if (calVideoResult && !calVideoResult.success) {
-    handleRescheduleEventManager.error("Cal Video creation failed", {
+    handleRescheduleEventManager.warn("Cal Video creation failed - continuing without video link", {
       error: calVideoResult.error,
       bookingLocation,
     });
-    // This happens only when Cal Video is down
-    throw new Error("Failed to set video conferencing link, but the meeting has been rescheduled");
   }
 
   const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
