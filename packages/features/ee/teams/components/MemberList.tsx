@@ -433,7 +433,8 @@ function MemberListContent(props: Props) {
           const canImpersonate = props.permissions?.canImpersonate ?? false;
           const canResendInvitation = props.permissions?.canInvite ?? false;
           const editMode =
-            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) && !isSelf;
+            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) &&
+            (!isSelf || props.isOrgAdminOrOwner);
 
           const impersonationMode =
             canImpersonate &&
@@ -668,7 +669,7 @@ function MemberListContent(props: Props) {
     getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
-          case "role":
+          case "role": {
             // Include both traditional roles and PBAC custom roles
             const allRoles = facetedTeamValues.roles.map((role) => ({
               label: role.name,
@@ -676,6 +677,7 @@ function MemberListContent(props: Props) {
             }));
 
             return convertFacetedValuesToMap(allRoles);
+          }
           default:
             return new Map();
         }
@@ -685,7 +687,7 @@ function MemberListContent(props: Props) {
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
+  const _fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
     hasNextPage,
     fetchNextPage,
