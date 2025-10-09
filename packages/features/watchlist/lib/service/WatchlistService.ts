@@ -9,11 +9,13 @@ import type { WatchlistEntry, CreateWatchlistEntryData, UpdateWatchlistEntryData
 
 const log = logger.getSubLogger({ prefix: ["[WatchlistService]"] });
 
+type Deps = {
+  globalRepo: IGlobalWatchlistRepository;
+  orgRepo: IOrganizationWatchlistRepository;
+};
+
 export class WatchlistService implements IWatchlistService {
-  constructor(
-    private readonly globalRepo: IGlobalWatchlistRepository,
-    private readonly orgRepo: IOrganizationWatchlistRepository
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async createEntry(data: CreateWatchlistEntryData): Promise<WatchlistEntry> {
     log.debug("Creating watchlist entry", {
@@ -26,14 +28,14 @@ export class WatchlistService implements IWatchlistService {
 
     const entryPromise =
       isGlobal || !data.organizationId
-        ? this.globalRepo.createEntry({
+        ? this.deps.globalRepo.createEntry({
             type: data.type,
             value: data.value,
             description: data.description,
             action: data.action,
             source: data.source,
           })
-        : this.orgRepo.createEntry(data.organizationId, {
+        : this.deps.orgRepo.createEntry(data.organizationId, {
             type: data.type,
             value: data.value,
             description: data.description,
@@ -55,7 +57,7 @@ export class WatchlistService implements IWatchlistService {
   async updateEntry(id: string, data: UpdateWatchlistEntryData): Promise<WatchlistEntry> {
     log.debug("Updating watchlist entry", { id });
 
-    return this.globalRepo.updateEntry(id, data).then((entry) => {
+    return this.deps.globalRepo.updateEntry(id, data).then((entry) => {
       log.info("Watchlist entry updated successfully", {
         id: entry.id,
         type: entry.type,
@@ -67,7 +69,7 @@ export class WatchlistService implements IWatchlistService {
   async deleteEntry(id: string): Promise<void> {
     log.debug("Deleting watchlist entry", { id });
 
-    return this.globalRepo.deleteEntry(id).then(() => {
+    return this.deps.globalRepo.deleteEntry(id).then(() => {
       log.info("Watchlist entry deleted successfully", { id });
     });
   }
@@ -75,7 +77,7 @@ export class WatchlistService implements IWatchlistService {
   async getEntry(id: string): Promise<WatchlistEntry | null> {
     log.debug("Fetching watchlist entry", { id });
 
-    return this.globalRepo.findById(id).then((globalEntry) => {
+    return this.deps.globalRepo.findById(id).then((globalEntry) => {
       if (globalEntry) {
         log.debug("Global watchlist entry found", { id, type: globalEntry.type });
         return globalEntry;
@@ -92,9 +94,9 @@ export class WatchlistService implements IWatchlistService {
     log.debug("Listing watchlist entries", { organizationId });
 
     // Prepare repository calls
-    const globalEntriesPromise = this.globalRepo.listBlockedEntries();
+    const globalEntriesPromise = this.deps.globalRepo.listBlockedEntries();
     const orgEntriesPromise = organizationId
-      ? this.orgRepo.listBlockedEntries(organizationId)
+      ? this.deps.orgRepo.listBlockedEntries(organizationId)
       : Promise.resolve([]);
 
     // Execute both calls in parallel

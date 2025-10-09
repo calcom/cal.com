@@ -7,20 +7,24 @@ export interface OrganizationBlockingResult {
   watchlistEntry?: Watchlist | null;
 }
 
+type Deps = {
+  orgRepo: IOrganizationWatchlistRepository;
+};
+
 /**
  * Service for organization-specific blocking operations
  * Handles blocking rules that apply only to a specific organization
  */
 export class OrganizationBlockingService {
-  constructor(private readonly orgRepo: IOrganizationWatchlistRepository) {}
+  constructor(private readonly deps: Deps) {}
 
   async isEmailBlocked(email: string, organizationId: number): Promise<OrganizationBlockingResult> {
     const domain = email.split("@")[1];
 
     // Prepare repository calls
-    const emailPromise = this.orgRepo.findBlockedEmail({ email, organizationId });
+    const emailPromise = this.deps.orgRepo.findBlockedEmail({ email, organizationId });
     const domainPromise = domain
-      ? this.orgRepo.findBlockedDomain(`@${domain}`, organizationId)
+      ? this.deps.orgRepo.findBlockedDomain(`@${domain}`, organizationId)
       : Promise.resolve(null);
 
     // Execute both calls in parallel
@@ -51,7 +55,7 @@ export class OrganizationBlockingService {
   async isDomainBlocked(domain: string, organizationId: number): Promise<OrganizationBlockingResult> {
     const normalizedDomain = domain.startsWith("@") ? domain : `@${domain}`;
 
-    return this.orgRepo.findBlockedDomain(normalizedDomain, organizationId).then((domainEntry) => {
+    return this.deps.orgRepo.findBlockedDomain(normalizedDomain, organizationId).then((domainEntry) => {
       if (domainEntry) {
         return {
           isBlocked: true,

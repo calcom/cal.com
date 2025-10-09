@@ -6,25 +6,27 @@ import type {
 import { WatchlistType } from "../types";
 import { normalizeEmail, extractDomainFromEmail, normalizeDomain } from "../utils/normalization";
 
+type Deps = {
+  globalRepo: IGlobalWatchlistRepository;
+  orgRepo: IOrganizationWatchlistRepository;
+};
+
 /**
  * Global Blocking Service - handles only global watchlist entries
  * For organization-specific blocking, use OrganizationBlockingService
  */
 export class GlobalBlockingService implements IBlockingService {
-  constructor(
-    private readonly globalRepo: IGlobalWatchlistRepository,
-    private readonly orgRepo: IOrganizationWatchlistRepository
-  ) {}
+  constructor(private readonly deps: Deps) {}
 
   async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
     const normalizedEmail = normalizeEmail(email);
     const normalizedDomain = extractDomainFromEmail(normalizedEmail);
 
     // Prepare all repository calls
-    const globalEmailPromise = this.globalRepo.findBlockedEmail(normalizedEmail);
-    const globalDomainPromise = this.globalRepo.findBlockedDomain(normalizedDomain);
+    const globalEmailPromise = this.deps.globalRepo.findBlockedEmail(normalizedEmail);
+    const globalDomainPromise = this.deps.globalRepo.findBlockedDomain(normalizedDomain);
     const orgDomainPromise = organizationId
-      ? this.orgRepo.findBlockedDomain(normalizedDomain, organizationId)
+      ? this.deps.orgRepo.findBlockedDomain(normalizedDomain, organizationId)
       : Promise.resolve(null);
 
     // Execute all repository calls in parallel
@@ -65,6 +67,6 @@ export class GlobalBlockingService implements IBlockingService {
 
   async isFreeEmailDomain(domain: string): Promise<boolean> {
     const normalizedDomain = normalizeDomain(domain);
-    return this.globalRepo.findFreeEmailDomain(normalizedDomain).then((entry) => !!entry);
+    return this.deps.globalRepo.findFreeEmailDomain(normalizedDomain).then((entry) => !!entry);
   }
 }

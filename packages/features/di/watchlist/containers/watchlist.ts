@@ -84,10 +84,10 @@ export async function getWatchlistFeature(containerOrPrisma?: Container | Prisma
     const auditRepo = new AuditRepository(prisma);
 
     return {
-      globalBlocking: new GlobalBlockingService(globalRepo, orgRepo),
-      orgBlocking: new OrganizationBlockingService(orgRepo),
-      watchlist: new WatchlistService(globalRepo, orgRepo),
-      audit: new AuditService(auditRepo),
+      globalBlocking: new GlobalBlockingService({ globalRepo, orgRepo }),
+      orgBlocking: new OrganizationBlockingService({ orgRepo }),
+      watchlist: new WatchlistService({ globalRepo, orgRepo }),
+      audit: new AuditService({ auditRepository: auditRepo }),
     };
   }
 
