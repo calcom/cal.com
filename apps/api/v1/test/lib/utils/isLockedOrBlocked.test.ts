@@ -10,19 +10,6 @@ vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
   getWatchlistFeature: vi.fn(),
 }));
 
-vi.mock("@calcom/prisma", () => {
-  const mockPrisma = {
-    watchlist: {
-      findFirst: vi.fn(),
-    },
-  };
-
-  return {
-    prisma: mockPrisma,
-    default: mockPrisma,
-  };
-});
-
 describe("isLockedOrBlocked", () => {
   let mockWatchlistFeature: WatchlistFeature;
 
@@ -31,7 +18,7 @@ describe("isLockedOrBlocked", () => {
       isBlocked: vi.fn(),
     };
     const mockOrgBlocking = {
-      isEmailBlocked: vi.fn(),
+      isBlocked: vi.fn(),
     };
 
     mockWatchlistFeature = {
