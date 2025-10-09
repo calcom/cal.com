@@ -6,7 +6,7 @@ import { BlockingService } from "@calcom/features/watchlist/lib/service/Blocking
 import { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 import { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
 
-import { WATCHLIST_DI_TOKENS } from "../tokens";
+import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
 
 export const watchlistServicesModule = createModule();
 

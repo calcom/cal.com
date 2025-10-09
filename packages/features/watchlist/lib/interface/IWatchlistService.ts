@@ -5,5 +5,5 @@ export interface IWatchlistService {
   updateEntry(id: string, data: UpdateWatchlistEntryData): Promise<WatchlistEntry>;
   deleteEntry(id: string): Promise<void>;
   getEntry(id: string): Promise<WatchlistEntry | null>;
-  listEntries(organizationId?: number): Promise<WatchlistEntry[]>;
+  listAllEntries(organizationId?: number): Promise<WatchlistEntry[]>;
 }

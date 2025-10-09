@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
+import { PrismaClient } from "@calcom/prisma/client";
 import { CreationSource } from "@calcom/prisma/enums";
 
 import { schemaUserCreateBodyParams } from "~/lib/validations/user";
@@ -95,6 +96,7 @@ async function postHandler(req: NextApiRequest) {
   const data = await schemaUserCreateBodyParams.parseAsync(req.body);
   const user = await UserCreationService.createUser({
     data: { ...data, creationSource: CreationSource.API_V1 },
+    prisma: (req as unknown as { prisma: PrismaClient }).prisma,
   });
   req.statusCode = 201;
   return { user };

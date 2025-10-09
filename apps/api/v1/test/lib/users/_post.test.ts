@@ -5,6 +5,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, test, expect, vi } from "vitest";
 
+import { WatchlistAction, WatchlistSource, WatchlistType } from "@calcom/features/watchlist/lib/types";
+
 import handler from "../../../pages/api/users/_post";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -96,8 +98,8 @@ describe("POST /api/users", () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       body: {
-        email: "test@example.com",
-        username: "test",
+        email: "testuser@example.com",
+        username: "testuser",
       },
       prisma: prismock,
     });
@@ -105,27 +107,28 @@ describe("POST /api/users", () => {
 
     await prismock.watchlist.create({
       data: {
-        type: "EMAIL",
-        value: "test@example.com",
-        severity: "CRITICAL",
-        createdById: 1,
+        type: WatchlistType.EMAIL,
+        value: "testuser@example.com",
+        action: WatchlistAction.BLOCK,
+        isGlobal: true,
+        organizationId: null,
+        source: WatchlistSource.MANUAL,
       },
     });
-
     await handler(req, res);
 
     expect(res.statusCode).toBe(200);
 
     const userQuery = await prismock.user.findFirst({
       where: {
-        email: "test@example.com",
+        email: "testuser@example.com",
       },
     });
 
     expect(userQuery).toEqual(
       expect.objectContaining({
-        email: "test@example.com",
-        username: "test",
+        email: "testuser@example.com",
+        username: "testuser",
         locked: true,
         organizationId: null,
       })

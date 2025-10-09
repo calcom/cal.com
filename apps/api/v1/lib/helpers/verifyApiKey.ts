@@ -4,7 +4,7 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { isAdminGuard } from "../utils/isAdmin";
 import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
@@ -52,7 +52,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   req.user = apiKey.user;
 
   const { isAdmin, scope } = await isAdminGuard(req);
-  const userIsLockedOrBlocked = await isLockedOrBlocked(req);
+  const userIsLockedOrBlocked = await isLockedOrBlocked(req, prisma);
 
   if (userIsLockedOrBlocked)
     return res.status(403).json({ error: "You are not authorized to perform this request." });

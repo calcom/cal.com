@@ -1,6 +1,6 @@
 import { captureException } from "@sentry/nextjs";
 
-import type { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma/client";
 import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 
 import type {

@@ -588,6 +588,9 @@ model Team {
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
 
+  teamBilling         TeamBilling?         @relation("TeamBilling")
+  organizationBilling OrganizationBilling? @relation("OrganizationBilling")
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -2593,6 +2596,36 @@ model CalAiPhoneNumber {
   @@index([teamId])
   @@index([inboundAgentId])
   @@index([outboundAgentId])
+}
+
+model TeamBilling {
+  id     String @id @default(uuid())
+  teamId Int    @unique
+  team   Team?  @relation("TeamBilling", fields: [teamId], references: [id], onDelete: Cascade)
+
+  subscriptionId     String @unique
+  subscriptionItemId String
+  customerId         String
+  status             String
+  planName           String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrganizationBilling {
+  id     String @id @default(uuid())
+  teamId Int    @unique
+  team   Team   @relation("OrganizationBilling", fields: [teamId], references: [id], onDelete: Cascade)
+
+  subscriptionId     String @unique
+  subscriptionItemId String
+  customerId         String
+  status             String
+  planName           String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum CalendarCacheEventStatus {

@@ -57,9 +57,8 @@ export function normalizeDomain(domain: string, includeSubdomains = false): stri
     normalized = normalized.slice(1);
   }
 
-  // Basic domain validation - ES5 compatible regex
-  // Supports ASCII domains; international domains should be punycode-encoded before validation
-  const domainRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
+  const domainRegex =
+    /^[a-zA-Z0-9\u00a1-\uffff]([a-zA-Z0-9\u00a1-\uffff-]*[a-zA-Z0-9\u00a1-\uffff])?(\.[a-zA-Z0-9\u00a1-\uffff]([a-zA-Z0-9\u00a1-\uffff-]*[a-zA-Z0-9\u00a1-\uffff])?)*$/;
   if (!domainRegex.test(normalized)) {
     throw new Error(`Invalid domain format: ${domain}`);
   }

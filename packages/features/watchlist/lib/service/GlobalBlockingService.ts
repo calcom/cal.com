@@ -1,11 +1,10 @@
-import { safeStringify } from "@calcom/lib/safeStringify";
 import type { IBlockingService, BlockingResult } from "../interface/IBlockingService";
 import type {
   IGlobalWatchlistRepository,
   IOrganizationWatchlistRepository,
 } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
-import { normalizeEmail, extractDomainFromEmail } from "../utils/normalization";
+import { normalizeEmail, extractDomainFromEmail, normalizeDomain } from "../utils/normalization";
 
 /**
  * Global Blocking Service - handles only global watchlist entries
@@ -64,8 +63,8 @@ export class GlobalBlockingService implements IBlockingService {
   }
 
   async isFreeEmailDomain(domain: string): Promise<boolean> {
-    const normalizedDomain = domain.startsWith("@") ? domain : `@${domain}`;
-    const entry = await this.globalRepo.findFreeEmailDomain(normalizedDomain.toLowerCase());
+    const normalizedDomain = normalizeDomain(domain);
+    const entry = await this.globalRepo.findFreeEmailDomain(normalizedDomain);
     return !!entry;
   }
 }

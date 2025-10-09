@@ -11,13 +11,19 @@ describe("isLockedOrBlocked", () => {
       data: [
         {
           type: "DOMAIN",
-          value: "spam.com",
-          createdById: 1,
+          value: "@spam.com",
+          action: "BLOCK",
+          isGlobal: true,
+          organizationId: null,
+          source: "MANUAL",
         },
         {
           type: "DOMAIN",
-          value: "blocked.com",
-          createdById: 1,
+          value: "@blocked.com",
+          action: "BLOCK",
+          isGlobal: true,
+          organizationId: null,
+          source: "MANUAL",
         },
       ],
     });
@@ -25,13 +31,13 @@ describe("isLockedOrBlocked", () => {
 
   it("should return false if no user in request", async () => {
     const req = { userId: null, user: null } as unknown as NextApiRequest;
-    const result = await isLockedOrBlocked(req);
+    const result = await isLockedOrBlocked(req, prismock);
     expect(result).toBe(false);
   });
 
   it("should return false if user has no email", async () => {
     const req = { userId: 123, user: { email: null } } as unknown as NextApiRequest;
-    const result = await isLockedOrBlocked(req);
+    const result = await isLockedOrBlocked(req, prismock);
     expect(result).toBe(false);
   });
 
@@ -44,7 +50,7 @@ describe("isLockedOrBlocked", () => {
       },
     } as unknown as NextApiRequest;
 
-    const result = await isLockedOrBlocked(req);
+    const result = await isLockedOrBlocked(req, prismock);
     expect(result).toBe(true);
   });
 
@@ -57,7 +63,7 @@ describe("isLockedOrBlocked", () => {
       },
     } as unknown as NextApiRequest;
 
-    const result = await isLockedOrBlocked(req);
+    const result = await isLockedOrBlocked(req, prismock);
     expect(result).toBe(true);
   });
 
@@ -70,7 +76,7 @@ describe("isLockedOrBlocked", () => {
       },
     } as unknown as NextApiRequest;
 
-    const result = await isLockedOrBlocked(req);
+    const result = await isLockedOrBlocked(req, prismock);
     expect(result).toBe(false);
   });
 
@@ -83,7 +89,7 @@ describe("isLockedOrBlocked", () => {
       },
     } as unknown as NextApiRequest;
 
-    const result = await isLockedOrBlocked(req);
+    const result = await isLockedOrBlocked(req, prismock);
     expect(result).toBe(true);
   });
 });
