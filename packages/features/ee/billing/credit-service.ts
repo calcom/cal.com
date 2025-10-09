@@ -471,6 +471,11 @@ export class CreditService {
         creditBalance?.limitReachedAt &&
         (!teamId || dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month")))
       ) {
+        log.info("User or team has limit already reached or team has already reached limit this month", {
+          teamId,
+          userId,
+          creditBalance,
+        });
         return null; // user has limit already reached or team has already reached limit this month
       }
 
