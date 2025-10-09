@@ -23,4 +23,31 @@ export class PrismaTeamBillingRepository implements IBillingRepository {
       status: billingRecord.status as SubscriptionStatus,
     };
   }
+
+  async getBySubscriptionId(id: string): Promise<BillingRecord | null> {
+    const billingRecord = await this.prismaClient.teamBilling.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!billingRecord) return null;
+
+    return {
+      ...billingRecord,
+      planName: billingRecord.planName as Plan,
+      status: billingRecord.status as SubscriptionStatus,
+    };
+  }
+
+  async updateSubscriptionStatus(id: string, status: SubscriptionStatus) {
+    await this.prismaClient.teamBilling.update({
+      where: {
+        id,
+      },
+      data: {
+        status,
+      },
+    });
+  }
 }

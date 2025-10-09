@@ -27,6 +27,8 @@ export interface BillingRecord {
 
 export interface IBillingRepository {
   create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord>;
+  getBySubscriptionId(id: string): Promise<BillingRecord | null>;
+  updateSubscriptionStatus(id: string, status: SubscriptionStatus): Promise<void>;
 }
 
 export interface IBillingRepositoryConstructorArgs {
