@@ -65,7 +65,7 @@ describe("OrganizationOnboardingFactory", () => {
       expect(service.constructor.name).toBe("BillingEnabledOnboardingService");
     });
 
-    it("should return BillingEnabledOnboardingService even when IS_TEAM_BILLING_ENABLED is false", async () => {
+    it("should return SelfHostedOnboardingService for admin when IS_TEAM_BILLING_ENABLED is false", async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -77,7 +77,23 @@ describe("OrganizationOnboardingFactory", () => {
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
       const service = Factory.create(mockAdminUser as any);
 
-      // The factory logic returns billing enabled unless E2E mode is active
+      // Self-hosted admins skip billing
+      expect(service.constructor.name).toBe("SelfHostedOnboardingService");
+    });
+
+    it("should return BillingEnabledOnboardingService for regular user when IS_TEAM_BILLING_ENABLED is false", async () => {
+      vi.doMock("@calcom/lib/constants", async (importOriginal) => {
+        const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
+        return {
+          ...actual,
+          IS_TEAM_BILLING_ENABLED: false,
+        };
+      });
+
+      const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
+      const service = Factory.create(mockRegularUser as any);
+
+      // Non-admins still need billing even on self-hosted
       expect(service.constructor.name).toBe("BillingEnabledOnboardingService");
     });
 
@@ -118,38 +134,50 @@ describe("OrganizationOnboardingFactory", () => {
   describe("Factory Decision Matrix", () => {
     const testCases = [
       {
-        scenario: "Billing enabled + Regular User",
+        scenario: "Hosted (billing enabled) + Regular User",
+        user: mockRegularUser,
         isBillingEnabled: true,
         isE2E: false,
         expected: "BillingEnabled",
       },
       {
-        scenario: "Billing enabled + Admin User",
+        scenario: "Hosted (billing enabled) + Admin User",
+        user: mockAdminUser,
         isBillingEnabled: true,
         isE2E: false,
         expected: "BillingEnabled",
       },
       {
-        scenario: "Billing disabled + Regular User (still returns BillingEnabled)",
+        scenario: "Self-hosted (billing disabled) + Regular User",
+        user: mockRegularUser,
         isBillingEnabled: false,
         isE2E: false,
-        expected: "BillingEnabled", // Factory logic: always billing unless E2E
+        expected: "BillingEnabled", // Non-admins still need billing
       },
       {
-        scenario: "Billing disabled + Admin User (still returns BillingEnabled)",
+        scenario: "Self-hosted (billing disabled) + Admin User",
+        user: mockAdminUser,
         isBillingEnabled: false,
         isE2E: false,
-        expected: "BillingEnabled", // Factory logic: always billing unless E2E
+        expected: "SelfHosted", // Admins skip billing on self-hosted
       },
       {
-        scenario: "E2E mode (overrides billing)",
+        scenario: "E2E mode + Admin User",
+        user: mockAdminUser,
         isBillingEnabled: true,
         isE2E: true,
-        expected: "SelfHosted", // E2E is the only way to get SelfHosted flow
+        expected: "SelfHosted", // E2E always uses self-hosted flow
+      },
+      {
+        scenario: "E2E mode + Regular User",
+        user: mockRegularUser,
+        isBillingEnabled: true,
+        isE2E: true,
+        expected: "SelfHosted", // E2E always uses self-hosted flow
       },
     ];
 
-    testCases.forEach(({ scenario, isBillingEnabled, isE2E, expected }) => {
+    testCases.forEach(({ scenario, user, isBillingEnabled, isE2E, expected }) => {
       it(`${scenario} → ${expected}`, async () => {
         // Setup environment
         if (isE2E) {
@@ -169,7 +197,7 @@ describe("OrganizationOnboardingFactory", () => {
         const { OrganizationOnboardingFactory: Factory } = await import(
           "../OrganizationOnboardingFactory"
         );
-        const service = Factory.create(mockAdminUser as any);
+        const service = Factory.create(user as any);
 
         if (expected === "BillingEnabled") {
           expect(service.constructor.name).toBe("BillingEnabledOnboardingService");

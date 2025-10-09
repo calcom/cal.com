@@ -12,13 +12,13 @@ const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
 
 /**
  * Billing is disabled (self-hosted flow) when:
- * - IS_SELF_HOSTED=true AND user is ADMIN
- * - Exception: E2E tests always use billing flow
+ * - IS_TEAM_BILLING_ENABLED=false AND user is ADMIN
+ * - Exception: E2E tests always use self-hosted flow
  * Otherwise, billing is enabled (Stripe flow).
  */
 export class OrganizationOnboardingFactory {
   static create(user: OnboardingUser): IOrganizationOnboardingService {
-    const isBillingEnabled = this.isBillingEnabled();
+    const isBillingEnabled = this.isBillingEnabled(user);
 
     log.debug(
       "Creating onboarding service",
@@ -38,18 +38,19 @@ export class OrganizationOnboardingFactory {
     }
   }
 
-  private static isBillingEnabled(): boolean {
-    // E2E tests always use billing flow
+  private static isBillingEnabled(user: OnboardingUser): boolean {
+    // E2E tests always skip billing (use self-hosted flow)
     if (process.env.NEXT_PUBLIC_IS_E2E) {
       return false;
     }
 
-    // Self-hosted admins skip billing
+    // If billing is enabled globally, use it
     if (IS_TEAM_BILLING_ENABLED) {
       return true;
     }
 
-    // All other cases use billing
-    return true;
+    // Self-hosted admins can skip billing, non-admins still need billing even on self-hosted
+    const isAdmin = user.role === UserPermissionRole.ADMIN;
+    return !isAdmin;
   }
 }

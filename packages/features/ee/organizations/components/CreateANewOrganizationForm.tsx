@@ -93,7 +93,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         slug: data.slug,
       });
 
-      if (isAdmin && data.userId !== session.data.user.id) {
+      if (isAdmin) {
         router.push("/settings/organizations/new/handover");
       } else {
         router.push("/settings/organizations/new/about");
