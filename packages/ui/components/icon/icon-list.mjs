@@ -101,6 +101,7 @@ export const lucideIconList = new Set([
   "pause",
   "pencil",
   "phone-call",
+  "phone-incoming",
   "phone-outgoing",
   "phone",
   "play",

@@ -1,4 +1,4 @@
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";

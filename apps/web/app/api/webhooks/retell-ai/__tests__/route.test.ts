@@ -2,8 +2,6 @@ import type { NextRequest } from "next/server";
 import { Retell } from "retell-sdk";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import type { CalAiPhoneNumber, User, Team, Agent } from "@calcom/prisma/client";
 import { CreditUsageType } from "@calcom/prisma/enums";
 
@@ -90,16 +88,19 @@ vi.mock("@calcom/emails/email-manager", () => ({
   sendCreditBalanceLowWarningEmails: (...args: unknown[]) => mockSendCreditBalanceLowWarningEmails(...args),
 }));
 
+const mockFindByPhoneNumber = vi.fn();
+const mockFindByProviderAgentId = vi.fn();
+
 vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository", () => ({
-  PrismaPhoneNumberRepository: {
-    findByPhoneNumber: vi.fn(),
-  },
+  PrismaPhoneNumberRepository: vi.fn().mockImplementation(() => ({
+    findByPhoneNumber: mockFindByPhoneNumber,
+  })),
 }));
 
 vi.mock("@calcom/lib/server/repository/PrismaAgentRepository", () => ({
-  PrismaAgentRepository: {
-    findByProviderAgentId: vi.fn(),
-  },
+  PrismaAgentRepository: vi.fn().mockImplementation(() => ({
+    findByProviderAgentId: mockFindByProviderAgentId,
+  })),
 }));
 
 vi.mock("next/server", () => ({
@@ -205,7 +206,7 @@ describe("Retell AI Webhook Handler", () => {
       team: null,
     };
 
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
@@ -264,7 +265,7 @@ describe("Retell AI Webhook Handler", () => {
       user: null,
     };
 
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockTeamPhoneNumber);
+    mockFindByPhoneNumber.mockResolvedValue(mockTeamPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
@@ -323,12 +324,12 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(request);
 
     expect(response.status).toBe(200);
-    expect(PrismaPhoneNumberRepository.findByPhoneNumber).not.toHaveBeenCalled();
+    expect(mockFindByPhoneNumber).not.toHaveBeenCalled();
   });
 
   it("should handle phone number not found", async () => {
     vi.mocked(Retell.verify).mockReturnValue(true);
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(null);
+    mockFindByPhoneNumber.mockResolvedValue(null);
 
     const body: RetellWebhookBody = {
       event: "call_analyzed",
@@ -374,7 +375,7 @@ describe("Retell AI Webhook Handler", () => {
       team: null,
     };
 
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
     mockHasAvailableCredits.mockResolvedValue(false);
 
@@ -449,7 +450,7 @@ describe("Retell AI Webhook Handler", () => {
         team: null,
       };
 
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mockHasAvailableCredits.mockResolvedValue(true);
       mockChargeCredits.mockResolvedValue(undefined);
 
@@ -503,7 +504,7 @@ describe("Retell AI Webhook Handler", () => {
       user: { id: 42, email: "u@example.com", name: "U" },
       team: null,
     };
-    vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+    mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
     mockHasAvailableCredits.mockResolvedValue(true);
     mockChargeCredits.mockResolvedValue(undefined);
 
@@ -553,7 +554,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mockChargeCredits.mockResolvedValue({ userId: 1 });
 
       const body: RetellWebhookBody = {
@@ -605,7 +606,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
       const body: RetellWebhookBody = {
         event: "call_analyzed",
@@ -670,7 +671,7 @@ describe("Retell AI Webhook Handler", () => {
         user: { id: 1, email: "test@example.com", name: "Test User" },
         team: null,
       };
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
       // Mock chargeCredits to throw an error
       mockChargeCredits.mockRejectedValue(new Error("Credit service error"));
@@ -704,7 +705,7 @@ describe("Retell AI Webhook Handler", () => {
   describe("Web Call Tests", () => {
     const mockAgent: Pick<
       Agent,
-      "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt"
+      "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt" | "inboundEventTypeId"
     > = {
       id: "agent-123",
       name: "Test Agent",
@@ -714,6 +715,7 @@ describe("Retell AI Webhook Handler", () => {
       teamId: null,
       createdAt: new Date(),
       updatedAt: new Date(),
+      inboundEventTypeId: null,
     };
 
     beforeEach(() => {
@@ -722,7 +724,7 @@ describe("Retell AI Webhook Handler", () => {
     });
 
     it("should process web call with valid agent and charge credits", async () => {
-      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(mockAgent);
+      mockFindByProviderAgentId.mockResolvedValue(mockAgent);
       mockChargeCredits.mockResolvedValue(undefined);
 
       const body: RetellWebhookBody = {
@@ -748,7 +750,7 @@ describe("Retell AI Webhook Handler", () => {
       const data = await response.json();
       expect(data.success).toBe(true);
 
-      expect(PrismaAgentRepository.findByProviderAgentId).toHaveBeenCalledWith({
+      expect(mockFindByProviderAgentId).toHaveBeenCalledWith({
         providerAgentId: "agent_5e3e0d29d692172c2c24d8f9a7",
       });
 
@@ -764,8 +766,8 @@ describe("Retell AI Webhook Handler", () => {
     });
 
     it("should handle web call with team agent", async () => {
-      const teamAgent = { ...mockAgent, userId: 2, teamId: 10 };
-      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(teamAgent);
+      const teamAgent = { ...mockAgent, userId: 2, teamId: 10, inboundEventTypeId: null };
+      mockFindByProviderAgentId.mockResolvedValue(teamAgent);
       mockChargeCredits.mockResolvedValue(undefined);
 
       const body: RetellWebhookBody = {
@@ -798,7 +800,7 @@ describe("Retell AI Webhook Handler", () => {
     });
 
     it("should handle web call without from_number", async () => {
-      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(mockAgent);
+      mockFindByProviderAgentId.mockResolvedValue(mockAgent);
       mockChargeCredits.mockResolvedValue(undefined);
 
       const body: RetellWebhookBody = {
@@ -819,8 +821,8 @@ describe("Retell AI Webhook Handler", () => {
       const response = await callPOST(request);
 
       expect(response.status).toBe(200);
-      expect(PrismaAgentRepository.findByProviderAgentId).toHaveBeenCalled();
-      expect(PrismaPhoneNumberRepository.findByPhoneNumber).not.toHaveBeenCalled();
+      expect(mockFindByProviderAgentId).toHaveBeenCalled();
+      expect(mockFindByPhoneNumber).not.toHaveBeenCalled();
       expect(mockChargeCredits).toHaveBeenCalled();
     });
 
@@ -842,12 +844,12 @@ describe("Retell AI Webhook Handler", () => {
       const response = await callPOST(request);
 
       expect(response.status).toBe(200);
-      expect(PrismaAgentRepository.findByProviderAgentId).not.toHaveBeenCalled();
+      expect(mockFindByProviderAgentId).not.toHaveBeenCalled();
       expect(mockChargeCredits).not.toHaveBeenCalled();
     });
 
     it("should handle web call with agent not found", async () => {
-      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(null);
+      mockFindByProviderAgentId.mockResolvedValue(null);
 
       const body: RetellWebhookBody = {
         event: "call_analyzed",
@@ -869,7 +871,7 @@ describe("Retell AI Webhook Handler", () => {
       const response = await callPOST(request);
 
       expect(response.status).toBe(200);
-      expect(PrismaAgentRepository.findByProviderAgentId).toHaveBeenCalledWith({
+      expect(mockFindByProviderAgentId).toHaveBeenCalledWith({
         providerAgentId: "non-existent-agent",
       });
       expect(mockChargeCredits).not.toHaveBeenCalled();
