@@ -12,7 +12,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findBlockedEmail(email: string): Promise<Watchlist | null> {
-    return await this.prisma.watchlist.findFirst({
+    return this.prisma.watchlist.findFirst({
       where: {
         type: WatchlistType.EMAIL,
         value: normalizeEmail(email),
@@ -24,7 +24,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   async findBlockedDomain(domain: string): Promise<Watchlist | null> {
-    return await this.prisma.watchlist.findFirst({
+    return this.prisma.watchlist.findFirst({
       where: {
         type: WatchlistType.DOMAIN,
         value: normalizeDomain(domain),
@@ -36,7 +36,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   async findFreeEmailDomain(domain: string): Promise<Watchlist | null> {
-    return await this.prisma.watchlist.findFirst({
+    return this.prisma.watchlist.findFirst({
       where: {
         type: WatchlistType.DOMAIN,
         value: normalizeDomain(domain),
@@ -48,7 +48,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   async findById(id: string): Promise<Watchlist | null> {
-    return await this.prisma.watchlist.findUnique({
+    return this.prisma.watchlist.findUnique({
       where: {
         id,
         organizationId: null,
@@ -58,7 +58,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   async listBlockedEntries(): Promise<Watchlist[]> {
-    return await this.prisma.watchlist.findMany({
+    return this.prisma.watchlist.findMany({
       where: {
         organizationId: null,
         isGlobal: true,
@@ -75,7 +75,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     action: WatchlistAction;
     source?: WatchlistSource;
   }): Promise<Watchlist> {
-    return await this.prisma.watchlist.create({
+    return this.prisma.watchlist.create({
       data: {
         type: data.type,
         value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
@@ -97,7 +97,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       source?: WatchlistSource;
     }
   ): Promise<Watchlist> {
-    return await this.prisma.watchlist.update({
+    return this.prisma.watchlist.update({
       where: {
         id,
         organizationId: null,

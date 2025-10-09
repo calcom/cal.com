@@ -16,97 +16,66 @@ export class WatchlistService implements IWatchlistService {
   ) {}
 
   async createEntry(data: CreateWatchlistEntryData): Promise<WatchlistEntry> {
-    try {
-      log.debug("Creating watchlist entry", {
-        type: data.type,
-        organizationId: data.organizationId,
-        isGlobal: data.isGlobal,
-      });
+    log.debug("Creating watchlist entry", {
+      type: data.type,
+      organizationId: data.organizationId,
+      isGlobal: data.isGlobal,
+    });
 
-      const isGlobal = data.isGlobal ?? false;
-      let entry: WatchlistEntry;
+    const isGlobal = data.isGlobal ?? false;
 
-      if (isGlobal || !data.organizationId) {
-        // Create global entry
-        entry = await this.globalRepo.createEntry({
-          type: data.type,
-          value: data.value,
-          description: data.description,
-          action: data.action,
-          source: data.source,
-        });
-      } else {
-        // Create organization-specific entry
-        entry = await this.orgRepo.createEntry(data.organizationId, {
-          type: data.type,
-          value: data.value,
-          description: data.description,
-          action: data.action,
-          source: data.source,
-        });
-      }
+    const entryPromise =
+      isGlobal || !data.organizationId
+        ? this.globalRepo.createEntry({
+            type: data.type,
+            value: data.value,
+            description: data.description,
+            action: data.action,
+            source: data.source,
+          })
+        : this.orgRepo.createEntry(data.organizationId, {
+            type: data.type,
+            value: data.value,
+            description: data.description,
+            action: data.action,
+            source: data.source,
+          });
 
+    return entryPromise.then((entry) => {
       log.info("Watchlist entry created successfully", {
         id: entry.id,
         type: entry.type,
         isGlobal: entry.isGlobal,
         organizationId: entry.organizationId,
       });
-
       return entry;
-    } catch (error) {
-      log.error("Failed to create watchlist entry", {
-        error: error instanceof Error ? error.message : String(error),
-        data,
-      });
-      throw error;
-    }
+    });
   }
 
   async updateEntry(id: string, data: UpdateWatchlistEntryData): Promise<WatchlistEntry> {
-    try {
-      log.debug("Updating watchlist entry", { id });
+    log.debug("Updating watchlist entry", { id });
 
-      const entry = await this.globalRepo.updateEntry(id, data);
-
+    return this.globalRepo.updateEntry(id, data).then((entry) => {
       log.info("Watchlist entry updated successfully", {
         id: entry.id,
         type: entry.type,
       });
-
       return entry;
-    } catch (error) {
-      log.error("Failed to update watchlist entry", {
-        error: error instanceof Error ? error.message : String(error),
-        id,
-        data,
-      });
-      throw error;
-    }
+    });
   }
 
   async deleteEntry(id: string): Promise<void> {
-    try {
-      log.debug("Deleting watchlist entry", { id });
+    log.debug("Deleting watchlist entry", { id });
 
-      await this.globalRepo.deleteEntry(id);
-
+    return this.globalRepo.deleteEntry(id).then(() => {
       log.info("Watchlist entry deleted successfully", { id });
-    } catch (error) {
-      log.error("Failed to delete watchlist entry", {
-        error: error instanceof Error ? error.message : String(error),
-        id,
-      });
-      throw error;
-    }
+    });
   }
 
   async getEntry(id: string): Promise<WatchlistEntry | null> {
-    try {
-      log.debug("Fetching watchlist entry", { id });
+    log.debug("Fetching watchlist entry", { id });
 
-      // First try to find in global entries
-      const globalEntry = await this.globalRepo.findById(id);
+    return this.globalRepo.findById(id).then((globalEntry) => {
       if (globalEntry) {
         log.debug("Global watchlist entry found", { id, type: globalEntry.type });
         return globalEntry;
@@ -116,42 +85,30 @@ export class WatchlistService implements IWatchlistService {
       // Since we don't have organizationId, we can only find global entries with this method
       log.debug("Entry not found in global repository", { id });
       return null;
-    } catch (error) {
-      log.error("Failed to fetch watchlist entry", {
-        error: error instanceof Error ? error.message : String(error),
-        id,
-      });
-      throw error;
-    }
+    });
   }
 
   async listAllEntries(organizationId?: number): Promise<WatchlistEntry[]> {
-    try {
-      log.debug("Listing watchlist entries", { organizationId });
+    log.debug("Listing watchlist entries", { organizationId });
 
-      const globalEntries = await this.globalRepo.listBlockedEntries();
+    // Prepare repository calls
+    const globalEntriesPromise = this.globalRepo.listBlockedEntries();
+    const orgEntriesPromise = organizationId
+      ? this.orgRepo.listBlockedEntries(organizationId)
+      : Promise.resolve([]);
 
-      let combinedEntries: WatchlistEntry[] = [...globalEntries];
+    // Execute both calls in parallel
+    const [globalEntries, orgEntries] = await Promise.all([globalEntriesPromise, orgEntriesPromise]);
 
-      if (organizationId) {
-        const orgEntries = await this.orgRepo.listBlockedEntries(organizationId);
-        combinedEntries = [...globalEntries, ...orgEntries];
-      }
+    const combinedEntries = [...globalEntries, ...orgEntries];
 
-      log.debug("Watchlist entries retrieved", {
-        globalCount: globalEntries.length,
-        orgCount: organizationId ? combinedEntries.length - globalEntries.length : 0,
-        totalCount: combinedEntries.length,
-        organizationId,
-      });
+    log.debug("Watchlist entries retrieved", {
+      globalCount: globalEntries.length,
+      orgCount: orgEntries.length,
+      totalCount: combinedEntries.length,
+      organizationId,
+    });
 
-      return combinedEntries;
-    } catch (error) {
-      log.error("Failed to list watchlist entries", {
-        error: error instanceof Error ? error.message : String(error),
-        organizationId,
-      });
-      throw error;
-    }
+    return combinedEntries;
   }
 }

@@ -12,7 +12,7 @@ export class AuditRepository implements IAuditRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateWatchlistAuditInput): Promise<WatchlistAudit> {
-    return await this.prisma.watchlistAudit.create({
+    return this.prisma.watchlistAudit.create({
       data: {
         type: data.type as WatchlistType,
         value: data.value,
@@ -25,20 +25,20 @@ export class AuditRepository implements IAuditRepository {
   }
 
   async findById(id: string): Promise<WatchlistAudit | null> {
-    return await this.prisma.watchlistAudit.findUnique({
+    return this.prisma.watchlistAudit.findUnique({
       where: { id },
     });
   }
 
   async findByWatchlistId(watchlistId: string): Promise<WatchlistAudit[]> {
-    return await this.prisma.watchlistAudit.findMany({
+    return this.prisma.watchlistAudit.findMany({
       where: { watchlistId },
       orderBy: { changedAt: "desc" },
     });
   }
 
   async update(id: string, data: UpdateWatchlistAuditInput): Promise<WatchlistAudit> {
-    return await this.prisma.watchlistAudit.update({
+    return this.prisma.watchlistAudit.update({
       where: { id },
       data: {
         ...(data.type && { type: data.type as WatchlistType }),
@@ -51,9 +51,11 @@ export class AuditRepository implements IAuditRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.watchlistAudit.delete({
-      where: { id },
-    });
+    return this.prisma.watchlistAudit
+      .delete({
+        where: { id },
+      })
+      .then(() => {});
   }
 
   async findMany(filters?: {
@@ -62,7 +64,7 @@ export class AuditRepository implements IAuditRepository {
     limit?: number;
     offset?: number;
   }): Promise<WatchlistAudit[]> {
-    return await this.prisma.watchlistAudit.findMany({
+    return this.prisma.watchlistAudit.findMany({
       where: {
         ...(filters?.watchlistId && { watchlistId: filters.watchlistId }),
         ...(filters?.changedByUserId && { changedByUserId: filters.changedByUserId }),

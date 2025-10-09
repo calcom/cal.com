@@ -18,7 +18,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
     email: string;
     organizationId: number;
   }): Promise<Watchlist | null> {
-    return await this.prisma.watchlist.findFirst({
+    return this.prisma.watchlist.findFirst({
       where: {
         type: WatchlistType.EMAIL,
         value: normalizeEmail(email),
@@ -29,7 +29,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
   }
 
   async findBlockedDomain(domain: string, organizationId: number): Promise<Watchlist | null> {
-    return await this.prisma.watchlist.findFirst({
+    return this.prisma.watchlist.findFirst({
       where: {
         type: WatchlistType.DOMAIN,
         value: normalizeDomain(domain),
@@ -40,7 +40,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
   }
 
   async listBlockedEntries(organizationId: number): Promise<Watchlist[]> {
-    return await this.prisma.watchlist.findMany({
+    return this.prisma.watchlist.findMany({
       where: {
         organizationId,
         action: WatchlistAction.BLOCK,
@@ -49,7 +49,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
   }
 
   async findById(id: string, organizationId: number): Promise<Watchlist | null> {
-    return await this.prisma.watchlist.findUnique({
+    return this.prisma.watchlist.findUnique({
       where: {
         id,
         organizationId,
@@ -68,7 +68,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
       source?: WatchlistSource;
     }
   ): Promise<Watchlist> {
-    return await this.prisma.watchlist.create({
+    return this.prisma.watchlist.create({
       data: {
         type: data.type,
         value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
@@ -91,7 +91,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
       source?: WatchlistSource;
     }
   ): Promise<Watchlist> {
-    return await this.prisma.watchlist.update({
+    return this.prisma.watchlist.update({
       where: {
         id,
         organizationId,
@@ -111,11 +111,13 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
   }
 
   async deleteEntry(id: string, organizationId: number): Promise<void> {
-    await this.prisma.watchlist.delete({
-      where: {
-        id,
-        organizationId,
-      },
-    });
+    return this.prisma.watchlist
+      .delete({
+        where: {
+          id,
+          organizationId,
+        },
+      })
+      .then(() => {});
   }
 }

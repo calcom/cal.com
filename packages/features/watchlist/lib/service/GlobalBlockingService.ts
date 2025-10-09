@@ -18,8 +18,23 @@ export class GlobalBlockingService implements IBlockingService {
 
   async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
     const normalizedEmail = normalizeEmail(email);
+    const normalizedDomain = extractDomainFromEmail(normalizedEmail);
 
-    const globalEmailEntry = await this.globalRepo.findBlockedEmail(normalizedEmail);
+    // Prepare all repository calls
+    const globalEmailPromise = this.globalRepo.findBlockedEmail(normalizedEmail);
+    const globalDomainPromise = this.globalRepo.findBlockedDomain(normalizedDomain);
+    const orgDomainPromise = organizationId
+      ? this.orgRepo.findBlockedDomain(normalizedDomain, organizationId)
+      : Promise.resolve(null);
+
+    // Execute all repository calls in parallel
+    const [globalEmailEntry, globalDomainEntry, orgDomainEntry] = await Promise.all([
+      globalEmailPromise,
+      globalDomainPromise,
+      orgDomainPromise,
+    ]);
+
+    // Check results in priority order
     if (globalEmailEntry) {
       return {
         isBlocked: true,
@@ -28,8 +43,6 @@ export class GlobalBlockingService implements IBlockingService {
       };
     }
 
-    const normalizedDomain = extractDomainFromEmail(normalizedEmail);
-    const globalDomainEntry = await this.globalRepo.findBlockedDomain(normalizedDomain);
     if (globalDomainEntry) {
       return {
         isBlocked: true,
@@ -38,25 +51,20 @@ export class GlobalBlockingService implements IBlockingService {
       };
     }
 
-    // Add org specific check here
-    if (organizationId) {
-      const orgDomainEntry = await this.orgRepo.findBlockedDomain(normalizedDomain, organizationId);
-      if (orgDomainEntry) {
-        // TODO: Add audit logging when audit service is injected
-
-        return {
-          isBlocked: true,
-          reason: WatchlistType.DOMAIN,
-          watchlistEntry: orgDomainEntry,
-        };
-      }
+    if (orgDomainEntry) {
+      // TODO: Add audit logging when audit service is injected
+      return {
+        isBlocked: true,
+        reason: WatchlistType.DOMAIN,
+        watchlistEntry: orgDomainEntry,
+      };
     }
+
     return { isBlocked: false };
   }
 
   async isFreeEmailDomain(domain: string): Promise<boolean> {
     const normalizedDomain = normalizeDomain(domain);
-    const entry = await this.globalRepo.findFreeEmailDomain(normalizedDomain);
-    return !!entry;
+    return this.globalRepo.findFreeEmailDomain(normalizedDomain).then((entry) => !!entry);
   }
 }
