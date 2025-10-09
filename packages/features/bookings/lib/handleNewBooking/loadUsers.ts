@@ -4,9 +4,9 @@ import {
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
 } from "@calcom/lib/bookings/getRoutedUsers";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -69,10 +69,8 @@ export const loadUsers = async ({
     return users;
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
-    if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
-      throw new HttpError({ statusCode: 400, message: error.message });
-    }
-    throw new HttpError({ statusCode: 500, message: "Unable to load users" });
+    const httpError = getServerErrorFromUnknown(error);
+    throw httpError;
   }
 };
 
@@ -100,7 +98,7 @@ const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: str
   }
   return findUsersByUsername({
     usernameList: dynamicUserList,
-    orgSlug: !!currentOrgDomain ? currentOrgDomain : null,
+    orgSlug: currentOrgDomain ? currentOrgDomain : null,
   });
 };
 
