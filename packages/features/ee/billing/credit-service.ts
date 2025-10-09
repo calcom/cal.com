@@ -9,6 +9,7 @@ import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billlin
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
@@ -167,14 +168,11 @@ export class CreditService {
       if (!IS_SMS_CREDITS_ENABLED) return true;
 
       if (teamId) {
-        // Check if this team has a parent organization
-        const team = await tx.team.findUnique({
-          where: { id: teamId },
-          select: { id: true, isOrganization: true, parentId: true },
-        });
+        // Check if this team belongs to an organization or is itself an organization
+        const orgId = await getOrgIdFromMemberOrTeamId({ teamId }, tx);
 
-        // If team has a parent (organization), check parent's credits instead
-        const teamIdToCheck = team?.parentId ?? teamId;
+        // Use organization credits if team belongs to org, otherwise use team's own credits
+        const teamIdToCheck = orgId ?? teamId;
 
         const creditBalance = await CreditsRepository.findCreditBalance({ teamId: teamIdToCheck }, tx);
 
@@ -227,7 +225,8 @@ export class CreditService {
 
   /*
     If user has memberships, it always returns a team, even if all have limit reached. In that case, limitReached: true is returned
-    Prioritizes organization credits over team credits
+    If user belongs to any organization, ONLY organization credits are checked (team memberships are ignored)
+    If user does not belong to an organization, team credits are checked
   */
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
     const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(userId, tx);
@@ -255,12 +254,10 @@ export class CreditService {
       }
     }
 
-    // Check organizations first, then teams
-    const orderedMemberships = [...orgMemberships, ...teamMemberships];
+    // If user belongs to any organization, ONLY check organization credits
+    const membershipsToCheck = orgMemberships.length > 0 ? orgMemberships : teamMemberships;
 
-
-    //check if user is member of team that has available credits
-    for (const membership of orderedMemberships) {
+    for (const membership of membershipsToCheck) {
       const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
       const allCredits = await this._getAllCreditsForTeam({ teamId: membership.teamId, tx });
 
@@ -293,7 +290,7 @@ export class CreditService {
     }
 
     return {
-      teamId: orderedMemberships[0].teamId,
+      teamId: membershipsToCheck[0].teamId,
       availableCredits: 0,
       creditType: CreditType.ADDITIONAL,
       limitReached: true,
