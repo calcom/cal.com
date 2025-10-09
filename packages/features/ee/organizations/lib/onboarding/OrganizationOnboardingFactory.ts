@@ -18,7 +18,7 @@ const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
  */
 export class OrganizationOnboardingFactory {
   static create(user: OnboardingUser): IOrganizationOnboardingService {
-    const isBillingEnabled = this.isBillingEnabled(user);
+    const isBillingEnabled = this.isBillingEnabled();
 
     log.debug(
       "Creating onboarding service",
@@ -38,15 +38,15 @@ export class OrganizationOnboardingFactory {
     }
   }
 
-  private static isBillingEnabled(user: OnboardingUser): boolean {
+  private static isBillingEnabled(): boolean {
     // E2E tests always use billing flow
     if (process.env.NEXT_PUBLIC_IS_E2E) {
-      return true;
+      return false;
     }
 
     // Self-hosted admins skip billing
-    if (IS_TEAM_BILLING_ENABLED && user.role === UserPermissionRole.ADMIN) {
-      return false;
+    if (IS_TEAM_BILLING_ENABLED) {
+      return true;
     }
 
     // All other cases use billing
