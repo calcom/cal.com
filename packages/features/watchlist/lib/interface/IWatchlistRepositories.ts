@@ -50,6 +50,7 @@ export interface IOrganizationWatchlistRepository {
   findBlockedDomain(domain: string, organizationId: number): Promise<Watchlist | null>;
   findById(id: string, organizationId: number): Promise<Watchlist | null>;
   listBlockedEntries(organizationId: number): Promise<Watchlist[]>;
+  listAllOrganizationEntries(): Promise<Watchlist[]>;
 
   // Write operations
   createEntry(

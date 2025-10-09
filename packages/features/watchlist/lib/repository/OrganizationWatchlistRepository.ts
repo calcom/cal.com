@@ -48,6 +48,16 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
     });
   }
 
+  async listAllOrganizationEntries(): Promise<Watchlist[]> {
+    return this.prisma.watchlist.findMany({
+      where: {
+        organizationId: { not: null },
+        isGlobal: false,
+        action: WatchlistAction.BLOCK,
+      },
+    });
+  }
+
   async findById(id: string, organizationId: number): Promise<Watchlist | null> {
     return this.prisma.watchlist.findUnique({
       where: {

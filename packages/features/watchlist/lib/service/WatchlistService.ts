@@ -90,27 +90,25 @@ export class WatchlistService implements IWatchlistService {
     });
   }
 
-  async listAllEntries(organizationId?: number): Promise<WatchlistEntry[]> {
-    log.debug("Listing watchlist entries", { organizationId });
+  /**
+   * System admin method to get ALL watchlist entries across the entire system
+   * Returns both global entries and all organization-specific entries from every organization
+   */
+  async listAllSystemEntries(): Promise<WatchlistEntry[]> {
+    log.debug("Listing all system watchlist entries (admin operation)");
 
-    // Prepare repository calls
     const globalEntriesPromise = this.deps.globalRepo.listBlockedEntries();
-    const orgEntriesPromise = organizationId
-      ? this.deps.orgRepo.listBlockedEntries(organizationId)
-      : Promise.resolve([]);
+    const allOrgEntriesPromise = this.deps.orgRepo.listAllOrganizationEntries();
 
-    // Execute both calls in parallel
-    const [globalEntries, orgEntries] = await Promise.all([globalEntriesPromise, orgEntriesPromise]);
+    const [globalEntries, allOrgEntries] = await Promise.all([globalEntriesPromise, allOrgEntriesPromise]);
 
-    const combinedEntries = [...globalEntries, ...orgEntries];
+    const combinedEntries = [...globalEntries, ...allOrgEntries];
 
-    log.debug("Watchlist entries retrieved", {
+    log.debug("All system watchlist entries retrieved", {
       globalCount: globalEntries.length,
-      orgCount: orgEntries.length,
+      organizationCount: allOrgEntries.length,
       totalCount: combinedEntries.length,
-      organizationId,
     });
-
     return combinedEntries;
   }
 }
