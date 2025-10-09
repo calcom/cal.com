@@ -12,7 +12,12 @@ import { CreditService } from "./credit-service";
 import { StripeBillingService } from "./stripe-billling-service";
 import { InternalTeamBilling } from "./teams/internal-team-billing";
 
-const MOCK_TX = {};
+const MOCK_TX = {
+  team: {
+    findMany: vi.fn().mockResolvedValue([]),
+    findUnique: vi.fn().mockResolvedValue(null),
+  },
+};
 
 vi.mock("@calcom/prisma", async (importOriginal) => {
   const actual = await importOriginal();
@@ -110,6 +115,12 @@ describe("CreditService", () => {
   describe("Team credits", () => {
     describe("hasAvailableCredits", () => {
       it("should return true if team has not yet reached limit", async () => {
+        vi.mocked(MOCK_TX.team.findUnique).mockResolvedValue({
+          id: 1,
+          isOrganization: false,
+          parentId: null,
+        });
+
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",
           additionalCredits: 0,
@@ -134,6 +145,12 @@ describe("CreditService", () => {
       it("should return false if team limit reached this month", async () => {
         vi.setSystemTime(new Date("2024-06-20T11:59:59Z"));
 
+        vi.mocked(MOCK_TX.team.findUnique).mockResolvedValue({
+          id: 1,
+          isOrganization: false,
+          parentId: null,
+        });
+
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
           id: "1",
           additionalCredits: 0,
@@ -156,6 +173,10 @@ describe("CreditService", () => {
             role: "MEMBER",
             accepted: true,
           },
+        ]);
+
+        vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
+          { id: 1, isOrganization: false, parentId: null },
         ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
@@ -182,6 +203,10 @@ describe("CreditService", () => {
             role: "MEMBER",
             accepted: true,
           },
+        ]);
+
+        vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
+          { id: 1, isOrganization: false, parentId: null },
         ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
@@ -765,6 +790,10 @@ describe("CreditService", () => {
     it("should skip unpublished platform organizations and return regular team with credits", async () => {
       vi.mocked(MembershipRepository.findAllAcceptedPublishedTeamMemberships).mockResolvedValue([
         { teamId: 2 },
+      ]);
+
+      vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
+        { id: 2, isOrganization: false, parentId: null },
       ]);
 
       vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({

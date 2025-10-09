@@ -167,7 +167,16 @@ export class CreditService {
       if (!IS_SMS_CREDITS_ENABLED) return true;
 
       if (teamId) {
-        const creditBalance = await CreditsRepository.findCreditBalance({ teamId }, tx);
+        // Check if this team has a parent organization
+        const team = await tx.team.findUnique({
+          where: { id: teamId },
+          select: { id: true, isOrganization: true, parentId: true },
+        });
+
+        // If team has a parent (organization), check parent's credits instead
+        const teamIdToCheck = team?.parentId ?? teamId;
+
+        const creditBalance = await CreditsRepository.findCreditBalance({ teamId: teamIdToCheck }, tx);
 
         const limitReached =
           creditBalance?.limitReachedAt &&
@@ -176,13 +185,13 @@ export class CreditService {
         if (!limitReached) return true;
 
         // check if team is still out of credits
-        const teamCredits = await this._getAllCreditsForTeam({ teamId, tx });
+        const teamCredits = await this._getAllCreditsForTeam({ teamId: teamIdToCheck, tx });
         const availableCredits = teamCredits.totalRemainingMonthlyCredits + teamCredits.additionalCredits;
 
         if (availableCredits > 0) {
           await CreditsRepository.updateCreditBalance(
             {
-              teamId,
+              teamId: teamIdToCheck,
               data: {
                 limitReachedAt: null,
                 warningSentAt: null,
@@ -218,6 +227,7 @@ export class CreditService {
 
   /*
     If user has memberships, it always returns a team, even if all have limit reached. In that case, limitReached: true is returned
+    Prioritizes organization credits over team credits
   */
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
     const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(userId, tx);
@@ -226,11 +236,34 @@ export class CreditService {
       return null;
     }
 
-    //check if user is member of team that has available credits
-    for (const membership of memberships) {
-      const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
+    const teams = await tx.team.findMany({
+      where: { id: { in: memberships.map((m) => m.teamId) } },
+      select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
+    });
 
+    const teamMap = new Map(teams.map((t) => [t.id, t]));
+
+    const orgMemberships: typeof memberships = [];
+    const teamMemberships: typeof memberships = [];
+
+    for (const membership of memberships) {
+      const team = teamMap.get(membership.teamId);
+      if (team?.isOrganization && !team.parentId) {
+        orgMemberships.push(membership);
+      } else {
+        teamMemberships.push(membership);
+      }
+    }
+
+    // Check organizations first, then teams
+    const orderedMemberships = [...orgMemberships, ...teamMemberships];
+
+
+    //check if user is member of team that has available credits
+    for (const membership of orderedMemberships) {
+      const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
       const allCredits = await this._getAllCreditsForTeam({ teamId: membership.teamId, tx });
+
       const limitReached =
         creditBalance?.limitReachedAt &&
         dayjs(creditBalance.limitReachedAt).isAfter(dayjs().startOf("month"));
@@ -260,7 +293,7 @@ export class CreditService {
     }
 
     return {
-      teamId: memberships[0].teamId,
+      teamId: orderedMemberships[0].teamId,
       availableCredits: 0,
       creditType: CreditType.ADDITIONAL,
       limitReached: true,
