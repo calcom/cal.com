@@ -1,5 +1,7 @@
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, PrismaClient } from "@calcom/prisma/client";
+
+type PrismaTransaction = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">;
 
 const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | null) => {
   const conditions: Prisma.TeamWhereInput[] = [];
@@ -44,11 +46,15 @@ const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | nul
   };
 };
 
-export default async function getOrgIdFromMemberOrTeamId(args: {
-  memberId?: number | null;
-  teamId?: number | null;
-}) {
-  const orgId = await prisma.team.findFirst({
+export default async function getOrgIdFromMemberOrTeamId(
+  args: {
+    memberId?: number | null;
+    teamId?: number | null;
+  },
+  tx?: PrismaTransaction
+) {
+  const client = tx ?? prisma;
+  const orgId = await client.team.findFirst({
     where: getOrgMemberOrTeamWhere(args.memberId, args.teamId),
     select: {
       id: true,
