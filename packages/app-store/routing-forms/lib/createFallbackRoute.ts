@@ -3,8 +3,8 @@ import * as LazyQbUtils from "@calcom/lib/raqb/lazyQbUtils";
 import type { GlobalRoute, LocalRoute, SerializableRoute } from "../types/types";
 import { RouteActionType } from "../zod";
 
-export const createFallbackRoute = async (): Promise<Exclude<SerializableRoute, GlobalRoute>> => {
-  const uuid = await LazyQbUtils.uuid();
+export const createFallbackRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
+  const uuid = LazyQbUtils.uuid();
   return {
     id: uuid,
     isFallback: true,

@@ -135,7 +135,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     fieldsResponses,
   });
 
-  const matchingRoute = await findMatchingRoute({ form: serializableForm, response });
+  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }

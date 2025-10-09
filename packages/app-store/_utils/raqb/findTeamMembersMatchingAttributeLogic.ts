@@ -66,8 +66,8 @@ function perf<ReturnValue>(fn: () => ReturnValue): [ReturnValue, number | null] 
   return [result, end - start];
 }
 
-async function getErrorsFromImmutableTree(tree: ImmutableTree) {
-  const validatedQueryValue = await LazyQbUtils.getTree(tree);
+function getErrorsFromImmutableTree(tree: ImmutableTree) {
+  const validatedQueryValue = LazyQbUtils.getTree(tree);
   if (!raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue)) {
     return [];
   }
@@ -90,15 +90,15 @@ async function getErrorsFromImmutableTree(tree: ImmutableTree) {
   return errors;
 }
 
-async function getJsonLogic({
+function getJsonLogic({
   attributesQueryValue,
   attributesQueryBuilderConfig,
 }: {
   attributesQueryValue: AttributesQueryValue;
   attributesQueryBuilderConfig: Config;
 }) {
-  const loadedTree = await LazyQbUtils.loadTree(attributesQueryValue as JsonTree);
-  const checkedTree = await LazyQbUtils.checkTree(
+  const loadedTree = LazyQbUtils.loadTree(attributesQueryValue as JsonTree);
+  const checkedTree = LazyQbUtils.checkTree(
     loadedTree,
     // We know that attributesQueryBuilderConfig is a Config because getAttributesQueryBuilderConfigHavingListofLabels returns a Config. So, asserting it.
     attributesQueryBuilderConfig as unknown as Config
@@ -107,11 +107,11 @@ async function getJsonLogic({
     tree: checkedTree,
     config: attributesQueryBuilderConfig as unknown as Config,
   };
-  const jsonLogicQuery = await LazyQbUtils.jsonLogicFormat(state.tree, state.config);
+  const jsonLogicQuery = LazyQbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
   // Considering errors as warnings as we want to continue with the flow without throwing actual errors
   // We expect fallback logic to take effect in case of errors in main logic
-  const warnings = (await getErrorsFromImmutableTree(state.tree)).flat();
+  const warnings = getErrorsFromImmutableTree(state.tree).flat();
   if (!logic) {
     // If children1 is not empty, it means that some rules were added by use
     if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
@@ -218,7 +218,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     })
   );
 
-  const { logic, warnings: logicBuildingWarnings } = await getJsonLogic({
+  const { logic, warnings: logicBuildingWarnings } = getJsonLogic({
     attributesQueryValue,
     attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
   });

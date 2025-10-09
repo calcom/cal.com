@@ -13,7 +13,7 @@ export const enum RaqbLogicResult {
   LOGIC_NOT_FOUND_SO_MATCHED = "LOGIC_NOT_FOUND_SO_MATCHED",
 }
 
-export const evaluateRaqbLogic = async (
+export const evaluateRaqbLogic = (
   {
     queryValue,
     queryBuilderConfig,
@@ -33,14 +33,14 @@ export const evaluateRaqbLogic = async (
   } = {
     logLevel: 1,
   }
-): Promise<RaqbLogicResult> => {
-  const tree = await LazyQbUtils.loadTree(queryValue);
-  const checkedTree = await LazyQbUtils.checkTree(tree, queryBuilderConfig);
+): RaqbLogicResult => {
+  const tree = LazyQbUtils.loadTree(queryValue);
+  const checkedTree = LazyQbUtils.checkTree(tree, queryBuilderConfig);
   const state = {
     tree: checkedTree,
     config: queryBuilderConfig,
   };
-  const jsonLogicQuery = await LazyQbUtils.jsonLogicFormat(state.tree, state.config);
+  const jsonLogicQuery = LazyQbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
   if (!logic) {
     if (beStrictWithEmptyLogic && queryValue.children1 && Object.keys(queryValue.children1).length > 0) {

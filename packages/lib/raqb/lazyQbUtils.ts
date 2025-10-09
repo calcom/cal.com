@@ -1,37 +1,28 @@
-import type { JsonTree, Config, ImmutableTree } from "react-awesome-query-builder";
+import type { JsonTree, ImmutableTree, JsonLogicResult } from "react-awesome-query-builder";
+import * as ExportUtils from "react-awesome-query-builder/lib/export";
+// Import runtime functions from Node.js-compatible submodules (no React dependencies)
+import * as ImportUtils from "react-awesome-query-builder/lib/import";
+
+export function loadTree(queryValue: JsonTree): ImmutableTree {
+  return ImportUtils.loadTree(queryValue) as ImmutableTree;
+}
+
+// Use any for config to avoid "Excessive stack depth comparing types" errors
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function checkTree(tree: any, config: any): ImmutableTree {
+  return ImportUtils.checkTree(tree, config) as ImmutableTree;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let qbUtils: any = null;
-
-async function loadQbUtils() {
-  if (!qbUtils) {
-    const module = await import("react-awesome-query-builder");
-    qbUtils = module.Utils;
-  }
-  return qbUtils;
+export function jsonLogicFormat(tree: any, config: any): JsonLogicResult {
+  return ExportUtils.jsonLogicFormat(tree, config) as JsonLogicResult;
 }
 
-export async function loadTree(queryValue: JsonTree) {
-  const utils = await loadQbUtils();
-  return utils.loadTree(queryValue);
+export function uuid(): string {
+  return ImportUtils.uuid() as string;
 }
 
-export async function checkTree(tree: ImmutableTree, config: Config) {
-  const utils = await loadQbUtils();
-  return utils.checkTree(tree, config);
-}
-
-export async function jsonLogicFormat(tree: ImmutableTree, config: Config) {
-  const utils = await loadQbUtils();
-  return utils.jsonLogicFormat(tree, config);
-}
-
-export async function uuid() {
-  const utils = await loadQbUtils();
-  return utils.uuid();
-}
-
-export async function getTree(tree: ImmutableTree) {
-  const utils = await loadQbUtils();
-  return utils.getTree(tree);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getTree(tree: any): JsonTree {
+  return ImportUtils.getTree(tree) as JsonTree;
 }

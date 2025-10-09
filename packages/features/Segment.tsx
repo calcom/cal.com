@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
@@ -46,21 +46,15 @@ function SegmentWithAttributes({
   });
 
   const [queryValue, setQueryValue] = useState(initialQueryValue);
-  const [queryBuilderData, setQueryBuilderData] = useState<{
-    state: { tree: ImmutableTree; config: Config };
-    queryValue: JsonTree;
-  } | null>(null);
   const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = withRaqbSettingsAndWidgets({
     config: attributesQueryBuilderConfig,
     configFor: ConfigFor.Attributes,
   });
 
-  useEffect(() => {
-    buildStateFromQueryValue({
-      queryValue: queryValue as JsonTree,
-      config: attributesQueryBuilderConfigWithRaqbSettingsAndWidgets,
-    }).then(setQueryBuilderData);
-  }, [queryValue, attributesQueryBuilderConfigWithRaqbSettingsAndWidgets]);
+  const queryBuilderData = buildStateFromQueryValue({
+    queryValue: queryValue as JsonTree,
+    config: attributesQueryBuilderConfigWithRaqbSettingsAndWidgets,
+  });
 
   const renderBuilder = useCallback(
     (props: BuilderProps) => (
@@ -83,10 +77,6 @@ function SegmentWithAttributes({
         queryValue: jsonTree,
       });
     }
-  }
-
-  if (!queryBuilderData) {
-    return <div>Loading...</div>;
   }
 
   return (

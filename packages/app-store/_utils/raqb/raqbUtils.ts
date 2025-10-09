@@ -68,12 +68,12 @@ export const raqbQueryValueUtils = {
   },
 };
 
-export async function buildEmptyQueryValue() {
-  const id = await LazyQbUtils.uuid();
+export function buildEmptyQueryValue() {
+  const id = LazyQbUtils.uuid();
   return { id, type: "group" as const };
 }
 
-export const buildStateFromQueryValue = async ({
+export const buildStateFromQueryValue = ({
   queryValue,
   config,
 }: {
@@ -83,10 +83,10 @@ export const buildStateFromQueryValue = async ({
   queryValue: JsonTree | null;
   config: Config;
 }) => {
-  const queryValueToUse = queryValue || (await buildEmptyQueryValue());
-  const loadedTree = await LazyQbUtils.loadTree(queryValueToUse);
-  const immutableTree = await LazyQbUtils.checkTree(loadedTree, config);
-  const tree = await LazyQbUtils.getTree(immutableTree);
+  const queryValueToUse = queryValue || buildEmptyQueryValue();
+  const loadedTree = LazyQbUtils.loadTree(queryValueToUse);
+  const immutableTree = LazyQbUtils.checkTree(loadedTree, config);
+  const tree = LazyQbUtils.getTree(immutableTree);
   return {
     state: {
       tree: immutableTree,

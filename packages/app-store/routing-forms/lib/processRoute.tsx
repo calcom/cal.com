@@ -12,7 +12,7 @@ import { getQueryBuilderConfigForFormFields } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
 import isRouter from "./isRouter";
 
-export async function findMatchingRoute({
+export function findMatchingRoute({
   form,
   response,
 }: {
@@ -51,7 +51,7 @@ export async function findMatchingRoute({
       Object.entries(response).map(([uuid, { value }]) => [uuid, value])
     );
 
-    const result = await evaluateRaqbLogic({
+    const result = evaluateRaqbLogic({
       queryValue: route.queryValue as JsonTree,
       queryBuilderConfig,
       data: responseValues,

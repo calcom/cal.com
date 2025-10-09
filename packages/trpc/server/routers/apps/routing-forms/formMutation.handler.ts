@@ -118,7 +118,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
   if (addFallback) {
     // Add a fallback route if there is none
     if (!routes.find(isFallbackRoute)) {
-      routes.push(await createFallbackRoute());
+      routes.push(createFallbackRoute());
     }
   }
 
