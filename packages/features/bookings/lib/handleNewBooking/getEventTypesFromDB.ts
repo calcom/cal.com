@@ -1,4 +1,4 @@
-import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
+import { workflowSelect, calIdWorkflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -133,7 +133,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         calIdWorkflows: {
           select: {
             workflow: {
-              select: workflowSelect,
+              select: calIdWorkflowSelect,
             },
           },
         },

@@ -350,6 +350,7 @@ async function handler(input: CancelBookingInput) {
   await Promise.all(promises);
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
+
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
   await sendCancelledReminders({

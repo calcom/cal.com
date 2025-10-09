@@ -1,4 +1,4 @@
-import { workflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
+import { workflowSelect, calIdWorkflowSelect } from "@calid/features/modules/workflows/utils/getWorkflows";
 
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -94,7 +94,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           calIdWorkflows: {
             select: {
               workflow: {
-                select: workflowSelect,
+                select: calIdWorkflowSelect,
               },
             },
           },
