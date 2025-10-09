@@ -1,5 +1,5 @@
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import getApps from "@calcom/app-store/utils";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";

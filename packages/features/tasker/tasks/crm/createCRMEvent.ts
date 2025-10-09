@@ -170,7 +170,7 @@ export async function createCRMEvent(payload: string): Promise<void> {
           continue;
         }
 
-        const CrmManager = (await import("@calcom/lib/crmManager/crmManager")).default;
+        const CrmManager = (await import("@calcom/features/crmManager/crmManager")).default;
 
         const crm = new CrmManager(crmCredential, app);
 

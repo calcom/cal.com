@@ -1,6 +1,6 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { redisModule } from "@calcom/features/redis/di/redisModule";
-import type { UserAvailabilityService } from "@calcom/lib/getUserAvailability";
+import type { UserAvailabilityService } from "@calcom/features/availability/lib/getUserAvailability";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import { createContainer } from "../di";
