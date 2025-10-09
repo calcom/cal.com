@@ -1,10 +1,10 @@
-import type { ChangeEvent } from "react";
 import type {
   Settings,
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
   WidgetProps,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
+import type { ChangeEvent } from "react";
 
 import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 
@@ -37,20 +37,8 @@ const {
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
 const TextAreaFactory = (props: WidgetProps | undefined) => renderComponent(props, TextAreaWidget);
 const NumberFactory = (props: WidgetProps | undefined) => renderComponent(props, NumberWidget);
-const MultiSelectFactory = (
-  props:
-    | (SelectWidgetProps & {
-        listValues: { title: string; value: string }[];
-      })
-    | undefined
-) => renderComponent(props, MultiSelectWidget);
-const SelectFactory = (
-  props:
-    | (SelectWidgetProps & {
-        listValues: { title: string; value: string }[];
-      })
-    | undefined
-) => renderComponent(props, SelectWidget);
+const MultiSelectFactory = (props: any) => renderComponent(props, MultiSelectWidget);
+const SelectFactory = (props: any) => renderComponent(props, SelectWidget);
 
 const PhoneFactory = (props: WidgetProps | undefined) => {
   if (!props) {

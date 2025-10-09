@@ -1,11 +1,11 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Query, Builder, Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import type { ImmutableTree, BuilderProps, Config } from "@react-awesome-query-builder/ui";
+import type { JsonTree } from "@react-awesome-query-builder/ui";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
@@ -308,7 +308,7 @@ const WeightedAttributesSelector = ({
           />
         </div>
         <div className="bg-muted mt-1 rounded-xl p-2">
-          {!!attributeIdForWeights ? (
+          {attributeIdForWeights ? (
             <SelectField
               size="sm"
               containerClassName="data-testid-select-router"
@@ -1190,7 +1190,7 @@ const Routes = ({
       }) || [];
 
   // const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   // const routers: any[] = [];
   /* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */
   // const routers = availableRouters.map((r) => {
@@ -1235,7 +1235,7 @@ const Routes = ({
     });
     setRoutes((routes) => {
       // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       return [...routes, fallbackRoute!];
     });
     return null;
@@ -1243,7 +1243,7 @@ const Routes = ({
     // Ensure fallback is last
     setRoutes((routes) => {
       // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       return [...routes.filter((route) => route.id !== fallbackRoute!.id), fallbackRoute!];
     });
   }

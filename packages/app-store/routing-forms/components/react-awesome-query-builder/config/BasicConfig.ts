@@ -1,11 +1,14 @@
 // This is taken from "react-awesome-query-builder/lib/config/basic";
+import { CoreConfig } from "@react-awesome-query-builder/core";
 import type {
   Conjunction as RAQBConjunction,
   Widget as RAQBWidget,
   Type as RAQBType,
   Settings as RAQBSettings,
   Operator as RAQBOperator,
-} from "react-awesome-query-builder";
+  ConfigContext,
+  JsonLogicValue,
+} from "@react-awesome-query-builder/ui";
 
 export type Conjunction = RAQBConjunction;
 export type Conjunctions = Record<string, Conjunction>;
@@ -16,7 +19,7 @@ export type Operators = Record<string, Operator>;
 export type WidgetWithoutFactory = Omit<RAQBWidget, "factory"> & {
   type: string;
   jsType: string;
-  toJS: (val: any) => any;
+  toJS: (val: JsonLogicValue) => JsonLogicValue;
 };
 export type WidgetsWithoutFactory = Record<string, WidgetWithoutFactory>;
 export type Type = RAQBType;
@@ -85,8 +88,11 @@ const operators: Operators = {
     label: "Contains",
     labelForFormat: "Contains",
     reversedOp: "not_like",
-    jsonLogic: "in",
-    _jsonLogicIsRevArgs: true,
+    jsonLogic: (field: JsonLogicValue, op: JsonLogicValue, val: JsonLogicValue) => {
+      return {
+        in: [val, field],
+      };
+    },
     valueSources: ["value"],
   },
   not_like: {
@@ -94,6 +100,14 @@ const operators: Operators = {
     label: "Not contains",
     reversedOp: "like",
     labelForFormat: "Not Contains",
+    jsonLogic: (field: JsonLogicValue, op: JsonLogicValue, val: JsonLogicValue) => {
+      return {
+        "!": {
+          in: [val, field],
+        },
+      };
+    },
+    _jsonLogicIsExclamationOp: true,
     valueSources: ["value"],
   },
   starts_with: {
@@ -114,7 +128,7 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "not_between",
-    jsonLogic: (field: any, op: any, vals: [any, any]) => {
+    jsonLogic: (field: JsonLogicValue, op: JsonLogicValue, vals: [JsonLogicValue, JsonLogicValue]) => {
       const min = parseInt(vals[0], 10);
       const max = parseInt(vals[1], 10);
       return {
@@ -129,7 +143,7 @@ const operators: Operators = {
     cardinality: 2,
     valueLabels: ["Value from", "Value to"],
     reversedOp: "between",
-    jsonLogic: (field: any, op: any, vals: [any, any]) => {
+    jsonLogic: (field: JsonLogicValue, op: JsonLogicValue, vals: [JsonLogicValue, JsonLogicValue]) => {
       const min = parseInt(vals[0], 10);
       const max = parseInt(vals[1], 10);
       return {
@@ -197,10 +211,15 @@ const operators: Operators = {
   // We define this operator but use it conditionally for multiselect for Attributes only
   multiselect_some_in: {
     label: "Any in",
-    jsonLogic: (field: any, operator: any, vals: any) => {
+    cardinality: 1, // Expects 1 value (which is an array of selected items)
+    jsonLogic: (field: JsonLogicValue, operator: JsonLogicValue, vals: JsonLogicValue) => {
+      // RAQB v6 with cardinality: 1 wraps multiselect values in an extra array layer (important-comment)
+      // Unwrap [[...]] to [...] for jsonLogic compatibility (important-comment)
+      const unwrappedVals =
+        Array.isArray(vals) && vals.length === 1 && Array.isArray(vals[0]) ? vals[0] : vals;
       return {
         // Tested in jsonLogic.test.ts
-        some: [field, { in: [{ var: "" }, vals] }],
+        some: [field, { in: [{ var: "" }, unwrappedVals] }],
       };
     },
   },
@@ -211,11 +230,21 @@ const operators: Operators = {
   multiselect_equals: {
     label: "All in",
     reversedOp: "multiselect_not_equals",
+    cardinality: 1, // Expects 1 value (which is an array of selected items)
     // jsonLogic2: "all-in",
-    jsonLogic: (field: any, op: any, vals: any, ...rest) => {
+    jsonLogic: (
+      field: JsonLogicValue,
+      op: JsonLogicValue,
+      vals: JsonLogicValue,
+      ..._rest: JsonLogicValue[]
+    ) => {
+      // RAQB v6 with cardinality: 1 wraps multiselect values in an extra array layer
+      // Unwrap [[...]] to [...] for jsonLogic compatibility
+      const unwrappedVals =
+        Array.isArray(vals) && vals.length === 1 && Array.isArray(vals[0]) ? vals[0] : vals;
       return {
         // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
-        all: [field, { in: [{ var: "" }, vals] }],
+        all: [field, { in: [{ var: "" }, unwrappedVals] }],
       };
     },
   },
@@ -250,7 +279,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "String",
     valuePlaceholder: "Enter string",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
   textarea: {
     type: "text",
@@ -258,7 +287,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Text",
     valuePlaceholder: "Enter text",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
   number: {
     type: "number",
@@ -266,7 +295,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Number",
     valuePlaceholder: "Enter number",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
   select: {
     type: "select",
@@ -274,7 +303,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Value",
     valuePlaceholder: "Select value",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
   multiselect: {
     type: "multiselect",
@@ -282,7 +311,7 @@ const widgets: WidgetsWithoutFactory = {
     valueSrc: "value" as const,
     valueLabel: "Values",
     valuePlaceholder: "Select values",
-    toJS: (val: any) => val,
+    toJS: (val: JsonLogicValue) => val,
   },
 };
 
@@ -449,8 +478,19 @@ const types: Types = {
   //   },
 };
 
-const settings: Settings = {
+const settings = {
   setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
+  jsonLogic: {
+    groupVarKey: "var",
+    altVarKey: "var",
+    lockedOp: "locked",
+  },
+};
+
+const ctx: ConfigContext = {
+  ...CoreConfig.ctx,
+  W: {},
+  O: {},
 };
 
 const basicConfig = {
@@ -459,6 +499,7 @@ const basicConfig = {
   widgets,
   types,
   settings,
+  ctx,
 };
 
 export default basicConfig;

@@ -1,7 +1,7 @@
+import type { ImmutableTree, JsonLogicResult, JsonTree } from "@react-awesome-query-builder/ui";
+import { Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import type { BasicConfig as Config } from "@react-awesome-query-builder/ui";
 import async from "async";
-import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder/lib";
-import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";
@@ -85,7 +85,7 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
     const valueError = rule.properties.valueError;
     if (valueError) {
       // Sometimes there are null values in it.
-      errors.push(valueError.filter(Boolean));
+      errors.push(valueError.filter(Boolean) as string[]);
     }
   });
   return errors;
@@ -123,7 +123,13 @@ function getJsonLogic({
   return { logic, warnings };
 }
 
-function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
+function buildTroubleshooterData({
+  type,
+  data,
+}: {
+  type: TroubleshooterCase;
+  data: Record<string, unknown>;
+}) {
   return {
     troubleshooter: {
       type,
@@ -160,7 +166,8 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = !!jsonLogic.apply(attributeJsonLogic as any, attributesData)
+      // @ts-expect-error - JsonLogicResult from RAQB is structurally compatible with json-logic-js input type
+      const result = jsonLogic.apply(attributeJsonLogic, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 
