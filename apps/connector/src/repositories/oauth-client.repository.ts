@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { BaseRepository } from "./base.repository";
 import type { PrismaClient } from "@calcom/prisma";
-import type { PlatformOAuthClient, Prisma } from "@prisma/client";
+import type { PlatformOAuthClient } from "@prisma/client";
 
 @Injectable()
 export class OAuthClientRepository extends BaseRepository<PlatformOAuthClient> {

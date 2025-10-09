@@ -4,7 +4,7 @@
   "slug": "bolna",
   "type": "bolna_automation",
   "logo": "icon-primary.svg",
-  "url": "https://playground.bolna.dev/auth/calcom",
+  "url": "https://playground.bolna.dev/auth/calid",
   "variant": "automation",
   "categories": ["automation"],
   "publisher": "Bolna",

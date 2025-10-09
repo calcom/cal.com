@@ -9,6 +9,7 @@ import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
 
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
@@ -38,6 +39,7 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
+import { getUtmParamsFromCookie } from "@calcom/lib/utm";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -916,6 +918,8 @@ export const getOptions = ({
               name: user.name,
             });
             const username = existingUserWithUsername ? usernameSlugRandom(user.name) : _username;
+            const utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
+
             // const username = getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email));
             await prisma.user.update({
               where: {
@@ -931,6 +935,7 @@ export const getOptions = ({
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
+                ...(utmParams && { metadata: { utm: utmParams } }),
               },
             });
 
@@ -1009,6 +1014,8 @@ export const getOptions = ({
             : existingUserWithUsername
             ? usernameSlugRandom(user.name)
             : _username;
+          const utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
+
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
@@ -1028,6 +1035,7 @@ export const getOptions = ({
                 },
               }),
               creationSource: CreationSource.WEBAPP,
+              ...(utmParams && { metadata: { utm: utmParams } }),
             },
           });
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };

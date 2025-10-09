@@ -28,7 +28,7 @@ import {
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { SystemField, TITLE_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
@@ -1023,7 +1023,7 @@ export default function Success(props: PageProps) {
                               const target = e.target as typeof e.target & {
                                 email: { value: string };
                               };
-                              router.push(`https://cal.com/signup?email=${target.email.value}`);
+                              router.push(`${WEBAPP_URL}/signup?email=${target.email.value}`);
                             }}
                             className="mt-4 flex">
                             <EmailInput
@@ -1157,9 +1157,7 @@ export default function Success(props: PageProps) {
                     <div>
                       <p className="font-semibold">{t("google_new_spam_policy")}</p>
                       <span className="underline">
-                        <a
-                          target="_blank"
-                          href="https://cal.id/info/google-spam-policy">
+                        <a target="_blank" href="https://cal.id/info/google-spam-policy">
                           {t("resolve")}
                         </a>
                       </span>
