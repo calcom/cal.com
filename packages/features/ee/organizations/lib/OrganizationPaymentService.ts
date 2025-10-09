@@ -12,11 +12,11 @@ import { prisma } from "@calcom/prisma";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
+import type { OnboardingUser } from "./onboarding/types";
 
 type OrganizationOnboardingId = string;
 const log = logger.getSubLogger({ prefix: ["OrganizationPaymentService"] });
@@ -78,9 +78,9 @@ type StripePrice = {
 export class OrganizationPaymentService {
   protected billingService: StripeBillingService;
   protected permissionService: OrganizationPermissionService;
-  protected user: NonNullable<TrpcSessionUser>;
+  protected user: OnboardingUser;
 
-  constructor(user: NonNullable<TrpcSessionUser>, permissionService?: OrganizationPermissionService) {
+  constructor(user: OnboardingUser, permissionService?: OrganizationPermissionService) {
     this.billingService = new StripeBillingService();
     this.permissionService = permissionService || new OrganizationPermissionService(user);
     this.user = user;
