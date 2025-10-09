@@ -1,9 +1,10 @@
+import { acrossQueryValueCompatiblity } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
+import { mergeOverlappingRanges } from "@calcom/lib/date-ranges";
 import logger from "@calcom/lib/logger";
-import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
@@ -17,8 +18,6 @@ import type { AttributeType } from "@calcom/prisma/enums";
 import { RRTimestampBasis, RRResetInterval } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
-import { mergeOverlappingRanges } from "../date-ranges";
 
 const log = logger.getSubLogger({ prefix: ["getLuckyUser"] });
 const { getAttributesQueryValue } = acrossQueryValueCompatiblity;

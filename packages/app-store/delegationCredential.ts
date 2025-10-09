@@ -3,30 +3,28 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
+import {
+  buildNonDelegationCredential,
+  buildNonDelegationCredentials,
+  isDelegationCredential,
+} from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
-
-import { UserRepository } from "../server/repository/user";
-import {
-  buildNonDelegationCredential,
-  buildNonDelegationCredentials,
-  isDelegationCredential,
-} from "./clientAndServer";
-
-export { buildNonDelegationCredentials, buildNonDelegationCredential } from "./clientAndServer";
 
 const GOOGLE_WORKSPACE_SLUG = "google";
 const OFFICE365_WORKSPACE_SLUG = "office365";
 const WORKSPACE_PLATFORM_SLUGS = [GOOGLE_WORKSPACE_SLUG, OFFICE365_WORKSPACE_SLUG] as const;
 type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
 
-const log = logger.getSubLogger({ prefix: ["lib/delegationCredential/server"] });
+const log = logger.getSubLogger({ prefix: ["app-store/delegationCredential"] });
 interface DelegationCredential {
   id: string;
   workspacePlatform: {
@@ -650,6 +648,36 @@ export async function getCredentialForCalendarCache({ credentialId }: { credenti
     credentialForCalendarService = buildNonDelegationCredential(credential);
   }
   return credentialForCalendarService;
+}
+
+/**
+ * It includes in-memory DelegationCredential credentials as well.
+ */
+export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: user.id,
+    },
+    select: credentialForCalendarServiceSelect,
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+    user: {
+      email: user.email,
+      id: user.id,
+      credentials,
+    },
+  });
+
+  return allCredentials;
+}
+
+export async function getUsersCredentials(user: User) {
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
+  return credentials.map(({ delegatedTo: _1, ...rest }) => rest);
 }
 
 /**
