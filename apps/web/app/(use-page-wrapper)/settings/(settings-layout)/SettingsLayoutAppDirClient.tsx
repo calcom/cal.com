@@ -98,7 +98,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
             ]
           : []),
         {
-          name: "privacy",
+          name: "privacy_and_security",
           href: "/settings/organizations/privacy",
         },
 
@@ -170,7 +170,14 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = ["privacy", "OAuth Clients", "SSO", "directory_sync", "delegation_credential"];
+const organizationAdminKeys = [
+  "privacy",
+  "privacy_and_security",
+  "OAuth Clients",
+  "SSO",
+  "directory_sync",
+  "delegation_credential",
+];
 
 export interface SettingsPermissions {
   canViewRoles?: boolean;
