@@ -82,7 +82,6 @@ const _getBookingData = async <T extends z.ZodType>({
     customInputs: undefined,
   };
 };
-ng
 export const getBookingData = withReporting(_getBookingData, "getBookingData");
 
 export type AwaitedBookingData = Awaited<ReturnType<typeof _getBookingData>>;
