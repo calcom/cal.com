@@ -1001,7 +1001,7 @@ export async function handleNewUsersInvites({
 }) {
   const translation = await getTranslation(language, "common");
 
-  await createNewUsersConnectToOrgIfExists({
+  const createdUsers = await createNewUsersConnectToOrgIfExists({
     invitations: invitationsForNewUsers,
     isOrg,
     teamId: teamId,
@@ -1011,6 +1011,14 @@ export async function handleNewUsersInvites({
     language,
     creationSource,
   });
+
+  const autoAcceptedUsers = createdUsers.filter(
+    (user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept
+  );
+
+  if (autoAcceptedUsers.length > 0) {
+    await Promise.all(autoAcceptedUsers.map((user) => updateNewTeamMemberEventTypes(user.id, teamId)));
+  }
 
   const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {
     return sendSignupToOrganizationEmail({
