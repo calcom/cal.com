@@ -12,7 +12,7 @@ import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
+import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";

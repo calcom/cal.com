@@ -1,6 +1,9 @@
 import type { TFunction } from "i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/delegationCredential";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { deleteMeeting } from "@calcom/app-store/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -12,18 +15,15 @@ import {
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
-import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegationCredential/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
-import { deleteMeeting } from "@calcom/app-store/videoClient";
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";

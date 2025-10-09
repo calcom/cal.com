@@ -81,6 +81,7 @@ export class CalendarEventBuilder {
     name: string | null;
     email: string;
     username?: string;
+    usernameInOrg?: string;
     timeZone: string;
     timeFormat?: TimeFormat;
     language: {
@@ -95,6 +96,7 @@ export class CalendarEventBuilder {
         name: organizer.name || "Nameless",
         email: organizer.email,
         username: organizer.username,
+        usernameInOrg: organizer.usernameInOrg,
         timeZone: organizer.timeZone,
         language: organizer.language,
         timeFormat: organizer.timeFormat,

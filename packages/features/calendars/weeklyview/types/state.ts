@@ -1,4 +1,4 @@
-import type { IFromUser, IToUser } from "@calcom/lib/getUserAvailability";
+import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import type { TimeRange } from "@calcom/types/schedule";
 
 import type { CalendarEvent } from "./events";

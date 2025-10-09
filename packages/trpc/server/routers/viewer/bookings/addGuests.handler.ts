@@ -1,3 +1,4 @@
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
@@ -5,7 +6,6 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
