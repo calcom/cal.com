@@ -1,5 +1,5 @@
 import type { User } from "@calcom/prisma/client";
-import type { WatchlistType } from "@calcom/prisma/enums";
+import { WatchlistType } from "@calcom/prisma/enums";
 
 import type { Watchlist } from "../types";
 import { normalizeEmail, normalizeDomain, normalizeUsername } from "../utils/normalization";
@@ -105,13 +105,13 @@ export function sanitizeWatchlistEntryDTO(dto: WatchlistEntryDTO): WatchlistEntr
   };
 }
 
-export function sanitizeWatchlistValue(type: string, value: string): string {
+export function sanitizeWatchlistValue(type: WatchlistType, value: string): string {
   switch (type) {
-    case "EMAIL":
+    case WatchlistType.EMAIL:
       return normalizeEmail(value);
-    case "DOMAIN":
+    case WatchlistType.DOMAIN:
       return normalizeDomain(value);
-    case "USERNAME":
+    case WatchlistType.USERNAME:
       return normalizeUsername(value);
     default:
       return value.trim();

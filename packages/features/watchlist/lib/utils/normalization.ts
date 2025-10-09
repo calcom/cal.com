@@ -1,3 +1,5 @@
+import { emailRegex } from "@calcom/lib/emailSchema";
+
 /**
  * Centralized normalization utilities for emails and domains
  *
@@ -22,7 +24,6 @@ export function normalizeEmail(email: string): string {
 
   const normalized = email.trim().toLowerCase();
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(normalized)) {
     throw new Error(`Invalid email format: ${email}`);
   }

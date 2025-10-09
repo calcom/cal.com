@@ -34,7 +34,7 @@ export async function checkIfEmailIsBlockedInWatchlistController(
       return presenter(true);
     }
 
-    if (organizationId) {
+    if (organizationId != null) {
       const orgResult = await watchlist.orgBlocking.isBlocked(normalizedEmail, organizationId);
       if (orgResult.isBlocked) {
         return presenter(true);

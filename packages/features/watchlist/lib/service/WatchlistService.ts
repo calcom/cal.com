@@ -26,22 +26,25 @@ export class WatchlistService implements IWatchlistService {
 
     const isGlobal = data.isGlobal ?? false;
 
-    const entryPromise =
-      isGlobal || !data.organizationId
-        ? this.deps.globalRepo.createEntry({
-            type: data.type,
-            value: data.value,
-            description: data.description,
-            action: data.action,
-            source: data.source,
-          })
-        : this.deps.orgRepo.createEntry(data.organizationId, {
-            type: data.type,
-            value: data.value,
-            description: data.description,
-            action: data.action,
-            source: data.source,
-          });
+    if (!isGlobal && !data.organizationId) {
+      throw new Error("organizationId is required for organization-scoped entries");
+    }
+
+    const entryPromise = isGlobal
+      ? this.deps.globalRepo.createEntry({
+          type: data.type,
+          value: data.value,
+          description: data.description,
+          action: data.action,
+          source: data.source,
+        })
+      : this.deps.orgRepo.createEntry(data.organizationId, {
+          type: data.type,
+          value: data.value,
+          description: data.description,
+          action: data.action,
+          source: data.source,
+        });
 
     return entryPromise.then((entry) => {
       log.info("Watchlist entry created successfully", {

@@ -25,13 +25,13 @@ export interface WatchlistFeature {
 
 export function createWatchlistFeature(container: Container): WatchlistFeature {
   // Get repositories from container
-  const globalRepo = container.get(
+  const globalRepo = container.get<IGlobalWatchlistRepository>(
     WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY
-  ) as IGlobalWatchlistRepository;
-  const orgRepo = container.get(
+  );
+  const orgRepo = container.get<IOrganizationWatchlistRepository>(
     WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY
-  ) as IOrganizationWatchlistRepository;
-  const auditRepo = container.get(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY) as IAuditRepository;
+  );
+  const auditRepo = container.get<IAuditRepository>(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY);
 
   // Create services with Deps pattern
   return {

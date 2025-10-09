@@ -1,20 +1,20 @@
-import type { WatchlistAudit } from "../types";
+import type { WatchlistAction, WatchlistAudit, WatchlistType } from "../types";
 
 export interface CreateWatchlistAuditInput {
-  type: string;
+  type: WatchlistType;
   value: string;
-  description?: string;
-  action: string;
-  changedByUserId?: number;
+  description?: string | null;
+  action: WatchlistAction;
+  changedByUserId?: number | null;
   watchlistId: string;
 }
 
 export interface UpdateWatchlistAuditInput {
-  type?: string;
+  type?: WatchlistType;
   value?: string;
-  description?: string;
-  action?: string;
-  changedByUserId?: number;
+  description?: string | null;
+  action?: WatchlistAction;
+  changedByUserId?: number | null;
 }
 
 export interface IAuditRepository {

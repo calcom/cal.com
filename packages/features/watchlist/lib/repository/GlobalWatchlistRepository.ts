@@ -48,7 +48,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   async findById(id: string): Promise<Watchlist | null> {
-    return this.prisma.watchlist.findUnique({
+    return this.prisma.watchlist.findFirst({
       where: {
         id,
         organizationId: null,
@@ -71,7 +71,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   async createEntry(data: {
     type: WatchlistType;
     value: string;
-    description?: string;
+    description?: string | null;
     action: WatchlistAction;
     source?: WatchlistSource;
   }): Promise<Watchlist> {
@@ -92,11 +92,16 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     id: string,
     data: {
       value?: string;
-      description?: string;
+      description?: string | null;
       action?: WatchlistAction;
       source?: WatchlistSource;
     }
   ): Promise<Watchlist> {
+    // Fetch existing entry to determine type
+    const existing = await this.prisma.watchlist.findFirst({ where: { id } });
+    if (!existing) {
+      throw new Error(`Watchlist entry ${id} not found`);
+    }
     return this.prisma.watchlist.update({
       where: {
         id,
@@ -105,9 +110,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       data: {
         ...(data.value && {
           value:
-            data.value.includes("@") && !data.value.startsWith("@")
-              ? normalizeEmail(data.value)
-              : normalizeDomain(data.value),
+            existing.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
         }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.action && { action: data.action }),

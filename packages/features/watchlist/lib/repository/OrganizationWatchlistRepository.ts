@@ -60,7 +60,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
   }
 
   async findById(id: string, organizationId: number): Promise<Watchlist | null> {
-    return this.prisma.watchlist.findUnique({
+    return this.prisma.watchlist.findFirst({
       where: {
         id,
         organizationId,
@@ -97,7 +97,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
     organizationId: number,
     data: {
       value?: string;
-      description?: string;
+      description?: string | null;
       action?: WatchlistAction;
       source?: WatchlistSource;
     }
