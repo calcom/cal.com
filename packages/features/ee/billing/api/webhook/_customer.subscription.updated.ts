@@ -1,9 +1,13 @@
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
+import { BillingRepositoryFactory } from "../../repository/billingRepositoryFactory";
+import { TeamSubscriptionEventHandler } from "../../service/TeamSubscriptionEventHandler";
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
+import { mapStripeStatusToCalStatus } from "./lib/mapStripeStatusToCalStatus";
 
 type Data = SWHMap["customer.subscription.updated"]["data"];
 
@@ -12,6 +16,24 @@ const handler = async (data: Data) => {
 
   if (!subscription.id) {
     throw new HttpCode(400, "Subscription ID not found");
+  }
+
+  const teamSubscriptionItem = subscription.items.data.find(
+    (item) => item.price.product === process.env.STRIPE_TEAM_PRODUCT_ID
+  );
+
+  const orgSubscriptionItem = subscription.items.data.find(
+    (item) => item.price.product === process.env.STRIPE_ORG_PRODUCT_ID
+  );
+
+  // Handle team subscriptions
+  if (teamSubscriptionItem || orgSubscriptionItem) {
+    await handleTeamSubscriptionUpdate({
+      subscription,
+      subscriptionItem: orgSubscriptionItem || teamSubscriptionItem,
+      isOrganization: !!orgSubscriptionItem,
+    });
+    return { success: true, subscriptionId: subscription.id, subscriptionStatus: subscription.status };
   }
 
   const phoneNumber = await PrismaPhoneNumberRepository.findByStripeSubscriptionId({
@@ -26,6 +48,7 @@ const handler = async (data: Data) => {
 };
 
 type Subscription = Data["object"];
+type SubscriptionItem = Data["object"]["items"]["data"][number];
 
 async function handleCalAIPhoneNumberSubscriptionUpdate(
   subscription: Subscription,
@@ -55,6 +78,37 @@ async function handleCalAIPhoneNumberSubscriptionUpdate(
   });
 
   return { success: true, subscriptionId: subscription.id, status: subscriptionStatus };
+}
+
+async function handleTeamSubscriptionUpdate({
+  subscription,
+  subscriptionItem,
+  isOrganization,
+}: {
+  subscription: Subscription;
+  subscriptionItem: SubscriptionItem;
+  isOrganization: boolean;
+}) {
+  const billingRepository = BillingRepositoryFactory.getRepository(isOrganization);
+  const teamRepository = new TeamRepository(prisma);
+  const teamSubscriptionEventHandler = new TeamSubscriptionEventHandler(billingRepository, teamRepository);
+
+  const status = mapStripeStatusToCalStatus({
+    stripeStatus: subscription.status,
+    subscriptionId: subscription.id,
+  });
+
+  try {
+    await teamSubscriptionEventHandler.handleUpdate({
+      subscriptionId: subscription.id,
+      subscriptionItemId: subscriptionItem.id,
+      customerId: subscription.customer as string,
+      subscriptionStatus: status,
+    });
+  } catch (error) {
+    console.error("Error handling team subscription update:", error);
+    throw new HttpCode(202, "Failed to handle team subscription update");
+  }
 }
 
 export default handler;
