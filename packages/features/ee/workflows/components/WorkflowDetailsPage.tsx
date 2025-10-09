@@ -10,6 +10,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
@@ -166,11 +167,11 @@ export default function WorkflowDetailsPage(props: Props) {
     <>
       <div>
         <FormCard
-          className="mb-0 border-muted"
+          className="border-muted mb-0"
           collapsible={false}
           label={
-            <div className="flex gap-2 items-center pt-1 pb-2">
-              <div className="p-1 ml-1 rounded-lg border border-subtle text-subtle">
+            <div className="flex items-center gap-2 pb-2 pt-1">
+              <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
                 <Icon name="zap" size="16" />
               </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
@@ -207,11 +208,11 @@ export default function WorkflowDetailsPage(props: Props) {
                 <div key={index}>
                   <FormCard
                     key={step.id}
-                    className="mb-0 bg-muted border-muted"
+                    className="bg-muted border-muted mb-0"
                     collapsible={false}
                     label={
-                      <div className="flex gap-2 items-center pt-1 pb-2">
-                        <div className="p-1 rounded-lg border border-subtle text-subtle">
+                      <div className="flex items-center gap-2 pb-2 pt-1">
+                        <div className="border-subtle text-subtle rounded-lg border p-1">
                           <Icon name="arrow-right" size="16" />
                         </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
