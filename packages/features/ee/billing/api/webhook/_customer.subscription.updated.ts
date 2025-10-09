@@ -18,6 +18,7 @@ const handler = async (data: Data) => {
     throw new HttpCode(400, "Subscription ID not found");
   }
 
+  // A subscription will only have one of these products
   const teamSubscriptionItem = subscription.items.data.find(
     (item) => item.price.product === process.env.STRIPE_TEAM_PRODUCT_ID
   );
@@ -26,11 +27,13 @@ const handler = async (data: Data) => {
     (item) => item.price.product === process.env.STRIPE_ORG_PRODUCT_ID
   );
 
+  const subscriptionItem = orgSubscriptionItem || teamSubscriptionItem;
+
   // Handle team subscriptions
-  if (teamSubscriptionItem || orgSubscriptionItem) {
+  if (subscriptionItem) {
     await handleTeamSubscriptionUpdate({
       subscription,
-      subscriptionItem: orgSubscriptionItem || teamSubscriptionItem,
+      subscriptionItem,
       isOrganization: !!orgSubscriptionItem,
     });
     return { success: true, subscriptionId: subscription.id, subscriptionStatus: subscription.status };
