@@ -3677,6 +3677,8 @@
   "webhook_organizer_email": "주최자 이메일",
   "webhook_organizer_timezone": "주최자 시간대(예: 'America/New_York', 'Asia/Kolkata')",
   "webhook_organizer_locale": "주최자 로케일(예: 'en', 'fr')",
+  "webhook_organizer_username": "주최자의 사용자 이름(예: 'john.doe')",
+  "webhook_organizer_username_in_org": "조직 내 주최자의 사용자 이름(예: 'john.doe')",
   "webhook_attendee_name": "첫 번째 참석자 이름",
   "webhook_attendee_email": "첫 번째 참석자 이메일",
   "webhook_attendee_timezone": "첫 번째 참석자 시간대",
