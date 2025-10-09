@@ -40,13 +40,11 @@ export function useRedirectToOnboardingIfNeeded() {
   const shouldRedirectToOnboarding = user && shouldShowOnboarding(user);
   const canRedirect = !isLoading && shouldRedirectToOnboarding && !needsEmailVerification;
 
-  const onboardingPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
-
   useEffect(() => {
     if (canRedirect) {
-      router.replace(onboardingPath);
+      router.replace("/getting-started");
     }
-  }, [canRedirect, router, onboardingPath]);
+  }, [canRedirect, router]);
 
   return {
     isLoading,

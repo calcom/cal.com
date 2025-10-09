@@ -30,7 +30,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     "email-verification"
   );
   const signupDisabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("disable-signup");
-  const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
   const token = z.string().optional().parse(ctx.query.token);
   const redirectUrlData = z
@@ -63,7 +62,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,
-    onboardingV3Enabled,
   };
 
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
