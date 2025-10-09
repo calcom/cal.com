@@ -1,4 +1,10 @@
-import type { CreateOnboardingIntentInput, OnboardingIntentResult } from "./types";
+import type { Team, User } from "@calcom/prisma/client";
+
+import type {
+  CreateOnboardingIntentInput,
+  OnboardingIntentResult,
+  OrganizationOnboardingData,
+} from "./types";
 
 /**
  * Interface for organization onboarding services.
@@ -12,4 +18,15 @@ export interface IOrganizationOnboardingService {
    * - SelfHosted: Creates organization immediately, returns organizationId
    */
   createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<OnboardingIntentResult>;
+
+  /**
+   * Creates the actual organization from onboarding data.
+   * Depending on the implementation:
+   * - SelfHosted: Validates license, creates organization without payment
+   * - BillingEnabled: Requires payment details, handles subscription
+   */
+  createOrganization(
+    organizationOnboarding: OrganizationOnboardingData,
+    paymentDetails?: { subscriptionId: string; subscriptionItemId: string }
+  ): Promise<{ organization: Team; owner: User }>;
 }

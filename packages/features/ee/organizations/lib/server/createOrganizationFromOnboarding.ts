@@ -617,6 +617,12 @@ async function handleOrganizationCreation({
 }
 
 /**
+ * @deprecated This function is deprecated. Use the onboarding service classes instead:
+ * - For self-hosted: Use SelfHostedOnboardingService.createOrganization()
+ * - For billing-enabled: Use BillingEnabledOnboardingService.createOrganization()
+ *
+ * This function will be removed in a future version after all callers have been migrated.
+ *
  * This function is used by stripe webhook, so it should expect to be called multiple times till the entire flow completes without any error.
  * So, it should be idempotent.
  */

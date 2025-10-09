@@ -1,13 +1,30 @@
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
+import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { prisma } from "@calcom/prisma";
+import type { Team, User } from "@calcom/prisma/client";
 import { BillingPeriod } from "@calcom/prisma/enums";
+import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 
+import { LicenseKeySingleton } from "../../../common/server/LicenseKeyService";
 import { BaseOnboardingService } from "./BaseOnboardingService";
-import type { CreateOnboardingIntentInput, OnboardingIntentResult } from "./types";
+import type {
+  CreateOnboardingIntentInput,
+  OnboardingIntentResult,
+  OrganizationOnboardingData,
+  OrganizationData,
+} from "./types";
 
 const log = logger.getSubLogger({ prefix: ["SelfHostedOnboardingService"] });
+
+const invitedMembersSchema = orgOnboardingInvitedMembersSchema;
+const teamsSchema = orgOnboardingTeamsSchema;
 
 /**
  * Handles organization onboarding when billing is disabled (self-hosted admin flow).
@@ -46,26 +63,24 @@ export class SelfHostedOnboardingService extends BaseOnboardingService {
     // Step 4: Create organization immediately
     log.debug("Creating organization immediately (no payment required)", safeStringify({ onboardingId }));
 
-    const { organization } = await createOrganizationFromOnboarding({
-      organizationOnboarding: {
-        id: onboardingId,
-        organizationId: null,
-        name: input.name,
-        slug: input.slug,
-        orgOwnerEmail: input.orgOwnerEmail,
-        seats: input.seats ?? null,
-        pricePerSeat: input.pricePerSeat ?? null,
-        billingPeriod: input.billingPeriod ?? BillingPeriod.MONTHLY,
-        invitedMembers: invitedMembersData,
-        teams: teamsData,
-        isPlatform: input.isPlatform,
-        logo: input.logo ?? null,
-        bio: input.bio ?? null,
-        brandColor: input.brandColor ?? null,
-        bannerUrl: input.bannerUrl ?? null,
-        stripeCustomerId: null,
-        isDomainConfigured: false,
-      },
+    const { organization } = await this.createOrganization({
+      id: onboardingId,
+      organizationId: null,
+      name: input.name,
+      slug: input.slug,
+      orgOwnerEmail: input.orgOwnerEmail,
+      seats: input.seats ?? null,
+      pricePerSeat: input.pricePerSeat ?? null,
+      billingPeriod: input.billingPeriod ?? BillingPeriod.MONTHLY,
+      invitedMembers: invitedMembersData,
+      teams: teamsData,
+      isPlatform: input.isPlatform,
+      logo: input.logo ?? null,
+      bio: input.bio ?? null,
+      brandColor: input.brandColor ?? null,
+      bannerUrl: input.bannerUrl ?? null,
+      stripeCustomerId: null,
+      isDomainConfigured: false,
     });
 
     // Step 5: Mark onboarding as complete
@@ -90,5 +105,123 @@ export class SelfHostedOnboardingService extends BaseOnboardingService {
       checkoutUrl: null, // No checkout required
       organizationId: organization.id, // Organization created immediately
     };
+  }
+
+  async createOrganization(
+    organizationOnboarding: OrganizationOnboardingData
+  ): Promise<{ organization: Team; owner: User }> {
+    log.info(
+      "createOrganization (self-hosted)",
+      safeStringify({
+        orgId: organizationOnboarding.organizationId,
+        orgSlug: organizationOnboarding.slug,
+      })
+    );
+
+    if (IS_SELF_HOSTED) {
+      const deploymentRepo = new DeploymentRepository(prisma);
+      const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+      const hasValidLicense = await licenseKeyService.checkLicense();
+
+      if (!hasValidLicense) {
+        throw new Error("Self hosted license not valid");
+      }
+    }
+
+    if (
+      await this.hasConflictingOrganization({
+        slug: organizationOnboarding.slug,
+        onboardingId: organizationOnboarding.id,
+      })
+    ) {
+      throw new Error("organization_already_exists_with_this_slug");
+    }
+
+    let owner = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
+    const orgOwnerTranslation = await getTranslation(owner?.locale || "en", "common");
+
+    if (!process.env.NEXT_PUBLIC_SINGLE_ORG_SLUG) {
+      await this.handleDomainSetup({
+        organizationOnboarding,
+        orgOwnerTranslation,
+      });
+    }
+
+    const orgData: OrganizationData = {
+      id: organizationOnboarding.organizationId,
+      name: organizationOnboarding.name,
+      slug: organizationOnboarding.slug,
+      isOrganizationConfigured: true,
+      isOrganizationAdminReviewed: true,
+      autoAcceptEmail: organizationOnboarding.orgOwnerEmail.split("@")[1],
+      seats: organizationOnboarding.seats,
+      pricePerSeat: organizationOnboarding.pricePerSeat,
+      isPlatform: false,
+      billingPeriod: organizationOnboarding.billingPeriod,
+      logoUrl: organizationOnboarding.logo,
+      bio: organizationOnboarding.bio,
+      brandColor: organizationOnboarding.brandColor,
+      bannerUrl: organizationOnboarding.bannerUrl,
+    };
+
+    let organization: Team;
+    if (!owner) {
+      const result = await this.createOrganizationWithNonExistentUserAsOwner({
+        email: organizationOnboarding.orgOwnerEmail,
+        orgData,
+      });
+      organization = result.organization;
+      owner = result.owner;
+    } else {
+      const result = await this.createOrganizationWithExistingUserAsOwner({
+        orgData,
+        owner,
+      });
+      organization = result.organization;
+    }
+
+    if (organizationOnboarding.stripeCustomerId) {
+      await this.ensureStripeCustomerIdIsUpdated({
+        owner,
+        stripeCustomerId: organizationOnboarding.stripeCustomerId,
+      });
+    }
+
+    await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+      organizationId: organization.id,
+    });
+
+    const teamsData = teamsSchema.parse(organizationOnboarding.teams);
+    await this.createOrMoveTeamsToOrganization(teamsData, owner, organization.id);
+
+    await this.inviteMembers(
+      invitedMembersSchema.parse(organizationOnboarding.invitedMembers),
+      organization,
+      teamsData
+    );
+
+    if (!organization.slug) {
+      try {
+        const { slug } = await OrganizationRepository.setSlug({
+          id: organization.id,
+          slug: organizationOnboarding.slug,
+        });
+        organization.slug = slug;
+      } catch (error) {
+        log.error(
+          "RecoverableError: Error while setting slug for organization",
+          safeStringify(error),
+          safeStringify({
+            attemptedSlug: organizationOnboarding.slug,
+            organizationId: organization.id,
+          })
+        );
+        throw new Error(
+          `Unable to set slug '${organizationOnboarding.slug}' for organization ${organization.id}`
+        );
+      }
+    }
+
+    return { organization, owner };
   }
 }
