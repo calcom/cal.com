@@ -20,6 +20,7 @@
       "fr",
       "he",
       "hu",
+      "is",
       "it",
       "ja",
       "km",
@@ -38,8 +39,7 @@
       "uk",
       "vi",
       "zh-CN",
-      "zh-TW",
-      "is"
+      "zh-TW"
     ]
   },
   "buckets": {
