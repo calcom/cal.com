@@ -3,8 +3,8 @@ import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWe
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
@@ -87,29 +87,33 @@ export async function handleBookingRequested(args: {
       )?.organizationId ?? null;
 
   // Fetch user data for branding when there's no team
-  const userForBranding = !booking.eventType?.teamId && booking.userId
-    ? await prisma.user.findUnique({
-        where: { id: booking.userId },
-        select: {
-          id: true,
-          hideBranding: true,
-        },
-      })
-    : null;
+  const userForBranding =
+    !booking.eventType?.teamId && booking.userId
+      ? await prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        })
+      : null;
 
-  const hideBranding = await shouldHideBrandingForEvent({
-    eventTypeId: booking.eventType?.id ?? 0,
-    team: (teamForBranding as any) ?? null,
-    owner: userForBranding,
-    organizationId: organizationIdForBranding,
-  });
+  const eventTypeId = booking.eventType?.id ?? booking.eventTypeId ?? null;
+  const hideBranding = eventTypeId
+    ? await shouldHideBrandingForEvent({
+        eventTypeId,
+        team: (teamForBranding as any) ?? null,
+        owner: userForBranding,
+        organizationId: organizationIdForBranding,
+      })
+    : false;
 
   await sendOrganizerRequestEmail(
-    ({ ...evt, hideBranding } as any),
+    { ...evt, hideBranding } as any,
     booking?.eventType?.metadata as EventTypeMetadata
   );
   await sendAttendeeRequestEmailAndSMS(
-    ({ ...evt, hideBranding } as any),
+    { ...evt, hideBranding } as any,
     evt.attendees[0],
     booking?.eventType?.metadata as EventTypeMetadata
   );

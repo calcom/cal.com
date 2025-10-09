@@ -355,50 +355,60 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
-    if (emailsEnabled) {
-      const fullEventType = booking.eventTypeId
-        ? await prisma.eventType.findUnique({
-            where: { id: booking.eventTypeId },
-            select: {
-              id: true,
-              team: {
-                select: {
-                  id: true,
-                  hideBranding: true,
-                  parentId: true,
-                  parent: {
-                    select: {
-                      hideBranding: true,
-                    },
-                  },
-                },
-              },
-              teamId: true,
-            },
-          })
-        : null;
+    const eventTypeIdForBranding = booking.eventTypeId ?? null;
+    let hideBranding = false;
+    let userForBranding: { id: number; hideBranding: boolean | null } | null = null;
+    let fullEventType: {
+      team: {
+        id: number | null;
+        hideBranding: boolean | null;
+        parentId: number | null;
+        parent: { hideBranding: boolean | null } | null;
+      } | null;
+      teamId: number | null;
+    } | null = null;
 
-      const userForBranding = !fullEventType?.teamId && booking.userId
-        ? await prisma.user.findUnique({
-            where: { id: booking.userId },
+    if (eventTypeIdForBranding) {
+      fullEventType = await prisma.eventType.findUnique({
+        where: { id: eventTypeIdForBranding },
+        select: {
+          team: {
             select: {
               id: true,
               hideBranding: true,
+              parentId: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
-          })
-        : null;
+          },
+          teamId: true,
+        },
+      });
 
-      const hideBranding = booking.eventTypeId
-        ? await shouldHideBrandingForEvent({
-            eventTypeId: booking.eventTypeId,
-            team: fullEventType?.team ?? null,
-            owner: userForBranding,
-            organizationId: orgId ?? null,
-          })
-        : false;
+      if (!fullEventType?.teamId && booking.userId) {
+        userForBranding = await prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        });
+      }
 
+      hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId: eventTypeIdForBranding,
+        team: fullEventType?.team ?? null,
+        owner: userForBranding,
+        organizationId: orgId ?? null,
+      });
+    }
+
+    if (emailsEnabled) {
       await sendDeclinedEmailsAndSMS(
-        ({ ...evt, hideBranding } as any),
+        { ...evt, hideBranding } as any,
         booking.eventType?.metadata as EventTypeMetadata
       );
     }
@@ -444,7 +454,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
       });
     } catch (error) {
