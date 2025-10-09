@@ -1,4 +1,4 @@
-import type { BookingReportReason } from "@calcom/prisma/enums";
+import type { BookingReportReason, WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
 
 export interface CreateBookingReportInput {
   bookingUid: string;
@@ -18,8 +18,61 @@ export interface BookingReportSummary {
   createdAt: Date;
 }
 
+export interface BookingReportWithDetails {
+  id: string;
+  bookingId: number;
+  bookerEmail: string;
+  reportedById: number;
+  reason: ReportReason;
+  description: string | null;
+  cancelled: boolean;
+  createdAt: Date;
+  watchlistId: string | null;
+
+  reporter: {
+    id: number;
+    name: string | null;
+    email: string;
+  };
+  booking: {
+    id: number;
+    startTime: Date;
+    endTime: Date;
+    title: string | null;
+    uid: string;
+  };
+  watchlist: {
+    id: string;
+    type: WatchlistType;
+    value: string;
+    action: WatchlistAction;
+    description: string | null;
+  } | null;
+}
+
+export interface ListBookingReportsFilters {
+  reason?: ReportReason[];
+  cancelled?: boolean;
+  hasWatchlist?: boolean;
+  dateRange?: {
+    from?: Date;
+    to?: Date;
+  };
+}
+
 export interface IBookingReportRepository {
   createReport(input: CreateBookingReportInput): Promise<{ id: string }>;
 
-  findAllReportedBookings(params: { skip?: number; take?: number }): Promise<BookingReportSummary[]>;
+  findAllReportedBookings(params: {
+    organizationId: number;
+    skip?: number;
+    take?: number;
+    searchTerm?: string;
+    filters?: ListBookingReportsFilters;
+  }): Promise<{
+    rows: BookingReportWithDetails[];
+    meta: { totalRowCount: number };
+  }>;
+
+  linkWatchlistToReport(params: { reportId: string; watchlistId: string }): Promise<void>;
 }

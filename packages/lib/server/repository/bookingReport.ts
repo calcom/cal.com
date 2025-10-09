@@ -4,6 +4,8 @@ import type {
   IBookingReportRepository,
   CreateBookingReportInput,
   BookingReportSummary,
+  BookingReportWithDetails,
+  ListBookingReportsFilters,
 } from "./bookingReport.interface";
 
 export class PrismaBookingReportRepository implements IBookingReportRepository {
@@ -25,19 +27,117 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     return report;
   }
 
-  async findAllReportedBookings(params: { skip?: number; take?: number }): Promise<BookingReportSummary[]> {
-    const reports = await this.prismaClient.bookingReport.findMany({
-      skip: params.skip,
-      take: params.take,
-      select: {
-        id: true,
-        reportedById: true,
-        reason: true,
-        description: true,
-        createdAt: true,
+  async findAllReportedBookings(params: {
+    organizationId: number;
+    skip?: number;
+    take?: number;
+    searchTerm?: string;
+    filters?: ListBookingReportsFilters;
+  }): Promise<{
+    rows: BookingReportWithDetails[];
+    meta: { totalRowCount: number };
+  }> {
+    const where: any = {
+      reportedBy: {
+        organizationId: params.organizationId,
       },
-      orderBy: { createdAt: "desc" },
+    };
+
+    if (params.searchTerm) {
+      where.OR = [
+        { bookerEmail: { contains: params.searchTerm, mode: "insensitive" } },
+        { description: { contains: params.searchTerm, mode: "insensitive" } },
+        {
+          reportedBy: {
+            OR: [
+              { name: { contains: params.searchTerm, mode: "insensitive" } },
+              { email: { contains: params.searchTerm, mode: "insensitive" } },
+            ],
+          },
+        },
+      ];
+    }
+
+    if (params.filters) {
+      if (params.filters.reason && params.filters.reason.length > 0) {
+        where.reason = { in: params.filters.reason };
+      }
+      if (params.filters.cancelled !== undefined) {
+        where.cancelled = params.filters.cancelled;
+      }
+      if (params.filters.hasWatchlist !== undefined) {
+        where.watchlistId = params.filters.hasWatchlist ? { not: null } : null;
+      }
+      if (params.filters.dateRange) {
+        where.createdAt = {};
+        if (params.filters.dateRange.from) {
+          where.createdAt.gte = params.filters.dateRange.from;
+        }
+        if (params.filters.dateRange.to) {
+          where.createdAt.lte = params.filters.dateRange.to;
+        }
+      }
+    }
+
+    const [totalCount, reports] = await Promise.all([
+      this.prismaClient.bookingReport.count({ where }),
+      this.prismaClient.bookingReport.findMany({
+        where,
+        skip: params.skip,
+        take: params.take,
+        select: {
+          id: true,
+          bookingId: true,
+          bookerEmail: true,
+          reportedById: true,
+          reason: true,
+          description: true,
+          cancelled: true,
+          createdAt: true,
+          watchlistId: true,
+          reportedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          booking: {
+            select: {
+              id: true,
+              startTime: true,
+              endTime: true,
+              title: true,
+              uid: true,
+            },
+          },
+          watchlist: {
+            select: {
+              id: true,
+              type: true,
+              value: true,
+              action: true,
+              description: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
+
+    return {
+      rows: reports.map((report) => ({
+        ...report,
+        reporter: report.reportedBy,
+      })),
+      meta: { totalRowCount: totalCount },
+    };
+  }
+
+  async linkWatchlistToReport(params: { reportId: string; watchlistId: string }): Promise<void> {
+    await this.prismaClient.bookingReport.update({
+      where: { id: params.reportId },
+      data: { watchlistId: params.watchlistId },
     });
-    return reports;
   }
 }
