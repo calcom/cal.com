@@ -4,7 +4,7 @@ import { config } from "@calcom/eslint-config/react-internal";
 export default [
   ...config,
   forbid({
-    from: "../app-store/**",
+    from: "../features/**",
     target: ".",
   }),
 ];
