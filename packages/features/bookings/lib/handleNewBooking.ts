@@ -1,4 +1,3 @@
- 
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -25,6 +24,9 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
+import { getCacheService } from "@calcom/features/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -47,9 +49,6 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/features/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -114,7 +113,12 @@ import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
+import type {
+  IEventTypePaymentCredentialType,
+  Invitee,
+  InviteeItem,
+  IsFixedAwareUser,
+} from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
@@ -1138,27 +1142,87 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
+  const guestBaseEmails = (reqGuests ?? []).map((e) => extractBaseEmail(e).toLowerCase());
+
+  let usersWithPreventImpersonation: Array<{
+    email: string;
+    secondaryEmails: Array<{ email: string }>;
+  }> = [];
+  if (guestBaseEmails.length) {
+    usersWithPreventImpersonation = await prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            email: {
+              in: guestBaseEmails,
+            },
+            emailVerified: {
+              not: null,
+            },
+            preventEmailImpersonation: true,
+          },
+          {
+            secondaryEmails: {
+              some: {
+                email: {
+                  in: guestBaseEmails,
+                },
+                emailVerified: {
+                  not: null,
+                },
+              },
+            },
+            preventEmailImpersonation: true,
+          },
+        ],
+      },
+      select: {
+        email: true,
+        secondaryEmails: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  const protectedBaseEmails = new Set<string>();
+  usersWithPreventImpersonation.forEach((user) => {
+    protectedBaseEmails.add(extractBaseEmail(user.email).toLowerCase());
+    user.secondaryEmails.forEach((se: { email: string }) =>
+      protectedBaseEmails.add(extractBaseEmail(se.email).toLowerCase())
+    );
+  });
+
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
-    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
+
+    if (
+      blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail) ||
+      protectedBaseEmails.has(baseGuestEmail)
+    ) {
       guestsRemoved.push(guest);
       return guestArray;
     }
+
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
     }
+
     guestArray.push({
       email: guest,
       name: "",
       firstName: "",
       lastName: "",
       timeZone: attendeeTimezone,
+      phoneNumber: undefined,
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;
-  }, [] as Invitee);
+  }, [] as InviteeItem[]);
 
   if (guestsRemoved.length > 0) {
     log.info("Removed guests from the booking", guestsRemoved);
@@ -1180,7 +1244,13 @@ async function handler(
   log.info("event type locations", eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
-  const attendeesList = [...invitee, ...guests];
+  const attendeesList = [...invitee, ...guests].map((attendee: InviteeItem) => ({
+    name: attendee.name,
+    email: attendee.email,
+    timeZone: attendee.timeZone,
+    language: attendee.language,
+    phoneNumber: attendee.phoneNumber,
+  }));
 
   const responses = reqBody.responses || null;
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
@@ -1480,7 +1550,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;

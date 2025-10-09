@@ -404,6 +404,8 @@ model User {
   // receive monthly digest email for teams or not
   receiveMonthlyDigestEmail Boolean? @default(true)
 
+  preventEmailImpersonation Boolean @default(false)
+
   /// @zod.import(["import { userMetadata } from '../../zod-utils'"]).custom.use(userMetadata)
   metadata             Json?
   verified             Boolean?                @default(false)

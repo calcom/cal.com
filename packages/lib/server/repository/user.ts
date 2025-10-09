@@ -59,6 +59,7 @@ export type SessionUser = {
   allowDynamicBooking: boolean;
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
+  preventEmailImpersonation: boolean;
   profiles: any[];
   allSelectedCalendars: any[];
   userLevelSelectedCalendars: any[];
@@ -109,6 +110,7 @@ const userSelect = {
   allowDynamicBooking: true,
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
+  preventEmailImpersonation: true,
   verified: true,
   disableImpersonation: true,
   locked: true,
@@ -911,6 +913,7 @@ export class UserRepository {
         allowDynamicBooking: true,
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,
+        preventEmailImpersonation: true,
         profiles: true,
       },
     });

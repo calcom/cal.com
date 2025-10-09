@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -79,10 +80,59 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
     : [];
 
+  // Get emails that have preventEmailImpersonation enabled
+  const usersWithPreventImpersonation = await prisma.user.findMany({
+    where: {
+      OR: [
+        {
+          email: {
+            in: guests.map((g) => extractBaseEmail(g).toLowerCase()),
+          },
+          emailVerified: {
+            not: null,
+          },
+          preventEmailImpersonation: true,
+        },
+        {
+          secondaryEmails: {
+            some: {
+              email: {
+                in: guests.map((g) => extractBaseEmail(g).toLowerCase()),
+              },
+              emailVerified: {
+                not: null,
+              },
+            },
+          },
+          preventEmailImpersonation: true,
+        },
+      ],
+    },
+    select: {
+      email: true,
+      emailVerified: true,
+      secondaryEmails: {
+        select: {
+          email: true,
+          emailVerified: true,
+        },
+      },
+    },
+  });
+
+  const protectedEmails = new Set<string>();
+  usersWithPreventImpersonation.forEach((user) => {
+    if (user.emailVerified) protectedEmails.add(user.email.toLowerCase());
+    user.secondaryEmails.forEach((se) => {
+      if (se.emailVerified) protectedEmails.add(se.email.toLowerCase());
+    });
+  });
+
   const uniqueGuests = guests.filter(
-    (guest) =>
-      !booking.attendees.some((attendee) => guest === attendee.email) &&
-      !blacklistedGuestEmails.includes(guest)
+    (guest, index, self) =>
+      self.indexOf(guest) === index &&
+      !blacklistedGuestEmails.includes(extractBaseEmail(guest).toLowerCase()) &&
+      !protectedEmails.has(extractBaseEmail(guest).toLowerCase())
   );
 
   if (uniqueGuests.length === 0)
