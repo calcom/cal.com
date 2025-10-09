@@ -1,0 +1,77 @@
+sequenceDiagram
+    participant User as 👤 User
+    participant Booker as Booker Form
+    participant Handler as handleNewBooking
+    participant SpamCheck as SpamCheckService<br/>(NEW)
+    participant GlobalSvc as GlobalBlockingService<br/>(MODIFIED)
+    participant OrgSvc as OrganizationBlockingService<br/>(MODIFIED)
+    participant GlobalDB as Global Watchlist DB
+    participant OrgDB as Org Watchlist DB
+    participant Router as Router
+    participant FakePage as /booking-successful<br/>(NEW)
+
+    User->>Booker: Submit booking form
+    Booker->>Handler: Create booking request
+    
+    Note over Handler: Email validation
+    
+    rect rgb(240, 248, 255)
+        Note over Handler,SpamCheck: NEW: Spam check initialization
+        Handler->>SpamCheck: startCheck(email, orgId)
+        Note over SpamCheck: Starts parallel checks
+    end
+    
+    Note over Handler,OrgSvc: ⚡ Spam check runs in PARALLEL<br/>with availability loading (zero delay)
+    
+    par Parallel Execution
+        rect rgb(255, 250, 205)
+            Note over SpamCheck,OrgDB: Check Global + Org Level Blocking
+            SpamCheck->>GlobalSvc: isBlocked(email, orgId)
+            GlobalSvc->>GlobalDB: Check global email
+            GlobalDB-->>GlobalSvc: Result
+            GlobalSvc->>GlobalDB: Check global domain
+            GlobalDB-->>GlobalSvc: Result
+            
+            alt If orgId provided
+                Note over GlobalSvc: GlobalSvc also handles<br/>org-level checks internally
+                GlobalSvc->>OrgDB: Check org email
+                OrgDB-->>GlobalSvc: Result
+                GlobalSvc->>OrgDB: Check org domain
+                OrgDB-->>GlobalSvc: Result
+            end
+            
+            GlobalSvc-->>SpamCheck: Blocking result<br/>(checked global + org)
+        end
+    and
+        Handler->>Handler: Load availability
+        Handler->>Handler: Process event type
+        Handler->>Handler: Check booking limits
+    end
+    
+    rect rgb(240, 248, 255)
+        Note over Handler,SpamCheck: NEW: Wait for spam check result
+        Handler->>SpamCheck: waitForCheck()
+        SpamCheck-->>Handler: BlockingResult<br/>(checked both global & org)
+    end
+    
+    alt Email is Blocked (Spammer Path)
+        rect rgb(255, 200, 200)
+            Note over Handler: NEW: Generate fake booking in handleNewBooking
+            Handler->>Handler: Generate decoy response<br/>- Fake UUID<br/>- isSpamDecoy: true<br/>- All required fields<br/>- No DB write
+            Handler-->>Booker: Fake booking data
+            Note over Booker: NEW: Detect isSpamDecoy flag
+            Booker->>Router: Redirect with query params
+            Router->>FakePage: Show fake success page
+            Note over FakePage: Spammer sees<br/>convincing confirmation<br/>(Blocked by global OR org watchlist)
+        end
+    else Email is Clean (Legitimate Path)
+        rect rgb(200, 255, 200)
+            Handler->>GlobalDB: Create real booking
+            GlobalDB-->>Handler: Booking created
+            Handler-->>Booker: Real booking data
+            Booker->>Router: Normal booking flow
+            Router->>Router: Standard success page
+        end
+    end
+    
+    Note over Handler,FakePage: Architecture:<br/>✅ SpamCheckService.ts (NEW) - Async wrapper with startCheck/waitForCheck<br/>✅ GlobalBlockingService.ts (MODIFIED) - Now handles both global + org blocking internally<br/>✅ /booking-successful/[localStorageUid]/page.tsx (NEW) - Secure localStorage-based success page<br/>✅ SpamCheckService.container.ts (NEW) - DI container for spam check<br/>📝 handleNewBooking.ts (MODIFIED) - Async spam check + fake booking<br/>📝 useBookings.ts (MODIFIED) - Redirect with localStorage storage<br/>📝 bookings/types.ts (MODIFIED) - Added isSpamDecoy flag

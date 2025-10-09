@@ -3,6 +3,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { shallow } from "zustand/shallow";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
@@ -165,13 +166,17 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
-export const useBookings = ({
-  event,
-  hashedLink,
-  bookingForm,
-  metadata,
-  isBookingDryRun,
-}: IUseBookings) => {
+const storeBookingSuccessData = (booking: Record<string, unknown>): string => {
+  const localStorageUid = uuidv4();
+  const bookingSuccessData = {
+    booking,
+    timestamp: Date.now(),
+  };
+  localStorage.setItem(`cal.booking-success.${localStorageUid}`, JSON.stringify(bookingSuccessData));
+  return localStorageUid;
+};
+
+export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookingDryRun }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStoreContext((state) => state.eventSlug);
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
@@ -248,7 +253,7 @@ export const useBookings = ({
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
-      } catch (err) {
+      } catch {
         showToast(t("something_went_wrong_on_our_end"), "error");
       }
     },
@@ -259,12 +264,6 @@ export const useBookings = ({
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
-        const validDuration = event.data?.isDynamic
-          ? duration || event.data?.length
-          : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-          ? duration
-          : event.data?.length;
-
         if (isRescheduling) {
           sdkActionManager?.fire(
             "dryRunRescheduleBookingSuccessfulV2",
@@ -286,6 +285,22 @@ export const useBookings = ({
         router.push("/booking/dry-run-successful");
         return;
       }
+
+      if ("isShortCircuitedBooking" in booking && booking.isShortCircuitedBooking) {
+        const bookingData = {
+          title: booking.title ?? null,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          booker: booking.attendees?.[0] ?? null,
+          host: booking.user ?? null,
+          location: booking.location ?? null,
+        };
+
+        const localStorageUid = storeBookingSuccessData(bookingData);
+        router.push(`/booking-successful/${localStorageUid}`);
+        return;
+      }
+
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
@@ -380,9 +395,10 @@ export const useBookings = ({
             : event?.data?.forwardParamsSuccessRedirect,
       });
     },
-    onError: (err, _, ctx) => {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
-      bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+    onError: (err) => {
+      if (bookerFormErrorRef?.current) {
+        bookerFormErrorRef.current.scrollIntoView({ behavior: "smooth" });
+      }
 
       const error = err as Error & {
         data: { rescheduleUid: string; startTime: string; attendees: string[] };
@@ -414,10 +430,11 @@ export const useBookings = ({
       updateQueryParam("bookingId", responseData.bookingId);
       setExpiryTime(responseData.expires);
     },
-    onError: (err, _, ctx) => {
+    onError: (err, _, _ctx) => {
       console.error("Error creating instant booking", err);
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
-      bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (bookerFormErrorRef?.current) {
+        bookerFormErrorRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     },
   });
 
@@ -513,15 +530,10 @@ export const useBookings = ({
     bookingForm,
     hashedLink,
     metadata,
-    handleInstantBooking: (
-      variables: Parameters<typeof createInstantBookingMutation.mutate>[0]
-    ) => {
+    handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
       const remaining = getInstantCooldownRemainingMs(eventTypeId);
       if (remaining > 0) {
-        showToast(
-          t("please_try_again_later_or_book_another_slot"),
-          "error"
-        );
+        showToast(t("please_try_again_later_or_book_another_slot"), "error");
         return;
       }
       createInstantBookingMutation.mutate(variables);

@@ -1,4 +1,3 @@
- 
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -25,6 +24,10 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
+import { getCacheService } from "@calcom/features/di/containers/Cache";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -47,9 +50,6 @@ import {
   enrichHostsWithDelegationCredentials,
   getFirstDelegationConferencingCredentialAppLocation,
 } from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/features/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -496,6 +496,10 @@ async function handler(
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+
+  const spamCheckService = getSpamCheckService();
+  const eventOrganizationId = eventType.team?.parentId ?? eventType.parent?.team?.parentId ?? null;
+  spamCheckService.startCheck(bookerEmail, eventOrganizationId ?? undefined);
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({
@@ -1395,6 +1399,53 @@ async function handler(
     organizerUser.id
   );
 
+  const spamCheckResult = await spamCheckService.waitForCheck();
+
+  if (spamCheckResult.isBlocked) {
+    loggerWithEventDetails.info("Booking blocked due to spam detection", {
+      email: bookerEmail,
+      reason: spamCheckResult.reason,
+    });
+
+    const DECOY_ORGANIZER_NAMES = ["Alex Smith", "Jordan Taylor", "Sam Johnson", "Chris Morgan"];
+    const randomOrganizerName =
+      DECOY_ORGANIZER_NAMES[Math.floor(Math.random() * DECOY_ORGANIZER_NAMES.length)];
+
+    return {
+      uid,
+
+      title: eventName,
+      description: eventType.description || "",
+      startTime: reqBody.start,
+      endTime: reqBody.end,
+      location: bookingLocation,
+      isShortCircuitedBooking: true, // Renamed from isSpamDecoy to avoid exposing spam detection to blocked users (important-comment)
+      isDryRun: false,
+      paymentRequired: false,
+      paymentUid: null,
+      userPrimaryEmail: null,
+      user: {
+        name: randomOrganizerName,
+        timeZone: "UTC",
+        email: null,
+      },
+      status: BookingStatus.ACCEPTED,
+      responses: null,
+      attendees: [
+        {
+          email: bookerEmail,
+          name: fullName,
+          timeZone: reqBody.timeZone,
+        },
+      ],
+      iCalUID: "",
+      luckyUsers: [],
+      references: [],
+      id: 0,
+      paymentId: null,
+    };
+  }
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -1480,7 +1531,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;

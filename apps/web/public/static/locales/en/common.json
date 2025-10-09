@@ -416,6 +416,8 @@
   "booking_submitted_recurring": "Your recurring meeting has been submitted",
   "booking_confirmed": "Your booking has been confirmed",
   "booking_confirmed_recurring": "Your recurring meeting has been confirmed",
+  "booking_confirmed_description": "Your booking has been successfully confirmed. A confirmation email has been sent to your email address.",
+  "confirmation_email_sent": "A confirmation email has been sent with all the details.",
   "warning_recurring_event_payment": "Payments are not supported with Recurring Events yet",
   "warning_payment_recurring_event": "Recurring events are not supported with Payments yet",
   "enter_new_password": "Enter the new password you'd like for your account.",

@@ -1,6 +1,5 @@
 "use client";
 
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";

@@ -153,8 +153,8 @@ export type BookerStore = {
    * forth between timeslots and form. Gets cleared on submit
    * to prevent sticky data.
    */
-  formValues: Record<string, any>;
-  setFormValues: (values: Record<string, any>) => void;
+  formValues: Record<string, unknown>;
+  setFormValues: (values: Record<string, unknown>) => void;
   /**
    * Force event being a team event, so we only query for team events instead
    * of also include 'user' events and return the first event that matches with
@@ -438,7 +438,7 @@ export const createBookerStore = () =>
       }
     },
     formValues: {},
-    setFormValues: (formValues: Record<string, any>) => {
+    setFormValues: (formValues: Record<string, unknown>) => {
       set({ formValues });
     },
     org: null,
