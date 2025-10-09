@@ -5,20 +5,6 @@ import { v4 as uuid } from "uuid";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
-import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
-import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import type { IRedisService } from "@calcom/features/redis/IRedisService";
-import type { QualifiedHostsService } from "@calcom/lib/bookings/findQualifiedHostsWithDelegationCredentials";
-import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
-import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
-import { buildDateRanges } from "@calcom/lib/date-ranges";
-import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
-import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
-import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
 import type {
   CurrentSeats,
   EventType,
@@ -26,7 +12,21 @@ import type {
   UserAvailabilityService,
   IFromUser,
   IToUser,
-} from "@calcom/lib/getUserAvailability";
+} from "@calcom/features/availability/lib/getUserAvailability";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
+import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
+import type { BusyTimesService } from "@calcom/lib/getBusyTimes";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";

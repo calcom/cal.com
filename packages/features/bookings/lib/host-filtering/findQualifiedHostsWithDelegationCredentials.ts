@@ -1,17 +1,17 @@
-import type { FilterHostsService } from "@calcom/lib/bookings/filterHostsBySameRoundRobinHost";
 import {
   findMatchingHostsWithEventSegment,
   getNormalizedHostsWithDelegationCredentials,
-} from "@calcom/lib/bookings/getRoutedUsers";
-import type { EventType } from "@calcom/lib/bookings/getRoutedUsers";
+} from "@calcom/features/users/lib/getRoutedUsers";
+import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
+import type { FilterHostsService } from "./filterHostsBySameRoundRobinHost";
 
 export interface IQualifiedHostsService {
   bookingRepo: BookingRepository;
