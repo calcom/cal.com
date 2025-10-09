@@ -17,7 +17,6 @@ import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { formatUsername } from "../../booker/BookerPlatformWrapper";
 import type {
@@ -41,7 +40,6 @@ const CalendarViewPlatformWrapperComponent = (
     teamMemberEmail,
     crmAppSlug,
     crmOwnerRecordType,
-    view = "MONTH_VIEW",
   } = props;
 
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
@@ -80,7 +78,7 @@ const CalendarViewPlatformWrapperComponent = (
   const { prefetchNextMonth, monthCount } = usePrefetch({
     date,
     month,
-    bookerLayout: { ...bookerLayout, extraDays: 7, columnViewExtraDays: { current: 8 }, layout: "week_view" },
+    bookerLayout,
     bookerState,
   });
 
@@ -130,7 +128,6 @@ const CalendarViewPlatformWrapperComponent = (
   }, [props.routingFormSearchParams]);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const setBookingData = useBookerStoreContext((state) => state.setBookingData);
-  const layout = BookerLayouts[view];
 
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
@@ -148,7 +145,7 @@ const CalendarViewPlatformWrapperComponent = (
     eventId: event?.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
-    layout: layout,
+    layout: "week_view",
     org: props.entity?.orgSlug,
     username,
     bookingData,
