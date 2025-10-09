@@ -1,7 +1,5 @@
-import prisma from "@calcom/prisma";
-import type { Prisma, PrismaClient } from "@calcom/prisma/client";
-
-type PrismaTransaction = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">;
+import prisma, { type PrismaTransaction } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | null) => {
   const conditions: Prisma.TeamWhereInput[] = [];
