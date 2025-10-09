@@ -538,8 +538,6 @@ export class CreditService {
   private async _handleLowCreditBalanceResult(result: LowCreditBalanceResult) {
     if (!result) return;
 
-    console.log("handleLowCreditBalanceResult", result);
-
     try {
       if (result.type === "LIMIT_REACHED") {
         const promises: Promise<unknown>[] = [
