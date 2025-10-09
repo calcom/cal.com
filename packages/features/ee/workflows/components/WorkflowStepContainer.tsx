@@ -69,10 +69,10 @@ import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate"
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import "../style/styles.css";
-import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
+import { AgentConfigurationSheet } from "./agent-configuration/AgentConfigurationSheet";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -104,6 +104,8 @@ type WorkflowStepProps = {
   }[];
   updateTemplate: boolean;
   setUpdateTemplate: Dispatch<SetStateAction<boolean>>;
+  inboundAgentData?: RetellAgentWithDetails;
+  isInboundAgentLoading?: boolean;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -168,6 +170,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     allOptions,
     agentData,
     isAgentLoading,
+    inboundAgentData,
+    isInboundAgentLoading: _isInboundAgentLoading,
     isDeleteStepDialogOpen,
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,
@@ -185,10 +189,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
   const [agentConfigurationSheet, setAgentConfigurationSheet] = useState<{
     open: boolean;
-    activeTab?: "prompt" | "phoneNumber";
+    activeTab?: "outgoingCalls" | "phoneNumber" | "incomingCalls";
   }>({
     open: false,
-    activeTab: "prompt",
+    activeTab: "outgoingCalls",
   });
 
   const creditsTeamId = userTeams?.find(
@@ -224,12 +228,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   });
 
   const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`) || null;
+  const stepInboundAgentId =
+    step?.inboundAgentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.inboundAgentId`) || null;
 
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: async () => {
       showToast(t("agent_updated_successfully"), "success");
-      if (stepAgentId) {
-        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
+      const currentAgentId = stepAgentId || stepInboundAgentId;
+      if (currentAgentId) {
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: currentAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -241,8 +248,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async () => {
       showToast(t("phone_number_unsubscribed_successfully"), "success");
       setIsUnsubscribeDialogOpen(false);
-      if (stepAgentId) {
-        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
+      const currentAgentId = stepAgentId || stepInboundAgentId;
+      if (currentAgentId) {
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: currentAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -871,7 +879,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return;
                   }
                   if (!props.readOnly) {
-                    setAgentConfigurationSheet({ open: true, activeTab: "prompt" });
+                    setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" });
                   }
                 }}>
                 <div>
@@ -989,7 +997,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <DropdownItem
                           type="button"
                           StartIcon="pencil"
-                          onClick={() => setAgentConfigurationSheet({ open: true, activeTab: "prompt" })}>
+                          onClick={() =>
+                            setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" })
+                          }>
                           {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -1550,17 +1560,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             activeTab={agentConfigurationSheet.activeTab}
             onOpenChange={(val) => setAgentConfigurationSheet((prev) => ({ ...prev, open: val }))}
             agentId={stepAgentId}
+            inboundAgentId={stepInboundAgentId}
             agentData={agentData}
+            inboundAgentData={inboundAgentData}
             onUpdate={(data) => {
-              if (stepAgentId) {
-                updateAgentMutation.mutate({
-                  id: stepAgentId,
-                  teamId: teamId,
-                  generalPrompt: data.generalPrompt,
-                  beginMessage: data.beginMessage,
-                  generalTools: data.generalTools,
-                });
-              }
+              updateAgentMutation.mutate({
+                id: data.id,
+                teamId: teamId,
+                generalPrompt: data.generalPrompt,
+                beginMessage: data.beginMessage,
+                generalTools: data.generalTools,
+              });
             }}
             readOnly={props.readOnly}
             teamId={teamId}
@@ -1568,6 +1578,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
+            eventTypeOptions={props.allOptions}
           />
         )}
 
@@ -1575,7 +1586,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <TestPhoneCallDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
-            agentId={stepAgentId}
+            agentId={stepAgentId || ""}
             teamId={teamId}
             form={form}
           />
@@ -1585,7 +1596,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <WebCallDialog
             open={isWebCallDialogOpen}
             onOpenChange={setIsWebCallDialogOpen}
-            agentId={stepAgentId}
+            agentId={stepAgentId || ""}
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
