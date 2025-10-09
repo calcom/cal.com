@@ -1,7 +1,10 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../types/react-awesome-query-builder.d.ts" />
 import type { JsonTree, ImmutableTree, JsonLogicResult } from "react-awesome-query-builder";
 import * as ExportUtils from "react-awesome-query-builder/lib/export";
 // Import runtime functions from Node.js-compatible submodules (no React dependencies)
 import * as ImportUtils from "react-awesome-query-builder/lib/import";
+import * as UtilsModule from "react-awesome-query-builder/lib/utils";
 
 export function loadTree(queryValue: JsonTree): ImmutableTree {
   return ImportUtils.loadTree(queryValue) as ImmutableTree;
@@ -19,7 +22,7 @@ export function jsonLogicFormat(tree: any, config: any): JsonLogicResult {
 }
 
 export function uuid(): string {
-  return ImportUtils.uuid() as string;
+  return UtilsModule.uuid() as string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

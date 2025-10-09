@@ -5,6 +5,12 @@
     "jsx": "preserve",
     "resolveJsonModule": true
   },
-  "include": [".", "../types/next-auth.d.ts", "../types/window.d.ts", "../trpc/types/router.d.ts"],
+  "include": [
+    ".",
+    "../types/next-auth.d.ts",
+    "../types/window.d.ts",
+    "../types/react-awesome-query-builder.d.ts",
+    "../trpc/types/router.d.ts"
+  ],
   "exclude": ["dist", "build", "**/node_modules/**"]
 }
