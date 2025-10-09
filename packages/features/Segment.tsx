@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
 
+import { buildStateFromQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
@@ -12,7 +13,6 @@ import {
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";
-import { buildStateFromQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import cn from "@calcom/ui/classNames";
@@ -46,15 +46,21 @@ function SegmentWithAttributes({
   });
 
   const [queryValue, setQueryValue] = useState(initialQueryValue);
+  const [queryBuilderData, setQueryBuilderData] = useState<{
+    state: { tree: ImmutableTree; config: Config };
+    queryValue: JsonTree;
+  } | null>(null);
   const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = withRaqbSettingsAndWidgets({
     config: attributesQueryBuilderConfig,
     configFor: ConfigFor.Attributes,
   });
 
-  const queryBuilderData = buildStateFromQueryValue({
-    queryValue: queryValue as JsonTree,
-    config: attributesQueryBuilderConfigWithRaqbSettingsAndWidgets,
-  });
+  useEffect(() => {
+    buildStateFromQueryValue({
+      queryValue: queryValue as JsonTree,
+      config: attributesQueryBuilderConfigWithRaqbSettingsAndWidgets,
+    }).then(setQueryBuilderData);
+  }, [queryValue, attributesQueryBuilderConfigWithRaqbSettingsAndWidgets]);
 
   const renderBuilder = useCallback(
     (props: BuilderProps) => (
@@ -77,6 +83,10 @@ function SegmentWithAttributes({
         queryValue: jsonTree,
       });
     }
+  }
+
+  if (!queryBuilderData) {
+    return <div>Loading...</div>;
   }
 
   return (

@@ -1,10 +1,11 @@
 "use client";
 
-import { Utils as QbUtils, type JsonTree } from "react-awesome-query-builder";
+import type { JsonTree, Config } from "react-awesome-query-builder";
 
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import jsonLogic from "./jsonLogic";
+import * as LazyQbUtils from "./lazyQbUtils";
 
 export const enum RaqbLogicResult {
   MATCH = "MATCH",
@@ -12,7 +13,7 @@ export const enum RaqbLogicResult {
   LOGIC_NOT_FOUND_SO_MATCHED = "LOGIC_NOT_FOUND_SO_MATCHED",
 }
 
-export const evaluateRaqbLogic = (
+export const evaluateRaqbLogic = async (
   {
     queryValue,
     queryBuilderConfig,
@@ -20,7 +21,7 @@ export const evaluateRaqbLogic = (
     beStrictWithEmptyLogic = false,
   }: {
     queryValue: JsonTree;
-    queryBuilderConfig: any;
+    queryBuilderConfig: Config;
     data: Record<string, unknown>;
     beStrictWithEmptyLogic?: boolean;
   },
@@ -32,12 +33,14 @@ export const evaluateRaqbLogic = (
   } = {
     logLevel: 1,
   }
-): RaqbLogicResult => {
+): Promise<RaqbLogicResult> => {
+  const tree = await LazyQbUtils.loadTree(queryValue);
+  const checkedTree = await LazyQbUtils.checkTree(tree, queryBuilderConfig);
   const state = {
-    tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), queryBuilderConfig),
+    tree: checkedTree,
     config: queryBuilderConfig,
   };
-  const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
+  const jsonLogicQuery = await LazyQbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
   if (!logic) {
     if (beStrictWithEmptyLogic && queryValue.children1 && Object.keys(queryValue.children1).length > 0) {
@@ -55,5 +58,5 @@ export const evaluateRaqbLogic = (
     console.log("Checking logic with data", safeStringify({ logic, data }));
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return !!jsonLogic.apply(logic as any, data) ? RaqbLogicResult.MATCH : RaqbLogicResult.NO_MATCH;
+  return jsonLogic.apply(logic as any, data) ? RaqbLogicResult.MATCH : RaqbLogicResult.NO_MATCH;
 };

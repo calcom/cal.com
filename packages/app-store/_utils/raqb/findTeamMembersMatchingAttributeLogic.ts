@@ -1,10 +1,10 @@
 import async from "async";
 import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
 import type { Config } from "react-awesome-query-builder/lib";
-import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
+import * as LazyQbUtils from "@calcom/lib/raqb/lazyQbUtils";
 import type { dynamicFieldValueOperands, AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
@@ -66,8 +66,8 @@ function perf<ReturnValue>(fn: () => ReturnValue): [ReturnValue, number | null] 
   return [result, end - start];
 }
 
-function getErrorsFromImmutableTree(tree: ImmutableTree) {
-  const validatedQueryValue = QbUtils.getTree(tree);
+async function getErrorsFromImmutableTree(tree: ImmutableTree) {
+  const validatedQueryValue = await LazyQbUtils.getTree(tree);
   if (!raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue)) {
     return [];
   }
@@ -90,26 +90,28 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
   return errors;
 }
 
-function getJsonLogic({
+async function getJsonLogic({
   attributesQueryValue,
   attributesQueryBuilderConfig,
 }: {
   attributesQueryValue: AttributesQueryValue;
   attributesQueryBuilderConfig: Config;
 }) {
+  const loadedTree = await LazyQbUtils.loadTree(attributesQueryValue as JsonTree);
+  const checkedTree = await LazyQbUtils.checkTree(
+    loadedTree,
+    // We know that attributesQueryBuilderConfig is a Config because getAttributesQueryBuilderConfigHavingListofLabels returns a Config. So, asserting it.
+    attributesQueryBuilderConfig as unknown as Config
+  );
   const state = {
-    tree: QbUtils.checkTree(
-      QbUtils.loadTree(attributesQueryValue as JsonTree),
-      // We know that attributesQueryBuilderConfig is a Config because getAttributesQueryBuilderConfigHavingListofLabels returns a Config. So, asserting it.
-      attributesQueryBuilderConfig as unknown as Config
-    ),
+    tree: checkedTree,
     config: attributesQueryBuilderConfig as unknown as Config,
   };
-  const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
+  const jsonLogicQuery = await LazyQbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
   // Considering errors as warnings as we want to continue with the flow without throwing actual errors
   // We expect fallback logic to take effect in case of errors in main logic
-  const warnings = getErrorsFromImmutableTree(state.tree).flat();
+  const warnings = (await getErrorsFromImmutableTree(state.tree)).flat();
   if (!logic) {
     // If children1 is not empty, it means that some rules were added by use
     if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
@@ -122,7 +124,13 @@ function getJsonLogic({
   return { logic, warnings };
 }
 
-function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
+function buildTroubleshooterData({
+  type,
+  data,
+}: {
+  type: TroubleshooterCase;
+  data: Record<string, unknown>;
+}) {
   return {
     troubleshooter: {
       type,
@@ -159,7 +167,8 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = !!jsonLogic.apply(attributeJsonLogic as any, attributesData)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = jsonLogic.apply(attributeJsonLogic as any, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 
@@ -209,7 +218,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     })
   );
 
-  const { logic, warnings: logicBuildingWarnings } = getJsonLogic({
+  const { logic, warnings: logicBuildingWarnings } = await getJsonLogic({
     attributesQueryValue,
     attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
   });

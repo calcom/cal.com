@@ -9,8 +9,8 @@ vi.mock("../components/react-awesome-query-builder/widgets", () => ({
 }));
 
 describe("evaluateRaqbLogic", () => {
-  it("should return a match for multiselect_equals", () => {
-    const result = evaluateRaqbLogic({
+  it("should return a match for multiselect_equals", async () => {
+    const result = await evaluateRaqbLogic({
       queryValue: {
         id: "88bbb99b-cdef-4012-b456-71925b0e4b7f",
         type: "group",

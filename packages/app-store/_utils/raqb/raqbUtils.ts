@@ -1,9 +1,9 @@
 import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
 import type { Config } from "react-awesome-query-builder";
-import { Utils as QbUtils } from "react-awesome-query-builder";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
+import * as LazyQbUtils from "@calcom/lib/raqb/lazyQbUtils";
 import { resolveQueryValue } from "@calcom/lib/raqb/resolveQueryValue";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { caseInsensitive } from "@calcom/lib/raqb/utils";
@@ -68,11 +68,12 @@ export const raqbQueryValueUtils = {
   },
 };
 
-export function buildEmptyQueryValue() {
-  return { id: QbUtils.uuid(), type: "group" as const };
+export async function buildEmptyQueryValue() {
+  const id = await LazyQbUtils.uuid();
+  return { id, type: "group" as const };
 }
 
-export const buildStateFromQueryValue = ({
+export const buildStateFromQueryValue = async ({
   queryValue,
   config,
 }: {
@@ -82,14 +83,16 @@ export const buildStateFromQueryValue = ({
   queryValue: JsonTree | null;
   config: Config;
 }) => {
-  const queryValueToUse = queryValue || buildEmptyQueryValue();
-  const immutableTree = QbUtils.checkTree(QbUtils.loadTree(queryValueToUse), config);
+  const queryValueToUse = queryValue || (await buildEmptyQueryValue());
+  const loadedTree = await LazyQbUtils.loadTree(queryValueToUse);
+  const immutableTree = await LazyQbUtils.checkTree(loadedTree, config);
+  const tree = await LazyQbUtils.getTree(immutableTree);
   return {
     state: {
       tree: immutableTree,
       config,
     },
-    queryValue: QbUtils.getTree(immutableTree),
+    queryValue: tree,
   };
 };
 

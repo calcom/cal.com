@@ -17,16 +17,17 @@ import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { PrismaRoutingFormRepository } from "@calcom/lib/server/repository/PrismaRoutingFormRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+
 import { TRPCError } from "@trpc/server";
 
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
-import { HttpError } from "@calcom/lib/http-error";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 const querySchema = z
@@ -134,7 +135,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
     fieldsResponses,
   });
 
-  const matchingRoute = findMatchingRoute({ form: serializableForm, response });
+  const matchingRoute = await findMatchingRoute({ form: serializableForm, response });
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
@@ -181,7 +182,7 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
         },
       };
     }
-  
+
     log.error("Error handling the response", safeStringify(e));
     throw new Error("Error handling the response");
   }
