@@ -5,10 +5,10 @@ import { calendar_v3 } from "@googleapis/calendar";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
-import type { Prisma } from "@prisma/client";
 import { JWT } from "googleapis-common";
 
 import { DelegationCredentialRepository, OAuth2UniversalSchema } from "@calcom/platform-libraries/app-store";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { UpdateUnifiedCalendarEventInput } from "../inputs/update-unified-calendar-event.input";
 import { GoogleCalendarEventInputPipe } from "../pipes/google-calendar-event-input-pipe";
@@ -72,7 +72,6 @@ export class GoogleCalendarService {
       bookingReference.credential?.key,
       bookingReference.delegationCredential
     );
-
 
     const updatePayload = new GoogleCalendarEventInputPipe().transform(updateData);
 

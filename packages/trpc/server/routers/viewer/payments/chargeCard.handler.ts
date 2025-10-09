@@ -1,4 +1,4 @@
-import { handleNoShowFee } from "@calcom/lib/payment/handleNoShowFee";
+import { handleNoShowFee } from "@calcom/features/bookings/lib/payment/handleNoShowFee";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { PrismaClient } from "@calcom/prisma";
 

@@ -6,7 +6,7 @@ import { Injectable } from "@nestjs/common";
 import { TimeUnit, WorkflowTriggerEvents } from "@calcom/platform-libraries";
 import { TUpdateInputSchema } from "@calcom/platform-libraries/workflows";
 import { updateWorkflow } from "@calcom/platform-libraries/workflows";
-import { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Workflow, WorkflowStep } from "@calcom/prisma/client";
 
 export type WorkflowType = Workflow & { activeOn: { eventTypeId: number }[]; steps: WorkflowStep[] };

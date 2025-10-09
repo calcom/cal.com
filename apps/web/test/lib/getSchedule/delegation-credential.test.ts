@@ -12,7 +12,7 @@ import { expectNoAttemptToGetAvailability } from "../../utils/bookingScenario/ex
 
 import { describe, test } from "vitest";
 
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { expect, expectedSlotsForSchedule } from "./expects";

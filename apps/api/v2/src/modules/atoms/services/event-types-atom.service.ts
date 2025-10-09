@@ -36,7 +36,7 @@ import {
   TUpdateEventTypeInputSchema,
   EventTypeMetaDataSchema,
 } from "@calcom/platform-libraries/event-types";
-import { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
@@ -286,8 +286,10 @@ export class EventTypesAtomService {
         .filter(({ ...app }) => app.slug === slug)
         .map(
           async ({
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             credentials: _,
             credential,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             key: _2 /* don't leak to frontend */,
             ...app
           }: EnabledAppType) => {

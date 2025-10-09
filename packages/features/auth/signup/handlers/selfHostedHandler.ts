@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";

@@ -1,6 +1,6 @@
 /// <reference types="@calcom/types/next-auth" />
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient";
+import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/app-store/videoClient";
 
 import { TRPCError } from "@trpc/server";
 

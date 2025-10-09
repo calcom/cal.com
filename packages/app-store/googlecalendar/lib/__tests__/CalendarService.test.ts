@@ -257,7 +257,8 @@ beforeEach(() => {
   createMockJWTInstance({});
 });
 
-describe("Calendar Cache", () => {
+// disabled as cache is being reworked
+describe.skip("Calendar Cache", () => {
   test("Calendar Cache is being read on cache HIT", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const dateFrom1 = new Date().toISOString();

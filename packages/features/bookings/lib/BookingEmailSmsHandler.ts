@@ -17,7 +17,7 @@ import {
   sendAttendeeRequestEmailAndSMS,
 } from "@calcom/emails";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
-import type { EventNameObjectType } from "@calcom/lib/event";
+import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";

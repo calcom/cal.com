@@ -59,9 +59,11 @@ import { createWatchlistEntry } from "@calcom/features/watchlist/lib/testUtils";
 import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
-import { CreationSource, WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
+import { CreationSource, WatchlistType } from "@calcom/prisma/enums";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+import { getNewBookingHandler } from "./getNewBookingHandler";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -81,7 +83,7 @@ describe("handleNewBooking", () => {
           4. Should trigger BOOKING_CREATED webhook
     `,
       async ({ emails, org }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -147,9 +149,19 @@ describe("handleNewBooking", () => {
               organizer,
               apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
             },
-            org?.organization
+            org?.organization ? {
+              ...org.organization,
+              profileUsername: "username-in-org"
+            } : null
           )
         );
+
+        const orgProfiles = await prismaMock.profile.findMany({
+          where: {
+            organizationId: org?.organization.id,
+          },
+        });
+        const orgProfile = orgProfiles[0];
 
         mockSuccessfulVideoMeetingCreation({
           metadataLookupKey: "dailyvideo",
@@ -168,7 +180,7 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
-            user: organizer.username,
+            user: orgProfile ? orgProfile.username : organizer.username,
             eventTypeId: 1,
             responses: {
               email: booker.email,
@@ -197,7 +209,6 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
@@ -244,7 +255,11 @@ describe("handleNewBooking", () => {
 
         expectBookingCreatedWebhookToHaveBeenFired({
           booker,
-          organizer,
+          organizer: {
+            ...organizer,
+            ...(orgProfile?.username ?
+              { usernameInOrg: orgProfile?.username } : null),
+          },
           location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",
           videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
@@ -261,8 +276,9 @@ describe("handleNewBooking", () => {
           3. Should fallback to creating the booking in the first connected Calendar when neither event nor organizer has a destination calendar - This doesn't practically happen because organizer is always required to have a schedule set
           3. Should trigger BOOKING_CREATED webhook
     `,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -361,7 +377,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -421,8 +437,9 @@ describe("handleNewBooking", () => {
           3. Should fallback to create a booking in the Organizer Calendar if event doesn't have destination calendar
           3. Should trigger BOOKING_CREATED webhook
     `,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -523,7 +540,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -576,8 +593,9 @@ describe("handleNewBooking", () => {
 
       test(
         `an error in creating a calendar event should not stop the booking creation - Current behaviour is wrong as the booking is created but no-one is notified of it`,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -664,7 +682,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -697,8 +715,9 @@ describe("handleNewBooking", () => {
 
       test(
         "If destination calendar has no credential ID due to some reason, it should create the event in first connected calendar instead",
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -809,7 +828,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -863,8 +882,9 @@ describe("handleNewBooking", () => {
 
       test(
         "If destination calendar is there for Google Calendar but there are no Google Calendar credentials but there is an Apple Calendar credential connected, it should create the event in Apple Calendar",
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -968,7 +988,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -1020,8 +1040,9 @@ describe("handleNewBooking", () => {
     describe("Event's first location should be used when location is unspecied", () => {
       test(
         `should create a successful booking with right location app when event has location option as video client`,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1113,8 +1134,9 @@ describe("handleNewBooking", () => {
         `should create a successful booking with right location when event's location is not a conferencing app
         `,
         //test with inPerson event type
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1196,8 +1218,9 @@ describe("handleNewBooking", () => {
       );
       test(
         `should create a successful booking with organizer default conferencing app when event's location is not set`,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1290,8 +1313,9 @@ describe("handleNewBooking", () => {
     describe("Video Meeting Creation", () => {
       test(
         `should create a successful booking with Zoom if used`,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -1378,8 +1402,9 @@ describe("handleNewBooking", () => {
 
       test(
         `Booking should still be created using calvideo, if error occurs with zoom`,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -1473,7 +1498,7 @@ describe("handleNewBooking", () => {
       test(
         `should fail if the time difference between a booking's start and end times is not equal to the event length.`,
         async () => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
 
           const booker = getBooker({
             email: "booker@example.com",
@@ -1532,8 +1557,9 @@ describe("handleNewBooking", () => {
     describe("UTM tracking tests", () => {
       test(
         "should create a booking with UTM tracking",
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1607,7 +1633,6 @@ describe("handleNewBooking", () => {
             bookingData: mockedBookingData,
           });
 
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           expectBookingTrackingToBeInDatabase(tracking, createdBooking.uid!);
         },
         timeout
@@ -1617,8 +1642,9 @@ describe("handleNewBooking", () => {
     describe("Creation source tests", () => {
       test(
         `should create a booking with creation source as WEBAPP`,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -1698,8 +1724,8 @@ describe("handleNewBooking", () => {
       () => {
         test(
           `should fail a booking if there is already a Cal.com booking overlapping the time`,
-          async ({}) => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          async () => {
+            const handleNewBooking = getNewBookingHandler();
 
             const booker = getBooker({
               email: "booker@example.com",
@@ -1771,7 +1797,7 @@ describe("handleNewBooking", () => {
         test(
           `should fail a booking if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time`,
           async () => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = getNewBookingHandler();
             const organizerId = 101;
             const booker = getBooker({
               email: "booker@example.com",
@@ -1856,7 +1882,7 @@ describe("handleNewBooking", () => {
         test(
           `should allow a booking even if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time but useEventLevelSelectedCalendars is false and SelectedCalendar is for an event`,
           async () => {
-            const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+            const handleNewBooking = getNewBookingHandler();
             const organizerId = 101;
             const eventTypeId = 1;
             const useEventLevelSelectedCalendars = false;
@@ -1927,7 +1953,7 @@ describe("handleNewBooking", () => {
             });
             expectBookingToBeInDatabase({
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -1940,8 +1966,8 @@ describe("handleNewBooking", () => {
           test(
             `should fail a booking if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time as chosen in the event type`,
             async () => {
-              const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking"))
-                .default;
+              const handleNewBooking = getNewBookingHandler();
+
               const organizerId = 101;
               const eventTypeId = 1;
               const useEventLevelSelectedCalendars = true;
@@ -2020,8 +2046,8 @@ describe("handleNewBooking", () => {
           test(
             `should allow a booking even if there is already a booking in the organizer's selectedCalendars(Single Calendar) with the overlapping time and useEventLevelSelectedCalendars is true but the selectedCalendar is of different eventType`,
             async () => {
-              const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking"))
-                .default;
+              const handleNewBooking = getNewBookingHandler();
+
               const organizerId = 101;
               const eventTypeId = 1;
               const anotherEventTypeId = 2;
@@ -2096,7 +2122,7 @@ describe("handleNewBooking", () => {
               });
               expectBookingToBeInDatabase({
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -2117,8 +2143,9 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_REQUESTED webhook
             4. Should trigger BOOKING_REQUESTED workflow
     `,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -2218,7 +2245,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -2254,8 +2281,9 @@ describe("handleNewBooking", () => {
         3. Should trigger BOOKING_REQUESTED webhook
         4. Should trigger BOOKING_REQUESTED workflow
     `,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -2343,7 +2371,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -2380,8 +2408,9 @@ describe("handleNewBooking", () => {
             2. Should send emails to the booker as well as organizer
             3. Should trigger BOOKING_CREATED webhook
     `,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2477,7 +2506,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -2516,8 +2545,9 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_REQUESTED webhook
             4. Should trigger BOOKING_REQUESTED workflows
     `,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -2619,7 +2649,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -2646,8 +2676,8 @@ describe("handleNewBooking", () => {
     // FIXME: We shouldn't throw error here, the behaviour should be fixed.
     test(
       `if booking with Cal Video(Daily Video) fails, booking creation fails with uncaught error`,
-      async ({}) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.org",
           name: "Booker",
@@ -2714,8 +2744,9 @@ describe("handleNewBooking", () => {
       2. Should send emails to the booker as well as organizer
       3. Should trigger BOOKING_CREATED webhook
     `,
+
       async ({ emails }) => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           email: "booker@example.com",
           name: "Booker",
@@ -2799,7 +2830,7 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
@@ -2840,8 +2871,9 @@ describe("handleNewBooking", () => {
             6. Workflow should not trigger before payment is made
             7. Workflow triggers once payment is successful
       `,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -2961,7 +2993,7 @@ describe("handleNewBooking", () => {
           await expectBookingToBeInDatabase({
             description: "",
             location: BookingLocations.CalVideo,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -2982,7 +3014,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             paymentId: createdBooking.paymentId!,
           });
 
@@ -2991,7 +3023,7 @@ describe("handleNewBooking", () => {
           expect(webhookResponse?.statusCode).toBe(200);
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -3022,9 +3054,10 @@ describe("handleNewBooking", () => {
             6. Should trigger BOOKING_REQUESTED workflow
             7. Booking should still stay in pending state
       `,
+
         async ({ emails }) => {
           const bookingInitiatedEmail = "booking_initiated@workflow.com";
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
           const booker = getBooker({
             email: "booker@example.com",
@@ -3143,7 +3176,7 @@ describe("handleNewBooking", () => {
           );
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -3163,7 +3196,7 @@ describe("handleNewBooking", () => {
             organizer,
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             paymentId: createdBooking.paymentId!,
           });
           expectWorkflowToBeTriggered({ emailsToReceive: [bookingInitiatedEmail], emails });
@@ -3176,7 +3209,7 @@ describe("handleNewBooking", () => {
           expect(webhookResponse?.statusCode).toBe(200);
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.PENDING,
@@ -3201,8 +3234,9 @@ describe("handleNewBooking", () => {
       );
       test(
         `cannot book same slot multiple times `,
+
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -3296,7 +3330,7 @@ describe("handleNewBooking", () => {
 
           await expectBookingToBeInDatabase({
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: mockBookingData.eventTypeId,
             status: BookingStatus.ACCEPTED,
@@ -3349,8 +3383,9 @@ describe("handleNewBooking", () => {
 
       test(
         `Payment retry scenario - should return existing payment UID and prevent duplicate bookings when retrying canceled payment`,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
@@ -3398,7 +3433,7 @@ describe("handleNewBooking", () => {
           mockSuccessfulVideoMeetingCreation({
             metadataLookupKey: "dailyvideo",
           });
-          const { paymentUid } = mockPaymentApp({
+          const { paymentUid: _paymentUid } = mockPaymentApp({
             metadataLookupKey: "stripe",
             appStoreLookupKey: "stripepayment",
           });
@@ -3467,7 +3502,7 @@ describe("handleNewBooking", () => {
 
   describe("Returning original booking", () => {
     test("Return the original booking if a request is made twice by the same attendee when a booking requires confirmation", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3525,7 +3560,7 @@ describe("handleNewBooking", () => {
       expect(secondResponse.id).toEqual(response.id);
     });
     test("Return the original booking if request is made by the same attendee for a round robin event", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3587,7 +3622,7 @@ describe("handleNewBooking", () => {
 
   describe("Blocked users", () => {
     test("user is locked", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3642,7 +3677,7 @@ describe("handleNewBooking", () => {
     });
 
     test("username is critical in watchlist", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3691,7 +3726,6 @@ describe("handleNewBooking", () => {
 
       await createWatchlistEntry({
         type: WatchlistType.USERNAME,
-        severity: WatchlistSeverity.CRITICAL,
         value: organizer.username,
       });
 
@@ -3704,7 +3738,7 @@ describe("handleNewBooking", () => {
     });
 
     test("domain is critical in watchlist", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3753,7 +3787,6 @@ describe("handleNewBooking", () => {
 
       await createWatchlistEntry({
         type: WatchlistType.DOMAIN,
-        severity: WatchlistSeverity.CRITICAL,
         value: "spammer.com",
       });
 
@@ -3766,7 +3799,7 @@ describe("handleNewBooking", () => {
     });
 
     test("domain is critical in watchlist", async () => {
-      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const handleNewBooking = getNewBookingHandler();
       const booker = getBooker({
         email: "booker@example.com",
         name: "Booker",
@@ -3815,7 +3848,6 @@ describe("handleNewBooking", () => {
 
       await createWatchlistEntry({
         type: WatchlistType.EMAIL,
-        severity: WatchlistSeverity.CRITICAL,
         value: "spam@spammer.com",
       });
 

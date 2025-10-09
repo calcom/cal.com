@@ -1,16 +1,15 @@
-import { Prisma } from "@prisma/client";
-
 import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   getRoutedUsersWithContactOwnerAndFixedUsers,
   findMatchingHostsWithEventSegment,
   getNormalizedHosts,
-} from "@calcom/lib/bookings/getRoutedUsers";
+} from "@calcom/features/users/lib/getRoutedUsers";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
@@ -125,7 +124,7 @@ export const findUsersByUsername = async ({
     await prisma.user.findMany({
       where,
       select: {
-        ...userSelect.select,
+        ...userSelect,
         credentials: {
           select: credentialForCalendarServiceSelect,
         },

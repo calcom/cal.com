@@ -377,7 +377,7 @@ function generateFiles() {
     calendarOutput.push(
       exportLine.replace(
         "export const CalendarServiceMap = {",
-        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -414,7 +414,7 @@ function generateFiles() {
     analyticsOutput.push(
       exportLine.replace(
         "export const AnalyticsServiceMap = {",
-        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -466,7 +466,7 @@ function generateFiles() {
     videoOutput.push(
       exportLine.replace(
         "export const VideoApiAdapterMap = {",
-        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"

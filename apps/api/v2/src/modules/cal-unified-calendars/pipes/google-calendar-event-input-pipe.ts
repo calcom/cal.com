@@ -5,7 +5,10 @@ import {
   UpdateUnifiedCalendarEventInput,
   UpdateDateTimeWithZone,
 } from "../inputs/update-unified-calendar-event.input";
-import { CalendarEventResponseStatus, CalendarEventStatus } from "../outputs/get-unified-calendar-event.output";
+import {
+  CalendarEventResponseStatus,
+  CalendarEventStatus,
+} from "../outputs/get-unified-calendar-event.output";
 
 // Common interfaces for Google Calendar types
 interface GoogleCalendarDateTime {
@@ -29,9 +32,7 @@ interface GoogleCalendarEventInputTransform {
 
 @Injectable()
 export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTransform {
-  transform(
-    updateData: UpdateUnifiedCalendarEventInput,
-  ): any {
+  transform(updateData: UpdateUnifiedCalendarEventInput): any {
     const updatePayload: any = {};
 
     if (updateData.title !== undefined) {
@@ -51,9 +52,7 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
     }
 
     if (updateData.attendees !== undefined) {
-      updatePayload.attendees = this.transformAttendees(
-        updateData.attendees,
-      );
+      updatePayload.attendees = this.transformAttendees(updateData.attendees);
     }
 
     if (updateData.status !== undefined) {
@@ -71,18 +70,18 @@ export class GoogleCalendarEventInputPipe implements GoogleCalendarEventInputTra
   }
 
   private transformAttendees(
-    inputAttendees: NonNullable<UpdateUnifiedCalendarEventInput["attendees"]>,
+    inputAttendees: NonNullable<UpdateUnifiedCalendarEventInput["attendees"]>
   ): GoogleCalendarAttendee[] {
-      return  inputAttendees.map((attendee) => {
-          return {
-            email: attendee.email,
-            displayName: attendee.name,
-            responseStatus: this.transformResponseStatus(attendee.responseStatus),
-            organizer: attendee.host,
-            self: attendee.self,
-            optional: attendee.optional,
-          };
-        });
+    return inputAttendees.map((attendee) => {
+      return {
+        email: attendee.email,
+        displayName: attendee.name,
+        responseStatus: this.transformResponseStatus(attendee.responseStatus),
+        organizer: attendee.host,
+        self: attendee.self,
+        optional: attendee.optional,
+      };
+    });
   }
 
   private transformResponseStatus(responseStatus?: CalendarEventResponseStatus | null): string {

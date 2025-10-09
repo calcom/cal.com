@@ -3,8 +3,8 @@ import { prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
-import type { Resource } from "../domain/types/permission-registry";
-import { CrudAction, CustomAction } from "../domain/types/permission-registry";
+import type { Resource, CustomAction } from "../domain/types/permission-registry";
+import { CrudAction } from "../domain/types/permission-registry";
 import { PermissionCheckService } from "../services/permission-check.service";
 
 interface RoleMapping {

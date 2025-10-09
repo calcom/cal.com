@@ -1,4 +1,5 @@
 import "@calcom/lib/__mocks__/logger";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
@@ -7,6 +8,10 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { _onFormSubmission } from "./formSubmissionUtils";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 // Mock dependencies
 vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({

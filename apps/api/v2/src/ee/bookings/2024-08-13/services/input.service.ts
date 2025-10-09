@@ -31,7 +31,7 @@ import { z } from "zod";
 
 import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
-import {
+import type {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
@@ -44,8 +44,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
-import { EventType } from "@calcom/prisma/client";
+import type { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
+import type { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & {
   userId: number | undefined;
@@ -176,6 +176,7 @@ export class InputBookingsService_2024_08_13 {
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
       guests,
+      verificationCode: inputBooking.emailVerificationCode,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: {
         ...(inputBooking.bookingFieldsResponses || {}),
@@ -471,6 +472,7 @@ export class InputBookingsService_2024_08_13 {
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
         guests,
+        verificationCode: inputBooking.emailVerificationCode,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: {
           ...(inputBooking.bookingFieldsResponses || {}),
@@ -600,6 +602,7 @@ export class InputBookingsService_2024_08_13 {
       guests: [],
       responses: { ...bookingResponses },
       rescheduleUid: inputBooking.seatUid,
+      verificationCode: inputBooking.emailVerificationCode,
     };
   }
 
@@ -661,6 +664,7 @@ export class InputBookingsService_2024_08_13 {
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
       rescheduleUid: bookingUid,
+      verificationCode: inputBooking.emailVerificationCode,
     };
   }
 

@@ -23,12 +23,12 @@ import { DateTime } from "luxon";
 import { z } from "zod";
 
 import { SlotFormat } from "@calcom/platform-enums";
-import {
+import type {
   GetSlotsInput_2024_09_04,
   GetSlotsInputWithRouting_2024_09_04,
   ReserveSlotInput_2024_09_04,
 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import type { EventType } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z
   .object({

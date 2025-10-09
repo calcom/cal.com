@@ -4,17 +4,17 @@ import { encode } from "querystring";
 import type { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
-import prisma from "@calcom/prisma";
-import { type EventType, type User } from "@calcom/prisma/client";
+import { prisma } from "@calcom/prisma";
+import type { EventType, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
@@ -68,6 +68,8 @@ type UserPageProps = {
     | "price"
     | "currency"
     | "recurringEvent"
+    | "seatsPerTimeSlot"
+    | "schedulingType"
   >)[];
   isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;

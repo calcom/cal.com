@@ -4,8 +4,8 @@ import type { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
-import type { EventNameObjectType } from "@calcom/lib/event";
-import { getEventName } from "@calcom/lib/event";
+import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

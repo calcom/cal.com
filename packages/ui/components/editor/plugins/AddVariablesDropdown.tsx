@@ -1,8 +1,11 @@
 import { useMemo, useState, useRef, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
+import classNames from "../../../classNames";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
+import { Input } from "../../form";
 import { Icon } from "../../icon";
 
 interface IAddVariablesDropdown {
@@ -16,6 +19,7 @@ interface IAddVariablesDropdown {
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   const { t } = useLocale();
   const [query, setQuery] = useState("");
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const [isOpen, setisOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
@@ -125,9 +129,10 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
           <div className="text-subtle mb-3 text-left text-xs font-medium uppercase tracking-wide">
             {t("add_dynamic_variables")}
           </div>
-          <div className="mb-2 px-2">
-            <input
+          <div>
+            <Input
               type="text"
+              size="sm"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("search_variables")}
@@ -154,13 +159,15 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                       props.addVariable(t(`${variable}_variable`));
                       setQuery("");
                     }}>
-                    <div className="flex flex-col space-y-1">
-                      <div className="text-default font-mono text-sm">
+                    <div className="flex flex-col">
+                      <div
+                        className={classNames(
+                          "text-default font-mono text-sm",
+                          isMobile ? "break-all" : "truncate"
+                        )}>
                         {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}
                       </div>
-                      <div className="text-muted-foreground hidden text-xs sm:block">
-                        {t(`${variable}_info`)}
-                      </div>
+                      <div className="text-muted hidden text-xs sm:block">{t(`${variable}_info`)}</div>
                     </div>
                   </button>
                 </DropdownMenuItem>

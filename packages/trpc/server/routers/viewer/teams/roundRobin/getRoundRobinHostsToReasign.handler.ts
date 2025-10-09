@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { enrichUsersWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
@@ -60,7 +60,7 @@ async function getTeamHostsFromDB({
         priority: true,
         user: {
           select: {
-            ...userSelect.select,
+            ...userSelect,
             credentials: {
               select: credentialForCalendarServiceSelect,
             },

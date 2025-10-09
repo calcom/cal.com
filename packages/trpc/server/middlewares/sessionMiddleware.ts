@@ -47,7 +47,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const { email, username, id } = user;
   if (!email || !id) {
-    return null;
+    return null; // should we return null here?
   }
 
   const userMetaData = userMetadata.parse(user.metadata || {});
