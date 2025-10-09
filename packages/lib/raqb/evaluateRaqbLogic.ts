@@ -1,6 +1,6 @@
 "use client";
 
-import type { JsonTree, Config } from "react-awesome-query-builder";
+import type { JsonTree } from "react-awesome-query-builder";
 
 import { safeStringify } from "@calcom/lib/safeStringify";
 
@@ -21,7 +21,8 @@ export const evaluateRaqbLogic = (
     beStrictWithEmptyLogic = false,
   }: {
     queryValue: JsonTree;
-    queryBuilderConfig: Config;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queryBuilderConfig: any;
     data: Record<string, unknown>;
     beStrictWithEmptyLogic?: boolean;
   },
