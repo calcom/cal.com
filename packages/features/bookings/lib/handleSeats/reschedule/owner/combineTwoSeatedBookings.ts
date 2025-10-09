@@ -6,6 +6,7 @@ import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -30,6 +31,7 @@ const combineTwoSeatedBookings = async (
     isConfirmedByDefault,
     additionalNotes,
     rescheduleReason,
+    organizerUser,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
   // Merge two bookings together
@@ -134,14 +136,46 @@ const combineTwoSeatedBookings = async (
     : calendarResult?.updatedEvent?.iCalUID || undefined;
 
   if (noEmail !== true && isConfirmedByDefault) {
+    const teamForBranding = eventType.team?.id
+      ? await prisma.team.findUnique({
+          where: { id: eventType.team.id },
+          select: {
+            id: true,
+            hideBranding: true,
+            parentId: true,
+            parent: {
+              select: {
+                hideBranding: true,
+              },
+            },
+          },
+        })
+      : null;
+
+    const hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId: eventType.id,
+      team: (teamForBranding as any) ?? null,
+      owner: organizerUser ?? null,
+      organizationId: (await (async () => {
+        if (teamForBranding?.parentId) return teamForBranding.parentId;
+        const organizerProfile = await prisma.profile.findFirst({
+          where: { userId: organizerUser.id },
+          select: { organizationId: true },
+        });
+        return organizerProfile?.organizationId ?? null;
+      })()),
+    });
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
-      {
-        ...copyEvent,
-        additionalNotes, // Resets back to the additionalNote input and not the override value
-        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-      },
+      (
+        {
+          ...copyEvent,
+          additionalNotes,
+          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
+          hideBranding,
+        } as any
+      ),
       eventType.metadata
     );
   }

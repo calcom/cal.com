@@ -12,6 +12,7 @@ import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 
 const moveSeatedBookingToNewTimeSlot = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
@@ -29,9 +30,40 @@ const moveSeatedBookingToNewTimeSlot = async (
     isConfirmedByDefault,
     additionalNotes,
   } = rescheduleSeatedBookingObject;
+
+  const teamForBranding = eventType.team?.id
+    ? await prisma.team.findUnique({
+        where: { id: eventType.team.id },
+        select: {
+          id: true,
+          hideBranding: true,
+          parentId: true,
+          parent: {
+            select: {
+              hideBranding: true,
+            },
+          },
+        },
+      })
+    : null;
+
+  const hideBranding = await shouldHideBrandingForEvent({
+    eventTypeId: eventType.id,
+    team: (teamForBranding as any) ?? null,
+    owner: organizerUser ?? null,
+    organizationId: (await (async () => {
+      if (teamForBranding?.parentId) return teamForBranding.parentId;
+      const organizerProfile = await prisma.profile.findFirst({
+        where: { userId: organizerUser.id },
+        select: { organizationId: true },
+      });
+      return organizerProfile?.organizationId ?? null;
+    })()),
+  });
+
   let { evt } = rescheduleSeatedBookingObject;
 
-  const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
+  const newBooking: Booking & { appsStatus?: AppsStatus[] } = await prisma.booking.update({
     where: {
       id: seatedBooking.id,
     },
@@ -91,11 +123,14 @@ const moveSeatedBookingToNewTimeSlot = async (
     const copyEvent = cloneDeep(evt);
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
-      {
-        ...copyEvent,
-        additionalNotes, // Resets back to the additionalNote input and not the override value
-        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-      },
+      (
+        {
+          ...copyEvent,
+          additionalNotes,
+          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
+          hideBranding,
+        } as any
+      ),
       eventType.metadata
     );
   }
