@@ -27,7 +27,7 @@ export async function checkIfUsersAreBlocked(
     const normalizedEmail = normalizeEmail(user.email);
 
     // Check global blocking first
-    const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail, organizationId);
+    const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail);
     if (globalResult.isBlocked) {
       return presenter(true);
     }

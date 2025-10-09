@@ -91,10 +91,7 @@ describe("isLockedOrBlocked", () => {
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(true);
 
-    expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
-      "test@blocked.com",
-      null
-    );
+    expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith("test@blocked.com");
   });
 
   it("should return false if user is not locked and email domain is not watchlisted", async () => {
@@ -111,10 +108,7 @@ describe("isLockedOrBlocked", () => {
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(false);
 
-    expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
-      "test@example.com",
-      null
-    );
+    expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith("test@example.com");
   });
 
   it("should handle email domains case-insensitively", async () => {
@@ -131,9 +125,6 @@ describe("isLockedOrBlocked", () => {
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(true);
 
-    expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
-      "test@blocked.com",
-      null
-    );
+    expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith("test@blocked.com");
   });
 });

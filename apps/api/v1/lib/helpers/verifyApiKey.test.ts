@@ -403,6 +403,6 @@ describe("Verify API key", () => {
     expect(JSON.parse(res._getData())).toEqual({ error: "You are not authorized to perform this request." });
     expect(serverNext).not.toHaveBeenCalled();
 
-    expect(mockWatchlistFeature.globalBlocking.isBlocked).toHaveBeenCalledWith("blocked@example.com", null);
+    expect(mockWatchlistFeature.globalBlocking.isBlocked).toHaveBeenCalledWith("blocked@example.com");
   });
 });

@@ -29,7 +29,7 @@ export async function checkIfEmailIsBlockedInWatchlistController(
 
     const watchlist = await getWatchlistFeature();
 
-    const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail, organizationId);
+    const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail);
     if (globalResult.isBlocked) {
       return presenter(true);
     }
