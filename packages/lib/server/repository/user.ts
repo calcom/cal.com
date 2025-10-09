@@ -6,7 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
-import type { User as UserType } from "@calcom/prisma/client";
+import type { User as UserType, DestinationCalendar, SelectedCalendar } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
@@ -50,18 +50,19 @@ export type SessionUser = {
   darkBrandColor: string | null;
   movedToProfileId: number | null;
   completedOnboarding: boolean;
-  destinationCalendar: any;
+  destinationCalendar: DestinationCalendar | null;
   locale: string;
   timeFormat: number | null;
   trialEndsAt: Date | null;
-  metadata: any;
+  metadata: z.infer<typeof userMetadata>;
   role: string;
   allowDynamicBooking: boolean;
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
-  profiles: any[];
-  allSelectedCalendars: any[];
-  userLevelSelectedCalendars: any[];
+  requiresBookerEmailVerification: boolean;
+  profiles: UserProfile[];
+  allSelectedCalendars: SelectedCalendar[];
+  userLevelSelectedCalendars: SelectedCalendar[];
 };
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
@@ -109,6 +110,7 @@ const userSelect = {
   allowDynamicBooking: true,
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
+  requiresBookerEmailVerification: true,
   verified: true,
   disableImpersonation: true,
   locked: true,
@@ -275,6 +277,62 @@ export class UserRepository {
     });
     return user;
   }
+  async findByEmailWithEmailVerificationSetting({ email }: { email: string }) {
+    const user = await this.prismaClient.user.findFirst({
+      where: {
+        OR: [
+          {
+            email: email.toLowerCase(),
+            emailVerified: { not: null },
+          },
+          {
+            secondaryEmails: {
+              some: {
+                email: email.toLowerCase(),
+                emailVerified: { not: null },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        email: true,
+        requiresBookerEmailVerification: true,
+      },
+    });
+    return user;
+  }
+
+  async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
+    return this.prismaClient.user.findMany({
+      where: {
+        OR: [
+          {
+            email: { in: normalizedEmails },
+            emailVerified: { not: null },
+          },
+          {
+            secondaryEmails: {
+              some: {
+                email: { in: normalizedEmails },
+                emailVerified: { not: null },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        email: true,
+        requiresBookerEmailVerification: true,
+        secondaryEmails: {
+          where: { emailVerified: { not: null } },
+          select: { email: true },
+        },
+      },
+    });
+  }
 
   async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
     const user = await this.prismaClient.user.findUnique({
@@ -423,7 +481,6 @@ export class UserRepository {
     T extends {
       id: number;
       username: string | null;
-      [key: string]: any;
     }
   >({
     user,
@@ -911,6 +968,7 @@ export class UserRepository {
         allowDynamicBooking: true,
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,
+        requiresBookerEmailVerification: true,
         profiles: true,
       },
     });

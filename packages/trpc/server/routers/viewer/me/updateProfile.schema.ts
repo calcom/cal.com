@@ -21,6 +21,7 @@ export const ZUpdateProfileInputSchema = z.object({
   allowDynamicBooking: z.boolean().optional(),
   allowSEOIndexing: z.boolean().optional(),
   receiveMonthlyDigestEmail: z.boolean().optional(),
+  requiresBookerEmailVerification: z.boolean().optional(),
   brandColor: z.string().optional(),
   darkBrandColor: z.string().optional(),
   theme: z.string().optional().nullable(),
