@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
-import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import { BillingEnabledOnboardingService } from "@calcom/features/ee/organizations/lib/onboarding/BillingEnabledOnboardingService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

@@ -1,4 +1,3 @@
-import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import { SelfHostedOnboardingService } from "@calcom/features/ee/organizations/lib/onboarding/SelfHostedOnboardingService";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
