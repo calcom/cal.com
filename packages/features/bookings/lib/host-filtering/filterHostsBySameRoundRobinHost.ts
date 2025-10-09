@@ -1,6 +1,5 @@
+import { isRerouting } from "@calcom/lib/bookings/routing/utils";
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-
-import { isRerouting } from "./routing/utils";
 
 export interface IFilterHostsService {
   bookingRepo: BookingRepository;
