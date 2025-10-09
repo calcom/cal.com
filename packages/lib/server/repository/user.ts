@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -15,7 +16,6 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
-import { buildNonDelegationCredentials } from "../../delegationCredential/clientAndServer";
 import { withSelectedCalendars } from "../withSelectedCalendars";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
