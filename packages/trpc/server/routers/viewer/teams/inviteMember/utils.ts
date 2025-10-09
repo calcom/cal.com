@@ -645,15 +645,17 @@ export const groupUsersByJoinability = ({
       connectionInfoMap,
     });
 
-    autoJoinStatus.autoAccept
-      ? usersToAutoJoin.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        })
-      : regularUsers.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        });
+    if (autoJoinStatus.autoAccept) {
+      usersToAutoJoin.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    } else {
+      regularUsers.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    }
   }
 
   return [usersToAutoJoin, regularUsers];
@@ -750,12 +752,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
 };
 
 export async function handleExistingUsersInvites({
@@ -907,6 +903,19 @@ export async function handleExistingUsersInvites({
 
         // If auto-accepting into org, also accept any pending sub-team memberships
         if (shouldAutoAccept) {
+          const pendingSubTeamMemberships = await prisma.membership.findMany({
+            where: {
+              userId: user.id,
+              accepted: false,
+              team: {
+                parentId: organization.id,
+              },
+            },
+            select: {
+              teamId: true,
+            },
+          });
+
           await prisma.membership.updateMany({
             where: {
               userId: user.id,
@@ -919,6 +928,10 @@ export async function handleExistingUsersInvites({
               accepted: true,
             },
           });
+
+          await Promise.all(
+            pendingSubTeamMemberships.map(({ teamId }) => updateNewTeamMemberEventTypes(user.id, teamId))
+          );
         }
         return {
           ...user,
