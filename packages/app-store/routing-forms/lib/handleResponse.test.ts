@@ -12,7 +12,7 @@ import type { TargetRoutingFormForResponse } from "./formSubmissionUtils";
 import { onSubmissionOfFormResponse } from "./formSubmissionUtils";
 import { handleResponse } from "./handleResponse";
 
-vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+vi.mock("@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   findTeamMembersMatchingAttributeLogic: vi.fn(),
 }));
 
