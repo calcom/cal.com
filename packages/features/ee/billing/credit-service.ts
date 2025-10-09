@@ -580,7 +580,7 @@ export class CreditService {
           }),
         ];
 
-        if (result.creditFor === CreditUsageType.SMS) {
+        if (!result.creditFor || result.creditFor === CreditUsageType.SMS) {
           promises.push(
             cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
               (error) => {
