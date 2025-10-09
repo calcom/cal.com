@@ -312,9 +312,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
                 status,
               }) || "",
             filename: "event.ics",
-            type: "text/calendar; method=REQUEST",
+            contentType: "text/calendar; charset=UTF-8; method=REQUEST",
             disposition: "attachment",
-            contentId: uuidv4(),
           },
         ]
       : undefined;

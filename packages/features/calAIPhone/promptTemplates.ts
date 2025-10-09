@@ -53,7 +53,7 @@ export const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with 
     - if availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.
     - if availability does not exist, ask user to select another time range for the appointment, repeat this step 3.
   5. Confirm the date and time selected by user: \"Just to confirm, you want to book the appointment at ...\".
-  6. Once confirmed, you can use {{NUMBER_TO_CALL}} as phone number for creating booking and call function book_appointment_{{eventTypeId}} to book the appointment.
+  6. Once confirmed, you can use {{user_number}} if it is not unknown else ask user for phone number in international format and use it for creating booking if it is a required field and call function book_appointment_{{eventTypeId}} to book the appointment.
     - if booking returned booking detail, it means booking is successful, proceed to step 7.
     - if booking returned error message, let user know why the booking was not successful, and maybe start over with step 3.
   7. Inform the user booking is successful, and ask if user have any questions. Answer them if there are any.

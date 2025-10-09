@@ -12,7 +12,7 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
 import { WorkflowRelationsRepository } from "@calcom/lib/server/repository/workflowRelations";
 import { WorkflowStepRepository } from "@calcom/lib/server/repository/workflowStep";
-import type { PrismaClient } from "@calcom/prisma";
+import { prisma, type PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -251,6 +251,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const workflowStepRepository = new WorkflowStepRepository(ctx.prisma);
 
+  const agentRepo = new PrismaAgentRepository(prisma);
+
   // handle deleted and edited workflow steps
   await Promise.all(
     userWorkflow.steps.map(async (oldStep) => {
@@ -273,7 +275,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       //step was deleted
       if (!newStep) {
         if (oldStep.action === WorkflowActions.CAL_AI_PHONE_CALL && !!oldStep.agentId) {
-          const agent = await PrismaAgentRepository.findAgentWithPhoneNumbers(oldStep.agentId ?? undefined);
+          const agent = await agentRepo.findAgentWithPhoneNumbers(oldStep.agentId ?? undefined);
 
           if (!agent) {
             throw new TRPCError({
@@ -365,6 +367,22 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             log.error(message);
           }
 
+          if (oldStep.inboundAgentId) {
+            try {
+              await aiPhoneService.deleteAgent({
+                id: oldStep.inboundAgentId,
+                userId: user.id,
+                teamId: userWorkflow.teamId ?? undefined,
+              });
+            } catch (error) {
+              const message = `Failed to delete inbound agent ${
+                oldStep.inboundAgentId
+              } from external service: ${error instanceof Error ? error.message : "Unknown error"}`;
+              externalErrors.push(message);
+              log.error(message);
+            }
+          }
+
           // If there were external errors, we should log them for manual cleanup
           // but the operation is considered successful since DB is consistent
           if (externalErrors.length > 0) {
@@ -380,6 +398,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           ...newStep,
           verifiedAt: oldStep.verifiedAt,
           agentId: newStep.agentId || null,
+          inboundAgentId: newStep.inboundAgentId || null,
         })
       ) {
         // check if step that require team plan already existed before
@@ -629,7 +648,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         if (!step.agentId) return;
 
         try {
-          const agent = await PrismaAgentRepository.findProviderAgentIdById(step.agentId);
+          const agent = await agentRepo.findProviderAgentIdById(step.agentId);
 
           if (!agent?.providerAgentId) {
             log.error(`Agent not found for step ${step.id} agentId ${step.agentId}`);

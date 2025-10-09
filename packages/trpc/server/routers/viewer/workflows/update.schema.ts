@@ -23,6 +23,7 @@ const stepSchema = z.object({
   senderName: z.string().nullable(),
   includeCalendarEvent: z.boolean(),
   agentId: z.string().nullish(),
+  inboundAgentId: z.string().nullish(),
 });
 
 export const ZUpdateInputSchema = z

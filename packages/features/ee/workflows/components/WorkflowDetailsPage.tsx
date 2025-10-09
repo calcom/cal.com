@@ -16,6 +16,7 @@ import { FormCard, FormCardBody } from "@calcom/ui/components/card";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
+import { useAgentsData } from "../hooks/useAgentsData";
 import { isCalAIAction, isFormTrigger, isSMSAction } from "../lib/actionHelperFunctions";
 import { ALLOWED_FORM_WORKFLOW_ACTIONS } from "../lib/constants";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
@@ -100,8 +101,6 @@ export default function WorkflowDetailsPage(props: Props) {
     }
   }, [eventTypeId]);
 
-  const steps = form.getValues("steps") || [];
-
   const addAction = (
     action: WorkflowActions,
     sendTo?: string,
@@ -155,19 +154,14 @@ export default function WorkflowDetailsPage(props: Props) {
       includeCalendarEvent: false,
       verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
       agentId: null,
+      inboundAgentId: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);
   };
 
-  const agentQueriesTrpc = trpc.useQueries((t) =>
-    steps.map((step, index) => {
-      const watchedAgentId = form.watch(`steps.${index}.agentId`);
-      const agentId = step?.agentId ?? watchedAgentId ?? null;
-
-      return t.viewer.aiVoiceAgent.get({ id: agentId ?? "" }, { enabled: !!agentId });
-    })
-  );
+  const { outboundAgentQueries: agentQueriesTrpc, inboundAgentQueries: inboundAgentQueriesTrpc } =
+    useAgentsData(form);
 
   return (
     <>
@@ -207,6 +201,8 @@ export default function WorkflowDetailsPage(props: Props) {
             {form.getValues("steps")?.map((step, index) => {
               const agentData = agentQueriesTrpc[index]?.data;
               const isAgentLoading = agentQueriesTrpc[index]?.isPending;
+              const inboundAgentData = inboundAgentQueriesTrpc[index]?.data;
+              const isInboundAgentLoading = inboundAgentQueriesTrpc[index]?.isPending;
 
               return (
                 <div key={index}>
@@ -269,6 +265,9 @@ export default function WorkflowDetailsPage(props: Props) {
                         isDeleteStepDialogOpen={isDeleteStepDialogOpen}
                         isAgentLoading={isAgentLoading}
                         agentData={agentData}
+                        inboundAgentData={inboundAgentData}
+                        isInboundAgentLoading={isInboundAgentLoading}
+                        allOptions={allOptions}
                         actionOptions={transformedActionOptions}
                         updateTemplate={updateTemplate}
                         setUpdateTemplate={setUpdateTemplate}
