@@ -899,7 +899,7 @@ describe("Retell AI Webhook Handler", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(mockAgent);
+      mockFindByProviderAgentId.mockResolvedValue(mockAgent);
       mockChargeCredits.mockResolvedValue(undefined);
 
       const body: RetellWebhookBody = {
@@ -951,7 +951,7 @@ describe("Retell AI Webhook Handler", () => {
         team: null,
       };
 
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mockChargeCredits.mockResolvedValue(undefined);
 
       const body: RetellWebhookBody = {
@@ -1004,7 +1004,7 @@ describe("Retell AI Webhook Handler", () => {
         user: null,
       };
 
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mockChargeCredits.mockResolvedValue(undefined);
 
       const body: RetellWebhookBody = {
@@ -1066,7 +1066,7 @@ describe("Retell AI Webhook Handler", () => {
         team: null,
       };
 
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
 
       mockChargeCredits.mockImplementation(async (params) => {
         if (params.creditFor === CreditUsageType.CAL_AI_PHONE_CALL) {
@@ -1132,7 +1132,7 @@ describe("Retell AI Webhook Handler", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(PrismaAgentRepository.findByProviderAgentId).mockResolvedValue(mockAgent);
+      mockFindByProviderAgentId.mockResolvedValue(mockAgent);
 
       mockChargeCredits.mockImplementation(async (params) => {
         if (params.creditFor === CreditUsageType.CAL_AI_PHONE_CALL) {
@@ -1203,7 +1203,7 @@ describe("Retell AI Webhook Handler", () => {
         user: null,
       };
 
-      vi.mocked(PrismaPhoneNumberRepository.findByPhoneNumber).mockResolvedValue(mockPhoneNumber);
+      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
       mockChargeCredits.mockResolvedValue({ teamId: 5 });
 
       const body: RetellWebhookBody = {
