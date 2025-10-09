@@ -209,17 +209,18 @@
           "group": "Atoms",
           "icon": "atom",
           "pages": [
-            "platform/atoms/cal-provider",
-            "platform/atoms/google-calendar-connect",
-            "platform/atoms/outlook-calendar-connect",
             "platform/atoms/apple-calendar-connect",
             "platform/atoms/availability-settings",
             "platform/atoms/booker",
-            "platform/atoms/event-type",
+            "platform/atoms/cal-provider",
             "platform/atoms/calendar-settings",
-            "platform/atoms/payment-form",
+            "platform/atoms/calendar-view",
             "platform/atoms/conferencing-apps",
-            "platform/atoms/calendar-view"
+            "platform/atoms/event-type",
+            "platform/atoms/google-calendar-connect",
+            "platform/atoms/list-schedules",
+            "platform/atoms/outlook-calendar-connect",
+            "platform/atoms/payment-form"
           ]
         },
         {

@@ -42,3 +42,4 @@ export { useCreateTeamEventType } from "./hooks/event-types/private/useCreateTea
 export { useOrganizationBookings } from "./hooks/organizations/bookings/useOrganizationBookings";
 export { useOrganizationUserBookings } from "./hooks/organizations/bookings/useOrganizationUserBookings";
 export { CalendarViewPlatformWrapper as CalendarView } from "./calendar-view/index";
+export { ListSchedulesPlatformWrapper as ListSchedules } from "./list-schedules/index";

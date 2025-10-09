@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
+import { getTransformedSchedules } from "@calcom/lib/schedules/transformers/getTransformedSchedles";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
@@ -56,15 +57,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   // This is because the data is cached and as a result the data is converted to a string
   const availabilities = {
     ...cachedAvailabilities,
-    schedules: cachedAvailabilities.schedules.map((schedule) => ({
-      ...schedule,
-      availability: schedule.availability.map((avail) => ({
-        ...avail,
-        startTime: new Date(avail.startTime),
-        endTime: new Date(avail.endTime),
-        date: avail.date ? new Date(avail.date) : null,
-      })),
-    })),
+    schedules: getTransformedSchedules(cachedAvailabilities.schedules),
   };
 
   const organizationId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
