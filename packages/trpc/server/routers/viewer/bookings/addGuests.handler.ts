@@ -110,6 +110,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     },
     select: {
       email: true,
+      emailVerified: true,
       secondaryEmails: {
         select: {
           email: true,
@@ -121,7 +122,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   const protectedEmails = new Set<string>();
   usersWithPreventImpersonation.forEach((user) => {
-    protectedEmails.add(user.email.toLowerCase());
+    if (user.emailVerified) protectedEmails.add(user.email.toLowerCase());
     user.secondaryEmails.forEach((se) => {
       if (se.emailVerified) protectedEmails.add(se.email.toLowerCase());
     });

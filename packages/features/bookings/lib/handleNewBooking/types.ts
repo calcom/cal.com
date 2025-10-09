@@ -11,7 +11,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 type User = Omit<Prisma.UserGetPayload<{ select: typeof userSelect }>, "selectedCalendars">;
 
-export type Invitee = {
+export type InviteeItem = {
   email: string;
   name: string;
   firstName: string;
@@ -22,7 +22,9 @@ export type Invitee = {
     translate: TFunction;
     locale: string;
   };
-}[];
+};
+
+export type Invitee = InviteeItem[];
 
 export interface IEventTypePaymentCredentialType {
   appId: EventTypeAppsList;

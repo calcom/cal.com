@@ -113,7 +113,7 @@ import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
 import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
+import type { IEventTypePaymentCredentialType, Invitee, InviteeItem, IsFixedAwareUser } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
@@ -1137,50 +1137,55 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
-  // Get emails that have preventEmailImpersonation enabled
-  const usersWithPreventImpersonation = await prisma.user.findMany({
-    where: {
-      OR: [
-        {
-          email: {
-            in: (reqGuests || []).map(extractBaseEmail),
+  const guestBaseEmails = (reqGuests ?? []).map((e) => extractBaseEmail(e).toLowerCase());
+
+  let usersWithPreventImpersonation: Array<{
+    email: string;
+    secondaryEmails: Array<{ email: string }>;
+  }> = [];
+  if (guestBaseEmails.length) {
+    usersWithPreventImpersonation = await prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            email: {
+              in: guestBaseEmails,
+            },
+            emailVerified: {
+              not: null,
+            },
+            preventEmailImpersonation: true,
           },
-          emailVerified: {
-            not: null,
-          },
-          preventEmailImpersonation: true,
-        },
-        {
-          secondaryEmails: {
-            some: {
-              email: {
-                in: (reqGuests || []).map(extractBaseEmail),
-              },
-              emailVerified: {
-                not: null,
+          {
+            secondaryEmails: {
+              some: {
+                email: {
+                  in: guestBaseEmails,
+                },
+                emailVerified: {
+                  not: null,
+                },
               },
             },
+            preventEmailImpersonation: true,
           },
-          preventEmailImpersonation: true,
-        },
-      ],
-    },
-    select: {
-      email: true,
-      secondaryEmails: {
-        select: {
-          email: true,
+        ],
+      },
+      select: {
+        email: true,
+        secondaryEmails: {
+          select: {
+            email: true,
+          },
         },
       },
-    },
-  });
+    });
+  }
 
   const protectedBaseEmails = new Set<string>();
   usersWithPreventImpersonation.forEach((user) => {
     protectedBaseEmails.add(extractBaseEmail(user.email).toLowerCase());
-    user.secondaryEmails.forEach((se) =>
-      protectedBaseEmails.add(extractBaseEmail(se.email).toLowerCase())
-    );
+    user.secondaryEmails.forEach((se: { email: string }) => protectedBaseEmails.add(extractBaseEmail(se.email).toLowerCase()));
   });
 
   const guestsRemoved: string[] = [];
@@ -1188,8 +1193,8 @@ async function handler(
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
 
     if (
-          blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail) ||
-          protectedBaseEmails.has(baseGuestEmail)
+      blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail) ||
+      protectedBaseEmails.has(baseGuestEmail)
     ) {
       guestsRemoved.push(guest);
       return guestArray;
@@ -1206,10 +1211,11 @@ async function handler(
       firstName: "",
       lastName: "",
       timeZone: attendeeTimezone,
+      phoneNumber: undefined,
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;
-  }, [] as Invitee[]);
+  }, [] as InviteeItem[]);
 
   if (guestsRemoved.length > 0) {
     log.info("Removed guests from the booking", guestsRemoved);
@@ -1231,7 +1237,13 @@ async function handler(
   log.info("event type locations", eventType.locations);
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
-  const attendeesList = [...invitee, ...guests];
+  const attendeesList = [...invitee, ...guests].map((attendee: InviteeItem) => ({
+    name: attendee.name,
+    email: attendee.email,
+    timeZone: attendee.timeZone,
+    language: attendee.language,
+    phoneNumber: attendee.phoneNumber,
+  }));
 
   const responses = reqBody.responses || null;
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
