@@ -42,12 +42,13 @@ services:
 
   # Cal.com API v2
   api-v2:
-    build:
-      context: ../../..  # Build from repo root to include monorepo
-      dockerfile: apps/api/v2/Dockerfile
-      args:
-        DATABASE_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
-        DATABASE_DIRECT_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
+    image: calcom-api-v2:latest  # Use pre-built image
+    # build:
+    #   context: ../../..  # Build from repo root to include monorepo
+    #   dockerfile: apps/api/v2/Dockerfile
+    #   args:
+    #     DATABASE_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
+    #     DATABASE_DIRECT_URL: postgresql://calcom:${DB_PASSWORD:-calcom_secure_password_change_me}@postgres:5432/calcom
     container_name: calcom-api-v2
     restart: unless-stopped
     depends_on:
