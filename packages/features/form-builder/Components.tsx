@@ -94,7 +94,7 @@ type Component =
 export const Components: Record<FieldType, Component> = {
   text: {
     propsType: propsTypes.text,
-    factory: (props) => <Widgets.TextWidget id={props.name} noLabel={true} {...props} />,
+    factory: (props) => <Widgets.InputWidget id={props.name} noLabel={true} {...props} />,
   },
   textarea: {
     propsType: propsTypes.textarea,

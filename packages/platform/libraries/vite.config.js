@@ -38,6 +38,7 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        'jimp',
         "react",
         "fs",
         "path",
