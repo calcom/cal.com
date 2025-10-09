@@ -7,9 +7,9 @@ import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
@@ -296,6 +296,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
           form,
           chosenRouteId: route.id,
         },
+        // During Preview testing we could consider the current time itself as the meeting start time
+        meetingStartTime: new Date(),
       })
     : { users: [], perUserData: null, isUsingAttributeWeights: false };
   const timeAfterGetOrderedLuckyUsers = performance.now();
