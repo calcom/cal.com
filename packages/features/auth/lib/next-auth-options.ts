@@ -1014,7 +1014,13 @@ export const getOptions = ({
             : existingUserWithUsername
             ? usernameSlugRandom(user.name)
             : _username;
-          const utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
+
+          let utmParams;
+          try {
+            utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
+          } catch {
+            utmParams = {};
+          }
 
           const newUser = await prisma.user.create({
             data: {

@@ -45,21 +45,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   //save utm params from cookie to user.metadata.utm if exists and not already set
   //required for tracking utm tracking from oauth signup
-  const cookies = cookie.parse(req.headers.cookie || "");
-  if (cookies.utm_params) {
-    const utmParamsObj = getUtmParamsFromCookie(cookies.utm_params);
-    user.metadata = {
-      ...(typeof user.metadata === "object" && user.metadata !== null ? user.metadata : {}),
-      utm: utmParamsObj,
-    };
-    await userRepo.updateWhereId({
-      whereId: user.id,
-      data: {
-        metadata: user.metadata as Prisma.InputJsonValue,
-      },
-    });
-  }
 
+  try {
+    const cookies = cookie.parse(req.headers.cookie || "");
+    if (cookies.utm_params) {
+      const utmParamsObj = getUtmParamsFromCookie(cookies.utm_params);
+      user.metadata = {
+        ...(typeof user.metadata === "object" && user.metadata !== null ? user.metadata : {}),
+        utm: utmParamsObj,
+      };
+      await userRepo.updateWhereId({
+        whereId: user.id,
+        data: {
+          metadata: user.metadata as Prisma.InputJsonValue,
+        },
+      });
+    }
+  } catch (e) {
+    console.error("Error parsing utm_params cookie", e);
+  }
   let currentOnboardingStep: string | undefined = undefined;
 
   //find if cookie "utm_params" exists
