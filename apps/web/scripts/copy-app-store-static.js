@@ -23,7 +23,7 @@ const copyAppStoreStatic = () => {
       fs.mkdirSync(destDir, { recursive: true });
     }
 
-    // Copy file to destination
+    // Copy file to destination (Turborepo caching handles change detection)
     const destPath = path.join(destDir, fileName);
     fs.copyFileSync(file, destPath);
 

@@ -30,6 +30,7 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.se
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -56,6 +57,7 @@ import { Module } from "@nestjs/common";
     TeamsModule,
     TeamsEventTypesModule,
     MembershipsModule,
+    ProfilesModule,
   ],
   providers: [
     TokensRepository,

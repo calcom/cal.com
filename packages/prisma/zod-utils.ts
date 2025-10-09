@@ -11,10 +11,9 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
-import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
-import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
+import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
+import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
 import { slugify } from "@calcom/lib/slugify";
@@ -134,10 +133,6 @@ export const EventTypeMetaDataSchema = eventTypeMetaDataSchemaWithUntypedApps.nu
 export const eventTypeMetaDataSchemaWithoutApps = _eventTypeMetaDataSchemaWithoutApps.nullable();
 
 export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
-
-export const eventTypeBookingFields = formBuilderFieldsSchema;
-export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
-export type BookingFieldType = FormBuilderFieldType;
 
 // Validation of user added bookingFields' responses happen using `getBookingResponsesSchema` which requires `eventType`.
 // So it is a dynamic validation and thus entire validation can't exist here
@@ -714,7 +709,7 @@ export const emailSchema = emailRegexSchema;
 // I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
 // version that will include updates in the above PR.
 export const emailSchemaRefinement = (value: string) => {
-  return emailRegex.test(value);
+  return emailSchema.safeParse(value).success;
 };
 
 export const signupSchema = z.object({
@@ -768,3 +763,193 @@ export const serviceAccountKeySchema = z
 export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;
 
 export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();
+
+// Routing Form Fields
+export const fieldTypeEnum = z.enum([
+  "name",
+  "text",
+  "textarea",
+  "number",
+  "email",
+  "phone",
+  "address",
+  "multiemail",
+  "select",
+  "multiselect",
+  "checkbox",
+  "radio",
+  "radioInput",
+  "boolean",
+  "url",
+]);
+
+export type FieldType = z.infer<typeof fieldTypeEnum>;
+
+export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
+  const allDomains = val.split(",").map((dom) => dom.trim());
+
+  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
+
+  /*
+  Valid patterns - [ example, example.anything, anyone@example.anything ]
+  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
+*/
+
+  const isValid = !allDomains.some((domain) => !regex.test(domain));
+
+  if (!isValid) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter valid domain or email",
+    });
+  }
+});
+
+export const EditableSchema = z.enum([
+  "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
+  "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
+  "system-but-hidden", // Can't be deleted, name can't be edited, will be shown
+  "user", // Fully editable
+  "user-readonly", // All fields are readOnly.
+]);
+
+export const baseFieldSchema = z.object({
+  name: z.string().transform(getValidRhfFieldName),
+  type: fieldTypeEnum,
+  // TODO: We should make at least one of `defaultPlaceholder` and `placeholder` required. Do the same for label.
+  label: z.string().optional(),
+  labelAsSafeHtml: z.string().optional(),
+
+  /**
+   * It is the default label that will be used when a new field is created.
+   * Note: It belongs in FieldsTypeConfig, so that changing defaultLabel in code can work for existing fields as well(for fields that are using the default label).
+   * Supports translation
+   */
+  defaultLabel: z.string().optional(),
+
+  placeholder: z.string().optional(),
+  /**
+   * It is the default placeholder that will be used when a new field is created.
+   * Note: Same as defaultLabel, it belongs in FieldsTypeConfig
+   * Supports translation
+   */
+  defaultPlaceholder: z.string().optional(),
+  required: z.boolean().default(false).optional(),
+  /**
+   * It is the list of options that is valid for a certain type of fields.
+   *
+   */
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+        price: z.coerce.number().min(0).optional(),
+      })
+    )
+    .optional(),
+  /**
+   * This is an alternate way to specify options when the options are stored elsewhere. Form Builder expects options to be present at `dataStore[getOptionsAt]`
+   * This allows keeping a single source of truth in DB.
+   */
+  getOptionsAt: z.string().optional(),
+
+  /**
+   * For `radioInput` type of questions, it stores the input that is shown based on the user option selected.
+   * e.g. If user is given a list of locations and he selects "Phone", then he will be shown a phone input
+   */
+  optionsInputs: z
+    .record(
+      z.object({
+        // Support all types as needed
+        // Must be a subset of `fieldTypeEnum`.TODO: Enforce it in TypeScript
+        type: z.enum(["address", "phone", "text"]),
+        required: z.boolean().optional(),
+        placeholder: z.string().optional(),
+      })
+    )
+    .optional(),
+
+  /**
+   * It is the minimum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @default 0
+   * @requires supportsLengthCheck = true
+   */
+  minLength: z.number().optional(),
+
+  /**
+   * It is the maximum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @requires supportsLengthCheck = true
+   */
+  maxLength: z.number().optional(),
+
+  // Emails that needs to be excluded
+  excludeEmails: excludeOrRequireEmailSchema.optional(),
+  // Emails that need to be required
+  requireEmails: excludeOrRequireEmailSchema.optional(),
+  // Price associated with the field which works like addons which users can add to the booking
+  price: z.coerce.number().min(0).optional(),
+});
+
+export const variantsConfigSchema = z.object({
+  variants: z.record(
+    z.object({
+      /**
+       * Variant Fields schema for a variant of the main field.
+       * It doesn't support non text fields as of now
+       **/
+      fields: baseFieldSchema
+        .omit({
+          defaultLabel: true,
+          defaultPlaceholder: true,
+          options: true,
+          getOptionsAt: true,
+          optionsInputs: true,
+        })
+        .array(),
+    })
+  ),
+});
+
+export const fieldSchema = baseFieldSchema.merge(
+  z.object({
+    variant: z.string().optional(),
+    variantsConfig: variantsConfigSchema.optional(),
+
+    views: z
+      .object({
+        label: z.string(),
+        id: z.string(),
+        description: z.string().optional(),
+      })
+      .array()
+      .optional(),
+
+    /**
+     * It is used to hide fields such as location when there are less than two options
+     */
+    hideWhenJustOneOption: z.boolean().default(false).optional(),
+
+    hidden: z.boolean().optional(),
+    editable: EditableSchema.default("user").optional(),
+    sources: z
+      .array(
+        z.object({
+          // Unique ID for the `type`. If type is workflow, it's the workflow ID
+          id: z.string(),
+          type: z.union([z.literal("user"), z.literal("system"), z.string()]),
+          label: z.string(),
+          editUrl: z.string().optional(),
+          // Mark if a field is required by this source or not. This allows us to set `field.required` based on all the sources' fieldRequired value
+          fieldRequired: z.boolean().optional(),
+        })
+      )
+      .optional(),
+    disableOnPrefill: z.boolean().default(false).optional(),
+  })
+);
+
+export const eventTypeBookingFields = z.array(fieldSchema);
+export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;

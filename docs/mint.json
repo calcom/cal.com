@@ -101,6 +101,11 @@
           "pages": ["developing/guides/automation/webhooks"]
         },
         {
+          "group": "Atoms",
+          "icon": "atom",
+          "pages": ["developing/guides/atoms/add-changesets"]
+        },
+        {
           "group": "Email",
           "icon": "inbox",
           "pages": ["developing/guides/email/setup-mailtrap-for-email-testing"]
@@ -213,7 +218,8 @@
             "platform/atoms/event-type",
             "platform/atoms/calendar-settings",
             "platform/atoms/payment-form",
-            "platform/atoms/conferencing-apps"
+            "platform/atoms/conferencing-apps",
+            "platform/atoms/calendar-view"
           ]
         },
         {

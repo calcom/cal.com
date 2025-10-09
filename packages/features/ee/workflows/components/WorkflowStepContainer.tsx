@@ -1,7 +1,7 @@
 import { type TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import "react-phone-number-input/style.css";
@@ -9,7 +9,7 @@ import "react-phone-number-input/style.css";
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useHasActiveTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,6 +43,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { EmailField } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
+import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -66,10 +67,10 @@ import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate"
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "../pages/workflow";
 import "../style/styles.css";
-import { AgentConfigurationSheet } from "./AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
+import { AgentConfigurationSheet } from "./agent-configuration/AgentConfigurationSheet";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -91,6 +92,8 @@ type WorkflowStepProps = {
   isDeleteStepDialogOpen?: boolean;
   agentData?: RetellAgentWithDetails;
   isAgentLoading?: boolean;
+  inboundAgentData?: RetellAgentWithDetails;
+  isInboundAgentLoading?: boolean;
 };
 
 const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
@@ -156,6 +159,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     allOptions,
     agentData,
     isAgentLoading,
+    inboundAgentData,
+    isInboundAgentLoading: _isInboundAgentLoading,
     isDeleteStepDialogOpen,
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,
@@ -170,10 +175,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { data: userTeams } = trpc.viewer.teams.list.useQuery({}, { enabled: !teamId });
   const [agentConfigurationSheet, setAgentConfigurationSheet] = useState<{
     open: boolean;
-    activeTab?: "prompt" | "phoneNumber";
+    activeTab?: "outgoingCalls" | "phoneNumber" | "incomingCalls";
   }>({
     open: false,
-    activeTab: "prompt",
+    activeTab: "outgoingCalls",
   });
 
   const creditsTeamId = userTeams?.find(
@@ -190,6 +195,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (data) => {
       showToast(t("agent_created_successfully"), "success");
 
+      const url = new URL(window.location.href);
+      url.searchParams.delete("autoCreateAgent");
+      url.searchParams.delete("templateWorkflowId");
+      router.replace(url.pathname + url.search);
+
       if (step) {
         const stepIndex = step.stepNumber - 1;
         form.setValue(`steps.${stepIndex}.agentId`, data.id);
@@ -204,12 +214,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   });
 
   const stepAgentId = step?.agentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.agentId`) || null;
+  const stepInboundAgentId =
+    step?.inboundAgentId || form.watch(`steps.${step ? step.stepNumber - 1 : 0}.inboundAgentId`) || null;
 
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: async () => {
       showToast(t("agent_updated_successfully"), "success");
-      if (stepAgentId) {
-        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
+      const currentAgentId = stepAgentId || stepInboundAgentId;
+      if (currentAgentId) {
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: currentAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -221,8 +234,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async () => {
       showToast(t("phone_number_unsubscribed_successfully"), "success");
       setIsUnsubscribeDialogOpen(false);
-      if (stepAgentId) {
-        utils.viewer.aiVoiceAgent.get.invalidate({ id: stepAgentId });
+      const currentAgentId = stepAgentId || stepInboundAgentId;
+      if (currentAgentId) {
+        utils.viewer.aiVoiceAgent.get.invalidate({ id: currentAgentId });
       }
     },
     onError: (error: { message: string }) => {
@@ -250,7 +264,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const senderNeeded =
     step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE;
 
-  const [, setIsSenderIsNeeded] = useState(senderNeeded);
+  const [_isSenderIsNeeded, setIsSenderIsNeeded] = useState(senderNeeded);
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
     step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
@@ -265,65 +279,79 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
-  const [autoAgentCreationAttempted, setAutoAgentCreationAttempted] = useState(false);
+  const isCreatingAgent = useRef(false);
+  const hasAutoCreated = useRef(false);
+
+  const handleCreateAgent = useCallback(
+    async (templateWorkflowId?: string) => {
+      if (isCreatingAgent.current || createAgentMutation.isPending) {
+        console.log("Agent creation already in progress, skipping...");
+        return;
+      }
+
+      isCreatingAgent.current = true;
+
+      try {
+        // Save workflow first to ensure we have step ID
+        if (onSaveWorkflow) {
+          await onSaveWorkflow();
+        }
+
+        const updatedSteps = form.getValues("steps");
+        const currentStepIndex = step ? step.stepNumber - 1 : 0;
+        const updatedStep = updatedSteps[currentStepIndex];
+
+        if (updatedStep?.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
+          form.setValue(`steps.${currentStepIndex}.action`, WorkflowActions.CAL_AI_PHONE_CALL);
+        }
+
+        if (updatedStep?.id) {
+          createAgentMutation.mutate({
+            teamId,
+            workflowStepId: updatedStep.id,
+            ...(templateWorkflowId && { templateWorkflowId }),
+          });
+        } else {
+          showToast(t("failed_to_get_workflow_step_id"), "error");
+        }
+      } catch (error) {
+        console.error("Failed to create agent:", error);
+        showToast(t("failed_to_create_agent"), "error");
+      } finally {
+        isCreatingAgent.current = false;
+      }
+    },
+    [createAgentMutation, onSaveWorkflow, form, step, teamId, t]
+  );
+
+  const autoCreateAgent = searchParams?.get("autoCreateAgent");
+  const templateWorkflowId = searchParams?.get("templateWorkflowId");
 
   useEffect(() => {
-    const autoCreateAgent = searchParams?.get("autoCreateAgent");
-    const templateWorkflowId = searchParams?.get("templateWorkflowId");
-
-    if (
+    const shouldAutoCreate =
       autoCreateAgent === "true" &&
-      !autoAgentCreationAttempted &&
       templateWorkflowId &&
-      step &&
+      step?.id &&
       step.action === WorkflowActions.CAL_AI_PHONE_CALL &&
       !stepAgentId &&
-      step.id &&
-      onSaveWorkflow
-    ) {
-      setAutoAgentCreationAttempted(true);
+      !hasAutoCreated.current &&
+      !createAgentMutation.isPending &&
+      !createAgentMutation.isSuccess;
 
-      const createAgent = async () => {
-        try {
-          await onSaveWorkflow?.();
-
-          const updatedSteps = form.getValues("steps");
-          const currentStepIndex = step.stepNumber - 1;
-          const updatedStep = updatedSteps[currentStepIndex];
-
-          if (updatedStep?.id) {
-            createAgentMutation.mutate({
-              teamId,
-              workflowStepId: updatedStep.id,
-              templateWorkflowId,
-            });
-
-            const url = new URL(window.location.href);
-            url.searchParams.delete("autoCreateAgent");
-            url.searchParams.delete("templateWorkflowId");
-            router.replace(url.pathname + url.search);
-          } else {
-            showToast(t("failed_to_get_workflow_step_id"), "error");
-          }
-        } catch (error) {
-          console.error("Failed to auto-create agent:", error);
-          showToast(t("failed_to_create_agent"), "error");
-        }
-      };
-
-      createAgent();
+    if (shouldAutoCreate && onSaveWorkflow) {
+      hasAutoCreated.current = true;
+      handleCreateAgent(templateWorkflowId);
     }
   }, [
-    searchParams,
-    autoAgentCreationAttempted,
-    step,
+    autoCreateAgent,
+    templateWorkflowId,
+    step?.id,
+    step?.action,
     stepAgentId,
-    teamId,
+    createAgentMutation.isPending,
+    createAgentMutation.isSuccess,
     onSaveWorkflow,
-    createAgentMutation,
-    form,
-    t,
-    router,
+    handleCreateAgent,
   ]);
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
@@ -619,6 +647,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsCredits: isSMSOrWhatsappAction(step.action),
+      isCalAi: isCalAIAction(step.action),
       creditsTeamId: teamId ?? creditsTeamId,
       isOrganization: props.isOrganization,
     };
@@ -741,9 +770,50 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               }}
             />
           </div>
+          {!isWhatsappAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) &&
+            !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
+              <div>
+                {_isSenderIsNeeded ? (
+                  <>
+                    <div className="pt-4">
+                      <div className="flex items-center">
+                        <Label>{t("sender_id")}</Label>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={SENDER_ID}
+                        disabled={props.readOnly}
+                        maxLength={11}
+                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                      />
+                      <div className="mt-1.5 flex items-center gap-1">
+                        <Icon name="info" size="10" className="text-gray-500" />
+                        <div className="text-subtle text-xs">{t("sender_id_info")}</div>
+                      </div>
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                        <p className="text-error mt-1 text-xs">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="pt-4">
+                      <Label>{t("sender_name")}</Label>
+                      <Input
+                        type="text"
+                        disabled={props.readOnly}
+                        placeholder={SENDER_NAME}
+                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
             <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
                 <div>
                   <h2 className="text-emphasis text-sm font-medium leading-none">
                     {t("cal_ai_agent")}
@@ -757,34 +827,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
                 <Button
                   color="primary"
-                  disabled={props.readOnly}
-                  onClick={async () => {
-                    // save the workflow first to get the step id
-                    if (onSaveWorkflow) {
-                      await onSaveWorkflow();
-
-                      // After saving, get the updated step ID from the form
-                      const updatedSteps = form.getValues("steps");
-                      const currentStepIndex = step.stepNumber - 1;
-                      const updatedStep = updatedSteps[currentStepIndex];
-
-                      // Ensure the action is still set correctly after save
-                      if (updatedStep.action !== WorkflowActions.CAL_AI_PHONE_CALL) {
-                        form.setValue(`steps.${currentStepIndex}.action`, WorkflowActions.CAL_AI_PHONE_CALL);
-                      }
-
-                      if (updatedStep && updatedStep.id) {
-                        // Create agent with the workflow step ID
-                        createAgentMutation.mutate({
-                          teamId,
-                          workflowStepId: updatedStep.id,
-                        });
-                      } else {
-                        showToast(t("failed_to_get_workflow_step_id"), "error");
-                      }
-                    }
-                  }}
-                  loading={createAgentMutation.isPending}>
+                  disabled={props.readOnly || isCreatingAgent.current || hasAutoCreated.current}
+                  className="flex items-center justify-center"
+                  onClick={() => handleCreateAgent()}
+                  loading={createAgentMutation.isPending || isCreatingAgent.current}>
                   {t("set_up_agent")}
                 </Button>
               </div>
@@ -794,7 +840,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           {stepAgentId && isAgentLoading && <CalAIAgentDataSkeleton />}
           {stepAgentId && agentData && (
             <div className="bg-muted mt-4 rounded-lg p-4">
-              <div className="flex items-center justify-between">
+              <div
+                className="flex cursor-pointer items-center justify-between"
+                onClick={(e) => {
+                  const target = e.target as HTMLElement;
+                  if (
+                    target.closest("button") ||
+                    target.closest('[role="menu"]') ||
+                    target.closest('[role="menuitem"]')
+                  ) {
+                    return;
+                  }
+                  if (!props.readOnly) {
+                    setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" });
+                  }
+                }}>
                 <div>
                   <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
                   {arePhoneNumbersActive.length > 0 ? (
@@ -813,7 +873,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                   {arePhoneNumbersActive.length > 0 ? (
                     <Dropdown>
                       <DropdownMenuTrigger asChild>
@@ -910,7 +970,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <DropdownItem
                           type="button"
                           StartIcon="pencil"
-                          onClick={() => setAgentConfigurationSheet({ open: true, activeTab: "prompt" })}>
+                          onClick={() =>
+                            setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" })
+                          }>
                           {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -1467,11 +1529,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             activeTab={agentConfigurationSheet.activeTab}
             onOpenChange={(val) => setAgentConfigurationSheet((prev) => ({ ...prev, open: val }))}
             agentId={stepAgentId}
+            inboundAgentId={stepInboundAgentId}
             agentData={agentData}
+            inboundAgentData={inboundAgentData}
             onUpdate={(data) => {
               updateAgentMutation.mutate({
-                //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                id: stepAgentId!,
+                id: data.id,
                 teamId: teamId,
                 generalPrompt: data.generalPrompt,
                 beginMessage: data.beginMessage,
@@ -1484,6 +1547,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
+            eventTypeOptions={props.allOptions}
           />
         )}
 
@@ -1491,7 +1555,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <TestPhoneCallDialog
             open={isTestAgentDialogOpen}
             onOpenChange={setIsTestAgentDialogOpen}
-            agentId={stepAgentId}
+            agentId={stepAgentId || ""}
             teamId={teamId}
             form={form}
           />
@@ -1501,7 +1565,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <WebCallDialog
             open={isWebCallDialogOpen}
             onOpenChange={setIsWebCallDialogOpen}
-            agentId={stepAgentId}
+            agentId={stepAgentId || ""}
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
