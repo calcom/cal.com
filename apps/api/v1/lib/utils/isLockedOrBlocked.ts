@@ -5,5 +5,9 @@ import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/wat
 export async function isLockedOrBlocked(req: NextApiRequest) {
   const user = req.user;
   if (!user?.email) return false;
-  return user.locked || (await checkIfEmailIsBlockedInWatchlistController(user.email, undefined)).isBlocked;
+  return (
+    user.locked ||
+    (await checkIfEmailIsBlockedInWatchlistController({ email: user.email, organizationId: undefined }))
+      .isBlocked
+  );
 }

@@ -6,7 +6,8 @@ import { normalizeEmail, normalizeDomain } from "../utils/normalization";
 
 /**
  * Repository for organization-specific watchlist operations
- * Handles blocking rules that apply only to a specific organization
+ * Handles blocking rules that apply only to a specific organization,
+ * or to all organizations
  */
 export class OrganizationWatchlistRepository implements IOrganizationWatchlistRepository {
   constructor(private readonly prisma: PrismaClient) {}

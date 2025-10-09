@@ -6,12 +6,10 @@ import type { WatchlistFeature } from "@calcom/features/watchlist/lib/facade/Wat
 
 import { isLockedOrBlocked } from "../../../lib/utils/isLockedOrBlocked";
 
-// Mock the watchlist feature
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
   getWatchlistFeature: vi.fn(),
 }));
 
-// Mock prisma (though not directly used in this test, it's used by the controller)
 vi.mock("@calcom/prisma", () => {
   const mockPrisma = {
     watchlist: {
@@ -29,7 +27,6 @@ describe("isLockedOrBlocked", () => {
   let mockWatchlistFeature: WatchlistFeature;
 
   beforeEach(() => {
-    // Create a fresh mock for each test using production types
     const mockGlobalBlocking = {
       isBlocked: vi.fn(),
     };
@@ -54,7 +51,6 @@ describe("isLockedOrBlocked", () => {
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(false);
 
-    // Watchlist should not be called since there's no user
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).not.toHaveBeenCalled();
   });
 
@@ -63,7 +59,6 @@ describe("isLockedOrBlocked", () => {
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(false);
 
-    // Watchlist should not be called since there's no email
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).not.toHaveBeenCalled();
   });
 
@@ -79,7 +74,6 @@ describe("isLockedOrBlocked", () => {
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(true);
 
-    // Watchlist should not be called since user is already locked
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).not.toHaveBeenCalled();
   });
 
@@ -92,13 +86,11 @@ describe("isLockedOrBlocked", () => {
       },
     } as unknown as NextApiRequest;
 
-    // Mock watchlist to return blocked
     vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked).mockResolvedValue({ isBlocked: true });
 
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(true);
 
-    // Verify watchlist was checked
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
       "test@blocked.com",
       undefined
@@ -114,13 +106,11 @@ describe("isLockedOrBlocked", () => {
       },
     } as unknown as NextApiRequest;
 
-    // Mock watchlist to return not blocked
     vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked).mockResolvedValue({ isBlocked: false });
 
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(false);
 
-    // Verify watchlist was checked
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
       "test@example.com",
       undefined
@@ -136,13 +126,11 @@ describe("isLockedOrBlocked", () => {
       },
     } as unknown as NextApiRequest;
 
-    // Mock watchlist to return blocked (the normalization happens in the controller)
     vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked).mockResolvedValue({ isBlocked: true });
 
     const result = await isLockedOrBlocked(req);
     expect(result).toBe(true);
 
-    // Verify watchlist was checked with the normalized email (normalization happens inside the controller)
     expect(vi.mocked(mockWatchlistFeature.globalBlocking.isBlocked)).toHaveBeenCalledWith(
       "test@blocked.com",
       undefined

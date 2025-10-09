@@ -11,15 +11,20 @@ function presenter(isBlocked: boolean): EmailBlockedCheckResponseDTO {
   });
 }
 
+interface CheckEmailBlockedParams {
+  email: string;
+  organizationId?: number;
+}
+
 /**
  * Controllers perform auth/validation and orchestrate use-cases.
  * Uses DI container for proper dependency management.
  */
 export async function checkIfEmailIsBlockedInWatchlistController(
-  email: string,
-  organizationId?: number
+  params: CheckEmailBlockedParams
 ): Promise<EmailBlockedCheckResponseDTO> {
   return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
+    const { email, organizationId } = params;
     const normalizedEmail = normalizeEmail(email);
 
     // Get the watchlist feature through DI

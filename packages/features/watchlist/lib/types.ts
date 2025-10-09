@@ -1,9 +1,7 @@
-// Import and export the enums from Prisma
 import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
 export { WatchlistAction, WatchlistType, WatchlistSource };
 
-// Define the core Watchlist type based on the new database schema
 export interface Watchlist {
   id: string;
   type: WatchlistType;
@@ -16,7 +14,6 @@ export interface Watchlist {
   lastUpdatedAt: Date;
 }
 
-// Define WatchlistAudit type for tracking changes to watchlist entries
 export interface WatchlistAudit {
   id: string;
   type: WatchlistType;
@@ -28,7 +25,6 @@ export interface WatchlistAudit {
   watchlistId: string;
 }
 
-// Define WatchlistEventAudit type for tracking when watchlist rules are triggered
 export interface WatchlistEventAudit {
   id: string;
   watchlistId: string;

@@ -45,7 +45,10 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
   const billingService = new StripeBillingService();
 
-  const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
+  const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
+    email: _email,
+    organizationId: undefined,
+  });
 
   log.debug("handler", { email: _email });
 

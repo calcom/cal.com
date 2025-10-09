@@ -20,10 +20,8 @@ export function normalizeEmail(email: string): string {
     throw new Error("Invalid email: must be a non-empty string");
   }
 
-  // Basic normalization
   const normalized = email.trim().toLowerCase();
 
-  // Basic email format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(normalized)) {
     throw new Error(`Invalid email format: ${email}`);
@@ -52,7 +50,6 @@ export function normalizeDomain(domain: string, includeSubdomains = false): stri
 
   let normalized = domain.trim().toLowerCase();
 
-  // Remove @ prefix if present, we'll add it back
   if (normalized.startsWith("@")) {
     normalized = normalized.slice(1);
   }
@@ -63,16 +60,13 @@ export function normalizeDomain(domain: string, includeSubdomains = false): stri
     throw new Error(`Invalid domain format: ${domain}`);
   }
 
-  // Handle subdomain normalization
   if (includeSubdomains) {
-    // Extract root domain (last two parts)
     const parts = normalized.split(".");
     if (parts.length > 2) {
       normalized = parts.slice(-2).join(".");
     }
   }
 
-  // Always return with @ prefix for consistency with watchlist storage
   return `@${normalized}`;
 }
 
@@ -114,7 +108,6 @@ export function normalizeUsername(username: string, removeSpecialChars = false):
   let normalized = username.trim().toLowerCase();
 
   if (removeSpecialChars) {
-    // Keep only alphanumeric characters and common separators
     normalized = normalized.replace(/[^a-z0-9._-]/g, "");
   }
 

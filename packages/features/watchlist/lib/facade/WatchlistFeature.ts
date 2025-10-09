@@ -12,18 +12,6 @@ import { GlobalBlockingService } from "../service/GlobalBlockingService";
 import { OrganizationBlockingService } from "../service/OrganizationBlockingService";
 import { WatchlistService } from "../service/WatchlistService";
 
-/**
- * Watchlist Feature Façade
- *
- * Single entrypoint that wires all Watchlist services together.
- * Prevents token sprawl and keeps call-sites uniform.
- *
- * Usage:
- * ```typescript
- * const watchlist = createWatchlistFeature(container);
- * const result = await watchlist.globalBlocking.isBlocked(email);
- * ```
- */
 export interface WatchlistFeature {
   /** Global blocking service - handles global watchlist entries only */
   globalBlocking: GlobalBlockingService;
@@ -35,13 +23,6 @@ export interface WatchlistFeature {
   audit: AuditService;
 }
 
-/**
- * Creates a typed Watchlist feature bundle from the DI container
- * Handles the Deps pattern by creating services with proper dependency objects
- *
- * @param container - IoC container with loaded watchlist module
- * @returns Typed bundle of all watchlist services
- */
 export function createWatchlistFeature(container: Container): WatchlistFeature {
   // Get repositories from container
   const globalRepo = container.get(

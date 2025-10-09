@@ -15,8 +15,6 @@ import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 
 import { verifyApiKey } from "./verifyApiKey";
 
-// Use production types directly
-
 vi.mock("@calcom/lib/crypto", () => ({
   symmetricDecrypt: vi.fn().mockReturnValue("mocked-decrypted-value"),
   symmetricEncrypt: vi.fn().mockReturnValue("mocked-encrypted-value"),

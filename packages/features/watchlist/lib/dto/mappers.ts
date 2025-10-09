@@ -5,9 +5,6 @@ import type { Watchlist } from "../types";
 import { normalizeEmail, normalizeDomain, normalizeUsername } from "../utils/normalization";
 import type { WatchlistEntryDTO, WatchlistListResponseDTO, BlockingCheckResultDTO } from "./types";
 
-/**
- * Maps a Watchlist domain model to a WatchlistEntryDTO
- */
 export function mapWatchlistToDTO(
   watchlist: Watchlist & {
     createdBy?: User | null;
@@ -43,9 +40,6 @@ export function mapWatchlistToDTO(
   };
 }
 
-/**
- * Maps an array of Watchlist entries to a paginated response DTO
- */
 export function mapWatchlistListToDTO(
   watchlists: Array<
     Watchlist & {
@@ -70,9 +64,6 @@ export function mapWatchlistListToDTO(
   };
 }
 
-/**
- * Maps blocking check result to DTO
- */
 export function mapBlockingResultToDTO(result: {
   isBlocked: boolean;
   reason?: WatchlistType;
@@ -92,11 +83,7 @@ export function mapBlockingResultToDTO(result: {
   };
 }
 
-/**
- * Sanitizes sensitive data from DTOs for public APIs
- */
 export function sanitizeWatchlistEntryDTO(dto: WatchlistEntryDTO): WatchlistEntryDTO {
-  // Remove sensitive user information for public APIs
   return {
     ...dto,
     createdBy: dto.createdBy
@@ -118,9 +105,6 @@ export function sanitizeWatchlistEntryDTO(dto: WatchlistEntryDTO): WatchlistEntr
   };
 }
 
-/**
- * Validates and sanitizes watchlist value based on type
- */
 export function sanitizeWatchlistValue(type: string, value: string): string {
   switch (type) {
     case "EMAIL":
