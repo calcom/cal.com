@@ -8,10 +8,14 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/app-store/videoClient";
+import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
+import CrmManager from "@calcom/features/crmManager/crmManager";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,
@@ -33,11 +37,6 @@ import type {
   PartialBooking,
   PartialReference,
 } from "@calcom/types/EventManager";
-
-import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
-import CrmManager from "@calcom/lib/crmManager/crmManager";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential";
-import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/app-store/videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
