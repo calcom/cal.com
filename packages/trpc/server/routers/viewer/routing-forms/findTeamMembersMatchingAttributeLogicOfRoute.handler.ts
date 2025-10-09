@@ -296,6 +296,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
           form,
           chosenRouteId: route.id,
         },
+        // During Preview testing we could consider the current time itself as the meeting start time
         meetingStartTime: new Date(),
       })
     : { users: [], perUserData: null, isUsingAttributeWeights: false };
