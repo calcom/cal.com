@@ -23,6 +23,10 @@ export class MeOutput {
   @DocsProperty()
   email!: string;
 
+  @IsString()
+  @DocsProperty()
+  name!: string;
+
   @IsInt()
   @DocsProperty()
   timeFormat!: number;
