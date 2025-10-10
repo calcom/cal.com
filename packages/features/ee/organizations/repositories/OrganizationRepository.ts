@@ -2,16 +2,15 @@ import type { z } from "zod";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import type { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
-import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
-import { getParsedTeam } from "./teamUtils";
 
 const orgSelect = {
   id: true,
