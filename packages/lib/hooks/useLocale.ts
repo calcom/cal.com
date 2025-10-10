@@ -1,14 +1,41 @@
 import { createInstance } from "i18next";
-import type { TFunction, i18n } from "i18next";
+import i18next, { type TFunction } from "i18next";
 import { useContext } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, initReactI18next } from "react-i18next";
 
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
 import { AppRouterI18nContext } from "@calcom/web/app/AppRouterI18nProvider";
 import { CustomI18nContext } from "@calcom/web/app/CustomI18nProvider";
 
+/* eslint-disable @typescript-eslint/no-var-requires */
+const { i18n: config } = require("@calcom/config/next-i18next.config");
+
+// Initialize global i18next instance if not already initialized
+if (!i18next.isInitialized) {
+  i18next.use(initReactI18next).init({
+    lng: config?.defaultLocale || "en",
+    fallbackLng: "en",
+    debug: process.env.NODE_ENV === "development",
+
+    interpolation: {
+      escapeValue: false,
+    },
+
+    resources: {
+      // Start with empty resources, will be populated dynamically
+    },
+
+    react: {
+      useSuspense: false,
+    },
+
+    ns: ["common"],
+    defaultNS: "common",
+  });
+}
+
 type useLocaleReturnType = {
-  i18n: i18n;
+  i18n: typeof i18next;
   t: TFunction;
   isLocaleReady: boolean;
 };
@@ -43,12 +70,18 @@ export const useLocale = (): useLocaleReturnType => {
     // Check if we already have an instance for this locale and namespace
     if (!serverI18nInstances.has(instanceKey)) {
       const i18n = createInstance();
+
+      i18n.use(initReactI18next);
+
       i18n.init({
         lng: locale,
         resources: {
           [locale]: {
             [ns]: translations,
           },
+        },
+        interpolation: {
+          escapeValue: false,
         },
       });
 
