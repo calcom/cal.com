@@ -3,16 +3,15 @@ import { v4 as uuidv4 } from "uuid";
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import prisma from "@calcom/prisma";
 import type { User as PrismaUser } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserAsPersonalProfile, UserProfile } from "@calcom/types/UserProfile";
-
-import logger from "../../logger";
-import { getParsedTeam } from "./teamUtils";
 
 const userSelect = {
   name: true,
