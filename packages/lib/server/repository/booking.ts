@@ -1001,6 +1001,49 @@ export class BookingRepository {
     });
   }
 
+  async getAllBookingsForMemberInPeriod({
+    userId,
+    teamId,
+    startDate,
+    endDate,
+    excludedUid,
+  }: {
+    userId: number | null;
+    teamId: number | null;
+    startDate: Date;
+    endDate: Date;
+    excludedUid?: string;
+  }): Promise<number> {
+    const where: Prisma.BookingWhereInput = {
+      OR: [
+        // Personal event type bookings where the member is the host
+        {
+          eventType: {
+            userId,
+            teamId: null,
+          },
+        },
+        // Team event type bookings where the member is the host
+        {
+          eventType: {
+            teamId,
+            userId,
+          },
+        },
+      ],
+      startTime: {
+        gte: startDate,
+        lte: endDate,
+      },
+      status: BookingStatus.ACCEPTED,
+      ...(excludedUid && {
+        NOT: { uid: excludedUid },
+      }),
+    };
+
+    return await this.prismaClient.booking.count({ where });
+  }
+
   async getBookingForPaymentProcessing(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {

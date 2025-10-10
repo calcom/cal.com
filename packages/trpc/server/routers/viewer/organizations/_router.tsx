@@ -28,6 +28,7 @@ import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateMembershipBookingLimitsInputSchema } from "./updateMembershipBookingLimits.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
 
 export const viewerOrganizationsRouter = router({
@@ -98,6 +99,12 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./updateUser.handler");
     return handler(opts);
   }),
+  updateMembershipBookingLimits: authedProcedure
+    .input(ZUpdateMembershipBookingLimitsInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./updateMembershipBookingLimits.handler");
+      return handler(opts);
+    }),
   getTeams: authedProcedure.query(async (opts) => {
     const { default: handler } = await import("./getTeams.handler");
     return handler(opts);

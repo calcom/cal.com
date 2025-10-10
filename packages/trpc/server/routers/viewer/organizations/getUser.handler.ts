@@ -91,6 +91,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
       },
       select: {
         role: true,
+        bookingLimits: true,
       },
     }),
     prisma.membership.findMany({
@@ -105,9 +106,11 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
           select: {
             id: true,
             name: true,
+            parentId: true,
           },
         },
         accepted: true,
+        bookingLimits: true,
       },
     }),
   ]);
@@ -122,8 +125,13 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
     teams: teams.map((team) => ({
       ...team.team,
       accepted: team.accepted,
+      bookingLimits: team.bookingLimits,
     })),
     role: membership.role,
+    organizationMembership: {
+      role: membership.role,
+      bookingLimits: membership.bookingLimits,
+    },
   };
 
   return foundUser;
