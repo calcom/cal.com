@@ -1,13 +1,12 @@
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import { availabilityUserSelect, prisma, type PrismaTransaction } from "@calcom/prisma";
 import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
-import logger from "../../logger";
-import { safeStringify } from "../../safeStringify";
-import { eventTypeSelect } from "../eventTypeSelect";
-import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/membership"] });
 type IMembership = {

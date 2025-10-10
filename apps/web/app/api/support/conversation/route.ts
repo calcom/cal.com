@@ -9,7 +9,7 @@ import { intercom } from "@calcom/features/ee/support/lib/intercom/intercom";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 

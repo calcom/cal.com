@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";

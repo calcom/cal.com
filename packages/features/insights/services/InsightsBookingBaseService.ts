@@ -15,7 +15,7 @@ import {
 import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";

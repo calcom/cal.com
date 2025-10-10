@@ -7,7 +7,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 
 import { handleNoShowFee } from "./handleNoShowFee";

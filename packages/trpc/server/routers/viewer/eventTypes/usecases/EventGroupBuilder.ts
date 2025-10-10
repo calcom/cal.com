@@ -1,4 +1,4 @@
-import type { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 

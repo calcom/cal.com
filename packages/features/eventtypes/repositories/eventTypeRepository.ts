@@ -4,7 +4,7 @@ import { withSelectedCalendars } from "@calcom/features/users/repositories/UserR
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";

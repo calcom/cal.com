@@ -8,5 +8,5 @@ export { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/Pris
 export { TeamRepository as PrismaTeamRepository } from "@calcom/lib/server/repository/team";
 export { UserRepository as PrismaUserRepository } from "@calcom/features/users/repositories/UserRepository";
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
-export { MembershipRepository as PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
+export { MembershipRepository as PrismaMembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 export { HostRepository as PrismaHostRepository } from "@calcom/lib/server/repository/host";
