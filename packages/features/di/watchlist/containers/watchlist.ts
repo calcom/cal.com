@@ -9,9 +9,9 @@ import {
 } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
 import type { IGlobalWatchlistRepository } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
 import type { IOrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
-import type { AuditService } from "@calcom/features/watchlist/lib/service/AuditService";
 import type { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/GlobalBlockingService";
 import type { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
+import type { WatchlistAuditService } from "@calcom/features/watchlist/lib/service/WatchlistAuditService";
 import type { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 
@@ -48,7 +48,7 @@ export function getOrganizationBlockingService() {
 }
 
 export function getAuditService() {
-  return watchlistContainer.get<AuditService>(WATCHLIST_DI_TOKENS.AUDIT_SERVICE);
+  return watchlistContainer.get<WatchlistAuditService>(WATCHLIST_DI_TOKENS.AUDIT_SERVICE);
 }
 
 export function getGlobalWatchlistRepository() {

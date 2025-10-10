@@ -7,9 +7,9 @@ import type {
   IGlobalWatchlistRepository,
   IOrganizationWatchlistRepository,
 } from "../interface/IWatchlistRepositories";
-import { AuditService } from "../service/AuditService";
 import { GlobalBlockingService } from "../service/GlobalBlockingService";
 import { OrganizationBlockingService } from "../service/OrganizationBlockingService";
+import { WatchlistAuditService } from "../service/WatchlistAuditService";
 import { WatchlistService } from "../service/WatchlistService";
 
 export interface WatchlistFeature {
@@ -20,7 +20,7 @@ export interface WatchlistFeature {
   /** Watchlist CRUD service - manages watchlist entries */
   watchlist: WatchlistService;
   /** Audit service - logs blocking attempts and decisions */
-  audit: AuditService;
+  audit: WatchlistAuditService;
 }
 
 export function createWatchlistFeature(container: Container): WatchlistFeature {
@@ -38,6 +38,6 @@ export function createWatchlistFeature(container: Container): WatchlistFeature {
     globalBlocking: new GlobalBlockingService({ globalRepo }),
     orgBlocking: new OrganizationBlockingService({ orgRepo }),
     watchlist: new WatchlistService({ globalRepo, orgRepo }),
-    audit: new AuditService({ auditRepository: auditRepo }),
+    audit: new WatchlistAuditService({ auditRepository: auditRepo }),
   };
 }

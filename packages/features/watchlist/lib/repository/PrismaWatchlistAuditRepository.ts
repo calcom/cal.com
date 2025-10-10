@@ -8,7 +8,7 @@ import type {
 } from "../interface/IAuditRepository";
 import type { WatchlistAudit } from "../types";
 
-export class AuditRepository implements IAuditRepository {
+export class PrismaWatchlistAuditRepository implements IAuditRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: CreateWatchlistAuditInput): Promise<WatchlistAudit> {

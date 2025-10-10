@@ -1,7 +1,7 @@
 import type { WatchlistAudit } from "../types";
 import type { CreateWatchlistAuditInput, UpdateWatchlistAuditInput } from "./IAuditRepository";
 
-export interface IAuditService {
+export interface IWatchlistAuditService {
   // Basic CRUD operations for WatchlistAudit
   createAuditEntry(data: CreateWatchlistAuditInput): Promise<WatchlistAudit>;
   getAuditEntry(id: string): Promise<WatchlistAudit | null>;

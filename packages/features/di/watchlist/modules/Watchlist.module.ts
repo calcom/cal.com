@@ -1,9 +1,9 @@
 import { createModule } from "@evyweb/ioctopus";
 
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { AuditRepository } from "@calcom/features/watchlist/lib/repository/AuditRepository";
 import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { OrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/repository/OrganizationWatchlistRepository";
+import { PrismaWatchlistAuditRepository } from "@calcom/features/watchlist/lib/repository/PrismaWatchlistAuditRepository";
 
 import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
 
@@ -21,6 +21,6 @@ watchlistModule
 // Bind remaining repositories
 watchlistModule
   .bind(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY)
-  .toClass(AuditRepository, [DI_TOKENS.PRISMA_CLIENT]);
+  .toClass(PrismaWatchlistAuditRepository, [DI_TOKENS.PRISMA_CLIENT]);
 
 // Services are created in the facade to handle Deps pattern properly

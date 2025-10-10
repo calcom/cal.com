@@ -3,14 +3,14 @@ import type {
   CreateWatchlistAuditInput,
   UpdateWatchlistAuditInput,
 } from "../interface/IAuditRepository";
-import type { IAuditService } from "../interface/IAuditService";
+import type { IWatchlistAuditService } from "../interface/IAuditService";
 import type { WatchlistAudit } from "../types";
 
 type Deps = {
   auditRepository: IAuditRepository;
 };
 
-export class AuditService implements IAuditService {
+export class WatchlistAuditService implements IWatchlistAuditService {
   constructor(private readonly deps: Deps) {}
 
   async createAuditEntry(data: CreateWatchlistAuditInput): Promise<WatchlistAudit> {
