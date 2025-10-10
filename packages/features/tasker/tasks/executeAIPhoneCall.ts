@@ -22,6 +22,7 @@ interface ExecuteAIPhoneCallPayload {
   teamId: number | null;
   providerAgentId: string;
   responses: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
+  routedEventTypeId: number | null;
 }
 const log = logger.getSubLogger({ prefix: [`[[executeAIPhoneCall] `] });
 
@@ -59,15 +60,25 @@ type BookingWithRelations = Prisma.BookingGetPayload<{
   select: typeof bookingSelect;
 }>;
 
-function getVariablesFromFormResponse(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES, numberToCall: string) {
+function getVariablesFromFormResponse({
+  responses,
+  eventTypeId,
+  numberToCall,
+}: {
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+  eventTypeId: number;
+  numberToCall: string;
+}) {
   const submittedEmail = getSubmitterEmail(responses);
   const submittedName = getSubmitterName(responses);
+
+  // if event type id is not given
 
   return {
     ATTENDEE_NAME: submittedName || "",
     ATTENDEE_EMAIL: submittedEmail || "",
     NUMBER_TO_CALL: numberToCall,
-    eventTypeId: "27", // TODO: I need the chosen route
+    eventTypeId,
   };
 }
 
@@ -156,6 +167,7 @@ export async function executeAIPhoneCall(payload: string) {
             agent: {
               select: {
                 outboundPhoneNumbers: { select: { phoneNumber: true } },
+                outboundEventTypeId: true,
               },
             },
           },
@@ -236,8 +248,22 @@ export async function executeAIPhoneCall(payload: string) {
 
     // Prefer response variables if present, else fall back to booking
     let dynamicVariables: VariablesType | undefined;
-    if (responses) dynamicVariables = getVariablesFromFormResponse(responses, numberToCall);
-    else if (booking) dynamicVariables = getVariablesFromBooking(booking, numberToCall);
+    if (responses) {
+      const eventTypeId = data.routedEventTypeId || workflowReminder.workflowStep?.agent?.outboundEventTypeId;
+      if (!eventTypeId) {
+        log.warn(
+          `Form not routed to an event type and no event type id found for workflow reminder ${data.workflowReminderId}`
+        );
+        return;
+      }
+      dynamicVariables = getVariablesFromFormResponse({
+        responses,
+        eventTypeId,
+        numberToCall,
+      });
+    } else if (booking) {
+      dynamicVariables = getVariablesFromBooking(booking, numberToCall);
+    }
 
     if (!dynamicVariables) return;
 

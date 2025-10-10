@@ -37,25 +37,7 @@ export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptio
   return true;
 }
 
-/**
- * Check if a booking was created from this form response
- */
-async function hasBooking(responseId: number): Promise<boolean> {
-  const bookingFromResponse = await prisma.booking.findFirst({
-    where: {
-      routedFromRoutingFormReponse: {
-        id: responseId,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return !!bookingFromResponse;
-}
-
-export function getSubmitterEmail(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES) {
+export function getSubmitterEmail(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES): string | undefined {
   const submitterEmail = Object.values(responses).find(
     (response): response is { value: string; label: string } => {
       //todo: fix using the correct type
@@ -64,6 +46,7 @@ export function getSubmitterEmail(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES) {
       return typeof value === "string" && value.includes("@");
     }
   )?.value;
+  if (typeof submitterEmail !== "string") return undefined;
   return submitterEmail;
 }
 
