@@ -1,3 +1,9 @@
+/**
+ * Unit Tests for verifyApiKey middleware
+ *
+ * These tests verify the middleware logic without touching the database.
+ * All dependencies (repositories, utilities) are mocked.
+ */
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
@@ -5,52 +11,49 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyService";
 import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
-import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
-import type { WatchlistFeature } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
+// Import prisma mock to control it in tests
 import { prisma } from "@calcom/prisma";
-import type { ApiKey, User, Membership } from "@calcom/prisma/client";
-import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 
+import { isAdminGuard } from "../utils/isAdmin";
+import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
+import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 import { verifyApiKey } from "./verifyApiKey";
+
+// Mock the API key repository
+vi.mock("@calcom/lib/server/repository/apikey", () => ({
+  PrismaApiKeyRepository: vi.fn(),
+}));
+
+// Mock prisma module
+vi.mock("@calcom/prisma", () => ({
+  prisma: {
+    apiKey: {
+      findUnique: vi.fn(),
+    },
+    deployment: {
+      findUnique: vi.fn(),
+    },
+  },
+}));
+
+// Mock utility functions
+vi.mock("../utils/isAdmin", () => ({
+  isAdminGuard: vi.fn(),
+}));
+
+vi.mock("../utils/isLockedOrBlocked", () => ({
+  isLockedOrBlocked: vi.fn(),
+}));
 
 vi.mock("@calcom/lib/crypto", () => ({
   symmetricDecrypt: vi.fn().mockReturnValue("mocked-decrypted-value"),
   symmetricEncrypt: vi.fn().mockReturnValue("mocked-encrypted-value"),
 }));
 
-vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
-  getWatchlistFeature: vi.fn(),
-}));
-
-vi.mock("@calcom/prisma", () => {
-  const mockPrisma = {
-    apiKey: {
-      findUnique: vi.fn(),
-    },
-    user: {
-      findUnique: vi.fn(),
-    },
-    deployment: {
-      findUnique: vi.fn(),
-    },
-    membership: {
-      findMany: vi.fn(),
-    },
-  };
-
-  return {
-    prisma: mockPrisma,
-    default: mockPrisma,
-  };
-});
-
-type CustomNextApiRequest = NextApiRequest &
-  Request & {
-    isSystemWideAdmin?: boolean;
-    isOrganizationOwnerOrAdmin?: boolean;
-  };
+type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
 beforeEach(() => {
@@ -67,13 +70,21 @@ const mockDeploymentRepository: IDeploymentRepository = {
   getSignatureToken: vi.fn().mockResolvedValue("mockSignatureToken"),
 };
 
-describe("Verify API key", () => {
+describe("Verify API key - Unit Tests", () => {
   let service: ILicenseKeyService;
 
   beforeEach(async () => {
     service = await LicenseKeyService.create(mockDeploymentRepository);
-
     vi.spyOn(service, "checkLicense");
+
+    // Reset all mocks before each test
+    vi.mocked(prisma.apiKey.findUnique).mockReset();
+    vi.mocked(prisma.deployment.findUnique).mockReset();
+    vi.mocked(isAdminGuard).mockReset();
+    vi.mocked(isLockedOrBlocked).mockReset();
+
+    // Mock deployment lookup (for license checking)
+    vi.mocked(prisma.deployment.findUnique).mockResolvedValue(null);
   });
 
   it("should throw an error if the api key is not valid", async () => {
@@ -130,38 +141,35 @@ describe("Verify API key", () => {
         apiKey: "cal_test_key",
       },
     });
+
     const hashedKey = hashAPIKey("test_key");
 
+    // Mock the API key lookup
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
-      id: "test-api-key-id",
+      id: "api-key-1",
+      userId: 1,
       hashedKey,
-      userId: 123,
+      expiresAt: null,
+      createdAt: new Date(),
+      lastUsedAt: null,
+      appId: null,
+      note: null,
+      teamId: null,
       user: {
-        id: 123,
-        email: "admin@example.com",
         role: UserPermissionRole.ADMIN,
         locked: false,
-        memberships: [],
+        email: "admin@example.com",
       },
-    } as unknown as ApiKey);
+    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: 123,
-      email: "admin@example.com",
-      role: UserPermissionRole.ADMIN,
-      locked: false,
-      memberships: [],
-    } as unknown as User);
+    // Mock admin check
+    vi.mocked(isAdminGuard).mockResolvedValue({
+      isAdmin: true,
+      scope: ScopeOfAdmin.SystemWide,
+    });
 
-    const mockWatchlistFeature = {
-      globalBlocking: {
-        isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-      },
-      orgBlocking: {
-        isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-      },
-    } as unknown as WatchlistFeature;
-    vi.mocked(getWatchlistFeature).mockResolvedValue(mockWatchlistFeature);
+    // Mock locked/blocked check
+    vi.mocked(isLockedOrBlocked).mockResolvedValue(false);
 
     const middleware = {
       fn: verifyApiKey,
@@ -189,82 +197,35 @@ describe("Verify API key", () => {
         apiKey: "cal_test_key",
       },
     });
+
     const hashedKey = hashAPIKey("test_key");
 
+    // Mock the API key lookup
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
-      id: "test-api-key-id",
+      id: "api-key-2",
+      userId: 2,
       hashedKey,
-      userId: 123,
+      expiresAt: null,
+      createdAt: new Date(),
+      lastUsedAt: null,
+      appId: null,
+      note: null,
+      teamId: null,
       user: {
-        id: 123,
-        email: "org-admin@acme.com",
         role: UserPermissionRole.USER,
         locked: false,
-        memberships: [
-          {
-            accepted: true,
-            role: MembershipRole.OWNER,
-            team: {
-              id: 1,
-              name: "ACME",
-              isOrganization: true,
-              organizationSettings: {
-                isAdminAPIEnabled: true,
-                orgAutoAcceptEmail: "acme.com",
-              },
-            },
-          },
-        ],
+        email: "org-admin@acme.com",
       },
-    } as unknown as ApiKey);
+    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: 123,
-      email: "org-admin@acme.com",
-      role: UserPermissionRole.USER,
-      locked: false,
-      memberships: [
-        {
-          accepted: true,
-          role: MembershipRole.OWNER,
-          team: {
-            id: 1,
-            name: "ACME",
-            isOrganization: true,
-            organizationSettings: {
-              isAdminAPIEnabled: true,
-              orgAutoAcceptEmail: "acme.com",
-            },
-          },
-        },
-      ],
-    } as unknown as User);
+    // Mock admin check - org owner/admin
+    vi.mocked(isAdminGuard).mockResolvedValue({
+      isAdmin: true,
+      scope: ScopeOfAdmin.OrgOwnerOrAdmin,
+    });
 
-    vi.mocked(prisma.membership.findMany).mockResolvedValue([
-      {
-        accepted: true,
-        role: MembershipRole.OWNER,
-        team: {
-          id: 1,
-          name: "ACME",
-          isOrganization: true,
-          organizationSettings: {
-            isAdminAPIEnabled: true,
-            orgAutoAcceptEmail: "acme.com",
-          },
-        },
-      },
-    ] as unknown as Membership[]);
-
-    const mockWatchlistFeature = {
-      globalBlocking: {
-        isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-      },
-      orgBlocking: {
-        isEmailBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-      },
-    } as unknown as WatchlistFeature;
-    vi.mocked(getWatchlistFeature).mockResolvedValue(mockWatchlistFeature);
+    // Mock locked/blocked check
+    vi.mocked(isLockedOrBlocked).mockResolvedValue(false);
 
     const middleware = {
       fn: verifyApiKey,
@@ -292,100 +253,35 @@ describe("Verify API key", () => {
         apiKey: "cal_test_key",
       },
     });
+
     const hashedKey = hashAPIKey("test_key");
 
+    // Mock the API key lookup
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
-      id: "test-api-key-id",
+      id: "api-key-3",
+      userId: 3,
       hashedKey,
-      userId: 123,
+      expiresAt: null,
+      createdAt: new Date(),
+      lastUsedAt: null,
+      appId: null,
+      note: null,
+      teamId: null,
       user: {
-        id: 123,
-        email: "locked@example.com",
         role: UserPermissionRole.USER,
         locked: true,
-        memberships: [],
+        email: "locked@example.com",
       },
-    } as unknown as ApiKey);
+    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
 
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: 123,
-      email: "locked@example.com",
-      role: UserPermissionRole.USER,
-      locked: true,
-      memberships: [],
-    } as unknown as User);
-
-    vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
-
-    const mockWatchlistFeature = {
-      globalBlocking: {
-        isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-      },
-      orgBlocking: {
-        isEmailBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-      },
-    } as unknown as WatchlistFeature;
-    vi.mocked(getWatchlistFeature).mockResolvedValue(mockWatchlistFeature);
-
-    const middleware = {
-      fn: verifyApiKey,
-    };
-
-    vi.mocked(service.checkLicense).mockResolvedValue(true);
-
-    const serverNext = vi.fn((next: void) => Promise.resolve(next));
-    const middlewareSpy = vi.spyOn(middleware, "fn");
-
-    await middleware.fn(req, res, serverNext);
-
-    expect(middlewareSpy).toBeCalled();
-    expect(res.statusCode).toBe(403);
-    expect(JSON.parse(res._getData())).toEqual({ error: "You are not authorized to perform this request." });
-    expect(serverNext).not.toHaveBeenCalled();
-  });
-
-  it("should return 403 if user email is in watchlist", async () => {
-    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "POST",
-      body: {},
-      query: {
-        apiKey: "cal_test_key",
-      },
+    // Mock admin check - not an admin
+    vi.mocked(isAdminGuard).mockResolvedValue({
+      isAdmin: false,
+      scope: ScopeOfAdmin.SystemWide, // scope doesn't matter when isAdmin is false
     });
-    const hashedKey = hashAPIKey("test_key");
 
-    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
-      id: "test-api-key-id",
-      hashedKey,
-      userId: 123,
-      user: {
-        id: 123,
-        email: "blocked@example.com",
-        role: UserPermissionRole.USER,
-        locked: false,
-        memberships: [],
-      },
-    } as unknown as ApiKey);
-
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: 123,
-      email: "blocked@example.com",
-      role: UserPermissionRole.USER,
-      locked: false,
-      memberships: [],
-    } as unknown as User);
-
-    vi.mocked(prisma.membership.findMany).mockResolvedValue([]);
-
-    const mockWatchlistFeature = {
-      globalBlocking: {
-        isBlocked: vi.fn().mockResolvedValue({ isBlocked: true }),
-      },
-      orgBlocking: {
-        isEmailBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
-      },
-    } as unknown as WatchlistFeature;
-    vi.mocked(getWatchlistFeature).mockResolvedValue(mockWatchlistFeature);
+    // Mock locked/blocked check - user is locked
+    vi.mocked(isLockedOrBlocked).mockResolvedValue(true);
 
     const middleware = {
       fn: verifyApiKey,
@@ -402,7 +298,5 @@ describe("Verify API key", () => {
     expect(res.statusCode).toBe(403);
     expect(JSON.parse(res._getData())).toEqual({ error: "You are not authorized to perform this request." });
     expect(serverNext).not.toHaveBeenCalled();
-
-    expect(mockWatchlistFeature.globalBlocking.isBlocked).toHaveBeenCalledWith("blocked@example.com");
   });
 });
