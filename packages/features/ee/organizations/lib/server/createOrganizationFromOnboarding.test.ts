@@ -491,6 +491,207 @@ describe("createOrganizationFromOnboarding", () => {
         },
       });
     });
+
+    it("should invite members to specific teams based on teamName", async () => {
+      const { organizationOnboarding, user } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "owner@example.com",
+        },
+        organizationOnboarding: {
+          teams: [
+            { id: -1, name: "Marketing", isBeingMigrated: false, slug: null },
+            { id: -1, name: "Engineering", isBeingMigrated: false, slug: null },
+          ],
+          invitedMembers: [
+            { email: "marketer@example.com", teamName: "marketing", role: "MEMBER" },
+            { email: "engineer@example.com", teamName: "engineering", role: "ADMIN" },
+            { email: "orguser@example.com" },
+          ],
+        },
+      });
+
+      // Setup: createTeamsHandler will be called and we need teams to exist for inviteMembers
+      vi.mocked(createTeamsHandler).mockImplementation(async (options) => {
+        // Create teams in prismock
+        const marketing = await prismock.team.create({
+          data: {
+            name: "Marketing",
+            slug: "marketing",
+            parentId: options.input.orgId,
+          },
+        });
+        const engineering = await prismock.team.create({
+          data: {
+            name: "Engineering",
+            slug: "engineering",
+            parentId: options.input.orgId,
+          },
+        });
+        return { teams: [marketing, engineering] } as any;
+      });
+
+      const result = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "sub_123",
+        paymentSubscriptionItemId: "si_123",
+      });
+
+      // Verify invites were sent to 3 different targets (org + 2 teams)
+      expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalledTimes(3);
+
+      // Check org-level invite
+      const orgInviteCall = vi.mocked(inviteMembersWithNoInviterPermissionCheck).mock.calls.find(
+        (call) => call[0].teamId === result.organization.id
+      );
+      expect(orgInviteCall).toBeDefined();
+      expect(orgInviteCall![0].invitations).toEqual([
+        { usernameOrEmail: "orguser@example.com", role: MembershipRole.MEMBER },
+      ]);
+
+      // Check Marketing team invite
+      const teams = await prismock.team.findMany({ where: { parentId: result.organization.id } });
+      const marketingTeam = teams.find((t) => t.name === "Marketing");
+      const marketingInviteCall = vi
+        .mocked(inviteMembersWithNoInviterPermissionCheck)
+        .mock.calls.find((call) => call[0].teamId === marketingTeam!.id);
+      expect(marketingInviteCall).toBeDefined();
+      expect(marketingInviteCall![0].invitations).toEqual([
+        { usernameOrEmail: "marketer@example.com", role: MembershipRole.MEMBER },
+      ]);
+
+      // Check Engineering team invite
+      const engineeringTeam = teams.find((t) => t.name === "Engineering");
+      const engineeringInviteCall = vi
+        .mocked(inviteMembersWithNoInviterPermissionCheck)
+        .mock.calls.find((call) => call[0].teamId === engineeringTeam!.id);
+      expect(engineeringInviteCall).toBeDefined();
+      expect(engineeringInviteCall![0].invitations).toEqual([
+        { usernameOrEmail: "engineer@example.com", role: "ADMIN" as MembershipRole },
+      ]);
+    });
+
+    it("should preserve custom roles for invited members", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "owner@example.com",
+        },
+        organizationOnboarding: {
+          invitedMembers: [
+            { email: "admin@example.com", role: "ADMIN" },
+            { email: "member@example.com", role: "MEMBER" },
+          ],
+        },
+      });
+
+      const result = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "sub_123",
+        paymentSubscriptionItemId: "si_123",
+      });
+
+      // Find the call that was made to invite members
+      const inviteCall = vi.mocked(inviteMembersWithNoInviterPermissionCheck).mock.calls.find(
+        (call) => call[0].teamId === result.organization.id
+      );
+
+      expect(inviteCall).toBeDefined();
+      expect(inviteCall![0].invitations).toEqual([
+        { usernameOrEmail: "admin@example.com", role: "ADMIN" as MembershipRole },
+        { usernameOrEmail: "member@example.com", role: "MEMBER" as MembershipRole },
+      ]);
+    });
+
+    it("should handle mixed org-level and team-specific invites", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "owner@example.com",
+        },
+        organizationOnboarding: {
+          teams: [{ id: -1, name: "Sales", isBeingMigrated: false, slug: null }],
+          invitedMembers: [
+            { email: "sales1@example.com", teamName: "sales", role: "MEMBER" },
+            { email: "sales2@example.com", teamName: "sales", role: "ADMIN" },
+            { email: "org1@example.com", role: "MEMBER" },
+            { email: "org2@example.com", role: "MEMBER" },
+          ],
+        },
+      });
+
+      vi.mocked(createTeamsHandler).mockImplementation(async (options) => {
+        const salesTeam = await prismock.team.create({
+          data: {
+            name: "Sales",
+            slug: "sales",
+            parentId: options.input.orgId,
+          },
+        });
+        return { teams: [salesTeam] } as any;
+      });
+
+      const result = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "sub_123",
+        paymentSubscriptionItemId: "si_123",
+      });
+
+      expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalledTimes(2);
+
+      // Find org-level invites
+      const orgInviteCall = vi
+        .mocked(inviteMembersWithNoInviterPermissionCheck)
+        .mock.calls.find((call) => call[0].teamId === result.organization.id);
+
+      expect(orgInviteCall).toBeDefined();
+      expect(orgInviteCall![0].invitations).toEqual([
+        { usernameOrEmail: "org1@example.com", role: MembershipRole.MEMBER },
+        { usernameOrEmail: "org2@example.com", role: MembershipRole.MEMBER },
+      ]);
+
+      // Find Sales team invites
+      const teams = await prismock.team.findMany({ where: { parentId: result.organization.id } });
+      const salesTeam = teams.find((t) => t.name === "Sales");
+      const salesInviteCall = vi
+        .mocked(inviteMembersWithNoInviterPermissionCheck)
+        .mock.calls.find((call) => call[0].teamId === salesTeam!.id);
+
+      expect(salesInviteCall).toBeDefined();
+      expect(salesInviteCall![0].invitations).toEqual([
+        { usernameOrEmail: "sales1@example.com", role: MembershipRole.MEMBER },
+        { usernameOrEmail: "sales2@example.com", role: "ADMIN" as MembershipRole },
+      ]);
+    });
+
+    it("should fall back to org-level invite if teamName does not match any created team", async () => {
+      const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+        user: {
+          email: "owner@example.com",
+        },
+        organizationOnboarding: {
+          teams: [{ id: -1, name: "Marketing", isBeingMigrated: false, slug: null }],
+          invitedMembers: [
+            { email: "user@example.com", teamName: "NonExistentTeam", role: "MEMBER" },
+          ],
+        },
+      });
+
+      vi.mocked(createTeamsHandler).mockResolvedValue({
+        teams: [{ id: 300, name: "Marketing" }],
+      } as any);
+
+      const result = await createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "sub_123",
+        paymentSubscriptionItemId: "si_123",
+      });
+
+      expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalledWith(
+        expect.objectContaining({
+          teamId: result.organization.id,
+          invitations: [{ usernameOrEmail: "user@example.com", role: MembershipRole.MEMBER }],
+          isDirectUserAction: false,
+        })
+      );
+    });
   });
 
   describe("self-hosted", () => {
