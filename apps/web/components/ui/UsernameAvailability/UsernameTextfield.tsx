@@ -1,28 +1,16 @@
-import { Button } from "@calid/features/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@calid/features/ui/components/dialog";
+import { TextField } from "@calid/features/ui/components/input/input";
 import classNames from "classnames";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useImperativeHandle, forwardRef } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -36,7 +24,14 @@ interface ICustomUsernameProps {
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
 }
 
-const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>) => {
+export interface UsernameTextfieldRef {
+  updateUsername: () => Promise<void>;
+}
+
+const UsernameTextfield = forwardRef<
+  UsernameTextfieldRef,
+  ICustomUsernameProps & Partial<React.ComponentProps<typeof TextField>>
+>((props, ref) => {
   const { t } = useLocale();
   const { update } = useSession();
 
@@ -52,9 +47,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
-  const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
 
-  // debounce the username input, set the delay to 600ms to be consistent with signup form
   const debouncedUsername = useDebounce(inputUsernameValue, 600);
 
   useEffect(() => {
@@ -80,7 +73,6 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   const updateUsernameMutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      setOpenDialogSaveUsername(false);
       setCurrentUsername(inputUsernameValue);
       await update({ username: inputUsernameValue });
     },
@@ -89,44 +81,29 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     },
   });
 
-  const ActionButtons = () => {
-    return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="relative bottom-[6px] me-2 ms-2 flex flex-row space-x-2">
-        <Button
-          type="button"
-          onClick={() => setOpenDialogSaveUsername(true)}
-          data-testid="update-username-btn">
-          {t("update")}
-        </Button>
-        <Button
-          type="button"
-          color="minimal"
-          onClick={() => {
-            if (currentUsername) {
-              setInputUsernameValue(currentUsername);
-            }
-          }}>
-          {t("cancel")}
-        </Button>
-      </div>
-    ) : (
-      <></>
-    );
+  const updateUsername = async () => {
+    if (usernameIsAvailable && currentUsername !== inputUsernameValue) {
+      updateUsernameMutation.mutate({
+        username: inputUsernameValue,
+      });
+    }
   };
 
-  const updateUsername = async () => {
-    updateUsernameMutation.mutate({
-      username: inputUsernameValue,
-    });
-  };
+  useImperativeHandle(ref, () => ({
+    updateUsername,
+  }));
 
   return (
     <div>
+      <div className="w-full">
+        <label htmlFor="username" className="text-emphasis block text-sm font-medium">
+          {t("username")} *
+        </label>
+      </div>
       <div className="flex rounded-md">
         <div className="relative w-full">
           <TextField
             ref={usernameRef}
-            name="username"
             value={inputUsernameValue}
             autoComplete="none"
             autoCapitalize="none"
@@ -137,84 +114,31 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
             )}
-            onChange={(event) => {
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
               event.preventDefault();
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
             {...rest}
           />
-          {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-6 flex h-7 flex-row">
-              <span className={classNames("bg-default mx-0 p-3")}>
-                {usernameIsAvailable ? (
-                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
-                ) : (
-                  <></>
-                )}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="mt-7 hidden md:inline">
-          <ActionButtons />
         </div>
       </div>
-      {markAsError && <p className="mt-1 text-xs text-red-500">{t("username_already_taken")}</p>}
 
-      {usernameIsAvailable && currentUsername !== inputUsernameValue && (
-        <div className="mt-2 flex justify-end md:hidden">
-          <ActionButtons />
+      {inputUsernameValue && inputUsernameValue !== currentUsername && (
+        <div className="mt-1">
+          {markAsError ? (
+            <p className="text-xs text-red-500">{t("username_already_taken")}</p>
+          ) : usernameIsAvailable ? (
+            <p className="text-xs text-green-600">{t("username_available")}</p>
+          ) : (
+            <p className="text-xs text-gray-500">{t("checking_username_availability")}</p>
+          )}
         </div>
       )}
-      <Dialog open={openDialogSaveUsername} onOpenChange={setOpenDialogSaveUsername}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("confirm_username_change_dialog_title")}</DialogTitle>
-            <DialogDescription>{t("confirm_username_change_dialog_description")}</DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-row">
-            <div className="mb-4 w-full pt-1">
-              <div className="border-default flex w-full flex-wrap justify-between gap-6 rounded-md border px-4 py-3 text-sm">
-                <div>
-                  <p className="text-subtle">{t("current_username")}</p>
-                  <Tooltip content={currentUsername}>
-                    <p
-                      className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis break-all"
-                      data-testid="current-username">
-                      {currentUsername}
-                    </p>
-                  </Tooltip>
-                </div>
-                <div>
-                  <p className="text-subtle" data-testid="new-username">
-                    {t("new_username")}
-                  </p>
-                  <Tooltip content={inputUsernameValue}>
-                    <p className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis break-all">
-                      {inputUsernameValue}
-                    </p>
-                  </Tooltip>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter className="mt-4">
-            <Button
-              type="button"
-              loading={updateUsernameMutation.isPending}
-              data-testid="save-username"
-              onClick={updateUsername}>
-              {t("save")}
-            </Button>
-
-            <DialogClose />
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
-};
+});
+
+UsernameTextfield.displayName = "UsernameTextfield";
 
 export { UsernameTextfield };

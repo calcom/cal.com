@@ -5,6 +5,12 @@ import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { TextField } from "@calid/features/ui/components/input/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@calid/features/ui/components/dropdown-menu";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -61,49 +67,44 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
         </div>
 
         {/* New Button with Dropdown */}
-        <div className="relative flex-shrink-0" ref={newDropdownRef}>
-          <Button
-            StartIcon="plus"
-            onClick={onToggleNewDropdown}
-            disabled={currentTeam?.metadata?.readOnly}
-            className="w-full sm:w-auto">
-            {t("new")}
-          </Button>
-
-          {showNewDropdown && (
-            <div className="bg-default border-border animate-scale-in absolute right-0 top-full z-10 mt-1 w-60 rounded-md border shadow-lg sm:w-44">
-              <div className="py-1">
-                {/* Personal option - always show if personal profile exists */}
-                {personalProfile && (
-                  <button
-                    onClick={() => onNewSelection("personal")}
-                    className="hover:bg-muted flex w-full items-center px-3 py-2 text-sm transition-colors">
-                    <Avatar
-                      imageSrc={personalProfile.profile.image}
-                      size="xs"
-                      alt={personalProfile.profile.name ?? ""}
-                      className="mr-3 flex-shrink-0"
-                    />
-                    <span className="truncate">{personalProfile.profile.name}</span>
-                  </button>
-                )}
-                {/* Team options - show all teams that are not read-only */}
-                {eventTypeGroups
-                  .filter((group) => group.teamId && !group.metadata?.readOnly)
-                  .map((group) => (
-                    <button
-                      key={group.teamId}
-                      onClick={() => onNewSelection(group.teamId?.toString() || "")}
-                      className="hover:bg-muted flex w-full items-center px-3 py-2 text-sm transition-colors">
-                      <div className="bg-primary text-primary-foreground mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium">
-                        <Avatar imageSrc={group.profile.image} size="xs" alt={group.profile.name ?? ""} />
-                      </div>
-                      <span className="truncate">{group.profile.name}</span>
-                    </button>
-                  ))}
-              </div>
-            </div>
-          )}
+        <div className="flex-shrink-0" ref={newDropdownRef}>
+          <DropdownMenu open={showNewDropdown} onOpenChange={onToggleNewDropdown}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                StartIcon="plus"
+                disabled={currentTeam?.metadata?.readOnly}
+                className="w-full sm:w-auto">
+                {t("new")}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-60 sm:w-44" align="end">
+              {/* Personal option - always show if personal profile exists */}
+              {personalProfile && (
+                <DropdownMenuItem onClick={() => onNewSelection("personal")}>
+                  <Avatar
+                    imageSrc={personalProfile.profile.image}
+                    size="xs"
+                    alt={personalProfile.profile.name ?? ""}
+                    className="mr-3 flex-shrink-0"
+                  />
+                  <span className="truncate">{personalProfile.profile.name}</span>
+                </DropdownMenuItem>
+              )}
+              {/* Team options - show all teams that are not read-only */}
+              {eventTypeGroups
+                .filter((group) => group.teamId && !group.metadata?.readOnly)
+                .map((group) => (
+                  <DropdownMenuItem
+                    key={group.teamId}
+                    onClick={() => onNewSelection(group.teamId?.toString() || "")}>
+                    <div className="bg-primary text-primary-foreground mr-3 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium">
+                      <Avatar imageSrc={group.profile.image} size="xs" alt={group.profile.name ?? ""} />
+                    </div>
+                    <span className="truncate">{group.profile.name}</span>
+                  </DropdownMenuItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

@@ -8,7 +8,7 @@ import {
   WEBSITE_TERMS_URL,
 } from "@calcom/lib/constants";
 
-const CalIDVersion = `v.${CALID_VERSION}`;
+const CalIDVersion = `v${CALID_VERSION}`;
 
 export default function BottomNav() {
   const [hasMounted, setHasMounted] = useState(false);
@@ -31,13 +31,13 @@ export default function BottomNav() {
       <div className="flex justify-center">
         <small className="mt-1 items-center">
           &copy; {new Date().getFullYear()}{" "}
-          <Link href="https://cal.id" target="_blank" className="hover:underline">
+          <Link href="https://onehash.ai" target="_blank" className="hover:underline">
             {COMPANY_NAME}
           </Link>{" "}
           {hasMounted && (
             <>
               <Link
-                href="https://github.com/onehashai/Cal-Id-temp/releases"
+                href="https://github.com/onehashai/Cal-Id/releases"
                 target="_blank"
                 className="hover:underline">
                 {CalIDVersion}

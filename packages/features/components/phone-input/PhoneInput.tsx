@@ -19,6 +19,7 @@ export type PhoneInputProps = {
   disabled?: boolean;
   onChange: (value: string) => void;
   defaultCountry?: string;
+  autoFormat?: boolean;
 };
 
 function BasePhoneInput({
@@ -27,13 +28,21 @@ function BasePhoneInput({
   onChange,
   value,
   defaultCountry = "us",
+  autoFormat = true,
   ...rest
 }: PhoneInputProps) {
   const isPlatform = useIsPlatform();
 
   if (!isPlatform) {
     return (
-      <BasePhoneInputWeb name={name} className={className} onChange={onChange} value={value} {...rest} />
+      <BasePhoneInputWeb
+        name={name}
+        className={className}
+        onChange={onChange}
+        value={value}
+        autoFormat={autoFormat}
+        {...rest}
+      />
     );
   }
 
@@ -44,6 +53,7 @@ function BasePhoneInput({
       enableSearch
       disableSearchIcon
       country={defaultCountry}
+      autoFormat={autoFormat}
       inputProps={{
         name: name,
         required: rest.required,
