@@ -76,11 +76,6 @@ export interface AgentRepositoryInterface {
   linkInboundAgentToWorkflow(params: { workflowStepId: number; agentId: string }): Promise<void>;
 
   /**
-   * Update inbound event type ID for an agent
-   */
-  updateEventTypeId(params: { agentId: string; eventTypeId: number }): Promise<void>;
-
-  /**
    * Update outbound event type ID for an agent
    */
   updateOutboundEventTypeId(params: { agentId: string; eventTypeId: number }): Promise<void>;

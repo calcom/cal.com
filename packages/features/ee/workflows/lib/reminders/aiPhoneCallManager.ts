@@ -147,14 +147,11 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   );
 
   if (!workflowStep?.agent) {
-    console.log("no agent");
     logger.warn(`No agent configured for workflow step ${workflowStepId}`);
     return;
   }
 
   if (!workflowStep.agent.outboundPhoneNumbers?.length || !activePhoneNumbers?.length) {
-    console.log("no number");
-
     logger.warn(`No active outbound phone number configured for agent ${workflowStep.agent.id}`);
     return;
   }
@@ -162,8 +159,6 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   const featuresRepository = new FeaturesRepository(prisma);
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
   if (!calAIVoiceAgents) {
-    console.log("disabled");
-
     logger.warn("Cal AI voice agents are disabled - skipping AI phone call scheduling");
     return;
   }
@@ -363,12 +358,12 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     return;
   }
 
-  // const featuresRepository = new FeaturesRepository(prisma);
-  // const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
-  // if (!calAIVoiceAgents) {
-  //   logger.warn("Cal AI voice agents are disabled - skipping AI phone call");
-  //   return;
-  // }
+  const featuresRepository = new FeaturesRepository(prisma);
+  const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
+  if (!calAIVoiceAgents) {
+    logger.warn("Cal AI voice agents are disabled - skipping AI phone call");
+    return;
+  }
 
   if (userId) {
     await checkRateLimitAndThrowError({

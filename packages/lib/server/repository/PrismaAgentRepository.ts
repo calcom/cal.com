@@ -493,7 +493,6 @@ export class PrismaAgentRepository {
         "teamId",
         "createdAt",
         "updatedAt",
-        "inboundEventTypeId",
         "outboundEventTypeId"
       FROM "Agent"
       WHERE ${whereCondition}
