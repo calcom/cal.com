@@ -2,6 +2,7 @@ import type Stripe from "stripe";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { SubscriptionStatus } from "../../repository/IBillingRepository";
+import { StripeBillingService } from "../../stripe-billing-service";
 import { HttpCode } from "./__handler";
 import handler from "./_customer.subscription.updated";
 
@@ -16,7 +17,6 @@ vi.mock("@calcom/prisma", () => ({
 }));
 vi.mock("../../repository/billingRepositoryFactory");
 vi.mock("../../service/TeamSubscriptionEventHandler");
-vi.mock("./lib/mapStripeStatusToCalStatus");
 
 type SubscriptionData = Stripe.CustomerSubscriptionUpdatedEvent["data"];
 
@@ -56,7 +56,6 @@ describe("_customer.subscription.updated handler", () => {
     const { TeamSubscriptionEventHandler } = await import("../../service/TeamSubscriptionEventHandler");
     const { BillingRepositoryFactory } = await import("../../repository/billingRepositoryFactory");
     const { TeamRepository } = await import("@calcom/lib/server/repository/team");
-    const { mapStripeStatusToCalStatus } = await import("./lib/mapStripeStatusToCalStatus");
 
     const mockHandleUpdate = vi.fn().mockResolvedValue(undefined);
     const mockHandler = {
@@ -75,7 +74,9 @@ describe("_customer.subscription.updated handler", () => {
           findBySubscriptionId: vi.fn(),
         } as unknown as ReturnType<typeof TeamRepository>)
     );
-    vi.mocked(mapStripeStatusToCalStatus).mockReturnValue(SubscriptionStatus.ACTIVE);
+    vi.spyOn(StripeBillingService, "mapSubscriptionStatusToCalStatus").mockReturnValue(
+      SubscriptionStatus.ACTIVE
+    );
 
     const data = createSubscriptionData({
       items: {
@@ -108,7 +109,6 @@ describe("_customer.subscription.updated handler", () => {
   it("should handle organization subscription update", async () => {
     const { TeamSubscriptionEventHandler } = await import("../../service/TeamSubscriptionEventHandler");
     const { BillingRepositoryFactory } = await import("../../repository/billingRepositoryFactory");
-    const { mapStripeStatusToCalStatus } = await import("./lib/mapStripeStatusToCalStatus");
 
     const mockHandleUpdate = vi.fn().mockResolvedValue(undefined);
     const mockHandler = {
@@ -122,7 +122,9 @@ describe("_customer.subscription.updated handler", () => {
       updateSubscriptionStatus: vi.fn(),
     };
     vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(mockOrgRepository);
-    vi.mocked(mapStripeStatusToCalStatus).mockReturnValue(SubscriptionStatus.ACTIVE);
+    vi.spyOn(StripeBillingService, "mapSubscriptionStatusToCalStatus").mockReturnValue(
+      SubscriptionStatus.ACTIVE
+    );
 
     const data = createSubscriptionData({
       items: {
@@ -156,7 +158,6 @@ describe("_customer.subscription.updated handler", () => {
   it("should prioritize org product over team product", async () => {
     const { TeamSubscriptionEventHandler } = await import("../../service/TeamSubscriptionEventHandler");
     const { BillingRepositoryFactory } = await import("../../repository/billingRepositoryFactory");
-    const { mapStripeStatusToCalStatus } = await import("./lib/mapStripeStatusToCalStatus");
 
     const mockHandleUpdate = vi.fn().mockResolvedValue(undefined);
     const mockHandler = {
@@ -169,7 +170,9 @@ describe("_customer.subscription.updated handler", () => {
       getBySubscriptionId: vi.fn(),
       updateSubscriptionStatus: vi.fn(),
     });
-    vi.mocked(mapStripeStatusToCalStatus).mockReturnValue(SubscriptionStatus.ACTIVE);
+    vi.spyOn(StripeBillingService, "mapSubscriptionStatusToCalStatus").mockReturnValue(
+      SubscriptionStatus.ACTIVE
+    );
 
     const data = createSubscriptionData({
       items: {
@@ -263,7 +266,6 @@ describe("_customer.subscription.updated handler", () => {
   it("should throw HttpCode 202 when team subscription handler fails", async () => {
     const { TeamSubscriptionEventHandler } = await import("../../service/TeamSubscriptionEventHandler");
     const { BillingRepositoryFactory } = await import("../../repository/billingRepositoryFactory");
-    const { mapStripeStatusToCalStatus } = await import("./lib/mapStripeStatusToCalStatus");
 
     const mockHandleUpdate = vi.fn().mockRejectedValue(new Error("Database error"));
     const mockHandler = {
@@ -276,7 +278,9 @@ describe("_customer.subscription.updated handler", () => {
       getBySubscriptionId: vi.fn(),
       updateSubscriptionStatus: vi.fn(),
     });
-    vi.mocked(mapStripeStatusToCalStatus).mockReturnValue(SubscriptionStatus.ACTIVE);
+    vi.spyOn(StripeBillingService, "mapSubscriptionStatusToCalStatus").mockReturnValue(
+      SubscriptionStatus.ACTIVE
+    );
 
     const data = createSubscriptionData({
       items: {
