@@ -58,6 +58,7 @@ export class StripeBillingService implements BillingService {
       invoice_creation: {
         enabled: true,
       },
+      // eslint-disable-next-line
     } as any);
 
     return {
@@ -127,7 +128,7 @@ export class StripeBillingService implements BillingService {
   }
 
   async handleSubscriptionCreation(subscriptionId: string) {
-    throw new Error("Method not implemented.");
+    throw new Error(`Method not implemented for subscription id ${subscriptionId}`);
   }
 
   async handleSubscriptionCancel(subscriptionId: string) {
@@ -195,5 +196,18 @@ export class StripeBillingService implements BillingService {
   async getPrice(priceId: string) {
     const price = await this.stripe.prices.retrieve(priceId);
     return price;
+  }
+
+  static extractSubscriptionDates(subscription: {
+    start_date: number;
+    trial_end?: number | null;
+    cancel_at?: number | null;
+  }) {
+    // Stripe returns dates as unix time in seconds but Date() expects milliseconds
+    const subscriptionStart = new Date(subscription.start_date * 1000);
+    const subscriptionTrialEnd = subscription?.trial_end ? new Date(subscription.trial_end * 1000) : null;
+    const subscriptionEnd = subscription?.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
+
+    return { subscriptionStart, subscriptionTrialEnd, subscriptionEnd };
   }
 }

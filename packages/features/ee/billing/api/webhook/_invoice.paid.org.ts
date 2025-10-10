@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import stripe from "@calcom/features/ee/payments/server/stripe";
@@ -99,6 +100,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
 
     // Get the Stripe subscription object
     const stripeSubscription = await stripe.subscriptions.retrieve(paymentSubscriptionId);
+    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(stripeSubscription);
 
     const internalTeamBillingService = new InternalTeamBilling(organization);
     await internalTeamBillingService.saveTeamBilling({
@@ -109,8 +111,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       // TODO: Write actual status when webhook events are added
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.ORGANIZATION,
-      // Stripe returns time in unix seconds but new Date() expects milliseconds
-      subscriptionStart: new Date(stripeSubscription.created * 1000),
+      subscriptionStart,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);
