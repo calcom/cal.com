@@ -3,7 +3,8 @@ import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
+import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
+import { BillingPeriod, UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,6 +15,8 @@ vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
     getInstance: vi.fn(),
   },
 }));
+
+vi.mock("@calcom/features/ee/organizations/lib/OrganizationPaymentService");
 
 const mockInput = {
   name: "Test Org",
@@ -50,8 +53,37 @@ async function createTestUser(data: {
 describe("intentToCreateOrgHandler", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
-    // @ts-expect-error reset is a method on Prismock
     await prismock.reset();
+
+    vi.mocked(OrganizationPaymentService).mockImplementation(() => {
+      return {
+        createOrganizationOnboarding: vi.fn().mockImplementation(async (data: any) => {
+          return await prismock.organizationOnboarding.create({
+            data: {
+              id: "onboarding-123",
+              name: data.name,
+              slug: data.slug,
+              orgOwnerEmail: data.orgOwnerEmail,
+              seats: data.seats ?? 10,
+              pricePerSeat: data.pricePerSeat ?? 15,
+              billingPeriod: data.billingPeriod ?? BillingPeriod.MONTHLY,
+              isComplete: false,
+              stripeCustomerId: null,
+              createdById: data.createdByUserId,
+              teams: [],
+              invitedMembers: [],
+              isPlatform: data.isPlatform ?? false,
+            },
+          });
+        }),
+        createPaymentIntent: vi.fn().mockResolvedValue({
+          checkoutUrl: "https://stripe.com/checkout/session",
+          organizationOnboarding: {},
+          subscription: {},
+          sessionId: "session-123",
+        }),
+      } as any;
+    });
   });
 
   describe("hosted", () => {
@@ -65,7 +97,10 @@ describe("intentToCreateOrgHandler", () => {
       });
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
       });
+      process.env.STRIPE_ORG_PRODUCT_ID = "prod_test123";
+      process.env.STRIPE_ORG_MONTHLY_PRICE_ID = "price_test123";
     });
 
     it("should allow admin user to create org for another user", async () => {
@@ -252,6 +287,7 @@ describe("intentToCreateOrgHandler", () => {
     it("should throw error when license is not valid", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(false),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
       });
       const adminUser = await createTestUser({
         email: "admin@example.com",
@@ -271,6 +307,7 @@ describe("intentToCreateOrgHandler", () => {
     it("should allow admin user to create org for another user", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
       });
       // Create admin user
       const adminUser = await createTestUser({
@@ -323,6 +360,7 @@ describe("intentToCreateOrgHandler", () => {
     it("should handle teams and invites in the request", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
       });
       const adminUser = await createTestUser({
         email: "admin@example.com",
@@ -370,6 +408,7 @@ describe("intentToCreateOrgHandler", () => {
     it("should preserve teamName, teamId, and role in invites payload", async () => {
       vi.mocked(LicenseKeySingleton.getInstance).mockResolvedValue({
         checkLicense: vi.fn().mockResolvedValue(true),
+        incrementUsage: vi.fn().mockResolvedValue(undefined),
       });
       const adminUser = await createTestUser({
         email: "admin@example.com",
