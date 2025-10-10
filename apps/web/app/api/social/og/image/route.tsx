@@ -5,6 +5,7 @@ import { z, ZodError } from "zod";
 
 import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import SVG_HASHES from "@calcom/web/public/app-store/svg-hashes.json";
 
 export const runtime = "edge";
 
@@ -22,6 +23,7 @@ const appSchema = z.object({
   name: z.string(),
   description: z.string(),
   slug: z.string(),
+  logoUrl: z.string(),
 });
 
 const genericSchema = z.object({
@@ -89,7 +91,8 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
             },
           });
         } catch (error) {
@@ -111,20 +114,34 @@ async function handler(req: NextRequest) {
       }
       case "app": {
         try {
-          const { name, description, slug } = appSchema.parse({
+          const { name, description, slug, logoUrl } = appSchema.parse({
             name: searchParams.get("name"),
             description: searchParams.get("description"),
             slug: searchParams.get("slug"),
+            logoUrl: searchParams.get("logoUrl"),
             imageType,
           });
-          const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
+
+          const svgHash = SVG_HASHES[slug] ?? null;
+
+          const img = new ImageResponse(
+            <App name={name} description={description} slug={slug} logoUrl={logoUrl} />,
+            ogConfig
+          );
+
+          const headers: Record<string, string> = {
+            "Content-Type": "image/png",
+            "Cache-Control":
+              "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
+          };
+
+          if (svgHash) {
+            headers["ETag"] = svgHash;
+          }
 
           return new Response(img.body, {
             status: 200,
-            headers: {
-              "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
-            },
+            headers,
           });
         } catch (error) {
           if (error instanceof ZodError) {
@@ -157,7 +174,8 @@ async function handler(req: NextRequest) {
             status: 200,
             headers: {
               "Content-Type": "image/png",
-              "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
             },
           });
         } catch (error) {
