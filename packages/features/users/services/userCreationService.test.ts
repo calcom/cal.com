@@ -4,9 +4,9 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { CreationSource } from "@calcom/prisma/enums";
 
-import { UserRepository } from "../repository/user";
 import { UserCreationService } from "./userCreationService";
 
 vi.mock("@calcom/lib/server/i18n", () => {
