@@ -3053,10 +3053,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const response = await request(app.getHttpServer())
               .post("/v2/bookings")
               .send(body)
-              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
-            // .expect(201);
-            console.log("asap response.body", JSON.stringify(response.body, null, 2));
-            expect(response.statusCode).toBe(201);
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(201);
 
             const responseBody: CreateBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
@@ -3140,10 +3138,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             const response = await request(app.getHttpServer())
               .post("/v2/bookings")
               .send(body)
-              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
-            // .expect(201);
-            console.log("asap response.body 2", JSON.stringify(response.body, null, 2));
-            expect(response.statusCode).toBe(201);
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(201);
 
             const responseBody: CreateBookingOutput_2024_08_13 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
