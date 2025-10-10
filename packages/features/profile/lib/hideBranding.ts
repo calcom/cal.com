@@ -1,6 +1,5 @@
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-
-import logger from "./logger";
+import logger from "@calcom/lib/logger";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
 type Team = {
