@@ -32,7 +32,7 @@ vi.mock("../teamAccessUseCase", () => ({
   })),
 }));
 
-vi.mock("@calcom/lib/getBookerUrl/server", () => ({
+vi.mock("@calcom/features/ee/organizations/lib/getBookerUrlServer", () => ({
   getBookerBaseUrl: vi.fn().mockResolvedValue("https://cal.com"),
 }));
 

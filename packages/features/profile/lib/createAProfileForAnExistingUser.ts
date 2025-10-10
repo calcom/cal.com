@@ -1,13 +1,12 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
-
-import { getOrgUsernameFromEmail } from "../features/auth/signup/utils/getOrgUsernameFromEmail";
-import logger from "./logger";
-import { safeStringify } from "./safeStringify";
 
 const log = logger.getSubLogger({ prefix: ["lib", "createAProfileForAnExistingUser"] });
 export const createAProfileForAnExistingUser = async ({
