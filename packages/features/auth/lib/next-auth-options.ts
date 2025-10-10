@@ -35,7 +35,7 @@ import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";

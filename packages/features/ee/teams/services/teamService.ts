@@ -7,7 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { prisma } from "@calcom/prisma";

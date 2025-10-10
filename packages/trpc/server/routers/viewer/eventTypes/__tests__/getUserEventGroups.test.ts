@@ -18,7 +18,7 @@ vi.mock("@calcom/lib/server/repository/membership", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/profile", () => ({
+vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   ProfileRepository: {
     findByUpId: vi.fn(),
   },
@@ -68,7 +68,7 @@ describe("getUserEventGroups", () => {
     organizationId: null,
     organization: null,
   } as unknown as NonNullable<
-    Awaited<ReturnType<typeof import("@calcom/lib/server/repository/profile").ProfileRepository.findByUpId>>
+    Awaited<ReturnType<typeof import("@calcom/features/profile/repositories/ProfileRepository").ProfileRepository.findByUpId>>
   >;
 
   const mockCtx = {
@@ -82,7 +82,7 @@ describe("getUserEventGroups", () => {
 
   describe("Basic functionality", () => {
     it("should throw TRPCError when profile is not found", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(null);
 
       await expect(
@@ -94,7 +94,7 @@ describe("getUserEventGroups", () => {
     });
 
     it("should return user event groups when no filters are applied", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
 
       vi.mocked(ProfileRepository.findByUpId).mockResolvedValue(mockProfile);
@@ -122,7 +122,7 @@ describe("getUserEventGroups", () => {
 
   describe("Team memberships", () => {
     it("should include team events when team memberships exist", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
       const { getResourcePermissions } = await import("@calcom/features/pbac/lib/resource-permissions");
 
@@ -182,7 +182,7 @@ describe("getUserEventGroups", () => {
 
   describe("Permissions", () => {
     it("should handle PBAC permissions correctly", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
       const { getResourcePermissions } = await import("@calcom/features/pbac/lib/resource-permissions");
 
@@ -236,7 +236,7 @@ describe("getUserEventGroups", () => {
     });
 
     it("should fallback to role-based permissions when PBAC fails", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
       const { getResourcePermissions } = await import("@calcom/features/pbac/lib/resource-permissions");
 
@@ -288,7 +288,7 @@ describe("getUserEventGroups", () => {
 
   describe("Organization handling", () => {
     it("should handle organization locked event types", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
 
       const mockProfileWithOrg = {
@@ -300,7 +300,7 @@ describe("getUserEventGroups", () => {
         },
       } as unknown as NonNullable<
         Awaited<
-          ReturnType<typeof import("@calcom/lib/server/repository/profile").ProfileRepository.findByUpId>
+          ReturnType<typeof import("@calcom/features/profile/repositories/ProfileRepository").ProfileRepository.findByUpId>
         >
       >;
 
@@ -319,7 +319,7 @@ describe("getUserEventGroups", () => {
 
   describe("Routing forms", () => {
     it("should handle routing forms slug format", async () => {
-      const { ProfileRepository } = await import("@calcom/lib/server/repository/profile");
+      const { ProfileRepository } = await import("@calcom/features/profile/repositories/ProfileRepository");
       const { MembershipRepository } = await import("@calcom/lib/server/repository/membership");
       const { getResourcePermissions } = await import("@calcom/features/pbac/lib/resource-permissions");
 
