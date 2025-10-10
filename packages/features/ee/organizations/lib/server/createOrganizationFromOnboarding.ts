@@ -16,7 +16,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";

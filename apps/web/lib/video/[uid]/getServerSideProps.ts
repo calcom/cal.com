@@ -14,7 +14,7 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import prisma from "@calcom/prisma";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });
