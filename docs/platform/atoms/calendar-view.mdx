@@ -30,7 +30,7 @@ import { CalendarView } from "@calcom/atoms";
 export default function Booker( props : BookerProps ) {
   return (
     <div>
-       <CalendarView isTeamEvent={true} teamId={props.teamId} eventSlug={props.eventSlug} />
+       <CalendarView teamId={props.teamId} eventSlug={props.eventSlug} />
     </div>
   )
 }
@@ -55,7 +55,6 @@ Below is a list of props that can be passed to the create event type atom
 
 | Name                       | Required | Description                                                                                           |
 |:----------------------------|:----------|:-------------------------------------------------------------------------------------------------------|
-| username                   | Yes      | Username of the person whose schedule is to be displayed                                              |
-| eventSlug                  | Yes      | Unique slug created for a particular event                                                            |                                                |
-| isTeamEvent                | No       | Boolean indicating if it is a team event, to be passed only for team events                                                                     |
-| teamId                | No       | The id of the team for which the event is created, to be passed only for team events                                                                     |
+| eventSlug                  | Yes      | Unique slug created for a particular event                                                            |   
+| username                   | Optional     | Username of the person whose schedule is to be displayed, required only for individual events                                          |                                             |                                        |
+| teamId                | Optional       | Id of the team for which the event is created, required only for team events                                                                     |
