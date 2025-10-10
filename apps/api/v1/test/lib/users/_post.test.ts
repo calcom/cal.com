@@ -27,6 +27,14 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
+// Mock checkUsername (used by validation schema)
+vi.mock("@calcom/lib/server/checkUsername", () => ({
+  checkUsername: vi.fn().mockResolvedValue({
+    available: true,
+    premium: false,
+  }),
+}));
+
 // Mock UserCreationService
 vi.mock("@calcom/lib/server/service/userCreationService", () => ({
   UserCreationService: {
@@ -39,14 +47,6 @@ vi.stubEnv("CALCOM_LICENSE_KEY", undefined);
 describe("POST /api/users - Unit Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-
-    // Set default mock implementation to avoid undefined errors
-    vi.mocked(UserCreationService.createUser).mockResolvedValue({
-      id: 1,
-      email: "default@example.com",
-      username: "default",
-      organizationId: null,
-    } as unknown as User);
   });
 
   test("should throw 401 if not system-wide admin", async () => {
