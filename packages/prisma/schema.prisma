@@ -247,7 +247,6 @@ model EventType {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
-
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -1427,8 +1426,8 @@ model WorkflowStep {
   agentId                   String?            @unique
   agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
 
-  inboundAgentId            String?            @unique
-  inboundAgent              Agent?             @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
+  inboundAgentId String? @unique
+  inboundAgent   Agent?  @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
 }
@@ -2544,7 +2543,6 @@ enum PhoneNumberSubscriptionStatus {
   UNPAID
 }
 
-
 // Cal AI Voice Agent
 model Agent {
   id   String @id @default(uuid())
@@ -2569,7 +2567,7 @@ model Agent {
   inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
   outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
   workflowStep         WorkflowStep?
-  inboundWorkflowStep  WorkflowStep?     @relation("WorkflowStepInboundAgent")
+  inboundWorkflowStep  WorkflowStep?      @relation("WorkflowStepInboundAgent")
 
   @@index([userId])
   @@index([teamId])

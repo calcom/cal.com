@@ -2,7 +2,6 @@ import { randomBytes } from "crypto";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import { createInstantMeetingWithCalVideo } from "@calcom/app-store/videoClient";
 import dayjs from "@calcom/dayjs";
 import type {
   CreateInstantBookingData,
@@ -14,6 +13,7 @@ import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/g
 import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IBookingCreateService } from "@calcom/features/bookings/lib/interfaces/IBookingCreateService";
+import { createInstantMeetingWithCalVideo } from "@calcom/features/conferencing/lib/videoClient";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
