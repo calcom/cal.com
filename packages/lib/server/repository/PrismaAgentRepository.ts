@@ -618,4 +618,27 @@ export class PrismaAgentRepository {
 
     return Number(result[0].count) > 0;
   }
+
+  async findAgentWithPhoneNumbers(agentId: string) {
+    return await this.prismaClient.agent.findUnique({
+      where: { id: agentId },
+      select: {
+        id: true,
+        outboundPhoneNumbers: {
+          select: {
+            id: true,
+            phoneNumber: true,
+            subscriptionStatus: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findProviderAgentIdById(agentId: string) {
+    return await this.prismaClient.agent.findUnique({
+      where: { id: agentId },
+      select: { providerAgentId: true },
+    });
+  }
 }

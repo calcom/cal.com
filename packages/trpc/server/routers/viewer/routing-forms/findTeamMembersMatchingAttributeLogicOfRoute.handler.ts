@@ -6,13 +6,13 @@
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
+import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
-import { enrichHostsWithDelegationCredentials } from "@calcom/lib/delegationCredential/server";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
@@ -296,6 +296,8 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
           form,
           chosenRouteId: route.id,
         },
+        // During Preview testing we could consider the current time itself as the meeting start time
+        meetingStartTime: new Date(),
       })
     : { users: [], perUserData: null, isUsingAttributeWeights: false };
   const timeAfterGetOrderedLuckyUsers = performance.now();

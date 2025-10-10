@@ -103,6 +103,8 @@ type WorkflowStepProps = {
     isOrganization: boolean;
     isCalAi: boolean;
   }[];
+  updateTemplate: boolean;
+  setUpdateTemplate: Dispatch<SetStateAction<boolean>>;
   inboundAgentData?: RetellAgentWithDetails;
   isInboundAgentLoading?: boolean;
 };
@@ -175,6 +177,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     setIsDeleteStepDialogOpen,
     onSaveWorkflow,
     actionOptions,
+    updateTemplate,
+    setUpdateTemplate,
   } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
@@ -269,7 +273,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     WorkflowActions.SMS_NUMBER === action || WorkflowActions.WHATSAPP_NUMBER === action;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(requirePhoneNumber);
 
-  const [updateTemplate, setUpdateTemplate] = useState(false);
   const [firstRender, setFirstRender] = useState(true);
 
   const senderNeeded =
@@ -427,9 +430,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
   const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableEmailSubject = (variable: string) => {
@@ -1304,7 +1305,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           option.needsTeamsUpgrade &&
                           !isSMSAction(form.getValues(`steps.${step.stepNumber - 1}.action`)),
                       }))}
-                      //eslint-disable-next-line @typescript-eslint/no-explicit-any
                       isOptionDisabled={(option: {
                         label: string;
                         value: string;
@@ -1362,9 +1362,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </Label>
               </div>
               <Editor
-                getText={() => {
-                  return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                }}
+                getText={() => props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
                 setText={(text: string) => {
                   props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                   props.form.clearErrors();

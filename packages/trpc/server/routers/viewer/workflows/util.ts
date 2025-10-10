@@ -30,7 +30,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import type { Workflow } from "@calcom/prisma/client";
+import { WorkflowType as PrismaWorkflowType, type Workflow } from "@calcom/prisma/client";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
@@ -788,7 +788,7 @@ export async function scheduleBookingReminders(
         let sendTo: string[] = [];
 
         switch (step.action) {
-          case WorkflowActions.EMAIL_HOST:
+          case WorkflowActions.EMAIL_HOST: {
             sendTo = [bookingInfo.organizer?.email];
             const schedulingType = bookingInfo.eventType.schedulingType;
             const hosts = bookingInfo.eventType.hosts
@@ -801,6 +801,7 @@ export async function scheduleBookingReminders(
               sendTo = sendTo.concat(hosts);
             }
             break;
+          }
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
             break;
@@ -978,7 +979,7 @@ export async function getAllWorkflowsFromEventType(
     teamId,
     orgId,
     workflowsLockedForUser,
-    triggerType: "eventType",
+    type: PrismaWorkflowType.EVENT_TYPE,
   });
 
   return allWorkflows;

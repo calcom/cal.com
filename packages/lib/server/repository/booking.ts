@@ -387,6 +387,21 @@ export class BookingRepository {
     });
   }
 
+  async findFirstBookingFromResponse({ responseId }: { responseId: number }) {
+    const booking = await this.prismaClient.booking.findFirst({
+      where: {
+        routedFromRoutingFormReponse: {
+          id: responseId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return booking;
+  }
+
   async findBookingByUidWithEventType({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
