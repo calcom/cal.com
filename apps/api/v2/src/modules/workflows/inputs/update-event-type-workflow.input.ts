@@ -1,16 +1,9 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
+import { IsString, IsOptional, ValidateNested, ArrayMinSize } from "class-validator";
 
-import { WorkflowActivationDto } from "./create-workflow.input";
+import { WorkflowActivationDto } from "./create-event-type-workflow.input";
 import {
-  WorkflowEmailAttendeeStepDto,
-  WorkflowEmailAddressStepDto,
-  WorkflowEmailHostStepDto,
-  WorkflowPhoneWhatsAppNumberStepDto,
-  WorkflowPhoneAttendeeStepDto,
-  WorkflowPhoneNumberStepDto,
-  WorkflowPhoneWhatsAppAttendeeStepDto,
   BaseWorkflowStepDto,
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
@@ -19,9 +12,17 @@ import {
   WHATSAPP_NUMBER,
   SMS_NUMBER,
   SMS_ATTENDEE,
+  UpdateEmailAddressWorkflowStepDto,
+  UpdateEmailAttendeeWorkflowStepDto,
+  UpdateEmailHostWorkflowStepDto,
+  UpdatePhoneAttendeeWorkflowStepDto,
+  UpdatePhoneNumberWorkflowStepDto,
+  UpdatePhoneWhatsAppNumberWorkflowStepDto,
+  UpdateWhatsAppAttendeePhoneWorkflowStepDto,
+  STEP_ACTIONS,
 } from "./workflow-step.input";
 import {
-  BaseWorkflowTriggerDto,
+  EventTypeWorkflowTriggerDto,
   OnBeforeEventTriggerDto,
   BEFORE_EVENT,
   OnAfterEventTriggerDto,
@@ -46,82 +47,8 @@ import {
   BOOKING_PAYMENT_INITIATED,
   BOOKING_PAID,
   BOOKING_NO_SHOW_UPDATED,
+  EVENT_TYPE_WORKFLOW_TRIGGER_TYPES,
 } from "./workflow-trigger.input";
-
-export type UpdateWorkflowStepDto =
-  | UpdateEmailAttendeeWorkflowStepDto
-  | UpdateEmailAddressWorkflowStepDto
-  | UpdateEmailHostWorkflowStepDto
-  | UpdateWhatsAppAttendeePhoneWorkflowStepDto
-  | UpdatePhoneWhatsAppNumberWorkflowStepDto
-  | UpdatePhoneAttendeeWorkflowStepDto
-  | UpdatePhoneNumberWorkflowStepDto;
-export class UpdateEmailAttendeeWorkflowStepDto extends WorkflowEmailAttendeeStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-
-export class UpdateEmailAddressWorkflowStepDto extends WorkflowEmailAddressStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-
-export class UpdateEmailHostWorkflowStepDto extends WorkflowEmailHostStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-
-export class UpdatePhoneWhatsAppNumberWorkflowStepDto extends WorkflowPhoneWhatsAppNumberStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-export class UpdatePhoneAttendeeWorkflowStepDto extends WorkflowPhoneAttendeeStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-export class UpdatePhoneNumberWorkflowStepDto extends WorkflowPhoneNumberStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
-export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWhatsAppAttendeeStepDto {
-  @ApiProperty({
-    description:
-      "Unique identifier of the step you want to update, if adding a new step do not provide this id",
-    example: 67244,
-  })
-  @IsNumber()
-  id?: number;
-}
 
 @ApiExtraModels(
   OnBeforeEventTriggerDto,
@@ -143,16 +70,17 @@ export class UpdateWhatsAppAttendeePhoneWorkflowStepDto extends WorkflowPhoneWha
   UpdatePhoneWhatsAppNumberWorkflowStepDto,
   UpdateWhatsAppAttendeePhoneWorkflowStepDto,
   UpdatePhoneNumberWorkflowStepDto,
-  BaseWorkflowTriggerDto
+  EventTypeWorkflowTriggerDto,
+  WorkflowActivationDto
 )
-export class UpdateWorkflowDto {
+export class UpdateEventTypeWorkflowDto {
   @ApiPropertyOptional({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @ApiPropertyOptional({
-    description: "Activation settings for the workflow, the action that will trigger the workflow.",
+  @ApiProperty({
+    description: "Activation settings for the workflow",
     type: WorkflowActivationDto,
   })
   @ValidateNested()
@@ -161,7 +89,7 @@ export class UpdateWorkflowDto {
   activation?: WorkflowActivationDto;
 
   @ApiPropertyOptional({
-    description: "Trigger configuration for the workflow",
+    description: `Trigger configuration for the event-type workflow, allowed triggers are ${EVENT_TYPE_WORKFLOW_TRIGGER_TYPES.toString()}`,
     oneOf: [
       { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
       { $ref: getSchemaPath(OnAfterEventTriggerDto) },
@@ -179,7 +107,8 @@ export class UpdateWorkflowDto {
   })
   @IsOptional()
   @ValidateNested()
-  @Type(() => BaseWorkflowTriggerDto, {
+  @Type(() => EventTypeWorkflowTriggerDto, {
+    keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",
       subTypes: [
@@ -213,7 +142,7 @@ export class UpdateWorkflowDto {
     | OnAfterCalVideoHostsNoShowTriggerDto;
 
   @ApiPropertyOptional({
-    description: "Steps to execute as part of the workflow",
+    description: `Steps to execute as part of the event-type workflow, allowed steps are ${STEP_ACTIONS.toString()}`,
     oneOf: [
       { $ref: getSchemaPath(UpdateEmailAddressWorkflowStepDto) },
       { $ref: getSchemaPath(UpdateEmailAttendeeWorkflowStepDto) },
@@ -226,9 +155,12 @@ export class UpdateWorkflowDto {
     type: "array",
   })
   @ValidateNested({ each: true })
-  @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })
+  @ArrayMinSize(1, {
+    message: `Your workflow must contain at least one allowed step. allowed steps are ${STEP_ACTIONS.toString()}`,
+  })
   @IsOptional()
   @Type(() => BaseWorkflowStepDto, {
+    keepDiscriminatorProperty: true,
     discriminator: {
       property: "action",
       subTypes: [

@@ -100,14 +100,14 @@ const WorkflowListItem = (props: ItemProps) => {
 
   return (
     <div className="border-subtle w-full overflow-hidden rounded-md border p-6 px-3 md:p-6">
-      <div className="flex items-center ">
+      <div className="flex items-center">
         <div className="bg-subtle mr-4 flex h-10 w-10 items-center justify-center rounded-full text-xs font-medium">
           {getActionIcon(
             workflow.steps,
             isActive ? "h-6 w-6 stroke-[1.5px] text-default" : "h-6 w-6 stroke-[1.5px] text-muted"
           )}
         </div>
-        <div className=" grow">
+        <div className="grow">
           <div
             className={classNames(
               "text-emphasis mb-1 w-full truncate text-base font-medium leading-4 md:max-w-max",
@@ -122,7 +122,7 @@ const WorkflowListItem = (props: ItemProps) => {
           <>
             <div
               className={classNames(
-                " flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
+                "flex w-fit items-center whitespace-nowrap rounded-sm text-sm leading-4",
                 isActive ? "text-default" : "text-muted"
               )}>
               <span className="mr-1">{t("to")}:</span>
@@ -191,6 +191,7 @@ function EventWorkflowsTab(props: Props) {
   const { data, isPending } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
+    includeOnlyEventTypeWorkflows: true,
   });
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);

@@ -454,15 +454,7 @@ export class PrismaAgentRepository {
     });
   }
 
-  async findByIdWithAdminAccess({
-    id,
-    userId,
-    teamId,
-  }: {
-    id: string;
-    userId: number;
-    teamId?: number;
-  }) {
+  async findByIdWithAdminAccess({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
     const adminTeamIds = await this.getUserAdminTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
@@ -570,13 +562,7 @@ export class PrismaAgentRepository {
     });
   }
 
-  async linkInboundAgentToWorkflow({
-    workflowStepId,
-    agentId,
-  }: {
-    workflowStepId: number;
-    agentId: string;
-  }) {
+  async linkInboundAgentToWorkflow({ workflowStepId, agentId }: { workflowStepId: number; agentId: string }) {
     return await this.prismaClient.workflowStep.update({
       where: {
         id: workflowStepId,
@@ -598,13 +584,7 @@ export class PrismaAgentRepository {
     });
   }
 
-  async canManageTeamResources({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }): Promise<boolean> {
+  async canManageTeamResources({ userId, teamId }: { userId: number; teamId: number }): Promise<boolean> {
     const result = await this.prismaClient.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Membership"
@@ -615,5 +595,28 @@ export class PrismaAgentRepository {
     `;
 
     return Number(result[0].count) > 0;
+  }
+
+  async findAgentWithPhoneNumbers(agentId: string) {
+    return await this.prismaClient.agent.findUnique({
+      where: { id: agentId },
+      select: {
+        id: true,
+        outboundPhoneNumbers: {
+          select: {
+            id: true,
+            phoneNumber: true,
+            subscriptionStatus: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findProviderAgentIdById(agentId: string) {
+    return await this.prismaClient.agent.findUnique({
+      where: { id: agentId },
+      select: { providerAgentId: true },
+    });
   }
 }

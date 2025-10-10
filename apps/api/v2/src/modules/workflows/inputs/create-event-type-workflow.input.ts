@@ -17,6 +17,7 @@ import {
   EMAIL_HOST,
   SMS_ATTENDEE,
   SMS_NUMBER,
+  STEP_ACTIONS,
   WHATSAPP_ATTENDEE,
   WHATSAPP_NUMBER,
   WorkflowEmailAddressStepDto,
@@ -31,7 +32,7 @@ import {
   AFTER_EVENT,
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-  BaseWorkflowTriggerDto,
+  EventTypeWorkflowTriggerDto,
   BEFORE_EVENT,
   BOOKING_NO_SHOW_UPDATED,
   BOOKING_PAID,
@@ -39,6 +40,7 @@ import {
   BOOKING_REJECTED,
   BOOKING_REQUESTED,
   EVENT_CANCELLED,
+  EVENT_TYPE_WORKFLOW_TRIGGER_TYPES,
   NEW_EVENT,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
@@ -70,25 +72,11 @@ export class WorkflowActivationDto {
     example: [698191],
     type: [Number],
   })
-  @ValidateIf((o) => !Boolean(o.isActiveOnAllEventTypes))
+  @ValidateIf((o) => !o.isActiveOnAllEventTypes)
   @IsOptional()
   @IsNumber({}, { each: true })
   activeOnEventTypeIds: number[] = [];
 }
-
-export type TriggerDtoType =
-  | OnAfterEventTriggerDto
-  | OnBeforeEventTriggerDto
-  | OnCreationTriggerDto
-  | OnRescheduleTriggerDto
-  | OnCancelTriggerDto
-  | OnAfterCalVideoGuestsNoShowTriggerDto
-  | OnRejectedTriggerDto
-  | OnRequestedTriggerDto
-  | OnPaymentInitiatedTriggerDto
-  | OnPaidTriggerDto
-  | OnNoShowUpdateTriggerDto
-  | OnAfterCalVideoHostsNoShowTriggerDto;
 
 @ApiExtraModels(
   OnBeforeEventTriggerDto,
@@ -110,20 +98,24 @@ export type TriggerDtoType =
   WorkflowPhoneWhatsAppNumberStepDto,
   WorkflowPhoneNumberStepDto,
   WorkflowPhoneAttendeeStepDto,
-  BaseWorkflowTriggerDto
+  EventTypeWorkflowTriggerDto,
+  WorkflowActivationDto
 )
-export class CreateWorkflowDto {
+export class CreateEventTypeWorkflowDto {
   @ApiProperty({ description: "Name of the workflow", example: "Platform Test Workflow" })
   @IsString()
   name!: string;
 
-  @ApiProperty({ description: "Activation settings for the workflow", type: WorkflowActivationDto })
+  @ApiProperty({
+    description: "Activation settings for the workflow",
+    type: WorkflowActivationDto,
+  })
   @ValidateNested()
   @Type(() => WorkflowActivationDto)
   activation!: WorkflowActivationDto;
 
   @ApiProperty({
-    description: "Trigger configuration for the workflow",
+    description: `Trigger configuration for the event-type workflow, allowed triggers are ${EVENT_TYPE_WORKFLOW_TRIGGER_TYPES.toString()}`,
     oneOf: [
       { $ref: getSchemaPath(OnBeforeEventTriggerDto) },
       { $ref: getSchemaPath(OnAfterEventTriggerDto) },
@@ -140,7 +132,8 @@ export class CreateWorkflowDto {
     ],
   })
   @ValidateNested()
-  @Type(() => BaseWorkflowTriggerDto, {
+  @Type(() => EventTypeWorkflowTriggerDto, {
+    keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",
       subTypes: [
@@ -170,11 +163,10 @@ export class CreateWorkflowDto {
     | OnPaidTriggerDto
     | OnPaymentInitiatedTriggerDto
     | OnNoShowUpdateTriggerDto
-    | OnAfterCalVideoGuestsNoShowTriggerDto
-    | OnAfterCalVideoHostsNoShowTriggerDto;
+    | OnAfterCalVideoGuestsNoShowTriggerDto;
 
   @ApiProperty({
-    description: "Steps to execute as part of the workflow",
+    description: `Steps to execute as part of the event-type workflow, allowed steps are ${STEP_ACTIONS.toString()}`,
     oneOf: [
       { $ref: getSchemaPath(WorkflowEmailAddressStepDto) },
       { $ref: getSchemaPath(WorkflowEmailAttendeeStepDto) },
@@ -187,8 +179,11 @@ export class CreateWorkflowDto {
     type: "array",
   })
   @ValidateNested({ each: true })
-  @ArrayMinSize(1, { message: "Your workflow must contain at least one step." })
+  @ArrayMinSize(1, {
+    message: `Your workflow must contain at least one allowed step. allowed steps are ${STEP_ACTIONS.toString()}`,
+  })
   @Type(() => BaseWorkflowStepDto, {
+    keepDiscriminatorProperty: true,
     discriminator: {
       property: "action",
       subTypes: [
