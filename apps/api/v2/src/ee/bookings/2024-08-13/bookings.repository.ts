@@ -138,6 +138,28 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
+  async getByUidForCalendarLinks(uid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: { uid },
+      select: {
+        startTime: true,
+        endTime: true,
+        location: true,
+        title: true,
+        metadata: true,
+        responses: true,
+        eventTypeId: true,
+        attendees: {
+          select: {
+            bookingSeat: {
+              select: { data: true },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async getRecurringByUid(uid: string) {
     return this.dbRead.prisma.booking.findMany({
       where: {
