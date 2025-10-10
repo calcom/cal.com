@@ -22,6 +22,7 @@ export const CreateScheduleForm = ({
   onError,
   onCancel,
   customClassNames,
+  disableToasts = false,
 }: {
   onSuccess?: (scheduleId: number) => void;
   onError?: (err: ApiErrorResponse) => void;
@@ -31,6 +32,7 @@ export const CreateScheduleForm = ({
     inputField?: string;
     buttons?: ActionButtonsClassNames;
   };
+  disableToasts?: boolean;
 }) => {
   const { toast } = useToast();
   const { t } = useLocale();
@@ -41,13 +43,20 @@ export const CreateScheduleForm = ({
 
   const { mutateAsync: createSchedule, isPending: isCreateSchedulePending } = useAtomCreateSchedule({
     onSuccess: (res) => {
-      toast({
-        description: t("schedule_created_successfully", { scheduleName: res.data.schedule.name }),
-      });
+      if (!disableToasts) {
+        toast({
+          description: t("schedule_created_successfully", { scheduleName: res.data.schedule.name }),
+        });
+      }
       onSuccess?.(res.data.schedule.id);
     },
     onError: (err) => {
       onError?.(err);
+      if (!disableToasts) {
+        toast({
+          description: `Could not create schedule: ${err.error.message}`,
+        });
+      }
     },
   });
 

@@ -14,6 +14,7 @@ export const CreateSchedulePlatformWrapper = ({
   customClassNames,
   onSuccess,
   onError,
+  disableToasts = false,
 }: {
   name?: string;
   className?: string;
@@ -25,6 +26,7 @@ export const CreateSchedulePlatformWrapper = ({
     formWrapper?: string;
     actionsButtons?: ActionButtonsClassNames;
   };
+  disableToasts?: boolean;
 }) => {
   const { t } = useLocale();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -59,6 +61,7 @@ export const CreateSchedulePlatformWrapper = ({
             }}
             onError={onError}
             onCancel={() => setIsDialogOpen(false)}
+            disableToasts={disableToasts}
           />
         </DialogContent>
       </Dialog>
