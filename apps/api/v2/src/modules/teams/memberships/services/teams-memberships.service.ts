@@ -23,13 +23,15 @@ export class TeamsMembershipsService {
     return teamMembership;
   }
 
-  async getPaginatedTeamMemberships(teamId: number, skip = 0, take = 250) {
-    const teamMemberships = await this.teamsMembershipsRepository.findTeamMembershipsPaginated(
+  async getPaginatedTeamMemberships(teamId: number, emails?: string[], skip = 0, take = 250) {
+    const emailArray = !emails ? [] : emails;
+
+    return await this.teamsMembershipsRepository.findTeamMembershipsPaginatedWithFilters(
       teamId,
+      { emails: emailArray },
       skip,
       take
     );
-    return teamMemberships;
   }
 
   async getTeamMembership(teamId: number, membershipId: number) {
