@@ -1,3 +1,4 @@
+import { validateRoundRobinSlotAvailability } from "@calcom/features/ee/round-robin/utils/validateRoundRobinSlotAvailability";
 import { FilterHostsService } from "@calcom/features/bookings/lib/host-filtering/filterHostsBySameRoundRobinHost";
 import { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
 import { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
@@ -12,3 +13,4 @@ export { QualifiedHostsService };
 
 export { FilterHostsService };
 export { NoSlotsNotificationService };
+export { validateRoundRobinSlotAvailability };
