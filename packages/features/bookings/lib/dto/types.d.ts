@@ -1,22 +1,22 @@
 /**
- * Domain types for BookingCreateService
+ * Domain types for Booking Services
  * These types are framework-agnostic and contain only the data required for booking operations
  */
-import type { z } from "zod";
-
 import type getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
-import type { BookingCreateBody as BaseCreateBookingData } from "@calcom/prisma/zod/custom/booking";
-import type { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import type { SchedulingType } from "@calcom/prisma/enums";
 
-export type ExtendedBookingCreateData = z.input<typeof extendedBookingCreateBody>;
+import type { ExtendedBookingCreateBody } from "../bookingCreateBodySchema";
+import type { RegularBookingService } from "../handleNewBooking";
+
+export type { BookingCreateBody } from "../bookingCreateBodySchema";
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
 
-export type CreateRegularBookingData = BaseCreateBookingData;
+export type CreateRegularBookingData = ExtendedBookingCreateBody;
 
-export type CreateInstantBookingData = BaseCreateBookingData;
+export type CreateInstantBookingData = ExtendedBookingCreateBody;
 
-export type CreateRecurringBookingData = (BaseCreateBookingData & {
+export type CreateRecurringBookingData = (ExtendedBookingCreateBody & {
   schedulingType?: SchedulingType;
 })[];
 
@@ -27,6 +27,9 @@ export type PlatformParams = {
   platformRescheduleUrl?: string;
   platformBookingLocation?: string;
   areCalendarEventsEnabled?: boolean;
+  skipAvailabilityCheck?: boolean;
+  skipEventLimitsCheck?: boolean;
+  skipCalendarSyncTaskCreation?: boolean;
 };
 
 export type CreateBookingMeta = {
@@ -41,7 +44,7 @@ export type BookingHandlerInput = {
   bookingData: CreateRegularBookingData;
 } & CreateBookingMeta;
 
-export type CreateInstantBookingResponse = {
+export type InstantBookingCreateResult = {
   message: string;
   meetingTokenId: number;
   bookingId: number;
@@ -49,3 +52,6 @@ export type CreateInstantBookingResponse = {
   expires: Date;
   userId: number | null;
 };
+
+// TODO: In a followup PR, we working on defining the type here itself instead of inferring it.
+export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
