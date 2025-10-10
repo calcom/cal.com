@@ -136,6 +136,9 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
 
       syncToken = data.nextSyncToken || syncToken;
       pageToken = data.nextPageToken ?? null;
+      if (pageToken) {
+        params.pageToken = pageToken;
+      }
 
       events.push(...(data.items || []));
     } while (pageToken);

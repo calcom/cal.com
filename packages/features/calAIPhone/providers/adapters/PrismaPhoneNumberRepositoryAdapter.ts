@@ -1,4 +1,5 @@
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
+import prisma from "@calcom/prisma";
 import type { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import type {
@@ -15,7 +16,8 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     phoneNumber: string;
     userId: number;
   }): Promise<PhoneNumberData | null> {
-    return await PrismaPhoneNumberRepository.findByPhoneNumberAndUserId(params);
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    return await phoneNumberRepo.findByPhoneNumberAndUserId(params);
   }
 
   async findByPhoneNumberAndTeamId(params: {
@@ -23,11 +25,13 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     teamId: number;
     userId: number;
   }): Promise<PhoneNumberData | null> {
-    return await PrismaPhoneNumberRepository.findByPhoneNumberAndTeamId(params);
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    return await phoneNumberRepo.findByPhoneNumberAndTeamId(params);
   }
 
   async findByIdAndUserId(params: { id: number; userId: number }): Promise<PhoneNumberData | null> {
-    return await PrismaPhoneNumberRepository.findByIdAndUserId(params);
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    return await phoneNumberRepo.findByIdAndUserId(params);
   }
 
   async findByIdWithTeamAccess(params: {
@@ -35,7 +39,8 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     teamId: number;
     userId: number;
   }): Promise<PhoneNumberData | null> {
-    return await PrismaPhoneNumberRepository.findByIdWithTeamAccess(params);
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    return await phoneNumberRepo.findByIdWithTeamAccess(params);
   }
 
   async createPhoneNumber(params: {
@@ -45,6 +50,7 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     teamId?: number;
     outboundAgentId?: string | null;
   }): Promise<PhoneNumberData> {
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
     const createParams = {
       phoneNumber: params.phoneNumber,
       provider: params.provider,
@@ -52,19 +58,21 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
       teamId: params.teamId,
     };
 
-    return await PrismaPhoneNumberRepository.createPhoneNumber(createParams);
+    return await phoneNumberRepo.createPhoneNumber(createParams);
   }
 
   async deletePhoneNumber(params: { phoneNumber: string }): Promise<void> {
-    await PrismaPhoneNumberRepository.deletePhoneNumber(params);
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    await phoneNumberRepo.deletePhoneNumber(params);
   }
 
   async updateSubscriptionStatus(params: {
     id: number;
     subscriptionStatus: PhoneNumberSubscriptionStatus;
-    disconnectOutboundAgent?: boolean;
+    disconnectAgents?: boolean;
   }): Promise<void> {
-    await PrismaPhoneNumberRepository.updateSubscriptionStatus(params);
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    await phoneNumberRepo.updateSubscriptionStatus(params);
   }
 
   async updateAgents(params: {
@@ -72,10 +80,23 @@ export class PrismaPhoneNumberRepositoryAdapter implements PhoneNumberRepository
     inboundProviderAgentId?: string | null;
     outboundProviderAgentId?: string | null;
   }): Promise<void> {
-    await PrismaPhoneNumberRepository.updateAgents({
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    await phoneNumberRepo.updateAgents({
       id: params.id,
       inboundProviderAgentId: params.inboundProviderAgentId,
       outboundProviderAgentId: params.outboundProviderAgentId,
     });
+  }
+
+  async updateInboundAgentId(params: { id: number; agentId: string }): Promise<{ count: number }> {
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    return await phoneNumberRepo.updateInboundAgentId(params);
+  }
+
+  async findInboundAgentIdByPhoneNumberId(params: {
+    phoneNumberId: number;
+  }): Promise<{ inboundAgentId: string | null } | null> {
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    return await phoneNumberRepo.findInboundAgentIdByPhoneNumberId(params);
   }
 }

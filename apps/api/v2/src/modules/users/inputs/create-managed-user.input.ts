@@ -1,6 +1,7 @@
 import { Locales } from "@/lib/enums/locales";
 import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import { IsOptional, IsTimeZone, IsString, IsEnum, IsIn, IsUrl, IsObject } from "class-validator";
 
 import { ValidateMetadata } from "@calcom/platform-types";
@@ -29,6 +30,7 @@ export class CreateManagedUserInput {
   })
   weekStart?: WeekDay;
 
+  @Transform(({ value }) => (value === null ? undefined : value))
   @IsTimeZone()
   @IsOptional()
   @CapitalizeTimeZone()
