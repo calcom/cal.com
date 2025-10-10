@@ -26,11 +26,7 @@ import { ConnectedVideoStep } from "@components/getting-started/steps-views/Conn
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 const INITIAL_STEP = "user-settings";
-const BASE_STEPS = [
-  "user-settings",
-  "connected-calendar",
-  "connected-video",
-] as const;
+const BASE_STEPS = ["user-settings", "connected-calendar", "connected-video"] as const;
 
 type StepType = (typeof BASE_STEPS)[number];
 
@@ -62,11 +58,7 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
 };
 
 const stepRouteSchema = z.object({
-  step: z
-    .array(
-      z.enum(["user-settings", "connected-calendar", "connected-video"])
-    )
-    .default([INITIAL_STEP]),
+  step: z.array(z.enum(["user-settings", "connected-calendar", "connected-video"])).default([INITIAL_STEP]),
   from: z.string().optional(),
 });
 
@@ -165,7 +157,7 @@ const OnboardingPage = (props: PageProps) => {
 
   const goToNextStep = () => {
     const nextIndex = currentStepIndex + 1;
-    
+
     // If we're on the last step (connected-video), create default schedule and complete onboarding
     if (currentStepIndex === steps.length - 1) {
       createDefaultScheduleMutation.mutate({
