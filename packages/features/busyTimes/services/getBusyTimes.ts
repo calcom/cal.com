@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
+import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import { subtract } from "@calcom/lib/date-ranges";
 import { stringToDayjs } from "@calcom/lib/dayjs";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
@@ -16,8 +17,6 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
-import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
 
 export interface IBusyTimesService {
   bookingRepo: BookingRepository;
