@@ -554,7 +554,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return Object.hasOwn(body, "seatUid");
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -770,7 +770,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return Object.hasOwn(body, "seatUid");
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
@@ -817,7 +817,7 @@ export class InputBookingsService_2024_08_13 {
     // for an individual person, so api users need to call booking by booking using uid + seatUid to cancel it.
     return {
       uid: bookingUid,
-      cancellationReason: "",
+      cancellationReason: inputBooking.cancellationReason || "",
       allRemainingBookings: false,
       seatReferenceUid: inputBooking.seatUid,
     };
