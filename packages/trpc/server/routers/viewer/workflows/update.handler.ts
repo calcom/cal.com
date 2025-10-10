@@ -507,11 +507,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
         }
 
-        const {
-          id: _stepId,
-          senderName: _,
-          ..._stepToAdd
-        } = {
+        return {
           ...newStep,
           sender: getSender({
             action: newStep.action,
