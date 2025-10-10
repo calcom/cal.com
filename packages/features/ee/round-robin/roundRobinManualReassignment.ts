@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
@@ -379,7 +379,7 @@ export const roundRobinManualReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
   if (emailsEnabled) {
@@ -469,6 +469,22 @@ export async function handleWorkflowsUpdate({
   orgId: number | null;
 }) {
   // Calculate hide branding setting using comprehensive logic that considers team and organization settings
+  // For user events, fetch the user's profile to get the organization ID
+  const userOrganizationId = !eventType?.team
+    ? (
+        await prisma.profile.findFirst({
+          where: {
+            userId: newUser.id,
+          },
+          select: {
+            organizationId: true,
+          },
+        })
+      )?.organizationId
+    : null;
+  
+  const computedOrgId = eventType?.team?.parentId ?? userOrganizationId ?? null;
+
   const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType?.id || 0,
     team: eventType?.team
@@ -487,7 +503,7 @@ export async function handleWorkflowsUpdate({
           hideBranding: eventType.owner.hideBranding,
         }
       : null,
-    organizationId: eventType?.team?.parentId || null,
+    organizationId: computedOrgId,
   });
 
   const workflowReminders = await prisma.workflowReminder.findMany({

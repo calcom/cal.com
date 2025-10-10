@@ -182,6 +182,22 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
     }
 
     // Send emails
+    // For user events, fetch the user's profile to get the organization ID
+    const userOrganizationId = !bookingToReschedule.eventType?.team
+      ? (
+          await prisma.profile.findFirst({
+            where: {
+              userId: bookingToReschedule.userId,
+            },
+            select: {
+              organizationId: true,
+            },
+          })
+        )?.organizationId
+      : null;
+    
+    const computedOrgId = bookingToReschedule.eventType?.team?.parentId ?? userOrganizationId ?? null;
+
     const hideBranding = bookingToReschedule.eventType?.id
       ? await shouldHideBrandingForEvent({
           eventTypeId: bookingToReschedule.eventType.id,
@@ -201,8 +217,11 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
                 hideBranding: bookingToReschedule.eventType.owner.hideBranding,
               }
             : null,
-          organizationId: bookingToReschedule.eventType.team?.parentId || null,
-        }).catch(() => !!bookingToReschedule.eventType?.owner?.hideBranding)
+          organizationId: computedOrgId,
+        }).catch((e) => {
+          logger.warn("shouldHideBrandingForEvent failed; falling back to owner.hideBranding", { bookingUid, error: e instanceof Error ? e.message : String(e) });
+          return !!bookingToReschedule.eventType?.owner?.hideBranding;
+        })
       : false;
 
     builder.calendarEvent.hideBranding = hideBranding;

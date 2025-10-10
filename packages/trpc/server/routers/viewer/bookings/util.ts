@@ -24,7 +24,15 @@ export const bookingsProcedure = authedProcedure
     const bookingInclude = {
       attendees: true,
       eventType: {
-        include: {
+        select: {
+          id: true,
+          title: true,
+          teamId: true,
+          hideOrganizerEmail: true,
+          customReplyToEmail: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
+          recurringEvent: true,
           team: {
             select: {
               id: true,
@@ -49,9 +57,12 @@ export const bookingsProcedure = authedProcedure
       destinationCalendar: true,
       references: true,
       user: {
-        include: {
+        select: {
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
           destinationCalendar: true,
-          credentials: true,
         },
       },
     };

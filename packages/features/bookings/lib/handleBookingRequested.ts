@@ -8,6 +8,7 @@ import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -63,38 +64,62 @@ export async function handleBookingRequested(args: {
 }) {
   const { evt, booking } = args;
 
-  // Calculate hide branding setting using comprehensive logic
-  const hideBranding = booking?.eventType?.id
+  log.debug("Emails: Sending booking requested emails");
+
+  const teamForBranding = booking.eventType?.teamId
+    ? await prisma.team.findUnique({
+        where: { id: booking.eventType.teamId },
+        select: {
+          id: true,
+          hideBranding: true,
+          parentId: true,
+          parent: {
+            select: {
+              hideBranding: true,
+            },
+          },
+        },
+      })
+    : null;
+
+  const organizationIdForBranding = teamForBranding?.parentId
+    ? teamForBranding.parentId
+    : (
+        await prisma.profile.findFirst({
+          where: { userId: booking.userId ?? undefined },
+          select: { organizationId: true },
+        })
+      )?.organizationId ?? null;
+
+  // Fetch user data for branding when there's no team
+  const userForBranding =
+    !booking.eventType?.teamId && booking.userId
+      ? await prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        })
+      : null;
+
+  const eventTypeId = booking.eventType?.id ?? booking.eventTypeId ?? null;
+  const hideBranding = eventTypeId
     ? await shouldHideBrandingForEvent({
-        eventTypeId: booking.eventType.id,
-        team: booking.eventType.team
-          ? {
-              hideBranding: booking.eventType.team.hideBranding,
-              parent: booking.eventType.team.parent
-                ? {
-                    hideBranding: booking.eventType.team.parent.hideBranding,
-                  }
-                : null,
-            }
-          : null,
-        owner: booking.eventType.owner
-          ? {
-              id: booking.eventType.owner.id,
-              hideBranding: booking.eventType.owner.hideBranding,
-            }
-          : null,
-        organizationId: booking.eventType.team?.parentId || null,
-      }).catch(() => {
-        // Fallback to simple logic if comprehensive check fails
-        return !!booking.eventType?.owner?.hideBranding;
+        eventTypeId,
+        team: (teamForBranding as any) ?? null,
+        owner: userForBranding,
+        organizationId: organizationIdForBranding,
       })
     : false;
 
-  log.debug("Emails: Sending booking requested emails");
-
-  await sendOrganizerRequestEmail({ ...evt }, booking?.eventType?.metadata as EventTypeMetadata);
+  await sendOrganizerRequestEmail(
+    { ...evt, hideBranding } as any,
+    booking?.eventType?.metadata as EventTypeMetadata
+  );
   await sendAttendeeRequestEmailAndSMS(
     { ...evt },
+    { ...evt, hideBranding } as any,
     evt.attendees[0],
     booking?.eventType?.metadata as EventTypeMetadata
   );
@@ -136,21 +161,25 @@ export async function handleBookingRequested(args: {
 
     const workflows = await getAllWorkflowsFromEventType(booking.eventType, booking.userId);
     if (workflows.length > 0) {
-      await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
-        workflows,
-        smsReminderNumber: booking.smsReminderNumber,
-        hideBranding: hideBranding,
-        calendarEvent: {
-          ...evt,
-          bookerUrl: evt.bookerUrl as string,
-          eventType: {
-            slug: evt.type,
-            hosts: booking.eventType?.hosts,
-            schedulingType: evt.schedulingType,
+      try {
+        await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+          workflows,
+          smsReminderNumber: booking.smsReminderNumber,
+          hideBranding,
+          calendarEvent: {
+            ...evt,
+            bookerUrl: evt.bookerUrl as string,
+            eventType: {
+              slug: evt.type,
+              hosts: booking.eventType?.hosts,
+              schedulingType: evt.schedulingType,
+            },
           },
-        },
-        triggers: [WorkflowTriggerEvents.BOOKING_REQUESTED],
-      });
+          triggers: [WorkflowTriggerEvents.BOOKING_REQUESTED],
+        });
+      } catch (error) {
+        log.error("Error scheduling workflows", safeStringify(error));
+      }
     }
   } catch (error) {
     // Silently fail

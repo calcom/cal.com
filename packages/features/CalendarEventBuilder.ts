@@ -261,14 +261,11 @@ export class CalendarEventBuilder {
   }
 
   withOneTimePassword(oneTimePassword?: string | null) {
-    this.event = {
-      ...this.event,
-      oneTimePassword,
-    };
+    this.event.oneTimePassword = oneTimePassword;
     return this;
   }
 
-  withHideBranding(hideBranding?: boolean) {
+  withBranding(hideBranding?: boolean) {
     this.event = {
       ...this.event,
       hideBranding,

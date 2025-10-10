@@ -390,7 +390,7 @@ async function handler(input: CancelBookingInput) {
         },
       },
     },
-    hideBranding: hideBranding,
+    hideBranding,
   });
 
   let updatedBookings: {

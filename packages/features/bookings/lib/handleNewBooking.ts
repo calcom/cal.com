@@ -451,6 +451,22 @@ async function handler(
   });
 
   // Calculate hide branding setting using comprehensive logic that considers team and organization settings
+  // For user events, fetch the user's profile to get the organization ID
+  const userOrganizationId = !eventType.team
+    ? (
+        await prisma.profile.findFirst({
+          where: {
+            userId: eventType.owner?.id,
+          },
+          select: {
+            organizationId: true,
+          },
+        })
+      )?.organizationId
+    : null;
+  
+  const orgIdForBranding = eventType.team?.parentId ?? userOrganizationId ?? null;
+  
   const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType.id,
     team: eventType.team
@@ -469,7 +485,7 @@ async function handler(
           hideBranding: eventType.owner.hideBranding,
         }
       : null,
-    organizationId: eventType.team?.parentId || null,
+    organizationId: orgIdForBranding,
   });
 
   const bookingDataSchema = bookingDataSchemaGetter({
@@ -1315,7 +1331,7 @@ async function handler(
       platformCancelUrl,
       platformBookingUrl,
     })
-    .withHideBranding(hideBranding)
+    .withBranding(hideBranding)
     .build();
 
   if (!builtEvt) {

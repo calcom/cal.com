@@ -171,6 +171,7 @@ const handleMarkNoShow = async ({
               },
               owner: {
                 select: {
+                  id: true,
                   hideBranding: true,
                   email: true,
                   name: true,
@@ -218,8 +219,26 @@ const handleMarkNoShow = async ({
       });
 
       // Calculate hide branding setting using comprehensive logic that considers team and organization settings
-      const hideBranding = booking?.eventType?.id
-        ? await shouldHideBrandingForEvent({
+      let hideBranding = false;
+      if (booking?.eventType?.id) {
+        try {
+          // For user events, fetch the user's profile to get the organization ID
+          const userOrganizationId = !booking.eventType.team
+            ? (
+                await prisma.profile.findFirst({
+                  where: {
+                    userId: booking.eventType.owner?.id,
+                  },
+                  select: {
+                    organizationId: true,
+                  },
+                })
+              )?.organizationId
+            : null;
+          
+          const orgIdForBranding = booking.eventType.team?.parentId ?? userOrganizationId ?? null;
+          
+          hideBranding = await shouldHideBrandingForEvent({
             eventTypeId: booking.eventType.id,
             team: booking.eventType.team
               ? {
@@ -233,13 +252,17 @@ const handleMarkNoShow = async ({
               : null,
             owner: booking.eventType.owner
               ? {
-                  id: 0, // Owner ID not available in this query
+                  id: booking.eventType.owner.id,
                   hideBranding: booking.eventType.owner.hideBranding,
                 }
               : null,
-            organizationId: booking.eventType.team?.parentId || null,
-          })
-        : false;
+            organizationId: orgIdForBranding ?? null,
+          });
+        } catch (error) {
+          logger.error("Failed to compute hideBranding for no-show workflow", error);
+          hideBranding = false;
+        }
+      }
 
       if (booking?.eventType) {
         const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
@@ -280,7 +303,7 @@ const handleMarkNoShow = async ({
               : booking.user?.destinationCalendar
               ? [booking.user?.destinationCalendar]
               : [];
-            const team = !!booking.eventType?.team
+            const team = booking.eventType?.team
               ? {
                   name: booking.eventType.team.name,
                   id: booking.eventType.team.id,

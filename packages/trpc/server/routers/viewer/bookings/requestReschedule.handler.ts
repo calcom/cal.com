@@ -228,7 +228,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
-    team: !!bookingToReschedule.eventType?.team
+    team: bookingToReschedule.eventType?.team
       ? {
           name: bookingToReschedule.eventType.team.name,
           id: bookingToReschedule.eventType.team.id,
@@ -240,7 +240,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const director = new CalendarEventDirector();
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
-  cancellationReason && director.setCancellationReason(cancellationReason);
+  if (cancellationReason) {
+    director.setCancellationReason(cancellationReason);
+  }
   if (Object.keys(event).length) {
     // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
     await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });
@@ -292,6 +294,22 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
 
+  // For user events, fetch the user's profile to get the organization ID
+  const userOrganizationId = !bookingToReschedule.eventType?.team
+    ? (
+        await prisma.profile.findFirst({
+          where: {
+            userId: bookingToReschedule.userId,
+          },
+          select: {
+            organizationId: true,
+          },
+        })
+      )?.organizationId
+    : null;
+  
+  const computedOrgId = bookingToReschedule.eventType?.team?.parentId ?? userOrganizationId ?? null;
+
   const hideBranding = bookingToReschedule.eventType?.id
     ? await shouldHideBrandingForEvent({
         eventTypeId: bookingToReschedule.eventType.id,
@@ -311,8 +329,11 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
               hideBranding: bookingToReschedule.eventType.owner.hideBranding,
             }
           : null,
-        organizationId: bookingToReschedule.eventType.team?.parentId || null,
-      }).catch(() => !!bookingToReschedule.eventType?.owner?.hideBranding)
+        organizationId: computedOrgId,
+      }).catch((e) => {
+        log.warn("shouldHideBrandingForEvent failed; falling back to owner.hideBranding", { bookingId, error: e instanceof Error ? e.message : String(e) });
+        return !!bookingToReschedule.eventType?.owner?.hideBranding;
+      })
     : false;
 
   builder.calendarEvent.hideBranding = hideBranding;

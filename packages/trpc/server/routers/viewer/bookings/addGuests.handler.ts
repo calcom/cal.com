@@ -31,8 +31,26 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     where: {
       id: bookingId,
     },
-    include: {
-      attendees: true,
+    select: {
+      id: true,
+      uid: true,
+      title: true,
+      description: true,
+      startTime: true,
+      endTime: true,
+      userPrimaryEmail: true,
+      userId: true,
+      location: true,
+      responses: true,
+      attendees: { 
+        select: { 
+          id: true, 
+          name: true, 
+          email: true, 
+          timeZone: true, 
+          locale: true 
+        } 
+      },
       eventType: {
         select: {
           id: true,
@@ -67,9 +85,12 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       destinationCalendar: true,
       references: true,
       user: {
-        include: {
+        select: {
+          name: true,
+          email: true,
+          timeZone: true,
+          locale: true,
           destinationCalendar: true,
-          credentials: true,
         },
       },
     },
@@ -245,7 +266,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   try {
     await sendAddGuestsEmails(evt, guests);
-  } catch (err) {
+  } catch {
     console.log("Error sending AddGuestsEmails");
   }
 

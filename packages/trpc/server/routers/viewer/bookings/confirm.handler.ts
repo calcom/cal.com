@@ -146,6 +146,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   });
 
   // Calculate hide branding setting using comprehensive logic that considers team and organization settings
+  // For user events, fetch the user's profile to get the organization ID
+  const userOrganizationId = !booking.eventType?.team
+    ? (
+        await prisma.profile.findFirst({
+          where: {
+            userId: booking.userId,
+          },
+          select: {
+            organizationId: true,
+          },
+        })
+      )?.organizationId
+    : null;
+  
+  const orgIdForBranding = booking.eventType?.team?.parentId ?? userOrganizationId ?? null;
+  
   const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: booking.eventType?.id || 0,
     team: booking.eventType?.team
@@ -164,7 +180,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           hideBranding: booking.eventType.owner.hideBranding,
         }
       : null,
-    organizationId: booking.eventType?.team?.parentId || null,
+    organizationId: orgIdForBranding,
   });
 
   await checkIfUserIsAuthorizedToConfirmBooking({
@@ -268,7 +284,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
-    team: !!booking.eventType?.team
+    team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
           id: booking.eventType.team.id,
@@ -357,7 +373,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     } else {
       // handle refunds
-      if (!!booking.payment.length) {
+      if (booking.payment.length) {
         await processPaymentRefund({
           booking: booking,
           teamId: booking.eventType?.teamId,
@@ -380,6 +396,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
     }
 
+    // send BOOKING_REJECTED webhooks
     const teamId = await getTeamIdFromEventType({
       eventType: {
         team: { id: booking.eventType?.teamId ?? null },
@@ -389,7 +406,57 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
-    // send BOOKING_REJECTED webhooks
+    const eventTypeIdForBranding = booking.eventTypeId ?? null;
+    let hideBranding = false;
+    let userForBranding: { id: number; hideBranding: boolean | null } | null = null;
+    let fullEventType: {
+      team: {
+        id: number | null;
+        hideBranding: boolean | null;
+        parentId: number | null;
+        parent: { hideBranding: boolean | null } | null;
+      } | null;
+      teamId: number | null;
+    } | null = null;
+
+    if (eventTypeIdForBranding) {
+      fullEventType = await prisma.eventType.findUnique({
+        where: { id: eventTypeIdForBranding },
+        select: {
+          team: {
+            select: {
+              id: true,
+              hideBranding: true,
+              parentId: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
+          teamId: true,
+        },
+      });
+
+      if (!fullEventType?.teamId && booking.userId) {
+        userForBranding = await prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        });
+      }
+
+      hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId: eventTypeIdForBranding,
+        team: fullEventType?.team ?? null,
+        owner: userForBranding,
+        organizationId: orgId ?? null,
+      });
+    }
+
     const subscriberOptions: GetSubscriberOptions = {
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
@@ -430,7 +497,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: hideBranding,
+        hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
       });
     } catch (error) {
@@ -442,7 +509,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
   }
 
-  const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
+  const message = `Booking ${confirmed ? "confirmed" : "rejected"}`;
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };

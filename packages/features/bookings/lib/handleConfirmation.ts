@@ -1,5 +1,4 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
@@ -13,7 +12,6 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
@@ -86,7 +84,7 @@ export async function handleConfirmation(args: {
     paid,
     emailsEnabled = true,
     platformClientParams,
-    hideBranding = false,
+    hideBranding: _hideBranding = false,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -98,7 +96,6 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
-  // Compute hideBranding early for use in confirmation emails
   const teamId = await getTeamIdFromEventType({
     eventType: {
       team: { id: eventType?.teamId ?? null },
@@ -109,10 +106,11 @@ export async function handleConfirmation(args: {
   const userId = triggerForUser ? booking.userId : null;
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
+  const eventTypeId = eventType?.id ?? booking.eventTypeId ?? null;
   // Fetch full event type data for hideBranding logic
-  const fullEventType = eventType?.id
+  const fullEventType = eventTypeId
     ? await prisma.eventType.findUnique({
-        where: { id: eventType.id },
+        where: { id: eventTypeId },
         select: {
           id: true,
           team: {
@@ -132,12 +130,24 @@ export async function handleConfirmation(args: {
       })
     : null;
 
-  const calculatedHideBranding = await shouldHideBrandingForEvent({
-    eventTypeId: eventType?.id ?? 0,
-    team: fullEventType?.team ?? null,
-    owner: user ?? null,
-    organizationId: orgId ?? null,
-  });
+    const userForBranding = !fullEventType?.teamId && booking.userId
+      ? await prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        })
+      : null;
+
+    const calculatedHideBranding = eventTypeId
+        ? await shouldHideBrandingForEvent({
+            eventTypeId,
+            team: fullEventType?.team ?? null,
+            owner: userForBranding,
+            organizationId: orgId ?? null,
+          })
+        : false;
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -176,7 +186,7 @@ export async function handleConfirmation(args: {
 
       if (emailsEnabled) {
         await sendScheduledEmailsAndSMS(
-          { ...evt, additionalInformation: metadata, hideBranding: calculatedHideBranding },
+          ({ ...evt, additionalInformation: metadata, hideBranding: calculatedHideBranding } as any),
           undefined,
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,
@@ -405,10 +415,10 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
-  const bookerUrl = await getBookerBaseUrl(orgId ?? null);
-
   //Workflows - set reminders for confirmed events
-  try {
+  if (workflows.length > 0) {
+    const _isFirstBooking = !recurringEvent || !recurringEvent.count;
+
     for (let index = 0; index < updatedBookings.length; index++) {
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
       const evtOfBooking = {
@@ -425,10 +435,10 @@ export async function handleConfirmation(args: {
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
-      const isFirstBooking = index === 0;
+      const _isFirstBooking = index === 0;
 
       if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
-        await scheduleMandatoryReminder({
+        await WorkflowService.scheduleWorkflowReminders({
           evt: evtOfBooking,
           workflows,
           requiresConfirmation: false,
@@ -442,15 +452,12 @@ export async function handleConfirmation(args: {
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
-        hideBranding: hideBranding,
+        hideBranding: calculatedHideBranding,
         isConfirmedByDefault: true,
-        isNormalBookingOrFirstRecurringSlot: isFirstBooking,
+        isNormalBookingOrFirstRecurringSlot: _isFirstBooking,
         isRescheduleEvent: false,
       });
     }
-  } catch (error) {
-    // Silently fail
-    console.error(error);
   }
 
   try {

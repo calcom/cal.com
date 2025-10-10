@@ -16,6 +16,7 @@ import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import logger from "@calcom/lib/logger";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
@@ -359,7 +360,10 @@ const handleDeleteCredential = async ({
                       }
                     : null,
                   organizationId: orgId ?? null,
-                }).catch(() => !!booking.eventType?.owner?.hideBranding)
+                }).catch((error) => {
+                  logger.error("Error computing hideBranding for booking", booking.id, error);
+                  return !!booking.eventType?.owner?.hideBranding;
+                })
               : false;
 
             await sendCancelledEmailsAndSMS(
