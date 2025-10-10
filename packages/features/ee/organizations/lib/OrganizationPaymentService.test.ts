@@ -42,7 +42,7 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-vi.mock("@calcom/features/ee/billing/stripe-billling-service", () => ({
+vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => ({
   StripeBillingService: vi.fn().mockImplementation(() => ({
     createCustomer: vi.fn().mockResolvedValue({ id: "mock_customer_id" }),
     createPrice: vi.fn().mockResolvedValue({ id: "mock_price_id", isCustom: false }),
