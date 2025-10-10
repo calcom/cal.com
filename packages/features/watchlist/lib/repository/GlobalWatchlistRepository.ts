@@ -113,7 +113,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   }
 
   async deleteEntry(id: string): Promise<void> {
-    await this.prisma.watchlist.delete({
+    this.prisma.watchlist.delete({
       where: {
         id,
         organizationId: null,
