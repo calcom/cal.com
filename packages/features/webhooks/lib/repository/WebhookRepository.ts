@@ -52,6 +52,15 @@ const filterWebhooks = (webhook: Webhook) => {
 export class WebhookRepository implements IWebhookRepository {
   constructor(private prisma: PrismaClient = defaultPrisma) {}
 
+  private static _instance: WebhookRepository;
+
+  static getInstance(): WebhookRepository {
+    if (!WebhookRepository._instance) {
+      WebhookRepository._instance = new WebhookRepository();
+    }
+    return WebhookRepository._instance;
+  }
+
   async getSubscribers(options: GetSubscribersOptions): Promise<WebhookSubscriber[]> {
     const teamId = options.teamId;
     const userId = options.userId;
@@ -231,8 +240,8 @@ export class WebhookRepository implements IWebhookRepository {
     };
   }
 
-  static async findByWebhookId(webhookId?: string) {
-    return await defaultPrisma.webhook.findUniqueOrThrow({
+  async findByWebhookId(webhookId?: string) {
+    return await this.prisma.webhook.findUniqueOrThrow({
       where: {
         id: webhookId,
       },
@@ -252,14 +261,8 @@ export class WebhookRepository implements IWebhookRepository {
     });
   }
 
-  static async getFilteredWebhooksForUser({
-    userId,
-    userRole,
-  }: {
-    userId: number;
-    userRole?: UserPermissionRole;
-  }) {
-    const user = await defaultPrisma.user.findUnique({
+  async getFilteredWebhooksForUser({ userId, userRole }: { userId: number; userRole?: UserPermissionRole }) {
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
@@ -363,7 +366,7 @@ export class WebhookRepository implements IWebhookRepository {
 
     // Add platform webhooks for admins
     if (userRole === UserPermissionRole.ADMIN) {
-      const platformWebhooks = await defaultPrisma.webhook.findMany({
+      const platformWebhooks = await this.prisma.webhook.findMany({
         where: { platform: true },
       });
 
@@ -394,6 +397,6 @@ export class WebhookRepository implements IWebhookRepository {
 }
 
 export const webhookRepository = withReporting(
-  (options: GetSubscribersOptions) => new WebhookRepository().getSubscribers(options),
+  (options: GetSubscribersOptions) => WebhookRepository.getInstance().getSubscribers(options),
   "WebhookRepository.getSubscribers"
 );

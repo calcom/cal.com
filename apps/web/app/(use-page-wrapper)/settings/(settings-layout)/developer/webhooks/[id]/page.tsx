@@ -20,7 +20,8 @@ const Page = async ({ params: _params }: PageProps) => {
   const params = await _params;
   const id = typeof params?.id === "string" ? params.id : undefined;
 
-  const webhook = await WebhookRepository.findByWebhookId(id);
+  const webhookRepository = WebhookRepository.getInstance();
+  const webhook = await webhookRepository.findByWebhookId(id);
 
   return (
     <SettingsHeader
