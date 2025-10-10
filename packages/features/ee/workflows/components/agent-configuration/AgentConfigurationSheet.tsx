@@ -99,6 +99,7 @@ export function AgentConfigurationSheet({
       beginMessage: data.beginMessage,
       language: data.language as Language,
       voiceId: data.voiceId,
+      outboundEventTypeId: data.eventTypeId,
     };
 
     await updateAgentMutation.mutateAsync({
@@ -146,7 +147,12 @@ export function AgentConfigurationSheet({
           </SheetHeader>
           <SheetBody className="px-0">
             {activeTab === "outgoingCalls" && (
-              <OutgoingCallsTab outboundAgentForm={outboundAgentForm} readOnly={readOnly} />
+              <OutgoingCallsTab
+                outboundAgentForm={outboundAgentForm}
+                readOnly={readOnly}
+                eventTypeOptions={eventTypeOptions}
+                trigger={form.watch("trigger")}
+              />
             )}
 
             {activeTab === "phoneNumber" && (
@@ -241,6 +247,8 @@ export function AgentConfigurationSheet({
           teamId={teamId}
           isOrganization={isOrganization}
           form={form}
+          eventTypeOptions={eventTypeOptions}
+          outboundEventTypeId={agentData?.outboundEventTypeId}
         />
       )}
 

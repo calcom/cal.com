@@ -1,4 +1,3 @@
-import { FORM_TRIGGER_WORKFLOW_EVENTS } from "@calcom/ee/workflows/lib/constants";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
