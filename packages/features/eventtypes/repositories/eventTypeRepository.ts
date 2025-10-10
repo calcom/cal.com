@@ -1,5 +1,10 @@
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
@@ -10,12 +15,6 @@ import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/pris
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
-
-import { safeStringify } from "../../safeStringify";
-import { eventTypeSelect } from "../eventTypeSelect";
-import { MembershipRepository } from "./membership";
-import type { UserWithLegacySelectedCalendars } from "./user";
-import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 
