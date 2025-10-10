@@ -131,7 +131,7 @@ describe("excludeOrRequireEmailSchema", () => {
       expect(result.success).toBe(true);
     });
 
-    it("should accept single character TLD", () => {
+    it("should accept domain with single-character intermediate label", () => {
       const result = excludeOrRequireEmailSchema.safeParse("example.c.om");
       expect(result.success).toBe(true);
     });
