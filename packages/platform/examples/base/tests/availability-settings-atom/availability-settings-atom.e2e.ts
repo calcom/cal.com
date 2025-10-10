@@ -10,6 +10,7 @@ async function selectOption(page: Page, optionNumber: number) {
 
 test("availability page loads with all components", async ({ page }) => {
   await page.goto("/availability");
+  await page.reload();
 
   await expect(page).toHaveURL("/availability");
 

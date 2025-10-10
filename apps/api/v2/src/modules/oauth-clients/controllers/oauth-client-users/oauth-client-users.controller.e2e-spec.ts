@@ -825,6 +825,11 @@ describe("OAuth Client Users Endpoints", () => {
         console.log(e);
       }
       try {
+        await userRepositoryFixture.delete(postResponseDataTwo.user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      try {
         await userRepositoryFixture.delete(platformAdmin.id);
       } catch (e) {
         console.log(e);

@@ -28,7 +28,6 @@ async function createUserWithDefaultSchedule(email: string, name: string, avatar
         "Content-Type": "application/json",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
-        origin: "http://localhost:4321",
       },
       body: JSON.stringify({
         email,
@@ -152,7 +151,6 @@ async function createTeam(orgId: number, name: string) {
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
-        origin: "http://localhost:4321",
       },
       body: JSON.stringify({
         name,
@@ -177,7 +175,6 @@ async function createOrgTeamMembershipMember(orgId: number, teamId: number, user
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
-        origin: "http://localhost:4321",
       },
       body: JSON.stringify({
         userId,
@@ -200,7 +197,6 @@ async function createOrgMembershipAdmin(orgId: number, userId: number) {
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
-        origin: "http://localhost:4321",
       },
       body: JSON.stringify({
         userId,
@@ -223,7 +219,6 @@ async function createCollectiveEventType(orgId: number, teamId: number, userIds:
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
-        origin: "http://localhost:4321",
       },
       body: JSON.stringify({
         lengthInMinutes: 60,
@@ -248,7 +243,6 @@ async function createRoundRobinEventType(orgId: number, teamId: number, userIds:
         [X_CAL_SECRET_KEY]: process.env.X_CAL_SECRET_KEY ?? "",
         // eslint-disable-next-line turbo/no-undeclared-env-vars
         [X_CAL_CLIENT_ID]: process.env.NEXT_PUBLIC_X_CAL_ID ?? "",
-        origin: "http://localhost:4321",
       },
       body: JSON.stringify({
         lengthInMinutes: 60,
