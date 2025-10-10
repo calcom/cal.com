@@ -6,8 +6,6 @@
  *
  * CrmService.test.ts could still focus on testing detailed edge cases as needed.
  */
-import "../../../../../tests/libs/__mocks__/prisma";
-
 import jsforce from "@jsforce/jsforce-node";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
