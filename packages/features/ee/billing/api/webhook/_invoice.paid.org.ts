@@ -111,7 +111,6 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       // TODO: Write actual status when webhook events are added
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.ORGANIZATION,
-      // Stripe returns time in unix seconds but new Date() expects milliseconds
       subscriptionStart,
     });
 

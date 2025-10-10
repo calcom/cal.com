@@ -70,7 +70,6 @@ async function handler(request: NextRequest) {
         // TODO: Implement true subscription status when webhook events are implemented
         status: SubscriptionStatus.ACTIVE,
         planName: Plan.TEAM,
-        // Stripe returns time in unix seconds but new Date() expects milliseconds
         subscriptionStart,
       });
     }
