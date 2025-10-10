@@ -6,7 +6,7 @@ import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-book
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
-import { EventRepository } from "@calcom/lib/server/repository/event";
+import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
