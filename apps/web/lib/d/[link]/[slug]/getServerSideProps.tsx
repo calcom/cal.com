@@ -7,7 +7,7 @@ import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/featu
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
+import { shouldHideBrandingForTeamEvent, shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";

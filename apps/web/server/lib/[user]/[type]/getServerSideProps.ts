@@ -8,7 +8,7 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { shouldHideBrandingForUserEvent } from "@calcom/lib/hideBranding";
+import { shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
