@@ -39,6 +39,7 @@ import { OrganizationsMembershipRepository } from "@/modules/organizations/membe
 import { OrganizationsMembershipOutputService } from "@/modules/organizations/memberships/services/organizations-membership-output.service";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { OrganizationsOrganizationsModule } from "@/modules/organizations/organizations/organizations-organizations.module";
+import { OrganizationsRolesModule } from "@/modules/organizations/roles/organizations-roles.module";
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
 import { OrganizationsStripeModule } from "@/modules/organizations/stripe/organizations-stripe.module";
@@ -46,8 +47,8 @@ import { OrganizationsStripeService } from "@/modules/organizations/stripe/servi
 import { OrganizationsTeamsController } from "@/modules/organizations/teams/index/organizations-teams.controller";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
-import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsInviteController } from "@/modules/organizations/teams/invite/organizations-teams-invite.controller";
+import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
@@ -95,6 +96,7 @@ import { Module } from "@nestjs/common";
     TeamsModule,
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
+    OrganizationsRolesModule,
     OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
     MembershipsModule,

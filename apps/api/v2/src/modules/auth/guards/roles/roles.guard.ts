@@ -7,8 +7,6 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger }
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 
-import type { Team } from "@calcom/prisma/client";
-
 @Injectable()
 export class RolesGuard implements CanActivate {
   private readonly logger = new Logger("RolesGuard Logger");
@@ -19,7 +17,13 @@ export class RolesGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { team: Team }>();
+    const request = context.switchToHttp().getRequest<Request & { pbacAuthorizedRequest?: boolean }>();
+
+    if (request.pbacAuthorizedRequest === true) {
+      this.logger.debug("PBAC authorized request, skipping legacy role checking");
+      return true;
+    }
+
     const teamId = request.params.teamId as string;
     const orgId = request.params.orgId as string;
     const user = request.user as ApiAuthGuardUser;
@@ -82,7 +86,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // Checking the role of the user within the organization
-    else if (Boolean(orgId) && !Boolean(teamId)) {
+    else if (Boolean(orgId) && !teamId) {
       const membership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the organization (${orgId}), denying access.`);
@@ -101,7 +105,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // Checking the role of the user within the team
-    else if (Boolean(teamId) && !Boolean(orgId)) {
+    else if (Boolean(teamId) && !orgId) {
       const membership = await this.membershipRepository.findMembershipByTeamId(Number(teamId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the team (${teamId}), denying access.`);

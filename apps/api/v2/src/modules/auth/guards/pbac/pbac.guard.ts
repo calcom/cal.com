@@ -15,7 +15,6 @@ import { Request } from "express";
 
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 import { PermissionCheckService, FeaturesRepository } from "@calcom/platform-libraries/pbac";
-import type { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class PbacGuard implements CanActivate {
@@ -26,7 +25,7 @@ export class PbacGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request & { team: Team }>();
+    const request = context.switchToHttp().getRequest<Request & { pbacAuthorizedRequest?: boolean }>();
     const user = request.user as ApiAuthGuardUser;
     const teamId = request.params.teamId;
     const orgId = request.params.orgId;
@@ -40,7 +39,14 @@ export class PbacGuard implements CanActivate {
         "PbacGuard - can't check pbac because no teamId provided within the request url"
       );
     }
+
+    if (!requiredPermissions || requiredPermissions.length === 0) {
+      request.pbacAuthorizedRequest = false;
+      return true;
+    }
+
     if (!this.hasPbacEnabled(Number(teamId))) {
+      request.pbacAuthorizedRequest = false;
       return true;
     }
 
@@ -54,6 +60,7 @@ export class PbacGuard implements CanActivate {
       this.throwForbiddenError(user.id, teamId, orgId, requiredPermissions);
     }
 
+    request.pbacAuthorizedRequest = true;
     return true;
   }
 
