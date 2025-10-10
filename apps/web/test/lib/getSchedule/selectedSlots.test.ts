@@ -260,7 +260,7 @@ describe("getSchedule", () => {
       expect(slot?.attendees).toBe(1);
     });
 
-    test("should block slots even when reservation is for a different event type", async () => {
+    test("should NOT block slots when reservation is for a different event type", async () => {
       // In IST timezone, it is 2024-05-31T07:00:00
       vi.setSystemTime("2024-05-31T01:30:00Z");
       const yesterdayDateString = "2024-05-30";
@@ -303,10 +303,10 @@ describe("getSchedule", () => {
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
       });
 
-      // The 4:00 slot should still be unavailable even when the reservation is for a different event type
+      // The 4:00 slot SHOULD be available because the reservation is for a different event type
       expect(schedule).toHaveTimeSlots(
         [
-          // "04:00:00.000Z",
+          "04:00:00.000Z",
           "04:45:00.000Z",
           "05:30:00.000Z",
           "06:15:00.000Z",
