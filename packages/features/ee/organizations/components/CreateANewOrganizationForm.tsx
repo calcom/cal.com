@@ -10,9 +10,7 @@ import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomain
 import { MINIMUM_NUMBER_OF_ORG_SEATS, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { CreationSource } from "@calcom/prisma/enums";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { BillingPeriod } from "@calcom/prisma/zod-utils";
+import { BillingPeriod, CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
