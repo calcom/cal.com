@@ -6,6 +6,7 @@ import type { z } from "zod";
 import { ZodError } from "zod";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { phoneFieldService } from "@calcom/features/bookings/lib/phone-fields";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -85,6 +86,7 @@ export const FormBuilder = function FormBuilder({
   showPriceField,
   paymentCurrency = "USD",
   showPhoneAndEmailToggle = false,
+  workflows = [],
 }: {
   formProp: string;
   title: string;
@@ -93,6 +95,7 @@ export const FormBuilder = function FormBuilder({
   disabled: boolean;
   LockedIcon: false | JSX.Element;
   showPhoneAndEmailToggle?: boolean;
+  workflows?: readonly import("@calcom/features/ee/workflows/lib/getWorkflowActionOptions").WorkflowDataForBookingField[];
   /**
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
@@ -111,7 +114,7 @@ export const FormBuilder = function FormBuilder({
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const { t } = useLocale();
 
-  const { fields, swap, remove, update, append } = useFieldArray({
+  const { fields, swap, remove, update, append, replace } = useFieldArray({
     control: fieldsForm.control,
     // HACK: It allows any property name to be used for instead of `fields` property name
     name: formProp as unknown as "fields",
@@ -179,6 +182,7 @@ export const FormBuilder = function FormBuilder({
               onValueChange={(value) => {
                 const phoneFieldIndex = fields.findIndex((field) => field.name === "attendeePhoneNumber");
                 const emailFieldIndex = fields.findIndex((field) => field.name === "email");
+                
                 if (value === "email") {
                   update(emailFieldIndex, {
                     ...fields[emailFieldIndex],
@@ -191,16 +195,11 @@ export const FormBuilder = function FormBuilder({
                     required: false,
                   });
                 } else if (value === "phone") {
-                  update(emailFieldIndex, {
-                    ...fields[emailFieldIndex],
-                    hidden: true,
-                    required: false,
-                  });
-                  update(phoneFieldIndex, {
-                    ...fields[phoneFieldIndex],
-                    hidden: false,
-                    required: true,
-                  });
+                  // Use phoneFieldService to handle unified field logic when workflows are present
+                  const updatedFields = phoneFieldService.handlePhoneToggle(fields, workflows, "phone");
+                  
+                  // Replace all fields with the updated ones
+                  replace(updatedFields);
                 }
               }}
             />
