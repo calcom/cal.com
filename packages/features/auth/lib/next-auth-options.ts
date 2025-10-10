@@ -918,7 +918,13 @@ export const getOptions = ({
               name: user.name,
             });
             const username = existingUserWithUsername ? usernameSlugRandom(user.name) : _username;
-            const utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
+
+            let utmParams;
+            try {
+              utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
+            } catch {
+              utmParams = {};
+            }
 
             // const username = getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email));
             await prisma.user.update({
