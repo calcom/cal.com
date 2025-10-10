@@ -5,7 +5,7 @@ import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import prisma from "@calcom/prisma";
 
-import { handleAutoLock } from "../autoLock";
+import { handleAutoLock } from "./autoLock";
 
 // Mock the dependencies
 vi.mock("@calcom/features/redis/RedisService");
