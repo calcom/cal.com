@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
@@ -203,15 +204,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let isOrg = false;
   const stepsEnum = z.enum(STEPS);
   const parsedAppSlug = z.coerce.string().parse(query?.slug);
-  const parsedStepParam = z.coerce.string().parse(params?.step);
+  const stepSegments = Array.isArray(params?.step) ? params?.step : params?.step ? [params?.step] : [];
+  const parsedStepParam = z.string().optional().parse(stepSegments[0]);
   const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
-  const _ = stepsEnum.parse(parsedStepParam);
   const session = await getServerSession({ req });
   if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
   const locale = await getLocale(context.req);
   const app = await getAppBySlug(parsedAppSlug);
   if (!app) return { redirect: { permanent: false, destination: "/apps" } };
   const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
+  if (!appMetadata) return { redirect: { permanent: false, destination: "/apps" } };
+
   const extendsEventType = appMetadata?.extendsFeature === "EventType";
 
   const isConferencing = isConferencingApp(appMetadata.categories);
@@ -222,6 +225,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   let userTeams = user.teams;
   const hasTeams = Boolean(userTeams.length);
+
+  let initialStep = parsedStepParam;
+  if (!hasTeams && parsedStepParam === AppOnboardingSteps.ACCOUNTS_STEP && showEventTypesStep) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `/apps/installation/event-types?slug=${parsedAppSlug}`,
+      },
+    };
+  } else if (!parsedStepParam) {
+    initialStep = hasTeams ? AppOnboardingSteps.ACCOUNTS_STEP : AppOnboardingSteps.EVENT_TYPES_STEP;
+  }
+
+  try {
+    stepsEnum.parse(initialStep);
+  } catch (error) {
+    return { redirect: { permanent: false, destination: "/apps" } };
+  }
 
   if (parsedTeamIdParam) {
     const currentTeam = userTeams.find((team) => team.id === parsedTeamIdParam);
@@ -235,7 +256,54 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
+  const appInstalls = await getAppInstallsBySlug(
+    parsedAppSlug,
+    user.id,
+    userTeams.map(({ id }) => id)
+  );
+
+  const personalAccount = {
+    id: user.id,
+    name: user.name,
+    avatarUrl: user.avatarUrl,
+    alreadyInstalled: appInstalls.some((install) => !install.teamId && install.userId === user.id),
+  };
+
+  let credentialId: number | null = null;
+  if (!hasTeams && initialStep === AppOnboardingSteps.EVENT_TYPES_STEP) {
+    if (!personalAccount.alreadyInstalled) {
+      try {
+        const newCredential = await createDefaultInstallation({
+          appType: appMetadata.type,
+          user: { id: user.id },
+          slug: parsedAppSlug,
+          key: {},
+          teamId: undefined,
+        });
+        credentialId = newCredential.id;
+        console.log(`Auto-installed ${parsedAppSlug} for user ${user.id} (personal account - no teams)`);
+      } catch (error) {
+        console.error(`Failed to auto-install app ${parsedAppSlug} for user ${user.id}:`, error);
+        if ((error as any)?.code === "P2002") {
+          const existing = await prisma.credential.findFirst({
+            where: { appId: parsedAppSlug, userId: user.id, teamId: null },
+            select: { id: true },
+          });
+          if (existing?.id) credentialId = existing.id;
+        } else {
+          return { redirect: { permanent: false, destination: "/apps" } };
+        }
+      }
+    } else {
+      credentialId = appInstalls.find((item) => item.userId === user.id)?.id ?? null;
+    }
+  } else if (parsedTeamIdParam) {
+    credentialId = appInstalls.find((item) => item.teamId === parsedTeamIdParam)?.id ?? null;
+  } else {
+    credentialId = appInstalls.find((item) => item.userId === user.id)?.id ?? null;
+  }
+
+  if (initialStep === AppOnboardingSteps.EVENT_TYPES_STEP) {
     if (!showEventTypesStep) {
       return {
         redirect: {
@@ -271,19 +339,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const appInstalls = await getAppInstallsBySlug(
-    parsedAppSlug,
-    user.id,
-    userTeams.map(({ id }) => id)
-  );
-
-  const personalAccount = {
-    id: user.id,
-    name: user.name,
-    avatarUrl: user.avatarUrl,
-    alreadyInstalled: appInstalls.some((install) => !Boolean(install.teamId) && install.userId === user.id),
-  };
-
   const teamsWithIsAppInstalled = hasTeams
     ? userTeams.map((team) => ({
         ...team,
@@ -292,14 +347,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ),
       }))
     : [];
-  let credentialId = null;
-  if (parsedTeamIdParam) {
-    credentialId = appInstalls.find((item) => !!item.teamId && item.teamId == parsedTeamIdParam)?.id ?? null;
-  } else {
-    credentialId = appInstalls.find((item) => !!item.userId && item.userId == user.id)?.id ?? null;
-  }
-  // dont allow app installation without cretendialId
-  if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP && !credentialId) {
+  // dont allow app installation without credentialId
+  if (initialStep === AppOnboardingSteps.EVENT_TYPES_STEP && !credentialId) {
     return { redirect: { permanent: false, destination: "/apps" } };
   }
 
@@ -308,7 +357,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       app,
       appMetadata,
       showEventTypesStep,
-      step: parsedStepParam,
+      step: initialStep,
       teams: teamsWithIsAppInstalled,
       personalAccount,
       eventTypeGroups,
