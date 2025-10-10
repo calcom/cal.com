@@ -158,7 +158,7 @@ describe("Verify API key", () => {
         isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
       },
       orgBlocking: {
-        isEmailBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
+        isBlocked: vi.fn().mockResolvedValue({ isBlocked: false }),
       },
     } as unknown as WatchlistFeature;
     vi.mocked(getWatchlistFeature).mockResolvedValue(mockWatchlistFeature);

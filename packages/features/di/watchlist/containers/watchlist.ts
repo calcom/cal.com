@@ -7,6 +7,12 @@ import {
   createWatchlistFeature,
   type WatchlistFeature,
 } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
+import type { IGlobalWatchlistRepository } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
+import type { IOrganizationWatchlistRepository } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
+import type { AuditService } from "@calcom/features/watchlist/lib/service/AuditService";
+import type { GlobalBlockingService } from "@calcom/features/watchlist/lib/service/GlobalBlockingService";
+import type { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
+import type { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 
 import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
@@ -28,27 +34,31 @@ watchlistContainer.load(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE, watchlistMo
 watchlistContainer.load(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE, watchlistModule);
 
 export function getWatchlistService() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE);
+  return watchlistContainer.get<WatchlistService>(WATCHLIST_DI_TOKENS.WATCHLIST_SERVICE);
 }
 
 export function getGlobalBlockingService() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE);
+  return watchlistContainer.get<GlobalBlockingService>(WATCHLIST_DI_TOKENS.GLOBAL_BLOCKING_SERVICE);
 }
 
 export function getOrganizationBlockingService() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE);
+  return watchlistContainer.get<OrganizationBlockingService>(
+    WATCHLIST_DI_TOKENS.ORGANIZATION_BLOCKING_SERVICE
+  );
 }
 
 export function getAuditService() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.AUDIT_SERVICE);
+  return watchlistContainer.get<AuditService>(WATCHLIST_DI_TOKENS.AUDIT_SERVICE);
 }
 
 export function getGlobalWatchlistRepository() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY);
+  return watchlistContainer.get<IGlobalWatchlistRepository>(WATCHLIST_DI_TOKENS.GLOBAL_WATCHLIST_REPOSITORY);
 }
 
 export function getOrganizationWatchlistRepository() {
-  return watchlistContainer.get(WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY);
+  return watchlistContainer.get<IOrganizationWatchlistRepository>(
+    WATCHLIST_DI_TOKENS.ORGANIZATION_WATCHLIST_REPOSITORY
+  );
 }
 
 export async function getWatchlistFeature(): Promise<WatchlistFeature> {
