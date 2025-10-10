@@ -24,7 +24,7 @@ vi.mock("./getUrlSearchParamsToForward");
 vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/app-store/routing-forms/lib/handleResponse");
 vi.mock("@calcom/lib/server/repository/PrismaRoutingFormRepository");
-vi.mock("@calcom/lib/server/repository/user", () => {
+vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
     UserRepository: vi.fn().mockImplementation(() => ({
       enrichUserWithItsProfile: vi.fn(),
