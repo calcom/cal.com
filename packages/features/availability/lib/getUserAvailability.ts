@@ -68,10 +68,16 @@ export type GetUserAvailabilityInitialData = {
   eventType?: EventType;
   currentSeats?: CurrentSeats;
   rescheduleUid?: string | null;
-  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title" | "status"> & {
     eventType: Pick<
       PrismaEventType,
-      "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+      | "id"
+      | "beforeEventBuffer"
+      | "afterEventBuffer"
+      | "title"
+      | "seatsPerTimeSlot"
+      | "requiresConfirmation"
+      | "requiresConfirmationWillBlockSlot"
     > | null;
     _count?: {
       seatsReferences: number;
@@ -641,9 +647,9 @@ export class UserAvailabilityService {
           // you can obtain that from user availability defined outside of here
           fromUser: { id: user.id, displayName: user.name },
           // optional chaining destructuring toUser
-          toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
-          reason: !!reason ? reason.reason : null,
-          emoji: !!reason ? reason.emoji : null,
+          toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+          reason: reason ? reason.reason : null,
+          emoji: reason ? reason.emoji : null,
         };
       }
 
