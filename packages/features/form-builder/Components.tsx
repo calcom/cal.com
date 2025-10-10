@@ -140,7 +140,7 @@ export const Components: Record<FieldType, Component> = {
             showAsteriskIndicator={true}
             placeholder={variantField.placeholder}
             label={variantField.label}
-            containerClassName="w-full"
+            containerClassName="w-full calcom-input-field"
             readOnly={props.readOnly}
             value={value}
             required={variantField.required}
@@ -170,7 +170,7 @@ export const Components: Record<FieldType, Component> = {
               readOnly={props.readOnly}
               placeholder={variantField.placeholder}
               label={variantField.label}
-              containerClassName={`w-full testid-${variantField.name}`}
+              containerClassName={`w-full calcom-input-field testid-${variantField.name}`}
               value={value[variantField.name as keyof typeof value]}
               required={variantField.required}
               type="text"
@@ -211,6 +211,7 @@ export const Components: Record<FieldType, Component> = {
           type="email"
           id={props.name}
           noLabel={true}
+          containerClassName="calcom-input-field"
           {...props}
           onChange={(e) => props.setValue(e.target.value)}
         />
@@ -321,7 +322,7 @@ export const Components: Record<FieldType, Component> = {
         ...props,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
       };
-      return <Widgets.MultiSelectWidget id={props.name} {...newProps} />;
+      return <Widgets.MultiSelectWidget id={props.name} className="calcom-multiselect-field" {...newProps} />;
     },
   },
   select: {
@@ -331,7 +332,7 @@ export const Components: Record<FieldType, Component> = {
         ...props,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
       };
-      return <Widgets.SelectWidget id={props.name} {...newProps} />;
+      return <Widgets.SelectWidget id={props.name} className="calcom-select-field" {...newProps} />;
     },
   },
   checkbox: {
@@ -380,6 +381,7 @@ export const Components: Record<FieldType, Component> = {
                 key={`option.${i}.radio`}
                 value={option.label}
                 id={`${name}.option.${i}.radio`}
+                className="calcom-radio-field"
               />
             ))}
           </>
