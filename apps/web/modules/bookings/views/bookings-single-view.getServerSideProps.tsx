@@ -11,7 +11,7 @@ import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBra
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";

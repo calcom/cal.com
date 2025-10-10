@@ -65,7 +65,7 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFre
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";

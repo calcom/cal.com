@@ -44,7 +44,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
-import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";

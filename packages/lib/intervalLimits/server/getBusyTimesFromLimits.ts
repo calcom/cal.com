@@ -6,7 +6,7 @@ import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
