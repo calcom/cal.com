@@ -1,4 +1,4 @@
-import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
+import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import type { Webhook } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
