@@ -11,7 +11,7 @@ import type {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
-import { TextField ,DatePicker} from "@calcom/ui/components/form";
+import { TextField, DatePicker } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(

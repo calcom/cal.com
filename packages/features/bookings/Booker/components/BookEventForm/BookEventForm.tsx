@@ -131,10 +131,9 @@ export const BookEventForm = ({
         }}
         form={bookingForm}
         handleSubmit={() => {
-          alert('submit')
+          alert("submit");
           onSubmit();
-        }}
-        >
+        }}>
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
           fields={eventType.bookingFields}

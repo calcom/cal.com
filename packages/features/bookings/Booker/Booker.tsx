@@ -236,12 +236,11 @@ const BookerComponent = ({
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
 
-  const onSubmit = (timeSlot?: string) =>{
-    console.log('onsubmit')
+  const onSubmit = (timeSlot?: string) => {
+    console.log("onsubmit");
 
     return renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
-  }
-
+  };
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -261,9 +260,9 @@ const BookerComponent = ({
           }
         }}
         onSubmit={() => {
-          alert('submit')
-          console.log('on submit')
-          return (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())
+          alert("submit");
+          console.log("on submit");
+          return renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail();
         }}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
