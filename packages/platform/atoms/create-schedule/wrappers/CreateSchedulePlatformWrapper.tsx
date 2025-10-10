@@ -17,7 +17,6 @@ export const CreateSchedulePlatformWrapper = ({
   disableToasts = false,
 }: {
   name?: string;
-  className?: string;
   onSuccess?: (scheduleId: number) => void;
   onError?: (err: ApiErrorResponse) => void;
   customClassNames?: {
