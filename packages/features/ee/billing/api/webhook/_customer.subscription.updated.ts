@@ -5,9 +5,9 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { BillingRepositoryFactory } from "../../repository/billingRepositoryFactory";
 import { TeamSubscriptionEventHandler } from "../../service/TeamSubscriptionEventHandler";
+import { StripeBillingService } from "../../stripe-billing-service";
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
-import { mapStripeStatusToCalStatus } from "./lib/mapStripeStatusToCalStatus";
 
 type Data = SWHMap["customer.subscription.updated"]["data"];
 
@@ -97,7 +97,7 @@ async function handleTeamSubscriptionUpdate({
   const teamRepository = new TeamRepository(prisma);
   const teamSubscriptionEventHandler = new TeamSubscriptionEventHandler(billingRepository, teamRepository);
 
-  const status = mapStripeStatusToCalStatus({
+  const status = StripeBillingService.mapSubscriptionStatusToCalStatus({
     stripeStatus: subscription.status,
     subscriptionId: subscription.id,
   });
