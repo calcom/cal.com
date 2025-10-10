@@ -9,6 +9,10 @@ export enum SubscriptionStatus {
   CANCELLED = "CANCELLED",
   PAST_DUE = "PAST_DUE",
   TRIALING = "TRIALING",
+  INCOMPLETE = "INCOMPLETE",
+  INCOMPLETE_EXPIRED = "INCOMPLETE_EXPIRED",
+  UNPAID = "UNPAID",
+  PAUSED = "PAUSED",
 }
 
 export interface BillingRecord {
