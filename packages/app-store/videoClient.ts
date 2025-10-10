@@ -1,6 +1,5 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
@@ -113,8 +112,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       where: { slug: credential.appId },
       select: { enabled: true },
     });
-    if (!enabledApp?.enabled)
-      throw `Location app ${credential.appId} is either disabled or not seeded at all`;
+    if (!enabledApp?.enabled) throw `Location app ${credential.appId} is either disabled or not seeded at all`;
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
     log.debug("created Meeting", safeStringify(returnObject));
