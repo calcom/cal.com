@@ -6,6 +6,7 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -44,10 +45,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     .parse(body);
 
   const billingService = new StripeBillingService();
+  const featuresRepository = new FeaturesRepository(prisma);
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
+  const isEmailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "email-verification"
+  );
 
-  log.debug("handler", { email: _email });
+  log.debug("handler", { email: _email, isEmailVerificationEnabled });
 
   let username: string | null = usernameStatus.requestedUserName;
   let checkoutSessionId: string | null = null;
@@ -153,7 +158,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
         where: { email },
         update: {
           username,
-          emailVerified: new Date(Date.now()),
+          emailVerified: isEmailVerificationEnabled ? null : new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
           password: {
             upsert: {
@@ -165,6 +170,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
         create: {
           username,
           email,
+          emailVerified: isEmailVerificationEnabled ? null : new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
           password: { create: { hash: hashedPassword } },
         },
@@ -196,6 +202,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       data: {
         username,
         email,
+        emailVerified: isEmailVerificationEnabled ? null : new Date(Date.now()),
         locked: shouldLockByDefault,
         password: { create: { hash: hashedPassword } },
         metadata: {
@@ -208,11 +215,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }
-    sendEmailVerification({
-      email,
-      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
-      username: username || "",
-    });
+    // Only send verification email if the feature is enabled
+    if (isEmailVerificationEnabled) {
+      sendEmailVerification({
+        email,
+        language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+        username: username || "",
+      });
+    }
   }
 
   if (checkoutSessionId) {
