@@ -4,7 +4,7 @@ import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TeamService } from "../teamService";
+import { TeamService } from "./teamService";
 
 vi.mock("@calcom/features/ee/billing/teams", () => {
   const mockUpdateQuantity = vi.fn().mockResolvedValue(undefined);

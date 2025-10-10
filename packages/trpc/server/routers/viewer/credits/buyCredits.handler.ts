@@ -3,7 +3,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { TeamService } from "@calcom/lib/server/service/teamService";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
