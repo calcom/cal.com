@@ -69,11 +69,12 @@ function UserToInviteItem({
   return (
     <div
       key={member.userId}
-      onClick={() => onChange()} // We handle this on click on the div also - for a11y we handle it with label and checkbox below
+      onClick={() => onChange()}
       className={classNames(
-        "flex cursor-pointer items-center rounded-md px-2 py-1",
-        isSelected ? "bg-emphasis" : "hover:bg-subtle "
+        "flex cursor-pointer items-center justify-between rounded-md px-3 py-2 transition-colors",
+        isSelected ? "bg-emphasis" : "hover:bg-subtle"
       )}>
+
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
         <Avatar
           size="sm"
@@ -87,17 +88,16 @@ function UserToInviteItem({
           {member.user.name || member.user.email || "Nameless User"}
         </label>
       </div>
-      <div className="ml-auto">
+      <div className="flex items-center justify-center">
         <input
           id={`${member.user.id}`}
           checked={isSelected}
           type="checkbox"
-          className="text-primary-600 focus:ring-primary-500 border-default hover:bg-subtle inline-flex h-4 w-4 place-self-center justify-self-end rounded checked:bg-gray-800"
-          onChange={() => {
-            onChange();
-          }}
+          onChange={onChange}
+          className="h-4 w-4 cursor-pointer accent-primary border-subtle rounded focus:ring-primary focus:ring-offset-0"
         />
       </div>
+
     </div>
   );
 }
