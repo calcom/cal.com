@@ -21,6 +21,7 @@ export const schemaWebhookCreateParams = z
     eventTypeId: z.number().optional(),
     userId: z.number().optional(),
     secret: z.string().optional().nullable(),
+    version: z.number().min(1).max(2).optional(),
     // API shouldn't mess with Apps webhooks yet (ie. Zapier)
     // appId: z.string().optional().nullable(),
   })
@@ -33,6 +34,7 @@ export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams
     z.object({
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
       secret: z.string().optional().nullable(),
+      version: z.number().min(1).max(2).optional(),
     })
   )
   .partial()
@@ -44,6 +46,7 @@ export const schemaWebhookReadPublic = WebhookSchema.pick({
   eventTypeId: true,
   payloadTemplate: true,
   eventTriggers: true,
+  version: true,
   // FIXME: We have some invalid urls saved in the DB
   // subscriberUrl: true,
   /** @todo: find out how to properly add back and validate those. */
