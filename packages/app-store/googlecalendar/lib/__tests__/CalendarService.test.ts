@@ -1557,6 +1557,7 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: 10,
         },
       ],
       iCalUID: "test-ical-uid@google.com",
@@ -1613,7 +1614,17 @@ describe("createEvent", () => {
           "iCalUID": "test-ical-uid@google.com",
           "location": "Test Location",
           "reminders": {
-            "useDefault": true,
+            "overrides": [
+              {
+                "method": "popup",
+                "minutes": 10,
+              },
+              {
+                "method": "email",
+                "minutes": 10,
+              },
+            ],
+            "useDefault": false,
           },
           "start": {
             "dateTime": "2024-06-15T10:00:00Z",
@@ -1732,6 +1743,7 @@ describe("createEvent", () => {
           domainWideDelegationCredentialId: null,
           createdAt: new Date("2024-06-15T11:00:00Z"),
           updatedAt: new Date("2024-06-15T11:00:00Z"),
+          customCalendarReminder: 10,
         },
       ],
       calendarDescription: "Weekly team meeting",
