@@ -2,10 +2,13 @@ import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
+import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import type { User as UserType } from "@calcom/prisma/client";
@@ -16,11 +19,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
-import { withSelectedCalendars } from "../withSelectedCalendars";
-import { getParsedTeam } from "./teamUtils";
-
-export type { UserWithLegacySelectedCalendars } from "../withSelectedCalendars";
+export type { UserWithLegacySelectedCalendars } from "@calcom/lib/server/withSelectedCalendars";
 export { withSelectedCalendars };
 export type UserAdminTeams = number[];
 
