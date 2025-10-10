@@ -4,11 +4,10 @@ import dayjs from "@calcom/dayjs";
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+import { getSafe } from "@calcom/lib/getSafe";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import type { EventType } from "@calcom/prisma/client";
-
-import { getSafe } from "./getSafe";
 
 export function getNewSearchParams(args: {
   query: Record<string, string | null | undefined | boolean>;
