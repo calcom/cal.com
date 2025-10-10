@@ -22,7 +22,7 @@ export function createInMemoryCredential({
     throw new Error("Test: createInMemoryCredential: delegationCredentialId is required");
   }
   return {
-    id: -1,
+    id: 1001,
     userId,
     key: {
       access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
@@ -140,7 +140,6 @@ export const createMockJWTInstance = ({
   authorizeError?: { response?: { data?: { error?: string } } } | Error;
   tokenExpiryDate?: number;
 }) => {
-  console.log("createMockJWTInstance", { email, authorizeError });
   const mockJWTInstance = {
     type: "jwt" as const,
     config: {

@@ -97,13 +97,17 @@ async function createDelegationCredentialForCalendarCache({
     },
   });
 
+  const inMemoryCredential = createInMemoryCredential({
+    userId: credentialInDb.userId!,
+    delegationCredentialId,
+    delegatedTo,
+  });
+
   return {
-    ...createInMemoryCredential({
-      userId: credentialInDb.userId!,
-      delegationCredentialId,
-      delegatedTo,
-    }),
+    ...inMemoryCredential,
     ...credentialInDb,
+    // Ensure we use the DB credential's valid ID, not the in-memory one
+    id: credentialInDb.id,
   };
 }
 
@@ -517,7 +521,10 @@ describe.skip("Calendar Cache", () => {
     });
 
     // Spy on cache method that should NOT be called
-    const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
+    const tryGetAvailabilityFromCacheSpy = vi.spyOn(
+      calendarService,
+      "tryGetAvailabilityFromCache" as keyof typeof calendarService
+    );
 
     // Spy on Google API methods that SHOULD be called
     const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
@@ -559,7 +566,7 @@ describe.skip("Calendar Cache", () => {
     const mockCalendarCache = {
       getCachedAvailability: vi.fn().mockRejectedValueOnce(new Error("Cache error")),
     };
-    vi.spyOn(CalendarCache, "init").mockResolvedValueOnce(mockCalendarCache as any);
+    vi.spyOn(CalendarCache, "init").mockResolvedValueOnce(mockCalendarCache as unknown as CalendarCache);
 
     // Mock Google API response
     freebusyQueryMock.mockResolvedValueOnce({
@@ -609,7 +616,10 @@ describe.skip("Calendar Cache", () => {
     const dateTo = new Date().toISOString();
 
     // Spy on methods that should NOT be called
-    const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
+    const tryGetAvailabilityFromCacheSpy = vi.spyOn(
+      calendarService,
+      "tryGetAvailabilityFromCache" as keyof typeof calendarService
+    );
     const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
 
     // Call getAvailability with only other integration calendars
@@ -1185,9 +1195,9 @@ describe("getAvailability", () => {
       };
     });
     // Mock Once so that the getAvailability call doesn't accidentally reuse this mock result
-    freebusyQueryMock.mockImplementation(({ requestBody }: { requestBody: any }) => {
-      const calendarsObject: any = {};
-      requestBody.items.forEach((item: any, index: number) => {
+    freebusyQueryMock.mockImplementation(({ requestBody }: { requestBody: { items: { id: string }[] } }) => {
+      const calendarsObject: Record<string, { busy: { start: string; end: string }[] }> = {};
+      requestBody.items.forEach((item: { id: string }, index: number) => {
         calendarsObject[item.id] = {
           busy: mockedBusyTimes[index],
         };
@@ -1290,7 +1300,7 @@ describe("Date Optimization Benchmarks", () => {
       for (let i = 0; i < iterations; i++) {
         const start = dayjs(testCase.dateFrom);
         const end = dayjs(testCase.dateTo);
-        const diff = end.diff(start, "days");
+        const _diff = end.diff(start, "days");
       }
       const dayjsTime = performance.now() - dayjsStart;
 
@@ -1299,7 +1309,7 @@ describe("Date Optimization Benchmarks", () => {
       for (let i = 0; i < iterations; i++) {
         const start = new Date(testCase.dateFrom);
         const end = new Date(testCase.dateTo);
-        const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        const _diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
       }
       const nativeTime = performance.now() - nativeStart;
 
@@ -1437,11 +1447,18 @@ describe("Date Optimization Benchmarks", () => {
 
     // Mock the getCacheOrFetchAvailability method to return consistent data
     const getCacheOrFetchAvailabilitySpy = vi
-      .spyOn(calendarService as any, "getCacheOrFetchAvailability")
+      .spyOn(
+        calendarService as unknown as {
+          getCacheOrFetchAvailability: (...args: unknown[]) => Promise<unknown[]>;
+        },
+        "getCacheOrFetchAvailability"
+      )
       .mockResolvedValue(mockBusyData.map((item) => ({ ...item, id: "test@calendar.com" })));
 
     // Test single API call scenario (≤ 90 days)
-    const shortRangeResult = await (calendarService as any).fetchAvailabilityData(
+    const shortRangeResult = await (
+      calendarService as unknown as { fetchAvailabilityData: (...args: unknown[]) => Promise<unknown[]> }
+    ).fetchAvailabilityData(
       ["test@calendar.com"],
       "2024-01-01T00:00:00Z",
       "2024-01-31T00:00:00Z", // 30 days
@@ -1454,7 +1471,9 @@ describe("Date Optimization Benchmarks", () => {
     getCacheOrFetchAvailabilitySpy.mockClear();
 
     // Test chunked scenario (> 90 days)
-    const longRangeResult = await (calendarService as any).fetchAvailabilityData(
+    const longRangeResult = await (
+      calendarService as unknown as { fetchAvailabilityData: (...args: unknown[]) => Promise<unknown[]> }
+    ).fetchAvailabilityData(
       ["test@calendar.com"],
       "2024-01-01T00:00:00Z",
       "2024-07-01T00:00:00Z", // 182 days - should require chunking
@@ -1526,7 +1545,7 @@ describe("createEvent", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: {
-          translate: (...args: any[]) => args[0], // Mock translate function
+          translate: (...args: string[]) => args[0], // Mock translate function
           locale: "en",
         },
       },
@@ -1537,7 +1556,7 @@ describe("createEvent", () => {
           email: "attendee@example.com",
           timeZone: "UTC",
           language: {
-            translate: (...args: any[]) => args[0], // Mock translate function
+            translate: (...args: string[]) => args[0], // Mock translate function
             locale: "en",
           },
         },
@@ -1709,7 +1728,7 @@ describe("createEvent", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: {
-          translate: (...args: any[]) => args[0], // Mock translate function
+          translate: (...args: string[]) => args[0], // Mock translate function
           locale: "en",
         },
       },
