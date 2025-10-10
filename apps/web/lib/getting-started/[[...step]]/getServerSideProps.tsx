@@ -111,6 +111,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
       country,
       email: user.email,
+      userId: user.id,
       google_signup_to_be_tracked,
       has_google_signup_tracked,
       hasCompletedOnboarding: hasNotStartedOnboarding,
