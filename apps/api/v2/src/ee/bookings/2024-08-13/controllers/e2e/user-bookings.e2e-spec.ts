@@ -3040,7 +3040,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             );
 
             const body: CreateBookingInput_2024_08_13 = {
-              start: new Date(Date.UTC(2040, 0, 12, 10, 0, 0)).toISOString(),
+              start: new Date(Date.UTC(2040, 0, 13, 10, 0, 0)).toISOString(),
               eventTypeId: eventTypeIdWithMaxBookerBookings.id,
               attendee: {
                 name: "alice",
@@ -3081,7 +3081,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             );
 
             const body2: CreateBookingInput_2024_08_13 = {
-              start: new Date(Date.UTC(2040, 0, 13, 10, 0, 0)).toISOString(),
+              start: new Date(Date.UTC(2040, 0, 13, 12, 0, 0)).toISOString(),
               eventTypeId: eventTypeIdWithMaxBookerBookings.id,
               attendee: {
                 name: "bob",
@@ -3125,7 +3125,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             );
 
             const body: CreateBookingInput_2024_08_13 = {
-              start: new Date(Date.UTC(2040, 0, 9, 10, 0, 0)).toISOString(),
+              start: new Date(Date.UTC(2040, 0, 13, 14, 0, 0)).toISOString(),
               eventTypeId: eventTypeIdWithMaxBookerBookings.id,
               attendee: {
                 name: "charlie",
