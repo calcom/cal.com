@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
-import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
+import type { UseFormGetValues, Control, FormState } from "react-hook-form";
 
 import type {
   TLocationOptions,
@@ -63,7 +63,6 @@ const LocationsWrapper = ({
         prefillLocation={prefillLocation}
         team={null}
         getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
-        setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
         control={formMethods.control as unknown as Control<LocationFormValues>}
         formState={formMethods.formState as unknown as FormState<LocationFormValues>}
       />
