@@ -279,6 +279,11 @@ export const useEmbedType = () => {
 };
 
 function makeBodyVisible() {
+  // Check if we're in a browser environment before accessing document
+  if (typeof document === "undefined") {
+    return;
+  }
+  
   if (document.body.style.visibility !== "visible") {
     document.body.style.visibility = "visible";
   }
