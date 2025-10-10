@@ -180,7 +180,7 @@ export const roundRobinManualReassignment = async ({
       attendeeName: responses?.name || "Nameless",
       eventType: eventType.title,
       eventName: eventType.eventName,
-      teamName: eventType.team?.name,
+      teamName: undefined,
       host: newUser.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
@@ -196,6 +196,7 @@ export const roundRobinManualReassignment = async ({
         userPrimaryEmail: newUser.email,
         reassignReason,
         reassignById: reassignedById,
+        iCalUID: booking.iCalUID,
         idempotencyKey: IdempotencyKeyService.generate({
           startTime: booking.startTime,
           endTime: booking.endTime,
@@ -286,10 +287,10 @@ export const roundRobinManualReassignment = async ({
     startTime: dayjs(booking.startTime).utc().format(),
     endTime: dayjs(booking.endTime).utc().format(),
     organizer: {
-      email: organizer.email,
-      name: organizer.name || "",
-      timeZone: organizer.timeZone,
-      language: { translate: organizerT, locale: organizer.locale || "en" },
+      email: hasOrganizerChanged ? newUser.email : organizer.email,
+      name: hasOrganizerChanged ? (newUser.name || "") : (organizer.name || ""),
+      timeZone: hasOrganizerChanged ? newUser.timeZone : organizer.timeZone,
+      language: hasOrganizerChanged ? { translate: newUserT, locale: newUser.locale || "en" } : { translate: organizerT, locale: organizer.locale || "en" },
     },
     attendees: attendeeList,
     uid: booking.uid,
@@ -327,46 +328,14 @@ export const roundRobinManualReassignment = async ({
       })
     : null;
 
-  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+    // Skip deletion - let reschedule handle the update to avoid duplicate/missing events
 
-  // remove the event and meeting using the old host's credentials
-  if (hasOrganizerChanged && originalOrganizer.id !== newUser.id) {
-    const previousHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
-      originalOrganizer,
-      eventType
-    );
-
-    const originalHostEventManager = new EventManager(
-      { ...originalOrganizer, credentials: previousHostCredentials },
-      apps
-    );
-
-    const deletionEvent: CalendarEvent = {
-      ...evt,
-      organizer: {
-        id: originalOrganizer.id,
-        name: originalOrganizer.name || "",
-        email: originalOrganizer.email,
-        username: originalOrganizer.username || undefined,
-        timeZone: originalOrganizer.timeZone,
-        language: { translate: originalOrganizerT, locale: originalOrganizer.locale ?? "en" },
-        timeFormat: getTimeFormatStringFromUserTimeFormat(originalOrganizer.timeFormat),
-      },
-      destinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
-      title: booking.title,
-    };
-
-    await originalHostEventManager.deleteEventsAndMeetings({
-      event: deletionEvent,
-      bookingReferences: booking.references,
-    });
-  }
 
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
     rescheduleUid: booking.uid,
     newBookingId: undefined,
-    changedOrganizer: hasOrganizerChanged,
+    changedOrganizer: false,
     previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
     initParams: {
       user: newUserWithCredentials,

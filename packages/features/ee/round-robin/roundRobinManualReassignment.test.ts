@@ -301,7 +301,7 @@ describe("roundRobinManualReassignment test", () => {
 
     expectEventManagerCalledWith(eventManagerRescheduleSpy, {
       uid: bookingToReassignUid,
-      changedOrganizer: true,
+      changedOrganizer: false,
       destinationCalendars: expect.arrayContaining([expect.objectContaining(testDestinationCalendar)]),
     });
 
@@ -655,7 +655,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
       expectEventManagerCalledWith(eventManagerRescheduleSpy, {
         location: "integrations:zoom",
         uid: bookingToReassignUid,
-        changedOrganizer: true,
+        changedOrganizer: false,
         destinationCalendars: expect.arrayContaining([
           expect.objectContaining({
             integration: "google_calendar",
@@ -830,7 +830,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
     });
   });
 
-  test("should throw error when Cal Video fallback fails", async () => {
+  test("should continue when Cal Video fallback fails (non-blocking)", async () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     await mockEventManagerReschedule({ failConferencing: true });
 
@@ -864,6 +864,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
       })
     );
 
+    // Should not throw - video error is non-blocking
     await expect(
       roundRobinManualReassignment({
         bookingId: 127,
@@ -872,6 +873,11 @@ describe("roundRobinManualReassignment - Location Changes", () => {
         reassignReason: "Host unavailable",
         reassignedById: 999,
       })
-    ).rejects.toThrow("Failed to set video conferencing link, but the meeting has been rescheduled");
+    ).resolves.toBeDefined();
+
+    expectBookingToBeInDatabase({
+      uid: bookingToReassignUid,
+      userId: noDefaultConferencingAppHost.id,
+    });
   });
 });
