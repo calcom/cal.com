@@ -25,28 +25,17 @@ export class WatchlistService implements IWatchlistService {
     });
 
     const isGlobal = data.isGlobal ?? false;
+    const payload = {
+      type: data.type,
+      value: data.value,
+      description: data.description,
+      action: data.action,
+      source: data.source,
+    };
 
-    if (!isGlobal && !data.organizationId) {
-      throw new Error("organizationId is required for organization-scoped entries");
-    }
-
-    const entryPromise = isGlobal
-      ? this.deps.globalRepo.createEntry({
-          type: data.type,
-          value: data.value,
-          description: data.description,
-          action: data.action,
-          source: data.source,
-        })
-      : this.deps.orgRepo.createEntry(data.organizationId, {
-          type: data.type,
-          value: data.value,
-          description: data.description,
-          action: data.action,
-          source: data.source,
-        });
-
-    return entryPromise.then((entry) => {
+    // Global path
+    if (isGlobal) {
+      const entry = await this.deps.globalRepo.createEntry(payload);
       log.info("Watchlist entry created successfully", {
         id: entry.id,
         type: entry.type,
@@ -54,7 +43,22 @@ export class WatchlistService implements IWatchlistService {
         organizationId: entry.organizationId,
       });
       return entry;
+    }
+
+    // Org path (validate, then narrow)
+    const orgId = data.organizationId;
+    if (orgId == null) {
+      throw new Error("organizationId is required for organization-scoped entries");
+    }
+
+    const entry = await this.deps.orgRepo.createEntry(orgId, payload);
+    log.info("Watchlist entry created successfully", {
+      id: entry.id,
+      type: entry.type,
+      isGlobal: entry.isGlobal,
+      organizationId: entry.organizationId,
     });
+    return entry;
   }
 
   async updateEntry(id: string, data: UpdateWatchlistEntryData): Promise<WatchlistEntry> {
@@ -86,8 +90,6 @@ export class WatchlistService implements IWatchlistService {
         return globalEntry;
       }
 
-      // If not found in global, it might be an organization-specific entry
-      // Since we don't have organizationId, we can only find global entries with this method
       log.debug("Entry not found in global repository", { id });
       return null;
     });
