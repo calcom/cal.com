@@ -11,7 +11,7 @@ import type {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { TextField ,DatePicker} from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
@@ -150,6 +150,20 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
   );
 }
 
+function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+  const dateValue = value && value.trim() ? new Date(value) : (null as unknown as Date);
+
+  const handleDateChange = (date: Date) => {
+    const formattedDate = date.toISOString().split("T")[0];
+    setValue(formattedDate);
+  };
+
+  return (
+    <div className="mb-2 w-full">
+      <DatePicker date={dateValue} onDatesChange={handleDateChange} {...remainingProps} />
+    </div>
+  );
+}
 const MultiSelectWidget = ({
   listValues,
   setValue,
@@ -378,6 +392,7 @@ const widgets = {
   Button,
   ButtonGroup,
   Conjs,
+  DateWidget,
   Provider,
 };
 

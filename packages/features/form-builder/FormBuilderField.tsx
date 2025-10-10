@@ -23,12 +23,7 @@ import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/vari
 // helper to render markdown label safely
 const renderLabel = (field: Partial<RhfFormField>) => {
   if (field.labelAsSafeHtml) {
-    return (
-      <span
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(field.labelAsSafeHtml) }}
-      />
-    );
+    return <span dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(field.labelAsSafeHtml) }} />;
   }
   return <span>{field.label}</span>;
 };
@@ -276,6 +271,21 @@ export const ComponentForField = ({
           placeholder={field.placeholder}
           minLength={field.minLength}
           maxLength={field.maxLength}
+          name={field.name}
+          label={field.label}
+          readOnly={readOnly}
+          value={value as string}
+          setValue={setValue as (arg: typeof value) => void}
+        />
+      </WithLabel>
+    );
+  }
+
+
+  if (componentConfig.propsType === "date") {
+    return (
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
+        <componentConfig.factory
           name={field.name}
           label={field.label}
           readOnly={readOnly}
