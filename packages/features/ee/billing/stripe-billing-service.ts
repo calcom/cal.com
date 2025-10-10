@@ -196,4 +196,16 @@ export class StripeBillingService implements BillingService {
     const price = await this.stripe.prices.retrieve(priceId);
     return price;
   }
+
+  static extractSubscriptionDates(subscription: {
+    start_date: number;
+    trial_end?: number | null;
+    cancel_at?: number | null;
+  }) {
+    const subscriptionStart = new Date(subscription.start_date * 1000);
+    const subscriptionTrialEnd = subscription?.trial_end ? new Date(subscription.trial_end * 1000) : null;
+    const subscriptionEndDate = subscription?.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
+
+    return { subscriptionStart, subscriptionTrialEnd, subscriptionEndDate };
+  }
 }
