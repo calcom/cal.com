@@ -9,7 +9,7 @@ import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import {
   InsightsBookingBaseService as InsightsBookingService,
   type InsightsBookingServicePublicOptions,
-} from "../InsightsBookingBaseService";
+} from "./InsightsBookingBaseService";
 
 const NOTHING_CONDITION = Prisma.sql`1=0`;
 

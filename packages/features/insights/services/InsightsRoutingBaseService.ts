@@ -12,12 +12,11 @@ import {
 } from "@calcom/features/data-table/lib/utils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { TeamRepository } from "../repository/team";
 
 export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({

@@ -11,7 +11,7 @@ import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import {
   InsightsRoutingBaseService as InsightsRoutingService,
   type InsightsRoutingServicePublicOptions,
-} from "../../service/InsightsRoutingBaseService";
+} from "./InsightsRoutingBaseService";
 
 // SQL condition constants for testing
 const NOTHING_CONDITION = Prisma.sql`1=0`;
