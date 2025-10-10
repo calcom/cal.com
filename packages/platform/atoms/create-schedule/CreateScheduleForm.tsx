@@ -48,6 +48,7 @@ export const CreateScheduleForm = ({
           description: t("schedule_created_successfully", { scheduleName: res.data.schedule.name }),
         });
       }
+      form.reset();
       onSuccess?.(res.data.schedule.id);
     },
     onError: (err) => {
