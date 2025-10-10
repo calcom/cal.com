@@ -1,6 +1,5 @@
-import { Prisma } from "@prisma/client";
-
-import prisma from "@calcom/prisma";
+import { PrismaClient } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 interface _PhoneNumberRawResult {
@@ -25,8 +24,10 @@ export interface AgentRawResult {
 }
 
 export class PrismaPhoneNumberRepository {
-  private static async getUserAccessibleTeamIds(userId: number): Promise<number[]> {
-    const memberships = await prisma.membership.findMany({
+  constructor(private prismaClient: PrismaClient) {}
+
+  private async getUserAccessibleTeamIds(userId: number): Promise<number[]> {
+    const memberships = await this.prismaClient.membership.findMany({
       where: {
         userId,
         accepted: true,
@@ -39,8 +40,8 @@ export class PrismaPhoneNumberRepository {
     return memberships.map((membership) => membership.teamId);
   }
 
-  static async findByPhoneNumberAndUserId({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
-    return await prisma.calAiPhoneNumber.findFirstOrThrow({
+  async findByPhoneNumberAndUserId({ phoneNumber, userId }: { phoneNumber: string; userId: number }) {
+    return await this.prismaClient.calAiPhoneNumber.findFirstOrThrow({
       where: {
         phoneNumber,
         userId,
@@ -62,8 +63,8 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  static async findPhoneNumbersFromUserId({ userId }: { userId: number }) {
-    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+  async findPhoneNumbersFromUserId({ userId }: { userId: number }) {
+    const phoneNumbers = await this.prismaClient.$queryRaw<_PhoneNumberRawResult[]>`
       SELECT
         pn.id,
         pn."phoneNumber",
@@ -85,7 +86,7 @@ export class PrismaPhoneNumberRepository {
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =
       phoneNumberIds.length > 0
-        ? await prisma.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
+        ? await this.prismaClient.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
         SELECT
           a.id,
           a.name,
@@ -138,7 +139,7 @@ export class PrismaPhoneNumberRepository {
     }));
   }
 
-  static async createPhoneNumber({
+  async createPhoneNumber({
     phoneNumber,
     provider,
     userId,
@@ -157,7 +158,7 @@ export class PrismaPhoneNumberRepository {
     subscriptionStatus?: PhoneNumberSubscriptionStatus;
     providerPhoneNumberId?: string;
   }) {
-    return await prisma.calAiPhoneNumber.create({
+    return await this.prismaClient.calAiPhoneNumber.create({
       select: {
         id: true,
         phoneNumber: true,
@@ -186,16 +187,16 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  static async deletePhoneNumber({ phoneNumber }: { phoneNumber: string }) {
-    return await prisma.calAiPhoneNumber.delete({
+  async deletePhoneNumber({ phoneNumber }: { phoneNumber: string }) {
+    return await this.prismaClient.calAiPhoneNumber.delete({
       where: {
         phoneNumber,
       },
     });
   }
 
-  static async findByStripeSubscriptionId({ stripeSubscriptionId }: { stripeSubscriptionId: string }) {
-    return await prisma.calAiPhoneNumber.findFirst({
+  async findByStripeSubscriptionId({ stripeSubscriptionId }: { stripeSubscriptionId: string }) {
+    return await this.prismaClient.calAiPhoneNumber.findFirst({
       where: {
         stripeSubscriptionId,
       },
@@ -212,8 +213,8 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  static async findByIdAndUserId({ id, userId }: { id: number; userId: number }) {
-    return await prisma.calAiPhoneNumber.findFirst({
+  async findByIdAndUserId({ id, userId }: { id: number; userId: number }) {
+    return await this.prismaClient.calAiPhoneNumber.findFirst({
       where: {
         id,
         userId,
@@ -235,7 +236,7 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  static async findByIdWithTeamAccess({
+  async findByIdWithTeamAccess({
     id,
     teamId,
     userId,
@@ -250,7 +251,7 @@ export class PrismaPhoneNumberRepository {
       return null;
     }
 
-    return await prisma.calAiPhoneNumber.findFirst({
+    return await this.prismaClient.calAiPhoneNumber.findFirst({
       where: {
         id,
         teamId,
@@ -272,7 +273,7 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  static async findByPhoneNumberAndTeamId({
+  async findByPhoneNumberAndTeamId({
     phoneNumber,
     teamId,
     userId,
@@ -287,7 +288,7 @@ export class PrismaPhoneNumberRepository {
       return null;
     }
 
-    return await prisma.calAiPhoneNumber.findFirst({
+    return await this.prismaClient.calAiPhoneNumber.findFirst({
       where: {
         phoneNumber,
         teamId,
@@ -309,7 +310,7 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  static async findManyWithUserAccess({
+  async findManyWithUserAccess({
     userId,
     teamId,
     scope = "all",
@@ -355,7 +356,7 @@ export class PrismaPhoneNumberRepository {
       }
     }
 
-    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         pn.id,
         pn."phoneNumber",
@@ -374,10 +375,12 @@ export class PrismaPhoneNumberRepository {
       ORDER BY pn."createdAt" DESC
     `;
 
+    const phoneNumbers = await this.prismaClient.$queryRaw<_PhoneNumberRawResult[]>(query);
+
     const phoneNumberIds = phoneNumbers.map((pn) => pn.id);
     const agents =
       phoneNumberIds.length > 0
-        ? await prisma.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
+        ? await this.prismaClient.$queryRaw<(AgentRawResult & { phoneNumberId: number; agentType: string })[]>`
         SELECT
           a.id,
           a.name,
@@ -430,26 +433,29 @@ export class PrismaPhoneNumberRepository {
     }));
   }
 
-  static async updateSubscriptionStatus({
+  async updateSubscriptionStatus({
     id,
     subscriptionStatus,
-    disconnectOutboundAgent = false,
+    disconnectAgents = false,
   }: {
     id: number;
     subscriptionStatus: PhoneNumberSubscriptionStatus;
-    disconnectOutboundAgent?: boolean;
+    disconnectAgents?: boolean;
   }) {
     const updateData: Prisma.CalAiPhoneNumberUpdateInput = {
       subscriptionStatus,
     };
 
-    if (disconnectOutboundAgent) {
+    if (disconnectAgents) {
       updateData.outboundAgent = {
+        disconnect: true,
+      };
+      updateData.inboundAgent = {
         disconnect: true,
       };
     }
 
-    return await prisma.calAiPhoneNumber.update({
+    return await this.prismaClient.calAiPhoneNumber.update({
       where: {
         id,
       },
@@ -457,7 +463,7 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  static async updateAgents({
+  async updateAgents({
     id,
     inboundProviderAgentId,
     outboundProviderAgentId,
@@ -470,7 +476,7 @@ export class PrismaPhoneNumberRepository {
 
     if (inboundProviderAgentId !== undefined) {
       if (inboundProviderAgentId) {
-        const agent = await prisma.agent.findFirst({
+        const agent = await this.prismaClient.agent.findFirst({
           where: {
             providerAgentId: inboundProviderAgentId,
           },
@@ -490,7 +496,7 @@ export class PrismaPhoneNumberRepository {
 
     if (outboundProviderAgentId !== undefined) {
       if (outboundProviderAgentId) {
-        const agent = await prisma.agent.findFirst({
+        const agent = await this.prismaClient.agent.findFirst({
           where: {
             providerAgentId: outboundProviderAgentId,
           },
@@ -508,7 +514,7 @@ export class PrismaPhoneNumberRepository {
       }
     }
 
-    return await prisma.calAiPhoneNumber.update({
+    return await this.prismaClient.calAiPhoneNumber.update({
       where: {
         id,
       },
@@ -516,8 +522,32 @@ export class PrismaPhoneNumberRepository {
     });
   }
 
-  static async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {
-    return await prisma.calAiPhoneNumber.findFirst({
+  async updateInboundAgentId({
+    id,
+    agentId,
+  }: {
+    id: number;
+    agentId: string;
+  }) {
+    // Atomic update: only set if inboundAgentId is currently null
+    return await this.prismaClient.calAiPhoneNumber.updateMany({
+      where: {
+        id,
+        inboundAgentId: null,
+      },
+      data: { inboundAgentId: agentId },
+    });
+  }
+
+  async findInboundAgentIdByPhoneNumberId({ phoneNumberId }: { phoneNumberId: number }) {
+    return await this.prismaClient.calAiPhoneNumber.findUnique({
+      where: { id: phoneNumberId },
+      select: { inboundAgentId: true },
+    });
+  }
+
+  async findByPhoneNumber({ phoneNumber }: { phoneNumber: string }) {
+    return await this.prismaClient.calAiPhoneNumber.findFirst({
       where: {
         phoneNumber,
       },

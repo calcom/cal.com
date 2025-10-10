@@ -3,9 +3,10 @@ import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 
+import { AppDependencyComponent } from "@calcom/app-store/AppDependencyComponent";
+import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";

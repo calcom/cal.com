@@ -1,6 +1,4 @@
-import type { Prisma } from "@prisma/client";
-import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
+import { PrismaClient, type Prisma } from "@calcom/prisma/client";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
@@ -12,8 +10,7 @@ import { bookingReferenceMiddleware } from "./middleware";
 const prismaOptions: Prisma.PrismaClientOptions = {};
 
 const globalForPrisma = global as unknown as {
-  prismaWithoutClientExtensions: PrismaClientWithoutExtension;
-  prismaWithClientExtensions: PrismaClientWithExtensions;
+  baseClient: PrismaClient;
 };
 
 const loggerLevel = parseInt(process.env.NEXT_PUBLIC_LOGGER_LEVEL ?? "", 10);
@@ -37,34 +34,31 @@ if (!isNaN(loggerLevel)) {
   }
 }
 
-// Prevents flooding with idle connections
-const prismaWithoutClientExtensions =
-  globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtension(prismaOptions);
+const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
-  new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
-    .$extends(usageTrackingExtention(prismaWithoutClientExtensions))
+  new PrismaClient({ ...prismaOptions, ...options })
+    .$extends(usageTrackingExtention(baseClient))
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
-    .$extends(disallowUndefinedDeleteUpdateManyExtension())
-    .$extends(withAccelerate());
+    .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 
 // If any changed on middleware server restart is required
 // TODO: Migrate it to $extends
-bookingReferenceMiddleware(prismaWithoutClientExtensions);
+bookingReferenceMiddleware(baseClient);
 
 // FIXME: Due to some reason, there are types failing in certain places due to the $extends. Fix it and then enable it
 // Specifically we get errors like `Type 'string | Date | null | undefined' is not assignable to type 'Exact<string | Date | null | undefined, string | Date | null | undefined>'`
-const prismaWithClientExtensions = prismaWithoutClientExtensions
-  .$extends(usageTrackingExtention(prismaWithoutClientExtensions))
+
+// Explanation why we cast as PrismaClient. When we leave Prisma to its devices it tries to infer logic based on the extensions, but this is not a simple extends.
+// this makes the PrismaClient export type-hint impossible and it also is a massive hit on Prisma type hinting performance.
+export const prisma: PrismaClient = baseClient
+  .$extends(usageTrackingExtention(baseClient))
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
-  .$extends(disallowUndefinedDeleteUpdateManyExtension())
-  .$extends(withAccelerate());
-
-export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
+  .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 
 // This prisma instance is meant to be used only for READ operations.
 // If self hosting, feel free to leave INSIGHTS_DATABASE_URL as empty and `readonlyPrisma` will default to `prisma`.
@@ -75,12 +69,8 @@ export const readonlyPrisma = process.env.INSIGHTS_DATABASE_URL
   : prisma;
 
 if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prismaWithoutClientExtensions = prismaWithoutClientExtensions;
-  globalForPrisma.prismaWithClientExtensions = prisma;
+  globalForPrisma.baseClient = baseClient;
 }
-
-type PrismaClientWithExtensions = typeof prismaWithClientExtensions;
-export type PrismaClient = PrismaClientWithExtensions;
 
 type OmitPrismaClient = Omit<
   PrismaClient,
@@ -88,11 +78,14 @@ type OmitPrismaClient = Omit<
 >;
 
 // we cant pass tx to functions as types miss match since we have a custom prisma client https://github.com/prisma/prisma/discussions/20924#discussioncomment-10077649
-export type PrismaTransaction = OmitPrismaClient;
+export type {
+  OmitPrismaClient as PrismaTransaction,
+  // we re-export the native PrismaClient type for backwards-compatibility.
+  PrismaClient,
+};
 
 /**
  * @deprecated Use named export `prisma` instead
  */
 export default prisma;
-
 export * from "./selects";

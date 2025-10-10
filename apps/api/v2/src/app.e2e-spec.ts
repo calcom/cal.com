@@ -18,7 +18,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import { User, PlatformOAuthClient, Team, RateLimit } from "@calcom/prisma/client";
+import type { User, PlatformOAuthClient, Team, RateLimit } from "@calcom/prisma/client";
 
 describe("AppController", () => {
   describe("Rate limiting", () => {

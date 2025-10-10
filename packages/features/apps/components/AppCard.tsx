@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
@@ -19,6 +19,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 
 interface AppCardProps {
   app: App;
@@ -119,14 +120,14 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           </div> */}
       <p
         className="text-default mt-2 flex-grow text-sm"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
         style={{
           overflow: "hidden",
           display: "-webkit-box",
           WebkitBoxOrient: "vertical",
           WebkitLineClamp: "3",
-        }}>
-        {app.description}
-      </p>
+        }}/>
 
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button

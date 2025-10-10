@@ -2,12 +2,12 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";

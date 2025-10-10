@@ -13,21 +13,18 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { EventType, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { api } from "@calcom/app-store/alby";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiSuccessResponse } from "@calcom/platform-types";
-import { Membership, Team } from "@calcom/prisma/client";
+import type { ApiSuccessResponse } from "@calcom/platform-types";
+import type { EventType, User, Membership, Team } from "@calcom/prisma/client";
 
 describe("Teams Memberships Endpoints", () => {
   describe("User Authentication - User is Team Admin", () => {
@@ -35,7 +32,6 @@ describe("Teams Memberships Endpoints", () => {
 
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
@@ -74,7 +70,6 @@ describe("Teams Memberships Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
@@ -331,6 +326,131 @@ describe("Teams Memberships Endpoints", () => {
 
     it("should fail if the membership does not exist", async () => {
       return request(app.getHttpServer()).get(`/v2/teams/${team.id}/memberships/123132145`).expect(404);
+    });
+
+    it("should filter memberships by single email", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${teamAdminEmail}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetTeamMembershipsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.length).toEqual(1);
+          expect(responseBody.data[0].user.email).toEqual(teamAdminEmail);
+          expect(responseBody.data[0].userId).toEqual(teamAdmin.id);
+          expect(responseBody.data[0].role).toEqual("ADMIN");
+        });
+    });
+
+    it("should filter memberships by multiple emails", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${teamAdminEmail},${teamMemberEmail}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetTeamMembershipsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.length).toEqual(2);
+
+          const emails = responseBody.data.map((membership) => membership.user.email);
+          expect(emails).toContain(teamAdminEmail);
+          expect(emails).toContain(teamMemberEmail);
+
+          const adminMembership = responseBody.data.find((m) => m.user.email === teamAdminEmail);
+          const memberMembership = responseBody.data.find((m) => m.user.email === teamMemberEmail);
+
+          expect(adminMembership).toBeDefined();
+          expect(memberMembership).toBeDefined();
+          expect(adminMembership?.role).toEqual("ADMIN");
+          expect(memberMembership?.role).toEqual("MEMBER");
+        });
+    });
+
+    it("should return empty array when filtering by non-existent email", async () => {
+      const nonExistentEmail = `nonexistent-${randomString()}@test.com`;
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${nonExistentEmail}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetTeamMembershipsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.length).toEqual(0);
+        });
+    });
+
+    it("should return partial results when filtering by mix of existing and non-existent emails", async () => {
+      const nonExistentEmail = `nonexistent-${randomString()}@test.com`;
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${teamAdminEmail},${nonExistentEmail}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetTeamMembershipsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.length).toEqual(1);
+          expect(responseBody.data[0].user.email).toEqual(teamAdminEmail);
+        });
+    });
+
+    it("should work with pagination and email filtering combined", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${teamAdminEmail},${teamMemberEmail}&skip=1&take=1`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetTeamMembershipsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.length).toEqual(1);
+          const returnedEmail = responseBody.data[0].user.email;
+          expect([teamAdminEmail, teamMemberEmail]).toContain(returnedEmail);
+        });
+    });
+
+    it("should handle empty emails array gracefully", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetTeamMembershipsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.length).toEqual(2);
+        });
+    });
+
+    it("should handle URL encoded email addresses in filter", async () => {
+      const encodedEmail = encodeURIComponent(teamAdminEmail);
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${encodedEmail}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetTeamMembershipsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.length).toEqual(1);
+          expect(responseBody.data[0].user.email).toEqual(teamAdminEmail);
+        });
+    });
+
+    it("should filter by email and maintain all user properties", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${teamMemberEmail}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: GetTeamMembershipsOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.length).toEqual(1);
+          const membership = responseBody.data[0];
+          expect(membership.user.email).toEqual(teamMemberEmail);
+          expect(membership.user.bio).toEqual(teamMember.bio);
+          expect(membership.user.metadata).toEqual(teamMember.metadata);
+          expect(membership.user.username).toEqual(teamMember.username);
+          expect(membership.teamId).toEqual(team.id);
+          expect(membership.userId).toEqual(teamMember.id);
+          expect(membership.role).toEqual("MEMBER");
+        });
+    });
+
+    it("should validate email array size limits", async () => {
+      const tooManyEmails = Array.from({ length: 21 }, (_, i) => `test${i}@example.com`).join(",");
+      return request(app.getHttpServer())
+        .get(`/v2/teams/${team.id}/memberships?emails=${tooManyEmails}`)
+        .expect(400);
     });
 
     afterAll(async () => {

@@ -4,14 +4,13 @@ import Link from "next/link";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Section } from "@calcom/ui/components/section";
 
-import type { CredentialOwner } from "../types";
+import type { AppCardApp } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({
@@ -26,10 +25,10 @@ export default function AppCard({
   switchTooltip,
   hideSettingsIcon = false,
   hideAppCardOptions = false,
+  onAppInstallSuccess,
 }: {
-  app: RouterOutputs["viewer"]["apps"]["integrations"]["items"][number] & {
-    credentialOwner?: CredentialOwner;
-  };
+  app: AppCardApp;
+  onAppInstallSuccess: () => void;
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
@@ -115,6 +114,7 @@ export default function AppCard({
                 appId={app.slug}
                 returnTo={returnTo}
                 teamId={teamId}
+                onAppInstallSuccess={onAppInstallSuccess}
               />
             )}
           </div>

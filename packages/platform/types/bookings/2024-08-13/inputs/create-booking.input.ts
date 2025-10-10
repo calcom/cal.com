@@ -371,6 +371,15 @@ export class CreateBookingInput_2024_08_13 {
   @ValidateNested()
   @Type(() => Routing)
   routing?: Routing;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "Email verification code required when event type has email verification enabled.",
+    example: "123456",
+  })
+  @IsOptional()
+  @IsString()
+  emailVerificationCode?: string;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

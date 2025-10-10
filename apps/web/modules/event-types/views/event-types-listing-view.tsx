@@ -12,7 +12,10 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { CreateButton } from "@calcom/features/ee/teams/components/createButton/CreateButton";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
-import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
+import {
+  CreateEventTypeDialog,
+  type ProfileOption,
+} from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
@@ -27,7 +30,7 @@ import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { localStorage } from "@calcom/lib/webstorage";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -268,7 +271,7 @@ export const InfiniteEventTypeList = ({
     },
   });
 
-  const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
+  const setHiddenMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
     onMutate: async (data) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
@@ -846,17 +849,7 @@ const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTe
   );
 };
 
-const CTA = ({
-  profileOptions,
-}: {
-  profileOptions: {
-    teamId: number | null | undefined;
-    label: string | null;
-    image: string;
-    membershipRole: MembershipRole | null | undefined;
-    slug: string | null;
-  }[];
-}) => {
+const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
   const { t } = useLocale();
 
   if (!profileOptions.length) return null;
@@ -951,16 +944,42 @@ type Props = {
 
 export const EventTypesCTA = ({ userEventGroupsData }: Omit<Props, "user">) => {
   const profileOptions =
-    userEventGroupsData?.profiles
+    userEventGroupsData.profiles
       ?.filter((profile) => !profile.readOnly)
       ?.filter((profile) => !profile.eventTypesLockedByOrg)
+      ?.filter((profile) => {
+        // For personal profiles (teamId is null), always allow creation
+        if (!profile.teamId) {
+          return true;
+        }
+
+        // For team profiles, check if user has eventType.create permission
+        // This will be populated by the server-side PBAC check
+        // Fallback to role-based check (admin/owner) if canCreateEventTypes is not set
+        if (profile.canCreateEventTypes !== undefined) {
+          return profile.canCreateEventTypes;
+        }
+
+        // Fallback: allow admin and owner roles
+        return (
+          profile.membershipRole === MembershipRole.ADMIN || profile.membershipRole === MembershipRole.OWNER
+        );
+      })
       ?.map((profile) => {
+        const permissions = profile.teamId
+          ? userEventGroupsData.teamPermissions[profile.teamId]
+          : {
+              // always can create eventType on personal level
+              canCreateEventType: true,
+            };
+
         return {
           teamId: profile.teamId,
           label: profile.name || profile.slug,
           image: profile.image,
           membershipRole: profile.membershipRole,
           slug: profile.slug,
+          permissions,
         };
       }) ?? [];
 

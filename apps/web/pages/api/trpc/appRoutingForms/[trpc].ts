@@ -1,4 +1,4 @@
-import appRoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { createNextApiHandler } from "@calcom/trpc/server/createNextApiHandler";
+import appRoutingForms from "@calcom/trpc/server/routers/apps/routing-forms/_router";
 
 export default createNextApiHandler(appRoutingForms);

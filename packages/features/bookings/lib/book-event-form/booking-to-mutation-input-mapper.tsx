@@ -31,6 +31,7 @@ export type BookingOptions = {
   orgSlug?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
   isDryRunProp?: boolean;
+  verificationCode?: string;
 };
 
 export const mapBookingToMutationInput = ({
@@ -54,6 +55,7 @@ export const mapBookingToMutationInput = ({
   orgSlug,
   routingFormSearchParams,
   isDryRunProp,
+  verificationCode,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -98,6 +100,7 @@ export const mapBookingToMutationInput = ({
     _isDryRun,
     _shouldServeCache,
     dub_id,
+    verificationCode,
   };
 };
 

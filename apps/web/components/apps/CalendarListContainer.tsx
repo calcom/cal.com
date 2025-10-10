@@ -2,7 +2,7 @@
 
 import { useEffect, Suspense } from "react";
 
-import { InstallAppButton } from "@calcom/app-store/components";
+import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/destination-calendar/wrappers/DestinationCalendarSettingsWebWrapper";
 import { SelectedCalendarsSettingsWebWrapper } from "@calcom/atoms/selected-calendars/wrappers/SelectedCalendarsSettingsWebWrapper";
 import AppListCard from "@calcom/features/apps/components/AppListCard";

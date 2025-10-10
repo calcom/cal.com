@@ -35,7 +35,7 @@ test.describe("Payment app", () => {
     await page.getByPlaceholder("Price").click();
     await page.getByPlaceholder("Price").fill("200");
     await page.getByText("SatoshissatsCurrencyBTCPayment optionCollect payment on booking").click();
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
 

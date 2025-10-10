@@ -148,6 +148,8 @@ export class CreditsRepository {
             bookingUid: true,
             smsSid: true,
             smsSegments: true,
+            phoneNumber: true,
+            email: true,
             callDuration: true,
             externalRef: true,
           },

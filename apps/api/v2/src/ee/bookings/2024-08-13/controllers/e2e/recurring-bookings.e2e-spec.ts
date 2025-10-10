@@ -10,7 +10,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -22,12 +21,12 @@ import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import { AttendeeCancelledEmail, OrganizerCancelledEmail } from "@calcom/platform-libraries/emails";
-import {
+import type {
   CreateRecurringBookingInput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
+  CancelBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { CancelBookingInput_2024_08_13 } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import type { User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Creating recurring bookings", () => {
@@ -48,7 +47,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
     const maxRecurrenceCount = 3;
     let recurringEventTypeId: number;
     const recurringEventSlug = `recurring-bookings-2024-08-13-event-type-${randomString()}`;
-    let createdRecurringBooking: RecurringBookingOutput_2024_08_13[];
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(

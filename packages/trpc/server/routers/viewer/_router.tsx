@@ -1,10 +1,9 @@
-import app_Basecamp3 from "@calcom/app-store/basecamp3/trpc-router";
-import app_RoutingForms from "@calcom/app-store/routing-forms/trpc-router";
 import { userAdminRouter } from "@calcom/features/ee/users/server/trpc-router";
 import { featureFlagRouter } from "@calcom/features/flags/server/router";
 import { insightsRouter } from "@calcom/features/insights/server/trpc-router";
 
-import { router } from "../../trpc";
+import { router, mergeRouters } from "../../trpc";
+import app_RoutingForms from "../apps/routing-forms/_router";
 import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
 import { timezonesRouter } from "../publicViewer/timezones/_router";
@@ -24,6 +23,7 @@ import { delegationCredentialRouter } from "./delegationCredential/_router";
 import { deploymentSetupRouter } from "./deploymentSetup/_router";
 import { dsyncRouter } from "./dsync/_router";
 import { eventTypesRouter } from "./eventTypes/_router";
+import { eventTypesRouter as heavyEventTypesRouter } from "./eventTypes/heavy/_router";
 import { filterSegmentsRouter } from "./filterSegments/_router";
 import { googleWorkspaceRouter } from "./googleWorkspace/_router";
 import { i18nRouter } from "./i18n/_router";
@@ -53,7 +53,12 @@ export const viewerRouter = router({
   calendars: calendarsRouter,
   calVideo: calVideoRouter,
   credentials: credentialsRouter,
-  eventTypes: eventTypesRouter,
+  eventTypes: mergeRouters(
+    eventTypesRouter,
+    router({
+      heavy: heavyEventTypesRouter,
+    })
+  ),
   availability: availabilityRouter,
   teams: viewerTeamsRouter,
   timezones: timezonesRouter,
@@ -73,7 +78,6 @@ export const viewerRouter = router({
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
   appRoutingForms: app_RoutingForms,
-  appBasecamp3: app_Basecamp3,
   features: featureFlagRouter,
   users: userAdminRouter,
   oAuth: oAuthRouter,

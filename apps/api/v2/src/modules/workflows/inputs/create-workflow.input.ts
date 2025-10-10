@@ -33,6 +33,11 @@ import {
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   BaseWorkflowTriggerDto,
   BEFORE_EVENT,
+  BOOKING_NO_SHOW_UPDATED,
+  BOOKING_PAID,
+  BOOKING_PAYMENT_INITIATED,
+  BOOKING_REJECTED,
+  BOOKING_REQUESTED,
   EVENT_CANCELLED,
   NEW_EVENT,
   OnAfterCalVideoGuestsNoShowTriggerDto,
@@ -41,6 +46,11 @@ import {
   OnBeforeEventTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
+  OnNoShowUpdateTriggerDto,
+  OnPaidTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
   OnRescheduleTriggerDto,
   RESCHEDULE_EVENT,
 } from "./workflow-trigger.input";
@@ -73,6 +83,11 @@ export type TriggerDtoType =
   | OnRescheduleTriggerDto
   | OnCancelTriggerDto
   | OnAfterCalVideoGuestsNoShowTriggerDto
+  | OnRejectedTriggerDto
+  | OnRequestedTriggerDto
+  | OnPaymentInitiatedTriggerDto
+  | OnPaidTriggerDto
+  | OnNoShowUpdateTriggerDto
   | OnAfterCalVideoHostsNoShowTriggerDto;
 
 @ApiExtraModels(
@@ -81,6 +96,11 @@ export type TriggerDtoType =
   OnCancelTriggerDto,
   OnCreationTriggerDto,
   OnRescheduleTriggerDto,
+  OnNoShowUpdateTriggerDto,
+  OnRejectedTriggerDto,
+  OnRequestedTriggerDto,
+  OnPaymentInitiatedTriggerDto,
+  OnPaidTriggerDto,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
   WorkflowEmailAddressStepDto,
@@ -112,6 +132,11 @@ export class CreateWorkflowDto {
       { $ref: getSchemaPath(OnRescheduleTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoGuestsNoShowTriggerDto) },
       { $ref: getSchemaPath(OnAfterCalVideoHostsNoShowTriggerDto) },
+      { $ref: getSchemaPath(OnRejectedTriggerDto) },
+      { $ref: getSchemaPath(OnRequestedTriggerDto) },
+      { $ref: getSchemaPath(OnPaidTriggerDto) },
+      { $ref: getSchemaPath(OnPaymentInitiatedTriggerDto) },
+      { $ref: getSchemaPath(OnNoShowUpdateTriggerDto) },
     ],
   })
   @ValidateNested()
@@ -126,6 +151,11 @@ export class CreateWorkflowDto {
         { value: OnRescheduleTriggerDto, name: RESCHEDULE_EVENT },
         { value: OnAfterCalVideoGuestsNoShowTriggerDto, name: AFTER_GUESTS_CAL_VIDEO_NO_SHOW },
         { value: OnAfterCalVideoHostsNoShowTriggerDto, name: AFTER_HOSTS_CAL_VIDEO_NO_SHOW },
+        { value: OnRequestedTriggerDto, name: BOOKING_REQUESTED },
+        { value: OnRejectedTriggerDto, name: BOOKING_REJECTED },
+        { value: OnPaymentInitiatedTriggerDto, name: BOOKING_PAYMENT_INITIATED },
+        { value: OnPaidTriggerDto, name: BOOKING_PAID },
+        { value: OnNoShowUpdateTriggerDto, name: BOOKING_NO_SHOW_UPDATED },
       ],
     },
   })
@@ -135,6 +165,11 @@ export class CreateWorkflowDto {
     | OnCreationTriggerDto
     | OnRescheduleTriggerDto
     | OnCancelTriggerDto
+    | OnRejectedTriggerDto
+    | OnRequestedTriggerDto
+    | OnPaidTriggerDto
+    | OnPaymentInitiatedTriggerDto
+    | OnNoShowUpdateTriggerDto
     | OnAfterCalVideoGuestsNoShowTriggerDto
     | OnAfterCalVideoHostsNoShowTriggerDto;
 

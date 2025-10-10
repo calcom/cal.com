@@ -2,8 +2,8 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { CreationSource } from "@calcom/prisma/enums";
 
 import { UserRepository } from "../repository/user";
@@ -20,7 +20,7 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-vi.mock("@calcom/features/auth/lib/hashPassword", () => ({
+vi.mock("@calcom/lib/auth/hashPassword", () => ({
   hashPassword: vi.fn().mockResolvedValue("hashed-password"),
 }));
 
