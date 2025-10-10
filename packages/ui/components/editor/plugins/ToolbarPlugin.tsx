@@ -62,8 +62,8 @@ function positionEditorElement(editor: HTMLInputElement, rect: DOMRect | null) {
 
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    const editorWidth = editor.offsetWidth || 300; // fallback width
-    const editorHeight = editor.offsetHeight || 100; // fallback height
+    const editorWidth = editor.offsetWidth || 300;
+    const editorHeight = editor.offsetHeight || 100;
 
     if (left < 10) {
       left = 10;
