@@ -13,6 +13,7 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -345,10 +346,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
 
-    if (emailsEnabled) {
-      await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
-    }
-
     const teamId = await getTeamIdFromEventType({
       eventType: {
         team: { id: booking.eventType?.teamId ?? null },
@@ -357,6 +354,64 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    const eventTypeIdForBranding = booking.eventTypeId ?? null;
+    let hideBranding = false;
+    let userForBranding: { id: number; hideBranding: boolean | null } | null = null;
+    let fullEventType: {
+      team: {
+        id: number | null;
+        hideBranding: boolean | null;
+        parentId: number | null;
+        parent: { hideBranding: boolean | null } | null;
+      } | null;
+      teamId: number | null;
+    } | null = null;
+
+    if (eventTypeIdForBranding) {
+      fullEventType = await prisma.eventType.findUnique({
+        where: { id: eventTypeIdForBranding },
+        select: {
+          team: {
+            select: {
+              id: true,
+              hideBranding: true,
+              parentId: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
+          teamId: true,
+        },
+      });
+
+      if (!fullEventType?.teamId && booking.userId) {
+        userForBranding = await prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        });
+      }
+
+      hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId: eventTypeIdForBranding,
+        team: fullEventType?.team ?? null,
+        owner: userForBranding,
+        organizationId: orgId ?? null,
+      });
+    }
+
+    if (emailsEnabled) {
+      await sendDeclinedEmailsAndSMS(
+        { ...evt, hideBranding } as any,
+        booking.eventType?.metadata as EventTypeMetadata
+      );
+    }
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
@@ -399,7 +454,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
       });
     } catch (error) {

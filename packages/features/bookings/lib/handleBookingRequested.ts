@@ -4,9 +4,11 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -59,9 +61,59 @@ export async function handleBookingRequested(args: {
 
   log.debug("Emails: Sending booking requested emails");
 
-  await sendOrganizerRequestEmail({ ...evt }, booking?.eventType?.metadata as EventTypeMetadata);
+  const teamForBranding = booking.eventType?.teamId
+    ? await prisma.team.findUnique({
+        where: { id: booking.eventType.teamId },
+        select: {
+          id: true,
+          hideBranding: true,
+          parentId: true,
+          parent: {
+            select: {
+              hideBranding: true,
+            },
+          },
+        },
+      })
+    : null;
+
+  const organizationIdForBranding = teamForBranding?.parentId
+    ? teamForBranding.parentId
+    : (
+        await prisma.profile.findFirst({
+          where: { userId: booking.userId ?? undefined },
+          select: { organizationId: true },
+        })
+      )?.organizationId ?? null;
+
+  // Fetch user data for branding when there's no team
+  const userForBranding =
+    !booking.eventType?.teamId && booking.userId
+      ? await prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        })
+      : null;
+
+  const eventTypeId = booking.eventType?.id ?? booking.eventTypeId ?? null;
+  const hideBranding = eventTypeId
+    ? await shouldHideBrandingForEvent({
+        eventTypeId,
+        team: (teamForBranding as any) ?? null,
+        owner: userForBranding,
+        organizationId: organizationIdForBranding,
+      })
+    : false;
+
+  await sendOrganizerRequestEmail(
+    { ...evt, hideBranding } as any,
+    booking?.eventType?.metadata as EventTypeMetadata
+  );
   await sendAttendeeRequestEmailAndSMS(
-    { ...evt },
+    { ...evt, hideBranding } as any,
     evt.attendees[0],
     booking?.eventType?.metadata as EventTypeMetadata
   );
@@ -106,7 +158,7 @@ export async function handleBookingRequested(args: {
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding,
         calendarEvent: {
           ...evt,
           bookerUrl: evt.bookerUrl as string,

@@ -47,6 +47,12 @@ const getEventTypesFromDBSelect = {
       includeManagedEventsInLimits: true,
       rrResetInterval: true,
       rrTimestampBasis: true,
+      hideBranding: true,
+      parent: {
+        select: {
+          hideBranding: true,
+        },
+      },
     },
   },
   bookingFields: true,
