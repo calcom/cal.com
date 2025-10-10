@@ -342,7 +342,6 @@ const AppearanceView = ({
             <div className="border-subtle mt-6 rounded-md border p-6">
               <SettingsToggle
                 toggleSwitchAtTheEnd={true}
-                titleToggle={true}
                 title={t("custom_brand_colors")}
                 description={t("customize_your_brand_colors")}
                 checked={isCustomBrandColorChecked}
@@ -363,9 +362,7 @@ const AppearanceView = ({
                     defaultValue={DEFAULT_BRAND_COLOURS.light}
                     render={() => (
                       <div>
-                        <p className="text-default mb-2 block text-sm font-medium">
-                          {t("light_brand_color")}
-                        </p>
+                        <p className="text-default block text-sm font-medium">{t("light_brand_color")}</p>
                         <div className="flex flex-row justify-start">
                           <ColorPicker
                             defaultValue={DEFAULT_BRAND_COLOURS.light}
@@ -395,7 +392,7 @@ const AppearanceView = ({
                     defaultValue={DEFAULT_BRAND_COLOURS.dark}
                     render={() => (
                       <div className="mt-6 sm:mt-0">
-                        <p className="text-default mb-2 block text-sm font-medium">{t("dark_brand_color")}</p>
+                        <p className="text-default block text-sm font-medium">{t("dark_brand_color")}</p>
                         <div className="flex flex-row justify-start">
                           <ColorPicker
                             defaultValue={DEFAULT_BRAND_COLOURS.dark}

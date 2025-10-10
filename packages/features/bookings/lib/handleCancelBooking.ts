@@ -135,13 +135,13 @@ async function handler(input: CancelBookingInput) {
       message: "This event type does not allow cancellations",
     });
   }
-
-  if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Cancellation reason is required when you are the host",
-    });
-  }
+  //Commentted out this Block - To make Cancellation Reason optional when Host is cancelling the booking
+  // if (!platformClientId && !cancellationReason?.trim() && bookingToDelete.userId == userId) {
+  //   throw new HttpError({
+  //     statusCode: 400,
+  //     message: "Cancellation reason is required when you are the host",
+  //   });
+  // }
 
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
   if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
@@ -350,6 +350,7 @@ async function handler(input: CancelBookingInput) {
   await Promise.all(promises);
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
+
   const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
   await sendCancelledReminders({

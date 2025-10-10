@@ -1,7 +1,6 @@
 "use client";
 
 import { Alert } from "@calid/features/ui/components/alert";
-import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card";
 import {
@@ -23,28 +22,22 @@ import { Switch } from "@calid/features/ui/components/switch/switch";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { Webhook } from "@prisma/client";
-import type { TFunction } from "i18next";
-import { default as get } from "lodash/get";
 import Link from "next/link";
+import React from "react";
 import { useState, useCallback } from "react";
 import { useFormContext } from "react-hook-form";
-import type { UseFormReturn } from "react-hook-form";
-import type z from "zod";
 
 import type { FormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Prisma } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { SchedulingType } from "@calcom/prisma/enums";
-import type { _EventTypeModel } from "@calcom/prisma/zod/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
+
+import { useFieldPermissions, FieldPermissionIndicator } from "./hooks/useFieldPermissions";
 
 // Types from old components
 export type TWebhook = RouterOutputs["viewer"]["webhook"]["calid_list"][number];
@@ -63,128 +56,6 @@ export type WebhookFormData = {
 export type WebhookFormSubmitData = WebhookFormData & {
   changeSecret: boolean;
   newSecret: string;
-};
-
-// Locked fields management
-const useLockedFieldsManager = ({
-  eventType,
-  translate,
-  formMethods,
-}: {
-  eventType: Pick<z.infer<typeof _EventTypeModel>, "schedulingType" | "userId" | "metadata" | "id">;
-  translate: TFunction;
-  formMethods: UseFormReturn<FormValues>;
-}) => {
-  const { setValue, getValues } = formMethods;
-  const [fieldStates, setFieldStates] = useState<Record<string, boolean>>({});
-  const unlockedFields =
-    (eventType.metadata?.managedEventConfig?.unlockedFields !== undefined &&
-      eventType.metadata?.managedEventConfig?.unlockedFields) ||
-    {};
-
-  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const isChildrenManagedEventType =
-    eventType.metadata?.managedEventConfig !== undefined &&
-    eventType.schedulingType !== SchedulingType.MANAGED;
-
-  const setUnlockedFields = (fieldName: string, val: boolean | undefined) => {
-    const path = "metadata.managedEventConfig.unlockedFields";
-    const metaUnlockedFields = getValues(path);
-    if (!metaUnlockedFields) return;
-    if (val === undefined) {
-      delete metaUnlockedFields[fieldName as keyof typeof metaUnlockedFields];
-      setValue(path, { ...metaUnlockedFields }, { shouldDirty: true });
-    } else {
-      setValue(
-        path,
-        {
-          ...metaUnlockedFields,
-          [fieldName]: val,
-        },
-        { shouldDirty: true }
-      );
-    }
-  };
-
-  const getLockedInitState = (fieldName: string): boolean => {
-    let locked = isManagedEventType || isChildrenManagedEventType;
-
-    if (fieldName.includes(".")) {
-      locked = locked && get(unlockedFields, fieldName) === undefined;
-    } else {
-      type FieldName = string;
-      const unlockedFieldList = getValues("metadata")?.managedEventConfig?.unlockedFields as
-        | Record<FieldName, boolean>
-        | undefined;
-      const fieldIsUnlocked = !!unlockedFieldList?.[fieldName];
-      locked = locked && !fieldIsUnlocked;
-    }
-    return locked;
-  };
-
-  const shouldLockDisableProps = (fieldName: string, options?: { simple: true }) => {
-    if (typeof fieldStates[fieldName] === "undefined") {
-      setFieldStates({
-        ...fieldStates,
-        [fieldName]: getLockedInitState(fieldName),
-      });
-    }
-
-    const isLocked = fieldStates[fieldName];
-    const stateText = translate(isLocked ? "locked" : "unlocked");
-    const tooltipText = translate(
-      `${isLocked ? "locked" : "unlocked"}_fields_${isManagedEventType ? "admin" : "member"}_description`
-    );
-
-    const LockedIcon = (isManagedEventType || isChildrenManagedEventType) && (
-      <Tooltip content={tooltipText}>
-        <div className="inline">
-          <Badge
-            variant={isLocked ? "secondary" : "success"}
-            className={classNames(
-              "ml-2 transform justify-between p-1",
-              isManagedEventType && !options?.simple && "w-28"
-            )}>
-            {!options?.simple && (
-              <span className="inline-flex">
-                <Icon name={isLocked ? "lock" : "lock-open"} className="text-subtle h-3 w-3" />
-                <span className="ml-1 font-medium">{stateText}</span>
-              </span>
-            )}
-            {isManagedEventType && (
-              <Switch
-                data-testid={`locked-indicator-${fieldName}`}
-                onCheckedChange={(enabled) => {
-                  setFieldStates({
-                    ...fieldStates,
-                    [fieldName]: enabled,
-                  });
-                  setUnlockedFields(fieldName, !enabled || undefined);
-                }}
-                checked={isLocked}
-                size="sm"
-              />
-            )}
-          </Badge>
-        </div>
-      </Tooltip>
-    );
-
-    return {
-      disabled:
-        !isManagedEventType &&
-        eventType.metadata?.managedEventConfig !== undefined &&
-        unlockedFields[fieldName as keyof Omit<Prisma.EventTypeSelect, "id">] === undefined,
-      LockedIcon,
-      isLocked: fieldStates[fieldName],
-    };
-  };
-
-  return {
-    shouldLockDisableProps,
-    isManagedEventType,
-    isChildrenManagedEventType,
-  };
 };
 
 export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
@@ -207,15 +78,16 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
 
-  // Locked fields management
-  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager({
+  // Field permissions management
+  const fieldPermissions = useFieldPermissions({
     eventType,
     translate: t,
     formMethods,
   });
-  const webhooksDisableProps = shouldLockDisableProps("webhooks", { simple: true });
-  const lockedText = webhooksDisableProps.isLocked ? "locked" : "unlocked";
-  const cannotEditWebhooks = isChildrenManagedEventType ? webhooksDisableProps.isLocked : false;
+  const { isChildrenManagedEventType, isManagedEventType } = fieldPermissions;
+  const webhookFieldState = fieldPermissions.getFieldState("webhooks");
+  const lockedText = webhookFieldState.isLocked ? "locked" : "unlocked";
+  const cannotEditWebhooks = isChildrenManagedEventType ? webhookFieldState.isLocked : false;
 
   // Mutations
   const createWebhookMutation = trpc.viewer.webhook.calid_create.useMutation({
@@ -345,7 +217,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
       deleteWebhookMutation.mutate({
         id: webhook.id,
         eventTypeId: webhook.eventTypeId || undefined,
-        teamId: webhook.teamId || undefined,
+        calIdTeamId: webhook.teamId || undefined,
       });
     },
     [deleteWebhookMutation]
@@ -365,8 +237,11 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
 
   const NewWebhookButton = () => {
     return (
-      <Button color="primary" data-testid="new_webhook" onClick={() => setCreateModalOpen(true)}>
-        <Icon name="plus" className="mr-2 h-4 w-4" />
+      <Button
+        color="primary"
+        data-testid="new_webhook"
+        onClick={() => setCreateModalOpen(true)}
+        StartIcon="plus">
         {t("create_webhook")}
       </Button>
     );
@@ -394,7 +269,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                 {/* Locked fields alert */}
                 {(isManagedEventType || isChildrenManagedEventType) && (
                   <Alert
-                    severity={webhooksDisableProps.isLocked ? "neutral" : "info"}
+                    severity={webhookFieldState.isLocked ? "neutral" : "info"}
                     className="mb-2"
                     title={
                       <ServerTrans
@@ -402,183 +277,167 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                         i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}
                       />
                     }
-                    message={
-                      <div className="flex items-center justify-between">
-                        <ServerTrans
+                    actions={
+                      <div className="flex h-full items-center ">
+                        <FieldPermissionIndicator
+                          fieldName="webhooks"
+                          fieldPermissions={fieldPermissions}
                           t={t}
-                          i18nKey={`webhooks_${lockedText}_${
-                            isManagedEventType ? "for_members" : "by_team_admins"
-                          }_description`}
                         />
-                        <div className="ml-2 flex h-full items-center">{webhooksDisableProps.LockedIcon}</div>
                       </div>
+                    }
+                    message={
+                      <ServerTrans
+                        t={t}
+                        i18nKey={`webhooks_${lockedText}_${
+                          isManagedEventType ? "for_members" : "by_team_admins"
+                        }_description`}
+                      />
                     }
                   />
                 )}
 
                 {webhooks.length ? (
                   <>
-                    <div className="border-subtle mb-2 rounded-md border p-8">
-                      <div className="flex justify-between">
-                        <div>
-                          <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
-                          <p className="text-subtle max-w-[280px] break-words text-sm sm:max-w-[500px]">
-                            {t("add_webhook_description", { appName: APP_NAME })}
-                          </p>
-                        </div>
-                        {cannotEditWebhooks ? (
-                          <Button disabled>
-                            <Icon name="lock" className="mr-2 h-4 w-4" />
-                            {t("locked_by_team_admin")}
-                          </Button>
-                        ) : (
+                    <div className="my-8 space-y-4">
+                      {!isChildrenManagedEventType && (
+                        <div className="flex justify-end">
                           <NewWebhookButton />
-                        )}
-                      </div>
+                        </div>
+                      )}
+                      {webhooks.map((webhook) => {
+                        const isReadOnly = isChildrenManagedEventType && webhookFieldState.isLocked;
 
-                      <div className="my-8 space-y-4">
-                        {webhooks.map((webhook) => {
-                          const isReadOnly =
-                            isChildrenManagedEventType && webhook.eventTypeId !== eventType.id;
-
-                          return (
-                            <div
-                              key={webhook.id}
-                              className={`rounded-lg border p-4 transition-colors ${
-                                webhook.active ? "border-green-200 bg-green-50" : "bg-primary border-gray-200"
-                              }`}
-                              style={
-                                webhook.active
-                                  ? {
-                                      borderColor: "rgba(0, 140, 68, 0.3)",
-                                      backgroundColor: "rgba(0, 140, 68, 0.05)",
-                                    }
-                                  : {}
-                              }>
-                              <div className="mb-3 flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                  <div
-                                    className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                                      webhook.active ? "bg-green-100" : "bg-blue-100"
+                        return (
+                          <div
+                            key={webhook.id}
+                            className={`rounded-lg border p-4 transition-colors ${
+                              webhook.active ? "border-green-200 bg-green-50" : "bg-primary border-gray-200"
+                            }`}
+                            style={
+                              webhook.active
+                                ? {
+                                    borderColor: "rgba(0, 140, 68, 0.3)",
+                                    backgroundColor: "rgba(0, 140, 68, 0.05)",
+                                  }
+                                : {}
+                            }>
+                            <div className="mb-3 flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div
+                                  className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                                    webhook.active ? "bg-green-100" : "bg-blue-100"
+                                  }`}
+                                  style={
+                                    webhook.active
+                                      ? {
+                                          backgroundColor: "rgba(0, 140, 68, 0.1)",
+                                        }
+                                      : {}
+                                  }>
+                                  <Icon
+                                    name="zap"
+                                    className={`h-4 w-4 ${
+                                      webhook.active ? "text-green-600" : "text-blue-600"
                                     }`}
                                     style={
                                       webhook.active
                                         ? {
-                                            backgroundColor: "rgba(0, 140, 68, 0.1)",
+                                            color: "#008c44",
                                           }
                                         : {}
-                                    }>
-                                    <Icon
-                                      name="zap"
-                                      className={`h-4 w-4 ${
-                                        webhook.active ? "text-green-600" : "text-blue-600"
-                                      }`}
-                                      style={
-                                        webhook.active
-                                          ? {
-                                              color: "#008c44",
-                                            }
-                                          : {}
-                                      }
-                                    />
-                                  </div>
-                                  <div>
-                                    <h4
-                                      className="font-medium"
-                                      style={{ fontSize: "14px", color: "#384252" }}>
-                                      {webhook.subscriberUrl}
-                                    </h4>
-                                    {isReadOnly && (
-                                      <Badge variant="secondary" className="mt-1">
-                                        {t("readonly")}
-                                      </Badge>
-                                    )}
-                                  </div>
+                                    }
+                                  />
                                 </div>
-
-                                {!isReadOnly && (
-                                  <div className="flex items-center space-x-3">
-                                    <Switch
-                                      defaultChecked={webhook.active}
-                                      data-testid="webhook-switch"
-                                      onCheckedChange={() => toggleWebhook(webhook)}
-                                    />
-
-                                    <Button
-                                      className="hidden rounded p-1 text-sm font-medium text-blue-600 transition-colors hover:bg-gray-200 lg:flex"
-                                      color="minimal"
-                                      size="sm"
-                                      onClick={() => {
-                                        setEditModalOpen(true);
-                                        setWebhookToEdit(webhook);
-                                      }}
-                                      data-testid="webhook-edit-button">
-                                      <Icon name="pencil" className="h-4 w-4" />
-                                    </Button>
-
-                                    <Button
-                                      className="hidden rounded p-1 text-red-500 transition-colors hover:bg-gray-200 hover:text-red-700 lg:flex"
-                                      color="minimal"
-                                      size="sm"
-                                      onClick={() => deleteWebhook(webhook)}>
-                                      <Icon name="trash" className="h-4 w-4" />
-                                    </Button>
-
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <Button className="lg:hidden" color="secondary">
-                                          <Icon name="ellipsis" className="h-4 w-4" />
-                                        </Button>
-                                      </DropdownMenuTrigger>
-
-                                      <DropdownMenuContent side="bottom" align="end" className="w-48">
-                                        <DropdownMenuItem
-                                          onClick={() => {
-                                            setEditModalOpen(true);
-                                            setWebhookToEdit(webhook);
-                                          }}
-                                          StartIcon="pencil">
-                                          {t("edit")}
-                                        </DropdownMenuItem>
-
-                                        <DropdownMenuSeparator />
-
-                                        <DropdownMenuItem
-                                          onClick={() => deleteWebhook(webhook)}
-                                          color="destructive"
-                                          StartIcon="trash">
-                                          {t("delete")}
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </div>
-                                )}
+                                <div>
+                                  <h4 className="text-default font-medium">{webhook.subscriberUrl}</h4>
+                                </div>
                               </div>
 
-                              <div className="flex flex-wrap gap-2">
-                                {webhook.eventTriggers.slice(0, 3).map((trigger) => (
-                                  <span
-                                    key={trigger}
-                                    className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-gray-700"
-                                    style={{ fontSize: "12px" }}>
-                                    {/* <Icon name="zap" className="mr-1 h-3 w-3" /> */}
-                                    {t(`${trigger.toLowerCase()}`)}
-                                  </span>
-                                ))}
-                                {webhook.eventTriggers.length > 3 && (
-                                  <Tooltip content={t("triggers_when")}>
-                                    <span
-                                      className="cursor-help rounded-full bg-gray-100 px-2 py-1 text-gray-700"
-                                      style={{ fontSize: "12px" }}>
-                                      +{webhook.eventTriggers.length - 3} more
-                                    </span>
-                                  </Tooltip>
-                                )}
-                              </div>
+                              {!isReadOnly && (
+                                <div className="flex items-center space-x-3">
+                                  <Switch
+                                    defaultChecked={webhook.active}
+                                    data-testid="webhook-switch"
+                                    onCheckedChange={() => toggleWebhook(webhook)}
+                                  />
+
+                                  <Button
+                                    color="secondary"
+                                    StartIcon="pencil-line"
+                                    onClick={() => {
+                                      setEditModalOpen(true);
+                                      setWebhookToEdit(webhook);
+                                    }}
+                                    data-testid="webhook-edit-button"
+                                  />
+
+                                  <Button
+                                    StartIcon="trash-2"
+                                    color="secondary"
+                                    onClick={() => deleteWebhook(webhook)}
+                                  />
+
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button className="lg:hidden" color="secondary" StartIcon="ellipsis" />
+                                    </DropdownMenuTrigger>
+
+                                    <DropdownMenuContent side="bottom" align="end" className="w-48">
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          setEditModalOpen(true);
+                                          setWebhookToEdit(webhook);
+                                        }}
+                                        StartIcon="pencil">
+                                        {t("edit")}
+                                      </DropdownMenuItem>
+
+                                      <DropdownMenuSeparator />
+
+                                      <DropdownMenuItem
+                                        onClick={() => deleteWebhook(webhook)}
+                                        color="destructive"
+                                        StartIcon="trash">
+                                        {t("delete")}
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              )}
                             </div>
-                          );
-                        })}
-                      </div>
+
+                            <div className="flex flex-wrap gap-2">
+                              {webhook.eventTriggers.slice(0, 3).map((trigger) => (
+                                <span
+                                  key={trigger}
+                                  className="text-default bg-default inline-flex items-center rounded-full px-2 py-1"
+                                  style={{ fontSize: "12px" }}>
+                                  {t(`${trigger.toLowerCase()}`)}
+                                </span>
+                              ))}
+                              {webhook.eventTriggers.length > 3 && (
+                                <Tooltip
+                                  content={
+                                    <div className="space-y-1">
+                                      {webhook.eventTriggers.slice(3).map((trigger) => (
+                                        <div key={trigger} className="text-xsm">
+                                          {t(`${trigger.toLowerCase()}`)}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  }>
+                                  <span
+                                    className="bg-default text-default cursor-help rounded-full px-2 py-1"
+                                    style={{ fontSize: "12px" }}>
+                                    +{webhook.eventTriggers.length - 3} more
+                                  </span>
+                                </Tooltip>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
 
                       <p className="text-default text-sm font-normal">
                         <ServerTrans
@@ -589,7 +448,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                               key="edit_or_manage_webhooks"
                               className="cursor-pointer font-semibold underline"
                               href="/settings/developer/webhooks">
-                              webhooks settings
+                              {t("webhooks_settings")}
                             </Link>,
                           ]}
                         />
@@ -603,9 +462,8 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                     description={t("first_event_type_webhook_description")}
                     buttonRaw={
                       cannotEditWebhooks ? (
-                        <Button disabled>
-                          <Icon name="lock" className="mr-2 h-4 w-4" />
-                          {t("locked_by_team_admin")}
+                        <Button disabled StartIcon="lock">
+                          {t("locked_by_team_admins")}
                         </Button>
                       ) : (
                         <NewWebhookButton />

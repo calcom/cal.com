@@ -1594,7 +1594,7 @@ export class EventTypeRepository {
       parent: {
         select: {
           id: true,
-          teamId: true,
+          calIdTeamId: true,
         },
       },
       teamId: true,
@@ -1644,7 +1644,14 @@ export class EventTypeRepository {
               role: true,
               acceptedInvitation: true,
               user: {
-                select: userSelect,
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
               },
             },
           },

@@ -1,8 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
 
-
-
-
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
@@ -28,7 +25,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         }
       }}
       switchChecked={enabled}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+      calIdTeamId={(eventType as any).calIdTeamId || undefined}>
       <div className="mt-2 text-sm">
         <div className="flex">
           <span className="ltr:mr-2 rtl:ml-2">

@@ -73,7 +73,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
     } | null;
     calIdTeam: {
       roundRobinResetInterval: RoundRobinResetInterval | null;
-      roundRobinTimestampBasis: RoundRobinTimestampBasis;
+      roundRobinTimestampBasis: RoundRobinTimestampBasis | null;
     } | null;
     includeNoShowInRRCalculation: boolean;
   };
@@ -667,10 +667,10 @@ async function fetchAllDataNeededForCalculations<
 
   const interval =
     eventType.isRRWeightsEnabled &&
-    (getLuckyUserParams.eventType.team?.rrResetInterval ||
-      getLuckyUserParams.eventType.calIdTeam?.roundRobinResetInterval)
-      ? getLuckyUserParams.eventType.team?.rrResetInterval ||
-        getLuckyUserParams.eventType.calIdTeam?.roundRobinResetInterval
+    (getLuckyUserParams.eventType.calIdTeam?.roundRobinResetInterval ||
+      getLuckyUserParams.eventType.team?.rrResetInterval)
+      ? getLuckyUserParams.eventType.calIdTeam?.roundRobinResetInterval ||
+        getLuckyUserParams.eventType.team?.rrResetInterval
       : RRResetInterval.MONTH;
 
   const rrTimestampBasis =

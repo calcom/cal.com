@@ -15,6 +15,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
       app={app}
       teamId={eventType.team?.id || undefined}
+      calIdTeamId={(eventType as any).calIdTeamId || undefined}
       switchOnClick={(e) => {
         updateEnabled(e);
       }}

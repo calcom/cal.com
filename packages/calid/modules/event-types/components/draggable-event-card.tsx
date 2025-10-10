@@ -21,6 +21,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 import type { DraggableEventCardProps } from "../types/event-types";
+import { isManagedEventType } from "../utils/event-types-utils";
 import { EventTypeCardIcon } from "./event-type-card-icon";
 import type { IconParams } from "./event-type-card-icon";
 import { EventTypeIconPicker } from "./event-type-icon-picker";
@@ -68,12 +69,21 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
     transition,
   };
 
+  const isManagedEvent = isManagedEventType(event);
+
+  // Check if current user is a team member (not admin/owner) for managed events
+  const isTeamMember = currentTeam?.membershipRole === "MEMBER";
   const eventUrl = useMemo(() => {
+    // Don't generate eventUrl for managed events
+    if (isManagedEvent) {
+      return null;
+    }
+    // All team events (including managed events) use team slug
     if (currentTeam?.teamId) {
       return `/${currentTeam.profile.slug}/${event.slug}`;
     }
     return `/${currentTeam?.profile.slug}/${event.slug}`;
-  }, [currentTeam, event.slug]);
+  }, [currentTeam, event, isManagedEvent]);
 
   // Get user timezone for hashed links
   const userTimezone = useMemo(() => {
@@ -86,18 +96,12 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
     });
   }, [event]);
 
-  if (event.slug === "collaborative-evaluation") {
-    console.log("here", currentIconParams);
-  }
-
   // Handle private links
   const activeHashedLinks = useMemo(() => {
     return event.hashedLink ? filterActiveLinks(event.hashedLink, userTimezone) : [];
   }, [event.hashedLink, userTimezone]);
 
-  const isManagedEventType = event.schedulingType === SchedulingType.MANAGED;
-  const isChildrenManagedEventType =
-    event.metadata?.managedEventConfig !== undefined && event.schedulingType !== SchedulingType.MANAGED;
+  const isChildrenManagedEventType = event.metadata?.managedEventConfig !== undefined && !isManagedEvent;
 
   const handleCopyPrivateLink = () => {
     const privateLink = `${bookerUrl}/d/${activeHashedLinks[0].link}/${event.slug}`;
@@ -119,12 +123,17 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
   };
 
   const handleIconClick = () => {
+    // Don't allow icon changes for read-only managed events
+    if (isManagedEvent && isTeamMember) return;
     // Open icon picker dialog
     setIsIconPickerOpen(true);
   };
 
-  const publicUrl = `${bookerUrl}${eventUrl}`;
-  const cleanPublicUrl = `${publicUrl}`.replace(/^https?:\/\//, "");
+  const publicUrl = eventUrl ? `${bookerUrl}${eventUrl}` : null;
+  const cleanPublicUrl = publicUrl ? `${publicUrl}`.replace(/^https?:\/\//, "") : null;
+
+  // For managed events, don't show URL
+  const displayUrl = isManagedEvent ? null : cleanPublicUrl;
 
   return (
     <>
@@ -151,15 +160,23 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
 
         {/* Card content */}
         <div
-          className="border-default bg-default w-full cursor-pointer rounded-md border p-3 transition-all hover:shadow-md sm:p-4"
-          onClick={() => onEventEdit(event.id)}>
+          className={`border-default bg-default w-full rounded-md border p-3 transition-all sm:p-4 ${
+            isManagedEvent && isTeamMember
+              ? "cursor-not-allowed opacity-75"
+              : "cursor-pointer hover:shadow-md"
+          }`}
+          onClick={() => !(isManagedEvent && isTeamMember) && onEventEdit(event.id)}>
           {/* Mobile-first responsive layout */}
           <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
             {/* Main content area */}
             <div className="flex min-w-0 flex-1 items-start space-x-3">
               {/* Event Type Icon */}
               <div className="flex-shrink-0">
-                <EventTypeCardIcon iconParams={currentIconParams} onClick={handleIconClick} />
+                <EventTypeCardIcon
+                  iconParams={currentIconParams}
+                  onClick={handleIconClick}
+                  disabled={isManagedEvent && isTeamMember}
+                />
               </div>
 
               {/* Event details */}
@@ -167,13 +184,15 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                 {/* Title and URL - Stack on mobile, inline on larger screens */}
                 <div className="mb-2 flex flex-col space-y-2 sm:flex-row sm:items-center sm:gap-2 sm:space-y-0">
                   <h3 className="text-emphasis text-medium truncate font-semibold">{event.title}</h3>
-                  <div className="flex-shrink-0">
-                    <Badge variant="secondary" publicUrl={cleanPublicUrl} className="text-xs">
-                      <span className="max-w-[200px] truncate sm:max-w-[300px] lg:max-w-none">
-                        {cleanPublicUrl}
-                      </span>
-                    </Badge>
-                  </div>
+                  {displayUrl && (
+                    <div className="flex-shrink-0">
+                      <Badge variant="secondary" publicUrl={cleanPublicUrl} className="text-xs">
+                        <span className="max-w-[200px] truncate sm:max-w-[300px] lg:max-w-none">
+                          {displayUrl}
+                        </span>
+                      </Badge>
+                    </div>
+                  )}
                 </div>
 
                 {/* Event Description - Show only on larger screens or truncate on mobile */}
@@ -212,6 +231,12 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                       </span>
                     </Badge>
                   )}
+
+                  {isManagedEvent && isTeamMember && (
+                    <Badge variant="secondary" size="sm">
+                      {t("readonly")}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -220,7 +245,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
             <div className="flex items-center justify-between sm:ml-4 sm:flex-shrink-0 sm:justify-end">
               <div className="flex items-center space-x-3">
                 {/* Enable toggle - only for non-managed events */}
-                {!isManagedEventType && (
+                {!isManagedEvent && !isChildrenManagedEventType && (
                   <div className="flex items-center space-x-2">
                     <span className="text-subtle text-sm sm:hidden">{isEventActive ? "On" : "Off"}</span>
                     <Switch
@@ -234,20 +259,22 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                 {/* Options dropdown */}
                 <div onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        color="secondary"
-                        variant="icon"
-                        StartIcon="ellipsis"
-                        onClick={(e) => e.stopPropagation()}
-                        className="h-8 w-8 sm:h-auto sm:w-auto"
-                      />
-                    </DropdownMenuTrigger>
+                    {!(isManagedEvent && isTeamMember) && (
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          color="secondary"
+                          variant="icon"
+                          StartIcon="ellipsis"
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-8 w-8 sm:h-auto sm:w-auto"
+                        />
+                      </DropdownMenuTrigger>
+                    )}
                     <DropdownMenuContent align="end" className="w-44 sm:w-40">
                       {!currentTeam?.metadata?.readOnly && (
                         <DropdownMenuItem onClick={() => onEventEdit(event.id)} className="text-sm">
                           <Icon name="pencil-line" className="mr-2 h-3 w-3" />
-                          Edit
+                          {t("edit")}
                         </DropdownMenuItem>
                       )}
 
@@ -259,10 +286,10 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                         }}
                         className="text-sm">
                         <Icon name="palette" className="mr-2 h-3 w-3" />
-                        Change Icon
+                        {t("change_icon")}
                       </DropdownMenuItem>
 
-                      {!isManagedEventType && (
+                      {!isManagedEvent && publicUrl && (
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.preventDefault();
@@ -270,35 +297,33 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                           }}
                           className="text-sm">
                           <Icon name="external-link" className="mr-2 h-3 w-3" />
-                          Preview
+                          {t("preview")}
                         </DropdownMenuItem>
                       )}
 
-                      {!currentTeam?.metadata?.readOnly &&
-                        !isManagedEventType &&
-                        !isChildrenManagedEventType && (
-                          <DropdownMenuItem
-                            onClick={() => onDuplicateEvent(event, currentTeam)}
-                            className="text-sm">
-                            <Icon name="copy" className="mr-2 h-3 w-3" />
-                            Duplicate
-                          </DropdownMenuItem>
-                        )}
+                      {!currentTeam?.metadata?.readOnly && !isManagedEvent && !isChildrenManagedEventType && (
+                        <DropdownMenuItem
+                          onClick={() => onDuplicateEvent(event, currentTeam)}
+                          className="text-sm">
+                          <Icon name="copy" className="mr-2 h-3 w-3" />
+                          {t("duplicate")}
+                        </DropdownMenuItem>
+                      )}
 
                       {/* Private link option */}
-                      {activeHashedLinks.length > 0 && !isManagedEventType && (
+                      {activeHashedLinks.length > 0 && !isManagedEvent && (
                         <DropdownMenuItem onClick={handleCopyPrivateLink} className="text-sm">
                           <Icon name="venetian-mask" className="mr-2 h-3 w-3" />
-                          Copy private link
+                          {t("copy_private_link")}
                         </DropdownMenuItem>
                       )}
 
-                      {!currentTeam?.metadata?.readOnly && !isChildrenManagedEventType && (
+                      {!currentTeam?.metadata?.readOnly && !isChildrenManagedEventType && !isManagedEvent && (
                         <DropdownMenuItem
                           onClick={() => onDeleteEvent(event.id)}
                           className="text-destructive focus:text-destructive text-sm">
                           <Icon name="trash-2" className="mr-2 h-3 w-3" />
-                          Delete
+                          {t("delete")}
                         </DropdownMenuItem>
                       )}
                     </DropdownMenuContent>

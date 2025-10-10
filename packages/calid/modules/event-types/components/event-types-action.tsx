@@ -12,6 +12,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 interface EventTypeActionsProps {
@@ -34,6 +35,27 @@ export const EventTypeActions = ({
   onDeleteClick,
 }: EventTypeActionsProps) => {
   const { t } = useLocale();
+
+  const isManagedEventType = (() => {
+    try {
+      const schedulingType = form?.getValues("schedulingType");
+      return schedulingType === SchedulingType.MANAGED;
+    } catch (error) {
+      return false;
+    }
+  })();
+
+  const isChildrenManagedEventType = (() => {
+    try {
+      const metadata = form?.getValues("metadata");
+      const schedulingType = form?.getValues("schedulingType");
+      return metadata?.managedEventConfig !== undefined && schedulingType !== SchedulingType.MANAGED;
+    } catch (error) {
+      return false;
+    }
+  })();
+
+  const shouldHideRedirectAndCopy = isManagedEventType || isChildrenManagedEventType;
 
   return (
     <div className="mr-2 flex items-center justify-end space-x-4">
@@ -72,25 +94,29 @@ export const EventTypeActions = ({
 
       {/* Action buttons */}
       <ButtonGroup>
-        <Button
-          color="secondary"
-          tooltip={t("preview")}
-          variant="icon"
-          href={permalink}
-          target="_blank"
-          rel="noreferrer"
-          StartIcon="external-link"
-        />
+        {!shouldHideRedirectAndCopy && (
+          <Button
+            color="secondary"
+            tooltip={t("preview")}
+            variant="icon"
+            href={permalink}
+            target="_blank"
+            rel="noreferrer"
+            StartIcon="external-link"
+          />
+        )}
 
-        <Button
-          color="secondary"
-          variant="icon"
-          StartIcon="link"
-          tooltip={t("copy_link")}
-          onClick={() => {
-            navigator.clipboard.writeText(permalink);
-          }}
-        />
+        {!shouldHideRedirectAndCopy && (
+          <Button
+            color="secondary"
+            variant="icon"
+            StartIcon="link"
+            tooltip={t("copy_link")}
+            onClick={() => {
+              navigator.clipboard.writeText(permalink);
+            }}
+          />
+        )}
 
         <Button
           color="destructive"
@@ -108,28 +134,32 @@ export const EventTypeActions = ({
           <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem>
-            <ButtonOrLink
-              target="_blank"
-              rel="noreferrer"
-              type="button"
-              href={permalink}
-              className="flex w-full items-center">
-              <Icon name="external-link" className="mr-2 h-4 w-4" />
-              {t("preview")}
-            </ButtonOrLink>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <ButtonOrLink
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(permalink);
-              }}
-              className="flex w-full items-center">
-              <Icon name="link" className="mr-2 h-4 w-4" />
-              {t("copy_link")}
-            </ButtonOrLink>
-          </DropdownMenuItem>
+          {!shouldHideRedirectAndCopy && (
+            <DropdownMenuItem>
+              <ButtonOrLink
+                target="_blank"
+                rel="noreferrer"
+                type="button"
+                href={permalink}
+                className="flex w-full items-center">
+                <Icon name="external-link" className="mr-2 h-4 w-4" />
+                {t("preview")}
+              </ButtonOrLink>
+            </DropdownMenuItem>
+          )}
+          {!shouldHideRedirectAndCopy && (
+            <DropdownMenuItem>
+              <ButtonOrLink
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(permalink);
+                }}
+                className="flex w-full items-center">
+                <Icon name="link" className="mr-2 h-4 w-4" />
+                {t("copy_link")}
+              </ButtonOrLink>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem disabled={!hasPermsToDelete}>
             <ButtonOrLink
               type="button"

@@ -1,19 +1,19 @@
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import { Switch } from "@calid/features/ui/components/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { CalIdMembershipRole } from "@calcom/prisma/enums";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { Badge } from "@calcom/ui/components/badge";
-import { Select } from "@calcom/ui/components/form";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import classNames from "@calcom/ui/classNames";
-import { Switch } from "@calcom/ui/components/form";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
+import { Select } from "@calcom/ui/components/form";
 
 export type ChildrenEventType = {
   value: string;
@@ -25,7 +25,7 @@ export type ChildrenEventType = {
     email: string;
     name: string;
     username: string;
-    membership: MembershipRole;
+    membership: CalIdMembershipRole;
     eventTypeSlugs: string[];
     profile: UserProfile;
   };
@@ -119,22 +119,22 @@ export const ChildrenEventTypeSelect = ({
                         "flex flex-row gap-1",
                         customClassNames?.selectedChildrenList?.listItem?.badgeContainer
                       )}>
-                      {children.owner.membership === MembershipRole.OWNER ? (
+                      {children.owner.membership === CalIdMembershipRole.OWNER ? (
                         <Badge
-                          variant="gray"
+                          variant="secondary"
                           className={customClassNames?.selectedChildrenList?.listItem?.ownerBadge}>
                           {t("owner")}
                         </Badge>
                       ) : (
                         <Badge
-                          variant="gray"
+                          variant="secondary"
                           className={customClassNames?.selectedChildrenList?.listItem?.memberBadge}>
                           {t("member")}
                         </Badge>
                       )}
                       {children.hidden && (
                         <Badge
-                          variant="gray"
+                          variant="secondary"
                           className={customClassNames?.selectedChildrenList?.listItem?.hiddenBadge}>
                           {t("hidden")}
                         </Badge>
@@ -159,6 +159,7 @@ export const ChildrenEventTypeSelect = ({
                       <Switch
                         name="Hidden"
                         checked={!children.hidden}
+                        disabled={props.isDisabled}
                         onCheckedChange={(checked) => {
                           const newData = value.map((item) =>
                             item.owner.id === children.owner.id ? { ...item, hidden: !checked } : item
@@ -168,7 +169,7 @@ export const ChildrenEventTypeSelect = ({
                       />
                     </div>
                   </Tooltip>
-                  <ButtonGroup combined>
+                  <ButtonGroup>
                     {children.created && children.owner.username && (
                       <Tooltip
                         className={customClassNames?.selectedChildrenList?.listItem?.previewEventTypeTooltip}
@@ -179,6 +180,7 @@ export const ChildrenEventTypeSelect = ({
                           target="_blank"
                           variant="icon"
                           className={customClassNames?.selectedChildrenList?.listItem?.previewEventTypeButton}
+                          disabled={props.isDisabled}
                           href={`${getBookerBaseUrlSync(
                             children.owner.profile?.organization?.slug ?? null
                           )}/${children.owner?.username}/${children.slug}`}
@@ -190,14 +192,15 @@ export const ChildrenEventTypeSelect = ({
                       className={customClassNames?.selectedChildrenList?.listItem?.deleteEventTypeTooltip}
                       content={t("delete")}>
                       <Button
-                        color="secondary"
+                        color="destructive"
                         target="_blank"
                         variant="icon"
                         className={customClassNames?.selectedChildrenList?.listItem?.deleteEventTypeButton}
+                        disabled={props.isDisabled}
                         onClick={() =>
                           props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
                         }
-                        StartIcon="x"
+                        StartIcon="trash-2"
                       />
                     </Tooltip>
                   </ButtonGroup>

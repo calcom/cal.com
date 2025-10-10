@@ -11,15 +11,22 @@ interface EventTypeCardIconProps {
   iconParams?: IconParams;
   className?: string;
   onClick?: () => void;
+  disabled?: boolean;
 }
 
-export const EventTypeCardIcon: React.FC<EventTypeCardIconProps> = ({ iconParams, onClick }) => {
+export const EventTypeCardIcon: React.FC<EventTypeCardIconProps> = ({
+  iconParams,
+  onClick,
+  disabled = false,
+}) => {
   const iconName = (iconParams?.icon?.toLowerCase() as IconName) || "calendar";
   const iconColor = iconParams?.color || "#6b7280";
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onClick?.();
+    if (!disabled) {
+      onClick?.();
+    }
   };
 
   return (
@@ -28,9 +35,10 @@ export const EventTypeCardIcon: React.FC<EventTypeCardIconProps> = ({ iconParams
         variant="button"
         StartIcon={iconName}
         color="secondary"
-        className="bg-muted h-10 w-10"
+        className={`bg-muted h-10 w-10 ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
         iconColor={iconColor}
         onClick={handleClick}
+        disabled={disabled}
       />
     </div>
   );

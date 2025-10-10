@@ -219,6 +219,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialCalIdWorkflow
   return pendingReminders;
 }
 
+// TODO: Remove this select at some point, (calIdWorkflowSelect is contains all its fields and more)
 export const workflowSelect = {
   id: true,
   trigger: true,
@@ -245,10 +246,38 @@ export const workflowSelect = {
   },
 };
 
+export const calIdWorkflowSelect = {
+  id: true,
+  trigger: true,
+  calIdTeamId: true,
+  calIdTeam: { select: { id: true, name: true, slug: true, logoUrl: true, members: true } },
+  time: true,
+  timeUnit: true,
+  userId: true,
+  name: true,
+  steps: {
+    select: {
+      id: true,
+      action: true,
+      sendTo: true,
+      reminderBody: true,
+      emailSubject: true,
+      template: true,
+      numberVerificationPending: true,
+      sender: true,
+      includeCalendarEvent: true,
+      numberRequired: true,
+      workflowId: true,
+      stepNumber: true,
+      // disableOnMarkNoShow: true,
+    },
+  },
+};
+
 async function fetchOrganizationTeamWorkflows(targetTeamId: number): Promise<CalIdWorkflow[]> {
   const teamWorkflowRelations = await prisma.calIdWorkflowsOnTeams.findMany({
     where: { calIdTeamId: targetTeamId },
-    select: { workflow: { select: workflowSelect } },
+    select: { workflow: { select: calIdWorkflowSelect } },
   });
 
   return teamWorkflowRelations.map((relation) => relation.workflow);
@@ -267,7 +296,7 @@ async function fetchOrganizationUserWorkflows(targetUserId: number): Promise<Cal
       },
     },
     select: {
-      workflow: { select: workflowSelect },
+      workflow: { select: calIdWorkflowSelect },
       calIdTeam: true,
     },
   });
@@ -281,7 +310,7 @@ async function fetchUniversalActiveWorkflows(entityId: number): Promise<CalIdWor
       calIdTeamId: entityId,
       isActiveOnAll: true,
     },
-    select: workflowSelect,
+    select: calIdWorkflowSelect,
   });
 }
 
@@ -292,7 +321,7 @@ async function fetchPersonalActiveWorkflows(targetUserId: number): Promise<CalId
       calIdTeamId: null,
       isActiveOnAll: true,
     },
-    select: workflowSelect,
+    select: calIdWorkflowSelect,
   });
 }
 

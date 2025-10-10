@@ -21,7 +21,7 @@ export interface BookerProps {
   brandColor: string;
   username: string;
   orgBannerUrl?: string | null;
-  faviconUrl?: string | null;
+  bannerUrl?: string | null;
 
   /*
     all custom classnames related to booker styling go here
@@ -119,6 +119,7 @@ export interface BookerProps {
   userLocale?: string | null;
   hasValidLicense?: boolean;
   useApiV2?: boolean;
+  billingAddressRequired?: boolean;
 }
 
 export type WrappedBookerPropsMain = {

@@ -46,6 +46,9 @@ const ServerPage = async ({ params }: PageProps) => {
   if (!session?.user?.id) {
     return redirect("/auth/login");
   }
+  if (!session?.user?.completedOnboarding) {
+    return redirect("/getting-started");
+  }
 
   const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {

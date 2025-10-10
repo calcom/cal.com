@@ -68,6 +68,7 @@ export class PaymentService implements IAbstractPaymentService {
         customer: {
           name: bookerName ?? "No Name",
           email: bookerEmail,
+          contact: bookerPhoneNumber || undefined,
         },
         eventTitle: eventTitle || bookingTitle || "",
       });

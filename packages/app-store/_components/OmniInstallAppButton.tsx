@@ -1,9 +1,10 @@
+import { triggerToast } from "@calid/features/ui/components/toast";
+
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { showToast } from "@calcom/ui/components/toast";
 
 import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../components";
@@ -17,11 +18,13 @@ export default function OmniInstallAppButton({
   className,
   returnTo,
   teamId,
+  calIdTeamId,
 }: {
   appId: string;
   className: string;
   returnTo?: string;
   teamId?: number;
+  calIdTeamId?: number;
 }) {
   const { t } = useLocale();
   const { data: app } = useApp(appId);
@@ -34,12 +37,13 @@ export default function OmniInstallAppButton({
       utils.viewer.apps.calid_integrations.invalidate({
         extendsFeature: "EventType",
         ...(teamId && { teamId }),
+        ...(calIdTeamId && { calIdTeamId }),
       });
       if (data?.setupPending) return;
-      showToast(t("app_successfully_installed"), "success");
+      triggerToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      if (error instanceof Error) triggerToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
 
@@ -62,6 +66,7 @@ export default function OmniInstallAppButton({
                 variant: app.variant,
                 slug: app.slug,
                 ...(teamId && { teamId }),
+                ...(calIdTeamId && { calIdTeamId }),
               });
             },
           };

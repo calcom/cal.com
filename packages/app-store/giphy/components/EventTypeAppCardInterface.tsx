@@ -21,7 +21,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         setShowGifSelection(e);
       }}
       switchChecked={showGifSelection}
-      teamId={eventType.team?.id || undefined}>
+      teamId={eventType.team?.id || undefined}
+      calIdTeamId={(eventType as any).calIdTeamId || undefined}>
       <EventTypeAppSettingsInterface
         eventType={eventType}
         slug={app.slug}
