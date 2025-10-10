@@ -8,4 +8,9 @@ export default [
     target: ".",
     message: "lib package should not import from app-store to avoid circular dependencies.",
   }),
+  forbid({
+    from: "../features/**",
+    target: ".",
+    message: "lib package should not import from features to avoid circular dependencies.",
+  }),
 ];
