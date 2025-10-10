@@ -51,7 +51,7 @@ const Description = ({
 }) => {
   const Component = as ? Slot : "h3";
   return (
-    <Component ref={ref} className="text-subtle line-clamp-1 text-sm">
+    <Component ref={ref} className="text-subtle line-clamp-1 text-sm break-all">
       {children}
     </Component>
   );
@@ -103,7 +103,7 @@ const Header = ({
   rawHeading?: React.ReactNode;
 }) => {
   return (
-    <div ref={ref} className="flex items-center justify-between gap-3">
+    <div ref={ref} className="flex items-center justify-between flex-wrap sm:flex-nowrap gap-3">
       <div className="flex items-center gap-2">
         {icon && !iconSlot && <Icon name={icon} />}
         {iconSlot && <Icon iconSlot={iconSlot} />}
