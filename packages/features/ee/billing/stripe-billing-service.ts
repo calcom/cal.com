@@ -206,8 +206,8 @@ export class StripeBillingService implements BillingService {
     // Stripe returns dates as unix time in seconds but Date() expects milliseconds
     const subscriptionStart = new Date(subscription.start_date * 1000);
     const subscriptionTrialEnd = subscription?.trial_end ? new Date(subscription.trial_end * 1000) : null;
-    const subscriptionEndDate = subscription?.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
+    const subscriptionEnd = subscription?.cancel_at ? new Date(subscription.cancel_at * 1000) : null;
 
-    return { subscriptionStart, subscriptionTrialEnd, subscriptionEndDate };
+    return { subscriptionStart, subscriptionTrialEnd, subscriptionEnd };
   }
 }
