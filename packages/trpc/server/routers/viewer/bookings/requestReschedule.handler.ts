@@ -3,10 +3,10 @@ import type { TFunction } from "i18next";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/delegationCredential";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import { deleteMeeting } from "@calcom/app-store/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
