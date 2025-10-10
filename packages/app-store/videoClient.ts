@@ -17,30 +17,25 @@ import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
-
 const translator = short();
 
-// this is cache for resolved video adapters to avoid repeated dynamic imports
+// Cache for resolved video adapters to avoid repeated dynamic imports
 const videoAdapterCache = new Map<string, VideoApiAdapterFactory>();
 
-// factory
+// Factory function to get video adapters
 const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
   const videoAdapters: VideoApiAdapter[] = [];
-
   for (const cred of withCredentials) {
-    const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
+    const appName = cred.type.split("_").join("");
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
 
     let videoAdapterImport = VideoApiAdapterMap[appName as keyof typeof VideoApiAdapterMap];
-
-    // fallback: transforms zoom_video to zoom
+    // Fallback: transforms zoom_video to zoom
     if (!videoAdapterImport) {
       const appTypeVariant = cred.type.substring(0, cred.type.lastIndexOf("_"));
       log.silly(`Adapter not found for ${appName}, trying fallback ${appTypeVariant}`);
-
       videoAdapterImport = VideoApiAdapterMap[appTypeVariant as keyof typeof VideoApiAdapterMap];
     }
-
     if (!videoAdapterImport) {
       log.error(`Couldn't get adapter for ${appName}`);
       continue;
@@ -48,18 +43,15 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
 
     // Check cache first for better performance
     let makeVideoApiAdapter = videoAdapterCache.get(appName);
-
     if (!makeVideoApiAdapter) {
-      // Handle both static imports (direct factory function) and dynamic imports (Promise)
       if (typeof videoAdapterImport === "function") {
-        // Static import - direct factory function
-        makeVideoApiAdapter = videoAdapterImport;
+        // Static import: direct factory function
+        makeVideoApiAdapter = videoAdapterImport as VideoApiAdapterFactory;
       } else {
-        // Dynamic import - Promise that resolves to module
-        const videoAdapterModule = await (videoAdapterImport as Promise<{ default: VideoApiAdapterFactory }>);
+        // Dynamic import: Promise that resolves to module
+        const videoAdapterModule = await videoAdapterImport;
         makeVideoApiAdapter = videoAdapterModule.default as VideoApiAdapterFactory;
       }
-
       // Cache the resolved adapter factory for future use
       if (makeVideoApiAdapter) {
         videoAdapterCache.set(appName, makeVideoApiAdapter);
@@ -73,7 +65,6 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
       log.error(`App ${appName} doesn't have a default VideoApiAdapter export`);
     }
   }
-
   return videoAdapters;
 };
 
@@ -97,7 +88,6 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
     );
   }
-
   const videoAdapters = await getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
   let createdMeeting;
@@ -119,21 +109,13 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     credentialId: credential.id,
   };
   try {
-    // Check to see if video app is enabled
     const enabledApp = await prisma.app.findUnique({
-      where: {
-        slug: credential.appId,
-      },
-      select: {
-        enabled: true,
-      },
+      where: { slug: credential.appId },
+      select: { enabled: true },
     });
-
     if (!enabledApp?.enabled)
       throw `Location app ${credential.appId} is either disabled or not seeded at all`;
-
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
-
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
     log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
@@ -143,15 +125,12 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       safeStringify(err),
       safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
     );
-    // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
     if (defaultMeeting) {
       calEvent.location = DailyLocationType;
     }
-
     returnObject = { ...returnObject, originalEvent: calEvent, createdEvent: defaultMeeting };
   }
-
   return returnObject;
 };
 
@@ -172,7 +151,6 @@ const updateMeeting = async (
         return undefined;
       })
     : undefined;
-
   if (!updatedMeeting) {
     log.error(
       "updateMeeting failed",
@@ -186,7 +164,6 @@ const updateMeeting = async (
       originalEvent: calEvent,
     };
   }
-
   return {
     appName: credential.appId || "",
     type: credential.type,
@@ -204,16 +181,13 @@ const deleteMeeting = async (credential: CredentialPayload | null, uid: string):
       "Calling deleteMeeting for",
       safeStringify({ credential: getPiiFreeCredential(credential), uid })
     );
-    // There are certain video apps with no video adapter defined. e.g. riverby,whereby
     if (videoAdapter) {
       return videoAdapter.deleteMeeting(uid);
     }
   }
-
   return Promise.resolve({});
 };
 
-// @TODO: This is a temporary solution to create a meeting with cal.com video as fallback url
 const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
@@ -381,7 +355,6 @@ const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
       delegationCredentialId: null,
     },
   ]);
-
   return videoAdapter?.submitBatchProcessorJob?.({
     preset: "transcript",
     inParams: {
@@ -417,7 +390,6 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
       delegationCredentialId: null,
     },
   ]);
-
   return videoAdapter?.getTranscriptsAccessLinkFromRecordingId?.(recordingId);
 };
 
@@ -442,7 +414,6 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
       delegationCredentialId: null,
     },
   ]);
-
   return videoAdapter?.checkIfRoomNameMatchesInRecording?.(roomName, recordingId);
 };
 
