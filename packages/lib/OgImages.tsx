@@ -246,7 +246,7 @@ export const Generic = ({ title, description }: GenericImageProps) => (
   <Wrapper>
     <div tw="h-full flex flex-col justify-start">
       <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-        <img src={`${WEBAPP_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
+        <img src={`${WEBAPP_URL}/calid-logo-icon.svg`} width="350" alt="Logo" />
       </div>
 
       <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">

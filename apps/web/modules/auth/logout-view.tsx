@@ -2,6 +2,7 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
+import { Logo } from "@calid/features/ui/components/logo";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { ParsedUrlQuery } from "querystring";
@@ -9,7 +10,6 @@ import { useEffect, useState } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Logo } from "@calid/features/ui/components/logo";
 
 export type PageProps = {
   query: ParsedUrlQuery;
@@ -40,7 +40,7 @@ export function Logout(props: PageProps) {
   };
 
   return (
-    <div className="bg-default flex flex-col min-h-screen items-center justify-center px-4 sm:px-6 lg:px-8">
+    <div className="bg-default flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
       <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         <div className="text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
@@ -55,7 +55,7 @@ export function Logout(props: PageProps) {
             data-testid="logout-btn"
             onClick={navigateToLogin}
             color="primary"
-            className="w-full justify-center py-3"
+            className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
             loading={btnLoading}>
             {t("go_back_login")}
           </Button>

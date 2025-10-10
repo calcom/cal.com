@@ -4,6 +4,7 @@ import { Button } from "@calid/features/ui/components/button";
 import { StepCard } from "@calid/features/ui/components/card";
 import { Steps } from "@calid/features/ui/components/card";
 import { Icon } from "@calid/features/ui/components/icon";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import type { TFunction } from "i18next";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,18 +23,10 @@ import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getSer
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
-import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
-import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 const INITIAL_STEP = "user-settings";
-const BASE_STEPS = [
-  "user-settings",
-  "connected-calendar",
-  "connected-video",
-  "setup-availability",
-  "user-profile",
-] as const;
+const BASE_STEPS = ["user-settings", "connected-calendar", "connected-video"] as const;
 
 type StepType = (typeof BASE_STEPS)[number];
 
@@ -55,18 +48,6 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
     {
       title: t("connect_your_video_app"),
       subtitle: [t("connect_your_video_app_instructions")],
-      skipText: t("set_up_later"),
-    },
-    {
-      title: t("set_availability"),
-      subtitle: [
-        t("set_availability_getting_started_subtitle_1"),
-        t("set_availability_getting_started_subtitle_2"),
-      ],
-    },
-    {
-      title: t("nearly_there"),
-      subtitle: [t("nearly_there_instructions")],
     },
   ];
 
@@ -77,11 +58,7 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
 };
 
 const stepRouteSchema = z.object({
-  step: z
-    .array(
-      z.enum(["user-settings", "setup-availability", "user-profile", "connected-calendar", "connected-video"])
-    )
-    .default([INITIAL_STEP]),
+  step: z.array(z.enum(["user-settings", "connected-calendar", "connected-video"])).default([INITIAL_STEP]),
   from: z.string().optional(),
 });
 
@@ -116,18 +93,6 @@ const OnboardingPage = (props: PageProps) => {
 
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
-
-  // TODO: Add this in when we have solved the ability to move to tokens accept invite and note invitedto
-  // Ability to accept other pending invites if any (low priority)
-  // if (props.hasPendingInvites) {
-  //   headers.unshift(
-  //     props.hasPendingInvites && {
-  //       title: `${t("email_no_user_invite_heading", { appName: APP_NAME })}`,
-  //       subtitle: [], // TODO: come up with some subtitle text here
-  //     }
-  //   );
-  // }
-
   const { steps, headers } = getStepsAndHeadersForUser(t);
   const stepTransform = (step: StepType) => {
     const stepIndex = steps.indexOf(step as (typeof steps)[number]);
@@ -138,6 +103,10 @@ const OnboardingPage = (props: PageProps) => {
     return INITIAL_STEP;
   };
   const goToIndex = (index: number) => {
+    if (index >= steps.length) {
+      router.push("/event-types");
+      return;
+    }
     const newStep = steps[index];
     router.push(`/getting-started/${stepTransform(newStep)}`);
   };
@@ -148,21 +117,61 @@ const OnboardingPage = (props: PageProps) => {
   const onSuccess = async () => {
     await utils.viewer.me.invalidate();
 
-    goToIndex(currentStepIndex + 1);
+    // Only navigate to next step if we're not on the last step
+    // and we're not completing the onboarding
+    if (currentStepIndex < steps.length - 1) {
+      goToIndex(currentStepIndex + 1);
+    } else {
+    }
   };
 
   const userMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
 
+  const completionMutation = trpc.viewer.me.updateProfile.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.me.invalidate();
+      router.push("/event-types");
+    },
+    onError: () => {
+      triggerToast(t("problem_saving_user_profile"), "error");
+    },
+  });
+
+  const createDefaultScheduleMutation = trpc.viewer.availability.schedule.create.useMutation({
+    onSuccess: async () => {
+      // After creating the default schedule, complete the onboarding with a generic bio
+      completionMutation.mutate({
+        metadata: {
+          currentOnboardingStep: "completed",
+        },
+        completedOnboarding: true,
+        bio: t("default_user_bio"),
+      });
+    },
+    onError: () => {
+      triggerToast(t("problem_creating_default_schedule"), "error");
+    },
+  });
+
   const goToNextStep = () => {
+    const nextIndex = currentStepIndex + 1;
+
+    // If we're on the last step (connected-video), create default schedule and complete onboarding
+    if (currentStepIndex === steps.length - 1) {
+      createDefaultScheduleMutation.mutate({
+        name: t("default_schedule_name"),
+      });
+      return;
+    }
+
     userMutation.mutate({
       metadata: {
-        currentOnboardingStep: steps[currentStepIndex + 1],
+        currentOnboardingStep: steps[nextIndex],
       },
     });
 
-    const nextIndex = currentStepIndex + 1;
     const newStep = steps[nextIndex];
     startTransition(() => {
       router.push(`/getting-started/${stepTransform(newStep)}`);
@@ -195,7 +204,7 @@ const OnboardingPage = (props: PageProps) => {
               {currentStep === "user-settings" && (
                 <UserSettings
                   nextStep={goToNextStep}
-                  hideUsername={from === "signup"}
+                  hideUsername={false}
                   isPhoneFieldMandatory={country === "IN"}
                 />
               )}
@@ -206,11 +215,6 @@ const OnboardingPage = (props: PageProps) => {
               {currentStep === "connected-video" && (
                 <ConnectedVideoStep nextStep={goToNextStep} isPageLoading={isNextStepLoading} />
               )}
-
-              {currentStep === "setup-availability" && (
-                <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
-              )}
-              {currentStep === "user-profile" && <UserProfile />}
             </Suspense>
           </StepCard>
 

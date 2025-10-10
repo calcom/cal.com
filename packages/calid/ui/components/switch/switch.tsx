@@ -7,11 +7,32 @@ import React from "react";
 
 import { Tooltip } from "../tooltip";
 
-const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactNode }) => {
+const Wrapper = ({ 
+  children, 
+  tooltip, 
+  tooltipSide = "top",
+  tooltipOffset = 4,
+  tooltipClassName 
+}: { 
+  tooltip?: string; 
+  children: React.ReactNode;
+  tooltipSide?: "top" | "right" | "bottom" | "left";
+  tooltipOffset?: number;
+  tooltipClassName?: string;
+}) => {
   if (!tooltip) {
     return <>{children}</>;
   }
-  return <Tooltip content={tooltip}>{children}</Tooltip>;
+  return (
+    <Tooltip 
+      content={tooltip} 
+      side={tooltipSide}
+      sideOffset={tooltipOffset}
+      className={tooltipClassName}
+    >
+      {children}
+    </Tooltip>
+  );
 };
 export const Switch = (
   props: React.ComponentProps<typeof SwitchPrimitives.Root> & {
@@ -19,6 +40,9 @@ export const Switch = (
     fitToHeight?: boolean;
     disabled?: boolean;
     tooltip?: string;
+    tooltipSide?: "top" | "right" | "bottom" | "left";
+    tooltipOffset?: number;
+    tooltipClassName?: string;
     labelOnLeading?: boolean;
     size?: "base" | "sm";
     classNames?: {
@@ -37,11 +61,19 @@ export const Switch = (
     LockedIcon,
     padding,
     size = "base",
+    tooltipSide,
+    tooltipOffset,
+    tooltipClassName,
     ...primitiveProps
   } = props;
   const id = useId();
   return (
-    <Wrapper tooltip={props.tooltip}>
+    <Wrapper 
+      tooltip={props.tooltip}
+      tooltipSide={tooltipSide}
+      tooltipOffset={tooltipOffset}
+      tooltipClassName={tooltipClassName}
+    >
       <div
         className={cn(
           "flex h-auto w-fit flex-row items-center",

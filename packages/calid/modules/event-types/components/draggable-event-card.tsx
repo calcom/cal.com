@@ -151,7 +151,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
           {...attributes}
           {...listeners}
           className="absolute hidden w-4 flex-shrink-0 items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 sm:flex"
-          style={{ cursor: "grab", left: "-20px" }}
+          style={{ cursor: "grab", top: "50%", left: "-20px", transform: "translateY(-50%)" }}
           onMouseDown={(e) => (e.currentTarget.style.cursor = "grabbing")}
           onMouseUp={(e) => (e.currentTarget.style.cursor = "grab")}
           onClick={(e) => e.stopPropagation()}>
@@ -321,7 +321,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                       {!currentTeam?.metadata?.readOnly && !isChildrenManagedEventType && !isManagedEvent && (
                         <DropdownMenuItem
                           onClick={() => onDeleteEvent(event.id)}
-                          className="text-destructive focus:text-destructive text-sm">
+                          className="text-destructive focus:text-destructive text-sm hover:bg-error">
                           <Icon name="trash-2" className="mr-2 h-3 w-3" />
                           {t("delete")}
                         </DropdownMenuItem>

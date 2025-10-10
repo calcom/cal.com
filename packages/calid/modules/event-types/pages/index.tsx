@@ -85,8 +85,6 @@ export const EventTypes = () => {
     },
     {
       getNextPageParam: (lastPage) => {
-        // Add logging to debug the response
-        console.log("Last page:", lastPage);
         return lastPage.nextCursor;
       },
       initialCursor: 0, // Add initial cursor
@@ -98,9 +96,6 @@ export const EventTypes = () => {
       eventTypesQuery.fetchNextPage();
     }
   }, null);
-
-  console.log("Has next page:", eventTypesQuery.hasNextPage);
-  console.log("Pages:", eventTypesQuery.data?.pages);
 
   const { mutations, handlers } = useEventTypesMutations(currentTeam, debouncedSearchTerm);
 

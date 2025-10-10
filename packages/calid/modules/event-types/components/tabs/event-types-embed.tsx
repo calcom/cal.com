@@ -579,10 +579,10 @@ const EmailEmbedPreview = ({
   }
 
   return (
-    <div className="flex h-full items-center justify-center border p-5">
+    <div className="flex h-full items-center justify-center border p-2 sm:p-5">
       <div
         ref={emailContentRef}
-        className="max-h-[50vh] min-w-[30vw] overflow-y-auto bg-white p-4"
+        className="max-h-[50vh] w-full min-w-0 overflow-y-auto bg-white p-2 sm:min-w-[30vw] sm:p-4"
         style={{
           fontSize: "13px",
           color: "black",
@@ -667,7 +667,7 @@ const CodeDisplay = forwardRef<HTMLTextAreaElement, { code: string; language: st
         ref={ref}
         value={code}
         readOnly
-        className="h-64 w-full resize-none rounded-md border bg-gray-50 p-3 font-mono text-xs"
+        className="h-64 w-full resize-none rounded-md border bg-gray-50 p-2 font-mono text-xs sm:p-3"
         style={{ fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace' }}
       />
     </div>
@@ -705,12 +705,12 @@ const CodeModalContent = ({
           <button
             key={tab.key}
             onClick={() => setActiveCodeTab(tab.key as "html" | "react")}
-            className={`flex-1 rounded-lg border-2 px-6 py-3 text-center transition-all ${
+            className={`flex-1 rounded-lg border-2 px-3 py-3 text-center transition-all sm:px-6 ${
               activeCodeTab === tab.key
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-gray-200 hover:border-gray-300"
             }`}>
-            <span className="text-sm font-medium">{tab.label}</span>
+            <span className="text-xs font-medium sm:text-sm">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -828,14 +828,16 @@ const EmbedPreview = ({
   const iframeSrc = `${EMBED_PREVIEW_HTML_URL}?embedType=${embedType}&calLink=${calLink}&embedLibUrl=${embedLibUrl}&bookerUrl=${bookerUrl}`;
 
   return (
-    <iframe
-      ref={iframeRef}
-      className="h-80 w-full rounded-lg border"
-      src={iframeSrc}
-      onLoad={handleIframeLoad}
-      key={iframeSrc}
-      title="Embed Preview"
-    />
+    <div className="w-full overflow-hidden rounded-lg border">
+      <iframe
+        ref={iframeRef}
+        className="h-80 w-full"
+        src={iframeSrc}
+        onLoad={handleIframeLoad}
+        key={iframeSrc}
+        title="Embed Preview"
+      />
+    </div>
   );
 };
 
@@ -963,23 +965,23 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
   return (
     <div className="mx-auto max-w-none">
       <div className="space-y-8">
-        {/* Embed Type Selection - Horizontal Tabs */}
-        <div className="flex w-full gap-2">
+        {/* Embed Type Selection - Responsive Tabs */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:w-full">
           {embedTypeOptions.map((type) => (
             <Button
               key={type.key}
               color={selectedEmbedType === type.key ? "primary" : "secondary"}
               onClick={() => setSelectedEmbedType(type.key as EmbedType)}
-              className="flex-1 rounded-lg border-2 px-6 py-3 text-center transition-all">
-              <span className="text-sm font-medium">{type.label}</span>
+              className="flex-1 rounded-lg border-2 px-3 py-3 text-center transition-all sm:px-6">
+              <span className="text-xs font-medium sm:text-sm">{type.label}</span>
             </Button>
           ))}
         </div>
 
-        {/* Main Content Area - Split Layout */}
-        <div className="flex gap-8">
+        {/* Main Content Area - Responsive Layout */}
+        <div className="flex flex-col gap-8 md:flex-row">
           {/* Left Side - Configuration */}
-          <div className="w-1/4">
+          <div className="w-full lg:w-1/3">
             <div className="space-y-6">
               {selectedEmbedType === "email" && eventTypeData?.eventType ? (
                 <EmailEmbed
@@ -1013,7 +1015,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                         {selectedEmbedType === "inline" && (
                           <div>
                             <Label className="mb-2 block text-sm font-medium">Window sizing</Label>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col gap-2 sm:flex-row">
                               <TextField
                                 value={previewState.inline.width}
                                 onChange={(e) =>
@@ -1094,7 +1096,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                               />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                               <div>
                                 <Label className="mb-2 block text-sm font-medium">Button color</Label>
                                 <ColorPicker
@@ -1199,8 +1201,8 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
             </div>
           </div>
 
-          {/* Right Side - Preview and Get Code Button */}
-          <div className="w-3/4">
+          {/* Right Side - Preview and Get Code Button: */}
+          <div className="w-full lg:w-2/3">
             <div className="space-y-4 p-2">
               {/* Preview */}
               {selectedEmbedType === "email" && eventTypeData?.eventType ? (
@@ -1260,7 +1262,7 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
 
       {/* Code Modal */}
       <Dialog open={showCodeModal} onOpenChange={setShowCodeModal}>
-        <DialogContent className="max-h-[80vh] max-w-4xl">
+        <DialogContent className="max-h-[80vh] w-[95vw] max-w-4xl sm:w-full">
           <DialogHeader>
             <DialogTitle>Embed Code</DialogTitle>
           </DialogHeader>

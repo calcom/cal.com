@@ -19,7 +19,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const providerParam = asStringOrNull(context.query.provider);
   const emailParam = asStringOrNull(context.query.email);
   const usernameParam = asStringOrNull(context.query.username);
-  const successDestination = `/getting-started${usernameParam ? `?username=${usernameParam}` : ""}`;
 
   if (!providerParam) {
     throw new Error(`File is not named sso/[provider]`);
@@ -28,6 +27,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req } = context;
 
   const session = await getServerSession({ req });
+
+  const successDestination = session?.user.completedOnboarding
+    ? "/event-types"
+    : `/getting-started${usernameParam ? `?username=${usernameParam}` : ""}`;
 
   const { currentOrgDomain } = orgDomainConfig(context.req);
 

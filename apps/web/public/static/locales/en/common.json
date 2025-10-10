@@ -40,7 +40,7 @@
   "check_your_email": "Check your email",
   "old_email_address": "Old Email",
   "new_email_address": "New Email",
-  "verify_email_page_body": "We've sent an email to {{email}}. It is important to verify your email address to guarantee the best email and calendar deliverability from {{appName}}.",
+  "verify_email_page_body": "An email has been sent to {{email}}. To ensure optimal email and calendar deliverability from {{appName}}, it is crucial to validate your email address.",
   "verify_email_banner_body": "Verify your email address to guarantee the best email and calendar deliverability",
   "verify_email_email_header": "Verify your email address",
   "verify_email_button": "Verify email",
@@ -1577,6 +1577,7 @@
   "bio_hint": "A few sentences about yourself. this will appear on your personal url page.",
   "user_has_no_bio": "This user has not added a bio yet.",
   "bio": "Bio",
+  "default_user_bio": "Welcome to my Cal ID scheduling page! Let's find a time that works best for you.",
   "delete_account_modal_title": "Delete Account",
   "confirm_delete_account_modal": "Are you sure you want to delete your {{appName}} account?",
   "delete_my_account": "Delete my account",
@@ -3574,5 +3575,8 @@
   "invitee_details": "Invitee details",
   "are_you_sure_you_want_to_delete_this_event_type": "Are you sure you want to delete this event type? This action cannot be undone.",
   "create_new_team_event_type": "Create a new team event type",
-  "create_new_team_event_type_description": "Create a new event type for people to book times with."
+  "create_new_team_event_type_description": "Create a new event type for people to book times with.",
+  "username_required": "Username is required",
+  "username_available": "Username available",
+  "checking_username_availability": "Checking username availability"
 }

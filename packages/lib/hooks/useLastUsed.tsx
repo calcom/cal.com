@@ -30,6 +30,6 @@ export function useLastUsed() {
 export const LastUsed = ({ className }: { className?: string }) => {
   const { t } = useLocale();
   return (
-    <span className={classNames("text-brand absolute right-3 text-xs", className)}>{t("last_used")}</span>
+    <span className={classNames("text-default absolute right-3 text-xs", className)}>{t("last_used")}</span>
   );
 };
