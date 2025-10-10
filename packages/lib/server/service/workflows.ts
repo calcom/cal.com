@@ -1,10 +1,9 @@
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
-
-import { WorkflowRepository } from "../repository/workflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {

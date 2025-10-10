@@ -1,7 +1,8 @@
 import { describe, it, vi, expect } from "vitest";
 
+import * as getBookerBaseUrlSyncExport from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
+
 import { getTeamUrlSync } from "./client";
-import * as getBookerBaseUrlSyncExport from "./getBookerBaseUrlSync";
 
 vi.mock("./getBookerBaseUrlSync", async () => {
   return {
