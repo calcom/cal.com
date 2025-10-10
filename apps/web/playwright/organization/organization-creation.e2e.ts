@@ -464,9 +464,11 @@ async function fillAndSubmitFirstStepAsAdmin(
   await page.locator("input[name=name]").fill(orgName);
   await page.locator("input[name=slug]").fill(orgSlug);
 
-  // Fill in seat information
-  await page.locator("input[name=seats]").fill("30");
-  await page.locator("input[name=pricePerSeat]").fill("30");
+  // Fill in seat information only if billing is enabled
+  if (IS_TEAM_BILLING_ENABLED) {
+    await page.locator("input[name=seats]").fill("30");
+    await page.locator("input[name=pricePerSeat]").fill("30");
+  }
 
   await Promise.all([
     page.waitForResponse("**/api/trpc/organizations/intentToCreateOrg**"),
