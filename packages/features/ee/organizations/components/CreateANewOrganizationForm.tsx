@@ -12,6 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { CreationSource } from "@calcom/prisma/enums";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import { BillingPeriod } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
@@ -44,11 +45,6 @@ export const CreateANewOrganizationForm = () => {
 
   return <CreateANewOrganizationFormChild session={session} />;
 };
-
-enum BillingPeriod {
-  MONTHLY = "MONTHLY",
-  ANNUALLY = "ANNUALLY",
-}
 
 const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();

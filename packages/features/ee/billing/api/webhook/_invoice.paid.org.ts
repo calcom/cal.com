@@ -94,8 +94,8 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
 
     // Get the user who created the onboarding (for service instantiation)
     const userRepo = new UserRepository(prisma);
-    const creator = organizationOnboarding.createdByUserId
-      ? await userRepo.findById({ id: organizationOnboarding.createdByUserId })
+    const creator = organizationOnboarding.createdById
+      ? await userRepo.findById({ id: organizationOnboarding.createdById })
       : null;
 
     // Create a minimal user context for the service
