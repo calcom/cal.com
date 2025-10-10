@@ -131,6 +131,8 @@ async function handler(input: CancelBookingInput) {
     });
   }
 
+  const seatsToCancel = seatReferenceUid ? [seatReferenceUid].flat() : [];
+
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
   if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
     const userIsHost = bookingToDelete.eventType.hosts.find((host) => {
@@ -303,7 +305,7 @@ async function handler(input: CancelBookingInput) {
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(
     {
-      seatReferenceUid: seatReferenceUid,
+      seatReferenceUid: seatsToCancel,
       bookingToDelete,
     },
     dataForWebhooks,

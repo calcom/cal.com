@@ -389,14 +389,19 @@ export const sendScheduledSeatsEmailsAndSMS = async (
 export const sendCancelledSeatEmailsAndSMS = async (
   calEvent: CalendarEvent,
   cancelledAttendee: Person,
-  eventTypeMetadata?: EventTypeMetadata
+  eventTypeMetadata?: EventTypeMetadata,
+  isCancelledByHost?: boolean
 ) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const clonedCalEvent = cloneDeep(formattedCalEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
   if (!eventTypeDisableAttendeeEmail(eventTypeMetadata))
-    emailsToSend.push(sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)));
+    emailsToSend.push(
+      sendEmail(
+        () => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee, undefined, isCancelledByHost)
+      )
+    );
   if (!eventTypeDisableHostEmail(eventTypeMetadata))
     emailsToSend.push(
       sendEmail(
@@ -404,6 +409,7 @@ export const sendCancelledSeatEmailsAndSMS = async (
           new OrganizerAttendeeCancelledSeatEmail({
             calEvent: formattedCalEvent,
             attendee: cancelledAttendee,
+            isCancelledByHost,
           })
       )
     );

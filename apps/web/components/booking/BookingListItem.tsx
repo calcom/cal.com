@@ -52,6 +52,7 @@ import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { ReassignDialog } from "@components/dialog/ReassignDialog";
+import { RemoveBookingSeatsDialog } from "@components/dialog/RemoveBookingSeatsDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
@@ -70,15 +71,24 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
+type LoggedInUser = {
+  userId: number | undefined;
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
+  userEmail: string | undefined;
+  userIsOrgAdminOrOwner: boolean | undefined;
+  teamsWhereUserIsAdminOrOwner:
+    | {
+        id: number;
+        teamId: number;
+      }[]
+    | undefined;
+};
+
 export type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
+  loggedInUser: LoggedInUser;
   isToday: boolean;
 };
 
@@ -194,6 +204,30 @@ function BookingListItem(booking: BookingItemProps) {
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
   const locationVideoCallUrl = parsedBooking.metadata?.videoCallUrl;
 
+  const checkIfUserIsHost = (userId?: number | null) => {
+    if (!userId) return false;
+
+    return (
+      booking.user?.id === userId ||
+      booking.eventType.hosts?.some(
+        (host) =>
+          host.user?.id === userId &&
+          booking.attendees.some((attendee) => attendee.email === host.user?.email)
+      )
+    );
+  };
+
+  const checkIfUserIsAuthorizedToCancelSeats = () => {
+    const { user, eventType } = booking;
+    const { userId, userIsOrgAdminOrOwner, teamsWhereUserIsAdminOrOwner } = booking.loggedInUser;
+    const isUserOwner = user?.id === userId;
+    const isUserTeamEventHost = checkIfUserIsHost(userId);
+    const isUserTeamAdminOrOwner = teamsWhereUserIsAdminOrOwner?.some(
+      (team) => team.teamId === eventType?.team?.id || team.teamId === eventType?.parent?.teamId
+    );
+    return isUserOwner || isUserTeamEventHost || userIsOrgAdminOrOwner || isUserTeamAdminOrOwner;
+  };
+
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
   const eventTypeColor =
@@ -255,6 +289,7 @@ function BookingListItem(booking: BookingItemProps) {
     cardCharged,
     attendeeList,
     getSeatReferenceUid,
+    checkIfUserIsAuthorizedToCancelSeats,
     t,
   } as BookingActionContext;
 
@@ -293,6 +328,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
+  const [isOpenRemoveSeatsDialog, setIsOpenRemoveSeatsDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
@@ -368,6 +404,8 @@ function BookingListItem(booking: BookingItemProps) {
         ? () => setIsOpenLocationDialog(true)
         : action.id === "add_members"
         ? () => setIsOpenAddGuestsDialog(true)
+        : action.id === "remove_seats"
+        ? () => setIsOpenRemoveSeatsDialog(true)
         : action.id === "reassign"
         ? () => setIsOpenReassignDialog(true)
         : undefined,
@@ -430,6 +468,20 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
       />
+      {checkIfUserIsAuthorizedToCancelSeats() && (
+        <RemoveBookingSeatsDialog
+          isOpenDialog={isOpenRemoveSeatsDialog}
+          setIsOpenDialog={setIsOpenRemoveSeatsDialog}
+          bookingUid={booking.uid}
+          attendees={booking.seatsReferences
+            .map((seat) => ({
+              email: seat.attendee?.email || "",
+              name: seat.attendee?.name || null,
+              referenceUid: seat.referenceUid,
+            }))
+            .filter((attendee) => attendee.email)}
+        />
+      )}
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
           isOpenDialog={chargeCardDialogIsOpen}
