@@ -848,6 +848,7 @@ model Booking {
   tracking                     Tracking?
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
+  report                       BookingReport?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -2295,6 +2296,8 @@ model Watchlist {
   source         WatchlistSource @default(MANUAL)
   lastUpdatedAt  DateTime        @default(now())
 
+  bookingReports BookingReport[]
+
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
 }
@@ -2321,6 +2324,33 @@ model WatchlistEventAudit {
   eventTypeId Int
   actionTaken WatchlistAction
   timestamp   DateTime        @default(now())
+}
+
+enum ReportReason {
+  SPAM
+  DONT_KNOW_PERSON @map("dont_know_person")
+  OTHER
+}
+
+model BookingReport {
+  id           String       @id @default(uuid()) @db.Uuid
+  bookingId    Int          @unique
+  bookerEmail  String
+  reportedById Int
+  reason       ReportReason
+  description  String?
+  cancelled    Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+
+  watchlistId String? @db.Uuid
+
+  booking   Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  watchlist Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+
+  @@index([bookerEmail])
+  @@index([reportedById])
+  @@index([watchlistId])
+  @@index([createdAt])
 }
 
 enum BillingPeriod {

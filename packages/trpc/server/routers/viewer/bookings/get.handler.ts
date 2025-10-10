@@ -3,6 +3,7 @@ import { type SelectQueryBuilder } from "kysely";
 import { jsonObjectFrom, jsonArrayFrom } from "kysely/helpers/postgres";
 
 import dayjs from "@calcom/dayjs";
+import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { DB } from "@calcom/kysely";
 import kysely from "@calcom/kysely";
@@ -688,6 +689,9 @@ export async function getBookings({
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
     });
   };
+
+  const bookingReportRepo = new PrismaBookingReportRepository(prisma);
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
@@ -714,9 +718,12 @@ export async function getBookings({
         }
       }
 
+      const report = await bookingReportRepo.findReportForBooking(booking.id);
+
       return {
         ...booking,
         rescheduler,
+        report,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
