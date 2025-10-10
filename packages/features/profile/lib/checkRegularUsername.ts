@@ -1,7 +1,6 @@
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
-
-import { ProfileRepository } from "./repository/profile";
-import { isUsernameReservedDueToMigration } from "./username";
 
 export async function checkRegularUsername(_username: string, currentOrgDomain?: string | null) {
   const isCheckingUsernameInGlobalNamespace = !currentOrgDomain;
