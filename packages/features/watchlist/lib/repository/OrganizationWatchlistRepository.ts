@@ -108,12 +108,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
         organizationId,
       },
       data: {
-        ...(data.value && {
-          value:
-            data.value.includes("@") && !data.value.startsWith("@")
-              ? normalizeEmail(data.value)
-              : normalizeDomain(data.value),
-        }),
+        ...(data.value !== undefined && { value: data.value }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.action && { action: data.action }),
         ...(data.source && { source: data.source }),

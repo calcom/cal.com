@@ -97,21 +97,14 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
       source?: WatchlistSource;
     }
   ): Promise<Watchlist> {
-    // Fetch existing entry to determine type
-    const existing = await this.prisma.watchlist.findFirst({ where: { id } });
-    if (!existing) {
-      throw new Error(`Watchlist entry ${id} not found`);
-    }
     return this.prisma.watchlist.update({
       where: {
         id,
         organizationId: null,
+        isGlobal: true,
       },
       data: {
-        ...(data.value && {
-          value:
-            existing.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
-        }),
+        ...(data.value !== undefined && { value: data.value }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.action && { action: data.action }),
         ...(data.source && { source: data.source }),
