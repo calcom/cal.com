@@ -899,7 +899,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   const label =
     variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
 
-  // If no custom label is set, fall back to the defaultLabel from field config
   if (!label) {
     const fieldName =
       variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.name;
