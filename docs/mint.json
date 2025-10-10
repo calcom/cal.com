@@ -219,7 +219,8 @@
             "platform/atoms/calendar-settings",
             "platform/atoms/payment-form",
             "platform/atoms/conferencing-apps",
-            "platform/atoms/calendar-view"
+            "platform/atoms/calendar-view",
+            "platform/atoms/create-schedule"
           ]
         },
         {
