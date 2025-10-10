@@ -3,7 +3,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
+import { getVideoAdapters } from "@calcom/app-store/getVideoAdapters";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
@@ -14,48 +14,11 @@ import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
+const log = logger.getSubLogger({ prefix: ["[features/conferencing/lib] videoClient"] });
 
 const translator = short();
-
-// factory
-const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
-  const videoAdapters: VideoApiAdapter[] = [];
-
-  for (const cred of withCredentials) {
-    const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
-    log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-
-    let videoAdapterImport = VideoApiAdapterMap[appName as keyof typeof VideoApiAdapterMap];
-
-    // fallback: transforms zoom_video to zoom
-    if (!videoAdapterImport) {
-      const appTypeVariant = cred.type.substring(0, cred.type.lastIndexOf("_"));
-      log.silly(`Adapter not found for ${appName}, trying fallback ${appTypeVariant}`);
-
-      videoAdapterImport = VideoApiAdapterMap[appTypeVariant as keyof typeof VideoApiAdapterMap];
-    }
-
-    if (!videoAdapterImport) {
-      log.error(`Couldn't get adapter for ${appName}`);
-      continue;
-    }
-
-    const videoAdapterModule = await videoAdapterImport;
-    const makeVideoApiAdapter = videoAdapterModule.default as VideoApiAdapterFactory;
-
-    if (makeVideoApiAdapter) {
-      const videoAdapter = makeVideoApiAdapter(cred);
-      videoAdapters.push(videoAdapter);
-    } else {
-      log.error(`App ${appName} doesn't have a default VideoApiAdapter export`);
-    }
-  }
-
-  return videoAdapters;
-};
 
 const getBusyVideoTimes = async (withCredentials: CredentialPayload[]) =>
   Promise.all((await getVideoAdapters(withCredentials)).map((c) => c?.getAvailability())).then((results) =>
