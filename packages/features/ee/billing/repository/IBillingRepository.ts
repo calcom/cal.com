@@ -37,4 +37,7 @@ export interface IBillingRepositoryCreateArgs {
   customerId: string;
   planName: Plan;
   status: SubscriptionStatus;
+  subscriptionStart?: Date;
+  subscriptionTrialEnd?: Date;
+  subscriptionEnd?: Date;
 }
