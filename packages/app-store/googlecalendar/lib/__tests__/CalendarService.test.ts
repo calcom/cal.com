@@ -15,6 +15,7 @@ import {
   calendarListMock,
 } from "../__mocks__/googleapis";
 
+import type { TFunction } from "i18next";
 import { expect, test, beforeEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
@@ -564,7 +565,11 @@ describe.skip("Calendar Cache", () => {
 
     // Mock cache to throw an error
     const mockCalendarCache = {
+      watchCalendar: vi.fn(),
+      unwatchCalendar: vi.fn(),
+      upsertCachedAvailability: vi.fn(),
       getCachedAvailability: vi.fn().mockRejectedValueOnce(new Error("Cache error")),
+      getCacheStatusByCredentialIds: vi.fn(),
     };
     vi.spyOn(CalendarCache, "init").mockResolvedValueOnce(mockCalendarCache as unknown as CalendarCache);
 
@@ -1545,7 +1550,7 @@ describe("createEvent", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: {
-          translate: (...args: string[]) => args[0], // Mock translate function
+          translate: ((key: string) => key) as TFunction,
           locale: "en",
         },
       },
@@ -1556,7 +1561,7 @@ describe("createEvent", () => {
           email: "attendee@example.com",
           timeZone: "UTC",
           language: {
-            translate: (...args: string[]) => args[0], // Mock translate function
+            translate: ((key: string) => key) as TFunction,
             locale: "en",
           },
         },
@@ -1728,7 +1733,7 @@ describe("createEvent", () => {
         email: "organizer@example.com",
         timeZone: "UTC",
         language: {
-          translate: (...args: string[]) => args[0], // Mock translate function
+          translate: ((key: string) => key) as TFunction,
           locale: "en",
         },
       },
