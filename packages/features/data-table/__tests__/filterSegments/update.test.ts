@@ -1,4 +1,4 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it } from "vitest";
 
@@ -6,8 +6,8 @@ import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-import { FilterSegmentRepository } from "../../filterSegment";
-import { type TUpdateFilterSegmentInputSchema } from "../../filterSegment.type";
+import { FilterSegmentRepository } from "../../repositories/filterSegment";
+import { type TUpdateFilterSegmentInputSchema } from "../../repositories/filterSegment.type";
 
 const repository = new FilterSegmentRepository();
 
