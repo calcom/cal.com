@@ -1,6 +1,9 @@
 import { sendBookingRedirectNotification } from "@calcom/emails";
+import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -49,6 +52,7 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
     select: {
       start: true,
       end: true,
+      externalId: true,
       toUser: {
         select: {
           email: true,
@@ -60,6 +64,22 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
 
   if (!deletedOutOfOfficeEntry) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
+  }
+
+  try {
+    if (deletedOutOfOfficeEntry.externalId) {
+      const hrmsCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
+        userId: oooUserId,
+        category: [AppCategories.hrms],
+      });
+
+      for (const credential of hrmsCredentials) {
+        const hrmsManager = new HrmsManager(credential);
+        await hrmsManager.deleteOOO(deletedOutOfOfficeEntry.externalId);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to delete HRMS time-off request:", error);
   }
 
   // Return early if no redirect user is set, and no email needs to be send.

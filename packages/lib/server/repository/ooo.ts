@@ -175,4 +175,130 @@ export class PrismaOOORepository {
       },
     });
   }
+
+  async createOOOEntry({
+    uuid,
+    start,
+    end,
+    notes,
+    userId,
+    reasonId,
+    externalId,
+  }: {
+    uuid: string;
+    start: Date;
+    end: Date;
+    notes: string;
+    userId: number;
+    reasonId: number;
+    externalId: string;
+  }) {
+    return this.prismaClient.outOfOfficeEntry.create({
+      data: {
+        uuid,
+        start,
+        end,
+        notes,
+        userId,
+        reasonId,
+        externalId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async upsertOOOReason({
+    credentialId,
+    externalId,
+    reason,
+    enabled = true,
+  }: {
+    credentialId: number;
+    externalId: string;
+    reason: string;
+    enabled?: boolean;
+  }) {
+    return this.prismaClient.outOfOfficeReason.upsert({
+      where: {
+        credentialId_externalId: {
+          credentialId,
+          externalId,
+        },
+      },
+      create: {
+        reason,
+        credentialId,
+        externalId,
+        enabled,
+      },
+      update: {
+        reason,
+      },
+    });
+  }
+
+  async findOOOEntryByExternalId(externalId: string) {
+    return this.prismaClient.outOfOfficeEntry.findFirst({
+      where: {
+        externalId,
+      },
+      include: {
+        reason: {
+          select: {
+            credential: {
+              include: {
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async deleteOOOEntryByExternalId({ externalId }: { externalId: string }) {
+    return this.prismaClient.outOfOfficeEntry.deleteMany({
+      where: {
+        externalId: externalId,
+      },
+    });
+  }
+
+  async updateOOOEntry({
+    uuid,
+    start,
+    end,
+    notes,
+    userId,
+    reasonId,
+    externalId,
+  }: {
+    uuid: string;
+    start: Date;
+    end: Date;
+    notes: string;
+    userId: number;
+    reasonId: number;
+    externalId: string;
+  }) {
+    return this.prismaClient.outOfOfficeEntry.update({
+      where: {
+        uuid,
+      },
+      data: {
+        uuid,
+        start,
+        end,
+        notes,
+        userId,
+        reasonId,
+        externalId,
+      },
+    });
+  }
 }
