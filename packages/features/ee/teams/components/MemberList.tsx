@@ -432,11 +432,11 @@ function MemberListContent(props: Props) {
           const canRemove = props.permissions?.canRemove ?? false;
           const canImpersonate = props.permissions?.canImpersonate ?? false;
           const canResendInvitation = props.permissions?.canInvite ?? false;
-          const editMode =
-            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) && !isSelf;
+          const editMode = [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean);
 
           const impersonationMode =
             canImpersonate &&
+            !isSelf &&
             !user.disableImpersonation &&
             user.accepted &&
             process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
@@ -534,7 +534,7 @@ function MemberListContent(props: Props) {
                                 <DropdownMenuSeparator />
                               </>
                             )}
-                            {canResendInvitation && (
+                            {canResendInvitation && !isSelf && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -565,7 +565,7 @@ function MemberListContent(props: Props) {
                                   }
                                   color="destructive"
                                   StartIcon="user-x">
-                                  {t("remove")}
+                                  {isSelf ? t("leave") : t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
                             ) : null}
@@ -623,7 +623,7 @@ function MemberListContent(props: Props) {
                                     })
                                   }
                                   StartIcon="user-x">
-                                  {t("remove")}
+                                  {isSelf ? t("leave") : t("remove")}
                                 </DropdownItem>
                               </DropdownMenuItem>
                             </>
@@ -668,7 +668,7 @@ function MemberListContent(props: Props) {
     getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
-          case "role":
+          case "role": {
             // Include both traditional roles and PBAC custom roles
             const allRoles = facetedTeamValues.roles.map((role) => ({
               label: role.name,
@@ -676,6 +676,7 @@ function MemberListContent(props: Props) {
             }));
 
             return convertFacetedValuesToMap(allRoles);
+          }
           default:
             return new Map();
         }
@@ -685,7 +686,7 @@ function MemberListContent(props: Props) {
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
+  const _fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
     hasNextPage,
     fetchNextPage,
@@ -768,10 +769,16 @@ function MemberListContent(props: Props) {
           }>
           <ConfirmationDialogContent
             variety="danger"
-            title={t("remove_member")}
-            confirmBtnText={t("confirm_remove_member")}
+            title={state.deleteMember.user?.id === session?.user.id ? t("leave_team") : t("remove_member")}
+            confirmBtnText={
+              state.deleteMember.user?.id === session?.user.id
+                ? t("confirm_leave_team")
+                : t("confirm_remove_member")
+            }
             onConfirm={removeMember}>
-            {t("remove_member_confirmation_message")}
+            {state.deleteMember.user?.id === session?.user.id
+              ? t("leave_team_confirmation_message")
+              : t("remove_member_confirmation_message")}
           </ConfirmationDialogContent>
         </Dialog>
       )}
