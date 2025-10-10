@@ -1,6 +1,7 @@
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
+import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -10,6 +11,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { ServerTeamsListing } from "./server-page";
 
+// <lines 14–20 have been removed; no-op dynamic() calls are gone>
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("teams"),

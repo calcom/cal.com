@@ -3,6 +3,7 @@ import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
 import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { unstable_cache } from "next/cache";
+import dynamic from "next/dynamic";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -12,7 +13,17 @@ import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listing-view";
+// Dynamically import the components
+const EventTypes = dynamic(
+  () => import("~/event-types/views/event-types-listing-view").then((mod) => mod.default),
+  {
+    loading: () => <div aria-busy="true" role="status" />,
+  }
+);
+
+const EventTypesCTA = dynamic(() =>
+  import("~/event-types/views/event-types-listing-view").then((mod) => mod.EventTypesCTA)
+);
 
 export const generateMetadata = async () =>
   await _generateMetadata(
