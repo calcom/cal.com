@@ -49,7 +49,7 @@ interface AnalyticsScriptsProps {
 
 export function AnalyticsScripts({ nonce }: AnalyticsScriptsProps) {
   const pathname = usePathname();
-  console.log("AnalyticsScripts - pathname:", pathname, "And gtm id: ", GTM_ID);
+  // console.log("AnalyticsScripts - pathname:", pathname, "And gtm id: ", GTM_ID);
 
   const allowScript = shouldAllowScripts(pathname);
   const allowMetaPixel = shouldAllowMetaPixel(pathname);

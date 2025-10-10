@@ -79,8 +79,6 @@ const OnboardingPage = (props: PageProps) => {
       console.log("Gmail event pushed");
     }
   }, [props.google_signup_to_be_tracked, props.email]);
-  console.log("Props got were: ", props);
-
   const router = useRouter();
   const [user] = trpc.viewer.me.calid_get.useSuspenseQuery();
   const { t } = useLocale();
@@ -132,6 +130,10 @@ const OnboardingPage = (props: PageProps) => {
   const completionMutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       await utils.viewer.me.invalidate();
+      await utils.viewer.me.calid_get.invalidate();
+
+      await utils.viewer.me.get.refetch();
+
       router.push("/event-types");
     },
     onError: () => {
@@ -139,16 +141,38 @@ const OnboardingPage = (props: PageProps) => {
     },
   });
 
+  const onSchedulePresent = async () => {
+    const data = utils.viewer.me.get.getData();
+
+    if (data) {
+      window.dataLayer = window.dataLayer || [];
+      const gtmEvent = {
+        event: data.identityProvider === "GOOGLE" ? "gmail_onboarding_success" : "email_onboarding_success",
+        signup_method: data.identityProvider === "GOOGLE" ? "google" : "email",
+        user_name: data.username,
+        full_name: data.name,
+        email_address: data.email,
+      };
+
+      console.log("Pushed gtm onboarding event: ", gtmEvent);
+
+      if (!data.completedOnboarding) {
+        window.dataLayer.push(gtmEvent);
+      }
+    }
+    // After creating the default schedule, complete the onboarding with a generic bio
+    completionMutation.mutate({
+      metadata: {
+        currentOnboardingStep: "completed",
+      },
+      completedOnboarding: true,
+      bio: t("default_user_bio"),
+    });
+  };
+
   const createDefaultScheduleMutation = trpc.viewer.availability.schedule.create.useMutation({
     onSuccess: async () => {
-      // After creating the default schedule, complete the onboarding with a generic bio
-      completionMutation.mutate({
-        metadata: {
-          currentOnboardingStep: "completed",
-        },
-        completedOnboarding: true,
-        bio: t("default_user_bio"),
-      });
+      onSchedulePresent();
     },
     onError: () => {
       triggerToast(t("problem_creating_default_schedule"), "error");
