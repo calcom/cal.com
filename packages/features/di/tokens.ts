@@ -56,5 +56,6 @@ export const DI_TOKENS = {
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
   // Booking service tokens
   ...BOOKING_DI_TOKENS,
+  // Watchlist service tokens
   ...WATCHLIST_DI_TOKENS,
 };
