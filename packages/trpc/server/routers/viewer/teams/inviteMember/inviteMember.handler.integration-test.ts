@@ -216,6 +216,7 @@ describe("inviteMember.handler Integration Tests", () => {
       locale: user.locale || "en",
       timeZone: user.timeZone || "UTC",
       role: user.role,
+      preventBookings: user.preventBookings || false,
       allowDynamicBooking: user.allowDynamicBooking || true,
       completedOnboarding: user.completedOnboarding,
       twoFactorEnabled: user.twoFactorEnabled,
