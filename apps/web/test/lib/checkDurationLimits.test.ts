@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import {
   checkDurationLimit,
   checkDurationLimits,
-} from "@calcom/lib/intervalLimits/server/checkDurationLimits";
+} from "@calcom/features/bookings/lib/checkDurationLimits";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 
 const mockGetTotalBookingDuration = vi.fn();

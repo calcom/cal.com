@@ -32,7 +32,7 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager from "@calcom/lib/intervalLimits/limitManager";
-import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import {
   calculatePeriodLimits,

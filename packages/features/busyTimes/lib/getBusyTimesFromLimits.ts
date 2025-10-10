@@ -1,19 +1,18 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import type { EventType } from "@calcom/features/availability/lib/getUserAvailability";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getCheckBookingLimitsService } from "@calcom/features/di/containers/BookingLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
+import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
+import LimitManager from "@calcom/lib/intervalLimits/limitManager";
+import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
-
-import { descendingLimitKeys, intervalLimitKeyToUnit } from "../intervalLimit";
-import type { IntervalLimit } from "../intervalLimitSchema";
-import LimitManager from "../limitManager";
-import { isBookingWithinPeriod } from "../utils";
 
 const _getBusyTimesFromLimits = async (
   bookingLimits: IntervalLimit | null,
