@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import posthog from "posthog-js";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,11 +17,13 @@ export function CalAiBanner() {
   });
 
   const handleDismiss = () => {
+    posthog.capture("calai_banner_dismissed");
     localStorage.setItem("calai-banner-dismissed", "true");
     setIsVisible(false);
   };
 
   const handleTryNow = () => {
+    posthog.capture("calai_banner_try_now_clicked");
     window.open("/workflow/new?action=calAi&templateWorkflowId=wf-11", "_blank");
   };
 
