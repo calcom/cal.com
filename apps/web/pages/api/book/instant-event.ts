@@ -12,7 +12,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
 
   await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
+    rateLimitingType: "instantMeeting",
     identifier: `instant.event-${piiHasher.hash(userIp)}`,
   });
 

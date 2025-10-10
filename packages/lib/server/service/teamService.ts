@@ -1,4 +1,5 @@
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
@@ -11,6 +12,7 @@ import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
+import { randomBytes } from "crypto";
 
 const log = logger.getSubLogger({ prefix: ["TeamService"] });
 
@@ -47,6 +49,56 @@ export type RemoveMemberResult = {
 };
 
 export class TeamService {
+  static async createInvite(
+    teamId: number,
+    options?: { token?: string }
+  ): Promise<{ token: string; inviteLink: string }> {
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: { parentId: true, isOrganization: true },
+    });
+
+    if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+
+    const isOrganizationOrATeamInOrganization = !!(team.parentId || team.isOrganization);
+
+    if (options?.token) {
+      const existingToken = await prisma.verificationToken.findFirst({
+        where: {
+          token: options.token,
+          identifier: `invite-link-for-teamId-${teamId}`,
+          teamId,
+        },
+      });
+      if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite token not found" });
+      return {
+        token: existingToken.token,
+        inviteLink: TeamService.buildInviteLink(existingToken.token, isOrganizationOrATeamInOrganization),
+      };
+    }
+
+    const token = randomBytes(32).toString("hex");
+    await prisma.verificationToken.create({
+      data: {
+        identifier: `invite-link-for-teamId-${teamId}`,
+        token,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
+        expiresInDays: 7,
+        teamId,
+      },
+    });
+
+    return {
+      token,
+      inviteLink: TeamService.buildInviteLink(token, isOrganizationOrATeamInOrganization),
+    };
+  }
+
+  private static buildInviteLink(token: string, isOrgContext: boolean): string {
+    const teamInviteLink = `${WEBAPP_URL}/teams?token=${token}`;
+    const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
+    return isOrgContext ? orgInviteLink : teamInviteLink;
+  }
   /**
    * Deletes a team and all its associated data in a safe, transactional order.
    * External, critical services like billing are handled first to prevent data inconsistencies.
