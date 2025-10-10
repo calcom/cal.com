@@ -46,9 +46,9 @@ export const CreateSchedulePlatformWrapper = ({
         <DialogContent className="bg-default text-default">
           <CreateScheduleForm
             customClassNames={{
-              atomsWrapper: customClassNames?.formWrapper,
+              formWrapper: customClassNames?.formWrapper,
               inputField: customClassNames?.inputField,
-              buttons: {
+              actionsButtons: {
                 container: customClassNames?.actionsButtons?.container,
                 continue: customClassNames?.actionsButtons?.continue,
                 close: customClassNames?.actionsButtons?.close,

@@ -28,9 +28,9 @@ export const CreateScheduleForm = ({
   onError?: (err: ApiErrorResponse) => void;
   onCancel?: () => void;
   customClassNames?: {
-    atomsWrapper?: string;
+    formWrapper?: string;
     inputField?: string;
-    buttons?: ActionButtonsClassNames;
+    actionsButtons?: ActionButtonsClassNames;
   };
   disableToasts?: boolean;
 }) => {
@@ -64,7 +64,7 @@ export const CreateScheduleForm = ({
   return (
     <AtomsWrapper>
       <Form
-        className={customClassNames?.atomsWrapper}
+        className={customClassNames?.formWrapper}
         form={form}
         handleSubmit={async (values) => {
           await createSchedule(values);
@@ -83,21 +83,21 @@ export const CreateScheduleForm = ({
         <div
           className={cn(
             "mt-5 justify-end space-x-2 rtl:space-x-reverse sm:mt-4 sm:flex",
-            customClassNames?.buttons?.container
+            customClassNames?.actionsButtons?.container
           )}>
           {onCancel && (
             <Button
               type="button"
               color="secondary"
               onClick={onCancel}
-              className={customClassNames?.buttons?.close}>
+              className={customClassNames?.actionsButtons?.close}>
               {t("close")}
             </Button>
           )}
           <Button
             type="submit"
             loading={isCreateSchedulePending}
-            className={customClassNames?.buttons?.continue}>
+            className={customClassNames?.actionsButtons?.continue}>
             {" "}
             {t("continue")}
           </Button>
