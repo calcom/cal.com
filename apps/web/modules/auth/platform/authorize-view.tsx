@@ -77,14 +77,14 @@ export default function Authorize() {
               alt=""
               fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
               className="items-center"
-              imageSrc="/cal-com-icon.svg"
+              imageSrc="/calid_favicon.svg"
               size="lg"
             />
           )}
           <div className="relative -ml-6 h-24 w-24">
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="bg-primary flex h-[70px] w-[70px] items-center  justify-center rounded-full">
-                <img src="/cal-com-icon.svg" alt="Logo" className="h-16 w-16 rounded-full" />
+                <img src="/calid_favicon.svg" alt="Logo" className="h-16 w-16 rounded-full" />
               </div>
             </div>
           </div>
