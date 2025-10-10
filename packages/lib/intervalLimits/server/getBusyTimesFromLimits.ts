@@ -1,8 +1,8 @@
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { EventType } from "@calcom/features/availability/lib/getUserAvailability";
 import { getCheckBookingLimitsService } from "@calcom/features/di/containers/BookingLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
-import type { EventType } from "@calcom/lib/getUserAvailability";
 import { getPeriodStartDatesBetween } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
