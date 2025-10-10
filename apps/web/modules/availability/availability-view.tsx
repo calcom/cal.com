@@ -49,6 +49,8 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
     onSettled: () => {
@@ -76,6 +78,8 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
   });
@@ -97,6 +101,9 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
           revalidateAvailabilityList();
           showToast(t("success"), "success");
           callback();
+        },
+        onError: (err) => {
+          showToast(err.message, "error");
         },
       }
     );
@@ -143,7 +150,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
                 <ScheduleListItem
                   displayOptions={{
                     hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,
-                    timeZone: user?.timeZone,
+                    timeZone: schedule.timeZone || user?.timeZone,
                     weekStart: user?.weekStart || "Sunday",
                   }}
                   key={schedule.id}
