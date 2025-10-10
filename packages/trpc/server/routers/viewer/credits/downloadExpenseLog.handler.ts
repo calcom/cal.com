@@ -1,5 +1,7 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import type { CreditType } from "@calcom/prisma/client";
 import { TeamService } from "@calcom/lib/server/service/teamService";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -58,17 +60,33 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
     return { csvData: headers.join(",") };
   }
 
-  const rows = creditBalance.expenseLogs.map((log) => [
-    log.date.toISOString(),
-    log.credits?.toString() ?? "",
-    log.creditType,
-    log.bookingUid ?? "",
-    log.smsSegments?.toString() ?? "-",
-    log.phoneNumber ?? "",
-    log.email ?? "",
-    log.callDuration?.toString() ?? "-",
-    log.externalRef ?? "-",
-  ]);
+  const rows = Array.isArray(creditBalance.expenseLogs)
+    ? creditBalance.expenseLogs.map(
+        (log: {
+          date: Date;
+          credits: number | null;
+          creditType: CreditType;
+          bookingUid: string | null;
+          smsSid: string | null;
+          smsSegments: number | null;
+          phoneNumber: string | null;
+          email: string | null;
+          callDuration: number | null;
+          externalRef: string | null;
+        }) => [
+          log.date,
+          log.credits,
+          log.creditType,
+          log.bookingUid ?? undefined,
+          log.smsSid ?? undefined,
+          log.smsSegments ?? undefined,
+          log.phoneNumber ?? undefined,
+          log.email ?? undefined,
+          log.callDuration ?? undefined,
+          log.externalRef ?? undefined,
+        ]
+      )
+    : [];
 
   const csvData = [headers, ...rows].map((row) => row.join(",")).join("\n");
 

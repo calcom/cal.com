@@ -1,37 +1,86 @@
-import dayjs from "@calcom/dayjs";
-import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
-import type { CreditType } from "@calcom/prisma/enums";
+/* eslint-disable @calcom/eslint/no-prisma-include-true */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable @typescript-eslint/adjacent-overload-signatures */
+import type { PrismaTransaction } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import type { CreditType } from "@calcom/prisma/client";
 
 export class CreditsRepository {
   static async findCreditBalance(
-    { teamId, userId }: { teamId?: number; userId?: number },
-    tx?: PrismaTransaction
+    where: { teamId?: number | null; userId?: number | null },
+    tx: PrismaTransaction = prisma
   ) {
-    const prismaClient = tx ?? prisma;
-
-    const select = {
-      id: true,
-      additionalCredits: true,
-      limitReachedAt: true,
-      warningSentAt: true,
-    };
-
-    if (teamId) {
-      return await prismaClient.creditBalance.findUnique({
-        where: {
-          teamId,
+    if (where.teamId != null && where.userId != null) {
+      throw new Error("Provide exactly one of teamId or userId");
+    }
+    if (where.teamId != null) {
+      return tx.creditBalance.findUnique({
+        where: { teamId: where.teamId ?? undefined },
+        select: {
+          id: true,
+          additionalCredits: true,
+          limitReachedAt: true,
+          warningSentAt: true,
+          autoRechargeEnabled: true,
+          autoRechargeThreshold: true,
+          autoRechargeAmount: true,
+          stripeCustomerId: true,
+          lastAutoRechargeAt: true,
         },
-        select,
+      });
+    } else if (where.userId != null) {
+      return tx.creditBalance.findUnique({
+        where: { userId: where.userId ?? undefined },
+        select: {
+          id: true,
+          additionalCredits: true,
+          limitReachedAt: true,
+          warningSentAt: true,
+          autoRechargeEnabled: true,
+          autoRechargeThreshold: true,
+          autoRechargeAmount: true,
+          stripeCustomerId: true,
+          lastAutoRechargeAt: true,
+        },
       });
     }
+    return null;
+  }
 
-    if (userId) {
-      return await prismaClient.creditBalance.findUnique({
-        where: { userId },
-        select,
+  static async findCreditBalanceWithAutoRechargeSettings(
+    where: { teamId?: number | null; userId?: number | null },
+    tx: PrismaTransaction = prisma
+  ) {
+    if (where.teamId != null && where.userId != null) {
+      throw new Error("Provide exactly one of teamId or userId");
+    }
+    if (where.teamId != null) {
+      return tx.creditBalance.findUnique({
+        where: { teamId: where.teamId },
+        select: {
+          id: true,
+          autoRechargeEnabled: true,
+          autoRechargeThreshold: true,
+          autoRechargeAmount: true,
+          stripeCustomerId: true,
+        },
+      });
+    } else if (where.userId != null) {
+      return tx.creditBalance.findUnique({
+        where: { userId: where.userId },
+        select: {
+          id: true,
+          autoRechargeEnabled: true,
+          autoRechargeThreshold: true,
+          autoRechargeAmount: true,
+          stripeCustomerId: true,
+        },
       });
     }
+    return null;
   }
 
   static async findCreditExpenseLogByExternalRef(externalRef: string, tx?: PrismaTransaction) {
@@ -49,75 +98,61 @@ export class CreditsRepository {
   }
 
   static async findCreditBalanceWithTeamOrUser(
-    {
-      teamId,
-      userId,
-    }: {
-      teamId?: number | null;
-      userId?: number | null;
-    },
-    tx?: PrismaTransaction
+    { teamId, userId }: { teamId?: number | null; userId?: number | null },
+    tx: PrismaTransaction = prisma
   ) {
     const prismaClient = tx ?? prisma;
-
-    const select = {
-      id: true,
-      additionalCredits: true,
-      limitReachedAt: true,
-      warningSentAt: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-          members: {
-            select: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  locale: true,
+    if (teamId) {
+      return prismaClient.creditBalance.findUnique({
+        where: { teamId: teamId ?? undefined },
+        include: {
+          team: {
+            include: {
+              members: {
+                include: {
+                  user: true,
                 },
               },
             },
           },
+          user: true,
         },
-      },
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          locale: true,
+      });
+    } else if (userId) {
+      return prismaClient.creditBalance.findUnique({
+        where: { userId: userId ?? undefined },
+        include: {
+          team: {
+            include: {
+              members: {
+                include: {
+                  user: true,
+                },
+              },
+            },
+          },
+          user: true,
         },
-      },
-    };
-    if (teamId) {
-      return await prismaClient.creditBalance.findUnique({
-        where: {
-          teamId,
-        },
-        select,
       });
     }
-
-    if (userId) {
-      return await prismaClient.creditBalance.findUnique({
-        where: { userId },
-        select,
-      });
-    }
+    return null;
   }
 
   static async findCreditBalanceWithExpenseLogs(
     {
       teamId,
       userId,
-      startDate = dayjs().startOf("month").toDate(),
-      endDate = new Date(),
+      startDate,
+      endDate,
       creditType,
-    }: { teamId?: number; userId?: number; startDate?: Date; endDate?: Date; creditType?: CreditType },
-    tx?: PrismaTransaction
+    }: {
+      teamId?: number | null;
+      userId?: number | null;
+      startDate?: Date;
+      endDate?: Date;
+      creditType?: CreditType;
+    },
+    tx: PrismaTransaction = prisma
   ) {
     if (!teamId && !userId) return null;
 
@@ -125,8 +160,8 @@ export class CreditsRepository {
 
     return await prismaClient.creditBalance.findUnique({
       where: {
-        teamId,
-        ...(!teamId ? { userId } : {}),
+        teamId: teamId ?? undefined,
+        ...(!teamId ? { userId: userId ?? undefined } : {}),
       },
       select: {
         additionalCredits: true,
@@ -168,75 +203,139 @@ export class CreditsRepository {
       id?: string;
       teamId?: number | null;
       userId?: number | null;
-      data: Prisma.CreditBalanceUncheckedUpdateInput;
+      data: Prisma.CreditBalanceUpdateInput;
     },
-    tx?: PrismaTransaction
+    tx: PrismaTransaction = prisma
   ) {
-    const prismaClient = tx ?? prisma;
+    let where: Prisma.CreditBalanceWhereUniqueInput;
+
     if (id) {
-      return prismaClient.creditBalance.update({
-        where: { id },
-        data,
-      });
+      where = { id };
+    } else if (teamId) {
+      where = { teamId };
+    } else if (userId) {
+      where = { userId };
+    } else {
+      throw new Error("Either id, teamId or userId must be provided");
     }
 
-    if (teamId) {
-      return prismaClient.creditBalance.update({
-        where: { teamId },
-        data,
-      });
-    }
-
-    if (userId) {
-      return prismaClient.creditBalance.update({
-        where: { userId },
-        data,
-      });
-    }
-
-    return null;
+    return tx.creditBalance.update({
+      where,
+      data,
+    });
   }
 
-  static async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput, tx?: PrismaTransaction) {
-    const { teamId, userId } = data;
-
-    if (!teamId && !userId) {
-      throw new Error("Team or user ID is required");
-    }
-
-    return (tx ?? prisma).creditBalance.create({
+  static async createCreditBalance(
+    {
+      teamId,
+      userId,
+      additionalCredits = 0,
+      autoRechargeEnabled = false,
+      autoRechargeThreshold = null,
+      autoRechargeAmount = null,
+      stripeCustomerId = null,
+    }: {
+      teamId?: number;
+      userId?: number;
+      additionalCredits?: number;
+      autoRechargeEnabled?: boolean;
+      autoRechargeThreshold?: number | null;
+      autoRechargeAmount?: number | null;
+      stripeCustomerId?: string | null;
+    },
+    tx: PrismaTransaction = prisma
+  ) {
+    return tx.creditBalance.create({
       data: {
-        ...data,
-        ...(!teamId ? { userId } : {}),
+        additionalCredits,
+        autoRechargeEnabled,
+        autoRechargeThreshold,
+        autoRechargeAmount,
+        stripeCustomerId,
+        team: teamId
+          ? {
+              connect: {
+                id: teamId,
+              },
+            }
+          : undefined,
+        user: userId
+          ? {
+              connect: {
+                id: userId,
+              },
+            }
+          : undefined,
+      },
+    });
+  }
+
+  static async createCreditPurchaseLog(
+    {
+      credits,
+      creditBalanceId,
+      autoRecharged = false,
+    }: {
+      credits: number;
+      creditBalanceId: string;
+      autoRecharged?: boolean;
+    },
+    tx: PrismaTransaction = prisma
+  ) {
+    return tx.creditPurchaseLog.create({
+      data: {
+        credits,
+        creditBalanceId,
+        autoRecharged,
+        date: new Date(),
       },
     });
   }
 
   static async createCreditExpenseLog(
-    data: Prisma.CreditExpenseLogUncheckedCreateInput,
+    {
+      creditBalanceId,
+      credits,
+      creditType,
+      date,
+      bookingUid,
+      smsSid,
+      smsSegments,
+      phoneNumber,
+      email,
+      callDuration,
+      externalRef,
+    }: {
+      creditBalanceId: string;
+      credits: number | null;
+      creditType: CreditType;
+      date: Date;
+      bookingUid?: string;
+      smsSid?: string;
+      smsSegments?: number;
+      phoneNumber?: string;
+      email?: string;
+      callDuration?: number;
+      externalRef?: string;
+    },
     tx?: PrismaTransaction
   ) {
-    const prismaClient = tx ?? prisma;
-    try {
-      return await prismaClient.creditExpenseLog.create({
-        data,
-      });
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        throw new Error(`Duplicate external reference - already processed: ${data?.externalRef}`);
-      }
-      throw error;
+    const prismaClient = tx || prisma;
+    const data: any = {
+      credits,
+      creditType,
+      date,
+      smsSid,
+      smsSegments,
+      phoneNumber,
+      email,
+      callDuration,
+      externalRef,
+      creditBalance: { connect: { id: creditBalanceId } },
+    };
+    if (typeof bookingUid !== "undefined") {
+      data.bookingUid = bookingUid;
     }
-  }
-
-  static async createCreditPurchaseLog(data: { credits: number; creditBalanceId: string }) {
-    const { credits, creditBalanceId } = data;
-
-    return prisma.creditPurchaseLog.create({
-      data: {
-        credits,
-        creditBalanceId,
-      },
-    });
+    return prismaClient.creditExpenseLog.create({ data });
   }
 }

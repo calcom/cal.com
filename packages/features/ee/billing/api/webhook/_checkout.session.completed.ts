@@ -53,18 +53,26 @@ async function saveToCreditBalance({
 }) {
   const creditBalance = await CreditsRepository.findCreditBalance({ teamId, userId });
 
+  const stripeCustomerId = session.customer as string;
+
   let creditBalanceId = creditBalance?.id;
 
   if (creditBalance) {
     await CreditsRepository.updateCreditBalance({
       id: creditBalance.id,
-      data: { additionalCredits: { increment: nrOfCredits }, limitReachedAt: null, warningSentAt: null },
+      data: {
+        additionalCredits: { increment: nrOfCredits },
+        limitReachedAt: null,
+        warningSentAt: null,
+        stripeCustomerId: stripeCustomerId, // Store customer ID for future auto-recharge
+      },
     });
   } else {
     const newCreditBalance = await CreditsRepository.createCreditBalance({
       teamId: teamId,
       userId: !teamId ? userId : undefined,
       additionalCredits: nrOfCredits,
+      stripeCustomerId: stripeCustomerId, // Store customer ID for future auto-recharge
     });
     creditBalanceId = newCreditBalance.id;
   }

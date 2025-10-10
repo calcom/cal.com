@@ -1,16 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable turbo/no-undeclared-env-vars */
 import Stripe from "stripe";
 
-import type { BillingService } from "./billing-service";
-
-export class StripeBillingService implements BillingService {
+export class StripeBillingService {
   private stripe: Stripe;
-  constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY!, {
+  constructor(apiKey?: string) {
+    this.stripe = new Stripe(apiKey || (process.env.STRIPE_SECRET_KEY as string), {
       apiVersion: "2020-08-27",
     });
   }
 
-  async createCustomer(args: Parameters<BillingService["createCustomer"]>[0]) {
+  async createCustomer(args: any) {
     const { email, metadata } = args;
     const customer = await this.stripe.customers.create({
       email,
@@ -22,7 +23,7 @@ export class StripeBillingService implements BillingService {
     return { stripeCustomerId: customer.id };
   }
 
-  async createPaymentIntent(args: Parameters<BillingService["createPaymentIntent"]>[0]) {
+  async createPaymentIntent(args: any) {
     const { customerId, amount, metadata } = args;
     const paymentIntent = await this.stripe.paymentIntents.create({
       customer: customerId,
@@ -58,7 +59,7 @@ export class StripeBillingService implements BillingService {
       invoice_creation: {
         enabled: true,
       },
-    } as any);
+    } as never);
 
     return {
       checkoutUrl: session.url,
@@ -66,7 +67,7 @@ export class StripeBillingService implements BillingService {
     };
   }
 
-  async createSubscriptionCheckout(args: Parameters<BillingService["createSubscriptionCheckout"]>[0]) {
+  async createSubscriptionCheckout(args: any) {
     const {
       customerId,
       successUrl,
@@ -107,7 +108,7 @@ export class StripeBillingService implements BillingService {
     };
   }
 
-  async createPrice(args: Parameters<BillingService["createPrice"]>[0]) {
+  async createPrice(args: any) {
     const { amount, currency, interval, productId, nickname, metadata } = args;
 
     const price = await this.stripe.prices.create({
@@ -126,7 +127,7 @@ export class StripeBillingService implements BillingService {
     };
   }
 
-  async handleSubscriptionCreation(subscriptionId: string) {
+  async handleSubscriptionCreation(_args: any) {
     throw new Error("Method not implemented.");
   }
 
@@ -134,7 +135,7 @@ export class StripeBillingService implements BillingService {
     await this.stripe.subscriptions.cancel(subscriptionId);
   }
 
-  async handleSubscriptionUpdate(args: Parameters<BillingService["handleSubscriptionUpdate"]>[0]) {
+  async handleSubscriptionUpdate(args: any) {
     const { subscriptionId, subscriptionItemId, membershipCount } = args;
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
@@ -184,7 +185,7 @@ export class StripeBillingService implements BillingService {
     return subscriptions.data;
   }
 
-  async updateCustomer(args: Parameters<BillingService["updateCustomer"]>[0]) {
+  async updateCustomer(args: any) {
     const { customerId, email, userId } = args;
     const metadata: { email?: string; userId?: number } = {};
     if (email) metadata.email = email;
@@ -195,5 +196,70 @@ export class StripeBillingService implements BillingService {
   async getPrice(priceId: string) {
     const price = await this.stripe.prices.retrieve(priceId);
     return price;
+  }
+
+  async createAutoRechargePaymentIntent({
+    customerId,
+    amount, // quantity of credits to buy
+    metadata,
+  }: {
+    customerId: string;
+    amount: number;
+    metadata: {
+      creditBalanceId: string;
+      teamId: string;
+      userId: string;
+      autoRecharge: string;
+    };
+  }): Promise<{ success: boolean; error?: string }> {
+    try {
+      const creditsPriceId = process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID;
+      if (!creditsPriceId) {
+        return { success: false, error: "CREDITS price not configured" };
+      }
+      const price = await this.stripe.prices.retrieve(creditsPriceId);
+      const unitAmount = price.unit_amount;
+      if (!unitAmount) {
+        return { success: false, error: "Unit amount missing on credits price" };
+      }
+      const totalAmount = unitAmount * amount;
+
+      // Get customer's payment methods
+      const paymentMethods = await this.stripe.paymentMethods.list({
+        customer: customerId,
+        type: "card",
+      });
+
+      if (!paymentMethods.data.length) {
+        return { success: false, error: "No payment methods found for customer" };
+      }
+
+      // Use default payment method if set; else first available
+      const customer = await this.stripe.customers.retrieve(customerId);
+      const defaultPm = (customer as Stripe.Customer).invoice_settings?.default_payment_method as
+        | string
+        | null;
+      const defaultPaymentMethod = defaultPm ?? paymentMethods.data[0].id;
+
+      // Create and confirm a payment intent
+      await this.stripe.paymentIntents.create({
+        amount: totalAmount,
+        currency: "usd",
+        customer: customerId,
+        payment_method: defaultPaymentMethod,
+        off_session: true,
+        confirm: true,
+        error_on_requires_action: true,
+        metadata,
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error processing auto-recharge payment:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
   }
 }
