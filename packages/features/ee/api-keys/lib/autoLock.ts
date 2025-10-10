@@ -1,10 +1,10 @@
 import type { RatelimitResponse } from "@unkey/ratelimit";
 
-import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
-import logger from "./logger";
+import { hashAPIKey } from "./apiKeys";
 
 // This is the number of times a user can exceed the rate limit before being locked
 const DEFAULT_AUTOLOCK_THRESHOLD = 5;
