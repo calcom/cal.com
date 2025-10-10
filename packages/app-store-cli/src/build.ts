@@ -1,6 +1,5 @@
 import chokidar from "chokidar";
 import fs from "fs";
-// eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
@@ -22,7 +21,7 @@ const formatOutput = (source: string) =>
     ...prettierConfig,
   });
 
-const getVariableName = (appName: string) => appName.replace(/[-.\/]/g, "_");
+const getVariableName = (appName: string) => appName.replace(/[-.]/g, "_").replace(/\//g, "_");
 
 // INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
 const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
@@ -82,7 +81,7 @@ function generateFiles() {
           throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else if (fs.existsSync(metadataPath)) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         app = require(metadataPath).metadata;
       } else {
         app = {};
@@ -163,8 +162,9 @@ function generateFiles() {
     function addImportStatements() {
       forEachAppDir((app) => {
         const chosenConfig = getChosenImportConfig(importConfig, app);
-        if (fileToBeImportedExists(app, chosenConfig) && chosenConfig.importName) {
-          const importName = chosenConfig.importName;
+        if (fileToBeImportedExists(app, chosenConfig)) {
+          // Default importName to "default" if not specified for non-lazy imports
+          const importName = chosenConfig.importName || "default";
           if (!lazyImport) {
             if (importName !== "default") {
               // Import with local alias that will be used by createExportObject
@@ -372,9 +372,11 @@ function generateFiles() {
   );
   if (exportLineIndex !== -1) {
     const exportLine = calendarServices[exportLineIndex];
+    const importStatements = calendarServices.slice(0, exportLineIndex); // Preserve import statements
     const objectContent = calendarServices.slice(exportLineIndex + 1, -1); // Remove export line and closing brace
 
     calendarOutput.push(
+      ...importStatements, // Keep the import statements
       exportLine.replace(
         "export const CalendarServiceMap = {",
         "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
@@ -461,9 +463,11 @@ function generateFiles() {
   );
   if (videoExportLineIndex !== -1) {
     const exportLine = videoAdapters[videoExportLineIndex];
+    const importStatements = videoAdapters.slice(0, videoExportLineIndex); // Preserve import statements
     const objectContent = videoAdapters.slice(videoExportLineIndex + 1, -1);
 
     videoOutput.push(
+      ...importStatements, // Keep the import statements
       exportLine.replace(
         "export const VideoApiAdapterMap = {",
         "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"

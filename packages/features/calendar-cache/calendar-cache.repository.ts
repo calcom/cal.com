@@ -36,8 +36,10 @@ function assertCalendarHasDbCredential(calendar: Calendar | null) {
     return;
   }
   const credentialId = calendar.getCredentialId();
-  if (credentialId < 0) {
-    throw new Error(`Received invalid credentialId ${credentialId}`);
+  if (credentialId <= 0) {
+    throw new Error(
+      `Received invalid credentialId ${credentialId}. Credential ID must be a positive integer.`
+    );
   }
 }
 /**
