@@ -50,8 +50,8 @@ import type { RoutingFormResponseRepository } from "@calcom/lib/server/repositor
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import type { TeamRepository } from "@calcom/lib/server/repository/team";
-import type { UserRepository } from "@calcom/lib/server/repository/user";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import getSlots from "@calcom/lib/slots";
 import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";

@@ -68,7 +68,7 @@ import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/l
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
-import type { UserRepository } from "@calcom/lib/server/repository/user";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";

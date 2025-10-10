@@ -10,7 +10,7 @@ import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEv
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { shouldHideBrandingForUserEvent } from "@calcom/features/profile/lib/hideBranding";
 import { EventRepository } from "@calcom/lib/server/repository/event";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";

@@ -6,7 +6,7 @@ export { EventTypeRepository as PrismaEventTypeRepository } from "@calcom/lib/se
 export { RoutingFormResponseRepository as PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 export { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 export { TeamRepository as PrismaTeamRepository } from "@calcom/lib/server/repository/team";
-export { UserRepository as PrismaUserRepository } from "@calcom/lib/server/repository/user";
+export { UserRepository as PrismaUserRepository } from "@calcom/features/users/repositories/UserRepository";
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 export { MembershipRepository as PrismaMembershipRepository } from "@calcom/lib/server/repository/membership";
 export { HostRepository as PrismaHostRepository } from "@calcom/lib/server/repository/host";

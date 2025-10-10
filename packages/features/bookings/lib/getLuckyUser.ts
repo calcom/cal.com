@@ -11,7 +11,7 @@ import type { PrismaAttributeRepository } from "@calcom/lib/server/repository/Pr
 import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import type { UserRepository } from "@calcom/lib/server/repository/user";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { Prisma } from "@calcom/prisma/client";
 import type { User, Booking, SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";

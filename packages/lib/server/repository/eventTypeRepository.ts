@@ -1,3 +1,4 @@
+import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
@@ -13,7 +14,6 @@ import { TRPCError } from "@trpc/server";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { MembershipRepository } from "./membership";
-import { LookupTarget, ProfileRepository } from "./profile";
 import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
 
