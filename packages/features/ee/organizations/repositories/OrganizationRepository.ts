@@ -2,7 +2,7 @@ import type { z } from "zod";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";

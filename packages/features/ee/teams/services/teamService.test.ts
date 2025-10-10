@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";

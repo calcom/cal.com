@@ -4,7 +4,7 @@ import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
