@@ -75,6 +75,7 @@ export const DYNAMIC_TEXT_VARIABLES = [
   "attendee_timezone",
   "event_start_time_in_attendee_timezone",
   "event_end_time_in_attendee_timezone",
+  "booking_title",
 ];
 
 export const FORMATTED_DYNAMIC_TEXT_VARIABLES = [
