@@ -4,7 +4,7 @@
   "type": "office365_video",
   "variant": "conferencing",
   "logo": "icon.svg",
-  "publisher": "Cal.com",
+  "publisher": "Cal ID",
   "url": "https://www.microsoft.com/en-ca/microsoft-teams/group-chat-software",
   "verified": true,
   "rating": 4.3,
@@ -13,7 +13,7 @@
   "slug": "msteams",
   "title": "MS Teams (Requires work/school account)",
   "trending": true,
-  "email": "help@cal.com",
+  "email": "support@cal.id",
   "appData": {
     "location": {
       "linkType": "dynamic",
