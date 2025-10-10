@@ -4,14 +4,9 @@ import { useEffect } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { WEBAPP_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { WEBAPP_URL, IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
+import { BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-
-enum BillingPeriod {
-  MONTHLY = "MONTHLY",
-  ANNUALLY = "ANNUALLY",
-}
 
 interface OnboardingAdminStoreState {
   billingPeriod?: BillingPeriod;
@@ -121,7 +116,13 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   const router = useRouter();
   const path = usePathname();
   const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
-  const isBillingEnabled = !(IS_SELF_HOSTED && isAdmin) || process.env.NEXT_PUBLIC_IS_E2E;
+
+  // Billing is disabled only in E2E mode or for self-hosted admins
+  // E2E tests always use self-hosted flow (billing disabled)
+  const isBillingEnabled = process.env.NEXT_PUBLIC_IS_E2E
+    ? false
+    : IS_TEAM_BILLING_ENABLED_CLIENT || !isAdmin;
+
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
     trpc.viewer.organizations.getOrganizationOnboarding.useQuery();

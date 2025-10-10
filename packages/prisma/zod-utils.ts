@@ -58,7 +58,13 @@ export const bookerLayouts = z
   .nullable();
 
 export const orgOnboardingInvitedMembersSchema = z.array(
-  z.object({ email: z.string().email(), name: z.string().optional() })
+  z.object({
+    email: z.string().email(),
+    name: z.string().optional(),
+    teamId: z.number().optional(),
+    teamName: z.string().optional(),
+    role: z.enum(["MEMBER", "ADMIN"]).optional().default("MEMBER"),
+  })
 );
 
 export const orgOnboardingTeamsSchema = z.array(
