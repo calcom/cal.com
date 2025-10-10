@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@calid/features/ui/components/button";
 import {
   DropdownMenu,
@@ -94,8 +96,8 @@ export const EventTypeActions = ({
         </div>
       )}
 
-      {/* Action buttons */}
-      <ButtonGroup>
+      {/* Action buttons - hidden on mobile */}
+      <ButtonGroup containerProps={{ className: "hidden lg:flex" }}>
         {!shouldHideRedirectAndCopy && (
           <Tooltip content={t("preview")}>
             <Button

@@ -1,6 +1,7 @@
 "use client";
 
 import { Alert } from "@calid/features/ui/components/alert";
+import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card";
 import {
@@ -14,7 +15,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
@@ -95,7 +95,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
       setCreateModalOpen(false);
       revalidateEventTypeEditPage(eventType.id);
       triggerToast(t("webhook_created_successfully"), "success");
-      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.calid_list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
@@ -108,7 +108,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
       setEditModalOpen(false);
       revalidateEventTypeEditPage(eventType.id);
       triggerToast(t("webhook_updated_successfully"), "success");
-      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.calid_list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
@@ -120,8 +120,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
     async onSuccess() {
       revalidateEventTypeEditPage(eventType.id);
       triggerToast(t("webhook_removed_successfully"), "success");
-      await utils.viewer.webhook.getByViewer.invalidate();
-      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.calid_list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
@@ -133,8 +132,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
     async onSuccess(data) {
       revalidateEventTypeEditPage(eventType.id);
       triggerToast(t(data?.active ? "enabled" : "disabled"), "success");
-      await utils.viewer.webhook.getByViewer.invalidate();
-      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.calid_list.invalidate();
       await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
@@ -299,7 +297,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
 
                 {webhooks.length ? (
                   <>
-                    <div className="my-8 space-y-4">
+                    <div className="space-y-4">
                       {!isChildrenManagedEventType && (
                         <div className="flex justify-end">
                           <NewWebhookButton />
@@ -323,9 +321,9 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                 : {}
                             }>
                             <div className="mb-3 flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
+                              <div className="flex min-w-0 flex-1 items-center space-x-3">
                                 <div
-                                  className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${
                                     webhook.active ? "bg-green-100" : "bg-blue-100"
                                   }`}
                                   style={
@@ -349,41 +347,55 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                     }
                                   />
                                 </div>
-                                <div>
-                                  <h4 className="text-default font-medium">{webhook.subscriberUrl}</h4>
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="text-default truncate font-medium">
+                                    {webhook.subscriberUrl}
+                                  </h4>
                                 </div>
                               </div>
 
                               {!isReadOnly && (
-                                <div className="flex items-center space-x-3">
+                                <div className="flex flex-shrink-0 items-center space-x-2">
                                   <Switch
-                                    defaultChecked={webhook.active}
+                                    checked={webhook.active}
                                     data-testid="webhook-switch"
                                     onCheckedChange={() => toggleWebhook(webhook)}
+                                    tooltip={webhook.active ? t("turn_off") : t("turn_on")}
                                   />
 
-                                  <Button
-                                    color="secondary"
-                                    StartIcon="pencil-line"
-                                    onClick={() => {
-                                      setEditModalOpen(true);
-                                      setWebhookToEdit(webhook);
-                                    }}
-                                    data-testid="webhook-edit-button"
-                                  />
+                                  <div className="hidden items-center space-x-2 sm:flex">
+                                    <Button
+                                      color="secondary"
+                                      variant="icon"
+                                      tooltip={t("edit")}
+                                      StartIcon="pencil-line"
+                                      onClick={() => {
+                                        setEditModalOpen(true);
+                                        setWebhookToEdit(webhook);
+                                      }}
+                                      data-testid="webhook-edit-button"
+                                    />
 
-                                  <Button
-                                    StartIcon="trash-2"
-                                    color="secondary"
-                                    onClick={() => deleteWebhook(webhook)}
-                                  />
+                                    <Button
+                                      StartIcon="trash-2"
+                                      variant="icon"
+                                      tooltip={t("delete")}
+                                      color="destructive"
+                                      onClick={() => deleteWebhook(webhook)}
+                                    />
+                                  </div>
 
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button className="lg:hidden" color="secondary" StartIcon="ellipsis" />
+                                      <Button
+                                        className="sm:hidden"
+                                        variant="icon"
+                                        color="secondary"
+                                        StartIcon="ellipsis"
+                                      />
                                     </DropdownMenuTrigger>
 
-                                    <DropdownMenuContent side="bottom" align="end" className="w-48">
+                                    <DropdownMenuContent side="bottom" align="end">
                                       <DropdownMenuItem
                                         onClick={() => {
                                           setEditModalOpen(true);
@@ -392,9 +404,6 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                         StartIcon="pencil">
                                         {t("edit")}
                                       </DropdownMenuItem>
-
-                                      <DropdownMenuSeparator />
-
                                       <DropdownMenuItem
                                         onClick={() => deleteWebhook(webhook)}
                                         color="destructive"
@@ -407,14 +416,11 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                               )}
                             </div>
 
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-2 overflow-hidden">
                               {webhook.eventTriggers.slice(0, 3).map((trigger) => (
-                                <span
-                                  key={trigger}
-                                  className="text-default bg-default inline-flex items-center rounded-full px-2 py-1"
-                                  style={{ fontSize: "12px" }}>
+                                <Badge key={trigger} variant="secondary" className="text-xs">
                                   {t(`${trigger.toLowerCase()}`)}
-                                </span>
+                                </Badge>
                               ))}
                               {webhook.eventTriggers.length > 3 && (
                                 <Tooltip
@@ -427,11 +433,9 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
                                       ))}
                                     </div>
                                   }>
-                                  <span
-                                    className="bg-default text-default cursor-help rounded-full px-2 py-1"
-                                    style={{ fontSize: "12px" }}>
+                                  <Badge variant="secondary" className="text-xs">
                                     +{webhook.eventTriggers.length - 3} more
-                                  </span>
+                                  </Badge>
                                 </Tooltip>
                               )}
                             </div>
