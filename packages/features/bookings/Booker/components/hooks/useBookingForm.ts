@@ -42,6 +42,16 @@ export const useBookingForm = ({
   const { t } = useLocale();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
 
+  console.log(event, "event in useBookingForm");
+
+  console.log(
+    getBookingResponsesSchema({
+      bookingFields: event?.bookingFields,
+      view: rescheduleUid ? "reschedule" : "booking",
+    }),
+    "getBookingResponsesSchema"
+  );
+
   const bookingFormSchema = z
     .object({
       responses: event

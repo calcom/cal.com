@@ -261,6 +261,7 @@ const BookerComponent = ({
           }
         }}
         onSubmit={() => {
+          alert('submit')
           console.log('on submit')
           return (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())
         }}

@@ -154,7 +154,7 @@ function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPro
   const dateValue = value && value.trim() ? new Date(value) : (null as unknown as Date);
 
   const handleDateChange = (date: Date) => {
-    const formattedDate = date.toISOString().split("T")[0];
+    const formattedDate = date.toISOString();
     setValue(formattedDate);
   };
 

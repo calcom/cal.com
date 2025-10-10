@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
@@ -83,6 +83,10 @@ export const BookEventForm = ({
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
 
+  useEffect(() => {
+    console.log("errors changed", errors);
+  }, [errors]);
+
   const isPaidEvent = useMemo(() => {
     if (!eventType?.price) return false;
     const paymentAppData = getPaymentAppData(eventType);
@@ -126,8 +130,11 @@ export const BookEventForm = ({
           setFormValues(values);
         }}
         form={bookingForm}
-        handleSubmit={onSubmit}
-        noValidate>
+        handleSubmit={() => {
+          alert('submit')
+          onSubmit();
+        }}
+        >
         <BookingFields
           isDynamicGroupBooking={!!(username && username.indexOf("+") > -1)}
           fields={eventType.bookingFields}

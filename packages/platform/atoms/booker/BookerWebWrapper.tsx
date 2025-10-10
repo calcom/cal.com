@@ -45,6 +45,9 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     disabled: !!props.eventData,
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
   });
+
+  console.log(props.eventData,'event data')
+
   const event = props.eventData
     ? {
         data: props.eventData,
