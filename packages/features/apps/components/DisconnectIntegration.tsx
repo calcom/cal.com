@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui/components/button";
