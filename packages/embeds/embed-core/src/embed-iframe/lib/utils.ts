@@ -12,6 +12,11 @@ export function isBookerReady() {
 }
 
 function isSkeletonSupportedPageType() {
+  // Check if we're in a browser environment before accessing document
+  if (typeof document === "undefined") {
+    return false;
+  }
+  
   const url = new URL(document.URL);
   const pageType = url.searchParams.get("cal.embed.pageType");
   // Any non-empty pageType is skeleton supported because generateSkeleton()
@@ -44,6 +49,11 @@ export function isLinkReady({ embedStore }: { embedStore: typeof import("./embed
  * Moves the queuedFormResponse to the routingFormResponse record to mark it as an actual response now.
  */
 export const recordResponseIfQueued = async (params: Record<string, string | string[]>) => {
+  // Check if we're in a browser environment before accessing document
+  if (typeof document === "undefined") {
+    return null;
+  }
+  
   const url = new URL(document.URL);
   let routingFormResponseId: number | null = null;
   const queuedFormResponseIdParam = url.searchParams.get("cal.queuedFormResponseId");
