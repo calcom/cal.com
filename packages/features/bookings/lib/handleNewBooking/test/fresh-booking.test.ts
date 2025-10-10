@@ -149,9 +149,19 @@ describe("handleNewBooking", () => {
               organizer,
               apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
             },
-            org?.organization
+            org?.organization ? {
+              ...org.organization,
+              profileUsername: "username-in-org"
+            } : null
           )
         );
+
+        const orgProfiles = await prismaMock.profile.findMany({
+          where: {
+            organizationId: org?.organization.id,
+          },
+        });
+        const orgProfile = orgProfiles[0];
 
         mockSuccessfulVideoMeetingCreation({
           metadataLookupKey: "dailyvideo",
@@ -170,7 +180,7 @@ describe("handleNewBooking", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
-            user: organizer.username,
+            user: orgProfile ? orgProfile.username : organizer.username,
             eventTypeId: 1,
             responses: {
               email: booker.email,
@@ -199,7 +209,6 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
@@ -246,7 +255,11 @@ describe("handleNewBooking", () => {
 
         expectBookingCreatedWebhookToHaveBeenFired({
           booker,
-          organizer,
+          organizer: {
+            ...organizer,
+            ...(orgProfile?.username ?
+              { usernameInOrg: orgProfile?.username } : null),
+          },
           location: BookingLocations.CalVideo,
           subscriberUrl: "http://my-webhook.example.com",
           videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
@@ -263,7 +276,7 @@ describe("handleNewBooking", () => {
           3. Should fallback to creating the booking in the first connected Calendar when neither event nor organizer has a destination calendar - This doesn't practically happen because organizer is always required to have a schedule set
           3. Should trigger BOOKING_CREATED webhook
     `,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -424,7 +437,7 @@ describe("handleNewBooking", () => {
           3. Should fallback to create a booking in the Organizer Calendar if event doesn't have destination calendar
           3. Should trigger BOOKING_CREATED webhook
     `,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -580,7 +593,7 @@ describe("handleNewBooking", () => {
 
       test(
         `an error in creating a calendar event should not stop the booking creation - Current behaviour is wrong as the booking is created but no-one is notified of it`,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -702,7 +715,7 @@ describe("handleNewBooking", () => {
 
       test(
         "If destination calendar has no credential ID due to some reason, it should create the event in first connected calendar instead",
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -869,7 +882,7 @@ describe("handleNewBooking", () => {
 
       test(
         "If destination calendar is there for Google Calendar but there are no Google Calendar credentials but there is an Apple Calendar credential connected, it should create the event in Apple Calendar",
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -1027,7 +1040,7 @@ describe("handleNewBooking", () => {
     describe("Event's first location should be used when location is unspecied", () => {
       test(
         `should create a successful booking with right location app when event has location option as video client`,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -1121,7 +1134,7 @@ describe("handleNewBooking", () => {
         `should create a successful booking with right location when event's location is not a conferencing app
         `,
         //test with inPerson event type
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -1205,7 +1218,7 @@ describe("handleNewBooking", () => {
       );
       test(
         `should create a successful booking with organizer default conferencing app when event's location is not set`,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -1300,7 +1313,7 @@ describe("handleNewBooking", () => {
     describe("Video Meeting Creation", () => {
       test(
         `should create a successful booking with Zoom if used`,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
@@ -1389,7 +1402,7 @@ describe("handleNewBooking", () => {
 
       test(
         `Booking should still be created using calvideo, if error occurs with zoom`,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
@@ -2130,7 +2143,7 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_REQUESTED webhook
             4. Should trigger BOOKING_REQUESTED workflow
     `,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
@@ -2268,7 +2281,7 @@ describe("handleNewBooking", () => {
         3. Should trigger BOOKING_REQUESTED webhook
         4. Should trigger BOOKING_REQUESTED workflow
     `,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
@@ -2395,7 +2408,7 @@ describe("handleNewBooking", () => {
             2. Should send emails to the booker as well as organizer
             3. Should trigger BOOKING_CREATED webhook
     `,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -2532,7 +2545,7 @@ describe("handleNewBooking", () => {
             3. Should trigger BOOKING_REQUESTED webhook
             4. Should trigger BOOKING_REQUESTED workflows
     `,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const subscriberUrl = "http://my-webhook.example.com";
@@ -2731,7 +2744,7 @@ describe("handleNewBooking", () => {
       2. Should send emails to the booker as well as organizer
       3. Should trigger BOOKING_CREATED webhook
     `,
-       
+
       async ({ emails }) => {
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
@@ -2858,7 +2871,7 @@ describe("handleNewBooking", () => {
             6. Workflow should not trigger before payment is made
             7. Workflow triggers once payment is successful
       `,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -3041,7 +3054,7 @@ describe("handleNewBooking", () => {
             6. Should trigger BOOKING_REQUESTED workflow
             7. Booking should still stay in pending state
       `,
-         
+
         async ({ emails }) => {
           const bookingInitiatedEmail = "booking_initiated@workflow.com";
           const handleNewBooking = getNewBookingHandler();
@@ -3221,7 +3234,7 @@ describe("handleNewBooking", () => {
       );
       test(
         `cannot book same slot multiple times `,
-         
+
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
