@@ -1,8 +1,16 @@
+import {
+  createBookingScenario,
+  getOrganizer,
+  getScenarioData,
+  TestData,
+} from "../utils/bookingScenario/bookingScenario";
+
 import { describe, expect, test, vi } from "vitest";
-import { createBookingScenario, getOrganizer, getScenarioData, TestData } from "../utils/bookingScenario/bookingScenario";
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
-import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
+
 import dayjs from "@calcom/dayjs";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
+
+import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
 
 describe("User Availability Intersection Tests", () => {
   const availableSlotsService = getAvailableSlotsService();
@@ -28,7 +36,7 @@ describe("User Availability Intersection Tests", () => {
             {
               days: [1, 2, 3, 4, 5, 6, 7], // Monday to Sunday
               startTime: new Date("1970-01-01T10:00:00.000Z"), // 10 AM
-              endTime: new Date("1970-01-01T14:00:00.000Z"),   // 2 PM
+              endTime: new Date("1970-01-01T14:00:00.000Z"), // 2 PM
               date: null,
             },
           ],
@@ -53,7 +61,7 @@ describe("User Availability Intersection Tests", () => {
             {
               days: [1, 2, 3, 4, 5, 6, 7], // Monday to Sunday
               startTime: new Date("1970-01-01T08:00:00.000Z"), // 8 AM
-              endTime: new Date("1970-01-01T11:00:00.000Z"),   // 11 AM
+              endTime: new Date("1970-01-01T11:00:00.000Z"), // 11 AM
               date: null,
             },
           ],
@@ -81,21 +89,21 @@ describe("User Availability Intersection Tests", () => {
           eventTypeId: 1,
           title: "Existing Meeting",
           startTime: new Date("2024-05-21T05:00:00.000Z").toString(), // 10:30 AM IST
-          endTime: new Date("2024-05-21T05:30:00.000Z").toString(),   // 11:00 AM IST
+          endTime: new Date("2024-05-21T05:30:00.000Z").toString(), // 11:00 AM IST
           attendees: [
             {
               email: "sujal@example.com",
               bookingSeat: {
                 referenceUid: "test-reschedule-uid",
                 data: "some-data",
-              }
+              },
             },
             {
               email: "aayush@example.com",
               bookingSeat: {
                 referenceUid: "test-reschedule-uid",
                 data: "some-data",
-              }
+              },
             },
           ],
           status: "ACCEPTED",
@@ -126,36 +134,39 @@ describe("User Availability Intersection Tests", () => {
     // The intersection should only show slots between 10 AM - 11 AM
 
     const slotsForDate = slots.slots["2024-05-21"] || [];
-    
+
     // Convert UTC times to IST for proper comparison
     // Slots are in UTC, need to convert to IST (UTC + 5:30)
-    const intersectionSlots = slotsForDate.filter(slot => {
-      const slotTime = dayjs(slot.time).utc().add(5.5, 'hours'); // Convert UTC to IST
+    const intersectionSlots = slotsForDate.filter((slot) => {
+      const slotTime = dayjs(slot.time).utc().add(5.5, "hours"); // Convert UTC to IST
       const slotHour = slotTime.hour();
       // In IST, 10 AM - 11 AM should be available (intersection window)
       return slotHour >= 10 && slotHour < 11;
     });
-    
-    // Check that no slots exist outside the intersection  
-    const outsideIntersectionSlots = slotsForDate.filter(slot => {
-      const slotTime = dayjs(slot.time).utc().add(5.5, 'hours'); // Convert UTC to IST
+
+    // Check that no slots exist outside the intersection
+    const outsideIntersectionSlots = slotsForDate.filter((slot) => {
+      const slotTime = dayjs(slot.time).utc().add(5.5, "hours"); // Convert UTC to IST
       const slotHour = slotTime.hour();
       // No slots should be available before 10 AM or after 11 AM in IST
       return slotHour < 10 || slotHour >= 11;
     });
-    // console.log({ 
-    //   slotsForDate: slotsForDate.map(s => ({ 
-    //     utc: s.time, 
+    // console.log({
+    //   slotsForDate: slotsForDate.map(s => ({
+    //     utc: s.time,
     //     ist: dayjs(s.time).utc().add(5.5, 'hours').format('YYYY-MM-DD HH:mm:ss')
-    //   })), 
-    //   outsideIntersectionSlots: outsideIntersectionSlots.length, 
-    //   intersectionSlots: intersectionSlots.length 
+    //   })),
+    //   outsideIntersectionSlots: outsideIntersectionSlots.length,
+    //   intersectionSlots: intersectionSlots.length
     // });
 
     expect(intersectionSlots.length).toBeGreaterThan(0);
     expect(outsideIntersectionSlots.length).toBe(0);
 
-    console.log("Intersection slots found:", intersectionSlots.map(s => s.time));
+    console.log(
+      "Intersection slots found:",
+      intersectionSlots.map((s) => s.time)
+    );
     console.log("Total slots (should only be in intersection):", slotsForDate.length);
   });
 
@@ -178,7 +189,7 @@ describe("User Availability Intersection Tests", () => {
             {
               days: [1, 2, 3, 4, 5, 6, 7], // Monday to Sunday
               startTime: new Date("1970-01-01T10:00:00.000Z"), // 10 AM
-              endTime: new Date("1970-01-01T14:00:00.000Z"),   // 2 PM
+              endTime: new Date("1970-01-01T14:00:00.000Z"), // 2 PM
               date: null,
             },
           ],
@@ -217,26 +228,26 @@ describe("User Availability Intersection Tests", () => {
     });
 
     const slotsForDate = slots.slots["2024-05-21"] || [];
-    
+
     // Should show full organizer availability (10 AM - 2 PM IST)
     // Convert UTC to IST for comparison
-    const availableSlots = slotsForDate.filter(slot => {
-      const slotTime = dayjs(slot.time).utc().add(5.5, 'hours'); // Convert UTC to IST
+    const availableSlots = slotsForDate.filter((slot) => {
+      const slotTime = dayjs(slot.time).utc().add(5.5, "hours"); // Convert UTC to IST
       const slotHour = slotTime.hour();
       return slotHour >= 10 && slotHour < 14; // 10 AM - 2 PM IST
     });
 
     expect(availableSlots.length).toBeGreaterThan(0);
-    
+
     // Should have slots throughout the full availability window
-    const morningSlots = slotsForDate.filter(slot => {
-      const slotTime = dayjs(slot.time).utc().add(5.5, 'hours'); // Convert UTC to IST
+    const morningSlots = slotsForDate.filter((slot) => {
+      const slotTime = dayjs(slot.time).utc().add(5.5, "hours"); // Convert UTC to IST
       const slotHour = slotTime.hour();
       return slotHour >= 10 && slotHour < 12; // 10 AM - 12 PM IST
     });
 
-    const afternoonSlots = slotsForDate.filter(slot => {
-      const slotTime = dayjs(slot.time).utc().add(5.5, 'hours'); // Convert UTC to IST
+    const afternoonSlots = slotsForDate.filter((slot) => {
+      const slotTime = dayjs(slot.time).utc().add(5.5, "hours"); // Convert UTC to IST
       const slotHour = slotTime.hour();
       return slotHour >= 12 && slotHour < 14; // 12 PM - 2 PM IST
     });
