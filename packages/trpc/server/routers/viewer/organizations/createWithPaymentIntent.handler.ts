@@ -7,7 +7,6 @@
  *   pass teams and invitedMembers directly to `intentToCreateOrg`
  * - The new endpoint returns checkoutUrl directly in the response
  */
-
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -33,7 +32,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   log.warn(
     "DEPRECATED: createWithPaymentIntent is deprecated. Use intentToCreateOrg with teams and invitedMembers instead."
   );
-  const paymentService = new OrganizationPaymentService(ctx.user);
+  const paymentService = new OrganizationPaymentService({
+    id: ctx.user.id,
+    email: ctx.user.email,
+    role: ctx.user.role,
+    name: ctx.user.name ?? undefined,
+  });
   const isAdmin = ctx.user.role === "ADMIN";
   // Regular user can send onboardingId if the onboarding was started by ADMIN/someone else and they shared the link with them.
   // ADMIN flow doesn't send onboardingId
