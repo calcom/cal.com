@@ -355,6 +355,11 @@ describe("Organizations Event Types Endpoints", () => {
           darkThemeHex: "#292929",
           lightThemeHex: "#fafafa",
         },
+        emailSettings: {
+          disableEmailsToAttendees: true,
+          disableEmailsToHosts: true,
+        },
+        rescheduleWithSameRoundRobinHost: true,
       };
 
       return request(app.getHttpServer())
@@ -385,6 +390,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
           expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
+          expect(data.emailSettings).toEqual(body.emailSettings);
           collectiveEventType = responseBody.data;
         });
     });
@@ -600,6 +606,11 @@ describe("Organizations Event Types Endpoints", () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         hosts: newHosts,
         successRedirectUrl: "https://new-url-success.com",
+        emailSettings: {
+          disableEmailsToAttendees: false,
+          disableEmailsToHosts: false,
+        },
+        rescheduleWithSameRoundRobinHost: false,
       };
 
       return request(app.getHttpServer())
@@ -614,6 +625,8 @@ describe("Organizations Event Types Endpoints", () => {
           expect(eventType.successRedirectUrl).toEqual("https://new-url-success.com");
           expect(eventType.title).toEqual(collectiveEventType.title);
           expect(eventType.hosts.length).toEqual(1);
+          expect(eventType.emailSettings).toEqual(body.emailSettings);
+          expect(eventType.rescheduleWithSameRoundRobinHost).toEqual(body.rescheduleWithSameRoundRobinHost);
           evaluateHost(eventType.hosts[0], newHosts[0]);
         });
     });
