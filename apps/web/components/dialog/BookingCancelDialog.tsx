@@ -100,6 +100,8 @@ export function BookingCancelDialog(props: CancelEventDialogProps) {
       method: "POST",
     });
 
+    await utils.viewer.bookings.invalidate();
+
     const bookingWithCancellationReason = {
       ...(bookingCancelledEventProps.booking as object),
       cancelReason,

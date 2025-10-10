@@ -3122,6 +3122,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/pabbly@workspace:packages/app-store/pabbly":
+  version: 0.0.0-use.local
+  resolution: "@calcom/pabbly@workspace:packages/app-store/pabbly"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/paypal@workspace:packages/app-store/paypal":
   version: 0.0.0-use.local
   resolution: "@calcom/paypal@workspace:packages/app-store/paypal"
@@ -3182,7 +3191,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@workspace:packages/platform/libraries":
+"@calcom/platform-libraries@workspace:*, @calcom/platform-libraries@workspace:packages/platform/libraries":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
@@ -3190,6 +3199,7 @@ __metadata:
     "@calcom/lib": "*"
     "@types/node": ^20.3.1
     "@vitejs/plugin-react": ^4.2.1
+    jimp: ^0.16.1
     typescript: ^5.7.2
     vite: ^5.0.12
     vite-plugin-dts: ^3.7.2
@@ -3904,6 +3914,7 @@ __metadata:
   resolution: "@calid/connector@workspace:apps/connector"
   dependencies:
     "@calcom/lib": "workspace:*"
+    "@calcom/platform-libraries": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@fastify/autoload": ^5.8.0
     "@fastify/cors": ^8.4.0

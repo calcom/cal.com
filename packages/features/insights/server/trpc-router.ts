@@ -132,31 +132,65 @@ export const buildBaseWhereCondition = async ({
 
   // Team-specific queries condition
   if (!isAll && teamId) {
-    const usersFromTeam = await ctx.insightsDb.calIdMembership.findMany({
+    // const usersFromTeam = await ctx.insightsDb.calIdMembership.findMany({
+    //   where: {
+    //     calIdTeamId: teamId,
+    //     acceptedInvitation: true,
+    //   },
+    //   select: {
+    //     userId: true,
+    //   },
+    // });
+    // const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+
+    // conditions.push({
+    // OR: [
+    // {
+    // calIdTeamId: teamId,
+    // isTeamBooking: true,
+    // },
+    // {
+    //   userId: {
+    //     in: userIdsFromTeam,
+    //   },
+    //   isTeamBooking: false,
+    // },
+    // ],
+    // });
+
+    // Get all event types belonging to this team
+    const teamEventTypes = await ctx.insightsDb.eventType.findMany({
       where: {
         calIdTeamId: teamId,
-        acceptedInvitation: true,
       },
       select: {
-        userId: true,
+        id: true,
       },
     });
-    const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
-    conditions.push({
-      OR: [
-        {
-          calIdTeamId: teamId,
-          isTeamBooking: true,
-        },
-        {
-          userId: {
-            in: userIdsFromTeam,
+    const eventTypeIds = teamEventTypes.map((et) => et.id);
+
+    if (eventTypeIds.length > 0) {
+      conditions.push({
+        OR: [
+          {
+            eventTypeId: {
+              in: eventTypeIds,
+            },
           },
-          isTeamBooking: false,
-        },
-      ],
-    });
+          {
+            eventParentId: {
+              in: eventTypeIds,
+            },
+          },
+        ],
+      });
+    } else {
+      // No event types found for this team, return no results
+      conditions.push({
+        id: -1,
+      });
+    }
   }
 
   let whereCondition: Prisma.BookingTimeStatusDenormalizedWhereInput = {};
@@ -1040,7 +1074,6 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, eventTypeId, memberUserId: userId, selectedTeamId: teamId, type } = input;
-
       const stats: {
         sentCount: number;
         readCount: number;
@@ -1103,7 +1136,6 @@ export const insightsRouter = router({
           eventTypeId: { in: eventTypeIds },
         });
 
-      
       console.log("Workflow insights: ", JSON.stringify(whereQuery, null, 2));
 
       const workflowInsights = await ctx.insightsDb.calIdWorkflowInsights.findMany({
@@ -1163,7 +1195,7 @@ export const insightsRouter = router({
         eventTypeIds.push(..._eventTypeIds);
       }
 
-      if (!eventTypeId && eventTypeIds.length > 0)
+      if (!eventTypeId)
         (whereQuery.AND as Prisma.CalIdWorkflowInsightsWhereInput[]).push({
           eventTypeId: { in: eventTypeIds },
         });

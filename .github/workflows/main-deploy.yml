@@ -149,6 +149,7 @@ jobs:
         run: | 
           if [ "${{ steps.set_branch.outputs.branch_name }}" == "main" ]; then
             echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME_PROD }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_GTM_ID=${{ secrets.NEXT_PUBLIC_GTM_ID_PROD }}" >> $GITHUB_OUTPUT
             echo "EC2_HOST=${{ secrets.EC2_HOST_PROD }}" >> $GITHUB_OUTPUT
             echo "EC2_SSH_KEY<<EOF" >> $GITHUB_OUTPUT
             echo "${{ secrets.EC2_SSH_KEY_PROD }}" >> $GITHUB_OUTPUT
@@ -166,6 +167,7 @@ jobs:
             echo "HOMEPAGE_URL=${{ secrets.HOMEPAGE_URL_PROD }}" >> $GITHUB_OUTPUT
           else
             echo "DOMAIN_NAME=${{ secrets.DOMAIN_NAME_STAG }}" >> $GITHUB_OUTPUT
+            echo "NEXT_PUBLIC_GTM_ID=${{ secrets.NEXT_PUBLIC_GTM_ID_STAG }}" >> $GITHUB_OUTPUT
             echo "EC2_HOST=${{ secrets.EC2_HOST_STAG }}" >> $GITHUB_OUTPUT
             echo "EC2_SSH_KEY<<EOF" >> $GITHUB_OUTPUT
             echo "${{ secrets.EC2_SSH_KEY_STAG }}" >> $GITHUB_OUTPUT
@@ -263,6 +265,7 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ steps.key_values.outputs.REPO_NAME }}:latest
           build-args: |
             CALENDSO_ENCRYPTION_KEY=${{ secrets.CALENDSO_ENCRYPTION_KEY }}
+            NEXT_PUBLIC_GTM_ID=${{ steps.key_values.outputs.NEXT_PUBLIC_GTM_ID }}
             # NEXT_PUBLIC_WEBAPP_URL=${{ format('https://app.{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_WEBAPP_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXT_PUBLIC_WEBSITE_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}

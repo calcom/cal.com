@@ -605,6 +605,7 @@ export class UserRepository {
     whereId: number;
     data: {
       movedToProfileId?: number | null;
+      metadata?: Prisma.InputJsonValue;
     };
   }) {
     return this.prismaClient.user.update({
@@ -619,6 +620,7 @@ export class UserRepository {
               },
             }
           : undefined,
+        metadata: data.metadata,
       },
     });
   }
@@ -841,8 +843,11 @@ export class UserRepository {
         id,
       },
       select: {
+        id: true,
         completedOnboarding: true,
         metadata: true,
+        email: true,
+        identityProvider: true,
         teams: {
           select: {
             accepted: true,

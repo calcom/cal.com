@@ -1072,7 +1072,7 @@ async function handler(
     eventType: eventType.title,
     eventName: evtName,
     // we send on behalf of team if >1 round robin attendee | collective
-    teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.team?.name : null,
+    teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.calIdTeam?.name : null,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
@@ -1194,7 +1194,7 @@ async function handler(
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
       users,
-      team: eventType.team,
+      team: eventType.calIdTeam,
       organizerUser,
     });
   }

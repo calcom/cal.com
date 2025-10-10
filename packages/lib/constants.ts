@@ -271,3 +271,5 @@ export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";
 export const DEMO_URL = "https://app.cal.id/manas/demo";
 
 export const IS_PROD_DOMAIN = WEBAPP_URL.includes("cal.id");
+
+export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID ;

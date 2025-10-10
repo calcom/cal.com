@@ -79,6 +79,10 @@ export default function Signup({
   } = formMethods;
 
   useEffect(() => {
+    captureAndStoreUtmParams();
+  }, []);
+
+  useEffect(() => {
     if (redirectUrl) {
       // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
@@ -123,8 +127,12 @@ export default function Signup({
     })
       .then(handleErrorsAndStripe)
       .then(async () => {
-        if (process.env.NEXT_PUBLIC_GTM_ID)
-          pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: 'email_signup_success',
+          signup_method: 'email',
+          email_address: data.email
+        });
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
@@ -208,6 +216,8 @@ export default function Signup({
                       const url = searchQueryParams.toString()
                         ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
                         : GOOGLE_AUTH_URL;
+
+                      console.log("Redirect to url: ", url);
 
                       router.push(url);
                     }}>

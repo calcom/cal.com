@@ -8,6 +8,7 @@ import { triggerToast } from "@calid/features/ui/components/toast";
 import type { TFunction } from "i18next";
 import { signOut } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Suspense, useTransition } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
@@ -74,6 +75,19 @@ const OnboardingPage = (props: PageProps) => {
   const { country = "IN" } = props;
   const pathname = usePathname();
   const params = useParamsWithFallback();
+
+  useEffect(() => {
+    if (props.google_signup_to_be_tracked) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "gmail_signup_success",
+        signup_method: "google",
+        email_address: props.email,
+      });
+      console.log("Gmail event pushed");
+    }
+  }, [props.google_signup_to_be_tracked, props.email]);
+  console.log("Props got were: ", props);
 
   const router = useRouter();
   const [user] = trpc.viewer.me.calid_get.useSuspenseQuery();

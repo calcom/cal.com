@@ -21,6 +21,7 @@ export const rawDataInputSchema = z.object({
   teamId: z.coerce.number().optional().nullable(),
   userId: z.coerce.number().optional().nullable(),
   memberUserId: z.coerce.number().optional().nullable(),
+  selectedTeamId: z.coerce.number().optional(),
   isAll: z.boolean().optional(),
   eventTypeId: z.coerce.number().optional().nullable(),
   offset: z.number().optional(),

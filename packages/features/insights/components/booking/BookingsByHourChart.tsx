@@ -52,7 +52,8 @@ export const BookingsByHourChartContent = ({ data }: { data: BookingsByHourData[
           <Tooltip cursor={false} content={<CustomTooltip />} />
           <Bar
             dataKey="count"
-            fill="var(--cal-bg-subtle)"
+            // fill="var(--cal-bg-subtle)"
+            fill="var(--cal-bg-emphasis)"
             radius={[2, 2, 0, 0]}
             activeBar={<Rectangle fill="var(--cal-bg-info)" />}
           />

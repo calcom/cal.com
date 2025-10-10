@@ -39,7 +39,7 @@ const ImpersonationView = () => {
       }}>
       <div className="flex items-center space-x-2 rtl:space-x-reverse">
         <TextField
-          containerClassName="w-full [&_input:-webkit-autofill]:!shadow-[0_0_0_1000px_white_inset]"
+          containerClassName="w-full [&_input:-webkit-autofill]:!shadow-[0_0_0_1000px_white_inset] dark:[&_input:-webkit-autofill]:!shadow-[0_0_0_1000px_rgb(39_39_42)_inset]"
           name={t("user_impersonation_heading")}
           addOnLeading={<>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</>}
           ref={usernameRef}

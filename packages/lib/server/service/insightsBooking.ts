@@ -339,6 +339,8 @@ export class InsightsBookingService {
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
+    {
+      /**
     const usersFromTeam = await this.prisma.calIdMembership.findMany({
       where: {
         calIdTeamId: { in: [options.teamId] },
@@ -360,7 +362,34 @@ export class InsightsBookingService {
     return conditions.reduce((acc, condition, index) => {
       if (index === 0) return condition;
       return Prisma.sql`(${acc}) OR (${condition})`;
+    });  
+    */
+    }
+    // Get all event types belonging to this team
+    const teamEventTypes = await this.prisma.eventType.findMany({
+      where: {
+        calIdTeamId: options.teamId,
+      },
+      select: {
+        id: true,
+      },
     });
+
+    const eventTypeIds = teamEventTypes.map((et) => et.id);
+
+    if (eventTypeIds.length === 0) {
+      return NOTHING_CONDITION;
+    }
+
+    // Filter bookings by these event type IDs
+    // Include both direct eventTypeId matches and child event types (eventParentId)
+    return Prisma.sql`(
+      ("eventTypeId" = ANY(${eventTypeIds})) 
+      OR 
+      ("eventParentId" = ANY(${eventTypeIds}))
+    )`;
+
+    //return Prisma.sql`("calIdTeamId" = ${options.teamId}) AND ("isTeamBooking" = true)`;
 
     // const teamRepo = new TeamRepository(this.prisma);
     // const childTeamOfOrg = await teamRepo.findByIdAndParentId({

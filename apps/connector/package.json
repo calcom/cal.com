@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@calcom/lib": "workspace:*",
+    "@calcom/platform-libraries": "workspace:*",
     "@calcom/prisma": "workspace:*",
     "@fastify/autoload": "^5.8.0",
     "@fastify/cors": "^8.4.0",
