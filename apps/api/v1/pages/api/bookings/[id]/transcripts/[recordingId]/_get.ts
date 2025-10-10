@@ -1,11 +1,11 @@
 import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import {
   getTranscriptsAccessLinkFromRecordingId,
   checkIfRoomNameMatchesInRecording,
-} from "@calcom/lib/videoClient";
+} from "@calcom/features/conferencing/lib/videoClient";
+import { HttpError } from "@calcom/lib/http-error";
+import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
 

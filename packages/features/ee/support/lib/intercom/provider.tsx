@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
@@ -31,6 +32,9 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session } = useSession();
+
+  const isBeingImpersonated = !!session?.user?.impersonatedBy?.id;
 
   const shouldOpenSupport =
     pathname === "/event-types" && (searchParams?.has("openPlain") || searchParams?.has("openSupport"));
@@ -65,7 +69,7 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const isOnboardingPage = pathname?.startsWith("/getting-started");
   const isCalVideoPage = pathname?.startsWith("/video/");
 
-  if (isOnboardingPage || isCalVideoPage) {
+  if (isOnboardingPage || isCalVideoPage || isBeingImpersonated) {
     return <>{children}</>;
   }
 

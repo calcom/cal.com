@@ -17,8 +17,8 @@
     "publish-npm": "yarn && node scripts/prepublish.js && rm -rf dist && yarn build && npm publish --access public && node scripts/postpublish.js"
   },
   "dependencies": {
-    "@calcom/features": "*",
-    "@calcom/lib": "*"
+    "@calcom/features": "workspace:*",
+    "@calcom/lib": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.3.1",

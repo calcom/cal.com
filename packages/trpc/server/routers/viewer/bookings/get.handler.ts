@@ -578,7 +578,6 @@ export async function getBookings({
                     .selectFrom("Attendee")
                     .select(["Attendee.email"])
                     .whereRef("BookingSeat.attendeeId", "=", "Attendee.id")
-                    .where("Attendee.email", "=", user.email)
                 ).as("attendee"),
               ])
               .whereRef("BookingSeat.bookingId", "=", "Booking.id")
