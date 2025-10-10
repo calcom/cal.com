@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { ValidationOptions, registerDecorator, ValidationArguments } from "class-validator";
 
-import { BaseCreateEventTypeInput } from "../create-event-type.input";
+import type { BaseCreateEventTypeInput } from "../create-event-type.input";
 
 export const FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE =
   "Can't have `recurrence` and `bookerActiveBookingsLimit` enabled at the same time - recurring events do not support maximum active bookings limit setting.";
