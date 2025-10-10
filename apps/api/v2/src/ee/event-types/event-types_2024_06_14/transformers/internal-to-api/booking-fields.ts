@@ -502,7 +502,7 @@ export const systemBeforeFieldName: NameSystemField = {
   type: "name",
   name: "name",
   editable: "system",
-  defaultLabel: "your_name",
+  defaultLabel: "",
   required: true,
   variant: "fullName",
   sources: [
