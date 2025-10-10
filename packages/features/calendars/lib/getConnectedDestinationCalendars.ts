@@ -1,16 +1,18 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import {
+  getCalendarCredentials,
+  getConnectedCalendars,
+} from "@calcom/features/calendars/lib/CalendarManager";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
+import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma/client";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
-import { DestinationCalendarRepository } from "./server/repository/destinationCalendar";
-import { EventTypeRepository } from "./server/repository/eventTypeRepository";
-import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
 
 const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndEnsureDefaultsInDb"] });
 

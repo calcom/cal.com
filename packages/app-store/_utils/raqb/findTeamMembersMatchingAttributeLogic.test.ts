@@ -6,7 +6,7 @@ import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import {
   findTeamMembersMatchingAttributeLogic,
   TroubleshooterCase,
-} from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+} from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
@@ -18,7 +18,7 @@ vi.mock("@calcom/lib/service/attribute/server/getAttributes", () => {
   };
 });
 
-vi.mock("../../components/react-awesome-query-builder/widgets", () => ({
+vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
 
@@ -64,13 +64,13 @@ function mockAttributesScenario({
             Object.entries(member.attributes).map(([attributeId, value]) => {
               return [
                 attributeId,
-                // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+                 
                 {
                   attributeOption:
                     value instanceof Array
                       ? value.map((value) => ({ value, isGroup: false, contains: [] }))
                       : { value, isGroup: false, contains: [] },
-                  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                   
                   type: attributes.find((attribute) => attribute.id === attributeId)!.type,
                 },
               ];

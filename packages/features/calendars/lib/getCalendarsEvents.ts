@@ -1,13 +1,12 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeSelectedCalendar, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
-import { symmetricDecrypt } from "./crypto";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 
