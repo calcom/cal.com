@@ -248,6 +248,7 @@ export function AgentConfigurationSheet({
           isOrganization={isOrganization}
           form={form}
           eventTypeOptions={eventTypeOptions}
+          outboundEventTypeId={agentData?.outboundEventTypeId}
         />
       )}
 

@@ -5,6 +5,7 @@ import type { RetellWebClient } from "retell-client-js-sdk";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
@@ -25,6 +26,7 @@ interface WebCallDialogProps {
   isOrganization?: boolean;
   form: UseFormReturn<FormValues>;
   eventTypeOptions?: Option[];
+  outboundEventTypeId?: number | null;
 }
 
 interface TranscriptEntry {
@@ -43,6 +45,7 @@ export function WebCallDialog({
   isOrganization = false,
   form,
   eventTypeOptions = [],
+  outboundEventTypeId,
 }: WebCallDialogProps) {
   const { t } = useLocale();
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
@@ -204,15 +207,20 @@ export function WebCallDialog({
     let eventTypeId: number;
 
     if (isFormTrigger(trigger)) {
-      // For form triggers, we need to pick a random event type since form triggers
-      // are active on routing forms, not event types
-      if (!eventTypeOptions || eventTypeOptions.length === 0) {
-        showToast(t("no_event_types_available_for_test_call"), "error");
-        return;
+      if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
+        if (!outboundEventTypeId) {
+          showToast(t("agent_outbound_event_type_not_configured"), "error");
+          return;
+        }
+        eventTypeId = outboundEventTypeId;
+      } else {
+        if (!eventTypeOptions || eventTypeOptions.length === 0) {
+          showToast(t("no_event_types_available_for_test_call"), "error");
+          return;
+        }
+        // Pick first type from available options
+        eventTypeId = parseInt(eventTypeOptions[0].value, 10);
       }
-
-      // Pick the first available event type
-      eventTypeId = parseInt(eventTypeOptions[0].value, 10);
     } else {
       // For regular event type triggers, use the selected event type
       const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
@@ -300,7 +308,6 @@ export function WebCallDialog({
 
   useEffect(() => {
     if (transcriptEndRef.current) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed
       transcriptEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [transcript]);
