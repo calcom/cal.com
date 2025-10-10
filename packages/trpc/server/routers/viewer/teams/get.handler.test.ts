@@ -2,14 +2,25 @@ import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";
+
+type MockedUserRepository = {
+  isAdminOfTeamOrParentOrg: ReturnType<typeof vi.fn>;
+};
 
 vi.mock("@calcom/lib/server/repository/membership", () => ({
   MembershipRepository: {
     findUniqueByUserIdAndTeamId: vi.fn(),
   },
+}));
+
+vi.mock("@calcom/lib/server/repository/user", () => ({
+  UserRepository: vi.fn().mockImplementation(() => ({
+    isAdminOfTeamOrParentOrg: vi.fn(),
+  })),
 }));
 
 vi.mock("@calcom/features/ee/teams/lib/queries", () => ({
@@ -32,21 +43,33 @@ describe("getTeam", () => {
     vi.clearAllMocks();
   });
 
-  it("throws UNAUTHORIZED if user is not a member of the team", async () => {
-    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue(null);
+  it("throws UNAUTHORIZED if user is not a member of the team and not an org admin", async () => {
+    vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue(null);
+    const mockIsAdminOfTeamOrParentOrg = vi.fn().mockResolvedValue(false);
+    vi.mocked(UserRepository).mockImplementation(
+      () =>
+        ({
+          isAdminOfTeamOrParentOrg: mockIsAdminOfTeamOrParentOrg,
+        } as MockedUserRepository)
+    );
 
     await expect(getTeam({ ctx: { user }, input })).rejects.toMatchObject({
       code: "UNAUTHORIZED",
       message: "You are not a member of this team.",
     });
+
+    expect(mockIsAdminOfTeamOrParentOrg).toHaveBeenCalledWith({
+      userId: user.id,
+      teamId: input.teamId,
+    });
   });
 
   it("throws NOT_FOUND if team does not exist", async () => {
-    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue({
+    vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
       role: "member",
       accepted: true,
     });
-    (getTeamWithoutMembers as any).mockResolvedValue(null);
+    vi.mocked(getTeamWithoutMembers).mockResolvedValue(null);
 
     await expect(getTeam({ ctx: { user }, input })).rejects.toMatchObject({
       code: "NOT_FOUND",
@@ -60,11 +83,11 @@ describe("getTeam", () => {
       organization: { isOrgAdmin: true },
     };
 
-    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue({
+    vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue({
       role: "admin",
       accepted: true,
     });
-    (getTeamWithoutMembers as any).mockResolvedValue({
+    vi.mocked(getTeamWithoutMembers).mockResolvedValue({
       id: input.teamId,
       name: "Admin Team",
     });
@@ -89,8 +112,8 @@ describe("getTeam", () => {
       description: "A team",
     };
 
-    (MembershipRepository.findUniqueByUserIdAndTeamId as any).mockResolvedValue(membershipData);
-    (getTeamWithoutMembers as any).mockResolvedValue(teamData);
+    vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue(membershipData);
+    vi.mocked(getTeamWithoutMembers).mockResolvedValue(teamData);
 
     const result = await getTeam({ ctx: { user }, input });
 
@@ -108,6 +131,40 @@ describe("getTeam", () => {
       id: input.teamId,
       userId: user.id,
       isOrgView: input.isOrg,
+    });
+  });
+
+  it("allows org admin to access subteam without direct membership", async () => {
+    vi.mocked(MembershipRepository.findUniqueByUserIdAndTeamId).mockResolvedValue(null);
+    const mockIsAdminOfTeamOrParentOrg = vi.fn().mockResolvedValue(true);
+    vi.mocked(UserRepository).mockImplementation(
+      () =>
+        ({
+          isAdminOfTeamOrParentOrg: mockIsAdminOfTeamOrParentOrg,
+        } as MockedUserRepository)
+    );
+
+    const teamData = {
+      id: input.teamId,
+      name: "Subteam",
+      description: "A subteam",
+    };
+
+    vi.mocked(getTeamWithoutMembers).mockResolvedValue(teamData);
+
+    const result = await getTeam({ ctx: { user }, input });
+
+    expect(result).toEqual({
+      ...teamData,
+      membership: {
+        role: "ADMIN",
+        accepted: true,
+      },
+    });
+
+    expect(mockIsAdminOfTeamOrParentOrg).toHaveBeenCalledWith({
+      userId: user.id,
+      teamId: input.teamId,
     });
   });
 });
