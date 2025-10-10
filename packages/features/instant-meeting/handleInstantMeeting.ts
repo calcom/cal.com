@@ -1,12 +1,12 @@
 import { randomBytes } from "crypto";
-import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import { createInstantMeetingWithCalVideo } from "@calcom/app-store/videoClient";
 import dayjs from "@calcom/dayjs";
 import type {
   CreateInstantBookingData,
-  CreateInstantBookingResponse,
+  InstantBookingCreateResult,
 } from "@calcom/features/bookings/lib/dto/types";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -22,7 +22,6 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { createInstantMeetingWithCalVideo } from "@calcom/app-store/videoClient";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -156,7 +155,7 @@ const triggerBrowserNotifications = async (args: {
   await Promise.allSettled(promises);
 };
 
-async function _handler(bookingData: CreateInstantBookingData) {
+async function handler(bookingData: CreateInstantBookingData) {
   let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
   const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
   eventType = {
@@ -330,21 +329,14 @@ async function _handler(bookingData: CreateInstantBookingData) {
     bookingUid: newBooking.uid,
     expires: instantMeetingToken.expires,
     userId: newBooking.userId,
-  } satisfies CreateInstantBookingResponse;
+  } satisfies InstantBookingCreateResult;
 }
 
 /**
  * Instant booking service that handles instant/immediate bookings
  */
 export class InstantBookingCreateService implements IBookingCreateService {
-  async createBooking(input: {
-    bookingData: CreateInstantBookingData;
-  }): Promise<CreateInstantBookingResponse> {
-    return _handler(input.bookingData);
+  async createBooking(input: { bookingData: CreateInstantBookingData }): Promise<InstantBookingCreateResult> {
+    return handler(input.bookingData);
   }
-}
-
-// TODO: Remove it in a follow-up PR
-export default async function handler(req: NextApiRequest) {
-  return _handler(req.body);
 }
