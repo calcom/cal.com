@@ -12,7 +12,7 @@ import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import {
   SMS_REMINDER_NUMBER_FIELD,
   CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-} from "@calcom/features/bookings/lib/SystemField";
+} from "@calcom/lib/SystemField";
 import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
