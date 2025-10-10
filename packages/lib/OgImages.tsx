@@ -50,7 +50,6 @@ const joinMultipleNames = (names: string[] = []) => {
 
 const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CAL_URL}${url}`);
 
-// Extract actual asset references from the components to ensure coupling
 const OG_ASSETS = {
   // From Wrapper component - background images based on variant
   backgrounds: {
@@ -93,7 +92,6 @@ const OG_ASSETS = {
   },
 };
 
-// Generate a version hash based on the actual OG image assets and layout
 const getOgImageVersion = (type: "meeting" | "app" | "generic") => {
   const style = OG_ASSETS.styles[type];
   const versionInputs = {
@@ -105,7 +103,7 @@ const getOgImageVersion = (type: "meeting" | "app" | "generic") => {
   };
 
   const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
-  // Use MD5 hash for better collision resistance and consistency
+
   return createHash("md5").update(content).digest("hex").substring(0, 8);
 };
 
