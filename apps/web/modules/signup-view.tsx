@@ -22,11 +22,11 @@ import {
   WEBSITE_PRIVACY_POLICY_URL,
   WEBSITE_TERMS_URL,
 } from "@calcom/lib/constants";
-import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { captureAndStoreUtmParams } from "@calcom/lib/utm";
 import { localStorage } from "@calcom/lib/webstorage";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -129,9 +129,9 @@ export default function Signup({
       .then(async () => {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({
-          event: 'email_signup_success',
-          signup_method: 'email',
-          email_address: data.email
+          event: "email_signup_success",
+          signup_method: "email",
+          email_address: data.email,
         });
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
