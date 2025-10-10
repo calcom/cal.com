@@ -10,6 +10,31 @@ const fetchMocker = createFetchMock(vi);
 // sets globalThis.fetch and globalThis.fetchMock to our mocked version
 fetchMocker.enableMocks();
 
+// Configure default fetch mock responses for OAuth endpoints
+fetchMocker.mockResponse((req) => {
+  const url = req.url;
+  
+  // Handle OAuth token refresh endpoints
+  if (url.includes('oauth2/token') || url.includes('oauth/token') || url.includes('token')) {
+    return Promise.resolve({
+      status: 200,
+      body: JSON.stringify({
+        access_token: 'mock_access_token',
+        token_type: 'Bearer',
+        expires_in: 3600,
+        refresh_token: 'mock_refresh_token',
+        scope: 'https://www.googleapis.com/auth/calendar'
+      })
+    });
+  }
+  
+  // Default response for other requests
+  return Promise.resolve({
+    status: 200,
+    body: JSON.stringify({})
+  });
+});
+
 expect.extend(matchers);
 
 class MockExchangeCalendarService implements CalendarService {

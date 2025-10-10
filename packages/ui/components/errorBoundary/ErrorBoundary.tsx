@@ -32,7 +32,7 @@ class ErrorBoundary extends React.Component<
         <div>
           <h2>{this.props.message || "Something went wrong."}</h2>
           <details style={{ whiteSpace: "pre-wrap" }}>
-            {this.state.error && this.state.error.toString()}
+            {this.state.error?.message || String(this.state.error || "Unknown error")}
           </details>
         </div>
       );

@@ -2132,6 +2132,20 @@ export function mockVideoAppToCrashOnCreateMeeting({
   });
 }
 
+export function mockVideoAppToCrashOnUpdateMeeting({
+  metadataLookupKey,
+  appStoreLookupKey,
+}: {
+  metadataLookupKey: string;
+  appStoreLookupKey?: string;
+}) {
+  return mockVideoApp({
+    metadataLookupKey,
+    appStoreLookupKey,
+    updationCrash: true,
+  });
+}
+
 export function mockPaymentApp({
   metadataLookupKey,
   appStoreLookupKey,
