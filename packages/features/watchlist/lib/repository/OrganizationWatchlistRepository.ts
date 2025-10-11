@@ -123,12 +123,12 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
   ): Promise<Watchlist> {
     return this.prisma.watchlist.update({
       select: this.selectFields,
-      where: { id },
+      where: { id, organizationId },
       data: {
         ...(data.value !== undefined && { value: data.value }),
         ...(data.description !== undefined && { description: data.description }),
-        ...(data.action && { action: data.action }),
-        ...(data.source && { source: data.source }),
+        ...(data.action !== undefined && { action: data.action }),
+        ...(data.source !== undefined && { source: data.source }),
       },
     });
   }

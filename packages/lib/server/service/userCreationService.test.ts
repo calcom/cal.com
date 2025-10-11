@@ -32,7 +32,7 @@ vi.mock("../repository/user", () => {
 });
 
 vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
-  checkIfEmailIsBlockedInWatchlistController: vi.fn(() => false),
+  checkIfEmailIsBlockedInWatchlistController: vi.fn(() => Promise.resolve(false)),
 }));
 
 const mockUserData = {
