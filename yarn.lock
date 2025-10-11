@@ -3199,11 +3199,12 @@ __metadata:
     "@calcom/lib": "*"
     "@types/node": ^20.3.1
     "@vitejs/plugin-react": ^4.2.1
-    jimp: ^0.16.1
     typescript: ^5.7.2
     vite: ^5.0.12
     vite-plugin-dts: ^3.7.2
     vite-plugin-environment: ^1.1.3
+  peerDependencies:
+    jimp: ^0.16.1
   languageName: unknown
   linkType: soft
 
@@ -3945,6 +3946,7 @@ __metadata:
     "@dnd-kit/core": ^6.3.1
     "@dnd-kit/sortable": ^10.0.0
     "@dnd-kit/utilities": ^3.2.2
+    "@hookform/resolvers": ^2.9.7
     "@radix-ui/react-accordion": ^1.2.0
     "@radix-ui/react-alert-dialog": ^1.1.1
     "@radix-ui/react-aspect-ratio": 1.1.7
