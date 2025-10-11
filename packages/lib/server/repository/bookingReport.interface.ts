@@ -23,7 +23,7 @@ export interface BookingReportWithDetails {
   bookingId: number;
   bookerEmail: string;
   reportedById: number;
-  reason: ReportReason;
+  reason: BookingReportReason;
   description: string | null;
   cancelled: boolean;
   createdAt: Date;
@@ -51,7 +51,7 @@ export interface BookingReportWithDetails {
 }
 
 export interface ListBookingReportsFilters {
-  reason?: ReportReason[];
+  reason?: BookingReportReason[];
   cancelled?: boolean;
   hasWatchlist?: boolean;
   dateRange?: {
