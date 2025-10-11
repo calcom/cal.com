@@ -32,6 +32,7 @@ import { z } from "zod";
 import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import type {
+  AddAttendeesInput_2024_08_13,
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
@@ -554,7 +555,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -770,7 +771,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
@@ -829,6 +830,52 @@ export class InputBookingsService_2024_08_13 {
       attendees: inputBooking.attendees?.map((attendee) => ({
         email: attendee.email,
         noShow: attendee.absent,
+      })),
+    };
+  }
+
+  async validateAndTransformAddAttendeesInput(bookingUid: string, input: AddAttendeesInput_2024_08_13) {
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
+    }
+
+    if (!booking.eventTypeId) {
+      throw new BadRequestException("Cannot add attendees to a booking without an event type");
+    }
+
+    const eventType = await this.eventTypesRepository.getEventTypeById(booking.eventTypeId);
+
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id ${booking.eventTypeId} not found`);
+    }
+
+    const bookingFields = eventType.bookingFields
+      ? this.outputEventTypesService.transformBookingFields(eventType.bookingFields)
+      : [];
+
+    const existingEmails = new Set(booking.attendees.map((att) => att.email.toLowerCase()));
+    const duplicateEmails = input.attendees.filter((att) => existingEmails.has(att.email.toLowerCase()));
+
+    if (duplicateEmails.length > 0) {
+      throw new BadRequestException(
+        `The following attendee emails already exist in this booking: ${duplicateEmails
+          .map((a) => a.email)
+          .join(", ")}`
+      );
+    }
+
+    return {
+      booking,
+      eventType,
+      bookingFields,
+      attendeesToAdd: input.attendees.map((attendee) => ({
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        phoneNumber: attendee.phoneNumber,
+        locale: "en",
       })),
     };
   }
