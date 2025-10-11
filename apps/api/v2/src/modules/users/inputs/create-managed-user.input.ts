@@ -17,6 +17,7 @@ export class CreateManagedUserInput {
   @ApiProperty({ example: "Alice Smith", description: "Managed user's name is used in emails" })
   name!: string;
 
+  @Transform(({ value }) => (value === null || value === undefined ? undefined : Number(value)))
   @IsOptional()
   @IsIn([12, 24], { message: "timeFormat must be a number either 12 or 24" })
   @ApiPropertyOptional({ example: 12, enum: [12, 24], description: "Must be a number 12 or 24" })
