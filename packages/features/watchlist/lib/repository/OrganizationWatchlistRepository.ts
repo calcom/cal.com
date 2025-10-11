@@ -2,15 +2,28 @@ import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
 import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
 import type { IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
-import { normalizeEmail, normalizeDomain } from "../utils/normalization";
 
 /**
  * Repository for organization-specific watchlist operations
  * Handles blocking rules that apply only to a specific organization,
  * or to all organizations
+ *
+ * Note: Expects normalized values from the service layer
  */
 export class OrganizationWatchlistRepository implements IOrganizationWatchlistRepository {
   constructor(private readonly prisma: PrismaClient) {}
+
+  private readonly selectFields = {
+    id: true,
+    type: true,
+    value: true,
+    description: true,
+    isGlobal: true,
+    organizationId: true,
+    action: true,
+    source: true,
+    lastUpdatedAt: true,
+  } as const;
 
   async findBlockedEmail({
     email,
@@ -20,9 +33,10 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
     organizationId: number;
   }): Promise<Watchlist | null> {
     return this.prisma.watchlist.findFirst({
+      select: this.selectFields,
       where: {
         type: WatchlistType.EMAIL,
-        value: normalizeEmail(email),
+        value: email,
         action: WatchlistAction.BLOCK,
         organizationId,
       },
@@ -31,9 +45,10 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
 
   async findBlockedDomain(domain: string, organizationId: number): Promise<Watchlist | null> {
     return this.prisma.watchlist.findFirst({
+      select: this.selectFields,
       where: {
         type: WatchlistType.DOMAIN,
-        value: normalizeDomain(domain),
+        value: domain,
         action: WatchlistAction.BLOCK,
         organizationId,
       },
@@ -42,6 +57,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
 
   async listBlockedEntries(organizationId: number): Promise<Watchlist[]> {
     return this.prisma.watchlist.findMany({
+      select: this.selectFields,
       where: {
         organizationId,
         action: WatchlistAction.BLOCK,
@@ -51,6 +67,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
 
   async listAllOrganizationEntries(): Promise<Watchlist[]> {
     return this.prisma.watchlist.findMany({
+      select: this.selectFields,
       where: {
         organizationId: { not: null },
         isGlobal: false,
@@ -61,6 +78,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
 
   async findById(id: string, organizationId: number): Promise<Watchlist | null> {
     return this.prisma.watchlist.findFirst({
+      select: this.selectFields,
       where: {
         id,
         organizationId,
@@ -80,9 +98,10 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
     }
   ): Promise<Watchlist> {
     return this.prisma.watchlist.create({
+      select: this.selectFields,
       data: {
         type: data.type,
-        value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
+        value: data.value,
         description: data.description,
         isGlobal: false,
         organizationId,
@@ -103,6 +122,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
     }
   ): Promise<Watchlist> {
     return this.prisma.watchlist.update({
+      select: this.selectFields,
       where: {
         id,
         organizationId,

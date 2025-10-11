@@ -1,6 +1,5 @@
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 
-import type { EmailBlockedCheckResponseDTO } from "../lib/dto";
 import type { SpanFn } from "../lib/telemetry";
 import { normalizeEmail } from "../lib/utils/normalization";
 
@@ -10,13 +9,11 @@ interface CheckEmailBlockedParams {
   span?: SpanFn;
 }
 
-function presenter(isBlocked: boolean, span?: SpanFn): Promise<EmailBlockedCheckResponseDTO> {
+function presenter(isBlocked: boolean, span?: SpanFn): Promise<boolean> {
   if (!span) {
-    return Promise.resolve({ isBlocked });
+    return Promise.resolve(isBlocked);
   }
-  return span({ name: "checkIfEmailInWatchlist Presenter", op: "serialize" }, () => {
-    return { isBlocked };
-  });
+  return span({ name: "checkIfEmailInWatchlist Presenter", op: "serialize" }, () => isBlocked);
 }
 
 /**
@@ -25,7 +22,7 @@ function presenter(isBlocked: boolean, span?: SpanFn): Promise<EmailBlockedCheck
  */
 export async function checkIfEmailIsBlockedInWatchlistController(
   params: CheckEmailBlockedParams
-): Promise<EmailBlockedCheckResponseDTO> {
+): Promise<boolean> {
   const { email, organizationId, span } = params;
 
   const execute = async () => {

@@ -1,4 +1,5 @@
 import type logger from "@calcom/lib/logger";
+import { WatchlistType } from "@calcom/prisma/enums";
 
 import type {
   IGlobalWatchlistRepository,
@@ -6,6 +7,7 @@ import type {
 } from "../interface/IWatchlistRepositories";
 import type { IWatchlistService } from "../interface/IWatchlistService";
 import type { WatchlistEntry, CreateWatchlistEntryData, UpdateWatchlistEntryData } from "../types";
+import { normalizeEmail, normalizeDomain } from "../utils/normalization";
 
 type Deps = {
   globalRepo: IGlobalWatchlistRepository;
@@ -22,9 +24,14 @@ export class WatchlistService implements IWatchlistService {
 
   async createEntry(data: CreateWatchlistEntryData): Promise<WatchlistEntry> {
     const isGlobal = data.isGlobal ?? false;
+
+    // Normalize value based on type (service layer responsibility)
+    const normalizedValue =
+      data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value);
+
     const payload = {
       type: data.type,
-      value: data.value,
+      value: normalizedValue,
       description: data.description,
       action: data.action,
       source: data.source,
@@ -46,7 +53,15 @@ export class WatchlistService implements IWatchlistService {
   }
 
   async updateEntry(id: string, data: UpdateWatchlistEntryData): Promise<WatchlistEntry> {
-    return this.deps.globalRepo.updateEntry(id, data);
+    // Normalize value if provided (service layer responsibility)
+    const payload = {
+      ...data,
+      ...(data.value && {
+        value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
+      }),
+    };
+
+    return this.deps.globalRepo.updateEntry(id, payload);
   }
 
   async deleteEntry(id: string): Promise<void> {

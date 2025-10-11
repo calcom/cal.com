@@ -44,10 +44,7 @@ export const sendEmailVerification = async ({
     return { ok: true, skipped: true };
   }
 
-  if (
-    (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan }))
-      .isBlocked
-  ) {
+  if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
     log.warn("Email is blocked - not sending verification email", email);
     return { ok: false, skipped: false };
   }
@@ -94,10 +91,7 @@ export const sendEmailVerificationByCode = async ({
   username,
   isVerifyingEmail,
 }: VerifyEmailType) => {
-  if (
-    (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan }))
-      .isBlocked
-  ) {
+  if (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan })) {
     log.warn("Email is blocked - not sending verification email", email);
     return { ok: false, skipped: false };
   }
@@ -144,13 +138,11 @@ export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOf
   }
 
   if (
-    (
-      await checkIfEmailIsBlockedInWatchlistController({
-        email: user.emailFrom,
-        organizationId: null,
-        span: sentrySpan,
-      })
-    ).isBlocked
+    await checkIfEmailIsBlockedInWatchlistController({
+      email: user.emailFrom,
+      organizationId: null,
+      span: sentrySpan,
+    })
   ) {
     log.warn("Email is blocked - not sending verification email", user.emailFrom);
     return { ok: false, skipped: false };

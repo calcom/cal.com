@@ -198,7 +198,7 @@ describe("SalesforceCRMService", () => {
         const contactOwnerEmail = "contact-owner@acme.com";
         const leadOwnerEmail = "lead-owner@acme.com";
         const lookingForEmail = "test1@example.com";
-        const _contactEmail = "test2@example.com";
+        const contactEmail = "test2@example.com";
 
         const account = salesforceMock.addAccount({
           Id: "test-account-id",
@@ -210,7 +210,7 @@ describe("SalesforceCRMService", () => {
 
         const _contact = salesforceMock.addContact({
           // Contact doesn't have the matching email
-          Email: _contactEmail,
+          Email: contactEmail,
           FirstName: "Test",
           LastName: "User",
           AccountId: account.Id,
@@ -219,7 +219,7 @@ describe("SalesforceCRMService", () => {
           },
         });
 
-        const _lead = salesforceMock.addLead({
+        const lead = salesforceMock.addLead({
           // Lead has the matching email
           Email: lookingForEmail,
           FirstName: "Test",
@@ -239,7 +239,7 @@ describe("SalesforceCRMService", () => {
         expect(contactsOrLeadsOrAccounts[0].ownerEmail).toBe(undefined);
         expect(contactsOrLeadsOrAccounts[0].email).toBe(lookingForEmail);
         expect(contactsOrLeadsOrAccounts[0].recordType).toBe(SalesforceRecordEnum.LEAD);
-        expect(contactsOrLeadsOrAccounts[0].id).toBe(_lead.Id);
+        expect(contactsOrLeadsOrAccounts[0].id).toBe(lead.Id);
       });
 
       it("should return contact object(if there is one by that email) even if lead is found by that email", async () => {

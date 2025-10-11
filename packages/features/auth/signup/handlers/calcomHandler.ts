@@ -201,7 +201,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       data: {
         username,
         email,
-        locked: shouldLockByDefault.isBlocked,
+        locked: shouldLockByDefault,
         password: { create: { hash: hashedPassword } },
         metadata: {
           stripeCustomerId: customer.stripeCustomerId,

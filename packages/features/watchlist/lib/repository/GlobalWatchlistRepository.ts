@@ -2,20 +2,34 @@ import type { PrismaClient, Watchlist } from "@calcom/prisma/client";
 import { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
 import type { IGlobalWatchlistRepository } from "../interface/IWatchlistRepositories";
-import { normalizeEmail, normalizeDomain } from "../utils/normalization";
 
 /**
  * Repository for global watchlist operations (organizationId = null)
  * Handles system-wide blocking rules that apply to all organizations
+ *
+ * Note: Expects normalized values from the service layer
  */
 export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
+  private readonly selectFields = {
+    id: true,
+    type: true,
+    value: true,
+    description: true,
+    isGlobal: true,
+    organizationId: true,
+    action: true,
+    source: true,
+    lastUpdatedAt: true,
+  } as const;
+
   async findBlockedEmail(email: string): Promise<Watchlist | null> {
     return this.prisma.watchlist.findFirst({
+      select: this.selectFields,
       where: {
         type: WatchlistType.EMAIL,
-        value: normalizeEmail(email),
+        value: email,
         action: WatchlistAction.BLOCK,
         organizationId: null,
         isGlobal: true,
@@ -25,9 +39,10 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
 
   async findBlockedDomain(domain: string): Promise<Watchlist | null> {
     return this.prisma.watchlist.findFirst({
+      select: this.selectFields,
       where: {
         type: WatchlistType.DOMAIN,
-        value: normalizeDomain(domain),
+        value: domain,
         action: WatchlistAction.BLOCK,
         organizationId: null,
         isGlobal: true,
@@ -37,9 +52,10 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
 
   async findFreeEmailDomain(domain: string): Promise<Watchlist | null> {
     return this.prisma.watchlist.findFirst({
+      select: this.selectFields,
       where: {
         type: WatchlistType.DOMAIN,
-        value: normalizeDomain(domain),
+        value: domain,
         source: WatchlistSource.FREE_DOMAIN_POLICY,
         organizationId: null,
         isGlobal: true,
@@ -49,6 +65,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
 
   async findById(id: string): Promise<Watchlist | null> {
     return this.prisma.watchlist.findFirst({
+      select: this.selectFields,
       where: {
         id,
         organizationId: null,
@@ -59,6 +76,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
 
   async listBlockedEntries(): Promise<Watchlist[]> {
     return this.prisma.watchlist.findMany({
+      select: this.selectFields,
       where: {
         organizationId: null,
         isGlobal: true,
@@ -76,9 +94,10 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     source?: WatchlistSource;
   }): Promise<Watchlist> {
     return this.prisma.watchlist.create({
+      select: this.selectFields,
       data: {
         type: data.type,
-        value: data.type === WatchlistType.EMAIL ? normalizeEmail(data.value) : normalizeDomain(data.value),
+        value: data.value,
         description: data.description,
         isGlobal: true,
         organizationId: null,
@@ -98,6 +117,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
     }
   ): Promise<Watchlist> {
     return this.prisma.watchlist.update({
+      select: this.selectFields,
       where: {
         id,
         organizationId: null,

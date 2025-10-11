@@ -45,7 +45,7 @@ export interface CreateWatchlistInput {
 }
 
 export interface UpdateWatchlistInput {
-  type?: WatchlistType;
+  type: WatchlistType; // Required to normalize value correctly without fetching
   value?: string;
   description?: string;
   action?: WatchlistAction;

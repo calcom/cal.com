@@ -74,11 +74,6 @@ export interface BlockingCheckResultDTO {
   };
 }
 
-// Controller response DTOs (for the existing controllers)
-export interface EmailBlockedCheckResponseDTO {
-  isBlocked: boolean;
-}
-
 export interface UsersBlockedCheckResponseDTO {
   containsBlockedUser: boolean;
 }

@@ -6,7 +6,6 @@ export type {
   WatchlistListResponseDTO,
   WatchlistSearchDTO,
   BlockingCheckResultDTO,
-  EmailBlockedCheckResponseDTO,
   UsersBlockedCheckResponseDTO,
   WatchlistErrorDTO,
   BulkWatchlistOperationDTO,

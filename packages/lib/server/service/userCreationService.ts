@@ -49,7 +49,7 @@ export class UserCreationService {
       username: slugify(username),
       ...(hashedPassword && { hashedPassword }),
       organizationId: data?.organizationId ?? null,
-      locked: shouldLockByDefault.isBlocked,
+      locked: shouldLockByDefault,
     });
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
