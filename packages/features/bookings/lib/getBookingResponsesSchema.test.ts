@@ -1049,6 +1049,65 @@ describe("getBookingResponsesSchema", () => {
     });
   });
 
+  describe("should validate date field correctly", () => {
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "eventDate",
+          type: "date",
+          required: true,
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+
+    test("should accept valid date string", async () => {
+      const result = await schema.safeParseAsync({
+        name: "John Doe",
+        email: "john@example.com",
+        eventDate: "2025-12-25",
+      });
+      expect(result.success).toBe(true);
+    });
+
+    test("should reject invalid date string", async () => {
+      const result = await schema.safeParseAsync({
+        name: "John Doe",
+        email: "john@example.com",
+        eventDate: "25/12/2025",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    test("should reject Malformed date string", async () => {
+      const result = await schema.safeParseAsync({
+        name: "John Doe",
+        email: "john@example.com",
+        eventDate: "2025-13-40",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    test("should reject missing required date", async () => {
+      const result = await schema.safeParseAsync({
+        name: "John Doe",
+        email: "john@example.com",
+        // eventDate missing
+      });
+      expect(result.success).toBe(false);
+    });
+  });
+
   test.todo("select");
   test.todo("textarea");
   test.todo("number");

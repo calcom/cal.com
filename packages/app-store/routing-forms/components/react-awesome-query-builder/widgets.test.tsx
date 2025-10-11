@@ -169,7 +169,7 @@ describe("DateWidget", () => {
   it("handles null/undefined value correctly", () => {
     const setValue = vi.fn();
 
-    render(<DateWidget value={null} setValue={setValue} />);
+    render(<DateWidget value={null as unknown as string} setValue={setValue} />);
 
     const dateButton = screen.getByTestId("mock-date-picker");
     expect(dateButton.textContent).toBe("Pick a date");

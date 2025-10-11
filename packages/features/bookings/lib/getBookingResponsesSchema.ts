@@ -321,11 +321,34 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
+        if (bookingField.type === "date") {
+          // Users select from date picker, so format should always be correct
+          // We only validate that it's not empty (required field check handles this)
+          // and that it's a valid date string
+          const dateSchema = z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .refine((val) => {
+              const date = new Date(val);
+              return !isNaN(date.getTime());
+            }, m("Invalid date"));
+
+          const result = dateSchema.safeParse(value);
+          if (!result.success) {
+            // This should never happen in production since date picker ensures format
+            // But good to have for edge cases
+            console.error(`Unexpected date format received: ${value}`);
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("Invalid date"),
+            });
+          }
+          continue;
+        }
+
         // Use fieldTypeConfig.propsType to validate for propsType=="text" or propsType=="select" as in those cases, the response would be a string.
         // If say we want to do special validation for 'address' that can be added to `fieldTypesSchemaMap`
-        if (
-          ["address", "text", "select", "number", "radio", "textarea", "date"].includes(bookingField.type)
-        ) {
+        if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
           const schema = stringSchema;
           if (!schema.safeParse(value).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });

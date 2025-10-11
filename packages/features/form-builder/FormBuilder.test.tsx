@@ -79,6 +79,7 @@ describe("FormBuilder", () => {
       { fieldType: "checkbox", label: "CheckBox Group Field" },
       { fieldType: "radio", label: "Radio Group Field" },
       { fieldType: "boolean", label: "Checkbox Field" },
+      { fieldType: "date", label: "Date Field" },
     ];
     beforeEach(() => {
       renderComponent({ formBuilderProps: mockProps, formDefaultValues: {} });
