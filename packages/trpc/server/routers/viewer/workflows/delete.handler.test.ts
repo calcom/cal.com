@@ -23,7 +23,7 @@ vi.mock("@calcom/features/calAIPhone", () => ({
   createDefaultAIPhoneServiceProvider: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/server/repository/workflow", () => ({
+vi.mock("@calcom/features/ee/workflows/repositories/WorkflowRepository", () => ({
   WorkflowRepository: {
     deleteAllWorkflowReminders: vi.fn(),
   },

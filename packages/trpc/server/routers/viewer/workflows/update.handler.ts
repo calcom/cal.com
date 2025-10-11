@@ -5,7 +5,7 @@ import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
+import { addPermissionsToWorkflow } from "@calcom/features/ee/workflows/repositories/WorkflowRepository-permissions";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";

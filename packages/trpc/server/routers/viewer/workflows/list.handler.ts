@@ -1,7 +1,7 @@
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
+import { addPermissionsToWorkflows } from "@calcom/features/ee/workflows/repositories/WorkflowRepository-permissions";
 import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
