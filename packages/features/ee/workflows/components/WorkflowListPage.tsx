@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WorkflowPermissions } from "@calcom/features/ee/workflows/repositories/WorkflowRepository-permissions";
+import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 import type { Membership, Workflow } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
