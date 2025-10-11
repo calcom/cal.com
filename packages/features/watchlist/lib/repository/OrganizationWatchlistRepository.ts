@@ -123,10 +123,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
   ): Promise<Watchlist> {
     return this.prisma.watchlist.update({
       select: this.selectFields,
-      where: {
-        id,
-        organizationId,
-      },
+      where: { id },
       data: {
         ...(data.value !== undefined && { value: data.value }),
         ...(data.description !== undefined && { description: data.description }),
@@ -139,10 +136,7 @@ export class OrganizationWatchlistRepository implements IOrganizationWatchlistRe
   async deleteEntry(id: string, organizationId: number): Promise<void> {
     return this.prisma.watchlist
       .delete({
-        where: {
-          id,
-          organizationId,
-        },
+        where: { id, organizationId },
       })
       .then(() => {});
   }

@@ -118,11 +118,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
   ): Promise<Watchlist> {
     return this.prisma.watchlist.update({
       select: this.selectFields,
-      where: {
-        id,
-        organizationId: null,
-        isGlobal: true,
-      },
+      where: { id },
       data: {
         ...(data.value !== undefined && { value: data.value }),
         ...(data.description !== undefined && { description: data.description }),
@@ -134,10 +130,7 @@ export class GlobalWatchlistRepository implements IGlobalWatchlistRepository {
 
   async deleteEntry(id: string): Promise<void> {
     this.prisma.watchlist.delete({
-      where: {
-        id,
-        organizationId: null,
-      },
+      where: { id },
     });
   }
 }

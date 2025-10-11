@@ -32,7 +32,7 @@ vi.mock("../repository/user", () => {
 });
 
 vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
-  checkIfEmailIsBlockedInWatchlistController: vi.fn(() => ({ isBlocked: false })),
+  checkIfEmailIsBlockedInWatchlistController: vi.fn(() => false),
 }));
 
 const mockUserData = {
@@ -71,7 +71,7 @@ describe("UserCreationService", () => {
   });
 
   test("should lock user when email is in watchlist", async () => {
-    vi.mocked(checkIfEmailIsBlockedInWatchlistController).mockResolvedValue({ isBlocked: true });
+    vi.mocked(checkIfEmailIsBlockedInWatchlistController).mockResolvedValue(true);
 
     const mockCreate = vi.fn().mockResolvedValue({
       username: "test",
