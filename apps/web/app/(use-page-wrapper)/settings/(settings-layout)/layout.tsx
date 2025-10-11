@@ -70,6 +70,10 @@ export default async function SettingsLayoutAppDir(props: SettingsLayoutProps) {
       const orgActions = PermissionMapper.toActionMap(organizationPermissions, Resource.Organization);
       canViewOrganizationBilling = orgActions[CustomAction.ManageBilling] ?? isOrgAdminOrOwner;
       canUpdateOrganization = orgActions[CrudAction.Update] ?? isOrgAdminOrOwner;
+    } else {
+      canViewRoles = false;
+      canViewOrganizationBilling = isOrgAdminOrOwner;
+      canUpdateOrganization = isOrgAdminOrOwner;
     }
   }
 

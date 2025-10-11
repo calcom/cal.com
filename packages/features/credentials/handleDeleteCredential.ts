@@ -2,6 +2,7 @@ import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import {
   type EventTypeAppMetadataSchema,
   eventTypeAppMetadataOptionalSchema,
@@ -11,10 +12,9 @@ import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential/server";
+import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -284,11 +284,7 @@ const handleDeleteCredential = async ({
             });
 
             for (const payment of booking.payment) {
-              try {
-                await deletePayment(payment.id, credential);
-              } catch (e) {
-                console.error(e);
-              }
+              await deletePayment(payment.id, credential);
               await prisma.payment.delete({
                 where: {
                   id: payment.id,
@@ -353,7 +349,7 @@ const handleDeleteCredential = async ({
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
                 hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
-                team: !!booking.eventType?.team
+                team: booking.eventType?.team
                   ? {
                       name: booking.eventType.team.name,
                       id: booking.eventType.team.id,
