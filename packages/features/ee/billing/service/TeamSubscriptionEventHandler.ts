@@ -1,8 +1,9 @@
 import logger from "@calcom/lib/logger";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 
-import type { IBillingRepository, SubscriptionStatus } from "../repository/IBillingRepository";
-import { Plan } from "../repository/IBillingRepository";
+import type { IBillingRepository } from "../repository/IBillingRepository";
+import { IBillingRepositoryCreateArgs } from "../repository/IBillingRepository";
+import { BillingRecord } from "../repository/IBillingRepository";
 import { InternalTeamBilling } from "../teams/internal-team-billing";
 
 export class TeamSubscriptionEventHandler {
@@ -14,18 +15,9 @@ export class TeamSubscriptionEventHandler {
     this.teamRepository = teamRepository;
   }
 
-  async handleUpdate({
-    subscriptionId,
-    subscriptionItemId,
-    customerId,
-    subscriptionStatus,
-  }: {
-    subscriptionId: string;
-    subscriptionItemId: string;
-    customerId: string;
-    subscriptionStatus: SubscriptionStatus;
-  }) {
+  async handleUpdate(subscription: Omit<IBillingRepositoryCreateArgs, "teamId" | "planName">) {
     const log = logger.getSubLogger({ prefix: ["TeamSubscriptionEventHandler.handleUpdate"] });
+    const { subscriptionId, status: subscriptionStatus } = subscription;
     // First see if the subscription is already in the billing table
     const teamSubscriptionInDb = await this.billingRepository.getBySubscriptionId(subscriptionId);
 
@@ -40,17 +32,32 @@ export class TeamSubscriptionEventHandler {
 
       const internalTeamBillingService = new InternalTeamBilling(team);
       await internalTeamBillingService.saveTeamBilling({
-        teamId: team.id,
-        subscriptionId: subscriptionId,
-        subscriptionItemId: subscriptionItemId,
-        status: subscriptionStatus,
-        customerId: customerId,
-        planName: Plan.TEAM,
+        ...subscription,
       });
+
+      return;
     }
 
-    if (teamSubscriptionInDb && teamSubscriptionInDb.status !== subscriptionStatus) {
+    // if (teamSubscriptionInDb && teamSubscriptionInDb.status !== subscriptionStatus) {
+    if (this.hasSubscriptionChanged({ subscription, dbSubscription: teamSubscriptionInDb })) {
       await this.billingRepository.updateSubscriptionStatus(subscriptionId, subscriptionStatus);
     }
+  }
+
+  private hasSubscriptionChanged({
+    subscription,
+    dbSubscription,
+  }: {
+    subscription: IBillingRepositoryCreateArgs;
+    dbSubscription: BillingRecord;
+  }) {
+    const fieldsToCompare = ["status", "subscriptionTrialEnd", "subscriptionEnd"];
+
+    return fieldsToCompare.some(
+      (field) =>
+        subscription[field as keyof IBillingRepositoryCreateArgs] !==
+        dbSubscription[field as keyof BillingRecord]
+    );
+    return false;
   }
 }

@@ -23,6 +23,9 @@ export interface BillingRecord {
   customerId: string;
   planName: Plan;
   status: SubscriptionStatus;
+  subscriptionStart: Date | null;
+  subscriptionTrialEnd: Date | null;
+  subscriptionEnd: Date | null;
 }
 
 export interface IBillingRepository {
@@ -36,6 +39,8 @@ export interface IBillingRepositoryConstructorArgs {
   isOrganization: boolean;
 }
 
+//TODO: Have this extend the BillingRecord type instead of individual
+//
 export interface IBillingRepositoryCreateArgs {
   teamId: number;
   subscriptionId: string;
@@ -43,7 +48,7 @@ export interface IBillingRepositoryCreateArgs {
   customerId: string;
   planName: Plan;
   status: SubscriptionStatus;
-  subscriptionStart?: Date;
-  subscriptionTrialEnd?: Date;
-  subscriptionEnd?: Date;
+  subscriptionStart: Date;
+  subscriptionTrialEnd: Date | null;
+  subscriptionEnd: Date | null;
 }

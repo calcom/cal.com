@@ -102,12 +102,18 @@ async function handleTeamSubscriptionUpdate({
     subscriptionId: subscription.id,
   });
 
+  const { subscriptionStart, subscriptionTrialEnd, subscriptionEnd } =
+    StripeBillingService.extractSubscriptionDates(subscription);
+
   try {
     await teamSubscriptionEventHandler.handleUpdate({
       subscriptionId: subscription.id,
       subscriptionItemId: subscriptionItem.id,
       customerId: subscription.customer as string,
-      subscriptionStatus: status,
+      status,
+      subscriptionStart,
+      subscriptionTrialEnd,
+      subscriptionEnd,
     });
   } catch (error) {
     console.error("Error handling team subscription update:", error);
