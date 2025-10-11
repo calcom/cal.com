@@ -83,7 +83,7 @@ const attendeeRescheduleSeatedBooking = async (
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
-    await sendRescheduledSeatEmailAndSMS({ ...evt, hideBranding } as any, seatAttendee as Person, eventType.metadata);
+    await sendRescheduledSeatEmailAndSMS({ ...evt, hideBranding }, seatAttendee as Person, eventType.metadata);
 
     return null;
   }
@@ -125,7 +125,7 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  await sendRescheduledSeatEmailAndSMS({ ...copyEvent, hideBranding } as any, seatAttendee as Person, eventType.metadata);
+  await sendRescheduledSeatEmailAndSMS({ ...copyEvent, hideBranding }, seatAttendee as Person, eventType.metadata);
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });

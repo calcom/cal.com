@@ -5,6 +5,7 @@ import EmailHead from "./EmailHead";
 import EmailScheduledBodyHeaderContent from "./EmailScheduledBodyHeaderContent";
 import EmailSchedulingBodyDivider from "./EmailSchedulingBodyDivider";
 import EmailSchedulingBodyHeader, { BodyHeadType } from "./EmailSchedulingBodyHeader";
+import EmailSpacer from "./EmailSpacer";
 import RawHtml from "./RawHtml";
 import Row from "./Row";
 

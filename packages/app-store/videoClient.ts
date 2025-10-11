@@ -117,7 +117,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
     log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
-    await sendBrokenIntegrationEmail(calEvent, "video");
+    await sendBrokenIntegrationEmail({ ...calEvent, hideBranding: calEvent.hideBranding ?? false }, "video");
     log.error(
       "createMeeting failed",
       safeStringify(err),
@@ -146,7 +146,7 @@ const updateMeeting = async (
   const canCallUpdateMeeting = !!(credential && bookingRef);
   const updatedMeeting = canCallUpdateMeeting
     ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
-        await sendBrokenIntegrationEmail(calEvent, "video");
+        await sendBrokenIntegrationEmail({ ...calEvent, hideBranding: calEvent.hideBranding ?? false }, "video");
         log.error("updateMeeting failed", e, calEvent);
         success = false;
         return undefined;

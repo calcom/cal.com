@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
@@ -284,8 +285,50 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   });
 
   try {
+    const teamForBranding = booking.eventType?.teamId
+      ? await prisma.team.findUnique({
+          where: { id: booking.eventType.teamId },
+          select: {
+            id: true,
+            hideBranding: true,
+            parentId: true,
+            parent: {
+              select: {
+                hideBranding: true,
+              },
+            },
+          },
+        })
+      : null;
+
+    const organizationIdForBranding = teamForBranding?.parentId
+      ? teamForBranding.parentId
+      : (
+          await prisma.profile.findFirst({
+            where: { userId: booking.userId || undefined },
+            select: { organizationId: true },
+          })
+        )?.organizationId ?? null;
+
+    const userForBranding = !booking.eventType?.teamId
+      ? await prisma.user.findUnique({
+          where: { id: booking.userId || 0 },
+          select: { id: true, hideBranding: true },
+        })
+      : null;
+
+    const eventTypeId = booking.eventTypeId;
+    const hideBranding = eventTypeId
+      ? await shouldHideBrandingForEvent({
+          eventTypeId,
+          team: (teamForBranding as any) ?? null,
+          owner: userForBranding,
+          organizationId: organizationIdForBranding,
+        })
+      : false;
+
     await sendLocationChangeEmailsAndSMS(
-      { ...evt, additionalInformation },
+      { ...evt, additionalInformation, hideBranding },
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {

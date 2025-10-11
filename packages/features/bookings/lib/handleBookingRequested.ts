@@ -109,11 +109,11 @@ export async function handleBookingRequested(args: {
     : false;
 
   await sendOrganizerRequestEmail(
-    { ...evt, hideBranding } as any,
+    { ...evt, hideBranding },
     booking?.eventType?.metadata as EventTypeMetadata
   );
   await sendAttendeeRequestEmailAndSMS(
-    { ...evt, hideBranding } as any,
+    { ...evt, hideBranding },
     evt.attendees[0],
     booking?.eventType?.metadata as EventTypeMetadata
   );

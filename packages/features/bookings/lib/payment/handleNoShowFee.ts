@@ -157,7 +157,7 @@ export const handleNoShowFee = async ({
       throw new Error("Payment processing failed");
     }
 
-    await sendNoShowFeeChargedEmail(attendee, evt, eventTypeMetdata);
+    await sendNoShowFeeChargedEmail(attendee, { ...evt, hideBranding: evt.hideBranding ?? false }, eventTypeMetdata);
 
     return paymentData;
   } catch (err) {

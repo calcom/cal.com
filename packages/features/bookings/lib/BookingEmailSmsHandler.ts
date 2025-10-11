@@ -128,6 +128,7 @@ export class BookingEmailSmsHandler {
     await sendRescheduledEmailsAndSMS(
       {
         ...evt,
+        hideBranding: evt.hideBranding ?? false,
         additionalInformation,
         additionalNotes,
         cancellationReason: `$RCH$${rescheduleReason || ""}`,
@@ -227,17 +228,17 @@ export class BookingEmailSmsHandler {
     try {
       await Promise.all([
         sendRoundRobinRescheduledEmailsAndSMS(
-          { ...copyEventAdditionalInfo, iCalUID },
+          { ...copyEventAdditionalInfo, iCalUID, hideBranding: copyEventAdditionalInfo.hideBranding ?? false },
           rescheduledMembers,
           metadata
         ),
         sendRoundRobinScheduledEmailsAndSMS({
-          calEvent: copyEventAdditionalInfo,
+          calEvent: { ...copyEventAdditionalInfo, hideBranding: copyEventAdditionalInfo.hideBranding ?? false },
           members: newBookedMembers,
           eventTypeMetadata: metadata,
         }),
         sendRoundRobinCancelledEmailsAndSMS(
-          cancelledRRHostEvt,
+          { ...cancelledRRHostEvt, hideBranding: cancelledRRHostEvt.hideBranding ?? false },
           cancelledMembers,
           metadata,
           reassignedTo
@@ -281,7 +282,7 @@ export class BookingEmailSmsHandler {
 
     try {
       await sendScheduledEmailsAndSMS(
-        { ...evt, additionalInformation, additionalNotes, customInputs },
+        { ...evt, additionalInformation, additionalNotes, customInputs, hideBranding: evt.hideBranding ?? false },
         eventNameObject,
         isHostConfirmationEmailsDisabled,
         isAttendeeConfirmationEmailDisabled,
@@ -311,7 +312,7 @@ export class BookingEmailSmsHandler {
       safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
     );
 
-    const eventWithNotes = { ...evt, additionalNotes };
+      const eventWithNotes = { ...evt, additionalNotes, hideBranding: evt.hideBranding ?? false };
 
     try {
       await Promise.all([

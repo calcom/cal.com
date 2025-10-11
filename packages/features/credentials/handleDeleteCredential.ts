@@ -356,6 +356,7 @@ const handleDeleteCredential = async ({
                       members: [],
                     }
                   : undefined,
+                hideBranding: false,
               },
               {
                 eventName: booking?.eventType?.eventName,

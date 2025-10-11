@@ -70,6 +70,7 @@ export function getMockPaymentService() {
       // TODO: App implementing PaymentService is supposed to send email by itself at the moment.
       await sendAwaitingPaymentEmailAndSMS({
         ...event,
+        hideBranding: event.hideBranding ?? false,
         paymentInfo: {
           link: createPaymentLink(/*{
             paymentUid: paymentData.uid,

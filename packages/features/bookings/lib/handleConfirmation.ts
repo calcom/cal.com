@@ -186,7 +186,7 @@ export async function handleConfirmation(args: {
 
       if (emailsEnabled) {
         await sendScheduledEmailsAndSMS(
-          ({ ...evt, additionalInformation: metadata, hideBranding } as any),
+          ({ ...evt, additionalInformation: metadata, hideBranding }),
           undefined,
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,

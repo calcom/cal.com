@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -182,7 +183,42 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   await eventManager.updateCalendarAttendees(evt, booking);
 
   try {
-    await sendAddGuestsEmails(evt, guests);
+    const teamForBranding = booking.eventType?.teamId
+      ? await prisma.team.findUnique({
+          where: { id: booking.eventType.teamId },
+          select: {
+            id: true,
+            hideBranding: true,
+            parentId: true,
+            parent: { select: { hideBranding: true } },
+          },
+        })
+      : null;
+    const organizationIdForBranding = teamForBranding?.parentId
+      ? teamForBranding.parentId
+      : (
+          await prisma.profile.findFirst({
+            where: { userId: booking.userId || undefined },
+            select: { organizationId: true },
+          })
+        )?.organizationId ?? null;
+    const userForBranding = !booking.eventType?.teamId
+      ? await prisma.user.findUnique({
+          where: { id: booking.userId || 0 },
+          select: { id: true, hideBranding: true },
+        })
+      : null;
+    const eventTypeId = booking.eventTypeId;
+    const hideBranding = eventTypeId
+      ? await shouldHideBrandingForEvent({
+          eventTypeId,
+          team: (teamForBranding as any) ?? null,
+          owner: userForBranding,
+          organizationId: organizationIdForBranding,
+        })
+      : false;
+
+    await sendAddGuestsEmails({ ...evt, hideBranding }, guests);
   } catch (err) {
     console.log("Error sending AddGuestsEmails");
   }

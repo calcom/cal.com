@@ -408,7 +408,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     if (emailsEnabled) {
       await sendDeclinedEmailsAndSMS(
-        { ...evt, hideBranding } as any,
+        { ...evt, hideBranding },
         booking.eventType?.metadata as EventTypeMetadata
       );
     }

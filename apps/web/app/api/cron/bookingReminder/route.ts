@@ -13,6 +13,9 @@ import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+// Define CalendarEventWithBranding type locally since it's not exported
+type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
+
 async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
 
@@ -139,9 +142,10 @@ async function postHandler(request: NextRequest) {
         uid: booking.uid,
         recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
         destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
+        hideBranding: false,
       };
 
-      await sendOrganizerRequestReminderEmail(evt, booking?.eventType?.metadata as EventTypeMetadata);
+      await sendOrganizerRequestReminderEmail(evt as CalendarEventWithBranding, booking?.eventType?.metadata as EventTypeMetadata);
 
       await prisma.reminderMail.create({
         data: {

@@ -36,6 +36,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
@@ -312,6 +313,38 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
+  // Ensure branding flag is provided to all email flows
+  try {
+    const teamForBranding = eventType.teamId
+      ? await prisma.team.findUnique({
+          where: { id: eventType.teamId },
+          select: {
+            id: true,
+            hideBranding: true,
+            parentId: true,
+            parent: { select: { hideBranding: true } },
+          },
+        })
+      : null;
+    const organizationIdForBranding = teamForBranding?.parentId
+      ? teamForBranding.parentId
+      : (
+          await prisma.profile.findFirst({
+            where: { userId: organizer.id },
+            select: { organizationId: true },
+          })
+        )?.organizationId ?? null;
+    const hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId: eventType.id,
+      team: (teamForBranding as any) ?? null,
+      owner: { id: organizer.id, hideBranding: null } as any,
+      organizationId: organizationIdForBranding,
+    });
+    (evt as any).hideBranding = hideBranding;
+  } catch (_) {
+    (evt as any).hideBranding = false;
+  }
+
   const credentials = await prisma.credential.findMany({
     where: { userId: newUser.id },
     include: { user: { select: { email: true } } },
@@ -383,7 +416,7 @@ export const roundRobinManualReassignment = async ({
   // Send emails
   if (emailsEnabled) {
     await sendRoundRobinScheduledEmailsAndSMS({
-      calEvent: evtWithoutCancellationReason,
+      calEvent: { ...evtWithoutCancellationReason, hideBranding: evtWithoutCancellationReason.hideBranding ?? false },
       members: [
         {
           ...newUser,
@@ -413,7 +446,7 @@ export const roundRobinManualReassignment = async ({
 
   if (previousRRHost && emailsEnabled) {
     await sendRoundRobinReassignedEmailsAndSMS({
-      calEvent: cancelledEvt,
+      calEvent: { ...cancelledEvt, hideBranding: cancelledEvt.hideBranding ?? false },
       members: [
         {
           ...previousRRHost,
@@ -432,7 +465,7 @@ export const roundRobinManualReassignment = async ({
     if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
-        calEvent: evtWithoutCancellationReason,
+        calEvent: { ...evtWithoutCancellationReason, hideBranding: evtWithoutCancellationReason.hideBranding ?? false },
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
