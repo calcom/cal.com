@@ -27,13 +27,14 @@ describe("checkIfFreeEmailDomain", () => {
     const { getWatchlistFeature } = await import("@calcom/features/di/watchlist/containers/watchlist");
     const getWatchlistFeatureMock = getWatchlistFeature as Mock;
 
-    await checkIfFreeEmailDomain({ email: "test@freedomain.com" });
+    const result = await checkIfFreeEmailDomain({ email: "test@freedomain.com" });
 
     expect(getWatchlistFeatureMock).toHaveBeenCalled();
 
     const mockInstance = getWatchlistFeatureMock.mock.results.at(-1)?.value;
 
     expect(mockInstance.globalBlocking.isFreeEmailDomain).toHaveBeenCalledWith("freedomain.com");
+    expect(result).toBe(true);
   });
 
   afterEach(() => {
