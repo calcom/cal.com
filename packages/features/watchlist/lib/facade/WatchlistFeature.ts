@@ -1,6 +1,7 @@
 import type { Container } from "@evyweb/ioctopus";
 
 import { WATCHLIST_DI_TOKENS } from "@calcom/features/di/watchlist/Watchlist.tokens";
+import logger from "@calcom/lib/logger";
 
 import type { IAuditRepository } from "../interface/IAuditRepository";
 import type {
@@ -33,11 +34,14 @@ export function createWatchlistFeature(container: Container): WatchlistFeature {
   );
   const auditRepo = container.get<IAuditRepository>(WATCHLIST_DI_TOKENS.AUDIT_REPOSITORY);
 
+  // Create sub-loggers for each service
+  const watchlistLogger = logger.getSubLogger({ prefix: ["[WatchlistService]"] });
+
   // Create services with Deps pattern
   return {
     globalBlocking: new GlobalBlockingService({ globalRepo }),
     orgBlocking: new OrganizationBlockingService({ orgRepo }),
-    watchlist: new WatchlistService({ globalRepo, orgRepo }),
+    watchlist: new WatchlistService({ globalRepo, orgRepo, logger: watchlistLogger }),
     audit: new WatchlistAuditService({ auditRepository: auditRepo }),
   };
 }
