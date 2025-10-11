@@ -127,5 +127,5 @@ export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEma
 
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 
-export { TeamService } from "@calcom/lib/server/service/teamService";
+export { TeamService } from "@calcom/features/ee/teams/services/teamService";
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";

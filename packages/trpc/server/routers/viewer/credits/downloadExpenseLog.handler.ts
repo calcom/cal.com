@@ -1,6 +1,6 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { TeamService } from "@calcom/lib/server/service/teamService";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";

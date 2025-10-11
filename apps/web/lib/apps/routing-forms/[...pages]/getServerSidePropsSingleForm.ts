@@ -2,7 +2,7 @@ import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enr
 import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 
@@ -90,7 +90,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
       : null,
   };
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const { UserRepository } = await import("@calcom/features/users/repositories/UserRepository");
 
   const userRepo = new UserRepository(prisma);
   const formWithUserInfoProfile = {

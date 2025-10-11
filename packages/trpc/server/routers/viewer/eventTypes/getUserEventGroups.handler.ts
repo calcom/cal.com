@@ -1,7 +1,7 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 

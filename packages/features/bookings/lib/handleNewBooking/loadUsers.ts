@@ -7,7 +7,7 @@ import {
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars, UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma, { userSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";

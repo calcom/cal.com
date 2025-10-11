@@ -4,7 +4,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import type { DefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";

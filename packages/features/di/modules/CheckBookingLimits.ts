@@ -1,5 +1,5 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 
 import { type Container, createModule } from "../di";
 
