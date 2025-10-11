@@ -7,7 +7,7 @@ vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => {
   return {
     getWatchlistFeature: vi.fn().mockReturnValue({
       globalBlocking: {
-        isFreeEmailDomain: vi.fn().mockResolvedValue(false),
+        isFreeEmailDomain: vi.fn().mockResolvedValue(true),
       },
     }),
   };
@@ -35,6 +35,26 @@ describe("checkIfFreeEmailDomain", () => {
 
     expect(mockInstance.globalBlocking.isFreeEmailDomain).toHaveBeenCalledWith("freedomain.com");
     expect(result).toBe(true);
+  });
+
+  test("If non-free email domain, should return false", async () => {
+    const { getWatchlistFeature } = await import("@calcom/features/di/watchlist/containers/watchlist");
+    const getWatchlistFeatureMock = getWatchlistFeature as Mock;
+
+    getWatchlistFeatureMock.mockReturnValueOnce({
+      globalBlocking: {
+        isFreeEmailDomain: vi.fn().mockResolvedValue(false),
+      },
+    });
+
+    const result = await checkIfFreeEmailDomain({ email: "test@corporatedomain.com" });
+
+    expect(getWatchlistFeatureMock).toHaveBeenCalled();
+
+    const mockInstance = getWatchlistFeatureMock.mock.results.at(-1)?.value;
+
+    expect(mockInstance.globalBlocking.isFreeEmailDomain).toHaveBeenCalledWith("corporatedomain.com");
+    expect(result).toBe(false);
   });
 
   afterEach(() => {
