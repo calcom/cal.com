@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { BookingAccessService } from "@calcom/lib/server/service/bookingAccessService";
 import { BookingStatus, ReportReason } from "@calcom/prisma/enums";
 
@@ -75,8 +75,6 @@ describe("reportBookingHandler", () => {
           input: {
             bookingId: 100,
             reason: ReportReason.SPAM,
-            
-            allRemainingBookings: false,
           },
         })
       ).rejects.toThrow(TRPCError);
@@ -87,8 +85,6 @@ describe("reportBookingHandler", () => {
           input: {
             bookingId: 100,
             reason: ReportReason.SPAM,
-            
-            allRemainingBookings: false,
           },
         })
       ).rejects.toMatchObject({
@@ -107,8 +103,6 @@ describe("reportBookingHandler", () => {
           input: {
             bookingId: 100,
             reason: ReportReason.SPAM,
-            
-            allRemainingBookings: false,
           },
         })
       ).rejects.toMatchObject({
@@ -132,8 +126,6 @@ describe("reportBookingHandler", () => {
           input: {
             bookingId: 100,
             reason: ReportReason.SPAM,
-            
-            allRemainingBookings: false,
           },
         })
       ).rejects.toMatchObject({
@@ -142,7 +134,6 @@ describe("reportBookingHandler", () => {
       });
     });
   });
-
 
   describe("successful report creation", () => {
     it("should successfully create a single booking report and auto-cancel upcoming booking", async () => {
@@ -165,7 +156,6 @@ describe("reportBookingHandler", () => {
           bookingId: 100,
           reason: ReportReason.SPAM,
           description: "This is spam",
-          allRemainingBookings: false,
         },
       });
 
@@ -179,6 +169,7 @@ describe("reportBookingHandler", () => {
         reason: ReportReason.SPAM,
         description: "This is spam",
         cancelled: true,
+        organizationId: undefined,
       });
     });
 
@@ -194,7 +185,6 @@ describe("reportBookingHandler", () => {
         input: {
           bookingId: 100,
           reason: ReportReason.DONT_KNOW_PERSON,
-          allRemainingBookings: false,
         },
       });
 
@@ -206,6 +196,7 @@ describe("reportBookingHandler", () => {
         reason: ReportReason.DONT_KNOW_PERSON,
         description: undefined,
         cancelled: false,
+        organizationId: undefined,
       });
     });
   });
@@ -231,8 +222,6 @@ describe("reportBookingHandler", () => {
           bookingId: 100,
           reason: ReportReason.SPAM,
           description: "Spam booking",
-          
-          allRemainingBookings: false,
         },
       });
 
@@ -242,7 +231,7 @@ describe("reportBookingHandler", () => {
           uid: "test-booking-uid",
           cancelledBy: mockUser.email,
           cancellationReason: "Spam booking",
-          allRemainingBookings: undefined,
+          skipCancellationReasonValidation: true,
         },
         userId: mockUser.id,
       });
@@ -260,8 +249,6 @@ describe("reportBookingHandler", () => {
         input: {
           bookingId: 100,
           reason: ReportReason.SPAM,
-          
-          allRemainingBookings: false,
         },
       });
 
@@ -282,8 +269,6 @@ describe("reportBookingHandler", () => {
         input: {
           bookingId: 100,
           reason: ReportReason.SPAM,
-          
-          allRemainingBookings: false,
         },
       });
 
@@ -317,8 +302,6 @@ describe("reportBookingHandler", () => {
         input: {
           bookingId: 100,
           reason: ReportReason.SPAM,
-          
-          allRemainingBookings: true,
         },
       });
 
@@ -353,8 +336,6 @@ describe("reportBookingHandler", () => {
         input: {
           bookingId: 100,
           reason: ReportReason.SPAM,
-          
-          allRemainingBookings: false,
         },
       });
 

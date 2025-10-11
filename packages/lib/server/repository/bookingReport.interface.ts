@@ -7,6 +7,7 @@ export interface CreateBookingReportInput {
   reason: ReportReason;
   description?: string;
   cancelled: boolean;
+  organizationId?: number;
 }
 
 export interface BookingReportSummary {
@@ -22,9 +23,5 @@ export interface IBookingReportRepository {
 
   findReportForBooking(bookingId: number): Promise<BookingReportSummary | null>;
 
-
-  findAllReportedBookings(params: {
-    skip?: number;
-    take?: number;
-  }): Promise<BookingReportSummary[]>;
+  findAllReportedBookings(params: { skip?: number; take?: number }): Promise<BookingReportSummary[]>;
 }

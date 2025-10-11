@@ -573,6 +573,7 @@ model Team {
   roles                  Role[] // Added for Role relation
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
+  bookingReports         BookingReport[]
 
   features TeamFeatures[]
 
@@ -2355,23 +2356,26 @@ enum ReportReason {
 }
 
 model BookingReport {
-  id           String       @id @default(uuid()) @db.Uuid
-  bookingId    Int          @unique
-  bookerEmail  String
-  reportedById Int
-  reason       ReportReason
-  description  String?
-  cancelled    Boolean      @default(false)
-  createdAt    DateTime     @default(now())
+  id             String       @id @default(uuid()) @db.Uuid
+  bookingId      Int          @unique
+  bookerEmail    String
+  reportedById   Int
+  organizationId Int?
+  reason         ReportReason
+  description    String?
+  cancelled      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
 
   watchlistId String? @db.Uuid
 
-  booking   Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  reportedBy User @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
-  watchlist Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+  booking      Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  reportedBy   User       @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
+  organization Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  watchlist    Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
 
   @@index([bookerEmail])
   @@index([reportedById])
+  @@index([organizationId])
   @@index([watchlistId])
   @@index([createdAt])
 }

@@ -18,6 +18,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
         reason: input.reason,
         description: input.description,
         cancelled: input.cancelled,
+        organizationId: input.organizationId,
       },
       select: { id: true },
     });
@@ -38,10 +39,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     return report;
   }
 
-  async findAllReportedBookings(params: {
-    skip?: number;
-    take?: number;
-  }): Promise<BookingReportSummary[]> {
+  async findAllReportedBookings(params: { skip?: number; take?: number }): Promise<BookingReportSummary[]> {
     const reports = await this.prismaClient.bookingReport.findMany({
       skip: params.skip,
       take: params.take,

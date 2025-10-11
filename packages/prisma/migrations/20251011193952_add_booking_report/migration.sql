@@ -7,6 +7,7 @@ CREATE TABLE "BookingReport" (
     "bookingId" INTEGER NOT NULL,
     "bookerEmail" TEXT NOT NULL,
     "reportedById" INTEGER NOT NULL,
+    "organizationId" INTEGER,
     "reason" "ReportReason" NOT NULL,
     "description" TEXT,
     "cancelled" BOOLEAN NOT NULL DEFAULT false,
@@ -26,6 +27,9 @@ CREATE INDEX "BookingReport_bookerEmail_idx" ON "BookingReport"("bookerEmail");
 CREATE INDEX "BookingReport_reportedById_idx" ON "BookingReport"("reportedById");
 
 -- CreateIndex
+CREATE INDEX "BookingReport_organizationId_idx" ON "BookingReport"("organizationId");
+
+-- CreateIndex
 CREATE INDEX "BookingReport_watchlistId_idx" ON "BookingReport"("watchlistId");
 
 -- CreateIndex
@@ -36,6 +40,9 @@ ALTER TABLE "BookingReport" ADD CONSTRAINT "BookingReport_bookingId_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "BookingReport" ADD CONSTRAINT "BookingReport_reportedById_fkey" FOREIGN KEY ("reportedById") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "BookingReport" ADD CONSTRAINT "BookingReport_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "BookingReport" ADD CONSTRAINT "BookingReport_watchlistId_fkey" FOREIGN KEY ("watchlistId") REFERENCES "Watchlist"("id") ON DELETE SET NULL ON UPDATE CASCADE;

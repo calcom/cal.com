@@ -1,7 +1,7 @@
-import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import logger from "@calcom/lib/logger";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { BookingAccessService } from "@calcom/lib/server/service/bookingAccessService";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -79,6 +79,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
         bookingData: {
           uid: booking.uid,
           cancelledBy: user.email,
+          cancellationReason: description,
           skipCancellationReasonValidation: true,
           ...(booking.recurringEventId ? { cancelSubsequentBookings: true } : {}),
           ...(seatReferenceUid ? { seatReferenceUid } : {}),
@@ -102,6 +103,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
         reason,
         description,
         cancelled: didCancel,
+        organizationId: user?.organizationId,
       });
       createdCount++;
     } catch (error) {
