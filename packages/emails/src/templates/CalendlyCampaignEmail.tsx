@@ -39,7 +39,7 @@ export const CalendlyCampaignEmail = (
         </li>
       </ul>
       <p style={{ fontWeight: 400, lineHeight: "24px", margin: "0 0 20px" }}>
-        Register below and see how OneHash Cal can revolutionize your scheduling.
+        Register below and see how Cal ID can revolutionize your scheduling.
       </p>
       <CallToAction label="Register Here" href={SIGNUP_URL ?? "cal.id"} />
 

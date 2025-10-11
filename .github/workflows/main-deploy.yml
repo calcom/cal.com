@@ -122,6 +122,7 @@ jobs:
           check "${{ secrets.HOMEPAGE_URL_STAG }}" "HOMEPAGE_URL_STAG" 
           check "${{ secrets.HOMEPAGE_URL_PROD }}" "HOMEPAGE_URL_PROD"
           check "${{ secrets.NEXT_PUBLIC_PIXEL }}" "NEXT_PUBLIC_PIXEL"
+          check "${{ secrets.NEXT_PUBLIC_SENDGRID_SENDER_NAME }}" "NEXT_PUBLIC_SENDGRID_SENDER_NAME"
 
       # SETTING NECESSARY ENV VARIABLES
       - name: Extract Git commit hash
@@ -274,7 +275,7 @@ jobs:
             NEXT_PUBLIC_ONEHASH_URL=${{ secrets.NEXT_PUBLIC_ONEHASH_URL }}
             NEXTAUTH_URL=${{ format('https://{0}', steps.key_values.outputs.DOMAIN_NAME) }}
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-            NEXT_PUBLIC_SENDGRID_SENDER_NAME=${{ secrets.BRAND_NAME }}
+            NEXT_PUBLIC_SENDGRID_SENDER_NAME=${{ secrets.NEXT_PUBLIC_SENDGRID_SENDER_NAME }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.key_values.outputs.NEXT_PUBLIC_SENTRY_DSN }}
             NEXT_PUBLIC_LOGGER_LEVEL=${{ secrets.NEXT_PUBLIC_LOGGER_LEVEL }}
             NEXT_PUBLIC_TEAM_IMPERSONATION=${{ secrets.NEXT_PUBLIC_TEAM_IMPERSONATION }}
