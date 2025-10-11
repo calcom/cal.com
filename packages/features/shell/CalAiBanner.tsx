@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -10,10 +10,18 @@ import { Icon } from "@calcom/ui/components/icon";
 export function CalAiBanner() {
   const { t } = useLocale();
   const pathname = usePathname();
-  const [isVisible, setIsVisible] = useState(() => {
-    if (typeof window === "undefined") return true;
-    return !localStorage.getItem("calai-banner-dismissed");
-  });
+
+  // Start hidden to avoid SSR/CSR hydration mismatch. Determine visibility after mount.
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!(pathname === "/workflows" || pathname === "/event-types" || pathname === "/bookings/upcoming")) {
+      setIsVisible(false);
+      return;
+    }
+    setIsVisible(!localStorage.getItem("calai-banner-dismissed"));
+  }, [pathname]);
 
   const handleDismiss = () => {
     localStorage.setItem("calai-banner-dismissed", "true");

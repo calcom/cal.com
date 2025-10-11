@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "sonner";
 
@@ -10,6 +9,8 @@ import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+
+// Link removed; use Button[href] instead
 
 export interface IZapierSetupProps {
   inviteLink?: string;
@@ -75,7 +76,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
             </div>
-            <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
+            <div className="ml-2 md:ml-5 ltr:mr-2 rtl:ml-2">
               <div className="text-default">{t("setting_up_zapier")}</div>
 
               <>
@@ -138,9 +139,9 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   ]}
                 />
               </ol>
-              <Link href="/apps/installed/automation?hl=zapier" passHref={true} legacyBehavior>
-                <Button color="secondary">{t("done")}</Button>
-              </Link>
+              <Button href="/apps/installed/automation?hl=zapier" color="secondary">
+                {t("done")}
+              </Button>
             </div>
           </div>
         </div>

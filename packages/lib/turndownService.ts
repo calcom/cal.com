@@ -38,19 +38,23 @@ turndownService.addRule("ignoreEmphasized", {
   },
 });
 
-function isShiftEnter(node: HTMLElement) {
-  let currentNode: HTMLElement | null | ParentNode = node;
+function isShiftEnter(node: Node | null | undefined): boolean {
+  if (!node) return false;
 
-  while (currentNode != null && currentNode.nodeType !== 1) {
-    currentNode = currentNode.parentElement || currentNode.parentNode;
+  // Walk up to the nearest element node
+  let currentNode: Node | null = node;
+  while (currentNode && currentNode.nodeType !== Node.ELEMENT_NODE) {
+    currentNode = currentNode.parentNode;
   }
 
-  return (
-    currentNode &&
-    currentNode.nodeType === 1 &&
-    currentNode.parentElement &&
-    currentNode.parentElement.childNodes.length !== 1 // normal enter is <p><br><p> (p has exactly one childNode)
-  );
+  if (!currentNode || currentNode.nodeType !== Node.ELEMENT_NODE) return false;
+
+  const parent = currentNode.parentNode;
+  // Ensure parent is an element-like node and has childNodes
+  if (!parent || typeof parent.childNodes === "undefined") return false;
+
+  // normal enter is <p><br><p> (p has exactly one childNode)
+  return parent.childNodes.length !== 1;
 }
 
 export default turndown;
