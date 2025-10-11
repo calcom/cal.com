@@ -1,19 +1,22 @@
-import { startSpan } from "@sentry/nextjs";
-
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 
 import type { EmailBlockedCheckResponseDTO } from "../lib/dto";
+import type { SpanFn } from "../lib/telemetry";
 import { normalizeEmail } from "../lib/utils/normalization";
-
-function presenter(isBlocked: boolean): EmailBlockedCheckResponseDTO {
-  return startSpan({ name: "checkIfEmailInWatchlist Presenter", op: "serialize" }, () => {
-    return { isBlocked };
-  });
-}
 
 interface CheckEmailBlockedParams {
   email: string;
   organizationId?: number | null;
+  span?: SpanFn;
+}
+
+function presenter(isBlocked: boolean, span?: SpanFn): Promise<EmailBlockedCheckResponseDTO> {
+  if (!span) {
+    return Promise.resolve({ isBlocked });
+  }
+  return span({ name: "checkIfEmailInWatchlist Presenter", op: "serialize" }, () => {
+    return { isBlocked };
+  });
 }
 
 /**
@@ -23,24 +26,31 @@ interface CheckEmailBlockedParams {
 export async function checkIfEmailIsBlockedInWatchlistController(
   params: CheckEmailBlockedParams
 ): Promise<EmailBlockedCheckResponseDTO> {
-  return await startSpan({ name: "checkIfEmailInWatchlist Controller" }, async () => {
-    const { email, organizationId } = params;
+  const { email, organizationId, span } = params;
+
+  const execute = async () => {
     const normalizedEmail = normalizeEmail(email);
 
     const watchlist = await getWatchlistFeature();
 
     const globalResult = await watchlist.globalBlocking.isBlocked(normalizedEmail);
     if (globalResult.isBlocked) {
-      return presenter(true);
+      return presenter(true, span);
     }
 
     if (organizationId != null) {
       const orgResult = await watchlist.orgBlocking.isBlocked(normalizedEmail, organizationId);
       if (orgResult.isBlocked) {
-        return presenter(true);
+        return presenter(true, span);
       }
     }
 
-    return presenter(false);
-  });
+    return presenter(false, span);
+  };
+
+  if (!span) {
+    return execute();
+  }
+
+  return span({ name: "checkIfEmailInWatchlist Controller" }, execute);
 }

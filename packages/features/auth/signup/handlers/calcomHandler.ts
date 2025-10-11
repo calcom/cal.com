@@ -6,6 +6,7 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -48,6 +49,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
     email: _email,
     organizationId: undefined,
+    span: sentrySpan,
   });
 
   log.debug("handler", { email: _email });

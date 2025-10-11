@@ -7,6 +7,7 @@ import {
   sendChangeOfEmailVerificationLink,
 } from "@calcom/emails/email-manager";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -43,7 +44,10 @@ export const sendEmailVerification = async ({
     return { ok: true, skipped: true };
   }
 
-  if ((await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null })).isBlocked) {
+  if (
+    (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan }))
+      .isBlocked
+  ) {
     log.warn("Email is blocked - not sending verification email", email);
     return { ok: false, skipped: false };
   }
@@ -90,7 +94,10 @@ export const sendEmailVerificationByCode = async ({
   username,
   isVerifyingEmail,
 }: VerifyEmailType) => {
-  if ((await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null })).isBlocked) {
+  if (
+    (await checkIfEmailIsBlockedInWatchlistController({ email, organizationId: null, span: sentrySpan }))
+      .isBlocked
+  ) {
     log.warn("Email is blocked - not sending verification email", email);
     return { ok: false, skipped: false };
   }
@@ -137,8 +144,13 @@ export const sendChangeOfEmailVerification = async ({ user, language }: ChangeOf
   }
 
   if (
-    (await checkIfEmailIsBlockedInWatchlistController({ email: user.emailFrom, organizationId: null }))
-      .isBlocked
+    (
+      await checkIfEmailIsBlockedInWatchlistController({
+        email: user.emailFrom,
+        organizationId: null,
+        span: sentrySpan,
+      })
+    ).isBlocked
   ) {
     log.warn("Email is blocked - not sending verification email", user.emailFrom);
     return { ok: false, skipped: false };
