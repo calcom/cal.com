@@ -3,7 +3,7 @@ import { mockReset, mockDeep } from "vitest-mock-extended";
 
 import type * as organization from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 
-vi.mock("@calcom/lib/server/repository/organization", () => organizationMock);
+vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository", () => organizationMock);
 type OrganizationModule = typeof organization;
 beforeEach(() => {
   mockReset(organizationMock);

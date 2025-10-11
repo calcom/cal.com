@@ -21,7 +21,7 @@ import {
 } from "./delegationCredential";
 
 // Mock OrganizationRepository
-vi.mock("@calcom/lib/server/repository/organization", () => ({
+vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository", () => ({
   OrganizationRepository: {
     findByMemberEmail: vi.fn(),
   },
