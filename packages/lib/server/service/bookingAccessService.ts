@@ -3,15 +3,42 @@ import type { PrismaClient } from "@calcom/prisma";
 import { BookingRepository } from "../repository/booking";
 import { UserRepository } from "../repository/user";
 
+type BookingForAccessCheck = NonNullable<Awaited<ReturnType<BookingRepository["getBookingForAccessCheck"]>>>;
+
 export class BookingAccessService {
   constructor(private prismaClient: PrismaClient) {}
+
+  private isUserAHost(userId: number, booking: BookingForAccessCheck): boolean {
+    const hostMap = new Map<number, { id: number; email: string }>();
+
+    const addHost = (id: number, email: string) => {
+      if (!hostMap.has(id)) {
+        hostMap.set(id, { id, email });
+      }
+    };
+
+    booking?.eventType?.hosts?.forEach((host) => addHost(host.userId, host.user.email));
+    booking?.eventType?.users?.forEach((user) => addHost(user.id, user.email));
+
+    if (booking?.user?.id && booking?.user?.email) {
+      addHost(booking.user.id, booking.user.email);
+    }
+
+    const attendeeEmails = new Set(booking.attendees?.map((attendee) => attendee.email));
+    const filteredHosts = Array.from(hostMap.values()).filter(
+      (host) => attendeeEmails.has(host.email) || host.id === booking.user?.id
+    );
+
+    return filteredHosts.some((host) => host.id === userId);
+  }
 
   /**
    * Determines if a user has access to a booking based on:
    * 1. Being the booking organizer
-   * 2. Being a team/org admin where the event type belongs
-   * 3. Being an org admin where the booking organizer belongs (for personal bookings)
-   * 4. Being a team admin of any team the booking organizer belongs to (for personal bookings)
+   * 2. Being one of the hosts in a multi-host booking
+   * 3. Being a team/org admin where the event type belongs
+   * 4. Being an org admin where the booking organizer belongs (for personal bookings)
+   * 5. Being a team admin of any team the booking organizer belongs to (for personal bookings)
    */
   async doesUserIdHaveAccessToBooking({
     userId,
@@ -23,12 +50,13 @@ export class BookingAccessService {
     const bookingRepo = new BookingRepository(this.prismaClient);
     const userRepo = new UserRepository(this.prismaClient);
 
-    const booking = await bookingRepo.getBookingWithEventTypeTeamId({ bookingId });
+    const booking = await bookingRepo.getBookingForAccessCheck({ bookingId });
 
     if (!booking) return false;
 
-    // User is the organizer
     if (userId === booking.userId) return true;
+
+    if (this.isUserAHost(userId, booking)) return true;
 
     // If booking has a teamId, check if user is admin of that team/org
     if (booking.eventType?.teamId) {

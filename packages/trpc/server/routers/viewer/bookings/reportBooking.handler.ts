@@ -22,7 +22,7 @@ const log = logger.getSubLogger({ prefix: ["reportBookingHandler"] });
 
 export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions) => {
   const { user } = ctx;
-  const { bookingId, reason, description, allRemainingBookings } = input;
+  const { bookingId, reason, description } = input;
 
   const bookingRepo = new BookingRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
@@ -54,7 +54,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
 
   let reportedBookingIds: number[] = [bookingId];
 
-  if (booking.recurringEventId && allRemainingBookings) {
+  if (booking.recurringEventId) {
     const remainingBookings = await bookingRepo.getActiveRecurringBookingsFromDate({
       recurringEventId: booking.recurringEventId,
       fromDate: booking.startTime,
@@ -79,10 +79,8 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
         bookingData: {
           uid: booking.uid,
           cancelledBy: user.email,
-          cancellationReason: description ?? reason,
-          ...(booking.recurringEventId && allRemainingBookings
-            ? { cancelSubsequentBookings: true }
-            : { allRemainingBookings: undefined }),
+          skipCancellationReasonValidation: true,
+          ...(booking.recurringEventId ? { cancelSubsequentBookings: true } : {}),
           ...(seatReferenceUid ? { seatReferenceUid } : {}),
         },
         userId: user.id,

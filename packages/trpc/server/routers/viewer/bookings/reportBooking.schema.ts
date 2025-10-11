@@ -6,7 +6,6 @@ export const ZReportBookingInputSchema = z.object({
   bookingId: z.number(),
   reason: z.nativeEnum(ReportReason),
   description: z.string().optional(),
-  allRemainingBookings: z.boolean().default(false),
 });
 
 export type TReportBookingInputSchema = z.infer<typeof ZReportBookingInputSchema>;

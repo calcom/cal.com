@@ -147,6 +147,49 @@ export class BookingRepository {
     });
   }
 
+  async getBookingForAccessCheck({ bookingId }: { bookingId: number }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        eventType: {
+          select: {
+            teamId: true,
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
   async doesUserIdHaveAccessToBooking({ userId, bookingId }: { userId: number; bookingId: number }) {
     const booking = await this.prismaClient.booking.findUnique({

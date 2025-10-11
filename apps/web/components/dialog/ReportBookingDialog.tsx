@@ -8,7 +8,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Checkbox } from "@calcom/ui/components/form";
 import { Select, Label } from "@calcom/ui/components/form";
 import { TextArea } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
@@ -26,13 +25,12 @@ interface IReportBookingDialog {
 interface FormValues {
   reason: ReportReason;
   description: string;
-  allRemainingBookings: boolean;
 }
 
 export const ReportBookingDialog = (props: IReportBookingDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingId, isRecurring, status } = props;
+  const { isOpenDialog, setIsOpenDialog, bookingId, status } = props;
 
   const willBeCancelled = status === "upcoming";
 
@@ -44,7 +42,6 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
     defaultValues: {
       reason: ReportReason.SPAM,
       description: "",
-      allRemainingBookings: false,
     },
   });
 
@@ -64,7 +61,6 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
       bookingId,
       reason: data.reason,
       description: data.description || undefined,
-      allRemainingBookings: data.allRemainingBookings,
     });
   };
 
@@ -119,27 +115,6 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
               {willBeCancelled && (
                 <div className="mb-4">
                   <Alert severity="warning" title={t("report_booking_will_cancel_description")} />
-                </div>
-              )}
-
-              {isRecurring && willBeCancelled && (
-                <div className="mb-4">
-                  <Controller
-                    name="allRemainingBookings"
-                    control={control}
-                    render={({ field }) => (
-                      <div className="flex items-center">
-                        <Checkbox
-                          id="allRemainingBookings"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <Label htmlFor="allRemainingBookings" className="text-emphasis ml-2 text-sm">
-                          {t("report_all_remaining_bookings")}
-                        </Label>
-                      </div>
-                    )}
-                  />
                 </div>
               )}
             </div>

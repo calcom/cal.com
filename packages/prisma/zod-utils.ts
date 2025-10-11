@@ -275,6 +275,7 @@ export const bookingCancelSchema = z.object({
   // note(Lauris): cancelSubsequentBookings will cancel all bookings after one specified by id or uid.
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
+  skipCancellationReasonValidation: z.boolean().optional().default(false),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z
