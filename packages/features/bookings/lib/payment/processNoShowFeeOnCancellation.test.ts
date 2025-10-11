@@ -7,7 +7,7 @@ import { handleNoShowFee } from "./handleNoShowFee";
 import { processNoShowFeeOnCancellation } from "./processNoShowFeeOnCancellation";
 import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellationFee";
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
     findUniqueByUserIdAndTeamId: vi.fn(),
   },

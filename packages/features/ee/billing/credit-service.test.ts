@@ -60,7 +60,7 @@ vi.mock("@calcom/prisma/enums", async (importOriginal) => {
 });
 
 vi.mock("@calcom/lib/server/repository/credits");
-vi.mock("@calcom/lib/server/repository/membership");
+vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("@calcom/lib/server/repository/team");
 vi.mock("@calcom/emails/email-manager");
 vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({

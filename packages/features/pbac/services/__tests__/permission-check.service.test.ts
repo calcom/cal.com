@@ -14,7 +14,7 @@ import type { PermissionService } from "../permission.service";
 
 vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
-vi.mock("@calcom/lib/server/repository/membership");
+vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("../permission.service");
 
 vi.mock("@calcom/prisma", () => ({

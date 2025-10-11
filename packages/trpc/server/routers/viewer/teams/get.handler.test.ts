@@ -6,7 +6,7 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
     findUniqueByUserIdAndTeamId: vi.fn(),
   },

@@ -44,7 +44,7 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
     findAllAcceptedTeamMemberships: vi.fn(),
   },

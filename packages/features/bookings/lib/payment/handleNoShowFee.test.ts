@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports
+ 
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -37,7 +37,7 @@ vi.mock("@calcom/lib/server/repository/credential", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
     findUniqueByUserIdAndTeamId: vi.fn(),
   },
