@@ -56,7 +56,7 @@ const _determineRequiresConfirmation = async (
   const requiresConfirmationForFreeEmail = eventType?.requiresConfirmationForFreeEmail;
 
   if (requiresConfirmationForFreeEmail) {
-    requiresConfirmation = await checkIfFreeEmailDomain(bookerEmail);
+    requiresConfirmation = await checkIfFreeEmailDomain({ email: bookerEmail });
   }
 
   if (rcThreshold) {

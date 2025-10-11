@@ -45,7 +45,7 @@ vi.mock("@jsforce/jsforce-node", () => {
 });
 
 vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
-  checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
+  checkIfFreeEmailDomain: vi.fn(() => Promise.resolve(false)),
 }));
 
 vi.mock("../getSalesforceAppKeys", () => ({

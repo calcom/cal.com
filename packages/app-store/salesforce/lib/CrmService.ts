@@ -1599,7 +1599,7 @@ export default class SalesforceCRMService implements CRM {
     const appOptions = this.getAppOptions();
     if (!appOptions.ifFreeEmailDomainSkipOwnerCheck) return false;
 
-    const response = await checkIfFreeEmailDomain(attendeeEmail);
+    const response = await checkIfFreeEmailDomain({ email: attendeeEmail });
     return response;
   }
 

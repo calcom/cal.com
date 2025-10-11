@@ -15,19 +15,19 @@ vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => {
 
 describe("checkIfFreeEmailDomain", () => {
   test("If gmail should return true", async () => {
-    expect(await checkIfFreeEmailDomain("test@gmail.com")).toBe(true);
+    expect(await checkIfFreeEmailDomain({ email: "test@gmail.com" })).toBe(true);
   });
   test("If outlook should return true", async () => {
-    expect(await checkIfFreeEmailDomain("test@outlook.com")).toBe(true);
+    expect(await checkIfFreeEmailDomain({ email: "test@outlook.com" })).toBe(true);
   });
   test("If there's no email domain return as if it was a free email domain", async () => {
-    expect(await checkIfFreeEmailDomain("test@")).toBe(true);
+    expect(await checkIfFreeEmailDomain({ email: "test@" })).toBe(true);
   });
   test("If free email domain in watchlist, should return true", async () => {
     const { getWatchlistFeature } = await import("@calcom/features/di/watchlist/containers/watchlist");
     const getWatchlistFeatureMock = getWatchlistFeature as Mock;
 
-    await checkIfFreeEmailDomain("test@freedomain.com");
+    await checkIfFreeEmailDomain({ email: "test@freedomain.com" });
 
     expect(getWatchlistFeatureMock).toHaveBeenCalled();
 
