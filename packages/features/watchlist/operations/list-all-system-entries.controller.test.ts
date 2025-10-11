@@ -14,18 +14,19 @@ const mockWatchlistService = {
   listAllSystemEntries: vi.fn(),
 };
 
-const mockWatchlistFeature = {
-  globalBlocking: {},
-  orgBlocking: {},
-  watchlist: mockWatchlistService,
-  audit: {},
+const mockWatchlistFeature: Partial<
+  ReturnType<typeof import("../lib/facade/WatchlistFeature").createWatchlistFeature>
+> = {
+  watchlist: mockWatchlistService as never,
 };
 
 describe("listAllSystemEntriesController", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const { getWatchlistFeature } = await import("@calcom/features/di/watchlist/containers/watchlist");
-    vi.mocked(getWatchlistFeature).mockResolvedValue(mockWatchlistFeature as never);
+    vi.mocked(getWatchlistFeature).mockResolvedValue(
+      mockWatchlistFeature as ReturnType<typeof getWatchlistFeature>
+    );
   });
 
   describe("Basic functionality", () => {
@@ -71,52 +72,6 @@ describe("listAllSystemEntriesController", () => {
 
       expect(result).toEqual([]);
       expect(mockWatchlistService.listAllSystemEntries).toHaveBeenCalled();
-    });
-
-    test("should return global entries only if no org entries", async () => {
-      const mockEntries = [
-        {
-          id: "1",
-          type: WatchlistType.EMAIL,
-          value: "global@example.com",
-          description: null,
-          action: WatchlistAction.BLOCK,
-          isGlobal: true,
-          organizationId: null,
-          source: WatchlistSource.MANUAL,
-          lastUpdatedAt: new Date(),
-        },
-      ];
-
-      mockWatchlistService.listAllSystemEntries.mockResolvedValue(mockEntries);
-
-      const result = await listAllSystemEntriesController({});
-
-      expect(result).toEqual(mockEntries);
-      expect(result.every((entry) => entry.isGlobal)).toBe(true);
-    });
-
-    test("should return org entries only if no global entries", async () => {
-      const mockEntries = [
-        {
-          id: "2",
-          type: WatchlistType.DOMAIN,
-          value: "@orgdomain.com",
-          description: null,
-          action: WatchlistAction.BLOCK,
-          isGlobal: false,
-          organizationId: 456,
-          source: WatchlistSource.MANUAL,
-          lastUpdatedAt: new Date(),
-        },
-      ];
-
-      mockWatchlistService.listAllSystemEntries.mockResolvedValue(mockEntries);
-
-      const result = await listAllSystemEntriesController({});
-
-      expect(result).toEqual(mockEntries);
-      expect(result.every((entry) => !entry.isGlobal)).toBe(true);
     });
   });
 
@@ -347,37 +302,26 @@ describe("listAllSystemEntriesController", () => {
       expect(result).toEqual([]);
       // No span to verify - just ensure it doesn't crash
     });
+  });
 
-    test("should execute callback inside span", async () => {
-      const mockEntries = [
-        {
-          id: "1",
-          type: WatchlistType.EMAIL,
-          value: "test@example.com",
-          description: null,
-          action: WatchlistAction.BLOCK,
-          isGlobal: true,
-          organizationId: null,
-          source: WatchlistSource.MANUAL,
-          lastUpdatedAt: new Date(),
-        },
-      ];
+  describe("Error handling", () => {
+    test("should propagate errors from service", async () => {
+      const error = new Error("Service error");
+      mockWatchlistService.listAllSystemEntries.mockRejectedValue(error);
 
-      mockWatchlistService.listAllSystemEntries.mockResolvedValue(mockEntries);
+      await expect(listAllSystemEntriesController({})).rejects.toThrow("Service error");
+    });
 
-      let callbackExecuted = false;
-      const mockSpan: SpanFn = vi.fn(async (options, callback) => {
-        const result = await callback();
-        callbackExecuted = true;
-        return result;
+    test("should propagate errors from service when span is provided", async () => {
+      const error = new Error("Service error");
+      mockWatchlistService.listAllSystemEntries.mockRejectedValue(error);
+
+      const mockSpan: SpanFn = vi.fn((options, callback) => {
+        return Promise.resolve(callback());
       });
 
-      const result = await listAllSystemEntriesController({
-        span: mockSpan,
-      });
-
-      expect(result).toEqual(mockEntries);
-      expect(callbackExecuted).toBe(true);
+      await expect(listAllSystemEntriesController({ span: mockSpan })).rejects.toThrow("Service error");
+      expect(mockSpan).toHaveBeenCalled();
     });
   });
 });

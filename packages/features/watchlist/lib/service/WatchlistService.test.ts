@@ -26,7 +26,7 @@ const mockOrgRepo: IOrganizationWatchlistRepository = {
   updateEntry: vi.fn(),
   deleteEntry: vi.fn(),
   findById: vi.fn(),
-  listOrganizationEntries: vi.fn(),
+  listBlockedEntries: vi.fn(),
   listAllOrganizationEntries: vi.fn(),
 };
 
@@ -365,7 +365,7 @@ describe("WatchlistService", () => {
 
       await service.listAllSystemEntries();
 
-      // Both should be called before awaiting (parallel execution)
+      // Verify both repository methods are invoked (implementation uses Promise.all)
       expect(mockGlobalRepo.listBlockedEntries).toHaveBeenCalled();
       expect(mockOrgRepo.listAllOrganizationEntries).toHaveBeenCalled();
     });

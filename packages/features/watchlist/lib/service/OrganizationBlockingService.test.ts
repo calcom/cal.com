@@ -12,7 +12,7 @@ const mockOrgRepo: IOrganizationWatchlistRepository = {
   updateEntry: vi.fn(),
   deleteEntry: vi.fn(),
   findById: vi.fn(),
-  listOrganizationEntries: vi.fn(),
+  listBlockedEntries: vi.fn(),
   listAllOrganizationEntries: vi.fn(),
 };
 
