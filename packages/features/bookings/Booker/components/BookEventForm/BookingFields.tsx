@@ -199,6 +199,8 @@ export const BookingFields = ({
           }
         }
 
+
+        console.log("Rendering field:", fieldWithPrice, { readOnly, hidden });
         return (
           <FormBuilderField
             className="mb-4"
