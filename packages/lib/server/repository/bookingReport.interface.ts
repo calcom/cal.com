@@ -7,7 +7,7 @@ export interface CreateBookingReportInput {
   reason: ReportReason;
   description?: string;
   cancelled: boolean;
-  organizationId?: number;
+  organizationId?: number | null;
 }
 
 export interface BookingReportSummary {
