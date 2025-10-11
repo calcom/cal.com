@@ -1,3 +1,4 @@
+import { sendSendgridMail } from "@calid/features/modules/workflows/providers/sendgrid";
 import type { TFunction } from "i18next";
 import { default as cloneDeep } from "lodash/cloneDeep";
 import type { z } from "zod";
@@ -602,7 +603,24 @@ export const sendOrganizationAdminNoSlotsNotification = async (
 };
 
 export const sendEmailVerificationLink = async (verificationInput: EmailVerifyLink) => {
-  await sendEmail(() => new AccountVerifyEmail(verificationInput));
+  //NOTE:using sendgrid here instead for link tracking
+  // await sendEmail(() => new AccountVerifyEmail(verificationInput));
+
+  // Create the email instance to get the payload
+  const accountVerifyEmail = new AccountVerifyEmail(verificationInput);
+  const emailPayload = await accountVerifyEmail.getNodeMailerPayload();
+
+  // Map the NodeMailer payload to SendGrid's MailData format
+  await sendSendgridMail(
+    {
+      to: emailPayload.to as string,
+      from: emailPayload.from as string,
+      subject: emailPayload.subject as string,
+      html: emailPayload.html as string,
+      text: emailPayload.text as string,
+    },
+    { sender: null }
+  );
 };
 
 export const sendEmailVerificationCode = async (verificationInput: EmailVerifyCode) => {
