@@ -1,6 +1,6 @@
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ButtonHTMLAttributes, AnchorHTMLAttributes, Ref } from "react";
 import { forwardRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
@@ -139,24 +139,39 @@ type DropdownItemProps = {
   childrenClassName?: string;
 } & ButtonOrLinkProps;
 
-type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
+type ButtonOrLinkProps = ButtonHTMLAttributes<HTMLButtonElement> &
+  AnchorHTMLAttributes<HTMLAnchorElement> & {
+    href?: string;
+    children?: React.ReactNode;
+  };
 
-export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
-  const isLink = typeof href !== "undefined";
-  const ButtonOrLink = isLink ? "a" : "button";
+export const ButtonOrLink = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonOrLinkProps>(
+  ({ href, children, ...props }, forwardedRef) => {
+    const isLink = typeof href !== "undefined";
 
-  const content = <ButtonOrLink {...props} />;
+    if (isLink) {
+      // Forward ref and anchor props to Next's Link. Use explicit casts to the correct HTML attribute types
+      // to avoid `any` and satisfy ESLint rules.
+      return (
+        <Link
+          href={href as string}
+          ref={forwardedRef as Ref<HTMLAnchorElement>}
+          {...(props as AnchorHTMLAttributes<HTMLAnchorElement>)}>
+          {children}
+        </Link>
+      );
+    }
 
-  if (isLink) {
     return (
-      <Link href={href} legacyBehavior>
-        {content}
-      </Link>
+      <button
+        ref={forwardedRef as Ref<HTMLButtonElement>}
+        {...(props as ButtonHTMLAttributes<HTMLButtonElement>)}>
+        {children}
+      </button>
     );
   }
-
-  return content;
-}
+);
+ButtonOrLink.displayName = "ButtonOrLink";
 
 export const DropdownItem = (props: DropdownItemProps) => {
   const { CustomStartIcon, StartIcon, EndIcon, children, color, childrenClassName, ...rest } = props;
