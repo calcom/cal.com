@@ -1,5 +1,9 @@
-import prismock from "../../../../../tests/libs/__mocks__/prisma";
-
+/**
+ * Unit Tests for verifyApiKey middleware
+ *
+ * These tests verify the middleware logic without touching the database.
+ * All dependencies (repositories, utilities) are mocked.
+ */
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
@@ -9,10 +13,40 @@ import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyServ
 import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
-import prisma from "@calcom/prisma";
-import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+// Import prisma mock to control it in tests
+import { prisma } from "@calcom/prisma";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 
+import { isAdminGuard } from "../utils/isAdmin";
+import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
+import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 import { verifyApiKey } from "./verifyApiKey";
+
+// Mock the API key repository
+vi.mock("@calcom/lib/server/repository/apikey", () => ({
+  PrismaApiKeyRepository: vi.fn(),
+}));
+
+// Mock prisma module
+vi.mock("@calcom/prisma", () => ({
+  prisma: {
+    apiKey: {
+      findUnique: vi.fn(),
+    },
+    deployment: {
+      findUnique: vi.fn(),
+    },
+  },
+}));
+
+// Mock utility functions
+vi.mock("../utils/isAdmin", () => ({
+  isAdminGuard: vi.fn(),
+}));
+
+vi.mock("../utils/isLockedOrBlocked", () => ({
+  isLockedOrBlocked: vi.fn(),
+}));
 
 vi.mock("@calcom/lib/crypto", () => ({
   symmetricDecrypt: vi.fn().mockReturnValue("mocked-decrypted-value"),
@@ -36,13 +70,21 @@ const mockDeploymentRepository: IDeploymentRepository = {
   getSignatureToken: vi.fn().mockResolvedValue("mockSignatureToken"),
 };
 
-describe("Verify API key", () => {
+describe("Verify API key - Unit Tests", () => {
   let service: ILicenseKeyService;
 
   beforeEach(async () => {
     service = await LicenseKeyService.create(mockDeploymentRepository);
-
     vi.spyOn(service, "checkLicense");
+
+    // Reset all mocks before each test
+    vi.mocked(prisma.apiKey.findUnique).mockReset();
+    vi.mocked(prisma.deployment.findUnique).mockReset();
+    vi.mocked(isAdminGuard).mockReset();
+    vi.mocked(isLockedOrBlocked).mockReset();
+
+    // Mock deployment lookup (for license checking)
+    vi.mocked(prisma.deployment.findUnique).mockResolvedValue(null);
   });
 
   it("should throw an error if the api key is not valid", async () => {
@@ -98,21 +140,36 @@ describe("Verify API key", () => {
       query: {
         apiKey: "cal_test_key",
       },
-      prisma,
     });
+
     const hashedKey = hashAPIKey("test_key");
-    await prismock.apiKey.create({
-      data: {
-        hashedKey,
-        user: {
-          create: {
-            email: "admin@example.com",
-            role: UserPermissionRole.ADMIN,
-            locked: false,
-          },
-        },
+
+    // Mock the API key lookup
+    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
+      id: "api-key-1",
+      userId: 1,
+      hashedKey,
+      expiresAt: null,
+      createdAt: new Date(),
+      lastUsedAt: null,
+      appId: null,
+      note: null,
+      teamId: null,
+      user: {
+        role: UserPermissionRole.ADMIN,
+        locked: false,
+        email: "admin@example.com",
       },
+    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
+
+    // Mock admin check
+    vi.mocked(isAdminGuard).mockResolvedValue({
+      isAdmin: true,
+      scope: ScopeOfAdmin.SystemWide,
     });
+
+    // Mock locked/blocked check
+    vi.mocked(isLockedOrBlocked).mockResolvedValue(false);
 
     const middleware = {
       fn: verifyApiKey,
@@ -139,39 +196,36 @@ describe("Verify API key", () => {
       query: {
         apiKey: "cal_test_key",
       },
-      prisma,
     });
+
     const hashedKey = hashAPIKey("test_key");
-    await prismock.apiKey.create({
-      data: {
-        hashedKey,
-        user: {
-          create: {
-            email: "org-admin@acme.com",
-            role: UserPermissionRole.USER,
-            locked: false,
-            teams: {
-              create: {
-                accepted: true,
-                role: MembershipRole.OWNER,
-                team: {
-                  create: {
-                    name: "ACME",
-                    isOrganization: true,
-                    organizationSettings: {
-                      create: {
-                        isAdminAPIEnabled: true,
-                        orgAutoAcceptEmail: "acme.com",
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
+
+    // Mock the API key lookup
+    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
+      id: "api-key-2",
+      userId: 2,
+      hashedKey,
+      expiresAt: null,
+      createdAt: new Date(),
+      lastUsedAt: null,
+      appId: null,
+      note: null,
+      teamId: null,
+      user: {
+        role: UserPermissionRole.USER,
+        locked: false,
+        email: "org-admin@acme.com",
       },
+    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
+
+    // Mock admin check - org owner/admin
+    vi.mocked(isAdminGuard).mockResolvedValue({
+      isAdmin: true,
+      scope: ScopeOfAdmin.OrgOwnerOrAdmin,
     });
+
+    // Mock locked/blocked check
+    vi.mocked(isLockedOrBlocked).mockResolvedValue(false);
 
     const middleware = {
       fn: verifyApiKey,
@@ -198,21 +252,36 @@ describe("Verify API key", () => {
       query: {
         apiKey: "cal_test_key",
       },
-      prisma,
     });
+
     const hashedKey = hashAPIKey("test_key");
-    await prismock.apiKey.create({
-      data: {
-        hashedKey,
-        user: {
-          create: {
-            email: "locked@example.com",
-            role: UserPermissionRole.USER,
-            locked: true,
-          },
-        },
+
+    // Mock the API key lookup
+    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
+      id: "api-key-3",
+      userId: 3,
+      hashedKey,
+      expiresAt: null,
+      createdAt: new Date(),
+      lastUsedAt: null,
+      appId: null,
+      note: null,
+      teamId: null,
+      user: {
+        role: UserPermissionRole.USER,
+        locked: true,
+        email: "locked@example.com",
       },
+    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
+
+    // Mock admin check - not an admin
+    vi.mocked(isAdminGuard).mockResolvedValue({
+      isAdmin: false,
+      scope: ScopeOfAdmin.SystemWide, // scope doesn't matter when isAdmin is false
     });
+
+    // Mock locked/blocked check - user is locked
+    vi.mocked(isLockedOrBlocked).mockResolvedValue(true);
 
     const middleware = {
       fn: verifyApiKey,
