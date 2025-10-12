@@ -9,7 +9,7 @@ vi.mock("@calcom/prisma/zod-utils", () => ({
   userMetadata: { parse: (metadata: any) => metadata },
 }));
 
-vi.mock("@calcom/lib/delegationCredential/server", () => ({
+vi.mock("@calcom/app-store/delegationCredential", () => ({
   getFirstDelegationConferencingCredentialAppLocation: ({
     credentials,
   }: {
