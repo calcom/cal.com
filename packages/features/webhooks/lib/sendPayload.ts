@@ -142,6 +142,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     cancellationReason: data.cancellationReason,
     user: {
       username: data.organizer.username,
+      usernameInOrg: data.organizer.usernameInOrg,
       name: data.organizer.name,
       email: data.organizer.email,
       timeZone: data.organizer.timeZone,
