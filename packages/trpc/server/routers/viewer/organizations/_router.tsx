@@ -19,6 +19,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateSelfHostedInputSchema } from "./createSelfHosted.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
+import { ZDeleteBookingReportInputSchema } from "./deleteBookingReport.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
@@ -165,14 +166,19 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./createSelfHosted.handler");
     return handler(opts);
   }),
-  listBookingReports: authedOrgAdminProcedure
-    .input(ZListBookingReportsInputSchema)
-    .query(async (opts) => {
-      const { default: handler } = await import("./listBookingReports.handler");
-      return handler(opts);
-    }),
+  listBookingReports: authedOrgAdminProcedure.input(ZListBookingReportsInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listBookingReports.handler");
+    return handler(opts);
+  }),
   addToWatchlist: authedOrgAdminProcedure.input(ZAddToWatchlistInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./addToWatchlist.handler");
     return handler(opts);
   }),
+
+  deleteBookingReport: authedOrgAdminProcedure
+    .input(ZDeleteBookingReportInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./deleteBookingReport.handler");
+      return handler(opts);
+    }),
 });

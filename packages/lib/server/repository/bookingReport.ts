@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma, PrismaClient } from "@calcom/prisma";
 
 import type {
   IBookingReportRepository,
@@ -37,10 +37,8 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     rows: BookingReportWithDetails[];
     meta: { totalRowCount: number };
   }> {
-    const where: any = {
-      reportedBy: {
-        organizationId: params.organizationId,
-      },
+    const where: Prisma.BookingReportWhereInput = {
+      organizationId: params.organizationId,
     };
 
     if (params.searchTerm) {
@@ -138,6 +136,68 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     await this.prismaClient.bookingReport.update({
       where: { id: params.reportId },
       data: { watchlistId: params.watchlistId },
+    });
+  }
+
+  async findReportsByIds(params: {
+    reportIds: string[];
+    organizationId: number;
+  }): Promise<BookingReportWithDetails[]> {
+    const reports = await this.prismaClient.bookingReport.findMany({
+      where: {
+        id: { in: params.reportIds },
+        organizationId: params.organizationId,
+      },
+      select: {
+        id: true,
+        bookingId: true,
+        bookerEmail: true,
+        reportedById: true,
+        reason: true,
+        description: true,
+        cancelled: true,
+        createdAt: true,
+        watchlistId: true,
+        reportedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        booking: {
+          select: {
+            id: true,
+            startTime: true,
+            endTime: true,
+            title: true,
+            uid: true,
+          },
+        },
+        watchlist: {
+          select: {
+            id: true,
+            type: true,
+            value: true,
+            action: true,
+            description: true,
+          },
+        },
+      },
+    });
+
+    return reports.map((report) => ({
+      ...report,
+      reporter: report.reportedBy,
+    }));
+  }
+
+  async deleteReport(params: { reportId: string; organizationId: number }): Promise<void> {
+    await this.prismaClient.bookingReport.delete({
+      where: {
+        id: params.reportId,
+        organizationId: params.organizationId,
+      },
     });
   }
 }

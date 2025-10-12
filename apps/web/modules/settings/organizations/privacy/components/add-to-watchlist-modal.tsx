@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -11,7 +10,7 @@ import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form, Label, TextField, Select, TextAreaField } from "@calcom/ui/components/form";
+import { Form, Label, Select, TextAreaField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
@@ -19,19 +18,19 @@ type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReport
 interface AddToWatchlistModalProps {
   open: boolean;
   onClose: () => void;
-  report: BookingReport;
+  report?: BookingReport;
+  reports?: BookingReport[];
 }
 
 const formSchema = z.object({
   type: z.nativeEnum(WatchlistType),
-  value: z.string().min(1, "Value is required"),
   action: z.nativeEnum(WatchlistAction),
   description: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AddToWatchlistModal({ open, onClose, report }: AddToWatchlistModalProps) {
+export function AddToWatchlistModal({ open, onClose, report, reports }: AddToWatchlistModalProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -39,22 +38,20 @@ export function AddToWatchlistModal({ open, onClose, report }: AddToWatchlistMod
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: WatchlistType.EMAIL,
-      value: report.bookerEmail,
       action: WatchlistAction.REPORT,
       description: "",
     },
   });
 
-  const watchlistType = form.watch("type");
+  const isBulk = !!reports && reports.length > 0;
+  const firstReport = isBulk ? reports[0] : report;
 
-  useMemo(() => {
-    if (watchlistType === WatchlistType.EMAIL) {
-      form.setValue("value", report.bookerEmail);
-    } else if (watchlistType === WatchlistType.DOMAIN) {
-      const domain = report.bookerEmail.split("@")[1];
-      form.setValue("value", domain || "");
-    }
-  }, [watchlistType, report.bookerEmail, form]);
+  if (!firstReport) {
+    return null;
+  }
+
+  const watchlistType = form.watch("type");
+  const actionType = form.watch("action");
 
   const addToWatchlistMutation = trpc.viewer.organizations.addToWatchlist.useMutation({
     onSuccess: () => {
@@ -69,10 +66,11 @@ export function AddToWatchlistModal({ open, onClose, report }: AddToWatchlistMod
   });
 
   const onSubmit = (data: FormValues) => {
+    const reportIds = isBulk ? reports.map((r) => r.id) : [firstReport.id];
+
     addToWatchlistMutation.mutate({
-      reportId: report.id,
+      reportIds,
       type: data.type,
-      value: data.value,
       action: data.action,
       description: data.description,
     });
@@ -81,48 +79,107 @@ export function AddToWatchlistModal({ open, onClose, report }: AddToWatchlistMod
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent enableOverflow>
-        <DialogHeader title={t("add_to_watchlist")} subtitle={t("add_booker_to_organization_watchlist")} />
+        <DialogHeader
+          title={t("add_to_watchlist")}
+          subtitle={
+            isBulk
+              ? t("add_multiple_to_watchlist_subtitle", { count: reports.length })
+              : t("add_to_watchlist_subtitle", { email: firstReport.bookerEmail })
+          }
+        />
 
         <Form form={form} handleSubmit={onSubmit}>
           <div className="space-y-4">
             <div>
-              <Label>{t("watchlist_type")}</Label>
+              <Label>{t("what_to_add")}</Label>
               <Select
                 options={[
-                  { label: t("email"), value: WatchlistType.EMAIL },
-                  { label: t("domain"), value: WatchlistType.DOMAIN },
+                  {
+                    label: t("this_email_address"),
+                    value: WatchlistType.EMAIL,
+                    description: firstReport.bookerEmail,
+                  },
+                  {
+                    label: t("entire_domain"),
+                    value: WatchlistType.DOMAIN,
+                    description: `${t("all_emails_from")} @${firstReport.bookerEmail.split("@")[1]}`,
+                  },
                 ]}
-                {...form.register("type")}
+                value={
+                  watchlistType === WatchlistType.EMAIL
+                    ? {
+                        label: t("this_email_address"),
+                        value: WatchlistType.EMAIL,
+                        description: firstReport.bookerEmail,
+                      }
+                    : {
+                        label: t("entire_domain"),
+                        value: WatchlistType.DOMAIN,
+                        description: `${t("all_emails_from")} @${firstReport.bookerEmail.split("@")[1]}`,
+                      }
+                }
+                onChange={(option) => {
+                  if (option && "value" in option) {
+                    form.setValue("type", option.value as WatchlistType);
+                  }
+                }}
               />
             </div>
-
-            <TextField {...form.register("value")} placeholder={t("enter_value")} />
 
             <div>
-              <Label>{t("action")}</Label>
+              <Label>{t("what_should_happen")}</Label>
               <Select
                 options={[
                   {
-                    label: t("report_action"),
+                    label: t("flag_future_bookings"),
                     value: WatchlistAction.REPORT,
-                    description: t("auto_report_future_bookings"),
+                    description: t("flag_future_bookings_description"),
                   },
                   {
-                    label: t("block_action"),
+                    label: t("block_all_bookings"),
                     value: WatchlistAction.BLOCK,
-                    description: t("block_from_making_bookings"),
+                    description: t("block_all_bookings_description"),
                   },
                   {
-                    label: t("alert_action"),
+                    label: t("notify_admins"),
                     value: WatchlistAction.ALERT,
-                    description: t("alert_admins_on_booking_attempts"),
+                    description: t("notify_admins_description"),
                   },
                 ]}
-                {...form.register("action")}
+                value={
+                  actionType === WatchlistAction.REPORT
+                    ? {
+                        label: t("flag_future_bookings"),
+                        value: WatchlistAction.REPORT,
+                        description: t("flag_future_bookings_description"),
+                      }
+                    : actionType === WatchlistAction.BLOCK
+                    ? {
+                        label: t("block_all_bookings"),
+                        value: WatchlistAction.BLOCK,
+                        description: t("block_all_bookings_description"),
+                      }
+                    : {
+                        label: t("notify_admins"),
+                        value: WatchlistAction.ALERT,
+                        description: t("notify_admins_description"),
+                      }
+                }
+                onChange={(option) => {
+                  if (option && "value" in option) {
+                    form.setValue("action", option.value as WatchlistAction);
+                  }
+                }}
               />
             </div>
 
-            <TextAreaField {...form.register("description")} placeholder={t("add_optional_notes")} rows={3} />
+            <div>
+              <TextAreaField
+                {...form.register("description")}
+                placeholder={t("add_internal_note_placeholder")}
+                rows={3}
+              />
+            </div>
           </div>
 
           <DialogFooter>

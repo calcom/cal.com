@@ -28,47 +28,74 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
   const watchlistRepo = new WatchlistRepository(prisma);
 
-  const reports = await bookingReportRepo.findAllReportedBookings({
+  const validReports = await bookingReportRepo.findReportsByIds({
+    reportIds: input.reportIds,
     organizationId,
-    skip: 0,
-    take: 1,
-    filters: undefined,
   });
 
-  const report = reports.rows.find((r) => r.id === input.reportId);
-  if (!report) {
+  if (validReports.length !== input.reportIds.length) {
+    const foundIds = validReports.map((r) => r.id);
+    const missingIds = input.reportIds.filter((id) => !foundIds.includes(id));
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Booking report not found or does not belong to your organization",
+      message: `Booking report(s) not found or do not belong to your organization: ${missingIds.join(", ")}`,
     });
   }
 
-  if (report.watchlistId) {
+  const reportsToAdd = validReports.filter((report) => !report.watchlistId);
+
+  if (reportsToAdd.length === 0) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "This booker is already in the watchlist",
+      message: "All selected bookers are already in the watchlist",
     });
   }
 
   try {
-    const watchlist = await watchlistRepo.createEntry({
-      type: input.type,
-      value: input.value,
-      organizationId,
-      action: input.action,
-      description: input.description,
-      userId: user.id,
-    });
+    const results = await Promise.all(
+      reportsToAdd.map(async (report) => {
+        const value =
+          input.type === "EMAIL"
+            ? report.bookerEmail
+            : report.bookerEmail.split("@")[1] || report.bookerEmail;
 
-    await bookingReportRepo.linkWatchlistToReport({
-      reportId: input.reportId,
-      watchlistId: watchlist.id,
-    });
+        const existingWatchlist = await watchlistRepo.checkExists({
+          type: input.type,
+          value,
+          organizationId,
+        });
+
+        let watchlistId: string;
+
+        if (existingWatchlist) {
+          watchlistId = existingWatchlist.id;
+        } else {
+          const newWatchlist = await watchlistRepo.createEntry({
+            type: input.type,
+            value,
+            organizationId,
+            action: input.action,
+            description: input.description,
+            userId: user.id,
+          });
+          watchlistId = newWatchlist.id;
+        }
+
+        await bookingReportRepo.linkWatchlistToReport({
+          reportId: report.id,
+          watchlistId,
+        });
+
+        return { reportId: report.id, watchlistId, value };
+      })
+    );
 
     return {
       success: true,
-      message: "Successfully added to watchlist",
-      watchlistId: watchlist.id,
+      message: `Successfully added ${reportsToAdd.length} report(s) to watchlist`,
+      addedCount: reportsToAdd.length,
+      skippedCount: validReports.length - reportsToAdd.length,
+      results: results.map((r) => ({ reportId: r.reportId, watchlistId: r.watchlistId })),
     };
   } catch (error) {
     if (error instanceof Error && error.message.includes("already exists")) {

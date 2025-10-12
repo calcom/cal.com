@@ -19,9 +19,8 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
-
   const session = await validateUserHasOrg();
+  const t = await getTranslate();
 
   if (!session?.user.id || !session?.user.profile?.organizationId || !session?.user.org) {
     return redirect("/settings/profile");
