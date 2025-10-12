@@ -24,18 +24,15 @@ describe("normalization", () => {
       expect(normalizeDomain("  sub.domain.net  ")).toBe("@sub.domain.net");
     });
 
-    test("should handle subdomain normalization when enabled", () => {
-      expect(normalizeDomain("mail.google.com", true)).toBe("@google.com");
-      expect(normalizeDomain("sub.domain.example.org", true)).toBe("@example.org");
-    });
-
-    test("should not normalize subdomains by default", () => {
+    test("should preserve full domain including subdomains", () => {
       expect(normalizeDomain("mail.google.com")).toBe("@mail.google.com");
+      expect(normalizeDomain("sub.domain.example.org")).toBe("@sub.domain.example.org");
     });
 
-    test("should preserve root domains when subdomain normalization enabled", () => {
-      expect(normalizeDomain("example.com", true)).toBe("@example.com");
-      expect(normalizeDomain("co.uk", true)).toBe("@co.uk");
+    test("should handle multi-level TLDs correctly", () => {
+      expect(normalizeDomain("example.co.uk")).toBe("@example.co.uk");
+      expect(normalizeDomain("mail.example.co.uk")).toBe("@mail.example.co.uk");
+      expect(normalizeDomain("company.com.au")).toBe("@company.com.au");
     });
 
     test("should throw on invalid domains", () => {
@@ -50,10 +47,12 @@ describe("normalization", () => {
     test("should extract and normalize domain from email", () => {
       expect(extractDomainFromEmail("user@Example.COM")).toBe("@example.com");
       expect(extractDomainFromEmail("test@sub.domain.org")).toBe("@sub.domain.org");
+      expect(extractDomainFromEmail("user@mail.google.com")).toBe("@mail.google.com");
     });
 
-    test("should handle subdomain normalization when enabled", () => {
-      expect(extractDomainFromEmail("user@mail.google.com", true)).toBe("@google.com");
+    test("should handle multi-level TLDs", () => {
+      expect(extractDomainFromEmail("user@example.co.uk")).toBe("@example.co.uk");
+      expect(extractDomainFromEmail("admin@mail.company.com.au")).toBe("@mail.company.com.au");
     });
 
     test("should throw on invalid emails", () => {
@@ -65,15 +64,12 @@ describe("normalization", () => {
     test("should normalize basic username", () => {
       expect(normalizeUsername("TestUser")).toBe("testuser");
       expect(normalizeUsername("  user_name  ")).toBe("user_name");
+      expect(normalizeUsername("User.Name-123")).toBe("user.name-123");
     });
 
-    test("should remove special characters when enabled", () => {
-      expect(normalizeUsername("user@name!", true)).toBe("username");
-      expect(normalizeUsername("test.user-123", true)).toBe("test.user-123");
-    });
-
-    test("should not remove special characters by default", () => {
+    test("should preserve special characters", () => {
       expect(normalizeUsername("user@name!")).toBe("user@name!");
+      expect(normalizeUsername("test.user-123")).toBe("test.user-123");
     });
 
     test("should throw on invalid usernames", () => {

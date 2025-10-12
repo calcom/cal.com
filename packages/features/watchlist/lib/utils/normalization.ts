@@ -36,15 +36,16 @@ export function normalizeEmail(email: string): string {
  * Rules applied:
  * 1. Convert to lowercase
  * 2. Trim whitespace
- * 3. Handle punycode/IDN domains
- * 4. Ensure proper @ prefix for domain entries
- * 5. Handle subdomain normalization
+ * 3. Ensure proper @ prefix for domain entries
+ *
+ * Note: Domains are stored AS-IS with @ prefix (e.g., @mail.google.com, @example.co.uk)
+ * No subdomain stripping is performed to avoid multi-level TLD issues.
+ * If you want to block subdomains separately, create separate entries.
  *
  * @param domain - Raw domain (with or without @ prefix)
- * @param includeSubdomains - Whether to normalize subdomains (default: false)
  * @returns Normalized domain with @ prefix
  */
-export function normalizeDomain(domain: string, includeSubdomains = false): string {
+export function normalizeDomain(domain: string): string {
   if (!domain || typeof domain !== "string") {
     throw new Error("Invalid domain: must be a non-empty string");
   }
@@ -61,13 +62,6 @@ export function normalizeDomain(domain: string, includeSubdomains = false): stri
     throw new Error(`Invalid domain format: ${domain}`);
   }
 
-  if (includeSubdomains) {
-    const parts = normalized.split(".");
-    if (parts.length > 2) {
-      normalized = parts.slice(-2).join(".");
-    }
-  }
-
   return `@${normalized}`;
 }
 
@@ -75,10 +69,9 @@ export function normalizeDomain(domain: string, includeSubdomains = false): stri
  * Extracts and normalizes domain from an email address
  *
  * @param email - Email address
- * @param includeSubdomains - Whether to normalize subdomains
  * @returns Normalized domain with @ prefix
  */
-export function extractDomainFromEmail(email: string, includeSubdomains = false): string {
+export function extractDomainFromEmail(email: string): string {
   const normalizedEmail = normalizeEmail(email);
   const domain = normalizedEmail.split("@")[1];
 
@@ -86,7 +79,7 @@ export function extractDomainFromEmail(email: string, includeSubdomains = false)
     throw new Error(`Could not extract domain from email: ${email}`);
   }
 
-  return normalizeDomain(domain, includeSubdomains);
+  return normalizeDomain(domain);
 }
 
 /**
@@ -95,22 +88,14 @@ export function extractDomainFromEmail(email: string, includeSubdomains = false)
  * Rules applied:
  * 1. Convert to lowercase
  * 2. Trim whitespace
- * 3. Remove special characters (optional)
  *
  * @param username - Raw username
- * @param removeSpecialChars - Whether to remove special characters (default: false)
  * @returns Normalized username
  */
-export function normalizeUsername(username: string, removeSpecialChars = false): string {
+export function normalizeUsername(username: string): string {
   if (!username || typeof username !== "string") {
     throw new Error("Invalid username: must be a non-empty string");
   }
 
-  let normalized = username.trim().toLowerCase();
-
-  if (removeSpecialChars) {
-    normalized = normalized.replace(/[^a-z0-9._-]/g, "");
-  }
-
-  return normalized;
+  return username.trim().toLowerCase();
 }
