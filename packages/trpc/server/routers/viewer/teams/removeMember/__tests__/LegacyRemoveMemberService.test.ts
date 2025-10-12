@@ -5,8 +5,6 @@ import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
 import { LegacyRemoveMemberService } from "../LegacyRemoveMemberService";
 
 vi.mock("@calcom/prisma", () => ({
@@ -17,7 +15,7 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/service/teamService");
+vi.mock("@calcom/features/ee/teams/services/teamService");
 vi.mock("@calcom/features/ee/teams/lib/queries");
 
 describe("LegacyRemoveMemberService", () => {

@@ -18,7 +18,7 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/service/teamService");
+vi.mock("@calcom/features/ee/teams/services/teamService");
 vi.mock("@calcom/features/ee/teams/lib/queries");
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/pbac/domain/mappers/PermissionMapper");
