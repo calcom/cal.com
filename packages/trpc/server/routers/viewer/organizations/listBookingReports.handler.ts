@@ -16,7 +16,7 @@ type ListBookingReportsOptions = {
 export const listBookingReportsHandler = async ({ ctx, input }: ListBookingReportsOptions) => {
   const { user } = ctx;
 
-  const organizationId = user.profile?.organizationId || user.organizationId;
+  const organizationId = user.organizationId;
   if (!organizationId) {
     throw new TRPCError({
       code: "FORBIDDEN",
