@@ -59,8 +59,11 @@ export type SessionUser = {
   allowDynamicBooking: boolean;
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   profiles: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allSelectedCalendars: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userLevelSelectedCalendars: any[];
 };
 
@@ -673,6 +676,85 @@ export class UserRepository {
             }
           : {}),
         ...rest,
+      },
+    });
+
+    return user;
+  }
+
+  async createFromInvitation(data: {
+    email: string;
+    username: string | null;
+    language: string;
+    isPlatformManaged: boolean;
+    creationSource: CreationSource;
+    organizationId: number | null;
+    invitedTo: number;
+    timeFormat?: number;
+    weekStart?: string;
+    timeZone?: string;
+    teams: Prisma.MembershipCreateNestedManyWithoutUserInput;
+  }) {
+    const {
+      email,
+      username,
+      language,
+      isPlatformManaged,
+      creationSource,
+      organizationId,
+      invitedTo,
+      teams,
+      ...rest
+    } = data;
+
+    logger.info("createFromInvitation", { email, username, organizationId });
+    const t = await getTranslation(language, "common");
+    const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+    const user = await this.prismaClient.user.create({
+      data: {
+        ...rest,
+        username,
+        email,
+        verified: true,
+        invitedTo,
+        isPlatformManaged,
+        creationSource,
+        organizationId,
+        teams,
+        ...(organizationId && username
+          ? {
+              profiles: {
+                createMany: {
+                  data: [
+                    {
+                      uid: ProfileRepository.generateProfileUid(),
+                      username: username,
+                      organizationId: organizationId,
+                    },
+                  ],
+                },
+              },
+            }
+          : {}),
+        ...(!isPlatformManaged
+          ? {
+              schedules: {
+                create: {
+                  name: t("default_schedule_name"),
+                  availability: {
+                    createMany: {
+                      data: defaultAvailability.map((schedule) => ({
+                        days: schedule.days,
+                        startTime: schedule.startTime,
+                        endTime: schedule.endTime,
+                      })),
+                    },
+                  },
+                },
+              },
+            }
+          : {}),
       },
     });
 

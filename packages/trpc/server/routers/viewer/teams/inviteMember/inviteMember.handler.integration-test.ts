@@ -30,26 +30,6 @@ async function verifyMembershipExists(userId: number, teamId: number): Promise<M
   });
 }
 
-async function verifyUserOrganizationConsistency(userId: number): Promise<{
-  profileCount: number;
-  acceptedMembershipCount: number;
-  pendingMembershipCount: number;
-}> {
-  const profiles = await prisma.profile.count({ where: { userId } });
-  const acceptedMemberships = await prisma.membership.count({
-    where: { userId, accepted: true },
-  });
-  const pendingMemberships = await prisma.membership.count({
-    where: { userId, accepted: false },
-  });
-
-  return {
-    profileCount: profiles,
-    acceptedMembershipCount: acceptedMemberships,
-    pendingMembershipCount: pendingMemberships,
-  };
-}
-
 // Test data creation helpers with unique identifiers
 function generateUniqueId() {
   return `${Date.now()}-${Math.random().toString(36).substring(7)}`;
@@ -67,7 +47,9 @@ async function createTestUser(data: { email: string; username: string; name?: st
     await prisma.user.deleteMany({
       where: { OR: [{ email: uniqueEmail }, { username: uniqueUsername }] },
     });
-  } catch {}
+  } catch {
+    // Pre-emptive cleanup failed. This is not critical for the test itself, so we can ignore the error.
+  }
 
   return await prisma.user.create({
     data: {
@@ -269,6 +251,61 @@ describe("inviteMember.handler Integration Tests", () => {
     return baseUser as unknown as NonNullable<TrpcSessionUser>;
   }
 
+  describe("New User Invitation", () => {
+    it("should create a new user and membership when inviting a non-existent email", async () => {
+      // Arrange
+      const inviterUser = trackUser(
+        await createTestUser({
+          email: "inviter@test.com",
+          username: "inviter",
+        })
+      );
+      const team = trackTeam(
+        await createTestTeam({
+          name: "Test Team",
+          slug: "test-team",
+        })
+      );
+      await prisma.membership.create({
+        data: {
+          userId: inviterUser.id,
+          teamId: team.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      const newUserEmail = `new-user-${generateUniqueId()}@example.com`;
+
+      // Act
+      await inviteMemberHandler({
+        ctx: {
+          user: createUserContext(inviterUser, null),
+        },
+        input: {
+          teamId: team.id,
+          usernameOrEmail: newUserEmail,
+          role: MembershipRole.MEMBER,
+          language: "en",
+          creationSource: "WEBAPP" as const,
+        },
+      });
+
+      // Assert
+      const newUser = await prisma.user.findUnique({
+        where: { email: newUserEmail },
+      });
+      expect(newUser).not.toBeNull();
+      if (!newUser) return;
+      trackUser(newUser); // Ensure cleanup
+
+      const membership = await verifyMembershipExists(newUser.id, team.id);
+      expect(membership).not.toBeNull();
+      expect(membership?.role).toBe(MembershipRole.MEMBER);
+      expect(membership?.accepted).toBe(false); // Should be pending until user accepts
+    });
+  });
+
   describe("Organization Direct Invite Flow", () => {
     it("should not auto-accept user's membership that was unaccepted when migrating to org with non-matching autoAcceptEmailDomain", async () => {
       const organization = trackTeam(
@@ -329,7 +366,6 @@ describe("inviteMember.handler Integration Tests", () => {
       await inviteMemberHandler({
         ctx: {
           user: createUserContext(inviterUser, organization.id),
-          session: {} as any,
         } as any,
         input: {
           teamId: organization.id,
@@ -418,7 +454,7 @@ describe("inviteMember.handler Integration Tests", () => {
         ],
       });
 
-      const orgMembership = await verifyMembershipExists(
+      await verifyMembershipExists(
         unverifiedUserWithUnacceptedMembership.id,
         organization.id
       );
