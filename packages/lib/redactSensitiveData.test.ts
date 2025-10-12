@@ -150,7 +150,7 @@ describe("redactSensitiveData", () => {
   });
 
   it("should handle circular references gracefully", () => {
-    const input: any = { name: "test" };
+    const input: Record<string, unknown> = { name: "test" };
     input.self = input;
     expect(redactSensitiveData(input)).toMatchInlineSnapshot(`
       {
@@ -172,6 +172,53 @@ describe("redactSensitiveData", () => {
     expect(redactSensitiveData(input)).toMatchInlineSnapshot(`
       {
         "error": "Redaction failed",
+      }
+    `);
+  });
+
+  it("should redact delegation credential sensitive fields", () => {
+    const input = {
+      serviceAccountKey: {
+        client_id: "client123",
+        client_email: "service@example.com",
+        private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC...",
+        tenant_id: "tenant123",
+      },
+      encrypted_credentials: "encrypted_data_here",
+      normalField: "value",
+    };
+    expect(redactSensitiveData(input)).toMatchInlineSnapshot(`
+      {
+        "encrypted_credentials": "[REDACTED]",
+        "normalField": "value",
+        "serviceAccountKey": "[REDACTED]",
+      }
+    `);
+  });
+
+  it("should redact nested delegation credential fields", () => {
+    const input = {
+      credential: {
+        delegatedTo: {
+          serviceAccountKey: {
+            private_key: "sensitive_key",
+            client_email: "service@example.com",
+            tenant_id: "tenant123",
+          },
+        },
+      },
+      config: {
+        private_key: "another_private_key",
+        client_email: "another@example.com",
+      },
+    };
+    expect(redactSensitiveData(input)).toMatchInlineSnapshot(`
+      {
+        "config": {
+          "client_email": "[REDACTED]",
+          "private_key": "[REDACTED]",
+        },
+        "credential": "[REDACTED]",
       }
     `);
   });

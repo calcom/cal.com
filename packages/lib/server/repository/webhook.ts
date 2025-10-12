@@ -3,7 +3,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
-import type { UserPermissionRole } from "@calcom/prisma/enums";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 type WebhookGroup = {
@@ -162,7 +162,7 @@ export class WebhookRepository {
     }
 
     // Add platform webhooks for admins
-    if (userRole === "ADMIN") {
+    if (userRole === UserPermissionRole.ADMIN) {
       const platformWebhooks = await prisma.webhook.findMany({
         where: { platform: true },
       });

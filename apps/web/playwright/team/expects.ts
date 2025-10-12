@@ -15,7 +15,6 @@ export async function expectInvitationEmailToBeReceived(
 ) {
   if (!emails) return null;
 
-  // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(2000);
   const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail });
   expect(receivedEmails?.total).toBe(1);
@@ -36,5 +35,5 @@ export async function expectExistingUserToBeInvitedToOrganization(
   userEmail: string,
   subject?: string | null
 ) {
-  return expectInvitationEmailToBeReceived(page, emails, userEmail, subject, "settings/team");
+  return expectInvitationEmailToBeReceived(page, emails, userEmail, subject, "teams?token");
 }
