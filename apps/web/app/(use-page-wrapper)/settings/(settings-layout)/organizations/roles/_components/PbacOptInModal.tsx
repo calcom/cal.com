@@ -113,12 +113,19 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
             </div>
           </div>
 
-          {/* Action Button */}
-          <div className="flex w-full flex-col items-center justify-center">
+          {/* Action Buttons */}
+          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row">
+            <Button
+              color="secondary"
+              onClick={() => onOpenChange(false)}
+              disabled={enablePbacMutation.isPending}
+              className="w-full justify-center sm:w-1/4">
+              {t("cancel")}
+            </Button>
             <Button
               onClick={handleOptIn}
               loading={enablePbacMutation.isPending}
-              className="w-full justify-center"
+              className="w-full justify-center sm:w-3/4"
               EndIcon="arrow-right"
               onMouseEnter={() => setIsButtonHovered(true)}
               onMouseLeave={() => setIsButtonHovered(false)}>
