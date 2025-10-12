@@ -2,9 +2,9 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CreationSource } from "@calcom/prisma/enums";
 
 import { UserCreationService } from "./userCreationService";
@@ -24,7 +24,7 @@ vi.mock("@calcom/lib/auth/hashPassword", () => ({
   hashPassword: vi.fn().mockResolvedValue("hashed-password"),
 }));
 
-vi.mock("../repository/user", () => {
+vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
     UserRepository: vi.fn().mockImplementation(() => ({
       create: vi.fn(),
