@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
+ 
 const { i18n } = require("@calcom/config/next-i18next.config");
 
 // Workaround for using router.locales from old router

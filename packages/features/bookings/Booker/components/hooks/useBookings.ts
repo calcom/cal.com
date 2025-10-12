@@ -165,13 +165,7 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
-export const useBookings = ({
-  event,
-  hashedLink,
-  bookingForm,
-  metadata,
-  isBookingDryRun,
-}: IUseBookings) => {
+export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookingDryRun }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStoreContext((state) => state.eventSlug);
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
@@ -513,15 +507,10 @@ export const useBookings = ({
     bookingForm,
     hashedLink,
     metadata,
-    handleInstantBooking: (
-      variables: Parameters<typeof createInstantBookingMutation.mutate>[0]
-    ) => {
+    handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
       const remaining = getInstantCooldownRemainingMs(eventTypeId);
       if (remaining > 0) {
-        showToast(
-          t("please_try_again_later_or_book_another_slot"),
-          "error"
-        );
+        showToast(t("please_try_again_later_or_book_another_slot"), "error");
         return;
       }
       createInstantBookingMutation.mutate(variables);

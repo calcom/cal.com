@@ -1,6 +1,8 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -11,8 +13,6 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";

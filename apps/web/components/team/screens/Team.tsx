@@ -1,9 +1,9 @@
 import Link from "next/link";
 
+import type { TeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { TeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 
@@ -39,7 +39,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
               <>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  // eslint-disable-next-line react/no-danger
+                   
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
                 />
               </>

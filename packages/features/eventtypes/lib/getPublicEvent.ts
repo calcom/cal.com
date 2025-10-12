@@ -5,9 +5,9 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib/isRecurringEvent";

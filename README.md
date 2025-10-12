@@ -175,6 +175,7 @@ yarn dx
 ```
 
 #### Development tip
+
 1. Add `export NODE_OPTIONS=“--max-old-space-size=16384”` to your shell script to increase the memory limit for the node process. Alternatively, you can run this in your terminal before running the app. Replace 16384 with the amount of RAM you want to allocate to the node process.
 
 2. Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
@@ -490,8 +491,8 @@ Don't code but still want to contribute? Join our [Discussions](https://github.c
 - Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for unsafe-inline in style-src . If you have some custom changes in your instance, you might have to make some code change to make your instance CSP compatible. Right now it enables strict CSP only on login page and on other SSR pages it is enabled in Report only mode to detect possible issues. On, SSG pages it is still not supported.
 
 ## Single Org Mode
-Refer to docs [here](./docs/self-hosting/guides/organization/single-organization-setup) for a detailed documentation with screenshots.
 
+Refer to docs [here](./docs/self-hosting/guides/organization/single-organization-setup) for a detailed documentation with screenshots.
 
 ## Integrations
 
@@ -648,6 +649,7 @@ following
 We use changesets to generate changelogs and publish public packages (packages with `private: true` are ignored).
 
 An example of good readme is [atoms readme](https://github.com/calcom/cal.com/blob/main/packages/platform/atoms/README.md). Every public package must:
+
 1. Follow semantic versioning when using changesets.
 2. Mark breaking changes using `❗️Breaking change`
 

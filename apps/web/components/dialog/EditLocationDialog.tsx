@@ -202,7 +202,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               id="locationInput"
               placeholder={t(eventLocationType.organizerInputPlaceholder || "")}
               required
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+               
               defaultValue={
                 defaultLocation ? defaultLocation[eventLocationType.defaultValueVariable] : undefined
               }

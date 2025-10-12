@@ -13,7 +13,7 @@ export const RoutingFormEmbedDialog = () => {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.get.useQuery();
   const routingFormTypes = types.filter((type) => type.type !== "email");
-  
+
   // Add the headless option specifically for routing forms
   const headlessType = {
     title: t("use_my_own_form"),
@@ -60,10 +60,8 @@ export const RoutingFormEmbedDialog = () => {
     ),
   };
 
-  const routingFormTypesWithHeadless = IS_CALCOM 
-    ? [...routingFormTypes, headlessType]
-    : routingFormTypes;
-  
+  const routingFormTypesWithHeadless = IS_CALCOM ? [...routingFormTypes, headlessType] : routingFormTypes;
+
   return (
     <EmbedDialog
       types={routingFormTypesWithHeadless}

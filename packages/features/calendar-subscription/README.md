@@ -10,8 +10,9 @@ This feature introduces two complementary capabilities:
 - **Calendar Sync**: Uses webhooks to automatically listen for calendar updates and apply changes in real-time
 
 **Key Benefits:**
+
 - **Efficiency**: Reduces API calls with optimized caching strategies
-- **Reliability**: Guarantees updates through webhook event delivery  
+- **Reliability**: Guarantees updates through webhook event delivery
 - **Real-Time Sync**: Ensures calendars are always up-to-date with minimal latency
 - **Scalability**: Supports multiple calendars and handles high-volume updates seamlessly
 
@@ -29,21 +30,23 @@ By subscribing to calendars via webhooks and implementing intelligent caching, y
 
 This feature is controlled by three feature flags that can be enabled independently:
 
-### 1. calendar-subscription-cache  
+### 1. calendar-subscription-cache
+
 Enables calendar cache recording and usage through calendars. This flag should be managed individually by teams.
 
 ```sql
-INSERT INTO "Feature" ("slug", "enabled", "description", "type", "stale", "lastUsedAt", "createdAt", "updatedAt", "updatedBy") 
-VALUES ('calendar-subscription-cache', false, 'Allow calendar cache to be recorded and used through calendars.', 'OPERATIONAL', false, NULL, NOW(), NOW(), NULL) 
+INSERT INTO "Feature" ("slug", "enabled", "description", "type", "stale", "lastUsedAt", "createdAt", "updatedAt", "updatedBy")
+VALUES ('calendar-subscription-cache', false, 'Allow calendar cache to be recorded and used through calendars.', 'OPERATIONAL', false, NULL, NOW(), NOW(), NULL)
 ON CONFLICT (slug) DO NOTHING;
 ```
 
 ### 2. calendar-subscription-sync
+
 Enables calendar sync globally for all users regardless of team or organization.
 
 ```sql
-INSERT INTO "Feature" ("slug", "enabled", "description", "type", "stale", "lastUsedAt", "createdAt", "updatedAt", "updatedBy") 
-VALUES ('calendar-subscription-sync', false, 'Enable calendar sync for all calendars globally.', 'OPERATIONAL', false, NULL, NOW(), NOW(), NULL) 
+INSERT INTO "Feature" ("slug", "enabled", "description", "type", "stale", "lastUsedAt", "createdAt", "updatedAt", "updatedBy")
+VALUES ('calendar-subscription-sync', false, 'Enable calendar sync for all calendars globally.', 'OPERATIONAL', false, NULL, NOW(), NOW(), NULL)
 ON CONFLICT (slug) DO NOTHING;
 ```
 
@@ -52,14 +55,14 @@ ON CONFLICT (slug) DO NOTHING;
 To enable calendar cache features for specific users, add entries to the `UserFeatures` table:
 
 ```sql
--- Enable calendar-subscription-cache for user ID 123  
-INSERT INTO "UserFeatures" ("userId", "featureId", "assignedAt", "assignedBy", "updatedAt") 
-VALUES (123, 'calendar-subscription-cache', NOW(), 'admin', NOW()) 
+-- Enable calendar-subscription-cache for user ID 123
+INSERT INTO "UserFeatures" ("userId", "featureId", "assignedAt", "assignedBy", "updatedAt")
+VALUES (123, 'calendar-subscription-cache', NOW(), 'admin', NOW())
 ON CONFLICT ("userId", "featureId") DO NOTHING;
 
 -- Enable calendar-subscription-sync for user ID 123
-INSERT INTO "UserFeatures" ("userId", "featureId", "assignedAt", "assignedBy", "updatedAt") 
-VALUES (123, 'calendar-subscription-sync', NOW(), 'admin', NOW()) 
+INSERT INTO "UserFeatures" ("userId", "featureId", "assignedAt", "assignedBy", "updatedAt")
+VALUES (123, 'calendar-subscription-sync', NOW(), 'admin', NOW())
 ON CONFLICT ("userId", "featureId") DO NOTHING;
 ```
 
@@ -69,13 +72,13 @@ To enable calendar cache features for specific teams, add entries to the `TeamFe
 
 ```sql
 -- Enable calendar-subscription-cache for team ID 456
-INSERT INTO "TeamFeatures" ("teamId", "featureId", "assignedAt", "assignedBy", "updatedAt") 
-VALUES (456, 'calendar-subscription-cache', NOW(), 'admin', NOW()) 
+INSERT INTO "TeamFeatures" ("teamId", "featureId", "assignedAt", "assignedBy", "updatedAt")
+VALUES (456, 'calendar-subscription-cache', NOW(), 'admin', NOW())
 ON CONFLICT ("teamId", "featureId") DO NOTHING;
 
 -- Enable calendar-subscription-sync for team ID 456
-INSERT INTO "TeamFeatures" ("teamId", "featureId", "assignedAt", "assignedBy", "updatedAt") 
-VALUES (456, 'calendar-subscription-sync', NOW(), 'admin', NOW()) 
+INSERT INTO "TeamFeatures" ("teamId", "featureId", "assignedAt", "assignedBy", "updatedAt")
+VALUES (456, 'calendar-subscription-sync', NOW(), 'admin', NOW())
 ON CONFLICT ("teamId", "featureId") DO NOTHING;
 ```
 
@@ -84,6 +87,7 @@ ON CONFLICT ("teamId", "featureId") DO NOTHING;
 The calendar cache and sync system consists of several key components:
 
 ### Database Schema
+
 - **CalendarCacheEvent Table**: Stores cached calendar events with status tracking
 - **SelectedCalendar Extensions**: Additional fields for sync state and webhook management including:
   - `channelId`: Webhook channel identifier
@@ -98,18 +102,22 @@ The calendar cache and sync system consists of several key components:
   - `syncSubscribedAt`: Webhook subscription timestamp
 
 ### Core Services
+
 - **CalendarCacheEventRepository**: Manages cached event storage and retrieval
 - **CalendarSubscriptionService**: Orchestrates webhook subscriptions and event processing
 - **Provider-specific Adapters**: Handle calendar-specific sync logic (Google, Office365)
 
 ### Background Processes
+
 - **Cron Jobs**: Automated processes for cache cleanup and calendar watching
 - **Webhook Handlers**: Real-time event processing for calendar updates
 
 ### Integration Points
+
 - **Calendar Providers**: Google Calendar, Office365, and other supported integrations
 - **Webhook Endpoints**: Receive real-time notifications from calendar providers
 - **Cache Layer**: Optimized storage for frequently accessed calendar data
 
 For detailed technical implementation, see:
+
 - Database migrations in `packages/prisma/migrations/`

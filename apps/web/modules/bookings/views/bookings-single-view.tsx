@@ -771,7 +771,7 @@ export default function Success(props: PageProps) {
                             <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
-                                // eslint-disable-next-line react/no-danger
+                                 
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
@@ -1084,7 +1084,7 @@ export default function Success(props: PageProps) {
                       <span className="underline">
                         <a
                           target="_blank"
-                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations" rel="noreferrer">
                           {t("resolve")}
                         </a>
                       </span>

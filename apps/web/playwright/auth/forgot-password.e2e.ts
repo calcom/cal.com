@@ -88,7 +88,7 @@ test.describe("Forgot password", async () => {
       },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     const updatedPassword = updatedUser.password!.hash;
     expect(await verifyPassword(newPassword, updatedPassword)).toBeTruthy();
 

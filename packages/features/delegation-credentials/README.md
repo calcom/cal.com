@@ -13,28 +13,28 @@ Step 1: Create a Google Cloud Project or use existing one(to be done once for th
 
 Before you can create a service account, you'll need to set up a Google Cloud project.
 
- 1. Create a Google Cloud Project:
-     1. Go to the Google Cloud Console
-     2. Select Create Project
-     3. Give your project a name and select your billing account (if applicable)
-     4. Click Create
- 2. Enable the Google Calendar API:
-     1. Go to the Google Cloud Console
-     2. Select API & Services → Library
-     3. Search for "Google Calendar API"
-     4. Click Enable
+1.  Create a Google Cloud Project:
+    1.  Go to the Google Cloud Console
+    2.  Select Create Project
+    3.  Give your project a name and select your billing account (if applicable)
+    4.  Click Create
+2.  Enable the Google Calendar API:
+    1.  Go to the Google Cloud Console
+    2.  Select API & Services → Library
+    3.  Search for "Google Calendar API"
+    4.  Click Enable
 
 Step 2: Create a Service Account in Google Cloud Console(to be done for every organization)
 
 A service account is needed to act on behalf of users
 
- 1. Navigate to the Service Accounts page:
+1.  Navigate to the Service Accounts page:
     - In the Google Cloud Console, go to IAM & Admin → Service Accounts
- 2. Create a New Service Account:
+2.  Create a New Service Account:
     - Click on Create Service Account
     - Give your service account a name and description
     - Click Create and Continue(Optional steps can be skipped)
- 3. Download the Service Account Key JSON file
+3.  Download the Service Account Key JSON file
 
 Step 3: Create Delegation Credential(To Be taken by Cal.com instance admin):
 
@@ -138,6 +138,7 @@ Cron jobs ensure that for each and every member of the organization that has Del
 - Credentials cron job would delete the Delegation User Credentials which will then cascade to delete the SelectedCalendar and CalendarCache records.
 
 ### Impact of enabling Delegation Credential
+
 - Existing calendar-cache records are re-used as we identify the relevant record by userId and key of CalendarCache record.
   - Any updates to those calendar-cache records keep on working by using the non-delegation credential attached with the SelectedCalendar record.
   - In case there is an error while watching the SelectedCalendar using non-delegation credential, we will delete the SelectedCalendar record and create a new one using Delegation User Credential.
@@ -149,4 +150,3 @@ Cron jobs ensure that for each and every member of the organization that has Del
 - You could use Acme org and login as <owner1-acme@example.com>
 - Make sure to change the email of the user above to your workspace owner's email(other member's email might also work). This is necessary otherwise you won't be able to enable Delegation Credential for the organization.
   - Note: After changing the email, you would have to logout and login again
-

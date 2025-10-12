@@ -269,13 +269,7 @@ export class TeamService {
 
     await updateNewTeamMemberEventTypes(userId, teamId);
   }
-  static async leaveTeamMembership({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }) {
+  static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
       const membership = await prisma.membership.delete({
         where: {

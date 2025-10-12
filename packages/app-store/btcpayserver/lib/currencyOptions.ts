@@ -3,7 +3,7 @@ export const currencyOptions = [
   { label: "USD- US Dollar", value: "USD", unit: "USD" },
   { label: "EUR- Euro", value: "EUR", unit: "EUR" },
   { label: "JPY- Japanese Yen", value: "JPY", unit: "JPY" },
-  { label: "CNY- Yuan Renminbi", value: "CNY", unit: "CNY" }, 
+  { label: "CNY- Yuan Renminbi", value: "CNY", unit: "CNY" },
   { label: "GBP- Pounds Sterling", value: "GBP", unit: "GBP" },
   { label: "AED- UAE Dirham", value: "AED", unit: "AED" },
   { label: "ZAR- South African Rand", value: "ZAR", unit: "ZAR" },
@@ -17,7 +17,7 @@ export const currencyOptions = [
   { label: "MYR- Malaysian Ringgit", value: "MYR", unit: "MYR" },
   { label: "PHP- Philippine Peso", value: "PHP", unit: "PHP" },
   { label: "CHF- Swiss Franc", value: "CHF", unit: "CHF" },
-  { label: "NOK- Norwegian Krone", value: "NOK", unit: "NOK" }, 
+  { label: "NOK- Norwegian Krone", value: "NOK", unit: "NOK" },
   { label: "THB- Thai Baht", value: "THB", unit: "THB" },
   { label: "SEK- Swedish Krona", value: "SEK", unit: "SEK" },
   { label: "SGD- Singapore Dollar", value: "SGD", unit: "SGD" },
@@ -25,9 +25,8 @@ export const currencyOptions = [
   { label: "TWD- New Taiwan Dollar", value: "TWD", unit: "TWD" },
   { label: "MXN- Mexican Peso", value: "MXN", unit: "MXN" },
   { label: "ILS- New Isreali Shekel", value: "ILS", unit: "ILS" },
-  { label: "NGN- Nigerian Naira", value: "NGN", unit: "NGN" }
+  { label: "NGN- Nigerian Naira", value: "NGN", unit: "NGN" },
 ];
-
 
 const zeroDecimalCurrencies = ["SATS", "BTC", "JPY"];
 

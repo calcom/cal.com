@@ -19,7 +19,6 @@ import {
   ArrayUnique,
 } from "class-validator";
 
-
 import { SchedulingType } from "@calcom/platform-enums";
 
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
@@ -568,7 +567,8 @@ export class CreateTeamEventTypeInput_2024_06_14 extends BaseCreateEventTypeInpu
   @IsBoolean()
   @IsOptional()
   @DocsPropertyOptional({
-    description: "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
+    description:
+      "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both",
   })
   assignAllTeamMembers?: boolean;
 

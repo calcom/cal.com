@@ -2,11 +2,11 @@ import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
+import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import prisma from "@calcom/prisma";
 import type { Booking, BookingReference, User } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";

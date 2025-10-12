@@ -1,10 +1,10 @@
 import { v4 } from "uuid";
 
+import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import tasker from "@calcom/features/tasker";
-import { DailyLocationType, getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";

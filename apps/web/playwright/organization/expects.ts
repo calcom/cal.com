@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
-// eslint-disable-next-line no-restricted-imports
+ 
 import type { Messages } from "mailhog";
 import type { createEmailsFixture } from "playwright/fixtures/emails";
 

@@ -10,9 +10,9 @@ sequenceDiagram
     participant Embed as Embed (iframe)
     participant Store as EmbedStore(iframe)
     participant UI as UI Components(iframe)
-    
+
     Note over Parent: embed.js loads
-    
+
     alt Inline Embed
         Parent->>Parent: Create cal-element
         Parent->>Parent: Create iframe (visibility: hidden)
@@ -59,7 +59,7 @@ sequenceDiagram
     Embed->>Parent: __dimensionChanged event
     Note over Parent: Calculate and adjust iframe dimensions
     Note over Store: Update parentInformedAboutContentHeight
-    
+
     alt isBookerPage
         Note over Embed: Wait for booker ready state
     end
@@ -100,18 +100,18 @@ sequenceDiagram
 ## Detailed State Management
 
 ### EmbedStore States
+
 - `NOT_INITIALIZED`: Initial state when iframe is created
-- `INITIALIZED`: After __iframeReady event is processed
+- `INITIALIZED`: After \_\_iframeReady event is processed
 - `prerenderState`: Can be null | "inProgress" | "completed"
 
 ### Visibility States
+
 1. Initial Creation:
    - iframe.style.visibility = "hidden"
    - body.style.visibility = "hidden"
-   
-2. After __iframeReady:
+2. After \_\_iframeReady:
    - iframe becomes visible (unless prerendering)
-   
 3. After parentKnowsIframeReady:
    - body becomes visible
    - Background remains transparent
@@ -119,16 +119,19 @@ sequenceDiagram
 ## Event Details
 
 1. **Initial Load**
+
    - embed.js loads in parent page
    - For inline embeds: Creates elements immediately
    - For modal embeds: Waits for CTA click (unless prerendering)
 
 2. **iframe Creation**
+
    - iframe is created with `visibility: hidden`
    - Loader is shown (default or skeleton)
    - EmbedStore initialized
 
-3. **__iframeReady Event**
+3. **\_\_iframeReady Event**
+
    - Fired by: Iframe
    - Indicates: Embed is ready to receive messages
    - Actions:
@@ -136,7 +139,8 @@ sequenceDiagram
      - Makes iframe visible (unless prerendering)
      - Processes queued iframe commands
 
-4. **__dimensionChanged Event**
+4. **\_\_dimensionChanged Event**
+
    - Fired by: Iframe
    - Purpose: Maintain proper iframe sizing
    - Triggers:
@@ -145,12 +149,13 @@ sequenceDiagram
      - After window load completes
 
 5. **linkReady Event**
+
    - Fired by: Iframe
    - Indicates: iframe is fully ready for use
    - Requirements:
      - parentInformedAboutContentHeight must be true
      - For booker pages: booker must be in ready state
-   - Actions: 
+   - Actions:
      - Parent removes loader
      - Parent makes iframe visible
 
@@ -166,11 +171,13 @@ sequenceDiagram
 The prerendering flow follows a special path:
 
 1. Initial State:
+
    - prerenderState: null
 
 2. During Prerender:
+
    - prerenderState: "inProgress"
-   - Limited events allowed (only __iframeReady, __dimensionChanged)
+   - Limited events allowed (only **iframeReady, **dimensionChanged)
    - iframe and body remain hidden
 
 3. After Connect:
@@ -183,6 +190,7 @@ The prerendering flow follows a special path:
 The embed system implements a command queue to handle instructions before the iframe is ready:
 
 1. Commands are queued if iframe isn't ready:
+
    ```typescript
    if (!this.iframeReady) {
      this.iframeDoQueue.push(doInIframeArg);
@@ -190,13 +198,14 @@ The embed system implements a command queue to handle instructions before the if
    }
    ```
 
-2. Queue is processed after __iframeReady event:
+2. Queue is processed after \_\_iframeReady event:
    - All queued commands are executed in order
    - New commands are executed immediately
 
 ## Error Handling
 
 Page Load Errors:
-   - System monitors CalComPageStatus
-   - On non-200 status: fires linkFailed event
-   - Includes error code and URL information
+
+- System monitors CalComPageStatus
+- On non-200 status: fires linkFailed event
+- Includes error code and URL information

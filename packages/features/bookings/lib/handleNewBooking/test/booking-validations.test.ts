@@ -3,6 +3,7 @@
  * These specifications verify the business rules and validation behavior for booking creation
  */
 import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+
 import {
   createBookingScenario,
   TestData,
@@ -31,7 +32,7 @@ function resetBlacklistedEmails() {
   delete process.env.BLACKLISTED_GUEST_EMAILS;
 }
 
-afterEach(() => { 
+afterEach(() => {
   resetBlacklistedEmails();
 });
 
@@ -93,9 +94,11 @@ describe("Booking Validation Specifications", () => {
       });
 
       // Non logged in user should not be able to book
-      await expect(handleNewBooking({
-        bookingData: mockBookingData,
-      })).rejects.toThrow(
+      await expect(
+        handleNewBooking({
+          bookingData: mockBookingData,
+        })
+      ).rejects.toThrow(
         "Attendee email has been blocked. Make sure to login as organizer@example.com to use this email for creating a booking."
       );
 
@@ -169,9 +172,11 @@ describe("Booking Validation Specifications", () => {
       });
 
       // Should prevent booking when blacklisted email has no verified user in database
-      await expect(handleNewBooking({
-        bookingData: mockBookingData,
-      })).rejects.toThrow("Cannot use this email to create the booking.");
+      await expect(
+        handleNewBooking({
+          bookingData: mockBookingData,
+        })
+      ).rejects.toThrow("Cannot use this email to create the booking.");
     });
   });
 
@@ -225,16 +230,17 @@ describe("Booking Validation Specifications", () => {
               title: "Existing Booking",
               status: BookingStatus.ACCEPTED,
               // Booker already has a booking in future
-              attendees: [{
-                email: booker.email,
-              }],
+              attendees: [
+                {
+                  email: booker.email,
+                },
+              ],
             },
           ],
         })
       );
 
       await mockCalendarToHaveNoBusySlots("googlecalendar", {});
-
 
       const mockBookingData = getMockRequestDataForBooking({
         data: {
@@ -261,9 +267,11 @@ describe("Booking Validation Specifications", () => {
       );
 
       // Second booking should be rejected
-      await expect(handleNewBooking({
-        bookingData: mockBookingData,
-      })).rejects.toThrow("booker_limit_exceeded_error");
+      await expect(
+        handleNewBooking({
+          bookingData: mockBookingData,
+        })
+      ).rejects.toThrow("booker_limit_exceeded_error");
     });
 
     test("enforces booking limits with reschedule option when enabled", async () => {
@@ -315,9 +323,11 @@ describe("Booking Validation Specifications", () => {
               endTime: `${plus1DateString}T10:30:00.000Z`,
               title: "Existing Booking",
               status: BookingStatus.ACCEPTED,
-              attendees: [{
-                email: booker.email,
-              }],
+              attendees: [
+                {
+                  email: booker.email,
+                },
+              ],
             },
             {
               uid: "existing-booking-2",
@@ -327,9 +337,11 @@ describe("Booking Validation Specifications", () => {
               endTime: `${plus2DateString}T10:30:00.000Z`,
               title: "Existing Booking",
               status: BookingStatus.ACCEPTED,
-              attendees: [{
-                email: booker.email,
-              }],
+              attendees: [
+                {
+                  email: booker.email,
+                },
+              ],
             },
           ],
         })

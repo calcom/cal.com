@@ -11,9 +11,9 @@ import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/wat
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { hashEmail } from "@calcom/lib/server/PiiHasher";
 
 const log = logger.getSubLogger({ prefix: [`[[Auth] `] });
 

@@ -33,7 +33,15 @@ type OptionValues = {
 
 type FormValues = Pick<
   User,
-  "avatarUrl" | "name" | "username" | "email" | "bio" | "createdDate" | "theme" | "defaultScheduleId" | "allowDynamicBooking"
+  | "avatarUrl"
+  | "name"
+  | "username"
+  | "email"
+  | "bio"
+  | "createdDate"
+  | "theme"
+  | "defaultScheduleId"
+  | "allowDynamicBooking"
 > &
   OptionValues;
 

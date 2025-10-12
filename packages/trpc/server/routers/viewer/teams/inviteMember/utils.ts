@@ -6,17 +6,15 @@ import { sendTeamInviteEmail } from "@calcom/emails";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
-import { prisma } from "@calcom/prisma";
+import { prisma, PrismaClient } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
 import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
@@ -339,60 +337,24 @@ export async function createNewUsersConnectToOrgIfExists({
 
         const isBecomingAnOrgMember = parentId || isOrg;
 
-        const defaultAvailability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
-        const t = await getTranslation(language ?? "en", "common");
-        const createdUser = await tx.user.create({
-          data: {
-            username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
-            email: invitation.usernameOrEmail,
-            verified: true,
-            invitedTo: teamId,
-            isPlatformManaged: !!isPlatformManaged,
-            timeFormat,
-            weekStart,
-            timeZone,
-            creationSource,
-            organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
-            ...(orgId
-              ? {
-                  profiles: {
-                    createMany: {
-                      data: [
-                        {
-                          uid: ProfileRepository.generateProfileUid(),
-                          username: orgMemberUsername,
-                          organizationId: orgId,
-                        },
-                      ],
-                    },
-                  },
-                }
-              : null),
-            teams: {
-              create: {
-                teamId: teamId,
-                role: invitation.role,
-                accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
-              },
+        const userRepository = new UserRepository(tx as unknown as PrismaClient);
+        const createdUser = await userRepository.createFromInvitation({
+          email: invitation.usernameOrEmail,
+          username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
+          language: language ?? "en",
+          isPlatformManaged: !!isPlatformManaged,
+          creationSource,
+          organizationId: orgId || null,
+          invitedTo: teamId,
+          timeFormat,
+          weekStart,
+          timeZone,
+          teams: {
+            create: {
+              teamId: teamId,
+              role: invitation.role,
+              accepted: autoAccept,
             },
-            ...(!isPlatformManaged
-              ? {
-                  schedules: {
-                    create: {
-                      name: t("default_schedule_name"),
-                      availability: {
-                        createMany: {
-                          data: defaultAvailability.map((schedule) => ({
-                            days: schedule.days,
-                            startTime: schedule.startTime,
-                            endTime: schedule.endTime,
-                          })),
-                        },
-                      },
-                    },
-                  },
-                }
-              : {}),
           },
         });
 
@@ -750,12 +712,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
 };
 
 export async function handleExistingUsersInvites({

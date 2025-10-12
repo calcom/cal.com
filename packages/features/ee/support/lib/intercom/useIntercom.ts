@@ -1,4 +1,3 @@
- 
 import { noop } from "lodash";
 import { useEffect } from "react";
 import type { IntercomBootProps, IntercomProps } from "react-use-intercom";
@@ -13,7 +12,6 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
- 
 export const isInterComEnabled = z.string().min(1).safeParse(process.env.NEXT_PUBLIC_INTERCOM_APP_ID).success;
 
 const useIntercomHook = isInterComEnabled

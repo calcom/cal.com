@@ -193,9 +193,9 @@ test.describe("Organization:", () => {
         });
         await expect(page.getByTestId("success-page")).toBeVisible();
         // All the teammates should be in the booking
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
       }
     );

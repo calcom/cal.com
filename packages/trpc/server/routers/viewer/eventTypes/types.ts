@@ -82,12 +82,10 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   calVideoSettings: calVideoSettingsSchema,
   calAiPhoneScript: z.string(),
   customInputs: z.array(customInputSchema),
-  destinationCalendar: DestinationCalendarSchema
-    .pick({
-      integration: true,
-      externalId: true,
-    })
-    .nullable(),
+  destinationCalendar: DestinationCalendarSchema.pick({
+    integration: true,
+    externalId: true,
+  }).nullable(),
   users: z.array(stringOrNumber),
   children: z.array(childSchema),
   hosts: z.array(hostSchema),

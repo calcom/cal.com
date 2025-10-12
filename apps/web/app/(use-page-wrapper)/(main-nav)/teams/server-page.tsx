@@ -33,7 +33,9 @@ export const ServerTeamsListing = async ({
   session: Session;
 }) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
-  const autoAccept = Array.isArray(searchParams?.autoAccept) ? searchParams.autoAccept[0] : searchParams?.autoAccept;
+  const autoAccept = Array.isArray(searchParams?.autoAccept)
+    ? searchParams.autoAccept[0]
+    : searchParams?.autoAccept;
   const userId = session.user.id;
   let invitationAccepted = false;
 
@@ -42,7 +44,7 @@ export const ServerTeamsListing = async ({
 
   if (token) {
     try {
-       if (autoAccept === "true") {
+      if (autoAccept === "true") {
         await TeamService.acceptInvitationByToken(token, userId);
         invitationAccepted = true;
       } else {

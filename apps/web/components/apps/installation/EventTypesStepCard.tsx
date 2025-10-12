@@ -64,7 +64,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
           {Boolean(description) && (
             <div
               className="text-subtle line-clamp-4 break-words text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-              // eslint-disable-next-line react/no-danger
+               
               dangerouslySetInnerHTML={{
                 __html: markdownToSafeHTML(description),
               }}

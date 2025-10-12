@@ -61,12 +61,12 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         requirePayment && (
           <>
             <div className="mt-4 inline-block">
-              <label className="text-default block text-sm font-medium mb-1" htmlFor="price">
+              <label className="text-default mb-1 block text-sm font-medium" htmlFor="price">
                 {t("price")}
               </label>
               <TextField
                 label={t("price")}
-                className="text-black dark:text-white w-auto"
+                className="w-auto text-black dark:text-white"
                 addOnClassname="h-[38px]"
                 min="1"
                 type="number"
@@ -134,4 +134,3 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 };
 
 export default EventTypeAppSettingsInterface;
-

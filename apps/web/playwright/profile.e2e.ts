@@ -74,7 +74,7 @@ test.describe("Update Profile", () => {
     });
 
     const params = new URLSearchParams({
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       token: verificationToken!.token,
     });
 
@@ -132,7 +132,7 @@ test.describe("Update Profile", () => {
     });
 
     const params = new URLSearchParams({
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       token: verificationToken!.token,
     });
 
@@ -322,7 +322,7 @@ test.describe("Update Profile", () => {
     });
 
     const params = new URLSearchParams({
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       token: verificationToken!.token,
     });
 
@@ -358,7 +358,7 @@ test.describe("Update Profile", () => {
     });
 
     const params = new URLSearchParams({
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       token: verificationToken!.token,
     });
 

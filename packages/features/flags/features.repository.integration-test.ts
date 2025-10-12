@@ -1,5 +1,7 @@
 import { describe, expect, beforeAll, afterAll, beforeEach, it } from "vitest";
+
 import prisma from "@calcom/prisma";
+
 import type { AppFlags } from "./config";
 import { FeaturesRepository } from "./features.repository";
 

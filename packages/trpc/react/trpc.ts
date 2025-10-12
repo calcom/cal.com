@@ -37,7 +37,7 @@ const resolveEndpoint = (links: any) => {
       endpoint = parts[0] as keyof typeof links;
       path = parts[1];
     } else if (parts.length >= 3 && parts[2] === "heavy") {
-      endpoint = parts[1] + "/heavy" as keyof typeof links;
+      endpoint = (parts[1] + "/heavy") as keyof typeof links;
       path = parts[3];
     } else {
       endpoint = parts[1] as keyof typeof links;

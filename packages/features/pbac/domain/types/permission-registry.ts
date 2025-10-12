@@ -147,7 +147,8 @@ export const getPermissionsForScope = (scope: Scope, isPrivate?: boolean): Permi
       const scopeMatches = !permissionDetails.scope || permissionDetails.scope.includes(scope);
 
       // Check privacy visibility (only if isPrivate is provided)
-      const privacyMatches = teamPrivacy === undefined ||
+      const privacyMatches =
+        teamPrivacy === undefined ||
         !permissionDetails.visibleWhen?.teamPrivacy ||
         permissionDetails.visibleWhen.teamPrivacy === "both" ||
         permissionDetails.visibleWhen.teamPrivacy === teamPrivacy;

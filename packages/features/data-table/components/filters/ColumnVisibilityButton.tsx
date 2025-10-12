@@ -82,7 +82,7 @@ function ColumnVisibilityButtonComponent<TData>(
               }}
               className={classNames(
                 buttonClasses({ color: "secondary" }),
-                "w-full justify-center text-center cursor-pointer mt-0"
+                "mt-0 w-full cursor-pointer justify-center text-center"
               )}>
               {t("show_all_columns")}
             </CommandItem>
