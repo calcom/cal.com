@@ -13,7 +13,6 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
-// Require branding flag for all email flows that accept CalendarEvent
 type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
 
 import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";

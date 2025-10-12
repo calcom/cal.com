@@ -1,6 +1,8 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -11,8 +13,6 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -107,7 +107,7 @@ export async function handleConfirmation(args: {
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
   const eventTypeId = eventType?.id ?? booking.eventTypeId ?? null;
-  // Fetch full event type data for hideBranding logic
+
   const fullEventType = eventTypeId
     ? await prisma.eventType.findUnique({
         where: { id: eventTypeId },
@@ -130,7 +130,8 @@ export async function handleConfirmation(args: {
       })
     : null;
 
-    const userForBranding = !fullEventType?.teamId && booking.userId
+  const userForBranding =
+    !fullEventType?.teamId && booking.userId
       ? await prisma.user.findUnique({
           where: { id: booking.userId },
           select: {
@@ -140,14 +141,14 @@ export async function handleConfirmation(args: {
         })
       : null;
 
-    const hideBranding = eventTypeId
-        ? await shouldHideBrandingForEvent({
-            eventTypeId,
-            team: fullEventType?.team ?? null,
-            owner: userForBranding,
-            organizationId: orgId ?? null,
-          })
-        : false;
+  const hideBranding = eventTypeId
+    ? await shouldHideBrandingForEvent({
+        eventTypeId,
+        team: fullEventType?.team ?? null,
+        owner: userForBranding,
+        organizationId: orgId ?? null,
+      })
+    : false;
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -186,7 +187,7 @@ export async function handleConfirmation(args: {
 
       if (emailsEnabled) {
         await sendScheduledEmailsAndSMS(
-          ({ ...evt, additionalInformation: metadata, hideBranding }),
+          { ...evt, additionalInformation: metadata, hideBranding },
           undefined,
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,

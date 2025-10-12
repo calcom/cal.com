@@ -241,7 +241,6 @@ async function handler(input: CancelBookingInput) {
     bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
   );
 
-  // For user events, we need to fetch the user's profile to get the organization ID
   const userOrganizationId = !bookingToDelete.eventType?.team
     ? (
         await prisma.profile.findFirst({

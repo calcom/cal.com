@@ -342,7 +342,6 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
-  // Ensure branding flag is provided to all email flows
   try {
     const teamForBranding = eventType.teamId
       ? await prisma.team.findUnique({

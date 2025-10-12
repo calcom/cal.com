@@ -13,7 +13,6 @@ import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-// Define CalendarEventWithBranding type locally since it's not exported
 type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
 
 async function postHandler(request: NextRequest) {

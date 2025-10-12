@@ -86,7 +86,6 @@ export async function handleBookingRequested(args: {
         })
       )?.organizationId ?? null;
 
-  // Fetch user data for branding when there's no team
   const userForBranding =
     !booking.eventType?.teamId && booking.userId
       ? await prisma.user.findUnique({
