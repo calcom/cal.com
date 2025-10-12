@@ -49,15 +49,8 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
         <div className="flex flex-col items-center gap-8">
           {/* Header Section */}
           <div className="flex w-full flex-col items-center gap-6">
-            {/* Cal.com Logo */}
-            <div className="flex items-center justify-center">
-              <Icon name="cal" className="text-emphasis h-5 w-20" />
-            </div>
-
-            {/* Illustration - Fingerprint style */}
             <FingerprintAnimation isHovered={isButtonHovered} />
 
-            {/* Title and Description */}
             <div className="flex w-full flex-col items-center gap-1 text-center">
               <h2 className="font-cal text-emphasis text-xl font-semibold">{t("pbac_opt_in_title")}</h2>
               <p className="text-default text-sm">{t("pbac_opt_in_description")}</p>
