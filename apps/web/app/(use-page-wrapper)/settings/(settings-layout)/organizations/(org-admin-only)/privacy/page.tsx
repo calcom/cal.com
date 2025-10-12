@@ -47,8 +47,8 @@ const Page = async () => {
   }
 
   return (
-    <SettingsHeader title={t("privacy")} description={t("privacy_organization_description")}>
-      <PrivacyView permissions={{ canRead, canEdit }} />
+    <SettingsHeader title={t("privacy_and_security")} description={t("privacy_organization_description")}>
+      <PrivacyView permissions={{ canRead, canEdit }} organizationId={session.user.profile.organizationId} />
     </SettingsHeader>
   );
 };
