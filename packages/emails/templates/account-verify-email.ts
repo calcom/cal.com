@@ -24,7 +24,7 @@ export default class AccountVerifyEmail extends BaseEmail {
     this.verifyAccountInput = passwordEvent;
   }
 
-  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+  async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const emailSubjectKey = this.verifyAccountInput.isSecondaryEmailVerification
       ? "verify_email_email_header"
       : "verify_email_subject";

@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 
 import PhoneInput from "@calcom/features/components/phone-input";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
@@ -99,12 +99,10 @@ const VariableDropdown: React.FC<{
 };
 
 export interface WorkflowBuilderProps {
-  template?: any;
-  editWorkflow?: any;
   workflowId?: number;
 }
 
-export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, editWorkflow, workflowId }) => {
+export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
@@ -119,7 +117,17 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   const form = useForm<FormValues>({
     mode: "onBlur",
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      steps: [],
+    },
   });
+
+  // Watch steps from form - THIS REPLACES THE ACTIONS STATE
+  const steps = useWatch({
+    control: form.control,
+    name: "steps",
+    defaultValue: [],
+  }) as WorkflowStep[];
 
   // Real data states
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
@@ -146,13 +154,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     workflowData?.calIdTeamId ? { calIdTeamId: workflowData?.calIdTeamId } : {},
     {
-      calIdTeamId: !!workflowData?.calIdTeamId,
+      enabled: !!workflowData?.calIdTeamId,
     }
   );
 
   verifiedNumbersData ??= [];
-
-  console.log("Verified numbers", verifiedNumbersData);
 
   let { data: verifiedEmailsData } = trpc.viewer.workflows.calid_getVerifiedEmails.useQuery(
     workflowData?.calIdTeamId
@@ -160,7 +166,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
           calIdTeamId: workflowData?.calIdTeamId,
         }
       : {},
-    { calIdTeamId: !!workflowData?.calIdTeamId }
+    { enabled: !!workflowData?.calIdTeamId }
   );
 
   verifiedEmailsData ??= [];
@@ -172,8 +178,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   const timeFormat = user ? getTimeFormatStringFromUserTimeFormat(user.timeFormat) : TimeFormat.TWELVE_HOUR;
 
   // Get event type options
-  // const isOrg = workflowData?.team?.isOrganization ?? false;
-  //TODO: TEAM_ORG
   const isOrg = false;
   const teamId = workflowData?.calIdTeamId ?? undefined;
 
@@ -194,7 +198,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     }
 
     return options;
-  }, [eventTypeData?.eventTypeOptions, teamId, isMixedEventType]);
+  }, [eventTypeData?.eventTypeOptions, teamId, isMixedEventType, selectedOptions]);
 
   const teamOptions = useMemo(() => eventTypeData?.teamOptions ?? [], [eventTypeData?.teamOptions]);
 
@@ -220,27 +224,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   const [verificationCodes, setVerificationCodes] = useState<{ [stepId: string]: string }>({});
   const [numberVerificationStatus, setNumberVerificationStatus] = useState<{ [stepId: string]: boolean }>({});
   const [emailVerificationStatus, setEmailVerificationStatus] = useState<{ [stepId: string]: boolean }>({});
-  //  Add states to track when OTP was sent
   const [otpSentForPhone, setOtpSentForPhone] = useState<{ [stepId: string]: boolean }>({});
   const [otpSentForEmail, setOtpSentForEmail] = useState<{ [stepId: string]: boolean }>({});
 
-  // Enhanced actions state to match WorkflowStep structure
-  const [actions, setActions] = useState<WorkflowStep[]>([]);
-
-  // Template update tracker -  Changed to object to track individual step updates
+  // Template update tracker
   const [updateTemplate, setUpdateTemplate] = useState<{ [stepId: string]: number }>({});
   const [firstRender, setFirstRender] = useState(true);
 
   // Get trigger and template options
   const triggerOptions = getWorkflowTriggerOptions(t);
 
-  // Verification mutations -  Added proper success handlers for verification status updates
+  // Verification mutations
   const sendVerificationCodeMutation = trpc.viewer.workflows.calid_sendVerificationCode.useMutation({
     onSuccess: async (data, variables) => {
       triggerToast(t("verification_code_sent"), "success");
-      //  Track that OTP was sent for this phone number
       if (variables?.phoneNumber) {
-        actions.forEach((step) => {
+        steps.forEach((step) => {
           if (step.sendTo === variables.phoneNumber) {
             setOtpSentForPhone((prev) => ({ ...prev, [step.id.toString()]: true }));
           }
@@ -256,22 +255,18 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     onSuccess: async (isVerified, variables) => {
       triggerToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
 
-      //  Update verification status immediately for UI feedback
       if (isVerified && variables?.phoneNumber) {
-        // Find the step with this phone number and update its verification status
         setNumberVerificationStatus((prev) => {
           const newStatus = { ...prev };
-          actions.forEach((step) => {
+          steps.forEach((step) => {
             if (step.sendTo === variables.phoneNumber) {
               newStatus[step.id.toString()] = true;
-              // Clear OTP sent status when verified
               setOtpSentForPhone((prevOtp) => ({ ...prevOtp, [step.id.toString()]: false }));
               setVerificationCodes((prevCodes) => ({ ...prevCodes, [step.id.toString()]: "" }));
             }
           });
           return newStatus;
         });
-        console.log(numberVerificationStatus);
       }
 
       utils.viewer.workflows.calid_getVerifiedNumbers.invalidate();
@@ -288,7 +283,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     onSuccess(data, variables) {
       triggerToast(t("email_sent"), "success");
       if (variables?.email) {
-        actions.forEach((step) => {
+        steps.forEach((step) => {
           if (step.sendTo === variables.email) {
             setOtpSentForEmail((prev) => ({ ...prev, [step.id.toString()]: true }));
           }
@@ -305,13 +300,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
       triggerToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
 
       if (isVerified && variables?.email) {
-        // Find the step with this email and update its verification status
         setEmailVerificationStatus((prev) => {
           const newStatus = { ...prev };
-          actions.forEach((step) => {
+          steps.forEach((step) => {
             if (step.sendTo === variables.email) {
               newStatus[step.id.toString()] = true;
-              // Clear OTP sent status when verified
               setOtpSentForEmail((prevOtp) => ({ ...prevOtp, [step.id.toString()]: false }));
               setVerificationCodes((prevCodes) => ({ ...prevCodes, [step.id.toString()]: "" }));
             }
@@ -366,7 +359,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   );
 
   const isValidPhoneNumber = useCallback((phoneNumber: string) => {
-    // Basic phone number validation - should have at least 10 digits
     const cleanNumber = phoneNumber?.replace(/\D/g, "") || "";
     return cleanNumber.length >= 10;
   }, []);
@@ -422,7 +414,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         setSelectedOptions(activeOn || []);
 
         // Translate dynamic variables into local language
-        const steps =
+        const processedSteps =
           workflowDataInput.steps?.map((step) => {
             const updatedStep = {
               ...step,
@@ -445,14 +437,16 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
             return updatedStep;
           }) || [];
 
-        // Update form values
-        form.setValue("name", workflowDataInput.name);
-        form.setValue("steps", steps);
-        form.setValue("trigger", workflowDataInput.trigger);
-        form.setValue("time", workflowDataInput.time || undefined);
-        form.setValue("timeUnit", workflowDataInput.timeUnit || undefined);
-        form.setValue("activeOn", activeOn || []);
-        form.setValue("selectAll", workflowDataInput.isActiveOnAll ?? false);
+        // Use form.reset to set all values at once
+        form.reset({
+          name: workflowDataInput.name,
+          steps: processedSteps,
+          trigger: workflowDataInput.trigger,
+          time: workflowDataInput.time || undefined,
+          timeUnit: workflowDataInput.timeUnit || undefined,
+          activeOn: activeOn || [],
+          selectAll: workflowDataInput.isActiveOnAll ?? false,
+        });
 
         // Update UI state
         setWorkflowName(workflowDataInput.name);
@@ -461,14 +455,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         setTimeUnit(workflowDataInput.timeUnit || "HOUR");
         setTriggerTiming(workflowDataInput.time ? "custom" : "immediately");
 
-        // Set actions to the workflow steps
-        setActions(steps);
-
         // Initialize verification status
         const numberStatus: { [key: string]: boolean } = {};
         const emailStatus: { [key: string]: boolean } = {};
 
-        steps.forEach((step) => {
+        processedSteps.forEach((step) => {
           const stepId = step.id.toString();
           if (isSMSOrWhatsappAction(step.action) && step.sendTo) {
             numberStatus[stepId] = getNumberVerificationStatus(step);
@@ -484,13 +475,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         // Show sections based on existing data
         setShowEventTypeSection(true);
         setShowTriggerSection(true);
-        setShowActionsSection(steps.length > 0);
+        setShowActionsSection(processedSteps.length > 0);
 
         setIsAllDataLoaded(true);
         isInitialLoadRef.current = false;
       }
     },
-    [form, isOrg, teamOptions, i18n.language, t, getNumberVerificationStatus, getEmailVerificationStatus]
+    [
+      form,
+      isOrg,
+      teamOptions,
+      allEventTypeOptions,
+      i18n.language,
+      t,
+      getNumberVerificationStatus,
+      getEmailVerificationStatus,
+    ]
   );
 
   // Load initial data only once
@@ -562,9 +562,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
   );
 
   const addAction = useCallback(() => {
+    const currentSteps = form.getValues("steps") || [];
+
     const newStep: WorkflowStep = {
-      id: -Date.now(), // Use negative ID for new steps
-      stepNumber: actions.length + 1,
+      id: -Date.now(),
+      stepNumber: currentSteps.length + 1,
       action: WorkflowActions.EMAIL_ATTENDEE,
       workflowId: workflowId!,
       sendTo: null,
@@ -598,29 +600,23 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
       }).emailSubject;
     }
 
-    setActions((prev) => [...prev, newStep]);
-
-    // Update form
-    const updatedSteps = [...form.getValues("steps"), newStep];
-    form.setValue("steps", updatedSteps);
+    form.setValue("steps", [...currentSteps, newStep], { shouldDirty: true });
 
     triggerTemplateUpdate(newStep.id);
-  }, [actions.length, workflowId, i18n.language, t, timeFormat, form, triggerTemplateUpdate]);
+  }, [workflowId, i18n.language, t, timeFormat, form, triggerTemplateUpdate]);
 
   const removeAction = useCallback(
     (stepId: number) => {
-      setActions((prev) => {
-        const filtered = prev.filter((action) => action.id !== stepId);
-        // Update step numbers
-        const reordered = filtered.map((step, index) => ({
-          ...step,
-          stepNumber: index + 1,
-        }));
+      const currentSteps = form.getValues("steps") || [];
+      const filtered = currentSteps.filter((step) => step.id !== stepId);
 
-        // Update form
-        form.setValue("steps", reordered);
-        return reordered;
-      });
+      // Update step numbers
+      const reordered = filtered.map((step, index) => ({
+        ...step,
+        stepNumber: index + 1,
+      }));
+
+      form.setValue("steps", reordered, { shouldDirty: true });
 
       // Clean up verification states
       const stepIdStr = stepId.toString();
@@ -654,112 +650,112 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
   const updateAction = useCallback(
     (stepId: number, field: keyof WorkflowStep, value: any) => {
-      setActions((prev) => {
-        const updated = prev.map((action) => {
-          if (action.id === stepId) {
-            const updatedAction = { ...action, [field]: value };
+      const currentSteps = form.getValues("steps") || [];
 
-            // Handle action type changes
-            if (field === "action") {
-              const newAction = value as WorkflowActions;
+      const updated = currentSteps.map((step) => {
+        if (step.id === stepId) {
+          const updatedStep = { ...step, [field]: value };
 
-              // Get fresh template content and completely replace reminderBody
-              const freshTemplate = getTemplateBodyForAction({
-                action: newAction,
+          // Handle action type changes
+          if (field === "action") {
+            const newAction = value as WorkflowActions;
+
+            // Get fresh template content and completely replace reminderBody
+            const freshTemplate = getTemplateBodyForAction({
+              action: newAction,
+              locale: i18n.language,
+              t,
+              template: WorkflowTemplates.REMINDER,
+              timeFormat,
+            });
+            updatedStep.reminderBody = freshTemplate;
+            updatedStep.template = WorkflowTemplates.REMINDER;
+
+            // Reset sender and other fields
+            if (isSMSAction(newAction)) {
+              updatedStep.sender = SENDER_ID;
+              updatedStep.senderName = SENDER_ID;
+            } else if (isWhatsappAction(newAction)) {
+              updatedStep.sender = "";
+              updatedStep.senderName = SENDER_NAME;
+            } else {
+              updatedStep.sender = SENDER_ID;
+              updatedStep.senderName = SENDER_NAME;
+            }
+
+            // Reset sendTo
+            updatedStep.sendTo = null;
+
+            // Reset OTP/verification states
+            const stepIdStr = stepId.toString();
+            setOtpSentForPhone((prev) => ({ ...prev, [stepIdStr]: false }));
+            setOtpSentForEmail((prev) => ({ ...prev, [stepIdStr]: false }));
+            setVerificationCodes((prev) => ({ ...prev, [stepIdStr]: "" }));
+
+            // Set email subject if action is email reminder
+            if (shouldScheduleEmailReminder(newAction)) {
+              updatedStep.emailSubject = emailReminderTemplate({
+                isEditingMode: true,
                 locale: i18n.language,
-                t,
-                template: WorkflowTemplates.REMINDER,
+                action: newAction,
                 timeFormat,
-              });
-              updatedAction.reminderBody = freshTemplate;
-              updatedAction.template = WorkflowTemplates.REMINDER;
+              }).emailSubject;
+            }
 
-              // Reset sender and other fields
-              if (isSMSAction(newAction)) {
-                updatedAction.sender = SENDER_ID;
-                updatedAction.senderName = SENDER_ID;
-              } else if (isWhatsappAction(newAction)) {
-                updatedAction.sender = "";
-                updatedAction.senderName = SENDER_NAME;
-              } else {
-                updatedAction.sender = SENDER_ID;
-                updatedAction.senderName = SENDER_NAME;
-              }
+            // Trigger template update
+            triggerTemplateUpdate(stepId);
+          }
 
-              // Reset sendTo
-              updatedAction.sendTo = null;
+          // Handle template changes
+          if (field === "template") {
+            const newTemplate = value as WorkflowTemplates;
+            const actionType = updatedStep.action;
 
-              // Reset OTP/verification states
-              const stepIdStr = stepId.toString();
-              setOtpSentForPhone((prev) => ({ ...prev, [stepIdStr]: false }));
-              setOtpSentForEmail((prev) => ({ ...prev, [stepIdStr]: false }));
-              setVerificationCodes((prev) => ({ ...prev, [stepIdStr]: "" }));
+            const freshTemplateBody = getTemplateBodyForAction({
+              action: actionType,
+              locale: i18n.language,
+              t,
+              template: newTemplate,
+              timeFormat,
+            });
 
-              // Set email subject if action is email reminder
-              if (shouldScheduleEmailReminder(newAction)) {
-                updatedAction.emailSubject = emailReminderTemplate({
+            // Always replace (prevent duplication)
+            updatedStep.reminderBody = freshTemplateBody;
+
+            // Update email subject depending on template
+            if (shouldScheduleEmailReminder(actionType)) {
+              if (newTemplate === WorkflowTemplates.REMINDER) {
+                updatedStep.emailSubject = emailReminderTemplate({
                   isEditingMode: true,
                   locale: i18n.language,
-                  action: newAction,
+                  action: actionType,
+                  timeFormat,
+                }).emailSubject;
+              } else if (newTemplate === WorkflowTemplates.RATING) {
+                updatedStep.emailSubject = emailRatingTemplate({
+                  isEditingMode: true,
+                  locale: i18n.language,
+                  action: actionType,
+                  timeFormat,
+                }).emailSubject;
+              } else if (newTemplate === WorkflowTemplates.THANKYOU) {
+                updatedStep.emailSubject = emailThankYouTemplate({
+                  isEditingMode: true,
                   timeFormat,
                 }).emailSubject;
               }
-
-              // Trigger template update
-              triggerTemplateUpdate(stepId);
             }
 
-            // Handle template changes
-            if (field === "template") {
-              const newTemplate = value as WorkflowTemplates;
-              const actionType = updatedAction.action;
-
-              const freshTemplateBody = getTemplateBodyForAction({
-                action: actionType,
-                locale: i18n.language,
-                t,
-                template: newTemplate,
-                timeFormat,
-              });
-
-              // Always replace (prevent duplication)
-              updatedAction.reminderBody = freshTemplateBody;
-
-              // Update email subject depending on template
-              if (shouldScheduleEmailReminder(actionType)) {
-                if (newTemplate === WorkflowTemplates.REMINDER) {
-                  updatedAction.emailSubject = emailReminderTemplate({
-                    isEditingMode: true,
-                    locale: i18n.language,
-                    action: actionType,
-                    timeFormat,
-                  }).emailSubject;
-                } else if (newTemplate === WorkflowTemplates.RATING) {
-                  updatedAction.emailSubject = emailRatingTemplate({
-                    isEditingMode: true,
-                    locale: i18n.language,
-                    action: actionType,
-                    timeFormat,
-                  }).emailSubject;
-                } else if (newTemplate === WorkflowTemplates.THANKYOU) {
-                  updatedAction.emailSubject = emailThankYouTemplate({
-                    isEditingMode: true,
-                    timeFormat,
-                  }).emailSubject;
-                }
-              }
-
-              triggerTemplateUpdate(stepId);
-            }
-
-            return updatedAction;
+            triggerTemplateUpdate(stepId);
           }
-          return action;
-        });
 
-        form.setValue("steps", updated);
-        return updated;
+          console.log("Updated_reminderBody:", updatedStep.reminderBody);
+          return updatedStep;
+        }
+        return step;
       });
+
+      form.setValue("steps", updated, { shouldDirty: true });
     },
     [form, i18n.language, t, timeFormat, triggerTemplateUpdate]
   );
@@ -771,14 +767,18 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
   const insertVariable = useCallback(
     (stepId: number, field: string, variable: string) => {
-      const action = actions.find((a) => a.id === stepId);
-      if (action) {
-        const currentValue = (action[field as keyof WorkflowStep] as string) || "";
+      const currentSteps = form.getValues("steps") || [];
+      const stepIndex = currentSteps.findIndex((s) => s.id === stepId);
+
+      if (stepIndex !== -1) {
+        const step = currentSteps[stepIndex];
+        const currentValue = (step[field as keyof WorkflowStep] as string) || "";
         const newValue = `${currentValue}{${variable.toUpperCase().replace(/ /g, "_")}}`;
-        updateAction(stepId, field as keyof WorkflowStep, newValue);
+
+        form.setValue(`steps.${stepIndex}.${field}` as any, newValue, { shouldDirty: true });
       }
     },
-    [actions, updateAction]
+    [form]
   );
 
   const isEmailAction = (action: WorkflowActions) =>
@@ -794,16 +794,23 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     let isEmpty = false;
     let isVerified = true;
 
+    // Get the latest form values - this now has the correct HTML
+    const formValues = form.getValues();
+    const formSteps = formValues.steps || [];
+    console.log(
+      "formSteps_reminderbody",
+      formSteps.map((s) => s.reminderBody)
+    );
     // Validate and prepare steps
-    const steps = actions.map((action, index) => {
-      const step = {
-        ...action,
+    const validatedSteps = formSteps.map((step, index) => {
+      const processedStep = {
+        ...step,
         stepNumber: index + 1,
       };
 
-      // Validation logic
-      const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
-      const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
+      // Validation logic - ONLY for checking, don't modify original
+      const strippedHtml = processedStep.reminderBody?.replace(/<[^>]+>/g, "") || "";
+      const isBodyEmpty = !isSMSOrWhatsappAction(processedStep.action) && strippedHtml.length <= 1;
 
       if (isBodyEmpty) {
         isEmpty = true;
@@ -811,14 +818,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
       }
 
       // Translate variables back to English
-      if (step.reminderBody) {
-        step.reminderBody = translateVariablesToEnglish(step.reminderBody, {
+      if (processedStep.reminderBody) {
+        processedStep.reminderBody = translateVariablesToEnglish(processedStep.reminderBody, {
           locale: i18n.language,
           t,
         });
       }
-      if (step.emailSubject) {
-        step.emailSubject = translateVariablesToEnglish(step.emailSubject, {
+      if (processedStep.emailSubject) {
+        processedStep.emailSubject = translateVariablesToEnglish(processedStep.emailSubject, {
           locale: i18n.language,
           t,
         });
@@ -826,24 +833,24 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
 
       // Check verification for SMS/WhatsApp actions
       if (
-        (step.action === WorkflowActions.SMS_NUMBER || step.action === WorkflowActions.WHATSAPP_NUMBER) &&
-        (!numberVerificationStatus[step.id] &&
-          !verifiedNumbersData?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo))
+        (processedStep.action === WorkflowActions.SMS_NUMBER ||
+          processedStep.action === WorkflowActions.WHATSAPP_NUMBER) &&
+        !numberVerificationStatus[processedStep.id] &&
+        !verifiedNumbersData?.find((verifiedNumber) => verifiedNumber.phoneNumber === processedStep.sendTo)
       ) {
         isVerified = false;
-        console.log("Verified number: ", verifiedNumbersData, "Send to: ", step.sendTo);
         triggerToast(t("not_verified"), "error");
       }
 
       if (
-        step.action === WorkflowActions.EMAIL_ADDRESS &&
-        !verifiedEmailsData?.find((verifiedEmail) => verifiedEmail === step.sendTo)
+        processedStep.action === WorkflowActions.EMAIL_ADDRESS &&
+        !verifiedEmailsData?.find((verifiedEmail) => verifiedEmail === processedStep.sendTo)
       ) {
         isVerified = false;
         triggerToast(t("not_verified"), "error");
       }
 
-      return step;
+      return processedStep;
     });
 
     if (!isEmpty && isVerified && workflowId) {
@@ -857,15 +864,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
         id: workflowId,
         name: workflowName,
         activeOn: activeOnIds,
-        steps,
+        steps: validatedSteps,
         trigger: trigger as WorkflowTriggerEvents,
         time: triggerTiming === "custom" ? parseInt(customTime) || null : null,
         timeUnit: triggerTiming === "custom" ? timeUnit : null,
-        isActiveOnAll: form.getValues("selectAll") || false,
+        isActiveOnAll: formValues.selectAll || false,
       });
     }
   }, [
-    actions,
     selectedOptions,
     workflowName,
     trigger,
@@ -876,6 +882,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     updateMutation,
     verifiedNumbersData,
     verifiedEmailsData,
+    numberVerificationStatus,
     t,
     i18n.language,
     form,
@@ -893,7 +900,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     [sendVerificationCodeMutation]
   );
 
-  // Helper function to verify phone number - Pass phoneNumber to mutation variables
+  // Helper function to verify phone number
   const handleVerifyPhoneNumber = useCallback(
     (step: WorkflowStep) => {
       const stepId = step.id.toString();
@@ -923,7 +930,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
     [sendEmailVerificationCodeMutation]
   );
 
-  // Helper function to verify email -  Pass email to mutation variables
+  // Helper function to verify email
   const handleVerifyEmail = useCallback(
     (step: WorkflowStep) => {
       const stepId = step.id.toString();
@@ -1179,7 +1186,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                   </div>
                 )}
 
-                {/* Actions Section - Enhanced with proper WorkflowStep implementation */}
+                {/* Actions Section */}
                 {showActionsSection && (
                   <div className="animate-slide-in-up">
                     <Card className="animate-slide-in-up">
@@ -1187,7 +1194,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                         <CardTitle>Do this</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        {actions.map((step) => {
+                        {steps.map((step) => {
                           const stepId = step.id.toString();
                           const isNumberVerified = numberVerificationStatus[stepId] || false;
                           const isEmailVerified = emailVerificationStatus[stepId] || false;
@@ -1228,7 +1235,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                       />
                                     </div>
                                     <div className="flex items-center space-x-2">
-                                      {actions.length > 1 && !readOnly && (
+                                      {steps.length > 1 && !readOnly && (
                                         <Button
                                           color="destructive"
                                           size="sm"
@@ -1356,7 +1363,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                                   ...prev,
                                                   [stepId]: isAlreadyVerified,
                                                 }));
-                                                //  Clear OTP sent status when email changes
                                                 setOtpSentForEmail((prev) => ({
                                                   ...prev,
                                                   [stepId]: false,
@@ -1533,8 +1539,13 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                             </div>
                                             <TextArea
                                               rows={2}
-                                              disabled={readOnly}
-                                              className="border-default my-0 rounded-md focus:ring-transparent"
+                                              disabled={
+                                                readOnly || step.template !== WorkflowTemplates.CUSTOM
+                                              }
+                                              className={cn("border-default my-0 rounded-md focus:ring-2", {
+                                                "cursor-not-allowed":
+                                                  readOnly || step.template !== WorkflowTemplates.CUSTOM,
+                                              })}
                                               required
                                               value={step.emailSubject || ""}
                                               onChange={(e) =>
@@ -1551,25 +1562,28 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ template, edit
                                           </Label>
                                         </div>
 
-                                        {/* Enhanced Editor component with template and step-specific key */}
-                                        <div className="rounded-md border">
+                                        <div
+                                          className={cn("rounded-md border", {
+                                            "cursor-not-allowed":
+                                              readOnly || step.template !== WorkflowTemplates.CUSTOM,
+                                          })}>
                                           <Editor
                                             key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
                                             getText={() => step.reminderBody || ""}
                                             setText={(text: string) => {
-                                              updateAction(step.id, "reminderBody", text);
+                                              const stepIndex = steps.findIndex((s) => s.id === step.id);
+                                              if (stepIndex !== -1) {
+                                                console.log("Updating step body:", text);
+                                                form.setValue(`steps.${stepIndex}.reminderBody`, text, {
+                                                  shouldDirty: true,
+                                                  shouldValidate: false,
+                                                });
+                                              }
                                             }}
                                             variables={DYNAMIC_TEXT_VARIABLES}
                                             addVariableButtonTop={isSMSAction(step.action)}
                                             height="200px"
-                                            // updateTemplate={!!stepTemplateUpdate}
-                                            // firstRender={firstRender}
-                                            // setFirstRender={setFirstRender}
-                                            editable={
-                                              !readOnly &&
-                                              !isWhatsappAction(step.action) &&
-                                              (true || isSMSAction(step.action)) // Assume team plan for now
-                                            }
+                                            editable={!readOnly && step.template === WorkflowTemplates.CUSTOM}
                                             excludedToolbarItems={
                                               !isSMSAction(step.action)
                                                 ? []

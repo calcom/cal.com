@@ -1,9 +1,8 @@
 ---
 description: Connect APIs, remarkably fast. Stop writing boilerplate code, struggling with authentication and managing infrastructure. Start connecting APIs with code-level control when you need it — and no code when you don't
 items:
-  - 1.png
-  - 2.png
-  - 3.png
+  - RazorPay1.png
+  - RazorPay2.png
 ---
 
 {DESCRIPTION}
