@@ -59,11 +59,8 @@ export type SessionUser = {
   allowDynamicBooking: boolean;
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   profiles: any[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allSelectedCalendars: any[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userLevelSelectedCalendars: any[];
 };
 
@@ -682,6 +679,12 @@ export class UserRepository {
     return user;
   }
 
+  // Creates a new user record from a team invitation.
+  // This method encapsulates the logic for creating a user, their default schedule (if not platform managed),
+  // and their initial team membership and profile within a single operation.
+  // @param data Object containing all necessary information for user creation, including email, username, language, and team details.
+  // @returns A Promise that resolves to the newly created User object.
+
   async createFromInvitation(data: {
     email: string;
     username: string | null;
@@ -725,18 +728,14 @@ export class UserRepository {
         ...(organizationId && username
           ? {
               profiles: {
-                createMany: {
-                  data: [
-                    {
-                      uid: ProfileRepository.generateProfileUid(),
-                      username: username,
-                      organizationId: organizationId,
-                    },
-                  ],
+                create: {
+                  uid: ProfileRepository.generateProfileUid(),
+                  username: username,
+                  organizationId: organizationId,
                 },
               },
             }
-          : {}),
+         : {}),
         ...(!isPlatformManaged
           ? {
               schedules: {
