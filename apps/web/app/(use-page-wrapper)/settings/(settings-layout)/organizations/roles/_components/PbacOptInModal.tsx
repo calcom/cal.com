@@ -1,12 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+
+import { FingerprintAnimation } from "./FingerprintAnimation";
 
 interface PbacOptInModalProps {
   open: boolean;
@@ -16,15 +20,18 @@ interface PbacOptInModalProps {
 
 export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: PbacOptInModalProps) {
   const router = useRouter();
+  const { t } = useLocale();
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
+
   const enablePbacMutation = trpc.viewer.pbac.enablePbac.useMutation({
     onSuccess: async () => {
-      showToast("Successfully enabled PBAC for your organization", "success");
+      showToast(t("pbac_enabled_success"), "success");
       await revalidateRolesPath();
       onOpenChange(false);
       router.refresh();
     },
     onError: (error) => {
-      showToast(error.message || "Failed to enable PBAC for your organization", "error");
+      showToast(error.message || t("pbac_enabled_error"), "error");
     },
   });
 
@@ -47,44 +54,13 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
               <Icon name="cal" className="text-emphasis h-5 w-20" />
             </div>
 
-            {/* Illustration with User Icons */}
-            <div className="relative flex h-28 w-full items-center justify-center">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                {/* Concentric circles */}
-                <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gray-200 opacity-40" />
-                <div className="absolute left-1/2 top-1/2 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gray-200 opacity-50" />
-                <div className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gray-200 opacity-60" />
-                <div className="absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gray-200 opacity-70" />
-
-                {/* Center logo */}
-                <div className="bg-muted absolute left-1/2 top-1/2 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full">
-                  <Icon name="cal" className="text-emphasis h-4 w-8" />
-                </div>
-
-                {/* User icons positioned around the center */}
-                <div className="bg-muted absolute -right-16 top-5 flex h-7 w-7 items-center justify-center rounded-full shadow-md">
-                  <Icon name="user" className="text-subtle h-4 w-4" />
-                </div>
-                <div className="bg-muted absolute -right-12 -top-12 flex h-7 w-7 items-center justify-center rounded-full shadow-md">
-                  <Icon name="user" className="text-subtle h-4 w-4" />
-                </div>
-                <div className="bg-muted absolute -right-12 bottom-0 flex h-7 w-7 items-center justify-center rounded-full shadow-md">
-                  <Icon name="user" className="text-subtle h-4 w-4" />
-                </div>
-                <div className="bg-muted absolute -left-20 top-1 flex h-7 w-7 items-center justify-center rounded-full shadow-md">
-                  <Icon name="user" className="text-subtle h-4 w-4" />
-                </div>
-              </div>
-            </div>
+            {/* Illustration - Fingerprint style */}
+            <FingerprintAnimation isHovered={isButtonHovered} />
 
             {/* Title and Description */}
             <div className="flex w-full flex-col items-center gap-1 text-center">
-              <h2 className="font-cal text-emphasis text-xl font-semibold">
-                Enable PBAC for your organization
-              </h2>
-              <p className="text-default text-sm">
-                We're excited to announce PBAC, a fully customisable role solution for your members.
-              </p>
+              <h2 className="font-cal text-emphasis text-xl font-semibold">{t("pbac_opt_in_title")}</h2>
+              <p className="text-default text-sm">{t("pbac_opt_in_description")}</p>
             </div>
           </div>
 
@@ -95,8 +71,8 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
                 <Icon name="shield-check" className="text-subtle h-5 w-5" />
               </div>
               <div className="flex flex-col gap-1">
-                <p className="text-emphasis text-sm font-semibold">Custom roles</p>
-                <p className="text-subtle text-sm">Create roles tailored to your organization's needs</p>
+                <p className="text-emphasis text-sm font-semibold">{t("pbac_opt_in_custom_roles_title")}</p>
+                <p className="text-subtle text-sm">{t("pbac_opt_in_custom_roles_desc")}</p>
               </div>
             </div>
 
@@ -105,10 +81,10 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
                 <Icon name="lock" className="text-subtle h-5 w-5" />
               </div>
               <div className="flex flex-col gap-1">
-                <p className="text-emphasis text-sm font-semibold">Granular permissions</p>
-                <p className="text-subtle text-sm">
-                  Define precise access controls for different resources
+                <p className="text-emphasis text-sm font-semibold">
+                  {t("pbac_opt_in_granular_permissions_title")}
                 </p>
+                <p className="text-subtle text-sm">{t("pbac_opt_in_granular_permissions_desc")}</p>
               </div>
             </div>
 
@@ -117,10 +93,10 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
                 <Icon name="users" className="text-subtle h-5 w-5" />
               </div>
               <div className="flex flex-col gap-1">
-                <p className="text-emphasis text-sm font-semibold">Team member assignment</p>
-                <p className="text-subtle text-sm">
-                  Assign roles to team members for better access control
+                <p className="text-emphasis text-sm font-semibold">
+                  {t("pbac_opt_in_team_assignment_title")}
                 </p>
+                <p className="text-subtle text-sm">{t("pbac_opt_in_team_assignment_desc")}</p>
               </div>
             </div>
 
@@ -129,8 +105,10 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
                 <Icon name="shield" className="text-subtle h-5 w-5" />
               </div>
               <div className="flex flex-col gap-1">
-                <p className="text-emphasis text-sm font-semibold">Enhanced security</p>
-                <p className="text-subtle text-sm">Manage organization-wide security settings</p>
+                <p className="text-emphasis text-sm font-semibold">
+                  {t("pbac_opt_in_enhanced_security_title")}
+                </p>
+                <p className="text-subtle text-sm">{t("pbac_opt_in_enhanced_security_desc")}</p>
               </div>
             </div>
           </div>
@@ -141,8 +119,10 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
               onClick={handleOptIn}
               loading={enablePbacMutation.isPending}
               className="w-full"
-              EndIcon="arrow-right">
-              Enable PBAC
+              EndIcon="arrow-right"
+              onMouseEnter={() => setIsButtonHovered(true)}
+              onMouseLeave={() => setIsButtonHovered(false)}>
+              {t("pbac_opt_in_enable_button")}
             </Button>
           </div>
         </div>
