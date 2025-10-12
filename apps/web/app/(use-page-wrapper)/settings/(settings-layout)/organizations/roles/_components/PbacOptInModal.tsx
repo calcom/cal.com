@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -65,7 +65,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
           </div>
 
           {/* Benefits List */}
-          <div className="bg-subtle w-full space-y-px rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-subtle w-full space-y-px overflow-hidden rounded-xl border border-gray-200">
             <div className="bg-default flex gap-3 p-3">
               <div className="bg-subtle flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
                 <Icon name="shield-check" className="text-subtle h-5 w-5" />
@@ -118,7 +118,7 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
             <Button
               onClick={handleOptIn}
               loading={enablePbacMutation.isPending}
-              className="w-full"
+              className="w-full justify-center"
               EndIcon="arrow-right"
               onMouseEnter={() => setIsButtonHovered(true)}
               onMouseLeave={() => setIsButtonHovered(false)}>
