@@ -243,12 +243,12 @@ const useTabs = ({
               href: "/settings/organizations/billing",
             });
           }
-          // Show opt-in page for orgs without PBAC enabled
+          // Show roles page (modal will appear if PBAC not enabled)
           if (permissions?.canUpdateOrganization) {
             newArray.push({
               name: "roles",
-              href: "/settings/organizations/roles/opt-in",
-              isBadged: true, // Show "New" badge for opt-in
+              href: "/settings/organizations/roles",
+              isBadged: true, // Show "New" badge
             });
           }
         }

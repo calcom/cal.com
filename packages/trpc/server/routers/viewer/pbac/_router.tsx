@@ -173,6 +173,7 @@ export const permissionsRouter = router({
     .input(
       z.object({
         teamId: z.number(),
+        includeSystemRolesOnly: z.boolean().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -182,6 +183,14 @@ export const permissionsRouter = router({
 
       const featureRepo = new FeaturesRepository(prisma);
       const teamHasPBACFeature = await featureRepo.checkIfTeamHasFeature(input.teamId, "pbac");
+
+      // If PBAC is not enabled but caller wants system roles only (for preview), allow it
+      if (!teamHasPBACFeature && input.includeSystemRolesOnly) {
+        const roleService = new RoleService();
+        const allRoles = await roleService.getTeamRoles(input.teamId);
+        // Filter to only return system roles for preview
+        return allRoles.filter((role) => role.type === "SYSTEM");
+      }
 
       if (!teamHasPBACFeature) {
         throw new Error("PBAC is not enabled for this team");
