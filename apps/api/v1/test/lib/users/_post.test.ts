@@ -9,7 +9,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
+import { UserCreationService } from "@calcom/features/users/services/userCreationService";
 import type { User } from "@calcom/prisma/client";
 
 import handler from "../../../pages/api/users/_post";
@@ -32,7 +32,7 @@ vi.mock("@calcom/lib/server/checkUsername", () => ({
   }),
 }));
 
-vi.mock("@calcom/lib/server/service/userCreationService", () => ({
+vi.mock("@calcom/features/users/services/userCreationService", () => ({
   UserCreationService: {
     createUser: vi.fn(),
   },
