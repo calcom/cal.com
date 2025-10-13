@@ -17,7 +17,7 @@ function ImpersonatingBanner({ data }: ImpersonatingBannerProps) {
   return (
     <>
       <TopBanner
-        text={t("impersonating_user_warning", { user: data.user.username })}
+        text={t("impersonating_user_warning", { user: data.user.orgAwareUsername || data.user.username })}
         variant="warning"
         actions={
           canReturnToSelf ? (

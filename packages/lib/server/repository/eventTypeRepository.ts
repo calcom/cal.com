@@ -1422,4 +1422,68 @@ export class EventTypeRepository {
       },
     });
   }
+
+  async findEventTypesWithoutChildren(eventTypeIds: number[], teamId?: number | null) {
+    return await this.prismaClient.eventType.findMany({
+      where: {
+        id: {
+          in: eventTypeIds,
+        },
+        ...(teamId && { parentId: null }),
+      },
+      select: {
+        id: true,
+        children: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findAllIncludingChildrenByUserId({ userId }: { userId: number | null }) {
+    if (userId === null) {
+      return [];
+    }
+    return await this.prismaClient.eventType.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        id: true,
+        children: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findAllIncludingChildrenByTeamId({ teamId }: { teamId: number }) {
+    return await this.prismaClient.eventType.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+        children: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+  async getTeamIdByEventTypeId({ id }: { id: number }) {
+    return await this.prismaClient.eventType.findFirst({
+      where: {
+        id,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+  }
 }
