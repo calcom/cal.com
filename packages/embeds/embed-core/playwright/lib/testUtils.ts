@@ -234,8 +234,6 @@ export async function expectActualFormResponseConnectedToQueuedFormResponse({
 }
 
 export async function cancelBookingThroughEmbed(bookingUid: string, frame: Frame, page: Page) {
-  await frame.goto(`/booking/${bookingUid}?cancel=true`);
-  
   await frame.waitForSelector('[data-testid="cancel_reason"]');
   
   await frame.fill('[data-testid="cancel_reason"]', "Test cancellation from embed");

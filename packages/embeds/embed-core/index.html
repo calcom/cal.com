@@ -17,7 +17,7 @@
       (function defineVariables() {
         const searchParams = new URL(document.URL).searchParams;
         popupRescheduleUid = searchParams.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
-        popupCancelUid = searchParams.get("popupCancelUid");
+        popupCancelUid = popupRescheduleUid;
         calLink = searchParams.get("calLink");
       })()
       
@@ -297,7 +297,7 @@
         <h2>Popup Examples - Cancel Tests</h2>
         <script>
           document.write(
-            `<button data-cal-namespace="popupCancelBooking" data-cal-config='{"flag.coep":"true"}' data-cal-link="booking/\${popupCancelUid || 'test-booking-uid'}">Cancel Booking - Needs popupCancelUid param</button>`
+            `<button data-cal-namespace="popupCancelBooking" data-cal-config='{"flag.coep":"true"}' data-cal-link="booking/${popupCancelUid}?cancel=true">Cancel Booking - Needs popupCancelUid param</button>`
           );
         </script>
         <h2>Popup Examples - Different Configurations</h2>
