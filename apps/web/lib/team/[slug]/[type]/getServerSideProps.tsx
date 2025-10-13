@@ -7,8 +7,8 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";

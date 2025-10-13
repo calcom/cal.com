@@ -4,9 +4,11 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
+import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { MembershipSchema } from "@calcom/prisma/zod/modelSchema/MembershipSchema";
 import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
@@ -53,6 +55,19 @@ async function handler(request: NextRequest) {
       },
       include: { members: true },
     });
+
+    if (checkoutSessionSubscription) {
+      const internalBillingService = new InternalTeamBilling(finalizedTeam);
+      await internalBillingService.saveTeamBilling({
+        teamId: finalizedTeam.id,
+        subscriptionId: checkoutSessionSubscription.id,
+        subscriptionItemId: checkoutSessionSubscription.items.data[0].id,
+        customerId: checkoutSessionSubscription.customer as string,
+        // TODO: Implement true subscription status when webhook events are implemented
+        status: SubscriptionStatus.ACTIVE,
+        planName: Plan.TEAM,
+      });
+    }
 
     const response = {
       message: `Team created successfully. We also made user with ID=${checkoutSessionMetadata.ownerId} the owner of this team.`,

@@ -1,14 +1,14 @@
-// eslint-disable-next-line
+ 
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";

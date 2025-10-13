@@ -9,6 +9,8 @@ import {
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
@@ -16,9 +18,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";

@@ -1,3 +1,4 @@
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
@@ -6,15 +7,14 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -220,6 +220,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
       name: booking.user?.name || "Nameless",
       username: booking.user?.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: booking.user?.timeZone || "Europe/London",
       timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
@@ -238,7 +239,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
-    team: !!booking.eventType?.team
+    team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
           id: booking.eventType.team.id,
@@ -325,7 +326,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     } else {
       // handle refunds
-      if (!!booking.payment.length) {
+      if (booking.payment.length) {
         await processPaymentRefund({
           booking: booking,
           teamId: booking.eventType?.teamId,

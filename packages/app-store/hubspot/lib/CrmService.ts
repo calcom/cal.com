@@ -7,9 +7,9 @@ import type {
   SimplePublicObjectInput,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
+import getLabelValueMapFromResponses from "@calcom/features/bookings/lib/getLabelValueMapFromResponses";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -204,7 +204,7 @@ export default class HubspotCalendarService implements CRM {
     return await this.handleMeetingCreation(event, contacts);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     const auth = await this.auth;
     await auth.getToken();

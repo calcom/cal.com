@@ -76,7 +76,8 @@ export type ScheduleTextReminderAction = Extract<
   WorkflowActions,
   "SMS_ATTENDEE" | "SMS_NUMBER" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
 >;
-export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
+
+export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   reminderPhone: string | null;
   message: string;
   action: ScheduleTextReminderAction;
@@ -85,9 +86,8 @@ export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
   verifiedAt: Date | null;
-}
-
-export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
+};
+export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     reminderPhone,
@@ -135,7 +135,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         phoneNumber: reminderPhone || "",
       },
     });
-    if (!!verifiedNumber) return true;
+    if (verifiedNumber) return true;
     return isVerificationPending;
   }
   const isNumberVerified = await getIsNumberVerified();

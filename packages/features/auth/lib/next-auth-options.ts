@@ -15,7 +15,10 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import {
@@ -34,9 +37,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { Membership, Team } from "@calcom/prisma/client";
@@ -517,7 +517,6 @@ export const getOptions = ({
       }
       const autoMergeIdentities = async () => {
         const existingUser = await prisma.user.findFirst({
-           
           where: { email: token.email! },
           select: {
             id: true,

@@ -6,10 +6,10 @@ import {
 import { describe, test, expect, beforeEach } from "vitest";
 
 import { PrismaAppRepository } from "@calcom/features/apps/repository/PrismaAppRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 const testUser = {

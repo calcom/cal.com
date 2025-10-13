@@ -3,19 +3,19 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { shallow } from "zustand/shallow";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
+import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -171,9 +171,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
 
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const [rescheduleUid, setRescheduleUid] = useBookerStoreContext(
+    (state) => [state.rescheduleUid, state.setRescheduleUid],
+    shallow
+  );
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
-  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const [bookingData, setBookingData] = useBookerStoreContext(
+    (state) => [state.bookingData, state.setBookingData],
+    shallow
+  );
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
@@ -377,16 +383,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       };
 
       if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
-        useBookerStore.setState({
-          rescheduleUid: error.data?.rescheduleUid,
-        });
-        useBookerStore.setState({
-          bookingData: {
-            uid: error.data?.rescheduleUid,
-            startTime: error.data?.startTime,
-            attendees: error.data?.attendees,
-          } as unknown as GetBookingType,
-        });
+        setRescheduleUid(error.data?.rescheduleUid);
+        setBookingData({
+          uid: error.data?.rescheduleUid,
+          startTime: error.data?.startTime,
+          attendees: error.data?.attendees,
+        } as unknown as GetBookingType);
       }
     },
   });

@@ -1,4 +1,4 @@
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";

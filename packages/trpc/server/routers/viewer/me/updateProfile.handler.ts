@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
@@ -7,11 +7,11 @@ import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyE
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
@@ -312,7 +312,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           username: updatedUser.username ?? "Nameless User",
           emailFrom: user.email,
           // We know email has been changed here so we can use input
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           emailTo: input.email!,
         },
       });
