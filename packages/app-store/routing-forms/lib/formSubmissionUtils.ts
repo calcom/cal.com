@@ -222,6 +222,7 @@ export async function _onFormSubmission(
 
       await WorkflowService.scheduleFormWorkflows({
         workflows,
+        responseId,
         responses: fieldResponsesByIdentifier,
         form: {
           ...form,
