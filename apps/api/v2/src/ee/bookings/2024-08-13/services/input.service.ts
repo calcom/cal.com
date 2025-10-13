@@ -817,7 +817,7 @@ export class InputBookingsService_2024_08_13 {
     // for an individual person, so api users need to call booking by booking using uid + seatUid to cancel it.
     return {
       uid: bookingUid,
-      cancellationReason: "",
+      cancellationReason: inputBooking.cancellationReason || "",
       allRemainingBookings: false,
       seatReferenceUid: inputBooking.seatUid,
     };

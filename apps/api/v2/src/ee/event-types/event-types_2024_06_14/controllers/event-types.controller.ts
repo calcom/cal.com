@@ -61,7 +61,7 @@ import {
 @DocsTags("Event Types")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to ${VERSION_2024_06_14}`,
+  description: `Must be set to ${VERSION_2024_06_14}. If not set to this value, the endpoint will default to an older version.`,
   example: VERSION_2024_06_14,
   required: true,
   schema: {
@@ -80,7 +80,10 @@ export class EventTypesController_2024_06_14 {
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({ summary: "Create an event type" })
+  @ApiOperation({
+    summary: "Create an event type",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async createEventType(
     @Body() body: CreateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
@@ -102,7 +105,10 @@ export class EventTypesController_2024_06_14 {
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({ summary: "Get an event type" })
+  @ApiOperation({
+    summary: "Get an event type",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async getEventTypeById(
     @Param("eventTypeId") eventTypeId: string,
     @GetUser() user: UserWithProfile
@@ -122,8 +128,10 @@ export class EventTypesController_2024_06_14 {
   @Get("/")
   @ApiOperation({
     summary: "Get all event types",
-    description:
-      "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.",
+    description: `Hidden event types are returned only if authentication is provided and it belongs to the event type owner.
+      
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+      `,
   })
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
@@ -149,7 +157,10 @@ export class EventTypesController_2024_06_14 {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update an event type" })
+  @ApiOperation({
+    summary: "Update an event type",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async updateEventType(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Body() body: UpdateEventTypeInput_2024_06_14,
@@ -173,7 +184,10 @@ export class EventTypesController_2024_06_14 {
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
-  @ApiOperation({ summary: "Delete an event type" })
+  @ApiOperation({
+    summary: "Delete an event type",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async deleteEventType(
     @Param("eventTypeId") eventTypeId: number,
     @GetUser("id") userId: number
