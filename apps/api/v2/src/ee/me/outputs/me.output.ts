@@ -24,7 +24,7 @@ export class MeOutput {
   email!: string;
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({ type: String, nullable: true })
   name!: string;
 
   @IsInt()
