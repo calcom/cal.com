@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { PbacOptInModal } from "./PbacOptInModal";
 import { RolesList } from "./RolesList";
@@ -30,18 +31,14 @@ interface PbacOptInViewProps {
 }
 
 export function PbacOptInView({ revalidateRolesPath, systemRoles, teamId }: PbacOptInViewProps) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    // Open the modal when this component is rendered
-    setOpen(true);
-  }, []);
+  const [open, setOpen] = useState(true);
+  const { t } = useLocale();
 
   return (
     <>
       <SettingsHeader
-        title="Roles & Permissions"
-        description="Manage roles and permissions for your organization"
+        title={t("roles_and_permissions")}
+        description={t("roles_and_permissions_description")}
         borderInShellHeader={false}
         CTA={null}>
         <RolesList
