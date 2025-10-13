@@ -219,6 +219,7 @@ export const Components: Record<FieldType, Component> = {
           type="email"
           id={props.name}
           noLabel={true}
+          autoComplete="email"
           {...props}
           onChange={(e) => props.setValue(e.target.value)}
         />
@@ -551,7 +552,7 @@ export const Components: Record<FieldType, Component> = {
   url: {
     propsType: propsTypes.url,
     factory: (props) => {
-      return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
+      return <Widgets.TextWidget type="url" autoComplete="url" noLabel={true} {...props} />;
     },
   },
 } as const;
