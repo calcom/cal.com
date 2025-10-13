@@ -12,13 +12,14 @@ export const RESCHEDULE_EVENT = "rescheduleEvent";
 export const AFTER_HOSTS_CAL_VIDEO_NO_SHOW = "afterHostsCalVideoNoShow";
 export const AFTER_GUESTS_CAL_VIDEO_NO_SHOW = "afterGuestsCalVideoNoShow";
 export const FORM_SUBMITTED = "formSubmitted";
+export const FORM_SUBMITTED_NO_EVENT = "formSubmittedNoEvent";
 export const BOOKING_REJECTED = "bookingRejected";
 export const BOOKING_REQUESTED = "bookingRequested";
 export const BOOKING_PAYMENT_INITIATED = "bookingPaymentInitiated";
 export const BOOKING_PAID = "bookingPaid";
 export const BOOKING_NO_SHOW_UPDATED = "bookingNoShowUpdated";
 
-export const FORM_WORKFLOW_TRIGGER_TYPES = [FORM_SUBMITTED] as const;
+export const FORM_WORKFLOW_TRIGGER_TYPES = [FORM_SUBMITTED, FORM_SUBMITTED_NO_EVENT] as const;
 
 export const EVENT_TYPE_WORKFLOW_TRIGGER_TYPES = [
   BEFORE_EVENT,
@@ -44,6 +45,7 @@ export const WORKFLOW_TRIGGER_TYPES = [
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   FORM_SUBMITTED,
+  FORM_SUBMITTED_NO_EVENT,
   BOOKING_REJECTED,
   BOOKING_REQUESTED,
   BOOKING_PAYMENT_INITIATED,
@@ -60,12 +62,26 @@ export const WORKFLOW_TRIGGER_TO_ENUM = {
   [AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   [AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   [FORM_SUBMITTED]: WorkflowTriggerEvents.FORM_SUBMITTED,
+  [FORM_SUBMITTED_NO_EVENT]: WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
   [BOOKING_REJECTED]: WorkflowTriggerEvents.BOOKING_REJECTED,
   [BOOKING_REQUESTED]: WorkflowTriggerEvents.BOOKING_REQUESTED,
   [BOOKING_PAYMENT_INITIATED]: WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED,
   [BOOKING_NO_SHOW_UPDATED]: WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED,
   [BOOKING_PAID]: WorkflowTriggerEvents.BOOKING_PAID,
 } as const;
+
+export const ENUM_ROUTING_FORM_WORFLOW_TRIGGERS = [
+  WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED_NO_EVENT],
+  WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED],
+];
+
+export const ENUM_OFFSET_WORFLOW_TRIGGERS = [
+  WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED_NO_EVENT],
+  WORKFLOW_TRIGGER_TO_ENUM[BEFORE_EVENT],
+  WORKFLOW_TRIGGER_TO_ENUM[AFTER_EVENT],
+  WORKFLOW_TRIGGER_TO_ENUM[AFTER_GUESTS_CAL_VIDEO_NO_SHOW],
+  WORKFLOW_TRIGGER_TO_ENUM[AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
+];
 
 export const ENUM_TO_WORKFLOW_TRIGGER = {
   [WorkflowTriggerEvents.BEFORE_EVENT]: BEFORE_EVENT,
@@ -76,6 +92,7 @@ export const ENUM_TO_WORKFLOW_TRIGGER = {
   [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
   [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   [WorkflowTriggerEvents.FORM_SUBMITTED]: FORM_SUBMITTED,
+  [WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT]: FORM_SUBMITTED_NO_EVENT,
   [WorkflowTriggerEvents.BOOKING_REJECTED]: BOOKING_REJECTED,
   [WorkflowTriggerEvents.BOOKING_REQUESTED]: BOOKING_REQUESTED,
   [WorkflowTriggerEvents.BOOKING_PAYMENT_INITIATED]: BOOKING_PAYMENT_INITIATED,
@@ -205,7 +222,8 @@ export class OnNoShowUpdateTriggerDto {
 
 export class TriggerOffsetDTO {
   @ApiProperty({
-    description: "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+    description:
+      "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
     type: WorkflowTriggerOffsetDto,
   })
   @ValidateNested()
@@ -261,3 +279,22 @@ export class OnFormSubmittedTriggerDto {
   @IsIn([FORM_SUBMITTED])
   type: typeof FORM_SUBMITTED = FORM_SUBMITTED;
 }
+
+export class OnFormSubmittedNoEventTriggerDto extends TriggerOffsetDTO {
+  @ApiProperty({
+    description: "Trigger type for the workflow",
+    example: FORM_SUBMITTED_NO_EVENT,
+  })
+  @IsString()
+  @IsIn([FORM_SUBMITTED_NO_EVENT])
+  type: typeof FORM_SUBMITTED_NO_EVENT = FORM_SUBMITTED_NO_EVENT;
+}
+
+export const OffsetTriggerDTOInstances = [
+  OnFormSubmittedNoEventTriggerDto,
+  OnBeforeEventTriggerDto,
+  OnAfterEventTriggerDto,
+  OnAfterCalVideoGuestsNoShowTriggerDto,
+  OnAfterEventTriggerDto,
+];
+export type OffsetTriggerDTOInstancesType = InstanceType<(typeof OffsetTriggerDTOInstances)[number]>;
