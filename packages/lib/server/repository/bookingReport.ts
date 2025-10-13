@@ -9,7 +9,7 @@ import type {
 export class PrismaBookingReportRepository implements IBookingReportRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
-  async createReport(input: CreateBookingReportInput): Promise<{ bookingUid: string }> {
+  async createReport(input: CreateBookingReportInput): Promise<{ id: string }> {
     const report = await this.prismaClient.bookingReport.create({
       data: {
         bookingUid: input.bookingUid,

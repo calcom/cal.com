@@ -1,8 +1,8 @@
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import logger from "@calcom/lib/logger";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { BookingAccessService } from "@calcom/lib/server/service/bookingAccessService";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -59,7 +59,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
       recurringEventId: booking.recurringEventId,
       fromDate: booking.startTime,
     });
-    reportedBookingUids = remainingBookings.map((b) => b.uid);
+    reportedBookingUids = remainingBookings.map((b: { uid: string }) => b.uid);
   }
 
   let cancellationError: unknown = null;
@@ -74,7 +74,10 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   if (isUpcoming) {
     cancellationAttempted = true;
     try {
-      const userSeat = booking.seatsReferences.find((seat) => seat.attendee?.email.trim().toLowerCase() === user.email.trim().toLowerCase());
+      const userSeat = booking.seatsReferences.find(
+        (seat: { attendee?: { email: string }; referenceUid?: string }) =>
+          seat.attendee?.email.trim().toLowerCase() === user.email.trim().toLowerCase()
+      );
       const seatReferenceUid = userSeat?.referenceUid;
 
       await handleCancelBooking({
