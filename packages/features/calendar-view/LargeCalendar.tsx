@@ -40,7 +40,7 @@ export const LargeCalendar = ({
     .toDate();
 
   const { data: upcomingBookings } = useBookings({
-    take: 50,
+    take: 150,
     skip: 0,
     status: ["upcoming", "past", "recurring"],
     eventTypeId: event?.data?.id,
