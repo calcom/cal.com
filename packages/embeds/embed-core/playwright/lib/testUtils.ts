@@ -111,7 +111,7 @@ export const ensureEmbedIframe = async ({
   return embedIframe;
 };
 
-async function selectFirstAvailableTimeSlotNextMonth(frame: Frame, page: Page) {
+async function selectFirstAvailableTimeSlotNextMonth(frame: Frame) {
   await frame.click('[data-testid="incrementMonth"]');
 
   // @TODO: Find a better way to make test wait for full month change render to end
@@ -153,7 +153,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
 
 export async function bookEvent({ frame, page }: { frame: Frame; page: Page }) {
   const eventSlug = new URL(frame.url()).pathname.replace(/\/embed$/, "");
-  await selectFirstAvailableTimeSlotNextMonth(frame, page);
+  await selectFirstAvailableTimeSlotNextMonth(frame);
   // expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
   // --- fill form
   await frame.fill('[name="name"]', "Embed User");
@@ -168,7 +168,7 @@ export async function bookEvent({ frame, page }: { frame: Frame; page: Page }) {
 }
 
 export async function rescheduleEvent(username: string, frame: Frame, page: Page) {
-  await selectFirstAvailableTimeSlotNextMonth(frame, page);
+  await selectFirstAvailableTimeSlotNextMonth(frame);
   // --- fill form
   await frame.press('[name="email"]', "Enter");
   const responsePromise = page.waitForResponse("**/api/book/event");
