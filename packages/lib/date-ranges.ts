@@ -67,11 +67,13 @@ export function processWorkingHours(
 
     let end = dateInTz.add(item.endTime.getUTCHours(), "hours").add(item.endTime.getUTCMinutes(), "minutes");
 
-    const offsetBeginningOfDay = dayjs(start.format("YYYY-MM-DD hh:mm")).tz(adjustedTimezone).utcOffset();
-    const offsetDiff = start.utcOffset() - offsetBeginningOfDay; // there will be 60 min offset on the day day of DST change
-
-    start = start.add(offsetDiff, "minute");
-    end = end.add(offsetDiff, "minute");
+    // Align to local midnight offset; covers DST transitions without hardcoding dates
+    const tzMidnight = start.clone().startOf("day");
+    const offsetDiff = start.utcOffset() - tzMidnight.utcOffset();
+    if (offsetDiff !== 0) {
+      start = start.add(offsetDiff, "minute");
+      end = end.add(offsetDiff, "minute");
+    }
 
     const startResult = dayjs.max(start, dateFrom);
     let endResult = dayjs.min(end, dateTo.tz(adjustedTimezone));

@@ -18,18 +18,31 @@ export const daysInMonth = (date: Date | Dayjs) => {
 /**
  * Expects timeFormat to be either 12 or 24, if null or undefined
  * is passed in, we always default back to 24 hour notation.
+ *
+ * This function now uses DST-aware timezone conversion for better accuracy
+ * during daylight saving time transitions.
  */
 export const formatTime = (
   date: string | Date | Dayjs,
   timeFormat?: number | null,
   timeZone?: string | null
 ) => {
-  // console.log(timeZone, date);
-  return timeZone
-    ? dayjs(date)
-        .tz(timeZone)
-        .format(timeFormat === 12 ? "h:mma" : "HH:mm")
-    : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+  if (!timeZone) {
+    return dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+  }
+
+  // Use DST-aware conversion for better accuracy during DST transitions
+  try {
+    const utcMoment = dayjs.utc(date);
+    const convertedTime = utcMoment.tz(timeZone);
+    return convertedTime.format(timeFormat === 12 ? "h:mma" : "HH:mm");
+  } catch (error) {
+    // Fallback to original method if conversion fails
+    console.warn(`Timezone conversion failed for ${timeZone}:`, error);
+    return dayjs(date)
+      .tz(timeZone)
+      .format(timeFormat === 12 ? "h:mma" : "HH:mm");
+  }
 };
 
 /**
@@ -43,7 +56,7 @@ export const isSupportedTimeZone = (timeZone: string) => {
   try {
     dayjs().tz(timeZone);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };

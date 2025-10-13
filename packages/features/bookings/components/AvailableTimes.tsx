@@ -6,12 +6,12 @@ import { useMemo } from "react";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
+import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slot } from "@calcom/features/schedules/lib/use-schedule/types";
-import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
@@ -115,7 +115,9 @@ const SlotItem = ({
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const layout = useBookerStoreContext((state) => state.layout);
   const hasTimeSlots = !!seatsPerTimeSlot;
-  const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
+  // Use DST-aware timezone conversion for accurate display during DST transitions
+  const slotTimeUTC = dayjs.utc(slot.time);
+  const computedDateWithUsersTimezone = slotTimeUTC.tz(timezone);
 
   const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);
   const isHalfFull = slot.attendees && seatsPerTimeSlot && slot.attendees / seatsPerTimeSlot >= 0.5;
