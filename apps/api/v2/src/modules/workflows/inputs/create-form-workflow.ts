@@ -13,7 +13,9 @@ import {
 import {
   RoutingFormWorkflowTriggerDto,
   FORM_SUBMITTED,
+  FORM_SUBMITTED_NO_EVENT,
   FORM_WORKFLOW_TRIGGER_TYPES,
+  OnFormSubmittedNoEventTriggerDto,
   OnFormSubmittedTriggerDto,
 } from "./workflow-trigger.input";
 
@@ -39,6 +41,7 @@ export class WorkflowFormActivationDto {
 
 @ApiExtraModels(
   OnFormSubmittedTriggerDto,
+  OnFormSubmittedNoEventTriggerDto,
   WorkflowEmailAddressStepDto,
   WorkflowEmailAttendeeStepDto,
   RoutingFormWorkflowTriggerDto,
@@ -59,17 +62,23 @@ export class CreateFormWorkflowDto {
 
   @ApiProperty({
     description: `Trigger configuration for the routing-form workflow, allowed triggers are ${FORM_WORKFLOW_TRIGGER_TYPES.toString()}`,
-    oneOf: [{ $ref: getSchemaPath(OnFormSubmittedTriggerDto) }],
+    oneOf: [
+      { $ref: getSchemaPath(OnFormSubmittedTriggerDto) },
+      { $ref: getSchemaPath(OnFormSubmittedNoEventTriggerDto) },
+    ],
   })
   @ValidateNested()
   @Type(() => RoutingFormWorkflowTriggerDto, {
     keepDiscriminatorProperty: true,
     discriminator: {
       property: "type",
-      subTypes: [{ value: OnFormSubmittedTriggerDto, name: FORM_SUBMITTED }],
+      subTypes: [
+        { value: OnFormSubmittedTriggerDto, name: FORM_SUBMITTED },
+        { value: OnFormSubmittedNoEventTriggerDto, name: FORM_SUBMITTED_NO_EVENT },
+      ],
     },
   })
-  trigger!: OnFormSubmittedTriggerDto;
+  trigger!: OnFormSubmittedTriggerDto | OnFormSubmittedNoEventTriggerDto;
 
   @ApiProperty({
     description: `Steps to execute as part of the routing-form workflow, allowed steps are ${FORM_ALLOWED_STEP_ACTIONS.toString()}`,

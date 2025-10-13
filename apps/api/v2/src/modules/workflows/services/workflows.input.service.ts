@@ -21,8 +21,8 @@ import {
   WHATSAPP_NUMBER,
 } from "../inputs/workflow-step.input";
 import {
-  OnAfterEventTriggerDto,
-  OnBeforeEventTriggerDto,
+  OffsetTriggerDTOInstances,
+  OffsetTriggerDTOInstancesType,
   TIME_UNIT_TO_ENUM,
   WORKFLOW_TRIGGER_TO_ENUM,
 } from "../inputs/workflow-trigger.input";
@@ -30,6 +30,12 @@ import {
 @Injectable()
 export class WorkflowsInputService {
   constructor(private readonly teamsVerifiedResourcesRepository: TeamsVerifiedResourcesRepository) {}
+
+  private _isOffsetTrigger(
+    trigger: UpdateEventTypeWorkflowDto["trigger"] | UpdateFormWorkflowDto["trigger"]
+  ): trigger is OffsetTriggerDTOInstancesType {
+    return OffsetTriggerDTOInstances.some((Instance) => trigger instanceof Instance);
+  }
 
   private async _getTeamPhoneNumberFromVerifiedId(teamId: number, verifiedPhoneId: number) {
     const phoneResource = await this.teamsVerifiedResourcesRepository.getTeamVerifiedPhoneNumberById(
@@ -135,17 +141,13 @@ export class WorkflowsInputService {
       ? WORKFLOW_TRIGGER_TO_ENUM[updateDto?.trigger?.type]
       : currentData.trigger;
 
-    const timeUnitForZod =
-      updateDto.trigger instanceof OnBeforeEventTriggerDto ||
-      updateDto.trigger instanceof OnAfterEventTriggerDto
-        ? updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null
-        : undefined;
+    const timeUnitForZod = this._isOffsetTrigger(updateDto.trigger)
+      ? updateDto?.trigger?.offset?.unit ?? currentData.timeUnit ?? null
+      : undefined;
 
-    const time =
-      updateDto.trigger instanceof OnBeforeEventTriggerDto ||
-      updateDto.trigger instanceof OnAfterEventTriggerDto
-        ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
-        : null;
+    const time = this._isOffsetTrigger(updateDto.trigger)
+      ? updateDto?.trigger?.offset?.value ?? currentData?.time ?? null
+      : null;
 
     const timeUnit = timeUnitForZod ? TIME_UNIT_TO_ENUM[timeUnitForZod] : null;
 

@@ -9,7 +9,7 @@ import {
 import { sendOrScheduleWorkflowEmails } from "@calcom/features/ee/workflows/lib/reminders/providers/emailProvider";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
-import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook";
+import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
