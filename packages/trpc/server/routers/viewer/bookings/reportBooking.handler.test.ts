@@ -42,7 +42,7 @@ describe("reportBookingHandler", () => {
   };
 
   const mockBookingRepo = {
-    findByIdIncludeReport: vi.fn(),
+    findByUidIncludeReport: vi.fn(),
     getActiveRecurringBookingsFromDate: vi.fn(),
   };
 
@@ -94,7 +94,7 @@ describe("reportBookingHandler", () => {
 
     it("should throw NOT_FOUND when booking doesn't exist", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue(null);
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(null);
 
       await expect(
         reportBookingHandler({
@@ -114,7 +114,7 @@ describe("reportBookingHandler", () => {
   describe("duplicate report prevention", () => {
     it("should throw BAD_REQUEST when booking already has a report", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
         report: { id: "existing-report" },
       });
@@ -137,7 +137,7 @@ describe("reportBookingHandler", () => {
   describe("successful report creation", () => {
     it("should successfully create a single booking report and auto-cancel upcoming booking", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() + 86400000), // Tomorrow
       });
@@ -173,7 +173,7 @@ describe("reportBookingHandler", () => {
 
     it("should create report without description for past booking", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() - 86400000), // Yesterday
       });
@@ -202,7 +202,7 @@ describe("reportBookingHandler", () => {
   describe("cancellation integration", () => {
     it("should cancel booking when cancelBooking is true", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() + 86400000), // Tomorrow
       });
@@ -236,7 +236,7 @@ describe("reportBookingHandler", () => {
 
     it("should not cancel booking if it's in the past", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() - 86400000),
       });
@@ -255,7 +255,7 @@ describe("reportBookingHandler", () => {
 
     it("should handle cancellation failure gracefully", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() + 86400000),
       });
@@ -276,7 +276,7 @@ describe("reportBookingHandler", () => {
 
     it("should use cancelSubsequentBookings for recurring events", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
         recurringEventId: "recurring-123",
         startTime: new Date(Date.now() + 86400000),
@@ -311,7 +311,7 @@ describe("reportBookingHandler", () => {
 
     it("should pass seatReferenceUid for seated events", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() + 86400000),
         seatsReferences: [

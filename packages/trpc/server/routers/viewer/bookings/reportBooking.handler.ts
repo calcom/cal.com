@@ -37,7 +37,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     throw new TRPCError({ code: "FORBIDDEN", message: "You don't have access to this booking" });
   }
 
-  const booking = await bookingRepo.findByIdIncludeReport({ bookingUid });
+  const booking = await bookingRepo.findByUidIncludeReport({ bookingUid });
 
   if (!booking) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
