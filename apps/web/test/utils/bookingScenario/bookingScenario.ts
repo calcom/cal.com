@@ -2397,7 +2397,7 @@ export const getDefaultBookingFields = ({
           label: "",
           hidden: false,
           sources: [{ id: "default", type: "default", label: "Default" }],
-          editable: "system",
+          editable: "system-but-optional",
           required: true,
           placeholder: "",
           defaultLabel: "email_address",

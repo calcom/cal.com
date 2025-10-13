@@ -689,4 +689,65 @@ export class CreditService {
       totalCreditsUsedThisMonth,
     };
   }
+
+  async moveCreditsFromTeamToOrg({ teamId, orgId }: { teamId: number; orgId: number }) {
+    return await prisma.$transaction(async (tx) => {
+      // Get team's credit balance
+      const teamCreditBalance = await CreditsRepository.findCreditBalance({ teamId }, tx);
+
+      if (!teamCreditBalance || teamCreditBalance.additionalCredits <= 0) {
+        log.info("No credits to transfer from team to org", { teamId, orgId });
+        return;
+      }
+
+      // Get or create org's credit balance
+      let orgCreditBalance = await CreditsRepository.findCreditBalance({ teamId: orgId }, tx);
+
+      if (!orgCreditBalance) {
+        orgCreditBalance = await CreditsRepository.createCreditBalance(
+          {
+            teamId: orgId,
+          },
+          tx
+        );
+      }
+
+      const creditsToTransfer = teamCreditBalance.additionalCredits;
+
+      // Transfer credits from team to org
+      await CreditsRepository.updateCreditBalance(
+        {
+          teamId,
+          data: {
+            additionalCredits: 0,
+          },
+        },
+        tx
+      );
+
+      await CreditsRepository.updateCreditBalance(
+        {
+          teamId: orgId,
+          data: {
+            additionalCredits: {
+              increment: creditsToTransfer,
+            },
+          },
+        },
+        tx
+      );
+
+      log.info("Successfully transferred credits from team to org", {
+        teamId,
+        orgId,
+        creditsTransferred: creditsToTransfer,
+      });
+
+      return {
+        creditsTransferred: creditsToTransfer,
+        teamId,
+        orgId,
+      };
+    });
+  }
 }

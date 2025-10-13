@@ -1,4 +1,5 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import logger from "@calcom/lib/logger";
@@ -230,6 +231,9 @@ async function moveTeam({
         parentId: org.id,
       },
     });
+
+    const creditService = new CreditService();
+    await creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
   } catch (error) {
     log.error(
       "Error while moving team to organization",
