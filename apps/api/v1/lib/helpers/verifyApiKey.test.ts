@@ -13,7 +13,6 @@ import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyServ
 import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
-// Import prisma mock to control it in tests
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -22,12 +21,10 @@ import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 import { verifyApiKey } from "./verifyApiKey";
 
-// Mock the API key repository
 vi.mock("@calcom/lib/server/repository/apikey", () => ({
   PrismaApiKeyRepository: vi.fn(),
 }));
 
-// Mock prisma module
 vi.mock("@calcom/prisma", () => ({
   prisma: {
     apiKey: {
@@ -39,7 +36,6 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
-// Mock utility functions
 vi.mock("../utils/isAdmin", () => ({
   isAdminGuard: vi.fn(),
 }));
@@ -66,7 +62,7 @@ afterEach(() => {
 });
 
 const mockDeploymentRepository: IDeploymentRepository = {
-  getLicenseKeyWithId: vi.fn().mockResolvedValue("mockLicenseKey"), // Mocked return value
+  getLicenseKeyWithId: vi.fn().mockResolvedValue("mockLicenseKey"),
   getSignatureToken: vi.fn().mockResolvedValue("mockSignatureToken"),
 };
 
@@ -77,13 +73,11 @@ describe("Verify API key - Unit Tests", () => {
     service = await LicenseKeyService.create(mockDeploymentRepository);
     vi.spyOn(service, "checkLicense");
 
-    // Reset all mocks before each test
     vi.mocked(prisma.apiKey.findUnique).mockReset();
     vi.mocked(prisma.deployment.findUnique).mockReset();
     vi.mocked(isAdminGuard).mockReset();
     vi.mocked(isLockedOrBlocked).mockReset();
 
-    // Mock deployment lookup (for license checking)
     vi.mocked(prisma.deployment.findUnique).mockResolvedValue(null);
   });
 
@@ -144,7 +138,6 @@ describe("Verify API key - Unit Tests", () => {
 
     const hashedKey = hashAPIKey("test_key");
 
-    // Mock the API key lookup
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
       id: "api-key-1",
       userId: 1,
@@ -162,13 +155,11 @@ describe("Verify API key - Unit Tests", () => {
       },
     } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
 
-    // Mock admin check
     vi.mocked(isAdminGuard).mockResolvedValue({
       isAdmin: true,
       scope: ScopeOfAdmin.SystemWide,
     });
 
-    // Mock locked/blocked check
     vi.mocked(isLockedOrBlocked).mockResolvedValue(false);
 
     const middleware = {
@@ -200,7 +191,6 @@ describe("Verify API key - Unit Tests", () => {
 
     const hashedKey = hashAPIKey("test_key");
 
-    // Mock the API key lookup
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
       id: "api-key-2",
       userId: 2,
@@ -218,13 +208,11 @@ describe("Verify API key - Unit Tests", () => {
       },
     } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
 
-    // Mock admin check - org owner/admin
     vi.mocked(isAdminGuard).mockResolvedValue({
       isAdmin: true,
       scope: ScopeOfAdmin.OrgOwnerOrAdmin,
     });
 
-    // Mock locked/blocked check
     vi.mocked(isLockedOrBlocked).mockResolvedValue(false);
 
     const middleware = {
@@ -256,7 +244,6 @@ describe("Verify API key - Unit Tests", () => {
 
     const hashedKey = hashAPIKey("test_key");
 
-    // Mock the API key lookup
     vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
       id: "api-key-3",
       userId: 3,
@@ -274,13 +261,11 @@ describe("Verify API key - Unit Tests", () => {
       },
     } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
 
-    // Mock admin check - not an admin
     vi.mocked(isAdminGuard).mockResolvedValue({
       isAdmin: false,
-      scope: ScopeOfAdmin.SystemWide, // scope doesn't matter when isAdmin is false
+      scope: ScopeOfAdmin.SystemWide,
     });
 
-    // Mock locked/blocked check - user is locked
     vi.mocked(isLockedOrBlocked).mockResolvedValue(true);
 
     const middleware = {

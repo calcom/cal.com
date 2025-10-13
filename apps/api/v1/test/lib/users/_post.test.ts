@@ -9,7 +9,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-// Import after mocking
 import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
 import type { User } from "@calcom/prisma/client";
 
@@ -18,7 +17,6 @@ import handler from "../../../pages/api/users/_post";
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-// Mock i18n
 vi.mock("@calcom/lib/server/i18n", () => {
   return {
     getTranslation: (key: string) => {
@@ -27,7 +25,6 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-// Mock checkUsername (used by validation schema)
 vi.mock("@calcom/lib/server/checkUsername", () => ({
   checkUsername: vi.fn().mockResolvedValue({
     available: true,
@@ -35,7 +32,6 @@ vi.mock("@calcom/lib/server/checkUsername", () => ({
   }),
 }));
 
-// Mock UserCreationService
 vi.mock("@calcom/lib/server/service/userCreationService", () => ({
   UserCreationService: {
     createUser: vi.fn(),
@@ -118,7 +114,6 @@ describe("POST /api/users - Unit Tests", () => {
 
     expect(res.statusCode).toBe(200);
 
-    // Verify UserCreationService was called
     expect(vi.mocked(UserCreationService.createUser)).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -128,7 +123,6 @@ describe("POST /api/users - Unit Tests", () => {
       })
     );
 
-    // Verify response contains user data
     const responseData = JSON.parse(res._getData());
     expect(responseData.user).toEqual(
       expect.objectContaining({
