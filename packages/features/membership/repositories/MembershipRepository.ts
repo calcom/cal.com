@@ -8,7 +8,7 @@ import type { Prisma, Membership, PrismaClient } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-const log = logger.getSubLogger({ prefix: ["repository/membership"] });
+const log = logger.getSubLogger({ prefix: ["features/membership/repositories/MembershipRepository"] });
 type IMembership = {
   teamId: number;
   userId: number;
