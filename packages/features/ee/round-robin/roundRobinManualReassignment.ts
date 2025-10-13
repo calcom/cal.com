@@ -345,7 +345,7 @@ export const roundRobinManualReassignment = async ({
     const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: eventType.id,
       team: teamForBranding ?? null,
-      owner: { id: organizer.id, hideBranding: organizer.hideBranding ?? null },
+      owner: organizer,
       organizationId: organizationIdForBranding,
     });
     evt.hideBranding = hideBranding;
@@ -580,7 +580,7 @@ export async function handleWorkflowsUpdate({
         emailSubject: workflowStep.emailSubject || undefined,
         emailBody: workflowStep.reminderBody || undefined,
         sender: workflowStep.sender || SENDER_NAME,
-        hideBranding: true,
+        hideBranding: evt.hideBranding ?? false,
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
@@ -645,8 +645,6 @@ export async function handleWorkflowsUpdate({
       eventType: { slug: eventType.slug },
       bookerUrl,
     },
-    hideBranding: !!eventType?.owner?.hideBranding,
+    hideBranding: evt.hideBranding ?? false,
   });
 }
-
-export default roundRobinManualReassignment;
