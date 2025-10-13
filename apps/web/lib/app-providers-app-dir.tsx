@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+// eslint-disable-next-line no-restricted-imports
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
@@ -13,6 +14,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
+import CustomerEngagementProviders from "@lib/customerEngagementProvider";
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
@@ -119,7 +121,9 @@ const AppProviders = (props: PageWrapperProps) => {
             isThemeSupported={isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>{props.children}</OrgBrandProvider>
+              <OrgBrandProvider>
+                <CustomerEngagementProviders>{props.children}</CustomerEngagementProviders>
+              </OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>
