@@ -17,7 +17,7 @@
       (function defineVariables() {
         const searchParams = new URL(document.URL).searchParams;
         popupRescheduleUid = searchParams.get("popupRescheduleUid") || "qm3kwt3aTnVD7vmP9tiT2f";
-        popupCancelUid = searchParams.get("popupCancelUid");
+        popupCancelUid = searchParams.get("popupCancelUid") || "qm3kwt3aTnVD7vmP9tiT2f";
         calLink = searchParams.get("calLink");
       })()
       
