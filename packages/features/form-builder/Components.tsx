@@ -175,7 +175,13 @@ export const Components: Record<FieldType, Component> = {
               value={value[variantField.name as keyof typeof value]}
               required={variantField.required}
               type="text"
-              autoComplete={variantField.name === "firstName" ? "given-name" : "family-name"}
+              autoComplete={
+                variantField.name === "firstName"
+                  ? "given-name"
+                  : variantField.name === "lastName"
+                  ? "family-name"
+                  : undefined
+              }
               onChange={(e) => onChange(variantField.name, e.target.value)}
             />
           ))}
