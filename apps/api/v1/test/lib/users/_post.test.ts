@@ -9,8 +9,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-
 import handler from "../../../pages/api/users/_post";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -24,31 +22,24 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
-vi.mock("@calcom/lib/server/checkUsername", () => ({
+vi.mock("@calcom/features/profile/lib/checkUsername", () => ({
   checkUsername: vi.fn().mockResolvedValue({
     available: true,
     premium: false,
   }),
 }));
 
-// Mock watchlist controller
 vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
   checkIfEmailIsBlockedInWatchlistController: vi.fn().mockResolvedValue(false),
 }));
 
-// Mock UserRepository
+const mockCreate = vi.fn();
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   UserRepository: vi.fn().mockImplementation(() => ({
-    create: vi.fn().mockResolvedValue({
-      id: 1,
-      email: "test@example.com",
-      username: "test",
-      locked: false,
-    }),
+    create: mockCreate,
   })),
 }));
 
-// Mock hashPassword
 vi.mock("@calcom/lib/auth/hashPassword", () => ({
   hashPassword: vi.fn().mockResolvedValue("hashed-password"),
 }));
@@ -56,22 +47,14 @@ vi.mock("@calcom/lib/auth/hashPassword", () => ({
 vi.stubEnv("CALCOM_LICENSE_KEY", undefined);
 
 describe("POST /api/users - Unit Tests", () => {
-  let mockUserRepoCreate: ReturnType<typeof vi.fn>;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUserRepoCreate = vi.fn().mockResolvedValue({
+    mockCreate.mockResolvedValue({
       id: 1,
       email: "test@example.com",
       username: "test",
       locked: false,
     });
-    vi.mocked(UserRepository).mockImplementation(
-      () =>
-        ({
-          create: mockUserRepoCreate,
-        } as unknown as UserRepository)
-    );
   });
 
   test("should throw 401 if not system-wide admin", async () => {
@@ -87,7 +70,7 @@ describe("POST /api/users - Unit Tests", () => {
     await handler(req, res);
 
     expect(res.statusCode).toBe(401);
-    expect(mockUserRepoCreate).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   test("should throw a 400 if no email is provided", async () => {
@@ -102,7 +85,7 @@ describe("POST /api/users - Unit Tests", () => {
     await handler(req, res);
 
     expect(res.statusCode).toBe(400);
-    expect(mockUserRepoCreate).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   test("should throw a 400 if no username is provided", async () => {
@@ -117,11 +100,11 @@ describe("POST /api/users - Unit Tests", () => {
     await handler(req, res);
 
     expect(res.statusCode).toBe(400);
-    expect(mockUserRepoCreate).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   test("should create user successfully", async () => {
-    mockUserRepoCreate.mockResolvedValue({
+    mockCreate.mockResolvedValue({
       id: 1,
       email: "test@example.com",
       username: "testuser123",
@@ -142,7 +125,7 @@ describe("POST /api/users - Unit Tests", () => {
 
     expect(res.statusCode).toBe(200);
 
-    expect(mockUserRepoCreate).toHaveBeenCalledWith(
+    expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         email: "test@example.com",
         username: "testuser123",
