@@ -7,7 +7,7 @@ import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { WorkflowService } from "./workflows";
 
-vi.mock("../../../features/ee/workflows/lib/reminders/reminderScheduler");
+vi.mock("@calcom/features/ee/workflows/lib/reminders/reminderScheduler");
 vi.mock("@calcom/features/tasker");
 
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
