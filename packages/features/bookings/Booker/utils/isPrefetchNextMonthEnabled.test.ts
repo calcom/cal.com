@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
+import dayjs from "@calcom/dayjs";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { isPrefetchNextMonthEnabled } from "./isPrefetchNextMonthEnabled";
@@ -14,30 +15,113 @@ describe("isPrefetchNextMonthEnabled", () => {
   });
 
   describe("WEEK_VIEW layout", () => {
-    it("should return true when date is in the last week of month", () => {
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2024-01-28", "2024-01-01");
+    it("should return true when extraDays is provided and months change", () => {
+      const date = "2024-01-28";
+      const dateMonth = dayjs(date).month();
+      const extraDays = 7;
+      const monthAfterAddingExtraDays = dayjs(date).add(extraDays, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
+
+      const result = isPrefetchNextMonthEnabled(
+        BookerLayouts.WEEK_VIEW,
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01",
+        extraDays
+      );
       expect(result).toBe(true);
     });
 
-    it("should return false when date is not in the last week of month", () => {
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2024-01-15", "2024-01-01");
+    it("should return false when extraDays is provided but months don't change", () => {
+      const date = "2024-01-15";
+      const dateMonth = dayjs(date).month();
+      const extraDays = 7;
+      const monthAfterAddingExtraDays = dayjs(date).add(extraDays, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
+
+      const result = isPrefetchNextMonthEnabled(
+        BookerLayouts.WEEK_VIEW,
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01",
+        extraDays
+      );
       expect(result).toBe(false);
     });
 
-    it("should work for different months", () => {
-      expect(isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2024-02-25", "2024-02-01")).toBe(true);
-      expect(isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2024-06-10", "2024-06-01")).toBe(false);
+    it("should return false when extraDays is not provided", () => {
+      const date = "2024-01-28";
+      const dateMonth = dayjs(date).month();
+      const monthAfterAddingExtraDays = dayjs(date).add(7, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
+
+      const result = isPrefetchNextMonthEnabled(
+        BookerLayouts.WEEK_VIEW,
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01",
+        undefined
+      );
+      expect(result).toBe(false);
+    });
+
+    it("should return false when extraDays is 0", () => {
+      const date = "2024-01-28";
+      const dateMonth = dayjs(date).month();
+      const monthAfterAddingExtraDays = dayjs(date).month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
+
+      const result = isPrefetchNextMonthEnabled(
+        BookerLayouts.WEEK_VIEW,
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01",
+        0
+      );
+      expect(result).toBe(false);
     });
   });
 
   describe("COLUMN_VIEW layout", () => {
-    it("should return true when date is in the last week of month", () => {
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.COLUMN_VIEW, "2024-01-30", "2024-01-01");
+    it("should return true when months change after adding columnView extra days", () => {
+      const date = "2024-01-30";
+      const dateMonth = dayjs(date).month();
+      const monthAfterAddingExtraDays = dayjs(date).add(7, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
+
+      const result = isPrefetchNextMonthEnabled(
+        BookerLayouts.COLUMN_VIEW,
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01"
+      );
       expect(result).toBe(true);
     });
 
-    it("should return false when date is not in the last week of month", () => {
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.COLUMN_VIEW, "2024-01-10", "2024-01-01");
+    it("should return false when months don't change after adding columnView extra days", () => {
+      const date = "2024-01-10";
+      const dateMonth = dayjs(date).month();
+      const monthAfterAddingExtraDays = dayjs(date).add(7, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
+
+      const result = isPrefetchNextMonthEnabled(
+        BookerLayouts.COLUMN_VIEW,
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01"
+      );
       expect(result).toBe(false);
     });
   });
@@ -46,21 +130,38 @@ describe("isPrefetchNextMonthEnabled", () => {
     it("should return true when conditions for month view prefetch are met", () => {
       vi.setSystemTime(new Date("2024-01-20T12:00:00Z"));
 
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.MONTH_VIEW, "invalid-date", "2024-01-01");
+      const date = "invalid-date";
+      const dateMonth = dayjs(date).month();
+      const monthAfterAddingExtraDays = dayjs(date).add(7, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
+
+      const result = isPrefetchNextMonthEnabled(
+        BookerLayouts.MONTH_VIEW,
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01"
+      );
       expect(result).toBe(true);
     });
 
     it("should return false when current time is before 2 weeks threshold", () => {
       vi.setSystemTime(new Date("2024-01-10T12:00:00Z"));
 
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.MONTH_VIEW, "invalid-date", "2024-01-01");
-      expect(result).toBe(false);
-    });
+      const date = "invalid-date";
+      const dateMonth = dayjs(date).month();
+      const monthAfterAddingExtraDays = dayjs(date).add(7, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
 
-    it("should return false when date is valid and different month", () => {
-      vi.setSystemTime(new Date("2024-01-20T12:00:00Z"));
-
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.MONTH_VIEW, "2024-02-15", "2024-02-01");
+      const result = isPrefetchNextMonthEnabled(
+        BookerLayouts.MONTH_VIEW,
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01"
+      );
       expect(result).toBe(false);
     });
   });
@@ -69,39 +170,39 @@ describe("isPrefetchNextMonthEnabled", () => {
     it("should return true when conditions for month view prefetch are met", () => {
       vi.setSystemTime(new Date("2024-01-20T12:00:00Z"));
 
-      const result = isPrefetchNextMonthEnabled("mobile", "invalid-date", "2024-01-01");
+      const date = "invalid-date";
+      const dateMonth = dayjs(date).month();
+      const monthAfterAddingExtraDays = dayjs(date).add(7, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
+
+      const result = isPrefetchNextMonthEnabled(
+        "mobile",
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01"
+      );
       expect(result).toBe(true);
-    });
-
-    it("should return false when current time is before 2 weeks threshold", () => {
-      vi.setSystemTime(new Date("2024-01-10T12:00:00Z"));
-
-      const result = isPrefetchNextMonthEnabled("mobile", "2024-02-15", "2024-01-01");
-      expect(result).toBe(false);
     });
   });
 
-  describe("edge cases", () => {
-    it("should handle null month parameter for WEEK_VIEW", () => {
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2024-01-28", null);
-      expect(result).toBe(true);
-    });
+  describe("unknown layout", () => {
+    it("should return false for unrecognized layout", () => {
+      const date = "2024-01-15";
+      const dateMonth = dayjs(date).month();
+      const monthAfterAddingExtraDays = dayjs(date).add(7, "day").month();
+      const monthAfterAddingExtraDaysColumnView = dayjs(date).add(5, "day").month();
 
-    it("should handle null month parameter for MONTH_VIEW", () => {
-      vi.setSystemTime(new Date("2024-01-20T12:00:00Z"));
-
-      const result = isPrefetchNextMonthEnabled(BookerLayouts.MONTH_VIEW, "invalid-date", null);
-      expect(typeof result).toBe("boolean");
-    });
-
-    it("should work with leap year February dates for WEEK_VIEW", () => {
-      expect(isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2024-02-25", "2024-02-01")).toBe(true);
-      expect(isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2024-02-29", "2024-02-01")).toBe(true);
-    });
-
-    it("should work with non-leap year February dates for WEEK_VIEW", () => {
-      expect(isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2025-02-23", "2025-02-01")).toBe(true);
-      expect(isPrefetchNextMonthEnabled(BookerLayouts.WEEK_VIEW, "2025-02-28", "2025-02-01")).toBe(true);
+      const result = isPrefetchNextMonthEnabled(
+        "unknown-layout",
+        date,
+        dateMonth,
+        monthAfterAddingExtraDays,
+        monthAfterAddingExtraDaysColumnView,
+        "2024-01-01"
+      );
+      expect(result).toBe(false);
     });
   });
 });
