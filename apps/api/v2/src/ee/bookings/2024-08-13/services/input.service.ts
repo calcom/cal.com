@@ -10,7 +10,12 @@ import {
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { apiToInternalintegrationsMapping } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import {
+  apiToInternalintegrationsMapping,
+  BookingFieldSchema,
+  CustomField,
+  SystemField,
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { defaultBookingResponses } from "@/lib/safe-parse/default-responses-booking";
 import { safeParse } from "@/lib/safe-parse/safe-parse";
@@ -851,9 +856,21 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id ${booking.eventTypeId} not found`);
     }
 
-    const bookingFields = eventType.bookingFields
-      ? this.outputEventTypesService.transformBookingFields(eventType.bookingFields)
-      : [];
+    const transformedBookingFields: (SystemField | CustomField)[] = [];
+
+    for (const bookingField of eventType.bookingFields as unknown as []) {
+      const validationResult = BookingFieldSchema.safeParse(bookingField);
+      if (validationResult.success) {
+        transformedBookingFields.push(validationResult.data);
+      }
+    }
+
+    const guestsBookingField = transformedBookingFields.find((field) => field.name === "guests");
+    if (guestsBookingField?.hidden) {
+      throw new BadRequestException(
+        `Cannot add guests to this booking. The guests field is disabled for event type "${eventType.title}" (ID: ${eventType.id}). Please contact the event organizer to enable guest additions.`
+      );
+    }
 
     const existingEmails = new Set(booking.attendees.map((att) => att.email.toLowerCase()));
     const duplicateEmails = input.attendees.filter((att) => existingEmails.has(att.email.toLowerCase()));
@@ -869,7 +886,6 @@ export class InputBookingsService_2024_08_13 {
     return {
       booking,
       eventType,
-      bookingFields,
       attendeesToAdd: input.attendees.map((attendee) => ({
         email: attendee.email,
         name: attendee.name,
