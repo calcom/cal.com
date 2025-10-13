@@ -132,6 +132,42 @@ export class MembershipRepository {
           },
         },
       },
+      select: {
+        bookingLimits: true,
+        teamId: true,
+      },
+    });
+  }
+
+  async findFirstAcceptedMembershipByUserIdInstance(userId: number) {
+    return await this.prismaClient.membership.findFirst({
+      where: {
+        accepted: true,
+        userId,
+        team: {
+          slug: {
+            not: null,
+          },
+        },
+      },
+      select: {
+        bookingLimits: true,
+        teamId: true,
+      },
+    });
+  }
+
+  async findUniqueByUserIdAndTeamIdInstance({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId,
+          teamId,
+        },
+      },
+      select: {
+        bookingLimits: true,
+      },
     });
   }
 
@@ -310,6 +346,12 @@ export class MembershipRepository {
           userId,
           teamId,
         },
+      },
+      select: {
+        bookingLimits: true,
+        role: true,
+        accepted: true,
+        id: true,
       },
     });
   }

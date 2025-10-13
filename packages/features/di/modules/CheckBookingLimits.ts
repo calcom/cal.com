@@ -8,7 +8,7 @@ const moduleToken = DI_TOKENS.CHECK_BOOKING_LIMITS_SERVICE_MODULE;
 export const checkBookingLimitsModule = createModule();
 checkBookingLimitsModule
   .bind(token)
-  .toClass(CheckBookingLimitsService, { bookingRepo: DI_TOKENS.BOOKING_REPOSITORY });
+  .toClass(CheckBookingLimitsService, { bookingRepo: DI_TOKENS.BOOKING_REPOSITORY, membershipRepo: DI_TOKENS.MEMBERSHIP_REPOSITORY });
 
 export const moduleLoader = {
   token,
