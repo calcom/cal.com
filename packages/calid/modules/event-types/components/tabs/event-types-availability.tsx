@@ -599,8 +599,8 @@ const TeamEventSchedules = memo(
         {/* Individual Host Schedules */}
         {useHostSchedulesForTeamEvent && (
           <div className="">
-            <div className="border-subtle flex flex-col rounded-md">
-              <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
+            <div className="border-border flex flex-col rounded-md border">
+              <div className="mt-5  border border-e-0 border-s-0 border-t-0  p-6 pb-5">
                 <Label className="mb-1 text-sm font-semibold">{t("choose_hosts_schedule")}</Label>
                 <p className="text-subtle max-w-full break-words text-sm leading-tight">
                   {t("hosts_schedule_description")}

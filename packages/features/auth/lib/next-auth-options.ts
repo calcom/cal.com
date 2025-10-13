@@ -513,6 +513,11 @@ export const getOptions = ({
                 team: true,
               },
             },
+            timeZone: true,
+            createdDate: true,
+            completedOnboarding: true,
+            bannerUrl: true,
+            emailVerified: true,
           },
         });
 
@@ -603,6 +608,11 @@ export const getOptions = ({
           locale: user?.locale,
           profileId: user.profile?.id ?? token.profileId ?? null,
           upId: user.profile?.upId ?? token.upId ?? null,
+          timeZone: user.timeZone,
+          createdDate: user.createdDate,
+          completedOnboarding: user.completedOnboarding,
+          customBrandingEnabled: !!user.bannerUrl,
+          emailVerified: user.emailVerified,
         } as JWT;
       }
 
@@ -705,6 +715,11 @@ export const getOptions = ({
           org: token?.org,
           orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
+          timeZone: existingUser.timeZone,
+          createdDate: existingUser.createdDate,
+          completedOnboarding: existingUser.completedOnboarding,
+          customBrandingEnabled: !!existingUser.bannerUrl,
+          emailVerified: existingUser.emailVerified,
         } as JWT;
       }
 
@@ -740,6 +755,11 @@ export const getOptions = ({
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: token.locale,
+          timeZone: token.timeZone,
+          createdDate: token.createdDate,
+          completedOnboarding: token.completedOnboarding,
+          customBrandingEnabled: !!token.customBrandingEnabled,
+          emailVerified: token.emailVerified,
         },
       };
       return calendsoSession;

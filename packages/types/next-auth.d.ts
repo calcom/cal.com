@@ -41,6 +41,10 @@ declare module "next-auth" {
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     locale?: string | null;
     profile?: UserProfile;
+    createdDate?: PrismaUser["createdDate"];
+    timeZone?: PrismaUser["timeZone"];
+    bannerUrl?: string;
+    customBrandingEnabled?: boolean;
   }
 }
 
@@ -71,5 +75,9 @@ declare module "next-auth/jwt" {
     orgAwareUsername?: PrismaUser["username"];
     organizationId?: number | null;
     locale?: string;
+    timeZone?: PrismaUser["timeZone"];
+    createdDate?: PrismaUser["createdDate"];
+    completedOnboarding?: PrismaUser["completedOnboarding"];
+    customBrandingEnabled?: boolean;
   }
 }

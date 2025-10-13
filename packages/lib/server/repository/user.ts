@@ -990,6 +990,7 @@ export class UserRepository {
               },
             },
             teams: true,
+            calIdTeams: true,
             eventTypes: true,
           },
         },
@@ -1006,6 +1007,26 @@ export class UserRepository {
             },
           },
         },
+        calIdTeams: {
+          select: {
+            calIdTeam: {
+              select: {
+                eventTypes: {
+                  select: {
+                    id: true,
+                  },
+                },
+                bannerUrl: true,
+                workflows: { select: { id: true } },
+                credentials: { select: { id: true, type: true } },
+              },
+            },
+          },
+        },
+        bannerUrl: true,
+        calIdWorkflows: { select: { id: true } },
+        schedules: { select: { id: true } },
+        credentials: { select: { id: true, type: true } },
       },
     });
 
