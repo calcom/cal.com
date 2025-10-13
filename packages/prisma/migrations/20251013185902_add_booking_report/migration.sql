@@ -6,7 +6,7 @@ CREATE TABLE "BookingReport" (
     "id" UUID NOT NULL,
     "bookingUid" TEXT NOT NULL,
     "bookerEmail" TEXT NOT NULL,
-    "reportedById" INTEGER NOT NULL,
+    "reportedById" INTEGER,
     "organizationId" INTEGER,
     "reason" "BookingReportReason" NOT NULL,
     "description" TEXT,

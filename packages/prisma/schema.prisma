@@ -2357,21 +2357,21 @@ enum BookingReportReason {
 }
 
 model BookingReport {
-  id             String       @id @default(uuid()) @db.Uuid
-  bookingUid     String       @unique
-  booking        Booking      @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  id             String              @id @default(uuid()) @db.Uuid
+  bookingUid     String              @unique
+  booking        Booking             @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   bookerEmail    String
-  reportedById   Int
+  reportedById   Int?
   organizationId Int?
   reason         BookingReportReason
   description    String?
-  cancelled      Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  cancelled      Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
 
   watchlistId String? @db.Uuid
 
-  reportedBy   User       @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  reportedBy   User?      @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
   organization Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   watchlist    Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
 

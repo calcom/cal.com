@@ -281,9 +281,9 @@ describe("reportBookingHandler", () => {
         startTime: new Date(Date.now() + 86400000),
       });
       mockBookingRepo.getActiveRecurringBookingsFromDate.mockResolvedValue([
-        { id: 100 },
-        { id: 101 },
-        { id: 102 },
+        { uid: "100" },
+        { uid: "101" },
+        { uid: "102" },
       ]);
       vi.mocked(handleCancelBooking).mockResolvedValue({
         success: true,

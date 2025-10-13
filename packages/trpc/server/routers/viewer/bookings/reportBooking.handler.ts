@@ -74,9 +74,10 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   if (isUpcoming) {
     cancellationAttempted = true;
     try {
+      const normalizedEmail = user.email.trim().toLowerCase();
       const userSeat = booking.seatsReferences.find(
         (seat: { attendee?: { email: string }; referenceUid?: string }) =>
-          seat.attendee?.email.trim().toLowerCase() === user.email.trim().toLowerCase()
+          seat.attendee?.email && seat.attendee.email.trim().toLowerCase() === normalizedEmail
       );
       const seatReferenceUid = userSeat?.referenceUid;
 
