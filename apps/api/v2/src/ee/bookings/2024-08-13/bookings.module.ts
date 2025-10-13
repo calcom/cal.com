@@ -1,6 +1,6 @@
-import { BookingAttendeesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-attendees.repository";
-import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingAttendeesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-attendees.repository";
+import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { BookingAttendeesController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-attendees.controller";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
 import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";

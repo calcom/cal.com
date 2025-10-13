@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 
 import type { AddAttendeesInput_2024_08_13 } from "@calcom/platform-types";
 
-import { BookingAttendeesRepository_2024_08_13 } from "../booking-attendees.repository";
+import { BookingAttendeesRepository_2024_08_13 } from "../repositories/booking-attendees.repository";
 import { InputBookingsService_2024_08_13 } from "./input.service";
 import { OutputBookingsService_2024_08_13 } from "./output.service";
 
