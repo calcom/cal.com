@@ -82,7 +82,8 @@
     "docker-stop-api": "docker ps --filter 'ancestor=cal-api' -q | xargs docker stop",
     "changesets-add": "yarn changeset add",
     "changesets-version": "yarn changeset version",
-    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish"
+    "changesets-release": "NODE_OPTIONS='--max_old_space_size=12288' turbo run build --filter=@calcom/atoms && yarn changeset publish",
+    "lint-staged": "lint-staged"
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",
@@ -139,18 +140,6 @@
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "import-in-the-middle": "1.13.1"
-  },
-  "lint-staged": {
-    "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
-      "prettier --write",
-      "eslint --fix --max-warnings=0"
-    ],
-    "*.json": [
-      "prettier --write"
-    ],
-    "packages/prisma/schema.prisma": [
-      "prisma format"
-    ]
   },
   "engines": {
     "npm": ">=7.0.0",

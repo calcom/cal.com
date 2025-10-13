@@ -1,16 +1,16 @@
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import { buildNonDelegationCredential } from "../../delegationCredential/server";
+import { buildNonDelegationCredential } from "../../delegationCredential";
 
 const log = logger.getSubLogger({ prefix: ["CredentialRepository"] });
 
 type CredentialCreateInput = {
   type: string;
-  key: any;
+  key: object;
   userId: number;
   appId: string;
   delegationCredentialId?: string | null;
@@ -18,7 +18,7 @@ type CredentialCreateInput = {
 
 type CredentialUpdateInput = {
   type?: string;
-  key?: any;
+  key?: object;
   userId?: number;
   appId?: string;
   delegationCredentialId?: string | null;
@@ -26,6 +26,15 @@ type CredentialUpdateInput = {
 };
 
 export class CredentialRepository {
+  constructor(private primaClient: PrismaClient) {}
+
+  async findByIdWithDelegationCredential(id: number) {
+    return this.primaClient.credential.findUnique({
+      where: { id },
+      select: { ...credentialForCalendarServiceSelect, delegationCredential: true },
+    });
+  }
+
   static async create(data: CredentialCreateInput) {
     const credential = await prisma.credential.create({ data: { ...data } });
     return buildNonDelegationCredential(credential);
@@ -157,7 +166,7 @@ export class CredentialRepository {
       return {
         ...rest,
         // We queried only those where delegationCredentialId is not null
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
         delegationCredentialId: delegationCredentialId!,
       };
     });

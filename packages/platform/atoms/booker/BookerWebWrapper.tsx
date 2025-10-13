@@ -55,7 +55,7 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);
-  const selectedDate = searchParams?.get("date");
+  const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const isRedirect = searchParams?.get("redirected") === "true" || false;
   const fromUserNameRedirected = searchParams?.get("username") || "";
   const rescheduleUid =

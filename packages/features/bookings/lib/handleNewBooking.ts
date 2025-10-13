@@ -1,9 +1,12 @@
-// eslint-disable-next-line no-restricted-imports
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import {
+  enrichHostsWithDelegationCredentials,
+  getFirstDelegationConferencingCredentialAppLocation,
+} from "@calcom/app-store/delegationCredential";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
@@ -11,15 +14,21 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import {
+  eventTypeMetaDataSchemaWithTypedApps,
+  eventTypeAppMetadataOptionalSchema,
+} from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
-import type { CreateRegularBookingData, CreateBookingMeta } from "@calcom/features/bookings/lib/dto/types";
+import type {
+  CreateRegularBookingData,
+  CreateBookingMeta,
+  BookingHandlerInput,
+} from "@calcom/features/bookings/lib/dto/types";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -43,13 +52,6 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import {
-  enrichHostsWithDelegationCredentials,
-  getFirstDelegationConferencingCredentialAppLocation,
-} from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/lib/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/lib/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -62,13 +64,16 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { HostRepository } from "@calcom/lib/server/repository/host";
+import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
+import type { UserRepository } from "@calcom/lib/server/repository/user";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
 import {
   BookingStatus,
@@ -94,6 +99,7 @@ import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandl
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
+import { LuckyUserService } from "./getLuckyUser";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
@@ -387,24 +393,6 @@ function buildTroubleshooterData({
   return troubleshooterData;
 }
 
-export type PlatformParams = {
-  platformClientId?: string;
-  platformCancelUrl?: string;
-  platformBookingUrl?: string;
-  platformRescheduleUrl?: string;
-  platformBookingLocation?: string;
-  areCalendarEventsEnabled?: boolean;
-};
-
-export type BookingHandlerInput = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bookingData: Record<string, any>;
-  userId?: number;
-  // These used to come from headers but now we're passing them as params
-  hostname?: string;
-  forcedSlug?: string;
-} & PlatformParams;
-
 function formatAvailabilitySnapshot(data: {
   dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
   oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
@@ -422,8 +410,23 @@ function formatAvailabilitySnapshot(data: {
   };
 }
 
+export interface IBookingServiceDependencies {
+  cacheService: CacheService;
+  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
+  prismaClient: PrismaClient;
+  bookingRepository: BookingRepository;
+  featuresRepository: FeaturesRepository;
+  checkBookingLimitsService: CheckBookingLimitsService;
+  luckyUserService: LuckyUserService;
+  hostRepository: HostRepository;
+  oooRepository: OooRepository;
+  userRepository: UserRepository;
+  attributeRepository: AttributeRepository;
+}
+
 async function handler(
   input: BookingHandlerInput,
+  deps: IBookingServiceDependencies,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const {
@@ -437,7 +440,18 @@ async function handler(
     hostname,
     forcedSlug,
     areCalendarEventsEnabled = true,
+    skipAvailabilityCheck = false,
+    skipEventLimitsCheck = false,
+    skipCalendarSyncTaskCreation = false,
   } = input;
+
+  const {
+    prismaClient: prisma,
+    bookingRepository,
+    cacheService,
+    checkBookingAndDurationLimitsService,
+    luckyUserService,
+  } = deps;
 
   const isPlatformBooking = !!platformClientId;
 
@@ -511,7 +525,7 @@ async function handler(
 
     try {
       await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
-    } catch (error) {
+    } catch {
       throw new HttpError({
         statusCode: 400,
         message: "invalid_verification_code",
@@ -540,7 +554,7 @@ async function handler(
   const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
   const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
   const isNormalBookingOrFirstRecurringSlot = input.bookingData.allRecurringDates
-    ? input.bookingData.isFirstRecurringSlot
+    ? !!input.bookingData.isFirstRecurringSlot
     : true;
 
   let originalRescheduledBooking = rescheduleUid
@@ -566,11 +580,9 @@ async function handler(
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const bookingRepo = new BookingRepository(prisma);
-
     const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
 
-    const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+    const existingBooking = await bookingRepository.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
@@ -607,7 +619,6 @@ async function handler(
     }
   }
 
-  const cacheService = getCacheService();
   const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
@@ -719,12 +730,13 @@ async function handler(
     location,
   });
 
-  const checkBookingAndDurationLimitsService = getCheckBookingAndDurationLimitsService();
-  await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
-    eventType,
-    reqBodyStart: reqBody.start,
-    reqBodyRescheduleUid: reqBody.rescheduleUid,
-  });
+  if (!skipEventLimitsCheck) {
+    await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
+      eventType,
+      reqBodyStart: reqBody.start,
+      reqBodyRescheduleUid: reqBody.rescheduleUid,
+    });
+  }
 
   let luckyUserResponse;
   let isFirstSeat = true;
@@ -778,7 +790,11 @@ async function handler(
         },
       }),
     };
-    if (input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
+    if (
+      input.bookingData.allRecurringDates &&
+      input.bookingData.isFirstRecurringSlot &&
+      input.bookingData.numSlotsToCheckForAvailability
+    ) {
       const isTeamEvent =
         eventType.schedulingType === SchedulingType.COLLECTIVE ||
         eventType.schedulingType === SchedulingType.ROUND_ROBIN;
@@ -798,48 +814,55 @@ async function handler(
         if (isTeamEvent) {
           // each fixed user must be available
           for (const key in fixedUsers) {
+            if (!skipAvailabilityCheck) {
+              await ensureAvailableUsers(
+                { ...eventTypeWithUsers, users: [fixedUsers[key]] },
+                {
+                  dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                  dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                  timeZone: reqBody.timeZone,
+                  originalRescheduledBooking: originalRescheduledBooking ?? null,
+                },
+                loggerWithEventDetails,
+                shouldServeCache
+              );
+            }
+          }
+        } else {
+          if (!skipAvailabilityCheck) {
             await ensureAvailableUsers(
-              { ...eventTypeWithUsers, users: [fixedUsers[key]] },
+              eventTypeWithUsers,
               {
                 dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
                 dateTo: dayjs(end).tz(reqBody.timeZone).format(),
                 timeZone: reqBody.timeZone,
-                originalRescheduledBooking: originalRescheduledBooking ?? null,
+                originalRescheduledBooking,
               },
               loggerWithEventDetails,
               shouldServeCache
             );
           }
-        } else {
-          eventTypeWithUsers.users[0].credentials;
-          await ensureAvailableUsers(
-            eventTypeWithUsers,
-            {
-              dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-              dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-              timeZone: reqBody.timeZone,
-              originalRescheduledBooking,
-            },
-            loggerWithEventDetails,
-            shouldServeCache
-          );
         }
       }
     }
 
     if (!input.bookingData.allRecurringDates || input.bookingData.isFirstRecurringSlot) {
       try {
-        availableUsers = await ensureAvailableUsers(
-          { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
-          {
-            dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-            dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-            timeZone: reqBody.timeZone,
-            originalRescheduledBooking,
-          },
-          loggerWithEventDetails,
-          shouldServeCache
-        );
+        if (!skipAvailabilityCheck) {
+          availableUsers = await ensureAvailableUsers(
+            { ...eventTypeWithUsers, users: [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
+            {
+              dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+              dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+              timeZone: reqBody.timeZone,
+              originalRescheduledBooking,
+            },
+            loggerWithEventDetails,
+            shouldServeCache
+          );
+        } else {
+          availableUsers = [...qualifiedRRUsers, ...fixedUsers] as IsFixedAwareUser[];
+        }
       } catch {
         if (additionalFallbackRRUsers.length) {
           loggerWithEventDetails.debug(
@@ -851,20 +874,24 @@ async function handler(
           );
           // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
           // use fallback instead
-          availableUsers = await ensureAvailableUsers(
-            {
-              ...eventTypeWithUsers,
-              users: [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[],
-            },
-            {
-              dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-              dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-              timeZone: reqBody.timeZone,
-              originalRescheduledBooking,
-            },
-            loggerWithEventDetails,
-            shouldServeCache
-          );
+          if (!skipAvailabilityCheck) {
+            availableUsers = await ensureAvailableUsers(
+              {
+                ...eventTypeWithUsers,
+                users: [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[],
+              },
+              {
+                dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+                dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+                timeZone: reqBody.timeZone,
+                originalRescheduledBooking,
+              },
+              loggerWithEventDetails,
+              shouldServeCache
+            );
+          } else {
+            availableUsers = [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[];
+          }
         } else {
           loggerWithEventDetails.debug(
             "Qualified users not available, no fallback users",
@@ -880,7 +907,11 @@ async function handler(
       const nonFixedUsers: IsFixedAwareUser[] = [];
 
       availableUsers.forEach((user) => {
-        user.isFixed ? fixedUserPool.push(user) : nonFixedUsers.push(user);
+        if (user.isFixed) {
+          fixedUserPool.push(user);
+        } else {
+          nonFixedUsers.push(user);
+        }
       });
 
       // Group non-fixed users by their group IDs
@@ -920,7 +951,6 @@ async function handler(
             memberId: eventTypeWithUsers.users[0].id ?? null,
             teamId: eventType.teamId,
           });
-          const luckyUserService = getLuckyUserService();
           const newLuckyUser = await luckyUserService.getLuckyUser({
             // find a lucky user that is not already in the luckyUsers array
             availableUsers: freeUsers,
@@ -945,7 +975,9 @@ async function handler(
           }
           if (
             input.bookingData.isFirstRecurringSlot &&
-            eventType.schedulingType === SchedulingType.ROUND_ROBIN
+            eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+            input.bookingData.numSlotsToCheckForAvailability &&
+            input.bookingData.allRecurringDates
           ) {
             // for recurring round robin events check if lucky user is available for next slots
             try {
@@ -958,17 +990,19 @@ async function handler(
                 const start = input.bookingData.allRecurringDates[i].start;
                 const end = input.bookingData.allRecurringDates[i].end;
 
-                await ensureAvailableUsers(
-                  { ...eventTypeWithUsers, users: [newLuckyUser] },
-                  {
-                    dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
-                    dateTo: dayjs(end).tz(reqBody.timeZone).format(),
-                    timeZone: reqBody.timeZone,
-                    originalRescheduledBooking,
-                  },
-                  loggerWithEventDetails,
-                  shouldServeCache
-                );
+                if (!skipAvailabilityCheck) {
+                  await ensureAvailableUsers(
+                    { ...eventTypeWithUsers, users: [newLuckyUser] },
+                    {
+                      dateFrom: dayjs(start).tz(reqBody.timeZone).format(),
+                      dateTo: dayjs(end).tz(reqBody.timeZone).format(),
+                      timeZone: reqBody.timeZone,
+                      originalRescheduledBooking,
+                    },
+                    loggerWithEventDetails,
+                    shouldServeCache
+                  );
+                }
               }
               // if no error, then lucky user is available for the next slots
               luckyUsers.push(newLuckyUser);
@@ -1000,7 +1034,7 @@ async function handler(
 
       // Filter out host groups that have no hosts in them
       const nonEmptyHostGroups = Object.fromEntries(
-        Object.entries(hostGroups).filter(([_groupId, hosts]) => hosts.length > 0)
+        Object.entries(hostGroups).filter(([, hosts]) => hosts.length > 0)
       );
       // If there are RR hosts, we need to find a lucky user
       if (
@@ -1183,7 +1217,6 @@ async function handler(
   const organizerOrganizationProfile = await prisma.profile.findFirst({
     where: {
       userId: organizerUser.id,
-      username: dynamicUserList[0],
     },
   });
 
@@ -1243,6 +1276,7 @@ async function handler(
       name: organizerUser.name || "Nameless",
       email: organizerEmail,
       username: organizerUser.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
       timeZone: organizerUser.timeZone,
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
@@ -1455,7 +1489,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
@@ -1594,9 +1629,9 @@ async function handler(
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
           (attendee) =>
-            attendee.email === input.bookingData.responses.email ||
-            (input.bookingData.responses.attendeePhoneNumber &&
-              attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
+            attendee.email === bookingData.responses.email ||
+            (bookingData.responses.attendeePhoneNumber &&
+              attendee.phoneNumber === bookingData.responses.attendeePhoneNumber)
         );
 
         // Save description to bookingSeat
@@ -1658,9 +1693,10 @@ async function handler(
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(allCredentials);
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-  const eventManager = !isDryRun
-    ? new EventManager({ ...organizerUser, credentials }, apps)
-    : buildDryRunEventManager();
+  const eventManager =
+    !isDryRun && !skipCalendarSyncTaskCreation
+      ? new EventManager({ ...organizerUser, credentials }, apps)
+      : buildDryRunEventManager();
 
   let videoCallUrl;
 
@@ -1721,20 +1757,24 @@ async function handler(
           : evt.responses,
       };
 
-      await originalHostEventManager.deleteEventsAndMeetings({
-        event: deletionEvent,
-        bookingReferences: originalRescheduledBooking.references,
-      });
+      if (!skipCalendarSyncTaskCreation) {
+        await originalHostEventManager.deleteEventsAndMeetings({
+          event: deletionEvent,
+          bookingReferences: originalRescheduledBooking.references,
+        });
+      }
     }
-    const updateManager = await eventManager.reschedule(
-      evt,
-      originalRescheduledBooking.uid,
-      undefined,
-      changedOrganizer,
-      previousHostDestinationCalendar,
-      isBookingRequestedReschedule,
-      skipDeleteEventsAndMeetings
-    );
+    const updateManager = !skipCalendarSyncTaskCreation
+      ? await eventManager.reschedule(
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
+      : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -1870,7 +1910,10 @@ async function handler(
     // Create a booking
   } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
-    const createManager = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+    const createManager =
+      areCalendarEventsEnabled && !skipCalendarSyncTaskCreation
+        ? await eventManager.create(evt)
+        : placeholderCreatedEvent;
     if (evt.location) {
       booking.location = evt.location;
     }
@@ -2401,17 +2444,6 @@ async function handler(
   };
 }
 
-export default handler;
-
-export interface IBookingServiceDependencies {
-  cacheService: CacheService;
-  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
-  prismaClient: PrismaClient;
-  bookingRepository: BookingRepository;
-  featuresRepository: FeaturesRepository;
-  checkBookingLimitsService: CheckBookingLimitsService;
-}
-
 /**
  * Takes care of creating/rescheduling non-recurring, non-instant bookings. Such bookings could be TeamBooking, UserBooking, SeatedUserBooking, SeatedTeamBooking, etc.
  * We can't name it CoreBookingService because non-instant booking also creates a booking but it is entirely different from the regular booking.
@@ -2421,19 +2453,29 @@ export class RegularBookingService implements IBookingService {
   constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    // deps to be passed to handler in follow-up PR
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta });
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta });
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
   }
 
-  async rescheduleBookingForApiV1(input: {
+  /**
+   * @deprecated Exists only till API v1 is removed.
+   */
+  async createBookingForApiV1(input: {
     bookingData: CreateRegularBookingData;
     bookingMeta?: CreateBookingMeta;
     bookingDataSchemaGetter: BookingDataSchemaGetter;
   }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, input.bookingDataSchemaGetter);
+    const bookingMeta = input.bookingMeta ?? {};
+    return handler(
+      {
+        bookingData: input.bookingData,
+        ...bookingMeta,
+      },
+      this.deps,
+      input.bookingDataSchemaGetter
+    );
   }
 }
