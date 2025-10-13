@@ -15,6 +15,13 @@ export type ResponseData = {
   };
 };
 
+export function getSubmitterEmail(responses: any) {
+  return Object.values(responses).find((response): response is { value: string; label: string } => {
+    const value = typeof response === "object" && response && "value" in response ? response.value : response;
+    return typeof value === "string" && value.includes("@");
+  })?.value;
+}
+
 export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
   webhook: z.object({
     subscriberUrl: z.string().url(),
@@ -70,13 +77,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       },
     })) ?? [];
 
-  const emailValue = Object.values(responses).find(
-    (response): response is { value: string; label: string } => {
-      const value =
-        typeof response === "object" && response && "value" in response ? response.value : response;
-      return typeof value === "string" && value.includes("@");
-    }
-  )?.value;
+  const emailValue = getSubmitterEmail(responses);
   // Check for duplicate email in recent responses
   const hasDuplicate =
     emailValue &&
