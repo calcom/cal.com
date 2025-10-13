@@ -7,10 +7,12 @@ import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebh
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import HrmsManager from "@calcom/lib/hrmsManager/hrmsManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { AppCategories, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -194,6 +196,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       toUserId: toUserId ? toUserId : null,
     },
   });
+
   let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;
   if (createdOrUpdatedOutOfOffice) {
     const findRedirect = await prisma.outOfOfficeEntry.findUnique({
@@ -222,13 +225,12 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         },
       })
     : null;
-  const reason = await prisma.outOfOfficeReason.findUnique({
-    where: {
-      id: input.reasonId,
-    },
+  const reason = await prisma.outOfOfficeReason.findFirst({
+    where: { id: input.reasonId },
     select: {
       reason: true,
       emoji: true,
+      externalId: true,
     },
   });
   if (toUserId) {
@@ -335,7 +337,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       updatedAt: createdOrUpdatedOutOfOffice.updatedAt.toISOString(),
       notes: createdOrUpdatedOutOfOffice.notes,
       reason: {
-        emoji: reason?.emoji,
+        emoji: reason?.emoji ?? undefined,
         reason: reason?.reason,
       },
       reasonId: input.reasonId,
@@ -374,6 +376,47 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       );
     })
   );
+
+  // early return because we cannot sync ooo with hrms without the external reason id
+  if (!reason?.externalId) return {};
+
+  try {
+    const hrmsCredentials = await CredentialRepository.findCredentialsByUserIdAndCategory({
+      userId: oooUserId,
+      category: [AppCategories.hrms],
+    });
+
+    for (const credential of hrmsCredentials) {
+      const hrmsManager = new HrmsManager(credential);
+
+      if (createdOrUpdatedOutOfOffice.externalId) {
+        const updatedOoo = await hrmsManager.updateOOO(createdOrUpdatedOutOfOffice.externalId, {
+          endDate: endTimeUtc.format("YYYY-MM-DD"),
+          startDate: startTimeUtc.format("YYYY-MM-DD"),
+          notes: input?.notes ? input.notes : reason?.reason ? `Out of office: ${reason.reason}` : "",
+          externalReasonId: reason.externalId,
+          userEmail: oooUserEmail,
+        });
+      } else {
+        const ooo = await hrmsManager.createOOO({
+          endDate: endTimeUtc.format("YYYY-MM-DD"),
+          startDate: startTimeUtc.format("YYYY-MM-DD"),
+          notes: input?.notes ? input.notes : reason?.reason ? `Out of office: ${reason.reason}` : "",
+          userEmail: oooUserEmail,
+          externalReasonId: reason.externalId,
+        });
+
+        if (ooo?.id) {
+          await prisma.outOfOfficeEntry.update({
+            where: { uuid: createdOrUpdatedOutOfOffice.uuid },
+            data: { externalId: ooo.id },
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Failed to create/update HRMS time-off request:", error);
+  }
 
   return {};
 };

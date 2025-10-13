@@ -93,6 +93,7 @@ export const AppForm = ({
         { label: "CRM", value: "crm" },
         { label: "Messaging", value: "messaging" },
         { label: "Payment", value: "payment" },
+        { label: "Hrms", value: "hrms" },
         { label: "Other", value: "other" },
       ],
       defaultValue: "",

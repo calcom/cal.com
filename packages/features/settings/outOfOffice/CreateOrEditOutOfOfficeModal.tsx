@@ -125,8 +125,11 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
 
   const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
     trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
+
   const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
-    label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
+    label: `${reason?.emoji ? reason.emoji : ""} ${
+      reason.userId === null ? t(reason.reason || "") : reason.reason || ""
+    }`,
     value: reason.id,
   }));
 
