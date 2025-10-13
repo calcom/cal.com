@@ -89,11 +89,6 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   for (const user of guestUsers) {
     const baseEmail = extractBaseEmail(user.email).toLowerCase();
     emailToRequiresVerification.set(baseEmail, user.requiresBookerEmailVerification ?? false);
-
-    for (const secondary of user.secondaryEmails) {
-      const baseSecondary = extractBaseEmail(secondary.email).toLowerCase();
-      emailToRequiresVerification.set(baseSecondary, user.requiresBookerEmailVerification ?? false);
-    }
   }
 
   const uniqueGuests = guests.filter((guest) => {
