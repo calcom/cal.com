@@ -27,11 +27,15 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
-import type { Prisma, PrismaClient, WorkflowReminder } from "@calcom/prisma/client";
+import type { WorkflowMethods } from "@calcom/prisma/enums";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
@@ -49,6 +53,7 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
+import { PrismaBookingAttendeeRepository } from "./repository/PrismaBookingAttendeeRepository";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -67,7 +72,30 @@ export type CancelBookingInput = {
   bookingData: z.infer<typeof bookingCancelInput>;
 } & PlatformParams;
 
-async function handler(input: CancelBookingInput) {
+type Dependencies = {
+  userRepository: UserRepository;
+  bookingRepository: BookingRepository;
+  profileRepository: ProfileRepository;
+  bookingReferenceRepository: BookingReferenceRepository;
+  attendeeRepository: PrismaBookingAttendeeRepository;
+};
+
+async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
+  const {
+    userRepository,
+    bookingRepository,
+    profileRepository,
+    bookingReferenceRepository,
+    attendeeRepository,
+  } =
+    dependencies || // We keep this fallback here till the followup PR where we start using the BookingCancelService itself everywhere including tests and then we can ensure that dependencies would be a required param
+    {
+      userRepository: new UserRepository(prisma),
+      bookingRepository: new BookingRepository(prisma),
+      profileRepository: new ProfileRepository({ prismaClient: prisma }),
+      bookingReferenceRepository: new BookingReferenceRepository({ prismaClient: prisma }),
+      attendeeRepository: new PrismaBookingAttendeeRepository(prisma),
+    };
   const body = input.bookingData;
   const {
     id,
@@ -177,19 +205,8 @@ async function handler(input: CancelBookingInput) {
 
   const webhooks = await getWebhooks(subscriberOptions);
 
-  const organizer = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: bookingToDelete.userId,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      timeZone: true,
-      timeFormat: true,
-      locale: true,
-    },
+  const organizer = await userRepository.findByIdOrThrow({
+    id: bookingToDelete.userId,
   });
 
   const teamMembersPromises = [];
@@ -228,10 +245,8 @@ async function handler(input: CancelBookingInput) {
   const teamMembers = await Promise.all(teamMembersPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
 
-  const ownerProfile = await prisma.profile.findFirst({
-    where: {
-      userId: bookingToDelete.userId,
-    },
+  const ownerProfile = await profileRepository.findFirstByUserId({
+    userId: bookingToDelete.userId,
   });
 
   const bookerUrl = await getBookerBaseUrl(
@@ -359,7 +374,11 @@ async function handler(input: CancelBookingInput) {
   let updatedBookings: {
     id: number;
     uid: string;
-    workflowReminders: WorkflowReminder[];
+    workflowReminders: {
+      id: number;
+      referenceId: string | null;
+      method: WorkflowMethods;
+    }[];
     references: {
       type: string;
       credentialId: number | null;
@@ -380,7 +399,7 @@ async function handler(input: CancelBookingInput) {
     const recurringEventId = bookingToDelete.recurringEventId;
     const gte = cancelSubsequentBookings ? bookingToDelete.startTime : new Date();
     // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
-    await prisma.booking.updateMany({
+    await bookingRepository.updateMany({
       where: {
         recurringEventId,
         startTime: {
@@ -393,43 +412,24 @@ async function handler(input: CancelBookingInput) {
         cancelledBy: cancelledBy,
       },
     });
-    const allUpdatedBookings = await prisma.booking.findMany({
+    const allUpdatedBookings = await bookingRepository.findManyIncludeWorkflowReminders({
       where: {
         recurringEventId: bookingToDelete.recurringEventId,
         startTime: {
           gte: new Date(),
         },
       },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            externalCalendarId: true,
-            credentialId: true,
-          },
-        },
-        workflowReminders: true,
-        uid: true,
-      },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
     if (bookingToDelete?.eventType?.seatsPerTimeSlot) {
-      await prisma.attendee.deleteMany({
-        where: {
-          bookingId: bookingToDelete.id,
-        },
-      });
+      await attendeeRepository.deleteManyByBookingId(bookingToDelete.id);
     }
 
-    const where: Prisma.BookingWhereUniqueInput = uid ? { uid } : { id };
-
-    const updatedBooking = await prisma.booking.update({
-      where,
+    await bookingRepository.update({
+      where: {
+        uid: bookingToDelete.uid,
+      },
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
@@ -437,22 +437,16 @@ async function handler(input: CancelBookingInput) {
         // Assume that canceling the booking is the last action
         iCalSequence: evt.iCalSequence || 100,
       },
-      select: {
-        id: true,
-        startTime: true,
-        endTime: true,
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            externalCalendarId: true,
-            credentialId: true,
-          },
-        },
-        workflowReminders: true,
-        uid: true,
-      },
     });
+
+    const updatedBooking = await bookingRepository.findByUidIncludeWorkflowRemindersAndReferences({
+      bookingUid: bookingToDelete.uid,
+    });
+
+    if (!updatedBooking) {
+      throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    }
+
     updatedBookings.push(updatedBooking);
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
@@ -518,11 +512,7 @@ async function handler(input: CancelBookingInput) {
 
     await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
-    await prisma.bookingReference.deleteMany({
-      where: {
-        bookingId: bookingToDelete.id,
-      },
-    });
+    await bookingReferenceRepository.deleteManyByBookingId(bookingToDelete.id);
   } catch (error) {
     log.error(`Error deleting integrations`, safeStringify({ error }));
   }
@@ -587,8 +577,13 @@ async function handler(input: CancelBookingInput) {
 }
 
 type BookingCancelServiceDependencies = {
-  prismaClient: PrismaClient;
+  userRepository: UserRepository;
+  bookingRepository: BookingRepository;
+  profileRepository: ProfileRepository;
+  bookingReferenceRepository: BookingReferenceRepository;
+  attendeeRepository: PrismaBookingAttendeeRepository;
 };
+
 /**
  * Takes care of cancelling bookings. This includes regular bookings, recurring bookings, seated bookings, etc.
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
@@ -601,8 +596,8 @@ export class BookingCancelService implements IBookingCancelService {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
     };
-    // TODO: Deps to be passed to it later when we stop exporting handler
-    return handler(cancelBookingInput);
+
+    return handler(cancelBookingInput, this.deps);
   }
 }
 

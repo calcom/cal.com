@@ -1,6 +1,8 @@
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import type { PartialReference } from "@calcom/types/EventManager";
+
+import type { IBookingReferenceRepository } from "./dto/IBookingReferenceRepository";
 
 const bookingReferenceSelect = {
   id: true,
@@ -13,7 +15,12 @@ const bookingReferenceSelect = {
   bookingId: true,
 } satisfies Prisma.BookingReferenceSelect;
 
-export class BookingReferenceRepository {
+export class BookingReferenceRepository implements IBookingReferenceRepository {
+  private prismaClient: PrismaClient;
+  constructor(private deps: { prismaClient: PrismaClient }) {
+    this.prismaClient = deps.prismaClient;
+  }
+
   static async findDailyVideoReferenceByRoomName({ roomName }: { roomName: string }) {
     return prisma.bookingReference.findFirst({
       where: { type: "daily_video", uid: roomName, meetingId: roomName, bookingId: { not: null } },
@@ -46,6 +53,14 @@ export class BookingReferenceRepository {
       data: newReferencesToCreate.map((reference) => {
         return { ...reference, bookingId };
       }),
+    });
+  }
+
+  async deleteManyByBookingId(bookingId: number): Promise<void> {
+    await this.prismaClient.bookingReference.deleteMany({
+      where: {
+        bookingId,
+      },
     });
   }
 }
