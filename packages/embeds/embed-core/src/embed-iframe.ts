@@ -4,7 +4,13 @@ import { useEffect, useRef, useState, useCallback } from "react";
 
 import type { Message } from "./embed";
 import { embedStore, EMBED_IFRAME_STATE } from "./embed-iframe/lib/embedStore";
-import { runAsap, isBookerReady, isLinkReady, recordResponseIfQueued } from "./embed-iframe/lib/utils";
+import {
+  runAsap,
+  isBookerReady,
+  isLinkReady,
+  recordResponseIfQueued,
+  keepParentInformedAboutDimensionChanges,
+} from "./embed-iframe/lib/utils";
 import { sdkActionManager } from "./sdk-event";
 import type {
   UiConfig,
@@ -195,7 +201,6 @@ export const useEmbedStyles = (elementName: keyof EmbedStyles) => {
 
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setStyles, styles: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const styles = embedStore.styles || {};
   // Always read the data from global embedStore so that even across components, the same data is used.
@@ -207,7 +212,6 @@ export const useEmbedNonStylesConfig = (elementName: keyof EmbedNonStylesConfig)
 
   useEffect(() => {
     return registerNewSetter({ elementName, setState: setNonStyles, styles: false });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Always read the data from global embedStore so that even across components, the same data is used.
@@ -387,7 +391,6 @@ export const methods = {
     setEmbedStyles(stylesConfig || {});
     setEmbedNonStyles(stylesConfig || {});
   },
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   parentKnowsIframeReady: (_unused: unknown) => {
     log("Method: `parentKnowsIframeReady` called");
     // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
@@ -425,7 +428,7 @@ export const methods = {
       ...queryParamsFromConfig
     } = config;
     // We reset it to allow informing parent again through `__dimensionChanged` event about possibly updated dimensions with changes in config
-    embedStore.parentInformedAboutContentHeight = false;
+    embedStore.providedCorrectHeightToParent = false;
 
     if (noSlotsFetchOnConnect !== "true") {
       log("Method: connect, noSlotsFetchOnConnect is false. Requesting slots re-fetch");
@@ -483,93 +486,6 @@ const messageParent = (data: CustomEvent["detail"]) => {
     "*"
   );
 };
-
-/**
- * This function is called once the iframe loads.
- * It isn't called on "connect"
- */
-function keepParentInformedAboutDimensionChanges() {
-  let knownIframeHeight: number | null = null;
-  let knownIframeWidth: number | null = null;
-  let isFirstTime = true;
-  let isWindowLoadComplete = false;
-  runAsap(function informAboutScroll() {
-    if (document.readyState !== "complete") {
-      // Wait for window to load to correctly calculate the initial scroll height.
-      runAsap(informAboutScroll);
-      return;
-    }
-    if (!isWindowLoadComplete) {
-      // On Safari, even though document.readyState is complete, still the page is not rendered and we can't compute documentElement.scrollHeight correctly
-      // Postponing to just next cycle allow us to fix this.
-      setTimeout(() => {
-        isWindowLoadComplete = true;
-        informAboutScroll();
-      }, 100);
-      return;
-    }
-
-    if (!embedStore.windowLoadEventFired) {
-      sdkActionManager?.fire("__windowLoadComplete", {});
-    }
-    embedStore.windowLoadEventFired = true;
-
-    // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
-    // It avoids the unwanted padding outside main tag.
-    const mainElement =
-      document.getElementsByClassName("main")[0] ||
-      document.getElementsByTagName("main")[0] ||
-      document.documentElement;
-    const documentScrollHeight = document.documentElement.scrollHeight;
-    const documentScrollWidth = document.documentElement.scrollWidth;
-
-    if (!(mainElement instanceof HTMLElement)) {
-      throw new Error("Main element should be an HTMLElement");
-    }
-
-    const mainElementStyles = getComputedStyle(mainElement);
-    // Use, .height as that gives more accurate value in floating point. Also, do a ceil on the total sum so that whatever happens there is enough iframe size to avoid scroll.
-    const contentHeight = Math.ceil(
-      parseFloat(mainElementStyles.height) +
-        parseFloat(mainElementStyles.marginTop) +
-        parseFloat(mainElementStyles.marginBottom)
-    );
-    const contentWidth = Math.ceil(
-      parseFloat(mainElementStyles.width) +
-        parseFloat(mainElementStyles.marginLeft) +
-        parseFloat(mainElementStyles.marginRight)
-    );
-
-    // During first render let iframe tell parent that how much is the expected height to avoid scroll.
-    // Parent would set the same value as the height of iframe which would prevent scroll.
-    // On subsequent renders, consider html height as the height of the iframe. If we don't do this, then if iframe gets bigger in height, it would never shrink
-    const iframeHeight = isFirstTime ? documentScrollHeight : contentHeight;
-    const iframeWidth = isFirstTime ? documentScrollWidth : contentWidth;
-
-    if (!iframeHeight || !iframeWidth) {
-      runAsap(informAboutScroll);
-      return;
-    }
-    const isThereAChangeInDimensions = knownIframeHeight !== iframeHeight || knownIframeWidth !== iframeWidth;
-    if (isThereAChangeInDimensions || !embedStore.parentInformedAboutContentHeight) {
-      embedStore.parentInformedAboutContentHeight = true;
-
-      knownIframeHeight = iframeHeight;
-      knownIframeWidth = iframeWidth;
-      // FIXME: This event shouldn't be subscribable by the user. Only by the SDK.
-      sdkActionManager?.fire("__dimensionChanged", {
-        iframeHeight,
-        iframeWidth,
-        isFirstTime,
-      });
-    }
-    isFirstTime = false;
-    // Parent Counterpart would change the dimension of iframe and thus page's dimension would be impacted which is recursive.
-    // It should stop ideally by reaching a hiddenHeight value of 0.
-    // FIXME: If 0 can't be reached we need to just abandon our quest for perfect iframe and let scroll be there. Such case can be logged in the wild and fixed later on.
-    runAsap(informAboutScroll);
-  });
-}
 
 function main() {
   if (!isBrowser) {
@@ -659,7 +575,7 @@ function initializeAndSetupEmbed() {
   const pageStatus = window.CalComPageStatus;
 
   if (!pageStatus || pageStatus == "200") {
-    keepParentInformedAboutDimensionChanges();
+    keepParentInformedAboutDimensionChanges({ embedStore });
   } else
     sdkActionManager?.fire("linkFailed", {
       code: pageStatus,
