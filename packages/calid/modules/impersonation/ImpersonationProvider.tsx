@@ -36,7 +36,7 @@ interface ImpersonatedUserData extends Pick<User, "id" | "username" | "email" | 
   }>;
 }
 
-type ImpersonationCredentials = Record<"username" | "calIdTeamId" | "returnToId", string> | undefined;
+type ImpersonationCredentials = Record<"username" | "teamId" | "returnToId", string> | undefined;
 
 interface ReturnUserPayload {
   user: ImpersonatedUserData;
@@ -47,14 +47,17 @@ interface ReturnUserPayload {
 // Validation utilities
 class ImpersonationValidator {
   static extractCalIdTeamId(credentials: Partial<ImpersonationCredentials>): number | undefined {
-    if (!credentials?.calIdTeamId) return undefined;
-    return CalIdTeamIdValidator.parse({ calIdTeamId: credentials.calIdTeamId }).calIdTeamId;
+    if (!credentials?.teamId) return undefined;
+    return CalIdTeamIdValidator.parse({ calIdTeamId: credentials.teamId }).calIdTeamId;
   }
 
-  static validateNotSelfImpersonation(userSession: Session | null, credentials: Partial<ImpersonationCredentials>): void {
+  static validateNotSelfImpersonation(
+    userSession: Session | null,
+    credentials: Partial<ImpersonationCredentials>
+  ): void {
     const isSameUsername = userSession?.user.username === credentials?.username;
     const isSameEmail = userSession?.user.email === credentials?.username;
-    
+
     if (isSameUsername || isSameEmail) {
       throw new Error("You cannot impersonate yourself.");
     }
@@ -63,7 +66,7 @@ class ImpersonationValidator {
   static validateUserIdentifierPresent(credentials: Partial<ImpersonationCredentials>): void {
     const hasReturnId = !!credentials?.returnToId;
     const hasUsername = !!credentials?.username;
-    
+
     if (!hasUsername && !hasReturnId) {
       throw new Error("User identifier must be present");
     }
@@ -71,11 +74,11 @@ class ImpersonationValidator {
 
   static validateGlobalPermissions(userSession: Session | null): void {
     console.log("sessions is: ", JSON.stringify(userSession));
-    
+
     const isNotAdmin = userSession?.user.role !== "ADMIN";
     const calIdTeamImpersonationDisabled = process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false";
     const noSession = !userSession?.user;
-    
+
     if ((isNotAdmin && calIdTeamImpersonationDisabled) || noSession) {
       throw new Error("You do not have permission to do this.");
     }
@@ -174,7 +177,7 @@ class ProfileManager {
     });
 
     const primaryProfile = allProfiles[0];
-    
+
     if (!primaryProfile.organizationId) {
       return primaryProfile;
     }
@@ -251,9 +254,8 @@ class ImpersonationHandlers {
     const originalUser = await ImpersonationQueries.fetchReturningUser(parsedReturnId);
     if (!originalUser) return undefined;
 
-    const hasOrgContext = 
-      originalUser.organizationId || 
-      originalUser.profiles.some((p) => p.organizationId !== undefined);
+    const hasOrgContext =
+      originalUser.organizationId || originalUser.profiles.some((p) => p.organizationId !== undefined);
 
     const canReturn = originalUser.role === "ADMIN" || hasOrgContext;
     if (!canReturn) return undefined;
@@ -321,10 +323,7 @@ class ImpersonationHandlers {
       include: {
         calIdTeams: {
           where: {
-            AND: [
-              { role: { in: ["ADMIN", "OWNER"] } },
-              { calIdTeam: { id: calIdTeamId } },
-            ],
+            AND: [{ role: { in: ["ADMIN", "OWNER"] } }, { calIdTeam: { id: calIdTeamId } }],
           },
           select: { role: true },
         },
@@ -389,7 +388,7 @@ const ImpersonationProvider = CredentialsProvider({
       if (targetUserData.disableImpersonation) {
         throw new Error("This user has disabled Impersonation.");
       }
-      
+
       return ImpersonationHandlers.buildFinalResponse(
         targetUserData,
         activeSession.user.id as number,
@@ -405,7 +404,11 @@ const ImpersonationProvider = CredentialsProvider({
     }
 
     // CalIdTeam-based permissions validation
-    await ImpersonationHandlers.validateCalIdTeamPermissions(activeSession, targetUserData, extractedCalIdTeamId);
+    await ImpersonationHandlers.validateCalIdTeamPermissions(
+      activeSession,
+      targetUserData,
+      extractedCalIdTeamId
+    );
 
     return ImpersonationHandlers.buildFinalResponse(
       targetUserData,
