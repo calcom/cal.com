@@ -251,6 +251,17 @@ describe("NumberWidget", () => {
       groupSafeForTyping?: boolean;
     };
 
+    // Utility: checks whether a locale is actually supported in this runtime
+    function isLocaleSupported(locale: string): boolean {
+      try {
+        const resolved = new Intl.NumberFormat(locale).resolvedOptions().locale;
+        // Check for exact match (case-insensitive)
+        return resolved.toLowerCase() === locale.toLowerCase();
+      } catch {
+        return false; // Invalid or unsupported locale
+      }
+    }
+
     // fr-FR, ru-RU, and pl-PL use a non-breaking space as the group separator.
     // Since users typically don't type that Unicode character, these locales are marked as not groupSafeForTyping.
     const locales: LocaleCase[] = [
@@ -272,12 +283,12 @@ describe("NumberWidget", () => {
     ];
 
     locales.forEach(({ locale, decimal, group, groupSafeForTyping }) => {
-      it(`${locale}: displays value with correct formatting`, () => {
+      const isSupported = isLocaleSupported(locale);
+
+      (isSupported ? it : it.skip)(`${locale}: displays value with correct formatting`, () => {
         setNavigatorLanguage(locale);
         const setValue = vi.fn();
-
         render(<NumberWidget value="1234.56" setValue={setValue} />);
-
         const input = screen.getByRole("textbox");
         const expected = new Intl.NumberFormat(locale, {
           minimumFractionDigits: 0,
@@ -286,32 +297,29 @@ describe("NumberWidget", () => {
         expect((input as HTMLInputElement).value).toBe(expected);
       });
 
-      it(`${locale}: converts input with decimal to standard format`, () => {
+      (isSupported ? it : it.skip)(`${locale}: converts input with decimal to standard format`, () => {
         setNavigatorLanguage(locale);
         const setValue = vi.fn();
-
         render(<NumberWidget value="" setValue={setValue} />);
         const input = screen.getByRole("textbox");
-
         const localized = `1234${decimal}56`;
         fireEvent.change(input, { target: { value: localized } });
-
         expect(setValue).toHaveBeenLastCalledWith("1234.56");
       });
 
       if (group && groupSafeForTyping) {
-        it(`${locale}: converts pasted input with grouping and decimal to standard format`, () => {
-          setNavigatorLanguage(locale);
-          const setValue = vi.fn();
-
-          render(<NumberWidget value="" setValue={setValue} />);
-          const input = screen.getByRole("textbox");
-
-          const localized = `1${group}234${decimal}56`;
-          fireEvent.change(input, { target: { value: localized } });
-
-          expect(setValue).toHaveBeenLastCalledWith("1234.56");
-        });
+        (isSupported ? it : it.skip)(
+          `${locale}: converts pasted input with grouping and decimal to standard format`,
+          () => {
+            setNavigatorLanguage(locale);
+            const setValue = vi.fn();
+            render(<NumberWidget value="" setValue={setValue} />);
+            const input = screen.getByRole("textbox");
+            const localized = `1${group}234${decimal}56`;
+            fireEvent.change(input, { target: { value: localized } });
+            expect(setValue).toHaveBeenLastCalledWith("1234.56");
+          }
+        );
       }
     });
   });
