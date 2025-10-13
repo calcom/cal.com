@@ -1,7 +1,7 @@
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { BookingRepository } from "../repositories/BookingRepository";
-import { UserRepository } from "@calcom/features/users/UserRepository";
 
 type BookingForAccessCheck = NonNullable<Awaited<ReturnType<BookingRepository["findByUidIncludeEventType"]>>>;
 
@@ -20,9 +20,7 @@ export class BookingAccessService {
     booking?.eventType?.hosts?.forEach((host: { userId: number; user: { email: string } }) =>
       addHost(host.userId, host.user.email)
     );
-    booking?.eventType?.users?.forEach((user: { id: number; email: string }) =>
-      addHost(user.id, user.email)
-    );
+    booking?.eventType?.users?.forEach((user: { id: number; email: string }) => addHost(user.id, user.email));
 
     if (booking?.user?.id && booking?.user?.email) {
       addHost(booking.user.id, booking.user.email);
