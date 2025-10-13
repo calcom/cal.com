@@ -337,7 +337,7 @@ export async function createNewUsersConnectToOrgIfExists({
 
         const isBecomingAnOrgMember = parentId || isOrg;
 
-        const userRepository = new UserRepository(tx as unknown as PrismaClient);
+        const userRepository = new UserRepository(tx);
         const createdUser = await userRepository.createFromInvitation({
           email: invitation.usernameOrEmail,
           username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,

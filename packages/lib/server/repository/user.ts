@@ -5,7 +5,7 @@ import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential"
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient, PrismaTransaction } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import type { User as UserType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -121,7 +121,7 @@ const userSelect = {
 } satisfies Prisma.UserSelect;
 
 export class UserRepository {
-  constructor(private prismaClient: PrismaClient) {}
+  constructor(private prismaClient: PrismaClient | PrismaTransaction) {}
 
   async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
     const teamMemberships = await this.prismaClient.membership.findMany({
