@@ -21,7 +21,6 @@ import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 import { verifyApiKey } from "./verifyApiKey";
 
-// Mock the service layer instead of Prisma
 vi.mock("@calcom/lib/server/service/ApiKeyService", () => ({
   ApiKeyService: vi.fn(),
 }));
@@ -68,7 +67,6 @@ describe("Verify API key - Unit Tests", () => {
     service = await LicenseKeyService.create(mockDeploymentRepository);
     vi.spyOn(service, "checkLicense");
 
-    // Setup mock ApiKeyService
     mockApiKeyService = {
       verifyKeyByHashedKey: vi.fn(),
     } as unknown as ApiKeyService;
@@ -135,8 +133,7 @@ describe("Verify API key - Unit Tests", () => {
       },
     });
 
-    // Mock ApiKeyService.verifyKeyByHashedKey to return valid result
-    mockApiKeyService.verifyKeyByHashedKey.mockResolvedValue({
+    vi.mocked(mockApiKeyService.verifyKeyByHashedKey).mockResolvedValue({
       valid: true,
       userId: 1,
       user: {
@@ -180,8 +177,7 @@ describe("Verify API key - Unit Tests", () => {
       },
     });
 
-    // Mock ApiKeyService.verifyKeyByHashedKey to return valid result
-    mockApiKeyService.verifyKeyByHashedKey.mockResolvedValue({
+    vi.mocked(mockApiKeyService.verifyKeyByHashedKey).mockResolvedValue({
       valid: true,
       userId: 2,
       user: {
@@ -225,8 +221,7 @@ describe("Verify API key - Unit Tests", () => {
       },
     });
 
-    // Mock ApiKeyService.verifyKey to return valid result with locked user
-    mockApiKeyService.verifyKeyByHashedKey.mockResolvedValue({
+    vi.mocked(mockApiKeyService.verifyKeyByHashedKey).mockResolvedValue({
       valid: true,
       userId: 3,
       user: {
