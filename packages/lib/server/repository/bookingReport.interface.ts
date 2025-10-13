@@ -12,7 +12,7 @@ export interface CreateBookingReportInput {
 
 export interface BookingReportSummary {
   id: string;
-  reportedById: number;
+  reportedById: number | null;
   reason: BookingReportReason;
   description: string | null;
   createdAt: Date;
