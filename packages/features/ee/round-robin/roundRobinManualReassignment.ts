@@ -314,7 +314,14 @@ export const roundRobinManualReassignment = async ({
   };
 
   try {
-    const teamForBranding = eventType.teamId
+    type TeamForBranding = {
+      id: number;
+      hideBranding: boolean | null;
+      parentId: number | null;
+      parent: { hideBranding: boolean | null } | null;
+    };
+
+    const teamForBranding: TeamForBranding | null = eventType.teamId
       ? await prisma.team.findUnique({
           where: { id: eventType.teamId },
           select: {
@@ -325,23 +332,25 @@ export const roundRobinManualReassignment = async ({
           },
         })
       : null;
-    const organizationIdForBranding = teamForBranding?.parentId
-      ? teamForBranding.parentId
-      : (
-          await prisma.profile.findFirst({
-            where: { userId: organizer.id },
-            select: { organizationId: true },
-          })
-        )?.organizationId ?? null;
+    const organizationIdForBranding =
+      teamForBranding?.parentId ??
+      orgId ??
+      (
+        await prisma.profile.findFirst({
+          where: { userId: organizer.id, organizationId: orgId ?? undefined },
+          select: { organizationId: true },
+        })
+      )?.organizationId ??
+      null;
     const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: eventType.id,
-      team: (teamForBranding as any) ?? null,
-      owner: { id: organizer.id, hideBranding: null } as any,
+      team: teamForBranding ?? null,
+      owner: { id: organizer.id, hideBranding: organizer.hideBranding ?? null },
       organizationId: organizationIdForBranding,
     });
-    (evt as any).hideBranding = hideBranding;
+    evt.hideBranding = hideBranding;
   } catch (_) {
-    (evt as any).hideBranding = false;
+    evt.hideBranding = false;
   }
 
   const credentials = await prisma.credential.findMany({

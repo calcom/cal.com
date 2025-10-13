@@ -52,6 +52,7 @@ const attendeeRescheduleSeatedBooking = async (
     owner: organizerUser ?? null,
     organizationId: (await (async () => {
       if (teamForBranding?.parentId) return teamForBranding.parentId;
+      if (!organizerUser) return null;
       const organizerProfile = await prisma.profile.findFirst({
         where: { userId: organizerUser.id },
         select: { organizationId: true },
