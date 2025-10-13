@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
 import type { CreateScheduleHandlerReturn } from "@calcom/trpc/server/routers/viewer/availability/schedule/create.handler";
-import { TCreateInputSchema as CreateAtomScheduleDto } from "@calcom/trpc/server/routers/viewer/availability/schedule/create.schema";
+import { TCreateInputSchema as CreateScheduleSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/create.schema";
 
 import http from "../../lib/http";
 import { QUERY_KEY as ScheduleQueryKey } from "./useAtomSchedule";
@@ -25,8 +25,8 @@ export const useAtomCreateSchedule = (
 ) => {
   const queryClient = useQueryClient();
 
-  return useMutation<ApiResponse<CreateScheduleHandlerReturn>, unknown, CreateAtomScheduleDto>({
-    mutationFn: async (body: CreateAtomScheduleDto) => {
+  return useMutation<ApiResponse<CreateScheduleHandlerReturn>, unknown, CreateScheduleSchema>({
+    mutationFn: async (body: CreateScheduleSchema) => {
       const url = `atoms/schedules/create`;
       const response = await http.post<ApiResponse<CreateScheduleHandlerReturn>>(url, body);
       return response.data;

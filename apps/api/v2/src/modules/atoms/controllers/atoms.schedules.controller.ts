@@ -25,10 +25,7 @@ import {
 import { z } from "zod";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type {
-  CreateScheduleHandlerReturn,
-  CreateAtomScheduleDto,
-} from "@calcom/platform-libraries/schedules";
+import type { CreateScheduleHandlerReturn, CreateScheduleSchema } from "@calcom/platform-libraries/schedules";
 import { createScheduleHandler } from "@calcom/platform-libraries/schedules";
 import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
 import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
@@ -98,7 +95,7 @@ export class AtomsSchedulesController {
   @ApiOperation({ summary: "Create atom schedule" })
   async createSchedule(
     @GetUser() user: UserWithProfile,
-    @Body() bodySchedule: z.infer<typeof CreateAtomScheduleDto>
+    @Body() bodySchedule: z.infer<typeof CreateScheduleSchema>
   ): Promise<ApiResponse<CreateScheduleHandlerReturn>> {
     const createdSchedule = await createScheduleHandler({ input: bodySchedule, ctx: { user } });
 
