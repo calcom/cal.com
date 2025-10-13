@@ -10,7 +10,7 @@ import { createMocks } from "node-mocks-http";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyService";
-import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
+import LicenseKeyService, { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
 import { ApiKeyService } from "@calcom/lib/server/service/ApiKeyService";
@@ -66,6 +66,8 @@ describe("Verify API key - Unit Tests", () => {
   beforeEach(async () => {
     service = await LicenseKeyService.create(mockDeploymentRepository);
     vi.spyOn(service, "checkLicense");
+
+    vi.spyOn(LicenseKeySingleton, "getInstance").mockResolvedValue(service as LicenseKeyService);
 
     mockApiKeyService = {
       verifyKeyByHashedKey: vi.fn(),
