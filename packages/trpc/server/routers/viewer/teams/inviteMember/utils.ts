@@ -8,13 +8,13 @@ import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/que
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
