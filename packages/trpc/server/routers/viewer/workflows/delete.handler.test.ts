@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -23,7 +23,7 @@ vi.mock("@calcom/features/calAIPhone", () => ({
   createDefaultAIPhoneServiceProvider: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/server/repository/workflow", () => ({
+vi.mock("@calcom/features/ee/workflows/repositories/WorkflowRepository", () => ({
   WorkflowRepository: {
     deleteAllWorkflowReminders: vi.fn(),
   },

@@ -4,10 +4,10 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
-import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaAssignmentReasonRepository } from "@calcom/lib/server/repository/PrismaAssignmentReasonRepository";

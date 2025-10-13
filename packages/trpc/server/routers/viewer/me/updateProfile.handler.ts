@@ -10,7 +10,7 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";

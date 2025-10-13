@@ -106,7 +106,7 @@ export const embedStore = {
   reactStylesStateSetters: {} as Record<keyof EmbedStyles, SetStyles>,
   reactNonStylesStateSetters: {} as Record<keyof EmbedNonStylesConfig, setNonStylesConfig>,
   // Embed can show itself only after this is set to true
-  parentInformedAboutContentHeight: false,
+  providedCorrectHeightToParent: false,
   windowLoadEventFired: false,
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
@@ -116,3 +116,5 @@ export const embedStore = {
    */
   setUiConfig: [] as ((arg0: UiConfig) => void)[],
 };
+
+export type EmbedStore = typeof embedStore;
