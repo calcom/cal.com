@@ -7,6 +7,7 @@ import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
@@ -59,14 +60,27 @@ async function postHandler(request: NextRequest) {
             timeZone: true,
             destinationCalendar: true,
             isPlatformManaged: true,
+            hideBranding: true,
             platformOAuthClients: { select: { id: true, areEmailsEnabled: true } },
           },
         },
         eventType: {
           select: {
+            id: true,
             recurringEvent: true,
             bookingFields: true,
             metadata: true,
+            team: {
+              select: {
+                id: true,
+                hideBranding: true,
+                parent: {
+                  select: {
+                    hideBranding: true,
+                  },
+                },
+              },
+            },
           },
         },
         responses: true,
@@ -118,6 +132,27 @@ async function postHandler(request: NextRequest) {
 
       const attendeesList = await Promise.all(attendeesListPromises);
       const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
+      
+      const userOrganizationId = !booking.eventType?.team && booking.user
+        ? (
+            await prisma.profile.findFirst({
+              where: {
+                userId: booking.user.id,
+              },
+              select: {
+                organizationId: true,
+              },
+            })
+          )?.organizationId
+        : null;
+
+      const hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId: booking.eventType?.id ?? 0,
+        team: booking.eventType?.team ?? null,
+        owner: booking.user ?? null,
+        organizationId: userOrganizationId ?? null,
+      });
+
       const evt: CalendarEvent = {
         type: booking.title,
         title: booking.title,
@@ -141,7 +176,7 @@ async function postHandler(request: NextRequest) {
         uid: booking.uid,
         recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
         destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
-        hideBranding: false,
+        hideBranding,
       };
 
       await sendOrganizerRequestReminderEmail(evt as CalendarEventWithBranding, booking?.eventType?.metadata as EventTypeMetadata);

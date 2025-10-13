@@ -23,7 +23,14 @@ const attendeeRescheduleSeatedBooking = async (
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
   const { organizerUser } = rescheduleSeatedBookingObject;
 
-  const teamForBranding = eventType.team?.id
+  type TeamForBranding = {
+    id: number;
+    hideBranding: boolean | null;
+    parentId: number | null;
+    parent: { hideBranding: boolean | null } | null;
+  };
+
+  const teamForBranding: TeamForBranding | null = eventType.team?.id
     ? await prisma.team.findUnique({
         where: { id: eventType.team.id },
         select: {
@@ -41,7 +48,7 @@ const attendeeRescheduleSeatedBooking = async (
 
   const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType.id,
-    team: (teamForBranding as any) ?? null,
+    team: teamForBranding ?? null,
     owner: organizerUser ?? null,
     organizationId: (await (async () => {
       if (teamForBranding?.parentId) return teamForBranding.parentId;

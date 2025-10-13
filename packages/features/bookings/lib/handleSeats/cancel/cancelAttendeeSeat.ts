@@ -124,7 +124,7 @@ async function cancelAttendeeSeat(
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
     await sendCancelledSeatEmailsAndSMS(
-      { ...evt, hideBranding: !!(bookingToDelete.eventType?.team?.hideBranding || bookingToDelete.user?.hideBranding) },
+      { ...evt, hideBranding: !!(bookingToDelete.eventType?.team?.hideBranding || bookingToDelete.eventType?.team?.parent?.hideBranding || bookingToDelete.user?.hideBranding) },
       {
         ...attendee,
         language: { translate: tAttendees, locale: attendee.locale ?? "en" },
