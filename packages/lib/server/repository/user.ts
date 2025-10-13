@@ -718,7 +718,7 @@ export class UserRepository {
       data: {
         ...rest,
         username,
-        email,
+        email: email.toLowerCase(),
         verified: true,
         invitedTo,
         isPlatformManaged,
