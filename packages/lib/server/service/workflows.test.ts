@@ -1,10 +1,10 @@
 import { describe, expect, vi, beforeEach } from "vitest";
 
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { tasker } from "@calcom/features/tasker";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import { scheduleWorkflowReminders } from "../../../features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "./workflows";
 
 vi.mock("../../../features/ee/workflows/lib/reminders/reminderScheduler");
