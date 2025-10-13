@@ -47,7 +47,6 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
         className="max-w-[468px] p-6"
         preventCloseOnOutsideClick={true}>
         <div className="flex flex-col items-center gap-8">
-          {/* Header Section */}
           <div className="flex w-full flex-col items-center gap-6">
             <FingerprintAnimation isHovered={isButtonHovered} />
 
@@ -57,7 +56,6 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
             </div>
           </div>
 
-          {/* Benefits List */}
           <div className="bg-subtle w-full space-y-px overflow-hidden rounded-xl border border-gray-200">
             <div className="bg-default flex gap-3 p-3">
               <div className="bg-subtle flex h-8 w-8 shrink-0 items-center justify-center rounded-md">
@@ -106,7 +104,6 @@ export function PbacOptInModal({ open, onOpenChange, revalidateRolesPath }: Pbac
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex w-full flex-col-reverse gap-2 sm:flex-row">
             <Button
               color="secondary"
