@@ -10,7 +10,7 @@ import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
