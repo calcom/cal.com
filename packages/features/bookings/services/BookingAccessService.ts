@@ -2,6 +2,7 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import type { PrismaClient } from "@calcom/prisma";
 
 import { BookingRepository } from "../repositories/BookingRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 type BookingForAccessCheck = NonNullable<Awaited<ReturnType<BookingRepository["findByUidIncludeEventType"]>>>;
 
