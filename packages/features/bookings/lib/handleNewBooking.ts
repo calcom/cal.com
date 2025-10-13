@@ -1177,11 +1177,6 @@ async function handler(
   for (const user of guestUsers) {
     const baseEmail = extractBaseEmail(user.email).toLowerCase();
     emailToRequiresVerification.set(baseEmail, user.requiresBookerEmailVerification ?? false);
-
-    for (const secondary of user.secondaryEmails) {
-      const baseSecondary = extractBaseEmail(secondary.email).toLowerCase();
-      emailToRequiresVerification.set(baseSecondary, user.requiresBookerEmailVerification ?? false);
-    }
   }
 
   const guestsRemoved: string[] = [];
