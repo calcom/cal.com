@@ -32,7 +32,7 @@ export const CreateSchedulePlatformWrapper = ({
 
   return (
     <AtomsWrapper>
-      <Dialog open={isDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button
             type="button"

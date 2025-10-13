@@ -8,13 +8,13 @@ import { TCreateInputSchema as CreateScheduleSchema } from "@calcom/trpc/server/
 import http from "../../lib/http";
 import { QUERY_KEY as ScheduleQueryKey } from "./useAtomSchedule";
 
-interface useAtomDuplicateScheduleOptions {
+interface useAtomCreateScheduleOptions {
   onSuccess?: (res: ApiSuccessResponse<CreateScheduleHandlerReturn>) => void;
   onError?: (err: ApiErrorResponse) => void;
 }
 
 export const useAtomCreateSchedule = (
-  { onSuccess, onError }: useAtomDuplicateScheduleOptions = {
+  { onSuccess, onError }: useAtomCreateScheduleOptions = {
     onSuccess: () => {
       return;
     },
