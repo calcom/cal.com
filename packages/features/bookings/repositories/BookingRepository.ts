@@ -147,10 +147,10 @@ export class BookingRepository {
     });
   }
 
-  async getBookingForAccessCheck({ bookingId }: { bookingId: number }) {
+  async findByUidIncludeEventType({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
-        id: bookingId,
+        uid: bookingUid,
       },
       select: {
         userId: true,
@@ -246,10 +246,10 @@ export class BookingRepository {
     });
   }
 
-  async getBookingForReporting({ bookingId }: { bookingId: number }) {
+  async findByIdIncludeReport({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
-        id: bookingId,
+        uid: bookingUid,
       },
       select: {
         id: true,
@@ -294,7 +294,7 @@ export class BookingRepository {
         startTime: { gte: fromDate },
         status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
       },
-      select: { id: true },
+      select: { id: true, uid: true },
       orderBy: { startTime: "asc" },
     });
   }

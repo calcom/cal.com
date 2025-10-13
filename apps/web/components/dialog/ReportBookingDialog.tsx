@@ -3,7 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ReportReason } from "@calcom/prisma/enums";
+import { BookingReportReason } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
@@ -17,20 +17,20 @@ type BookingReportStatus = "upcoming" | "past" | "cancelled" | "rejected";
 interface IReportBookingDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  bookingId: number;
+  bookingUid: number;
   isRecurring: boolean;
   status: BookingReportStatus;
 }
 
 interface FormValues {
-  reason: ReportReason;
+  reason: BookingReportReason;
   description: string;
 }
 
 export const ReportBookingDialog = (props: IReportBookingDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { isOpenDialog, setIsOpenDialog, bookingId, status } = props;
+  const { isOpenDialog, setIsOpenDialog, bookingUid, status } = props;
 
   const willBeCancelled = status === "upcoming";
 
@@ -40,7 +40,7 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      reason: ReportReason.SPAM,
+      reason: BookingReportReason.SPAM,
       description: "",
     },
   });
@@ -58,16 +58,16 @@ export const ReportBookingDialog = (props: IReportBookingDialog) => {
 
   const onSubmit = (data: FormValues) => {
     reportBooking({
-      bookingId,
+      bookingUid,
       reason: data.reason,
       description: data.description || undefined,
     });
   };
 
   const reasonOptions = [
-    { label: t("report_reason_spam"), value: ReportReason.SPAM },
-    { label: t("report_reason_dont_know_person"), value: ReportReason.DONT_KNOW_PERSON },
-    { label: t("report_reason_other"), value: ReportReason.OTHER },
+    { label: t("report_reason_spam"), value: BookingReportReason.SPAM },
+    { label: t("report_reason_dont_know_person"), value: BookingReportReason.DONT_KNOW_PERSON },
+    { label: t("report_reason_other"), value: BookingReportReason.OTHER },
   ];
 
   return (

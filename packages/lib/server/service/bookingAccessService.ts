@@ -3,7 +3,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { BookingRepository } from "../repository/booking";
 import { UserRepository } from "../repository/user";
 
-type BookingForAccessCheck = NonNullable<Awaited<ReturnType<BookingRepository["getBookingForAccessCheck"]>>>;
+type BookingForAccessCheck = NonNullable<Awaited<ReturnType<BookingRepository["findByUidIncludeEventType"]>>>;
 
 export class BookingAccessService {
   constructor(private prismaClient: PrismaClient) {}
@@ -42,15 +42,15 @@ export class BookingAccessService {
    */
   async doesUserIdHaveAccessToBooking({
     userId,
-    bookingId,
+    bookingUid,
   }: {
     userId: number;
-    bookingId: number;
+    bookingUid: string;
   }): Promise<boolean> {
     const bookingRepo = new BookingRepository(this.prismaClient);
     const userRepo = new UserRepository(this.prismaClient);
 
-    const booking = await bookingRepo.getBookingForAccessCheck({ bookingId });
+    const booking = await bookingRepo.findByUidIncludeEventType({ bookingUid });
 
     if (!booking) return false;
 

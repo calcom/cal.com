@@ -185,7 +185,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isRescheduled = booking.fromReschedule !== null;
   const isRecurring = booking.recurringEventId !== null;
 
-  const getReportStatus = (): "upcoming" | "past" | "cancelled" | "rejected" => {
+  const getBookingStatus = (): "upcoming" | "past" | "cancelled" | "rejected" => {
     if (isCancelled) return "cancelled";
     if (isRejected) return "rejected";
     if (isBookingInPast) return "past";
@@ -414,12 +414,10 @@ function BookingListItem(booking: BookingItemProps) {
   })) as ActionType[];
 
   const reportAction = getReportAction(actionContext);
-  const reportActionWithHandler = reportAction
-    ? {
-        ...reportAction,
-        onClick: () => setIsOpenReportDialog(true),
-      }
-    : null;
+  const reportActionWithHandler = {
+    ...reportAction,
+    onClick: () => setIsOpenReportDialog(true),
+  };
 
   return (
     <>
@@ -452,9 +450,9 @@ function BookingListItem(booking: BookingItemProps) {
       <ReportBookingDialog
         isOpenDialog={isOpenReportDialog}
         setIsOpenDialog={setIsOpenReportDialog}
-        bookingId={booking.id}
+        bookingUid={booking.uid}
         isRecurring={isRecurring}
-        status={getReportStatus()}
+        status={getBookingStatus()}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
@@ -711,21 +709,24 @@ function BookingListItem(booking: BookingItemProps) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     ))}
-                    {reportActionWithHandler && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="rounded-lg" key={reportActionWithHandler.id}>
-                          <DropdownItem
-                            type="button"
-                            color={reportActionWithHandler.color}
-                            StartIcon={reportActionWithHandler.icon}
-                            onClick={reportActionWithHandler.onClick}
-                            data-testid={reportActionWithHandler.id}>
-                            {reportActionWithHandler.label}
-                          </DropdownItem>
-                        </DropdownMenuItem>
-                      </>
-                    )}
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="rounded-lg"
+                        key={reportActionWithHandler.id}
+                        disabled={reportActionWithHandler.disabled}>
+                        <DropdownItem
+                          type="button"
+                          color={reportActionWithHandler.color}
+                          StartIcon={reportActionWithHandler.icon}
+                          onClick={reportActionWithHandler.onClick}
+                          disabled={reportActionWithHandler.disabled}
+                          data-testid={reportActionWithHandler.id}
+                          className={reportActionWithHandler.disabled ? "text-muted" : undefined}>
+                          {reportActionWithHandler.label}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    </>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="rounded-lg"
@@ -749,7 +750,7 @@ function BookingListItem(booking: BookingItemProps) {
               </Dropdown>
             )}
             {shouldShowRecurringCancelAction(actionContext) && <TableActions actions={[cancelEventAction]} />}
-            {shouldShowIndividualReportButton(actionContext) && reportActionWithHandler && (
+            {shouldShowIndividualReportButton(actionContext) && (
               <div className="flex items-center space-x-2">
                 <Button
                   type="button"

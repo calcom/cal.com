@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { ReportReason } from "@calcom/prisma/enums";
+import { BookingReportReason } from "@calcom/prisma/enums";
 
 export const ZReportBookingInputSchema = z.object({
-  bookingId: z.number(),
-  reason: z.nativeEnum(ReportReason),
+  bookingUid: z.string(),
+  reason: z.nativeEnum(BookingReportReason),
   description: z.string().optional(),
 });
 

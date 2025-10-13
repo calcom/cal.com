@@ -22,7 +22,7 @@ const log = logger.getSubLogger({ prefix: ["reportBookingHandler"] });
 
 export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions) => {
   const { user } = ctx;
-  const { bookingId, reason, description } = input;
+  const { bookingUid, reason, description } = input;
 
   const bookingRepo = new BookingRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
@@ -30,14 +30,14 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
 
   const hasAccess = await bookingAccessService.doesUserIdHaveAccessToBooking({
     userId: user.id,
-    bookingId,
+    bookingUid,
   });
 
   if (!hasAccess) {
     throw new TRPCError({ code: "FORBIDDEN", message: "You don't have access to this booking" });
   }
 
-  const booking = await bookingRepo.getBookingForReporting({ bookingId });
+  const booking = await bookingRepo.findByIdIncludeReport({ bookingUid });
 
   if (!booking) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
@@ -52,27 +52,29 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking has no attendees" });
   }
 
-  let reportedBookingIds: number[] = [bookingId];
+  let reportedBookingUids: string[] = [bookingUid];
 
   if (booking.recurringEventId) {
     const remainingBookings = await bookingRepo.getActiveRecurringBookingsFromDate({
       recurringEventId: booking.recurringEventId,
       fromDate: booking.startTime,
     });
-    reportedBookingIds = remainingBookings.map((b) => b.id);
+    reportedBookingUids = remainingBookings.map((b) => b.uid);
   }
 
   let cancellationError: unknown = null;
   let cancellationAttempted = false;
   let didCancel = false;
   const isUpcoming =
-    (booking.status === BookingStatus.ACCEPTED || booking.status === BookingStatus.PENDING) &&
+    (booking.status === BookingStatus.ACCEPTED ||
+      booking.status === BookingStatus.PENDING ||
+      booking.status === BookingStatus.AWAITING_HOST) &&
     new Date(booking.startTime) > new Date();
 
   if (isUpcoming) {
     cancellationAttempted = true;
     try {
-      const userSeat = booking.seatsReferences.find((seat) => seat.attendee?.email === user.email);
+      const userSeat = booking.seatsReferences.find((seat) => seat.attendee?.email.trim().toLowerCase() === user.email.trim().toLowerCase());
       const seatReferenceUid = userSeat?.referenceUid;
 
       await handleCancelBooking({
@@ -94,10 +96,10 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
   }
 
   let createdCount = 0;
-  for (const id of reportedBookingIds) {
+  for (const uid of reportedBookingUids) {
     try {
       await bookingReportRepo.createReport({
-        bookingId: id,
+        bookingUid: uid,
         bookerEmail,
         reportedById: user.id,
         reason,
@@ -107,11 +109,11 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
       });
       createdCount++;
     } catch (error) {
-      log.warn(`Failed to create report for booking ${id}:`, error);
+      log.warn(`Failed to create report for booking ${uid}:`, error);
     }
   }
 
-  const reportedBooking = { id: reportedBookingIds[0] };
+  const reportedBooking = { uid: reportedBookingUids[0] };
 
   const isRecurring = Boolean(booking.recurringEventId) && createdCount > 1;
   const baseMessage = isRecurring ? `${createdCount} recurring bookings reported` : "Booking reported";
@@ -126,7 +128,7 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
           : `${baseMessage} and cancelled successfully`
         : `${baseMessage} successfully`
       : "No reports created",
-    bookingId: reportedBooking.id,
+    bookingUid: reportedBooking.uid,
     reportedCount: createdCount,
   };
 };

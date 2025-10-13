@@ -2349,7 +2349,7 @@ model WatchlistEventAudit {
   timestamp   DateTime        @default(now())
 }
 
-enum ReportReason {
+enum BookingReportReason {
   SPAM
   DONT_KNOW_PERSON @map("dont_know_person")
   OTHER
@@ -2357,19 +2357,20 @@ enum ReportReason {
 
 model BookingReport {
   id             String       @id @default(uuid()) @db.Uuid
-  bookingId      Int          @unique
+  bookingUid     String       @unique
+  booking        Booking      @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   bookerEmail    String
   reportedById   Int
   organizationId Int?
-  reason         ReportReason
+  reason         BookingReportReason
   description    String?
   cancelled      Boolean      @default(false)
   createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   watchlistId String? @db.Uuid
 
-  booking      Booking    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  reportedBy   User       @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: Cascade)
+  reportedBy   User       @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
   organization Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   watchlist    Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
 

@@ -1,10 +1,10 @@
-import type { ReportReason } from "@calcom/prisma/enums";
+import type { BookingReportReason } from "@calcom/prisma/enums";
 
 export interface CreateBookingReportInput {
-  bookingId: number;
+  bookingUid: string;
   bookerEmail: string;
   reportedById: number;
-  reason: ReportReason;
+  reason: BookingReportReason;
   description?: string;
   cancelled: boolean;
   organizationId?: number | null;
@@ -13,15 +13,13 @@ export interface CreateBookingReportInput {
 export interface BookingReportSummary {
   id: string;
   reportedById: number;
-  reason: ReportReason;
+  reason: BookingReportReason;
   description: string | null;
   createdAt: Date;
 }
 
 export interface IBookingReportRepository {
   createReport(input: CreateBookingReportInput): Promise<{ id: string }>;
-
-  findReportForBooking(bookingId: number): Promise<BookingReportSummary | null>;
 
   findAllReportedBookings(params: { skip?: number; take?: number }): Promise<BookingReportSummary[]>;
 }

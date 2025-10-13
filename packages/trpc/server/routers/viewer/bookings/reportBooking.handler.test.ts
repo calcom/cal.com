@@ -4,7 +4,7 @@ import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooki
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { BookingAccessService } from "@calcom/lib/server/service/bookingAccessService";
-import { BookingStatus, ReportReason } from "@calcom/prisma/enums";
+import { BookingStatus, BookingReportReason } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -42,13 +42,12 @@ describe("reportBookingHandler", () => {
   };
 
   const mockBookingRepo = {
-    getBookingForReporting: vi.fn(),
+    findByIdIncludeReport: vi.fn(),
     getActiveRecurringBookingsFromDate: vi.fn(),
   };
 
   const mockReportRepo = {
     createReport: vi.fn(),
-    findReportForBooking: vi.fn(),
     findAllReportedBookings: vi.fn(),
   };
 
@@ -73,8 +72,8 @@ describe("reportBookingHandler", () => {
         reportBookingHandler({
           ctx: { user: mockUser },
           input: {
-            bookingId: 100,
-            reason: ReportReason.SPAM,
+            bookingUid: "test-booking-uid",
+            reason: BookingReportReason.SPAM,
           },
         })
       ).rejects.toThrow(TRPCError);
@@ -83,8 +82,8 @@ describe("reportBookingHandler", () => {
         reportBookingHandler({
           ctx: { user: mockUser },
           input: {
-            bookingId: 100,
-            reason: ReportReason.SPAM,
+            bookingUid: "test-booking-uid",
+            reason: BookingReportReason.SPAM,
           },
         })
       ).rejects.toMatchObject({
@@ -95,14 +94,14 @@ describe("reportBookingHandler", () => {
 
     it("should throw NOT_FOUND when booking doesn't exist", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue(null);
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue(null);
 
       await expect(
         reportBookingHandler({
           ctx: { user: mockUser },
           input: {
-            bookingId: 100,
-            reason: ReportReason.SPAM,
+            bookingUid: "test-booking-uid",
+            reason: BookingReportReason.SPAM,
           },
         })
       ).rejects.toMatchObject({
@@ -115,7 +114,7 @@ describe("reportBookingHandler", () => {
   describe("duplicate report prevention", () => {
     it("should throw BAD_REQUEST when booking already has a report", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue({
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
         ...mockBooking,
         report: { id: "existing-report" },
       });
@@ -124,8 +123,8 @@ describe("reportBookingHandler", () => {
         reportBookingHandler({
           ctx: { user: mockUser },
           input: {
-            bookingId: 100,
-            reason: ReportReason.SPAM,
+            bookingUid: "test-booking-uid",
+            reason: BookingReportReason.SPAM,
           },
         })
       ).rejects.toMatchObject({
@@ -138,7 +137,7 @@ describe("reportBookingHandler", () => {
   describe("successful report creation", () => {
     it("should successfully create a single booking report and auto-cancel upcoming booking", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue({
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() + 86400000), // Tomorrow
       });
@@ -146,15 +145,14 @@ describe("reportBookingHandler", () => {
         success: true,
         message: "Cancelled",
         onlyRemovedAttendee: false,
-        bookingId: 100,
         bookingUid: "test-booking-uid",
       });
 
       const result = await reportBookingHandler({
         ctx: { user: mockUser },
         input: {
-          bookingId: 100,
-          reason: ReportReason.SPAM,
+          bookingUid: "test-booking-uid",
+          reason: BookingReportReason.SPAM,
           description: "This is spam",
         },
       });
@@ -163,10 +161,10 @@ describe("reportBookingHandler", () => {
       expect(result.message).toBe("Booking reported and cancelled successfully");
       expect(result.reportedCount).toBe(1);
       expect(mockReportRepo.createReport).toHaveBeenCalledWith({
-        bookingId: 100,
+        bookingUid: "test-booking-uid",
         bookerEmail: "booker@example.com",
         reportedById: mockUser.id,
-        reason: ReportReason.SPAM,
+        reason: BookingReportReason.SPAM,
         description: "This is spam",
         cancelled: true,
         organizationId: undefined,
@@ -175,7 +173,7 @@ describe("reportBookingHandler", () => {
 
     it("should create report without description for past booking", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue({
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() - 86400000), // Yesterday
       });
@@ -183,17 +181,17 @@ describe("reportBookingHandler", () => {
       const result = await reportBookingHandler({
         ctx: { user: mockUser },
         input: {
-          bookingId: 100,
-          reason: ReportReason.DONT_KNOW_PERSON,
+          bookingUid: "test-booking-uid",
+          reason: BookingReportReason.DONT_KNOW_PERSON,
         },
       });
 
       expect(result.message).toBe("Booking reported successfully");
       expect(mockReportRepo.createReport).toHaveBeenCalledWith({
-        bookingId: 100,
+        bookingUid: "test-booking-uid",
         bookerEmail: "booker@example.com",
         reportedById: mockUser.id,
-        reason: ReportReason.DONT_KNOW_PERSON,
+        reason: BookingReportReason.DONT_KNOW_PERSON,
         description: undefined,
         cancelled: false,
         organizationId: undefined,
@@ -204,7 +202,7 @@ describe("reportBookingHandler", () => {
   describe("cancellation integration", () => {
     it("should cancel booking when cancelBooking is true", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue({
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() + 86400000), // Tomorrow
       });
@@ -212,15 +210,14 @@ describe("reportBookingHandler", () => {
         success: true,
         message: "Cancelled",
         onlyRemovedAttendee: false,
-        bookingId: 100,
         bookingUid: "test-booking-uid",
       });
 
       const result = await reportBookingHandler({
         ctx: { user: mockUser },
         input: {
-          bookingId: 100,
-          reason: ReportReason.SPAM,
+          bookingUid: "test-booking-uid",
+          reason: BookingReportReason.SPAM,
           description: "Spam booking",
         },
       });
@@ -239,7 +236,7 @@ describe("reportBookingHandler", () => {
 
     it("should not cancel booking if it's in the past", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue({
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() - 86400000),
       });
@@ -247,8 +244,8 @@ describe("reportBookingHandler", () => {
       const result = await reportBookingHandler({
         ctx: { user: mockUser },
         input: {
-          bookingId: 100,
-          reason: ReportReason.SPAM,
+          bookingUid: "test-booking-uid",
+          reason: BookingReportReason.SPAM,
         },
       });
 
@@ -258,7 +255,7 @@ describe("reportBookingHandler", () => {
 
     it("should handle cancellation failure gracefully", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue({
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() + 86400000),
       });
@@ -267,8 +264,8 @@ describe("reportBookingHandler", () => {
       const result = await reportBookingHandler({
         ctx: { user: mockUser },
         input: {
-          bookingId: 100,
-          reason: ReportReason.SPAM,
+          bookingUid: "test-booking-uid",
+          reason: BookingReportReason.SPAM,
         },
       });
 
@@ -279,7 +276,7 @@ describe("reportBookingHandler", () => {
 
     it("should use cancelSubsequentBookings for recurring events", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue({
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
         ...mockBooking,
         recurringEventId: "recurring-123",
         startTime: new Date(Date.now() + 86400000),
@@ -293,15 +290,14 @@ describe("reportBookingHandler", () => {
         success: true,
         message: "Cancelled",
         onlyRemovedAttendee: false,
-        bookingId: 100,
         bookingUid: "test-booking-uid",
       });
 
       await reportBookingHandler({
         ctx: { user: mockUser },
         input: {
-          bookingId: 100,
-          reason: ReportReason.SPAM,
+          bookingUid: "test-booking-uid",
+          reason: BookingReportReason.SPAM,
         },
       });
 
@@ -315,7 +311,7 @@ describe("reportBookingHandler", () => {
 
     it("should pass seatReferenceUid for seated events", async () => {
       mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-      mockBookingRepo.getBookingForReporting.mockResolvedValue({
+      mockBookingRepo.findByIdIncludeReport.mockResolvedValue({
         ...mockBooking,
         startTime: new Date(Date.now() + 86400000),
         seatsReferences: [
@@ -327,15 +323,14 @@ describe("reportBookingHandler", () => {
         success: true,
         message: "Cancelled",
         onlyRemovedAttendee: false,
-        bookingId: 100,
         bookingUid: "test-booking-uid",
       });
 
       await reportBookingHandler({
         ctx: { user: mockUser },
         input: {
-          bookingId: 100,
-          reason: ReportReason.SPAM,
+          bookingUid: "test-booking-uid",
+          reason: BookingReportReason.SPAM,
         },
       });
 

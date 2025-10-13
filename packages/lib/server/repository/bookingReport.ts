@@ -9,10 +9,10 @@ import type {
 export class PrismaBookingReportRepository implements IBookingReportRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
-  async createReport(input: CreateBookingReportInput): Promise<{ id: string }> {
+  async createReport(input: CreateBookingReportInput): Promise<{ bookingUid: string }> {
     const report = await this.prismaClient.bookingReport.create({
       data: {
-        bookingId: input.bookingId,
+        bookingUid: input.bookingUid,
         bookerEmail: input.bookerEmail,
         reportedById: input.reportedById,
         reason: input.reason,
@@ -21,20 +21,6 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
         organizationId: input.organizationId,
       },
       select: { id: true },
-    });
-    return report;
-  }
-
-  async findReportForBooking(bookingId: number): Promise<BookingReportSummary | null> {
-    const report = await this.prismaClient.bookingReport.findUnique({
-      where: { bookingId },
-      select: {
-        id: true,
-        reportedById: true,
-        reason: true,
-        description: true,
-        createdAt: true,
-      },
     });
     return report;
   }

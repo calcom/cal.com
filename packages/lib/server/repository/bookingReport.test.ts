@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { PrismaClient } from "@calcom/prisma";
-import { ReportReason } from "@calcom/prisma/enums";
+import { BookingReportReason } from "@calcom/prisma/enums";
 
 import { PrismaBookingReportRepository } from "./bookingReport";
 import type { CreateBookingReportInput } from "./bookingReport.interface";
@@ -30,12 +30,13 @@ describe("PrismaBookingReportRepository", () => {
   describe("createReport", () => {
     it("should create a booking report with all fields", async () => {
       const input: CreateBookingReportInput = {
-        bookingId: 100,
+        bookingUid: "test-booking-uid-1",
         bookerEmail: "booker@example.com",
         reportedById: 1,
-        reason: ReportReason.SPAM,
+        reason: BookingReportReason.SPAM,
         description: "This is spam",
         cancelled: true,
+        organizationId: 10,
       };
 
       const mockCreatedReport = { id: "report-123" };
@@ -46,12 +47,13 @@ describe("PrismaBookingReportRepository", () => {
       expect(result).toEqual({ id: "report-123" });
       expect(mockPrisma.bookingReport.create).toHaveBeenCalledWith({
         data: {
-          bookingId: 100,
+          bookingUid: "test-booking-uid-1",
           bookerEmail: "booker@example.com",
           reportedById: 1,
-          reason: ReportReason.SPAM,
+          reason: BookingReportReason.SPAM,
           description: "This is spam",
           cancelled: true,
+          organizationId: 10,
         },
         select: { id: true },
       });
@@ -59,10 +61,10 @@ describe("PrismaBookingReportRepository", () => {
 
     it("should create a booking report without optional fields", async () => {
       const input: CreateBookingReportInput = {
-        bookingId: 200,
+        bookingUid: "test-booking-uid-2",
         bookerEmail: "user@example.com",
         reportedById: 2,
-        reason: ReportReason.DONT_KNOW_PERSON,
+        reason: BookingReportReason.DONT_KNOW_PERSON,
         cancelled: false,
       };
 
@@ -74,52 +76,16 @@ describe("PrismaBookingReportRepository", () => {
       expect(result).toEqual({ id: "report-456" });
       expect(mockPrisma.bookingReport.create).toHaveBeenCalledWith({
         data: {
-          bookingId: 200,
+          bookingUid: "test-booking-uid-2",
           bookerEmail: "user@example.com",
           reportedById: 2,
-          reason: ReportReason.DONT_KNOW_PERSON,
+          reason: BookingReportReason.DONT_KNOW_PERSON,
           description: undefined,
           cancelled: false,
+          organizationId: undefined,
         },
         select: { id: true },
       });
-    });
-
-  });
-
-  describe("findReportForBooking", () => {
-    it("should find the report for a booking", async () => {
-      const mockReport = {
-        id: "report-123",
-        reportedById: 1,
-        reason: ReportReason.SPAM,
-        description: "Spam booking",
-        createdAt: new Date("2025-01-01T10:00:00Z"),
-      };
-
-      mockPrisma.bookingReport.findUnique.mockResolvedValue(mockReport);
-
-      const result = await repository.findReportForBooking(100);
-
-      expect(result).toEqual(mockReport);
-      expect(mockPrisma.bookingReport.findUnique).toHaveBeenCalledWith({
-        where: { bookingId: 100 },
-        select: {
-          id: true,
-          reportedById: true,
-          reason: true,
-          description: true,
-          createdAt: true,
-        },
-      });
-    });
-
-    it("should return null when no report exists", async () => {
-      mockPrisma.bookingReport.findUnique.mockResolvedValue(null);
-
-      const result = await repository.findReportForBooking(100);
-
-      expect(result).toBeNull();
     });
   });
 
@@ -129,14 +95,14 @@ describe("PrismaBookingReportRepository", () => {
         {
           id: "report-1",
           reportedById: 1,
-          reason: ReportReason.SPAM,
+          reason: BookingReportReason.SPAM,
           description: "Spam",
           createdAt: new Date("2025-01-01T10:00:00Z"),
         },
         {
           id: "report-2",
           reportedById: 2,
-          reason: ReportReason.DONT_KNOW_PERSON,
+          reason: BookingReportReason.DONT_KNOW_PERSON,
           description: null,
           createdAt: new Date("2025-01-01T11:00:00Z"),
         },
