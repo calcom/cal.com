@@ -60,7 +60,7 @@ vi.mock("@calcom/features/bookings/components/event-meta/Price", () => {
   return {};
 });
 
-vi.mock("@calcom/features/bookings/lib/SystemField", () => {
+vi.mock("@calcom/lib/SystemField", () => {
   return {};
 });
 
