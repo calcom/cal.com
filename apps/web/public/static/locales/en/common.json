@@ -3797,7 +3797,7 @@
   "select_event_type_for_inbound_calls": "Inbound calls can book only one event type. Select the event type where meetings will be scheduled when callers reach your agent.",
   "select_event_type_for_outbound_calls": "Select the event type that should be used to schedule meetings.",
   "setup_inbound_agent_for_incoming_calls": "Setup inbound agent for incoming calls",
-  "agent_outbound_event_type_not_configured": "Please choose an event type in the agent setup first",
+  "agent_outbound_event_type_not_configured": "Please choose an event type in the agent setup",
   "no_event_types_available_for_test_call": "No event types available for test call",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
