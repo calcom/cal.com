@@ -88,7 +88,9 @@ export class WorkflowService {
     workflows,
     responses,
     form,
+    responseId,
   }: {
+    responseId: number;
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
     responseId: number;

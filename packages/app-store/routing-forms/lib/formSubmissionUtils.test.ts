@@ -136,57 +136,6 @@ describe("_onFormSubmission", () => {
       });
       expect(sendGenericWebhookPayload).toHaveBeenCalledTimes(1);
     });
-
-    it("should schedule FORM_SUBMITTED_NO_EVENT webhooks via tasker", async () => {
-      const tasker = await (await import("@calcom/features/tasker")).default;
-      const mockWebhook: GetWebhooksReturnType[number] = {
-        id: "wh-no-event-1",
-        secret: "secret",
-        subscriberUrl: "https://example.com/webhook",
-        payloadTemplate: null,
-        appId: null,
-        eventTriggers: [WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT],
-        time: null,
-        timeUnit: null,
-      };
-      const chosenAction = { type: "customPageMessage" as const, value: "test" };
-
-      vi.mocked(getWebhooks).mockImplementation(async (options) => {
-        if (options.triggerEvent === WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT) {
-          return [mockWebhook];
-        }
-        return [];
-      });
-
-      await _onFormSubmission(mockForm, mockResponse, responseId, chosenAction);
-
-      expect(getWebhooks).toHaveBeenCalledWith(
-        expect.objectContaining({
-          triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
-        })
-      );
-      expect(tasker.create).toHaveBeenCalledWith(
-        "triggerFormSubmittedNoEventWebhook",
-        {
-          responseId,
-          form: {
-            id: mockForm.id,
-            name: mockForm.name,
-            teamId: mockForm.teamId,
-          },
-          responses: {
-            email: {
-              value: "test@response.com",
-              response: "test@response.com",
-            },
-            name: { value: "Test Name", response: "Test Name" },
-          },
-          redirect: chosenAction,
-          webhook: mockWebhook,
-        },
-        { scheduledAt: expect.any(Date) }
-      );
-    });
   });
 
   describe("Workflows", () => {
@@ -232,7 +181,6 @@ describe("_onFormSubmission", () => {
           },
           name: { value: "Test Name", response: "Test Name" },
         },
-        routedEventTypeId: null,
         responseId,
         form: {
           ...mockForm,

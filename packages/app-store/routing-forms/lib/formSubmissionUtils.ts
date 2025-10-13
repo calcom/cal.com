@@ -227,6 +227,7 @@ export async function _onFormSubmission(
       console.log("routedEventTypeId", routedEventTypeId);
       await WorkflowService.scheduleFormWorkflows({
         workflows,
+        responseId,
         responses: fieldResponsesByIdentifier,
         routedEventTypeId,
         responseId,

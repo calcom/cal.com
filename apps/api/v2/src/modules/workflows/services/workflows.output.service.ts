@@ -214,7 +214,16 @@ export class WorkflowsOutputService {
           workflow.activeOnRoutingForms?.map((relation) => relation.routingFormId) ?? [],
       };
 
-      const trigger: TriggerDtoType = { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
+      const trigger: TriggerDtoType =
+        workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED_NO_EVENT]
+          ? {
+              type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
+              offset: {
+                value: workflow.time ?? 1,
+                unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
+              },
+            }
+          : { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
 
       const steps: RoutingFormWorkflowStepOutputDto[] = workflow.steps.map((step) => {
         return this.mapStep(step, "routing-form");
