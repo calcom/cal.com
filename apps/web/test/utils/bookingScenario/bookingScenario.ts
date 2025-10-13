@@ -119,17 +119,6 @@ type InputWorkflow = {
   verifiedAt?: Date;
 };
 
-type PaymentData = {
-  // Common payment data fields based on Stripe and other payment providers
-  paymentIntent?: string;
-  paymentMethodId?: string;
-  clientSecret?: string;
-  customerId?: string;
-  subscriptionId?: string;
-  metadata?: Record<string, string>;
-  [key: string]: unknown; // Allow additional provider-specific fields
-};
-
 type InputPayment = {
   id?: number;
   uid: string;
@@ -140,7 +129,7 @@ type InputPayment = {
   currency: string;
   success: boolean;
   refunded: boolean;
-  data: PaymentData;
+  data: Prisma.InputJsonValue;
   externalId: string;
   paymentOption?: PaymentOption;
 };
@@ -1078,7 +1067,7 @@ export async function createOrganization(orgData: {
 export async function createCredentials(
   credentialData: {
     type: string;
-    key: Prisma.JsonValue;
+    key: Prisma.InputJsonValue;
     id?: number;
     userId?: number | null;
     teamId?: number | null;
