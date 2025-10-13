@@ -10,7 +10,7 @@ import { OrganizationsRolesOutputService } from "./organizations-roles-output.se
 @Injectable()
 export class OrganizationsRolesService {
   constructor(
-    private readonly roleService: RoleService = new RoleService(),
+    private readonly roleService: RoleService,
     private readonly organizationsRolesOutputService: OrganizationsRolesOutputService
   ) {}
 
