@@ -1,3 +1,4 @@
+import { BookingAttendeesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-attendees.repository";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BookingAttendeesController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-attendees.controller";
@@ -80,6 +81,7 @@ import { Module } from "@nestjs/common";
     OutputBookingReferencesService_2024_08_13,
     OutputEventTypesService_2024_06_14,
     BookingsRepository_2024_08_13,
+    BookingAttendeesRepository_2024_08_13,
     EventTypesRepository_2024_06_14,
     BookingSeatRepository,
     ApiKeysRepository,

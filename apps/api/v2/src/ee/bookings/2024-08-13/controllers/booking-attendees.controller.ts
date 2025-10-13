@@ -39,8 +39,7 @@ export class BookingAttendeesController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Add attendees to an existing booking",
-    description: `Add one or more attendees to an existing booking. The attendees will be validated to ensure they don't already exist in the booking.
-    
+    description: `Add one or more attendees to an existing booking.
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
