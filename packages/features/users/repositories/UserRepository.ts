@@ -12,7 +12,7 @@ import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars"
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import type { User as UserType, DestinationCalendar, SelectedCalendar } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -305,32 +305,55 @@ export class UserRepository {
 
   async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
     const normalizedEmails = emails.map((e) => e.toLowerCase());
-    return this.prismaClient.user.findMany({
-      where: {
-        OR: [
-          {
-            email: { in: normalizedEmails },
-            emailVerified: { not: null },
-          },
-          {
-            secondaryEmails: {
-              some: {
-                email: { in: normalizedEmails },
-                emailVerified: { not: null },
-              },
-            },
-          },
-        ],
-      },
-      select: {
-        email: true,
-        requiresBookerEmailVerification: true,
-        secondaryEmails: {
-          where: { emailVerified: { not: null } },
-          select: { email: true },
-        },
-      },
-    });
+
+    if (!normalizedEmails.length) return [];
+    const users = await this.findVerifiedUsersByEmailsRaw(normalizedEmails);
+
+    if (!users.length) return [];
+    return users.map((u) => ({
+      email: u.email,
+      requiresBookerEmailVerification: u.requiresBookerEmailVerification,
+    }));
+  }
+
+  private async findVerifiedUsersByEmailsRaw(emails: string[]) {
+    const emailListSql = Prisma.join(emails.map((e) => Prisma.sql`${e}`));
+    return this.prismaClient.$queryRaw<
+      Array<{
+        id: number;
+        email: string;
+        requiresBookerEmailVerification: boolean;
+      }>
+    >(Prisma.sql`
+      SELECT
+        u."id",
+        u."email",
+        u."requiresBookerEmailVerification"
+      FROM
+        "public"."users" AS u
+      WHERE
+        u."email" IN (${emailListSql})
+        AND u."emailVerified" IS NOT NULL
+        AND u."locked" = FALSE
+      UNION
+      SELECT
+        u."id",
+        u."email",
+        u."requiresBookerEmailVerification"
+      FROM
+        "public"."users" AS u
+      WHERE
+        u."id" IN (
+          SELECT
+            t0."userId"
+          FROM
+            "public"."SecondaryEmail" AS t0
+          WHERE
+            t0."email" IN (${emailListSql})
+            AND t0."emailVerified" IS NOT NULL
+        )
+        AND u."locked" = FALSE
+    `);
   }
 
   async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
