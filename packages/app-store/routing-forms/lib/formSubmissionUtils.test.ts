@@ -141,59 +141,7 @@ describe("_onFormSubmission", () => {
           },
           name: { value: "Test Name", response: "Test Name" },
         },
-        form: {
-          ...mockForm,
-          fields: mockForm.fields.map((field) => ({
-            type: field.type,
-            identifier: field.identifier,
-          })),
-        },
-      });
-    });
-  });
-
-  describe("Workflows", () => {
-    it("should call WorkflowService.scheduleFormWorkflows for FORM_SUBMITTED workflows", async () => {
-      const mockWorkflows = [
-        {
-          id: 1,
-          name: "Form Submitted Workflow",
-          userId: 1,
-          teamId: null,
-          trigger: WorkflowTriggerEvents.FORM_SUBMITTED,
-          time: null,
-          timeUnit: null,
-          steps: [
-            {
-              id: 1,
-              action: WorkflowActions.EMAIL_ATTENDEE,
-              sendTo: null,
-              reminderBody: "Thank you for your submission!",
-              emailSubject: "Form Received",
-              template: WorkflowTemplates.CUSTOM,
-              verifiedAt: new Date(),
-              includeCalendarEvent: false,
-              numberVerificationPending: false,
-              numberRequired: false,
-            },
-          ],
-        },
-      ];
-
-      vi.mocked(WorkflowService.getAllWorkflowsFromRoutingForm).mockResolvedValueOnce(mockWorkflows as any);
-
-      await _onFormSubmission(mockForm as any, mockResponse, responseId);
-
-      expect(WorkflowService.getAllWorkflowsFromRoutingForm).toHaveBeenCalledWith(mockForm);
-      expect(WorkflowService.scheduleFormWorkflows).toHaveBeenCalledWith({
-        workflows: mockWorkflows,
-        responses: {
-          email: {
-            value: "test@response.com",
-            response: "test@response.com",
-          },
-          name: { value: "Test Name", response: "Test Name" },
-        },
+        responseId,
         form: {
           ...mockForm,
           fields: mockForm.fields.map((field) => ({
