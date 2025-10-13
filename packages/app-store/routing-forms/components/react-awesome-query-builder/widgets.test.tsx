@@ -303,6 +303,8 @@ describe("NumberWidget", () => {
         render(<NumberWidget value="" setValue={setValue} />);
         const input = screen.getByRole("textbox");
         const localized = `1234${decimal}56`;
+        console.log(decimal, "decimal", locale);
+        console.log(localized, "localized", locale);
         fireEvent.change(input, { target: { value: localized } });
         expect(setValue).toHaveBeenLastCalledWith("1234.56");
       });
@@ -316,6 +318,10 @@ describe("NumberWidget", () => {
             render(<NumberWidget value="" setValue={setValue} />);
             const input = screen.getByRole("textbox");
             const localized = `1${group}234${decimal}56`;
+
+            console.log(decimal, "decimal", locale);
+            console.log(group, "group", locale);
+            console.log(localized, "localized", locale);
             fireEvent.change(input, { target: { value: localized } });
             expect(setValue).toHaveBeenLastCalledWith("1234.56");
           }
