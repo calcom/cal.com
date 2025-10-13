@@ -349,7 +349,8 @@ export const roundRobinManualReassignment = async ({
       organizationId: organizationIdForBranding,
     });
     evt.hideBranding = hideBranding;
-  } catch (_) {
+  } catch (error) {
+    roundRobinReassignLogger.error("Failed to compute hideBranding", error);
     evt.hideBranding = false;
   }
 
