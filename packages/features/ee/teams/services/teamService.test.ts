@@ -20,7 +20,7 @@ vi.mock("@calcom/lib/server/repository/team");
 vi.mock("@calcom/lib/server/service/workflows");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
-vi.mock("@calcom/lib/createAProfileForAnExistingUser");
+vi.mock("@calcom/features/profile/lib/createAProfileForAnExistingUser");
 vi.mock("@calcom/features/ee/teams/lib/queries");
 
 const mockTeamBilling = {
