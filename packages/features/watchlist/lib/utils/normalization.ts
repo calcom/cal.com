@@ -18,10 +18,6 @@ import { emailRegex } from "@calcom/lib/emailSchema";
  * @throws Error if email format is invalid
  */
 export function normalizeEmail(email: string): string {
-  if (!email || typeof email !== "string") {
-    throw new Error("Invalid email: must be a non-empty string");
-  }
-
   const normalized = email.trim().toLowerCase();
 
   if (!emailRegex.test(normalized)) {
@@ -46,10 +42,6 @@ export function normalizeEmail(email: string): string {
  * @returns Normalized domain with @ prefix
  */
 export function normalizeDomain(domain: string): string {
-  if (!domain || typeof domain !== "string") {
-    throw new Error("Invalid domain: must be a non-empty string");
-  }
-
   let normalized = domain.trim().toLowerCase();
 
   if (normalized.startsWith("@")) {
