@@ -17,7 +17,7 @@ type BookingReportStatus = "upcoming" | "past" | "cancelled" | "rejected";
 interface IReportBookingDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  bookingUid: number;
+  bookingUid: string;
   isRecurring: boolean;
   status: BookingReportStatus;
 }
