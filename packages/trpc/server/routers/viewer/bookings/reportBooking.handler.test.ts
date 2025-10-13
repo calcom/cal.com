@@ -227,7 +227,6 @@ describe("reportBookingHandler", () => {
         bookingData: {
           uid: "test-booking-uid",
           cancelledBy: mockUser.email,
-          cancellationReason: "Spam booking",
           skipCancellationReasonValidation: true,
         },
         userId: mockUser.id,
