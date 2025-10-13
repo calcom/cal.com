@@ -209,7 +209,8 @@ export class OnNoShowUpdateTriggerDto {
 
 export class TriggerOffsetDTO {
   @ApiProperty({
-    description: "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+    description:
+      "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
     type: WorkflowTriggerOffsetDto,
   })
   @ValidateNested()
