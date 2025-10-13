@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
+import { WatchlistType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -24,7 +24,6 @@ interface AddToWatchlistModalProps {
 
 const formSchema = z.object({
   type: z.nativeEnum(WatchlistType),
-  action: z.nativeEnum(WatchlistAction),
   description: z.string().optional(),
 });
 
@@ -38,7 +37,6 @@ export function AddToWatchlistModal({ open, onClose, report, reports }: AddToWat
     resolver: zodResolver(formSchema),
     defaultValues: {
       type: WatchlistType.EMAIL,
-      action: WatchlistAction.REPORT,
       description: "",
     },
   });
@@ -51,11 +49,10 @@ export function AddToWatchlistModal({ open, onClose, report, reports }: AddToWat
   }
 
   const watchlistType = form.watch("type");
-  const actionType = form.watch("action");
 
   const addToWatchlistMutation = trpc.viewer.organizations.addToWatchlist.useMutation({
     onSuccess: () => {
-      showToast(t("successfully_added_to_watchlist"), "success");
+      showToast(t("successfully_added_to_blocklist"), "success");
       utils.viewer.organizations.listBookingReports.invalidate();
       onClose();
       form.reset();
@@ -71,7 +68,6 @@ export function AddToWatchlistModal({ open, onClose, report, reports }: AddToWat
     addToWatchlistMutation.mutate({
       reportIds,
       type: data.type,
-      action: data.action,
       description: data.description,
     });
   };
@@ -80,11 +76,11 @@ export function AddToWatchlistModal({ open, onClose, report, reports }: AddToWat
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent enableOverflow>
         <DialogHeader
-          title={t("add_to_watchlist")}
+          title={t("add_to_blocklist")}
           subtitle={
             isBulk
-              ? t("add_multiple_to_watchlist_subtitle", { count: reports.length })
-              : t("add_to_watchlist_subtitle", { email: firstReport.bookerEmail })
+              ? t("add_multiple_to_blocklist_subtitle", { count: reports.length })
+              : t("add_to_blocklist_subtitle", { email: firstReport.bookerEmail })
           }
         />
 
@@ -127,53 +123,6 @@ export function AddToWatchlistModal({ open, onClose, report, reports }: AddToWat
             </div>
 
             <div>
-              <Label>{t("what_should_happen")}</Label>
-              <Select
-                options={[
-                  {
-                    label: t("flag_future_bookings"),
-                    value: WatchlistAction.REPORT,
-                    description: t("flag_future_bookings_description"),
-                  },
-                  {
-                    label: t("block_all_bookings"),
-                    value: WatchlistAction.BLOCK,
-                    description: t("block_all_bookings_description"),
-                  },
-                  {
-                    label: t("notify_admins"),
-                    value: WatchlistAction.ALERT,
-                    description: t("notify_admins_description"),
-                  },
-                ]}
-                value={
-                  actionType === WatchlistAction.REPORT
-                    ? {
-                        label: t("flag_future_bookings"),
-                        value: WatchlistAction.REPORT,
-                        description: t("flag_future_bookings_description"),
-                      }
-                    : actionType === WatchlistAction.BLOCK
-                    ? {
-                        label: t("block_all_bookings"),
-                        value: WatchlistAction.BLOCK,
-                        description: t("block_all_bookings_description"),
-                      }
-                    : {
-                        label: t("notify_admins"),
-                        value: WatchlistAction.ALERT,
-                        description: t("notify_admins_description"),
-                      }
-                }
-                onChange={(option) => {
-                  if (option && "value" in option) {
-                    form.setValue("action", option.value as WatchlistAction);
-                  }
-                }}
-              />
-            </div>
-
-            <div>
               <TextAreaField
                 {...form.register("description")}
                 placeholder={t("add_internal_note_placeholder")}
@@ -187,7 +136,7 @@ export function AddToWatchlistModal({ open, onClose, report, reports }: AddToWat
               {t("cancel")}
             </Button>
             <Button type="submit" loading={addToWatchlistMutation.isPending}>
-              {t("add_to_watchlist")}
+              {t("add_to_blocklist")}
             </Button>
           </DialogFooter>
         </Form>

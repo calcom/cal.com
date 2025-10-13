@@ -44,7 +44,7 @@ export function BookingReportDetailsSheet({
                 </Badge>
                 {report.watchlistId && (
                   <Badge variant="blue" className="text-xs">
-                    {t("in_watchlist")}
+                    {t("in_blocklist")}
                   </Badge>
                 )}
                 {report.cancelled && (
@@ -116,23 +116,23 @@ export function BookingReportDetailsSheet({
 
           {report.watchlistId && report.watchlist && (
             <div className="space-y-4">
-              <h3 className="text-emphasis text-sm font-semibold">{t("watchlist_info")}</h3>
+              <h3 className="text-emphasis text-sm font-semibold">{t("blocklist_info")}</h3>
               <div className="space-y-3">
                 <div className="flex flex-col">
-                  <span className="text-subtle text-xs">{t("watchlist_type")}</span>
+                  <span className="text-subtle text-xs">{t("blocklist_type")}</span>
                   <span className="text-default text-sm">{report.watchlist.type}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-subtle text-xs">{t("watchlist_value")}</span>
+                  <span className="text-subtle text-xs">{t("blocklist_value")}</span>
                   <span className="text-default text-sm">{report.watchlist.value}</span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-subtle text-xs">{t("watchlist_action")}</span>
+                  <span className="text-subtle text-xs">{t("blocklist_action")}</span>
                   <span className="text-default text-sm">{report.watchlist.action}</span>
                 </div>
                 {report.watchlist.description && (
                   <div className="flex flex-col">
-                    <span className="text-subtle text-xs">{t("watchlist_description")}</span>
+                    <span className="text-subtle text-xs">{t("blocklist_description")}</span>
                     <span className="text-default text-sm">{report.watchlist.description}</span>
                   </div>
                 )}
@@ -143,7 +143,7 @@ export function BookingReportDetailsSheet({
           {!report.watchlistId && onAddToWatchlist && (
             <div className="pt-4">
               <Button onClick={onAddToWatchlist} color="primary" className="w-full justify-center">
-                {t("add_to_watchlist")}
+                {t("add_to_blocklist")}
               </Button>
             </div>
           )}

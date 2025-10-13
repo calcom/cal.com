@@ -1,10 +1,11 @@
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { prisma } from "@calcom/prisma";
+import { WatchlistAction } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
+import type { TrpcSessionUser } from "../../../types";
 import type { TAddToWatchlistInputSchema } from "./addToWatchlist.schema";
 
 type AddToWatchlistOptions = {
@@ -74,7 +75,7 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
             type: input.type,
             value,
             organizationId,
-            action: input.action,
+            action: WatchlistAction.BLOCK,
             description: input.description,
             userId: user.id,
           });

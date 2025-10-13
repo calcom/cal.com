@@ -119,7 +119,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
             },
           },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ watchlistId: { sort: "asc", nulls: "first" } }, { createdAt: "desc" }],
       }),
     ]);
 

@@ -53,7 +53,7 @@ export function BookingReportsTable() {
   const filters = useMemo(() => {
     const hasWatchlistFilter = columnFilters.find((f) => f.id === "hasWatchlist");
 
-    let hasWatchlistValue: boolean | undefined = false;
+    let hasWatchlistValue: boolean | undefined = undefined;
 
     if (hasWatchlistFilter && hasWatchlistFilter.value.type === ColumnFilterType.MULTI_SELECT) {
       const filterValues = hasWatchlistFilter.value.data;
@@ -152,16 +152,17 @@ export function BookingReportsTable() {
             DONT_KNOW_PERSON: "orange",
             OTHER: "gray",
           };
+          const reason = t(row.original.reason.toLowerCase());
           return (
             <Badge variant={reasonColors[row.original.reason] || "gray"}>
-              {t(row.original.reason.toLowerCase())}
+              {reason.charAt(0).toUpperCase() + reason.slice(1)}
             </Badge>
           );
         },
       },
       {
         id: "hasWatchlist",
-        header: t("in_watchlist"),
+        header: t("in_blocklist"),
         accessorFn: (row) => (row.watchlistId ? "true" : "false"),
         size: 120,
         meta: {
@@ -216,6 +217,19 @@ export function BookingReportsTable() {
                           {t("view")}
                         </DropdownItem>
                       </DropdownMenuItem>
+                      {!report.watchlistId && (
+                        <DropdownMenuItem>
+                          <DropdownItem
+                            type="button"
+                            onClick={() => {
+                              setSelectedReport(report);
+                              setShowWatchlistModal(true);
+                            }}
+                            StartIcon="shield-check">
+                            {t("add_to_blocklist")}
+                          </DropdownItem>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"
@@ -259,6 +273,19 @@ export function BookingReportsTable() {
                           {t("view")}
                         </DropdownItem>
                       </DropdownMenuItem>
+                      {!report.watchlistId && (
+                        <DropdownMenuItem>
+                          <DropdownItem
+                            type="button"
+                            onClick={() => {
+                              setSelectedReport(report);
+                              setShowWatchlistModal(true);
+                            }}
+                            StartIcon="shield-check">
+                            {t("add_to_blocklist")}
+                          </DropdownItem>
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem>
                         <DropdownItem
                           type="button"

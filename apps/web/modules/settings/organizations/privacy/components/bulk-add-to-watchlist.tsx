@@ -38,7 +38,7 @@ export function BulkAddToWatchlist({ reports, onSuccess }: BulkAddToWatchlistPro
         onClick={() => {
           setShowModal(true);
         }}>
-        {t("add_to_watchlist")}
+        {t("add_to_blocklist")}
       </Button>
 
       {showModal && (
