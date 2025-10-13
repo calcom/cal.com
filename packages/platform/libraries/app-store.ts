@@ -32,7 +32,7 @@ export type { CredentialPayload } from "@calcom/types/Credential";
 
 export { addDelegationCredential };
 
-export { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/lib/delegationCredential/server";
+export { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/app-store/delegationCredential";
 export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
 export {
   CalendarAppError,
@@ -46,4 +46,4 @@ export {
 export { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 
 export { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
-export { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
+export { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
