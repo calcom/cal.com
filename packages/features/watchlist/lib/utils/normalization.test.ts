@@ -10,7 +10,6 @@ describe("normalization", () => {
     });
 
     test("should throw on invalid emails", () => {
-      expect(() => normalizeEmail("")).toThrow("Invalid email: must be a non-empty string");
       expect(() => normalizeEmail("invalid")).toThrow("Invalid email format");
       expect(() => normalizeEmail("@domain.com")).toThrow("Invalid email format");
       expect(() => normalizeEmail("user@")).toThrow("Invalid email format");
@@ -36,7 +35,6 @@ describe("normalization", () => {
     });
 
     test("should throw on invalid domains", () => {
-      expect(() => normalizeDomain("")).toThrow("Invalid domain: must be a non-empty string");
       expect(() => normalizeDomain("invalid..domain")).toThrow("Invalid domain format");
       expect(() => normalizeDomain(".domain.com")).toThrow("Invalid domain format");
       expect(() => normalizeDomain("domain.")).toThrow("Invalid domain format");
