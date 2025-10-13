@@ -27,8 +27,10 @@ import {
   BEFORE_EVENT,
   DAY,
   FORM_SUBMITTED,
+  FORM_SUBMITTED_NO_EVENT,
   OnAfterEventTriggerDto,
   OnBeforeEventTriggerDto,
+  OnFormSubmittedNoEventTriggerDto,
   OnFormSubmittedTriggerDto,
 } from "@/modules/workflows/inputs/workflow-trigger.input";
 import {
@@ -468,6 +470,64 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
 
           createdFormWorkflowId = responseBody.data.id;
           createdFormWorkflow = responseBody.data;
+        });
+    });
+
+    it("should create a new routing form workflow with  allowed actions and offset trigger", async () => {
+      const validWorkflow = structuredClone(
+        sampleCreateWorkflowRoutingFormDto
+      ) as unknown as CreateFormWorkflowDto;
+      validWorkflow.steps = [
+        {
+          stepNumber: 1,
+          action: "email_attendee",
+          recipient: ATTENDEE,
+          template: REMINDER,
+          sender: "CalcomE2EStep1",
+          includeCalendarEvent: true,
+          message: {
+            subject: "Upcoming: {EVENT_NAME}",
+            html: "<p>Reminder for your event {EVENT_NAME}.</p>",
+          },
+        },
+      ];
+
+      validWorkflow.trigger = {
+        type: FORM_SUBMITTED_NO_EVENT,
+        offset: {
+          value: 1,
+          unit: DAY,
+        },
+      };
+      return request(app.getHttpServer())
+        .post(`${basePath}/routing-form`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send(validWorkflow)
+        .expect(201)
+        .then((response) => {
+          const responseBody: GetRoutingFormWorkflowOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.name).toEqual(sampleCreateWorkflowRoutingFormDto.name);
+          expect(responseBody.data.type).toEqual("routing-form");
+
+          if (responseBody.data.activation instanceof WorkflowFormActivationDto) {
+            expect(responseBody.data.activation.isActiveOnAllRoutingForms).toEqual(
+              sampleCreateWorkflowRoutingFormDto.activation.isActiveOnAllRoutingForms
+            );
+          }
+
+          expect(responseBody.data.trigger.type).toEqual(validWorkflow.trigger.type);
+          expect(responseBody.data.steps).toHaveLength(sampleCreateWorkflowRoutingFormDto.steps.length);
+          expect(responseBody.data.steps.find((step) => step.stepNumber === 1)?.id).toBeDefined();
+          expect(responseBody.data.steps.find((step) => step.stepNumber === 1)?.sender).toEqual(
+            "CalcomE2EStep1"
+          );
+
+          const trigger = validWorkflow.trigger as OnFormSubmittedNoEventTriggerDto;
+          expect(responseBody.data.trigger?.type).toEqual(trigger.type);
+          expect(responseBody.data.trigger?.offset?.unit).toEqual(trigger.offset.unit);
+          expect(responseBody.data.trigger?.offset?.value).toEqual(trigger.offset.value);
         });
     });
 
