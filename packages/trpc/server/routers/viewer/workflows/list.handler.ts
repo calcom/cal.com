@@ -1,6 +1,6 @@
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";

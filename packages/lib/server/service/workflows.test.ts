@@ -1,20 +1,20 @@
 import { describe, expect, vi, beforeEach } from "vitest";
 
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { tasker } from "@calcom/features/tasker";
 import { WorkflowTriggerEvents, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-import { scheduleWorkflowReminders } from "../../../features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "./workflows";
 
-vi.mock("../../../features/ee/workflows/lib/reminders/reminderScheduler");
+vi.mock("@calcom/features/ee/workflows/lib/reminders/reminderScheduler");
 vi.mock("@calcom/features/tasker");
 
 const mockScheduleWorkflowReminders = vi.mocked(scheduleWorkflowReminders);
 const mockTasker = vi.mocked(tasker);
 
 // Mock the getHideBranding function to return false
-vi.mock("../../hideBranding", () => ({
+vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
   getHideBranding: vi.fn().mockResolvedValue(false),
 }));
 

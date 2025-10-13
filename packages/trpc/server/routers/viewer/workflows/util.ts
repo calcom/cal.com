@@ -12,7 +12,7 @@ import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import {
   SMS_REMINDER_NUMBER_FIELD,
   CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-} from "@calcom/features/bookings/lib/SystemField";
+} from "@calcom/lib/SystemField";
 import {
   getSmsReminderNumberField,
   getSmsReminderNumberSource,
@@ -23,11 +23,11 @@ import { removeBookingField, upsertBookingField } from "@calcom/features/eventty
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowType as PrismaWorkflowType, type Workflow } from "@calcom/prisma/client";
