@@ -50,13 +50,15 @@ export const LargeCalendar = ({
 
   // HACK: force rerender when overlay events change
   // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   useEffect(() => {}, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
-    return upcomingBookings?.map((booking, idx) => {
+    if (!upcomingBookings) return [];
+
+    return upcomingBookings?.map((booking) => {
       return {
-        id: idx,
+        id: booking.id,
         title: booking.title ?? `Busy`,
         start: new Date(booking.start),
         end: new Date(booking.end),
@@ -77,7 +79,7 @@ export const LargeCalendar = ({
         availableTimeslots={availableSlots}
         startHour={0}
         endHour={23}
-        events={overlayEventsForDate ?? []}
+        events={overlayEventsForDate}
         startDate={startDate}
         endDate={endDate}
         gridCellsPerHour={60 / eventDuration}
