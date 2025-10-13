@@ -412,6 +412,42 @@ export class TeamRepository {
     });
   }
 
+  async findTeamWithParentHideBranding({ teamId }: { teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: { id: teamId },
+      select: {
+        hideBranding: true,
+        parent: {
+          select: {
+            hideBranding: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findOrganization({ teamId, userId }: { teamId?: number; userId: number }) {
+    return await this.prismaClient.team.findFirst({
+      where: {
+        isOrganization: true,
+        children: {
+          some: {
+            id: teamId,
+          },
+        },
+        members: {
+          some: {
+            userId,
+            accepted: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
   async isSlugAvailableForUpdate({
     slug,
     teamId,
@@ -436,5 +472,17 @@ export class TeamRepository {
     });
 
     return !conflictingTeam;
+  }
+
+  async findOrgTeamsExcludingTeam({ parentId, excludeTeamId }: { parentId: number; excludeTeamId: number }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        parentId,
+        id: {
+          not: excludeTeamId,
+        },
+      },
+      select: { id: true },
+    });
   }
 }
