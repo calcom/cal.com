@@ -9,7 +9,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
