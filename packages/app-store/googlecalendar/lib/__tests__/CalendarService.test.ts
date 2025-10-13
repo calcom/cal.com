@@ -1315,6 +1315,7 @@ describe("Date Optimization Benchmarks", () => {
         const minSpeedup = 5; // Assert significant performance improvement (at least 5x faster)
         expect(speedupRatio).toBeGreaterThan(minSpeedup);
       }
+
     }
   });
 
