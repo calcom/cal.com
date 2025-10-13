@@ -451,6 +451,7 @@ async function handler(
   const {
     prismaClient: prisma,
     bookingRepository,
+    userRepository,
     cacheService,
     checkBookingAndDurationLimitsService,
     luckyUserService,
@@ -507,7 +508,11 @@ async function handler(
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
   try {
-    await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+    await checkIfBookerEmailIsBlocked({
+      loggedInUserId: userId,
+      bookerEmail,
+      verificationCode: reqBody.verificationCode,
+    });
   } catch (error) {
     if (error instanceof ErrorWithCode) {
       throw new HttpError({ statusCode: 403, message: error.message });
@@ -1164,33 +1169,9 @@ async function handler(
     : [];
 
   const guestEmails = (reqGuests || []).map((email) => extractBaseEmail(email).toLowerCase());
-  const guestUsers =
-    (await prisma.user.findMany({
-      where: {
-        OR: [
-          {
-            email: { in: guestEmails },
-            emailVerified: { not: null },
-          },
-          {
-            secondaryEmails: {
-              some: {
-                email: { in: guestEmails },
-                emailVerified: { not: null },
-              },
-            },
-          },
-        ],
-      },
-      select: {
-        email: true,
-        requiresBookerEmailVerification: true,
-        secondaryEmails: {
-          where: { emailVerified: { not: null } },
-          select: { email: true },
-        },
-      },
-    })) ?? [];
+  const guestUsers = await userRepository.findManyByEmailsWithEmailVerificationSettings({
+    emails: guestEmails,
+  });
 
   const emailToRequiresVerification = new Map<string, boolean>();
   for (const user of guestUsers) {
