@@ -12,7 +12,7 @@ function presenter(containsBlockedUser: boolean, span?: SpanFn): Promise<boolean
 
 interface CheckUsersBlockedParams {
   users: { email: string; username: string | null; locked: boolean }[];
-  organizationId?: number;
+  organizationId?: number | null;
   span?: SpanFn;
 }
 

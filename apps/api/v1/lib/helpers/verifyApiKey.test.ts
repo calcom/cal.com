@@ -11,9 +11,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyService";
 import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
-import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
+import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
-import { prisma } from "@calcom/prisma";
+import { ApiKeyService } from "@calcom/lib/server/service/ApiKeyService";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { isAdminGuard } from "../utils/isAdmin";
@@ -21,19 +21,13 @@ import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 import { verifyApiKey } from "./verifyApiKey";
 
-vi.mock("@calcom/lib/server/repository/apikey", () => ({
-  PrismaApiKeyRepository: vi.fn(),
+// Mock the service layer instead of Prisma
+vi.mock("@calcom/lib/server/service/ApiKeyService", () => ({
+  ApiKeyService: vi.fn(),
 }));
 
-vi.mock("@calcom/prisma", () => ({
-  prisma: {
-    apiKey: {
-      findUnique: vi.fn(),
-    },
-    deployment: {
-      findUnique: vi.fn(),
-    },
-  },
+vi.mock("@calcom/lib/server/repository/PrismaApiKeyRepository", () => ({
+  PrismaApiKeyRepository: vi.fn(),
 }));
 
 vi.mock("../utils/isAdmin", () => ({
@@ -68,17 +62,22 @@ const mockDeploymentRepository: IDeploymentRepository = {
 
 describe("Verify API key - Unit Tests", () => {
   let service: ILicenseKeyService;
+  let mockApiKeyService: ApiKeyService;
 
   beforeEach(async () => {
     service = await LicenseKeyService.create(mockDeploymentRepository);
     vi.spyOn(service, "checkLicense");
 
-    vi.mocked(prisma.apiKey.findUnique).mockReset();
-    vi.mocked(prisma.deployment.findUnique).mockReset();
+    // Setup mock ApiKeyService
+    mockApiKeyService = {
+      verifyKeyByHashedKey: vi.fn(),
+    } as unknown as ApiKeyService;
+
+    vi.mocked(ApiKeyService).mockImplementation(() => mockApiKeyService);
+    vi.mocked(PrismaApiKeyRepository).mockImplementation(() => ({} as unknown as PrismaApiKeyRepository));
+
     vi.mocked(isAdminGuard).mockReset();
     vi.mocked(isLockedOrBlocked).mockReset();
-
-    vi.mocked(prisma.deployment.findUnique).mockResolvedValue(null);
   });
 
   it("should throw an error if the api key is not valid", async () => {
@@ -136,24 +135,16 @@ describe("Verify API key - Unit Tests", () => {
       },
     });
 
-    const hashedKey = hashAPIKey("test_key");
-
-    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
-      id: "api-key-1",
+    // Mock ApiKeyService.verifyKeyByHashedKey to return valid result
+    mockApiKeyService.verifyKeyByHashedKey.mockResolvedValue({
+      valid: true,
       userId: 1,
-      hashedKey,
-      expiresAt: null,
-      createdAt: new Date(),
-      lastUsedAt: null,
-      appId: null,
-      note: null,
-      teamId: null,
       user: {
         role: UserPermissionRole.ADMIN,
         locked: false,
         email: "admin@example.com",
       },
-    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
+    });
 
     vi.mocked(isAdminGuard).mockResolvedValue({
       isAdmin: true,
@@ -189,24 +180,16 @@ describe("Verify API key - Unit Tests", () => {
       },
     });
 
-    const hashedKey = hashAPIKey("test_key");
-
-    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
-      id: "api-key-2",
+    // Mock ApiKeyService.verifyKeyByHashedKey to return valid result
+    mockApiKeyService.verifyKeyByHashedKey.mockResolvedValue({
+      valid: true,
       userId: 2,
-      hashedKey,
-      expiresAt: null,
-      createdAt: new Date(),
-      lastUsedAt: null,
-      appId: null,
-      note: null,
-      teamId: null,
       user: {
         role: UserPermissionRole.USER,
         locked: false,
         email: "org-admin@acme.com",
       },
-    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
+    });
 
     vi.mocked(isAdminGuard).mockResolvedValue({
       isAdmin: true,
@@ -242,24 +225,16 @@ describe("Verify API key - Unit Tests", () => {
       },
     });
 
-    const hashedKey = hashAPIKey("test_key");
-
-    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
-      id: "api-key-3",
+    // Mock ApiKeyService.verifyKey to return valid result with locked user
+    mockApiKeyService.verifyKeyByHashedKey.mockResolvedValue({
+      valid: true,
       userId: 3,
-      hashedKey,
-      expiresAt: null,
-      createdAt: new Date(),
-      lastUsedAt: null,
-      appId: null,
-      note: null,
-      teamId: null,
       user: {
         role: UserPermissionRole.USER,
         locked: true,
         email: "locked@example.com",
       },
-    } as unknown as ReturnType<typeof prisma.apiKey.findUnique> extends Promise<infer T> ? T : never);
+    });
 
     vi.mocked(isAdminGuard).mockResolvedValue({
       isAdmin: false,

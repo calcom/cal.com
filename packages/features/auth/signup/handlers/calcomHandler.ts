@@ -48,7 +48,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
   const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
     email: _email,
-    organizationId: undefined,
+    organizationId: null,
     span: sentrySpan,
   });
 

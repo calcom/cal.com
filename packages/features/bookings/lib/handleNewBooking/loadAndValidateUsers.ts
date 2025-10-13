@@ -133,7 +133,7 @@ const _loadAndValidateUsers = async ({
   // Determine if users are locked
   const containsBlockedUser = await checkIfUsersAreBlocked({
     users,
-    organizationId: undefined,
+    organizationId: null,
     span: sentrySpan,
   });
 
