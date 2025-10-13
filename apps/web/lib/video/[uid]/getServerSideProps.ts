@@ -7,14 +7,14 @@ import {
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
 import { isENVDev } from "@calcom/lib/env";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import prisma from "@calcom/prisma";
 
 const md = new MarkdownIt("default", { html: true, breaks: true, linkify: true });

@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/checkIfFreeEmailDomain";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";

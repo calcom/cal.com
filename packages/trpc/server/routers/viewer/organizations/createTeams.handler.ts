@@ -4,7 +4,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
