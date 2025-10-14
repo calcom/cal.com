@@ -28,6 +28,29 @@ vi.mock("@calcom/trpc/server/routers/viewer/auth/util", () => ({
   verifyCodeUnAuthenticated: vi.fn(),
 }));
 
+const { mockFindManyByEmailsWithEmailVerificationSettings, mockFindByEmailWithEmailVerificationSetting } =
+  vi.hoisted(() => ({
+    mockFindManyByEmailsWithEmailVerificationSettings: vi.fn(),
+    mockFindByEmailWithEmailVerificationSetting: vi.fn(),
+  }));
+
+vi.mock("@calcom/features/users/repositories/UserRepository", async (importOriginal) => {
+  const actual = await importOriginal();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const OriginalUserRepository = (actual as any).UserRepository;
+
+  return {
+    ...actual,
+    UserRepository: vi.fn().mockImplementation((prisma) => {
+      const realInstance = new OriginalUserRepository(prisma);
+      realInstance.findManyByEmailsWithEmailVerificationSettings =
+        mockFindManyByEmailsWithEmailVerificationSettings;
+      realInstance.findByEmailWithEmailVerificationSetting = mockFindByEmailWithEmailVerificationSetting;
+      return realInstance;
+    }),
+  };
+});
+
 function addToBlacklistedEmails(emails: string[]) {
   process.env.BLACKLISTED_GUEST_EMAILS = emails.join(",");
 }
@@ -36,8 +59,14 @@ function resetBlacklistedEmails() {
   delete process.env.BLACKLISTED_GUEST_EMAILS;
 }
 
+beforeEach(() => {
+  mockFindManyByEmailsWithEmailVerificationSettings.mockResolvedValue([]);
+  mockFindByEmailWithEmailVerificationSetting.mockResolvedValue(null);
+});
+
 afterEach(() => {
   resetBlacklistedEmails();
+  vi.clearAllMocks();
 });
 
 describe("Booking Validation Specifications", () => {
@@ -725,6 +754,14 @@ describe("Booking Validation Specifications", () => {
 
       await mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
+      mockFindManyByEmailsWithEmailVerificationSettings.mockResolvedValue([
+        {
+          email: "guest-with-verification@example.com",
+          matchedEmail: "guest-with-verification@example.com",
+          requiresBookerEmailVerification: true,
+        },
+      ]);
+
       const mockBookingData = getMockRequestDataForBooking({
         data: {
           eventTypeId: 1,
@@ -732,8 +769,8 @@ describe("Booking Validation Specifications", () => {
             email: booker.email,
             name: booker.name,
             location: { optionValue: "", value: "New York" },
+            guests: ["guest-with-verification@example.com", "regular-guest@example.com"],
           },
-          guests: ["guest-with-verification@example.com", "regular-guest@example.com"],
         },
       });
 
@@ -809,6 +846,14 @@ describe("Booking Validation Specifications", () => {
 
       await mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
+      mockFindManyByEmailsWithEmailVerificationSettings.mockResolvedValue([
+        {
+          email: "primary@example.com",
+          matchedEmail: "secondary@example.com",
+          requiresBookerEmailVerification: true,
+        },
+      ]);
+
       const mockBookingData = getMockRequestDataForBooking({
         data: {
           eventTypeId: 1,
@@ -816,8 +861,8 @@ describe("Booking Validation Specifications", () => {
             email: booker.email,
             name: booker.name,
             location: { optionValue: "", value: "New York" },
+            guests: ["secondary@example.com", "regular-guest@example.com"],
           },
-          guests: ["secondary@example.com", "regular-guest@example.com"],
         },
       });
 
@@ -968,6 +1013,19 @@ describe("Booking Validation Specifications", () => {
 
       await mockCalendarToHaveNoBusySlots("googlecalendar", {});
 
+      mockFindManyByEmailsWithEmailVerificationSettings.mockResolvedValue([
+        {
+          email: "guest1-verify@example.com",
+          matchedEmail: "guest1-verify@example.com",
+          requiresBookerEmailVerification: true,
+        },
+        {
+          email: "guest3-verify@example.com",
+          matchedEmail: "guest3-verify@example.com",
+          requiresBookerEmailVerification: true,
+        },
+      ]);
+
       const mockBookingData = getMockRequestDataForBooking({
         data: {
           eventTypeId: 1,
@@ -975,13 +1033,13 @@ describe("Booking Validation Specifications", () => {
             email: booker.email,
             name: booker.name,
             location: { optionValue: "", value: "New York" },
+            guests: [
+              "guest1-verify@example.com",
+              "guest2-no-verify@example.com",
+              "guest3-verify@example.com",
+              "guest4-no-verify@example.com",
+            ],
           },
-          guests: [
-            "guest1-verify@example.com",
-            "guest2-no-verify@example.com",
-            "guest3-verify@example.com",
-            "guest4-no-verify@example.com",
-          ],
         },
       });
 
