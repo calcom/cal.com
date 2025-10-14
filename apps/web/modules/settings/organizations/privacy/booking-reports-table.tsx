@@ -33,9 +33,9 @@ import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { AddToWatchlistModal } from "./components/add-to-watchlist-modal";
+import { AddToBlocklistModal } from "./components/add-to-blocklist-modal";
 import { BookingReportDetailsSheet } from "./components/booking-report-details-sheet";
-import { BulkAddToWatchlist } from "./components/bulk-add-to-watchlist";
+import { BulkAddToBlocklist } from "./components/bulk-add-to-blocklist";
 
 type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
 
@@ -366,7 +366,7 @@ export function BookingReportsTable() {
             <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
-            <BulkAddToWatchlist
+            <BulkAddToBlocklist
               reports={table.getSelectedRowModel().flatRows.map((row) => row.original)}
               onSuccess={() => table.toggleAllPageRowsSelected(false)}
             />
@@ -394,7 +394,7 @@ export function BookingReportsTable() {
       )}
 
       {selectedReport && showWatchlistModal && (
-        <AddToWatchlistModal
+        <AddToBlocklistModal
           open={showWatchlistModal}
           onClose={() => {
             setShowWatchlistModal(false);

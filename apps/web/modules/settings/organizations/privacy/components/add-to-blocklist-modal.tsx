@@ -29,7 +29,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AddToWatchlistModal({ open, onClose, report, reports }: AddToWatchlistModalProps) {
+export function AddToBlocklistModal({ open, onClose, report, reports }: AddToWatchlistModalProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 

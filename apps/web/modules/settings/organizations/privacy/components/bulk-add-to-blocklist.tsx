@@ -6,16 +6,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
-import { AddToWatchlistModal } from "./add-to-watchlist-modal";
+import { AddToBlocklistModal } from "./add-to-blocklist-modal";
 
 type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
 
-interface BulkAddToWatchlistProps {
+interface BulkAddToBlocklistProps {
   reports: BookingReport[];
   onSuccess: () => void;
 }
 
-export function BulkAddToWatchlist({ reports, onSuccess }: BulkAddToWatchlistProps) {
+export function BulkAddToBlocklist({ reports, onSuccess }: BulkAddToBlocklistProps) {
   const { t } = useLocale();
   const [showModal, setShowModal] = useState(false);
 
@@ -42,7 +42,7 @@ export function BulkAddToWatchlist({ reports, onSuccess }: BulkAddToWatchlistPro
       </Button>
 
       {showModal && (
-        <AddToWatchlistModal open={showModal} onClose={handleModalClose} reports={reportsToAdd} />
+        <AddToBlocklistModal open={showModal} onClose={handleModalClose} reports={reportsToAdd} />
       )}
     </>
   );
