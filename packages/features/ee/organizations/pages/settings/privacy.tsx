@@ -30,7 +30,7 @@ const PrivacyView = ({
 
   return (
     <LicenseRequired>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <MakeTeamPrivateSwitch
           isOrg={true}
           teamId={currentOrg.id}
@@ -39,14 +39,16 @@ const PrivacyView = ({
         />
 
         {watchlistPermissions?.canRead && (
-          <div className="space-y-4">
+          <div>
             <div>
-              <h2 className="text-emphasis text-lg font-semibold">{t("organization_blocklist")}</h2>
+              <h2 className="text-emphasis text-base font-semibold">{t("organization_blocklist")}</h2>
               <p className="text-muted text-sm">{t("manage_blocked_emails_and_domains")}</p>
             </div>
-            <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
-              <BlocklistTable permissions={watchlistPermissions} />
-            </DataTableProvider>
+            <div className="mt-2">
+              <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+                <BlocklistTable permissions={watchlistPermissions} />
+              </DataTableProvider>
+            </div>
           </div>
         )}
       </div>

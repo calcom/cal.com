@@ -78,7 +78,6 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     setShowDetailsSheet(true);
   };
 
-
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
   const flatData = useMemo<BlocklistEntry[]>(() => data?.rows ?? [], [data]);
 
@@ -107,9 +106,13 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         cell: ({ row }) => {
           const audit = row.original.audits?.[0] as
             | { changedByUserId: number | null }
-            | { changedByUser?: { id: number; email: string; name: string | null } | undefined; changedByUserId: number | null }
+            | {
+                changedByUser?: { id: number; email: string; name: string | null } | undefined;
+                changedByUserId: number | null;
+              }
             | undefined;
-          const email = (audit && "changedByUser" in audit ? audit.changedByUser?.email : undefined) ?? undefined;
+          const email =
+            (audit && "changedByUser" in audit ? audit.changedByUser?.email : undefined) ?? undefined;
           return <span className="text-default">{email ?? "—"}</span>;
         },
       },
