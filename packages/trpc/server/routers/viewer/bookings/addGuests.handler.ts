@@ -97,8 +97,8 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   const emailToRequiresVerification = new Map<string, boolean>();
   for (const user of guestUsers) {
-    const baseEmail = extractBaseEmail(user.email).toLowerCase();
-    emailToRequiresVerification.set(baseEmail, user.requiresBookerEmailVerification ?? false);
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
   }
 
   const uniqueGuests = deduplicatedGuests.filter((guest) => {

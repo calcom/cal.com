@@ -312,6 +312,7 @@ export class UserRepository {
     if (!users.length) return [];
     return users.map((u) => ({
       email: u.email,
+      matchedEmail: u.matchedEmail,
       requiresBookerEmailVerification: u.requiresBookerEmailVerification,
     }));
   }
@@ -322,12 +323,14 @@ export class UserRepository {
       Array<{
         id: number;
         email: string;
+        matchedEmail: string;
         requiresBookerEmailVerification: boolean;
       }>
     >(Prisma.sql`
       SELECT
         u."id",
         u."email",
+        u."email" AS "matchedEmail",
         u."requiresBookerEmailVerification"
       FROM
         "public"."users" AS u
@@ -339,19 +342,15 @@ export class UserRepository {
       SELECT
         u."id",
         u."email",
+        t0."email" AS "matchedEmail",
         u."requiresBookerEmailVerification"
       FROM
         "public"."users" AS u
+      INNER JOIN "public"."SecondaryEmail" AS t0
+        ON t0."userId" = u."id"
       WHERE
-        u."id" IN (
-          SELECT
-            t0."userId"
-          FROM
-            "public"."SecondaryEmail" AS t0
-          WHERE
-            t0."email" IN (${emailListSql})
-            AND t0."emailVerified" IS NOT NULL
-        )
+        t0."email" IN (${emailListSql})
+        AND t0."emailVerified" IS NOT NULL
         AND u."locked" = FALSE
     `);
   }
