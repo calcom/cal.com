@@ -65,7 +65,7 @@ export class WatchlistRepository implements IWatchlistRepository {
   }
 
   async findAllEntries(params: FindAllEntriesInput): Promise<{
-    rows: WatchlistEntry[];
+    rows: (WatchlistEntry & { audits?: { changedByUserId: number | null }[] })[];
     meta: { totalRowCount: number };
   }> {
     const where = {
@@ -136,7 +136,19 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
 
     return {
-      entry: entry ? { ...entry, audits: undefined } : null,
+      entry: entry
+        ? {
+            id: entry.id,
+            type: entry.type,
+            value: entry.value,
+            action: entry.action,
+            description: entry.description ?? null,
+            organizationId: entry.organizationId ?? null,
+            isGlobal: entry.isGlobal,
+            source: entry.source,
+            lastUpdatedAt: entry.lastUpdatedAt,
+          }
+        : null,
       auditHistory: entry?.audits || [],
     };
   }

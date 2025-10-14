@@ -2,14 +2,13 @@ import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/boo
 import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
+import type { TrpcSessionUser } from "../../../types";
 
 import type { TListBookingReportsInputSchema } from "./listBookingReports.schema";
 
 type ListBookingReportsOptions = {
   ctx: {
-    user: {
-      organizationId?: number;
-    };
+    user: NonNullable<TrpcSessionUser>;
   };
   input: TListBookingReportsInputSchema;
 };

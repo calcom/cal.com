@@ -54,7 +54,9 @@ export interface IWatchlistRepository {
   createEntry(params: CreateWatchlistInput): Promise<WatchlistEntry>;
   checkExists(params: CheckWatchlistInput): Promise<WatchlistEntry | null>;
   findAllEntries(params: FindAllEntriesInput): Promise<{
-    rows: WatchlistEntry[];
+    rows: (WatchlistEntry & {
+      audits?: { changedByUserId: number | null }[];
+    })[];
     meta: { totalRowCount: number };
   }>;
   findEntryWithAudit(id: string): Promise<{
