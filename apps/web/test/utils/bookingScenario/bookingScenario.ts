@@ -2001,6 +2001,10 @@ export async function mockCalendarToHaveNoBusySlots(
   return await mockCalendar(metadataLookupKey, { ...calendarData, busySlots: [] });
 }
 
+export async function mockCalendarToCrashOnGetAvailability(metadataLookupKey: keyof typeof appStoreMetadata) {
+  return await mockCalendar(metadataLookupKey, { getAvailabilityCrash: true });
+}
+
 export async function mockCalendarToCrashOnCreateEvent(metadataLookupKey: keyof typeof appStoreMetadata) {
   return await mockCalendar(metadataLookupKey, { creationCrash: true });
 }
