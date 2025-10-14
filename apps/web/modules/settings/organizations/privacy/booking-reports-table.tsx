@@ -134,9 +134,9 @@ export function BookingReportsTable() {
       {
         id: "reportedBy",
         header: t("reported_by"),
-        accessorFn: (row) => row.reporter.email,
+        accessorFn: (row) => row.reporter?.email ?? "-",
         size: 180,
-        cell: ({ row }) => <span className="text-default">{row.original.reporter.email}</span>,
+        cell: ({ row }) => <span className="text-default">{row.original.reporter?.email ?? "-"}</span>,
       },
       {
         id: "reason",

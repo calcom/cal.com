@@ -20,16 +20,16 @@ export interface BookingReportSummary {
 
 export interface BookingReportWithDetails {
   id: string;
-  bookingId: number;
+  bookingUid: string;
   bookerEmail: string;
-  reportedById: number;
+  reportedById: number | null;
   reason: BookingReportReason;
   description: string | null;
   cancelled: boolean;
   createdAt: Date;
   watchlistId: string | null;
 
-  reporter: {
+  reporter?: {
     id: number;
     name: string | null;
     email: string;

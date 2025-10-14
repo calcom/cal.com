@@ -1,9 +1,9 @@
-import type { Prisma, PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import type {
   IBookingReportRepository,
   CreateBookingReportInput,
-  BookingReportSummary,
   BookingReportWithDetails,
   ListBookingReportsFilters,
 } from "./bookingReport.interface";
@@ -85,7 +85,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
         take: params.take,
         select: {
           id: true,
-          bookingId: true,
+          bookingUid: true,
           bookerEmail: true,
           reportedById: true,
           reason: true,
@@ -150,7 +150,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
       },
       select: {
         id: true,
-        bookingId: true,
+        bookingUid: true,
         bookerEmail: true,
         reportedById: true,
         reason: true,
