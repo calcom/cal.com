@@ -35,7 +35,8 @@ const getCachedAvailabilities = unstable_cache(
     );
     return await availabilityCaller.list();
   },
-  ["viewer.availability.list"],
+  // ["viewer.availability.list"],
+  ["viewer.calidTeams.calidListTeam"],
   { revalidate: 3600 } // Cache for 1 hour
 );
 
@@ -76,17 +77,17 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgPrivate;
 
   return (
-    <ShellMainAppDir
-      heading={t("availability")}
-      subtitle={t("configure_availability")}
-      CTA={
+    <ShellMainAppDir heading={t("availability")} subtitle={t("configure_availability")}>
+      {/* CTA={ */}
+      <div className="mb-6 flex items-center justify-end">
         <AvailabilityCTA
           toggleGroupOptions={[
             { value: "mine", label: t("my_availability") },
             ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
           ]}
         />
-      }>
+      </div>
+      {/* }> */}
       {searchParams?.type === "team" && canViewTeamAvailability ? (
         <AvailabilitySliderTable isOrg={!!organizationId} />
       ) : (
