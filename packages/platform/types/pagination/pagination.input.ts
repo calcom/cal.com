@@ -20,8 +20,8 @@ export class Pagination {
   offset?: number;
 }
 
-export const DEFAULT_TAKE = 250;
-export const DEFAULT_SKIP = 0;
+const DEFAULT_TAKE = 250;
+const DEFAULT_SKIP = 0;
 
 export class SkipTakePagination {
   @ApiPropertyOptional({

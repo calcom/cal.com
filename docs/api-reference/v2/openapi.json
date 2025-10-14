@@ -6362,7 +6362,6 @@
             "schema": {
               "minimum": 1,
               "maximum": 1000,
-              "default": 250,
               "type": "number"
             }
           },
@@ -6374,7 +6373,6 @@
             "example": 0,
             "schema": {
               "minimum": 0,
-              "default": 0,
               "type": "number"
             }
           },
@@ -13063,11 +13061,11 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
               "minimum": 1,
-              "maximum": 1000,
+              "maximum": 250,
               "default": 250,
               "type": "number"
             }
@@ -13076,7 +13074,7 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
               "minimum": 0,
@@ -21315,10 +21313,10 @@
             "type": "string",
             "description": "Trigger type for the workflow",
             "example": "formSubmitted",
-            "enum": ["formSubmitted"]
+            "enum": ["formSubmitted", "formSubmittedNoEvent"]
           },
           "offset": {
-            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT)",
+            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT/FORM_SUBMITTED_NO_EVENT)",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetOutputDto"
@@ -21540,7 +21538,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21561,7 +21559,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21673,7 +21671,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21694,7 +21692,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -22331,12 +22329,33 @@
         },
         "required": ["type"]
       },
+      "OnFormSubmittedNoEventTriggerDto": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
+              }
+            ]
+          },
+          "type": {
+            "type": "string",
+            "default": "formSubmittedNoEvent",
+            "enum": ["formSubmittedNoEvent"],
+            "description": "Trigger type for the workflow",
+            "example": "formSubmittedNoEvent"
+          }
+        },
+        "required": ["offset", "type"]
+      },
       "RoutingFormWorkflowTriggerDto": {
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "enum": ["formSubmitted"],
+            "type": "object",
+            "enum": ["formSubmitted", "formSubmittedNoEvent"],
             "description": "Trigger type for the routing-form workflow",
             "example": "formSubmitted"
           }
@@ -22379,15 +22398,13 @@
             ]
           },
           "trigger": {
-            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted",
+            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted,formSubmittedNoEvent",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
-              }
-            ],
-            "allOf": [
+              },
               {
-                "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
+                "$ref": "#/components/schemas/OnFormSubmittedNoEventTriggerDto"
               }
             ]
           },
@@ -22980,15 +22997,13 @@
             "example": "Rounting-form Test Workflow"
           },
           "trigger": {
-            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted",
+            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted,formSubmittedNoEvent",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
-              }
-            ],
-            "allOf": [
+              },
               {
-                "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
+                "$ref": "#/components/schemas/OnFormSubmittedNoEventTriggerDto"
               }
             ]
           },
