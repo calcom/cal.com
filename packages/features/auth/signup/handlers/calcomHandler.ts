@@ -6,6 +6,7 @@ import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromReq
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
@@ -14,7 +15,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
-import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
