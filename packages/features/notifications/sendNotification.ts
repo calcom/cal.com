@@ -5,8 +5,12 @@ const vapidKeys = {
   privateKey: process.env.VAPID_PRIVATE_KEY || "",
 };
 
+const areVapidKeysConfigured = vapidKeys.publicKey && vapidKeys.privateKey;
+
 // The mail to email address should be the one at which push service providers can reach you. It can also be a URL.
-webpush.setVapidDetails("mailto:support@cal.com", vapidKeys.publicKey, vapidKeys.privateKey);
+if (areVapidKeysConfigured) {
+  webpush.setVapidDetails("mailto:support@cal.com", vapidKeys.publicKey, vapidKeys.privateKey);
+}
 
 type Subscription = {
   endpoint: string;
@@ -35,6 +39,11 @@ export const sendNotification = async ({
   requireInteraction?: boolean;
   type?: string;
 }) => {
+  if (!areVapidKeysConfigured) {
+    console.warn("VAPID keys not configured. Skipping push notification.");
+    return;
+  }
+
   try {
     const payload = JSON.stringify({
       title,
