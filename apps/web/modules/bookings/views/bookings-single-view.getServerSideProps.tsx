@@ -152,13 +152,13 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     email: eventType.team ? null : eventType.users[0].email || null,
     theme: eventType.team
       ? null
-      : eventType.profile?.organization?.theme ?? eventType.users[0]?.theme ?? null,
+      : eventTypeRaw.profile?.organization?.theme ?? eventType.users[0]?.theme ?? null,
     brandColor: eventType.team
       ? null
-      : eventType.profile?.organization?.brandColor ?? eventType.users[0].brandColor ?? null,
+      : eventTypeRaw.profile?.organization?.brandColor ?? eventType.users[0].brandColor ?? null,
     darkBrandColor: eventType.team
       ? null
-      : eventType.profile?.organization?.darkBrandColor ?? eventType.users[0].darkBrandColor ?? null,
+      : eventTypeRaw.profile?.organization?.darkBrandColor ?? eventType.users[0].darkBrandColor ?? null,
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
