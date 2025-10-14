@@ -22,14 +22,12 @@ import {
   ApiExcludeController as DocsExcludeController,
   ApiOperation,
 } from "@nestjs/swagger";
+import { z } from "zod";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { CreateScheduleHandlerReturn, CreateScheduleSchema } from "@calcom/platform-libraries/schedules";
+import { createScheduleHandler } from "@calcom/platform-libraries/schedules";
 import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
-import { getAvailabilityListHandler, duplicateScheduleHandler } from "@calcom/platform-libraries/schedules";
-import type {
-  GetAvailabilityListHandlerReturn,
-  DuplicateScheduleHandlerReturn,
-} from "@calcom/platform-libraries/schedules";
 import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
 
 import { SchedulesAtomsService } from "../services/schedules-atom.service";
@@ -70,21 +68,6 @@ export class AtomsSchedulesController {
     };
   }
 
-  @Get("/schedules/all")
-  @Version(VERSION_NEUTRAL)
-  @UseGuards(ApiAuthGuard)
-  @Permissions([SCHEDULE_READ])
-  async getAllUserSchedules(
-    @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<Awaited<GetAvailabilityListHandlerReturn>>> {
-    const userSchedules = await getAvailabilityListHandler({ ctx: { user } });
-
-    return {
-      status: SUCCESS_STATUS,
-      data: userSchedules,
-    };
-  }
-
   @Patch("schedules/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
   @UseGuards(ApiAuthGuard)
@@ -93,7 +76,7 @@ export class AtomsSchedulesController {
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateAtomScheduleDto,
     @Param("scheduleId", ParseIntPipe) scheduleId: number
-  ): Promise<ApiResponse<Awaited<ReturnType<SchedulesAtomsService["updateUserSchedule"]>>>> {
+  ): Promise<ApiResponse<any>> {
     const updatedSchedule = await this.schedulesService.updateUserSchedule({
       user,
       input: bodySchedule,
@@ -103,22 +86,22 @@ export class AtomsSchedulesController {
     return {
       status: SUCCESS_STATUS,
       data: updatedSchedule,
-    } as ApiResponse<Awaited<ReturnType<SchedulesAtomsService["updateUserSchedule"]>>>;
+    };
   }
 
-  @Post("schedules/:scheduleId/duplicate")
+  @Post("schedules/create")
   @Permissions([SCHEDULE_WRITE])
   @UseGuards(ApiAuthGuard)
-  @ApiOperation({ summary: "Duplicate existing schedule" })
-  async duplicateExistingSchedule(
+  @ApiOperation({ summary: "Create atom schedule" })
+  async createSchedule(
     @GetUser() user: UserWithProfile,
-    @Param("scheduleId", ParseIntPipe) scheduleId: number
-  ): Promise<ApiResponse<Awaited<DuplicateScheduleHandlerReturn>>> {
-    const duplicatedSchedule = await duplicateScheduleHandler({ ctx: { user }, input: { scheduleId } });
+    @Body() bodySchedule: z.infer<typeof CreateScheduleSchema>
+  ): Promise<ApiResponse<CreateScheduleHandlerReturn>> {
+    const createdSchedule = await createScheduleHandler({ input: bodySchedule, ctx: { user } });
 
     return {
       status: SUCCESS_STATUS,
-      data: duplicatedSchedule,
+      data: createdSchedule,
     };
   }
 }
