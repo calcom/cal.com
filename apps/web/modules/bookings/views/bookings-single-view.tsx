@@ -409,6 +409,19 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
+  window.dataLayer = window.dataLayer || [];
+
+  const gtmEvent = {
+    event: "booking_success",
+    booker_email_address: bookingInfo.user?.name,
+    booker_team_id: eventType?.teamId,
+    booker_id: bookingInfo.user?.id,
+    booking_id: bookingInfo.uid,
+  };
+
+  console.log("Sent gtm event: ", gtmEvent);
+  window.dataLayer.push(gtmEvent);
+
   useEffect(() => {
     if (faviconUrl) {
       const defaultFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
