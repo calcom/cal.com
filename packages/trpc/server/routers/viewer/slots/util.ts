@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { getAggregatedAvailability } from "@calcom/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability";
 import type {
   CurrentSeats,
   EventType,
@@ -26,14 +27,13 @@ import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
-import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
-import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";

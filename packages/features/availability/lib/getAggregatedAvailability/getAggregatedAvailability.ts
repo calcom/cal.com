@@ -1,10 +1,10 @@
-import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { intersect } from "@calcom/features/schedules/lib/date-ranges";
+import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { filterRedundantDateRanges } from "./getAggregatedAvailability/date-range-utils/filterRedundantDateRanges";
-import { mergeOverlappingDateRanges } from "./getAggregatedAvailability/date-range-utils/mergeOverlappingDateRanges";
+import { filterRedundantDateRanges } from "./date-range-utils/filterRedundantDateRanges";
+import { mergeOverlappingDateRanges } from "./date-range-utils/mergeOverlappingDateRanges";
 
 function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
   const seen = new Set<string>();
