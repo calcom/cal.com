@@ -1,13 +1,13 @@
 import { sendTeamInviteEmail } from "@calcom/emails";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { prisma } from "@calcom/prisma";
+import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
 import type { TResendInvitationInputSchema } from "./resendInvitation.schema";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 type InviteMemberOptions = {
   ctx: {
@@ -45,13 +45,17 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
   };
 
   if (verificationToken) {
-    const user = await new UserRepository(prisma).findByEmail({ email: input.email });
+    try {
+      const user = await new UserRepository(prisma).findByEmail({ email: input.email });
 
-    if (!!user && user.completedOnboarding) {
-      inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
-    } else {
-      inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`;
-      inviteTeamOptions.isCalcomMember = false;
+      if (user?.completedOnboarding) {
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
+      } else {
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`;
+        inviteTeamOptions.isCalcomMember = false;
+      }
+    } catch (error) {
+      console.error("[resendInvitationHandler] Error fetching user: ", error);
     }
   }
 
