@@ -1,8 +1,8 @@
+import { HashedLinkRepository, type HashedLinkInputType } from "hashedLink/repositories/HashedLinkRepository";
+
+import { MembershipService } from "@calcom/features/membership/services/membershipService";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
-
-import { HashedLinkRepository, type HashedLinkInputType } from "../repository/hashedLinkRepository";
-import { MembershipService } from "./membershipService";
 
 type NormalizedLink = {
   link: string;
