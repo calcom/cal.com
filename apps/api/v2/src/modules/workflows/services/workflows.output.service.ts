@@ -32,13 +32,8 @@ import {
   WHATSAPP_NUMBER,
 } from "../inputs/workflow-step.input";
 import {
-  AFTER_EVENT,
-  AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-  AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-  BEFORE_EVENT,
   ENUM_TO_TIME_UNIT,
   ENUM_TO_WORKFLOW_TRIGGER,
-  FORM_SUBMITTED,
   HOUR,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
@@ -47,6 +42,7 @@ import {
   OnCancelTriggerDto,
   OnCreationTriggerDto,
   OnFormSubmittedTriggerDto,
+  OnFormSubmittedNoEventTriggerDto,
   OnNoShowUpdateTriggerDto,
   OnPaidTriggerDto,
   OnPaymentInitiatedTriggerDto,
@@ -54,6 +50,9 @@ import {
   OnRequestedTriggerDto,
   OnRescheduleTriggerDto,
   WORKFLOW_TRIGGER_TO_ENUM,
+  FORM_WORKFLOW_TRIGGER_TYPES,
+  ENUM_ROUTING_FORM_WORFLOW_TRIGGERS,
+  ENUM_OFFSET_WORFLOW_TRIGGERS,
 } from "../inputs/workflow-trigger.input";
 
 export type TriggerDtoType =
@@ -64,6 +63,7 @@ export type TriggerDtoType =
   | OnCancelTriggerDto
   | OnAfterCalVideoGuestsNoShowTriggerDto
   | OnFormSubmittedTriggerDto
+  | OnFormSubmittedNoEventTriggerDto
   | OnRejectedTriggerDto
   | OnRequestedTriggerDto
   | OnPaymentInitiatedTriggerDto
@@ -141,10 +141,20 @@ const ACTION_CONFIG_MAP = {
 @Injectable()
 export class WorkflowsOutputService {
   _isFormAllowedStepAction(action: StepAction): action is FormAllowedStepAction {
-    if (FORM_ALLOWED_STEP_ACTIONS.some((formAction) => formAction === action)) {
-      return true;
-    }
-    return false;
+    return FORM_ALLOWED_STEP_ACTIONS.some((formAction) => formAction === action);
+  }
+  _isFormAllowedTrigger(
+    trigger: WorkflowType["trigger"]
+  ): trigger is (typeof ENUM_ROUTING_FORM_WORFLOW_TRIGGERS)[number] {
+    return FORM_WORKFLOW_TRIGGER_TYPES.some(
+      (formTrigger) => WORKFLOW_TRIGGER_TO_ENUM[formTrigger] === trigger
+    );
+  }
+
+  private _isOffsetTrigger(
+    trigger: WorkflowType["trigger"]
+  ): trigger is (typeof ENUM_OFFSET_WORFLOW_TRIGGERS)[number] {
+    return ENUM_OFFSET_WORFLOW_TRIGGERS.some((offsetTrigger) => offsetTrigger === trigger);
   }
 
   /**
@@ -200,14 +210,22 @@ export class WorkflowsOutputService {
   }
 
   toRoutingFormOutputDto(workflow: WorkflowType): RoutingFormWorkflowOutput | void {
-    if (workflow.type === "ROUTING_FORM" && workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED]) {
+    if (workflow.type === "ROUTING_FORM" && this._isFormAllowedTrigger(workflow.trigger)) {
       const activation: WorkflowFormActivationDto = {
         isActiveOnAllRoutingForms: workflow.isActiveOnAll,
         activeOnRoutingFormIds:
           workflow.activeOnRoutingForms?.map((relation) => relation.routingFormId) ?? [],
       };
 
-      const trigger: TriggerDtoType = { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
+      const trigger: TriggerDtoType = this._isOffsetTrigger(workflow.trigger)
+        ? {
+            type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
+            offset: {
+              value: workflow.time ?? 1,
+              unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
+            },
+          }
+        : { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
 
       const steps: RoutingFormWorkflowStepOutputDto[] = workflow.steps.map((step) => {
         return this.mapStep(step, "routing-form");
@@ -225,25 +243,21 @@ export class WorkflowsOutputService {
   }
 
   toEventTypeOutputDto(workflow: WorkflowType): EventTypeWorkflowOutput | void {
-    if (workflow.type === "EVENT_TYPE" && workflow.trigger !== WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED]) {
+    if (workflow.type === "EVENT_TYPE" && !this._isFormAllowedTrigger(workflow.trigger)) {
       const activation: WorkflowActivationDto = {
         isActiveOnAllEventTypes: workflow.isActiveOnAll,
         activeOnEventTypeIds: workflow.activeOn?.map((relation) => relation.eventTypeId) ?? [],
       };
 
-      const trigger: TriggerEventTypeDtoType =
-        workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[BEFORE_EVENT] ||
-        workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[AFTER_EVENT] ||
-        workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[AFTER_GUESTS_CAL_VIDEO_NO_SHOW] ||
-        workflow.trigger === WORKFLOW_TRIGGER_TO_ENUM[AFTER_HOSTS_CAL_VIDEO_NO_SHOW]
-          ? {
-              type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
-              offset: {
-                value: workflow.time ?? 1,
-                unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
-              },
-            }
-          : { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
+      const trigger: TriggerEventTypeDtoType = this._isOffsetTrigger(workflow.trigger)
+        ? {
+            type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger],
+            offset: {
+              value: workflow.time ?? 1,
+              unit: workflow.timeUnit ? ENUM_TO_TIME_UNIT[workflow.timeUnit] : HOUR,
+            },
+          }
+        : { type: ENUM_TO_WORKFLOW_TRIGGER[workflow.trigger] };
 
       const steps: EventTypeWorkflowStepOutputDto[] = workflow.steps.map((step) => {
         return this.mapStep(step, "event-type");

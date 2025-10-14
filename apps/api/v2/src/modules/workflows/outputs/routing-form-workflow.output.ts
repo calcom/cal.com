@@ -35,7 +35,7 @@ export class RoutingFormWorkflowTriggerOutputDto {
   type!: WorkflowFormTriggerType;
 
   @ApiPropertyOptional({
-    description: "Offset details (present for BEFORE_EVENT/AFTER_EVENT)",
+    description: "Offset details (present for BEFORE_EVENT/AFTER_EVENT/FORM_SUBMITTED_NO_EVENT)",
     type: WorkflowTriggerOffsetOutputDto,
   })
   @Expose()
