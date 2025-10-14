@@ -85,7 +85,6 @@ export const reportBookingHandler = async ({ ctx, input }: ReportBookingOptions)
         bookingData: {
           uid: booking.uid,
           cancelledBy: user.email,
-          cancellationReason: description,
           skipCancellationReasonValidation: true,
           ...(booking.recurringEventId ? { cancelSubsequentBookings: true } : {}),
           ...(seatReferenceUid ? { seatReferenceUid } : {}),
