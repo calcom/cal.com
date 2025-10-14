@@ -23,6 +23,7 @@ export interface BookingActionContext {
   showPendingPayment: boolean;
   isAttendee: boolean;
   cardCharged: boolean;
+  checkIfUserIsAuthorizedToCancelSeats: () => boolean;
   attendeeList: Array<{
     name: string;
     email: string;
@@ -105,6 +106,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     isBookingFromRoutingForm,
     getSeatReferenceUid,
     isAttendee,
+    checkIfUserIsAuthorizedToCancelSeats,
     t,
   } = context;
   const seatReferenceUid = getSeatReferenceUid();
@@ -150,6 +152,14 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           icon: "user-plus",
           disabled: false,
         },
+    booking.seatsReferences.length > 0 && !isBookingInPast && checkIfUserIsAuthorizedToCancelSeats()
+      ? {
+          id: "remove_seats",
+          label: t("remove_seats"),
+          icon: "user-x",
+          disabled: false,
+        }
+      : null,
     // Reassign if round robin with no or one host groups
     booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)

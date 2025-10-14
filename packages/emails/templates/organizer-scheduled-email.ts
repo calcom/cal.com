@@ -20,6 +20,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   teamMember?: Person;
   reassigned?: Reassigned;
   attendee?: Person;
+  isCancelledByHost?: boolean;
 
   constructor(input: {
     calEvent: CalendarEvent;
@@ -27,6 +28,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     teamMember?: Person;
     reassigned?: Reassigned;
     attendee?: Person;
+    isCancelledByHost?: boolean;
   }) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
@@ -36,6 +38,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     this.teamMember = input.teamMember;
     this.reassigned = input.reassigned;
     this.attendee = input.attendee;
+    this.isCancelledByHost = input.isCancelledByHost;
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
