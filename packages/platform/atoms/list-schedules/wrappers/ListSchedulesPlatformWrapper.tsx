@@ -2,6 +2,7 @@ import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getTransformedSchedules } from "@calcom/lib/schedules/transformers/getTransformedSchedles";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
@@ -20,6 +21,7 @@ interface ListSchedulesPlatformWrapperProps {
 export const ListSchedulesPlatformWrapper = ({ getRedirectUrl }: ListSchedulesPlatformWrapperProps = {}) => {
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
   const { toast } = useToast();
+  const { t } = useLocale();
 
   const {
     data: userSchedules,
@@ -45,7 +47,7 @@ export const ListSchedulesPlatformWrapper = ({ getRedirectUrl }: ListSchedulesPl
   const { mutate: duplicateSchedule } = useAtomDuplicateSchedule({
     onSuccess: () => {
       toast({
-        description: "Schedule updated successfully",
+        description: "Schedule created successfully",
       });
       refetchSchedules();
     },
@@ -81,14 +83,14 @@ export const ListSchedulesPlatformWrapper = ({ getRedirectUrl }: ListSchedulesPl
 
   const transformedSchedules = getTransformedSchedules(userSchedules?.schedules ?? []);
 
-  if (isLoadingSchedules || isUserLoading) return <>Loading...</>;
+  if (isLoadingSchedules || isUserLoading) return <>{t("loading")}</>;
 
   if (!isLoadingSchedules && transformedSchedules?.length === 0)
     return (
       <EmptyScreen
         Icon="clock"
-        headline="No schedules present"
-        description="Create a new schedule to get started"
+        headline={t("no_schedules_present")}
+        description={t("create_new_schedule")}
         className="w-full"
       />
     );
@@ -107,7 +109,7 @@ export const ListSchedulesPlatformWrapper = ({ getRedirectUrl }: ListSchedulesPl
               key={schedule.id}
               schedule={schedule}
               isDeletable={transformedSchedules.length !== 1}
-              redirectUrl={getRedirectUrl ? getRedirectUrl(schedule.id) : ""}
+              redirectUrl={getRedirectUrl ? getRedirectUrl(schedule.id) : "#"}
               updateDefault={() => {
                 updateSchedule({
                   scheduleId: schedule.id,
