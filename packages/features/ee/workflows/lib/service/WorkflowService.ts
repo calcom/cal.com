@@ -4,15 +4,14 @@ import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/rem
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
-import { tasker } from "@calcom/features/tasker";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
+import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents, WorkflowType } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
-
-import { TeamRepository } from "../repository/team";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
