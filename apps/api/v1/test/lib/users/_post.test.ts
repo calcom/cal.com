@@ -107,8 +107,6 @@ describe("POST /api/users", () => {
       data: {
         type: "EMAIL",
         value: "test@example.com",
-        severity: "CRITICAL",
-        createdById: 1,
       },
     });
 

@@ -12,12 +12,10 @@ describe("isLockedOrBlocked", () => {
         {
           type: "DOMAIN",
           value: "spam.com",
-          createdById: 1,
         },
         {
           type: "DOMAIN",
           value: "blocked.com",
-          createdById: 1,
         },
       ],
     });
