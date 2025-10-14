@@ -152,10 +152,17 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
           </div>
 
           <DialogFooter className="mt-6">
-            <Button type="button" color="secondary" onClick={onClose} disabled={isSubmitting}>
+            <Button
+              type="button"
+              color="secondary"
+              onClick={onClose}
+              disabled={isSubmitting || createWatchlistEntry.isPending}>
               {t("cancel")}
             </Button>
-            <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
+            <Button
+              type="submit"
+              loading={isSubmitting || createWatchlistEntry.isPending}
+              disabled={isSubmitting || createWatchlistEntry.isPending}>
               {t("create_entry")}
             </Button>
           </DialogFooter>
