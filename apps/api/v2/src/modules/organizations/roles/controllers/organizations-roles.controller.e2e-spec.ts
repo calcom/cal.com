@@ -137,13 +137,13 @@ describe("Organizations Roles Endpoints", () => {
         team: { connect: { id: organization.id } },
       });
 
-      await membershipRepositoryFixture.create({
+      const pbacOrgUserWithRolePermissionMembership = await membershipRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: pbacOrgUserWithRolePermission.id } },
         team: { connect: { id: pbacEnabledOrganization.id } },
       });
 
-      await membershipRepositoryFixture.create({
+      const pbacOrgUserWithoutRolePermissionMembership = await membershipRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: pbacOrgUserWithoutRolePermission.id } },
         team: { connect: { id: pbacEnabledOrganization.id } },
@@ -163,8 +163,11 @@ describe("Organizations Roles Endpoints", () => {
         type: "CUSTOM",
       });
 
-      await roleService.assignRoleToMember(roleWithPermission.id, pbacOrgUserWithRolePermission.id);
-      await roleService.assignRoleToMember(roleWithoutPermission.id, pbacOrgUserWithoutRolePermission.id);
+      await roleService.assignRoleToMember(roleWithPermission.id, pbacOrgUserWithRolePermissionMembership.id);
+      await roleService.assignRoleToMember(
+        roleWithoutPermission.id,
+        pbacOrgUserWithoutRolePermissionMembership.id
+      );
 
       const legacyOrgAdminApiKeyResult = await apiKeysRepositoryFixture.createApiKey(
         legacyOrgAdminUser.id,
