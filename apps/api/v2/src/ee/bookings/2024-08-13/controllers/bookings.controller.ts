@@ -87,7 +87,7 @@ import {
 @DocsTags("Bookings")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to ${VERSION_2024_08_13}`,
+  description: `Must be set to ${VERSION_2024_08_13}. If not set to this value, the endpoint will default to an older version.`,
   example: VERSION_2024_08_13,
   required: true,
   schema: {
@@ -133,6 +133,8 @@ export class BookingsController_2024_08_13 {
 
       If you are creating a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
       you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
   @ApiBody({
@@ -188,6 +190,8 @@ export class BookingsController_2024_08_13 {
       
       If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
       you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
   async getBooking(
@@ -206,7 +210,10 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard)
   @ApiOperation({
     summary: "Get all the recordings for the booking",
-    description: `Fetches all the recordings for the booking \`:bookingUid\``,
+    description: `Fetches all the recordings for the booking \`:bookingUid\`
+    
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   async getBookingRecordings(@Param("bookingUid") bookingUid: string): Promise<GetBookingRecordingsOutput> {
     const recordings = await this.calVideoService.getRecordings(bookingUid);
@@ -221,7 +228,10 @@ export class BookingsController_2024_08_13 {
   @UseGuards(BookingUidGuard)
   @ApiOperation({
     summary: "Get all the transcripts download links for the booking",
-    description: `Fetches all the transcripts download links for the booking \`:bookingUid\``,
+    description: `Fetches all the transcripts download links for the booking \`:bookingUid\`
+    
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   async getBookingTranscripts(@Param("bookingUid") bookingUid: string): Promise<GetBookingTranscriptsOutput> {
     const transcripts = await this.calVideoService.getTranscripts(bookingUid);
@@ -236,7 +246,10 @@ export class BookingsController_2024_08_13 {
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Permissions([BOOKING_READ])
-  @ApiOperation({ summary: "Get all bookings" })
+  @ApiOperation({
+    summary: "Get all bookings",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+  })
   async getBookings(
     @Query() queryParams: GetBookingsInput_2024_08_13,
     @GetUser() user: ApiAuthGuardUser
@@ -263,7 +276,10 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reschedule a booking",
-    description: "Reschedule a booking or seated booking",
+    description: `Reschedule a booking or seated booking
+    
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   @ApiBody({
     schema: {
@@ -315,6 +331,8 @@ export class BookingsController_2024_08_13 {
     
     If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
     you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
   @ApiBody({
@@ -350,7 +368,10 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Mark a booking absence",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description: `The provided authorization header refers to the owner of the booking.
+    
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   async markNoShow(
     @Param("bookingUid") bookingUid: string,
@@ -372,8 +393,10 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
-    description:
-      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
+    description: `Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.
+      
+       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+      `,
   })
   async reassignBooking(
     @Param("bookingUid") bookingUid: string,
@@ -394,8 +417,10 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
-    description:
-      "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
+    description: `Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.
+      
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+      `,
   })
   async reassignBookingToUser(
     @Param("bookingUid") bookingUid: string,
@@ -423,7 +448,10 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Confirm a booking",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description: `The provided authorization header refers to the owner of the booking.
+    
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    `,
   })
   async confirmBooking(
     @Param("bookingUid") bookingUid: string,
@@ -444,7 +472,10 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Decline a booking",
-    description: "The provided authorization header refers to the owner of the booking.",
+    description: `The provided authorization header refers to the owner of the booking.
+    
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note> 
+    `,
   })
   async declineBooking(
     @Param("bookingUid") bookingUid: string,
@@ -465,8 +496,10 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get 'Add to Calendar' links for a booking",
-    description:
-      "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.",
+    description: `Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.
+      
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note> 
+      `,
   })
   @HttpCode(HttpStatus.OK)
   async getCalendarLinks(@Param("bookingUid") bookingUid: string): Promise<CalendarLinksOutput_2024_08_13> {
@@ -485,6 +518,7 @@ export class BookingsController_2024_08_13 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get booking references",
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
   })
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(

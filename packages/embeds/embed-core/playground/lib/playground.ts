@@ -371,6 +371,11 @@ Cal("init", "popupRescheduleWithRescheduleUidParam", {
   origin: origin,
 });
 
+Cal("init", "popupCancelBooking", {
+  debug: true,
+  origin: origin,
+});
+
 Cal("init", "popupAutoTheme", {
   debug: true,
   origin: origin,
