@@ -2351,8 +2351,6 @@ model WatchlistEventAudit {
   actionTaken WatchlistAction
   timestamp   DateTime        @default(now())
 
-  @@index([watchlistId, timestamp])
-  @@index([eventTypeId, timestamp])
 }
 
 enum BookingReportReason {
