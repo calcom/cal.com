@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
-import { WatchlistType, WatchlistAction, ReportReason } from "@calcom/prisma/enums";
+import { WatchlistType, WatchlistAction, BookingReportReason } from "@calcom/prisma/enums";
 
 import { addToWatchlistHandler } from "./addToWatchlist.handler";
 
@@ -22,7 +22,7 @@ describe("addToWatchlistHandler", () => {
       bookingId: 1,
       bookerEmail: "spammer@example.com",
       reportedById: 1,
-      reason: ReportReason.SPAM,
+      reason: BookingReportReason.SPAM,
       description: null,
       cancelled: false,
       createdAt: new Date(),
@@ -42,7 +42,7 @@ describe("addToWatchlistHandler", () => {
       bookingId: 2,
       bookerEmail: "user@spammer.com",
       reportedById: 1,
-      reason: ReportReason.SPAM,
+      reason: BookingReportReason.SPAM,
       description: null,
       cancelled: false,
       createdAt: new Date(),

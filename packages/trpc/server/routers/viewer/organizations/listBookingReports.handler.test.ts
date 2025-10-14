@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { ReportReason } from "@calcom/prisma/enums";
+import { BookingReportReason } from "@calcom/prisma/enums";
 
 import { listBookingReportsHandler } from "./listBookingReports.handler";
 
@@ -21,7 +21,7 @@ describe("listBookingReportsHandler", () => {
         bookingId: 1,
         bookerEmail: "user1@example.com",
         reportedById: 1,
-        reason: ReportReason.SPAM,
+        reason: BookingReportReason.SPAM,
         description: null,
         cancelled: false,
         createdAt: new Date("2025-01-01"),
@@ -41,7 +41,7 @@ describe("listBookingReportsHandler", () => {
         bookingId: 2,
         bookerEmail: "user2@example.com",
         reportedById: 1,
-        reason: ReportReason.DONT_KNOW_PERSON,
+        reason: BookingReportReason.DONT_KNOW_PERSON,
         description: "Unknown person",
         cancelled: true,
         createdAt: new Date("2025-01-02"),
@@ -143,7 +143,7 @@ describe("listBookingReportsHandler", () => {
       mockReportRepo.findAllReportedBookings.mockResolvedValue(mockReportData);
 
       const filters = {
-        reason: [ReportReason.SPAM, ReportReason.DONT_KNOW_PERSON],
+        reason: [BookingReportReason.SPAM, BookingReportReason.DONT_KNOW_PERSON],
         cancelled: true,
         hasWatchlist: false,
       };

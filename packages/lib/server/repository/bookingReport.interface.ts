@@ -33,7 +33,7 @@ export interface BookingReportWithDetails {
     id: number;
     name: string | null;
     email: string;
-  };
+  } | null;
   booking: {
     id: number;
     startTime: Date;

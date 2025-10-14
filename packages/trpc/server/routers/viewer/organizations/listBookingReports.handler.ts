@@ -3,12 +3,13 @@ import { prisma } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TrpcSessionUser } from "../../../../trpc";
 import type { TListBookingReportsInputSchema } from "./listBookingReports.schema";
 
 type ListBookingReportsOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: {
+      organizationId?: number;
+    };
   };
   input: TListBookingReportsInputSchema;
 };

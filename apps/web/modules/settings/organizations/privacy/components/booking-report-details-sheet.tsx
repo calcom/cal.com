@@ -14,14 +14,14 @@ interface BookingReportDetailsSheetProps {
   open: boolean;
   onClose: () => void;
   report: BookingReport;
-  onAddToWatchlist?: () => void;
+  onAddToBlocklist?: () => void;
 }
 
 export function BookingReportDetailsSheet({
   open,
   onClose,
   report,
-  onAddToWatchlist,
+  onAddToBlocklist,
 }: BookingReportDetailsSheetProps) {
   const { t } = useLocale();
 
@@ -140,9 +140,9 @@ export function BookingReportDetailsSheet({
             </div>
           )}
 
-          {!report.watchlistId && onAddToWatchlist && (
+          {!report.watchlistId && onAddToBlocklist && (
             <div className="pt-4">
-              <Button onClick={onAddToWatchlist} color="primary" className="w-full justify-center">
+              <Button onClick={onAddToBlocklist} color="primary" className="w-full justify-center">
                 {t("add_to_blocklist")}
               </Button>
             </div>

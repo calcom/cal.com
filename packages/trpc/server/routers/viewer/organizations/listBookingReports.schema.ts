@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { ReportReason } from "@calcom/prisma/enums";
+import { BookingReportReason } from "@calcom/prisma/enums";
 
 export const ZListBookingReportsInputSchema = z.object({
   limit: z.number().min(1).max(100).optional(),
@@ -8,7 +8,7 @@ export const ZListBookingReportsInputSchema = z.object({
   searchTerm: z.string().optional(),
   filters: z
     .object({
-      reason: z.array(z.nativeEnum(ReportReason)).optional(),
+      reason: z.array(z.nativeEnum(BookingReportReason)).optional(),
       cancelled: z.boolean().optional(),
       hasWatchlist: z.boolean().optional(),
       dateRange: z

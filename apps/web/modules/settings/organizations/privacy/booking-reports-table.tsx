@@ -382,7 +382,7 @@ export function BookingReportsTable() {
             setSelectedReport(null);
           }}
           report={selectedReport}
-          onAddToWatchlist={
+          onAddToBlocklist={
             !selectedReport.watchlistId
               ? () => {
                   setShowDetailsSheet(false);

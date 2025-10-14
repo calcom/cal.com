@@ -728,12 +728,9 @@ export async function getBookings({
         }
       }
 
-      const report = await bookingReportRepo.findReportForBooking(booking.id);
-
       return {
         ...booking,
         rescheduler,
-        report,
         eventType: {
           ...booking.eventType,
           recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
