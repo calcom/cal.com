@@ -55,9 +55,27 @@ function positionEditorElement(editor: HTMLInputElement, rect: DOMRect | null) {
     editor.style.top = "-1000px";
     editor.style.left = "-1000px";
   } else {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let top = rect.top + rect.height + window.pageYOffset + 10;
+    let left = rect.left + window.pageXOffset - editor.offsetWidth / 2 + rect.width / 2;
+
+    // Ensure the popup doesn't go outside the viewport horizontally
+    if (left < 0) {
+      left = 10; // Add some padding from the left edge
+    } else if (left + editor.offsetWidth > viewportWidth) {
+      left = viewportWidth - editor.offsetWidth - 10; // Add some padding from the right edge
+    }
+
+    // Ensure the popup doesn't go outside the viewport vertically
+    if (top + editor.offsetHeight > viewportHeight + window.pageYOffset) {
+      top = rect.top + window.pageYOffset - editor.offsetHeight - 10; // Position above the element
+    }
+
     editor.style.opacity = "1";
-    editor.style.top = `${rect.top + rect.height + window.pageYOffset + 10}px`;
-    editor.style.left = `${rect.left + window.pageXOffset - editor.offsetWidth / 2 + rect.width / 2}px`;
+    editor.style.top = `${top}px`;
+    editor.style.left = `${left}px`;
   }
 }
 
