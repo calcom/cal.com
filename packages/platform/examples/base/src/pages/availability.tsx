@@ -50,6 +50,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
         </div>
 
         <AvailabilitySettings
+          // isDryRun={true}
           ref={availabilityRef}
           enableOverrides={true}
           customClassNames={{
