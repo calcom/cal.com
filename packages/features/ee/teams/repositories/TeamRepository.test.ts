@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import type { Team } from "@calcom/prisma/client";
 
-import { getTeam, getOrg, TeamRepository } from "./team";
+import { getTeam, getOrg, TeamRepository } from "./TeamRepository";
 
 const sampleTeamProps = {
   logo: null,

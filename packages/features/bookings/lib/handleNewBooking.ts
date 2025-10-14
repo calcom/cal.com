@@ -71,7 +71,7 @@ import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/l
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";

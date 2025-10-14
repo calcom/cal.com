@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
