@@ -10,7 +10,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
     <main className={`flex min-h-screen flex-col ${inter.className}`}>
       <Navbar username={props.calUsername} />
       <div data-testid="list-schedules-atom" className="mx-10 my-10">
-        <ListSchedules getRedirectUrl={(scheduleId) => `/availability/${scheduleId}`} />
+        <ListSchedules getScheduleUrl={(scheduleId) => `/availability/${scheduleId}`} />
       </div>
     </main>
   );

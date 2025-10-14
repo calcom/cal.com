@@ -3,7 +3,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getTransformedSchedules } from "@calcom/lib/schedules/transformers/getTransformedSchedles";
+import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { useAtomDuplicateSchedule } from "../../hooks/schedules/useAtomDuplicateSchedule";
@@ -15,10 +15,10 @@ import { useMe } from "../../hooks/useMe";
 import { useToast } from "../../src/components/ui/use-toast";
 
 interface ListSchedulesPlatformWrapperProps {
-  getRedirectUrl?: (scheduleId: number) => string;
+  getScheduleUrl?: (scheduleId: number) => string;
 }
 
-export const ListSchedulesPlatformWrapper = ({ getRedirectUrl }: ListSchedulesPlatformWrapperProps = {}) => {
+export const ListSchedulesPlatformWrapper = ({ getScheduleUrl }: ListSchedulesPlatformWrapperProps = {}) => {
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
   const { toast } = useToast();
   const { t } = useLocale();
@@ -81,7 +81,7 @@ export const ListSchedulesPlatformWrapper = ({ getRedirectUrl }: ListSchedulesPl
     });
   });
 
-  const transformedSchedules = getTransformedSchedules(userSchedules?.schedules ?? []);
+  const transformedSchedules = userSchedules?.schedules.map((schedule) => getScheduleListItemData(schedule));
 
   if (isLoadingSchedules || isUserLoading) return <>{t("loading")}</>;
 
@@ -109,7 +109,7 @@ export const ListSchedulesPlatformWrapper = ({ getRedirectUrl }: ListSchedulesPl
               key={schedule.id}
               schedule={schedule}
               isDeletable={transformedSchedules.length !== 1}
-              redirectUrl={getRedirectUrl ? getRedirectUrl(schedule.id) : "#"}
+              redirectUrl={getScheduleUrl ? getScheduleUrl(schedule.id) : "#"}
               updateDefault={() => {
                 updateSchedule({
                   scheduleId: schedule.id,
