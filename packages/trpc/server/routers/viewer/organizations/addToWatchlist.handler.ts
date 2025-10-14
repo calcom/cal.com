@@ -1,6 +1,7 @@
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { prisma } from "@calcom/prisma";
+import { WatchlistAction } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -74,7 +75,7 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
             type: input.type,
             value,
             organizationId,
-            action: input.action,
+            action: WatchlistAction.BLOCK,
             description: input.description,
             userId: user.id,
           });
@@ -101,7 +102,7 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
     if (error instanceof Error && error.message.includes("already exists")) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-          message: "This entry already exists in the watchlist for your organization",
+        message: "This entry already exists in the watchlist for your organization",
       });
     }
     throw error;

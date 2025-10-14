@@ -94,7 +94,7 @@ export function BookingReportDetailsSheet({
               <div className="flex flex-col">
                 <span className="text-subtle text-xs">{t("reported_by")}</span>
                 <span className="text-default text-sm">
-                  {report.reporter.name || ""} ({report.reporter.email ?? "-"})
+                  {(report.reporter?.name || "")} ({report.reporter?.email ?? "-"})
                 </span>
               </div>
               <div className="flex flex-col">

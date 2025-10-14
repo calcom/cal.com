@@ -145,7 +145,7 @@ export function BookingReportsTable() {
         accessorKey: "reason",
         size: 90,
         meta: {
-          type: ColumnFilterType.MULTI_SELECT,
+          filterType: ColumnFilterType.MULTI_SELECT,
         },
         cell: ({ row }) => {
           const reasonColors: Record<string, "red" | "orange" | "gray"> = {
@@ -167,7 +167,7 @@ export function BookingReportsTable() {
         accessorFn: (row) => (row.watchlistId ? "true" : "false"),
         size: 120,
         meta: {
-          type: ColumnFilterType.MULTI_SELECT,
+          filterType: ColumnFilterType.MULTI_SELECT,
         },
         cell: ({ row }) => (
           <Badge variant={row.original.watchlistId ? "blue" : "gray"}>

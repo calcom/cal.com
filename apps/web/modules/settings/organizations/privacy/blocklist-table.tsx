@@ -78,18 +78,6 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     setShowDetailsSheet(true);
   };
 
-  const getActionVariant = (action: string): "red" | "orange" | "blue" | "gray" => {
-    switch (action) {
-      case "BLOCK":
-        return "red";
-      case "REPORT":
-        return "orange";
-      case "ALERT":
-        return "blue";
-      default:
-        return "gray";
-    }
-  };
 
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
   const flatData = useMemo<BlocklistEntry[]>(() => data?.rows ?? [], [data]);
@@ -117,8 +105,8 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         header: t("blocked_by"),
         size: 180,
         cell: ({ row }) => {
-          const creator = row.original.audits?.[0]?.changedByUser;
-          return <span className="text-default">{creator?.email || "—"}</span>;
+          const _creatorId = row.original.audits?.[0]?.changedByUserId;
+          return <span className="text-default">{"—"}</span>;
         },
       },
       {
@@ -155,7 +143,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         },
       },
     ],
-    [t]
+    [t, permissions?.canDelete]
   );
 
   const table = useReactTable({
@@ -172,7 +160,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       <DataTableWrapper
         table={table}
         isPending={isPending}
-        variant="minimal"
+        variant="compact"
         totalDbDataCount={totalRowCount}>
         <div className="flex items-center justify-between">
           <DataTableToolbar.SearchBar />

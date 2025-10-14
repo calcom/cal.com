@@ -162,7 +162,7 @@ describe("addToWatchlistHandler", () => {
         input: {
           reportIds: ["report-1"],
           type: WatchlistType.EMAIL,
-          action: WatchlistAction.REPORT,
+          action: WatchlistAction.BLOCK,
           description: "Spam user",
         },
       });
@@ -173,7 +173,7 @@ describe("addToWatchlistHandler", () => {
         type: WatchlistType.EMAIL,
         value: "spammer@example.com",
         organizationId: 100,
-        action: WatchlistAction.REPORT,
+        action: WatchlistAction.BLOCK,
         description: "Spam user",
         userId: 1,
       });
