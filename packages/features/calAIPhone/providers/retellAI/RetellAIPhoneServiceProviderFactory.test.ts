@@ -25,7 +25,7 @@ vi.mock("./RetellSDKClient", () => ({
     getLLM: vi.fn(),
     updateLLM: vi.fn(),
     deleteLLM: vi.fn(),
-    createAgent: vi.fn(),
+    createOutboundAgent: vi.fn(),
     getAgent: vi.fn(),
     updateAgent: vi.fn(),
     deleteAgent: vi.fn(),
@@ -72,7 +72,7 @@ vi.mock("../adapters/PrismaAgentRepositoryAdapter", () => ({
     findByIdWithAdminAccess: vi.fn(),
     findByIdWithCallAccess: vi.fn(),
     delete: vi.fn(),
-    linkToWorkflowStep: vi.fn(),
+    linkOutboundAgentToWorkflow: vi.fn(),
   })),
 }));
 

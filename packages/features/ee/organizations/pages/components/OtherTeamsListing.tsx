@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import OtherTeamList from "./OtherTeamList";
