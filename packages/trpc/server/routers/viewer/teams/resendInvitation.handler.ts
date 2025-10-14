@@ -3,9 +3,11 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { VerificationTokenRepository } from "@calcom/lib/server/repository/verificationToken";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import { prisma } from "@calcom/prisma";
 
 import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
 import type { TResendInvitationInputSchema } from "./resendInvitation.schema";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
 type InviteMemberOptions = {
   ctx: {
@@ -37,15 +39,20 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
   }
 
   const inviteTeamOptions = {
-    joinLink: `${WEBAPP_URL}/teams?token=${verificationToken?.token}&autoAccept=true`,
+    joinLink: `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`,
     isCalcomMember: true,
     isAutoJoin: false,
   };
 
   if (verificationToken) {
-    // Token only exists if user is CAL user but hasn't completed onboarding.
-    inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`;
-    inviteTeamOptions.isCalcomMember = false;
+    const user = await new UserRepository(prisma).findByEmail({ email: input.email });
+
+    if (!!user && user.completedOnboarding) {
+      inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
+    } else {
+      inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`;
+      inviteTeamOptions.isCalcomMember = false;
+    }
   }
 
   const translation = await getTranslation(input.language ?? "en", "common");
