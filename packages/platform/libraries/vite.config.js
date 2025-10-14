@@ -51,7 +51,8 @@ export default defineConfig({
         "fs/promises",
         "perf_hooks",
         "@prisma/client",
-
+        "@prisma/adapter-pg",
+        "pg",
         "async",
         "libphonenumber-js",
         "lodash",
