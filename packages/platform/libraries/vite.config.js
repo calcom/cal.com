@@ -51,10 +51,7 @@ export default defineConfig({
         "fs/promises",
         "perf_hooks",
         "@prisma/client",
-        "@calcom/prisma/client",
-        "@calcom/prisma/client/runtime/library",
-        "@prisma/adapter-pg",
-        "pg",
+
         "async",
         "libphonenumber-js",
         "lodash",
@@ -194,7 +191,6 @@ export default defineConfig({
   },
   plugins: [react(), dts()],
   resolve: {
-    conditions: ["node", "import", "require", "default"],
     alias: {
       "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
       "./server/i18n": path.resolve(__dirname, "./i18n.ts"),
