@@ -40,6 +40,17 @@ export const getScheduleSchemaObject = z.object({
   routingFormResponseId: z.number().optional(),
   queuedFormResponseId: z.string().nullish(),
   email: z.string().nullish(),
+  // Optional: include busy event details with titles in the response
+  includeBusyDetails: z.boolean().optional(),
+  // Optional: calendars to load busy details from (required if includeBusyDetails)
+  overlayCalendars: z
+    .array(
+      z.object({
+        credentialId: z.number(),
+        externalId: z.string(),
+      })
+    )
+    .optional(),
 });
 
 export const getScheduleSchema = getScheduleSchemaObject
