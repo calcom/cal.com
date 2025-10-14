@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-import { WatchlistType } from "@calcom/prisma/enums";
+import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 
 export const ZAddToWatchlistInputSchema = z.object({
   reportIds: z.array(z.string().uuid()).min(1),
   type: z.nativeEnum(WatchlistType),
+  action: z.nativeEnum(WatchlistAction),
   description: z.string().optional(),
 });
 
