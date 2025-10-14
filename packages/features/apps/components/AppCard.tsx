@@ -12,6 +12,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import classNames from "@calcom/ui/classNames";
@@ -119,7 +120,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           </div> */}
       <p
         className="text-default mt-2 flex-grow text-sm"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(app.description) }}
         style={{
           overflow: "hidden",

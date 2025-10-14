@@ -160,7 +160,7 @@ describe("handleNewBooking", () => {
 
         const orgProfiles = await prismaMock.profile.findMany({
           where: {
-            organizationId: org?.organization.id,
+            organizationId: org?.organization.id ?? undefined,
           },
         });
         const orgProfile = orgProfiles[0];
