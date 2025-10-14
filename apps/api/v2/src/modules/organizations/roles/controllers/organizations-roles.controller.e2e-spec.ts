@@ -19,7 +19,7 @@ import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { RoleService } from "@calcom/platform-libraries/pbac";
-import type { User, Team, ApiKey } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 describe("Organizations Roles Endpoints", () => {
   describe("Role Creation Authorization", () => {
@@ -41,11 +41,11 @@ describe("Organizations Roles Endpoints", () => {
     let nonOrgUser: User;
 
     // API Keys
-    let legacyOrgAdminApiKey: ApiKey;
-    let legacyOrgMemberApiKey: ApiKey;
-    let pbacOrgUserWithRolePermissionApiKey: ApiKey;
-    let pbacOrgUserWithoutRolePermissionApiKey: ApiKey;
-    let nonOrgUserApiKey: ApiKey;
+    let legacyOrgAdminApiKey: string;
+    let legacyOrgMemberApiKey: string;
+    let pbacOrgUserWithRolePermissionApiKey: string;
+    let pbacOrgUserWithoutRolePermissionApiKey: string;
+    let nonOrgUserApiKey: string;
 
     // Organization and team
     let organization: Team;
@@ -169,44 +169,31 @@ describe("Organizations Roles Endpoints", () => {
         pbacOrgUserWithoutRolePermissionMembership.id
       );
 
-      const legacyOrgAdminApiKeyResult = await apiKeysRepositoryFixture.createApiKey(
+      const { keyString: legacyOrgAdminKeyString } = await apiKeysRepositoryFixture.createApiKey(
         legacyOrgAdminUser.id,
         null
       );
-      legacyOrgAdminApiKey = {
-        ...legacyOrgAdminApiKeyResult.apiKey,
-        hashedKey: legacyOrgAdminApiKeyResult.keyString,
-      };
+      legacyOrgAdminApiKey = `cal_test_${legacyOrgAdminKeyString}`;
 
-      const legacyOrgMemberApiKeyResult = await apiKeysRepositoryFixture.createApiKey(
+      const { keyString: legacyOrgMemberKeyString } = await apiKeysRepositoryFixture.createApiKey(
         legacyOrgMemberUser.id,
         null
       );
-      legacyOrgMemberApiKey = {
-        ...legacyOrgMemberApiKeyResult.apiKey,
-        hashedKey: legacyOrgMemberApiKeyResult.keyString,
-      };
+      legacyOrgMemberApiKey = `cal_test_${legacyOrgMemberKeyString}`;
 
-      const pbacOrgUserWithRolePermissionApiKeyResult = await apiKeysRepositoryFixture.createApiKey(
-        pbacOrgUserWithRolePermission.id,
+      const { keyString: pbacOrgUserWithRolePermissionKeyString } =
+        await apiKeysRepositoryFixture.createApiKey(pbacOrgUserWithRolePermission.id, null);
+      pbacOrgUserWithRolePermissionApiKey = `cal_test_${pbacOrgUserWithRolePermissionKeyString}`;
+
+      const { keyString: pbacOrgUserWithoutRolePermissionKeyString } =
+        await apiKeysRepositoryFixture.createApiKey(pbacOrgUserWithoutRolePermission.id, null);
+      pbacOrgUserWithoutRolePermissionApiKey = `cal_test_${pbacOrgUserWithoutRolePermissionKeyString}`;
+
+      const { keyString: nonOrgUserKeyString } = await apiKeysRepositoryFixture.createApiKey(
+        nonOrgUser.id,
         null
       );
-      pbacOrgUserWithRolePermissionApiKey = {
-        ...pbacOrgUserWithRolePermissionApiKeyResult.apiKey,
-        hashedKey: pbacOrgUserWithRolePermissionApiKeyResult.keyString,
-      };
-
-      const pbacOrgUserWithoutRolePermissionApiKeyResult = await apiKeysRepositoryFixture.createApiKey(
-        pbacOrgUserWithoutRolePermission.id,
-        null
-      );
-      pbacOrgUserWithoutRolePermissionApiKey = {
-        ...pbacOrgUserWithoutRolePermissionApiKeyResult.apiKey,
-        hashedKey: pbacOrgUserWithoutRolePermissionApiKeyResult.keyString,
-      };
-
-      const nonOrgUserApiKeyResult = await apiKeysRepositoryFixture.createApiKey(nonOrgUser.id, null);
-      nonOrgUserApiKey = { ...nonOrgUserApiKeyResult.apiKey, hashedKey: nonOrgUserApiKeyResult.keyString };
+      nonOrgUserApiKey = `cal_test_${nonOrgUserKeyString}`;
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -222,7 +209,7 @@ describe("Organizations Roles Endpoints", () => {
 
         return request(app.getHttpServer())
           .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
-          .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey.hashedKey}`)
+          .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
           .send(createRoleInput)
           .expect(201)
           .then((response) => {
@@ -242,7 +229,7 @@ describe("Organizations Roles Endpoints", () => {
 
         return request(app.getHttpServer())
           .post(`/v2/organizations/${organization.id}/teams/${team.id}/roles`)
-          .set("Authorization", `Bearer ${legacyOrgAdminApiKey.hashedKey}`)
+          .set("Authorization", `Bearer ${legacyOrgAdminApiKey}`)
           .send(createRoleInput)
           .expect(201)
           .then((response) => {
@@ -272,12 +259,15 @@ describe("Organizations Roles Endpoints", () => {
           team: { connect: { id: pbacEnabledOrganization.id } },
         });
 
-        const noRoleApiKeyResult = await apiKeysRepositoryFixture.createApiKey(userWithNoRole.id, null);
-        const noRoleApiKey = { ...noRoleApiKeyResult.apiKey, hashedKey: noRoleApiKeyResult.keyString };
+        const { keyString: noRoleKeyString } = await apiKeysRepositoryFixture.createApiKey(
+          userWithNoRole.id,
+          null
+        );
+        const noRoleApiKey = `cal_test_${noRoleKeyString}`;
 
         return request(app.getHttpServer())
           .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
-          .set("Authorization", `Bearer ${noRoleApiKey.hashedKey}`)
+          .set("Authorization", `Bearer ${noRoleApiKey}`)
           .send(createRoleInput)
           .expect(403);
       });
@@ -290,7 +280,7 @@ describe("Organizations Roles Endpoints", () => {
 
         return request(app.getHttpServer())
           .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
-          .set("Authorization", `Bearer ${pbacOrgUserWithoutRolePermissionApiKey.hashedKey}`)
+          .set("Authorization", `Bearer ${pbacOrgUserWithoutRolePermissionApiKey}`)
           .send(createRoleInput)
           .expect(403);
       });
@@ -303,7 +293,7 @@ describe("Organizations Roles Endpoints", () => {
 
         return request(app.getHttpServer())
           .post(`/v2/organizations/${organization.id}/teams/${team.id}/roles`)
-          .set("Authorization", `Bearer ${nonOrgUserApiKey.hashedKey}`)
+          .set("Authorization", `Bearer ${nonOrgUserApiKey}`)
           .send(createRoleInput)
           .expect(403);
       });
@@ -316,7 +306,7 @@ describe("Organizations Roles Endpoints", () => {
 
         return request(app.getHttpServer())
           .post(`/v2/organizations/${organization.id}/teams/${team.id}/roles`)
-          .set("Authorization", `Bearer ${legacyOrgMemberApiKey.hashedKey}`)
+          .set("Authorization", `Bearer ${legacyOrgMemberApiKey}`)
           .send(createRoleInput)
           .expect(403);
       });
