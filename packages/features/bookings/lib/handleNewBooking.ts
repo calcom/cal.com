@@ -1418,6 +1418,11 @@ async function handler(
     const randomOrganizerName =
       DECOY_ORGANIZER_NAMES[Math.floor(Math.random() * DECOY_ORGANIZER_NAMES.length)];
 
+    const eventName = getEventName({
+      ...eventNameObject,
+      host: randomOrganizerName,
+    });
+
     return {
       id: 0,
       uid,
