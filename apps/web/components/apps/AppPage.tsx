@@ -163,7 +163,6 @@ export const AppPage = ({
       const credentials = data?.credentials || [];
       setExistingCredentials(credentials);
 
-      // Count installs by target: one personal (userId present) and unique teamIds among admin teams.
       const hasPersonalInstall = credentials.some((c) => !!c.userId && !c.teamId);
       const installedTeamIds = new Set<number>();
       for (const cred of credentials) {
@@ -174,10 +173,8 @@ export const AppPage = ({
 
       const appInstalledForAllTargets =
         availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
-          ? // When team installs are supported, "all targets" means personal + all admin teams
-            totalInstalledTargets >= data.userAdminTeams.length + 1
-          : // Otherwise, any credential means installed
-            credentials.length > 0;
+          ? totalInstalledTargets >= data.userAdminTeams.length + 1
+          : credentials.length > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
     [appDbQuery.data, availableForTeams]
@@ -255,8 +252,7 @@ export const AppPage = ({
               loading: isLoading,
             };
           }
-          // For apps that support team install, don't disable the button just because a credential exists.
-          // We gate visibility with appInstalledForAllTargets above, so leave credentials undefined to keep button enabled.
+
           return (
             <InstallAppButtonChild
               credentials={availableForTeams ? undefined : appDbQuery.data?.credentials}
