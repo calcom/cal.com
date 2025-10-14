@@ -1,6 +1,5 @@
 import { checkBotId } from "botid/server";
 import type { IncomingHttpHeaders } from "http";
-import { z } from "zod";
 
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { HttpError } from "@calcom/lib/http-error";
@@ -34,14 +33,13 @@ export class BotDetectionService {
       return;
     }
 
-    const parseEventTypeId = z.number().safeParse(eventTypeId);
-    if (!parseEventTypeId.success) {
+    if (!Number.isInteger(eventTypeId) || eventTypeId <= 0) {
       throw new HttpError({ statusCode: 400, message: "Invalid eventTypeId" });
     }
 
     // Fetch only the teamId from the event type
     const eventType = await this.eventTypeRepository.getTeamIdByEventTypeId({
-      id: parseEventTypeId.data,
+      id: eventTypeId,
     });
 
     // Only check for team events
