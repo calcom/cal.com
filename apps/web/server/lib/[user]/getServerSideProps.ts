@@ -4,14 +4,14 @@ import { encode } from "querystring";
 import type { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
-import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { prisma } from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";
@@ -33,6 +33,9 @@ type UserPageProps = {
       requestedSlug: string | null;
       slug: string | null;
       id: number | null;
+      brandColor: string | null;
+      darkBrandColor: string | null;
+      theme: string | null;
     } | null;
     allowSEOIndexing: boolean;
     username: string | null;
@@ -135,10 +138,11 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     image: getUserAvatarUrl({
       avatarUrl: user.avatarUrl,
     }),
-    theme: user.theme,
-    brandColor: user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+    theme: user.profile.organization?.theme ?? user.theme,
+    brandColor: user.profile.organization?.brandColor ?? user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
-    darkBrandColor: user.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    darkBrandColor:
+      user.profile.organization?.darkBrandColor ?? user.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: user.profile.organization,

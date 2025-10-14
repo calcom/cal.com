@@ -49,6 +49,13 @@ export const getEventTypesFromDB = async (id: number) => {
       profile: {
         select: {
           organizationId: true,
+          organization: {
+            select: {
+              brandColor: true,
+              darkBrandColor: true,
+              theme: true,
+            },
+          },
         },
       },
       teamId: true,
