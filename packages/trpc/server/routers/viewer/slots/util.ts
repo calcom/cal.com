@@ -31,7 +31,7 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
-import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { getAggregatedAvailability } from "@calcom/lib/getAggregatedAvailability";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";

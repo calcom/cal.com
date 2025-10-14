@@ -5,7 +5,7 @@ import type {
   IOutOfOfficeData,
   IToUser,
 } from "@calcom/features/availability/lib/getUserAvailability";
-import type { DateRange } from "@calcom/lib/date-ranges";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { getTimeZone } from "@calcom/lib/dayjs";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 

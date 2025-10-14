@@ -1,6 +1,6 @@
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import type { DateRange } from "@calcom/lib/date-ranges";
-import { intersect } from "@calcom/lib/date-ranges";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
+import { intersect } from "@calcom/features/schedules/lib/date-ranges";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { filterRedundantDateRanges } from "./getAggregatedAvailability/date-range-utils/filterRedundantDateRanges";
