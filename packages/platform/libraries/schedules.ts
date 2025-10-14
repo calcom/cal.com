@@ -10,4 +10,7 @@ export {
   createHandler as createScheduleHandler,
   type CreateScheduleHandlerReturn,
 } from "@calcom/trpc/server/routers/viewer/availability/schedule/create.handler";
+
 export { ZCreateInputSchema as CreateScheduleSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/create.schema";
+export { ZCreateInputSchema as CreateScheduleSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/create.schema";
+
