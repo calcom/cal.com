@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { TITLE_FIELD, SMS_REMINDER_NUMBER_FIELD } from "@calcom/lib/SystemField";
+import { TITLE_FIELD, SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/ee/workflows/lib/SystemField";
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
