@@ -3,7 +3,7 @@
 import { revalidateTag, unstable_cache } from "next/cache";
 
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 
 const CACHE_TAGS = {
   HAS_TEAM_PLAN: "MembershipRepository.findFirstAcceptedMembershipByUserId",

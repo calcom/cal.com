@@ -1,4 +1,4 @@
-import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
+import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import type { Webhook } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -33,9 +33,9 @@ export type WebhooksByViewer = {
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
-  // Use the new PBAC-aware method for fetching webhooks
-
-  return await WebhookRepository.getFilteredWebhooksForUser({
+  // Use the singleton instance to avoid creating new instances repeatedly
+  const webhookRepository = WebhookRepository.getInstance();
+  return await webhookRepository.getFilteredWebhooksForUser({
     userId: ctx.user.id,
     userRole: ctx.user.role,
   });

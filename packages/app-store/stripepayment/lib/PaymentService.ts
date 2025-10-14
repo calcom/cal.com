@@ -8,7 +8,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 import type { Booking, Payment, PaymentOption, Prisma } from "@calcom/prisma/client";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";

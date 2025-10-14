@@ -1,6 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import type { BookerState } from "@calcom/features/bookings/Booker/types";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
+
+import { getPrefetchMonthCount } from "../../utils/getPrefetchMonthCount";
+import { isPrefetchNextMonthEnabled } from "../../utils/isPrefetchNextMonthEnabled";
 
 interface UsePrefetchParams {
   date: string;
@@ -21,33 +23,21 @@ export const usePrefetch = ({ date, month, bookerLayout, bookerState }: UsePrefe
     .add(bookerLayout.columnViewExtraDays.current, "day")
     .month();
 
-  const isValidDate = dayjs(date).isValid();
-  const twoWeeksAfter = dayjs(month).startOf("month").add(2, "week");
-  const isSameMonth = dayjs().isSame(dayjs(month), "month");
-  const isAfter2Weeks = dayjs().isAfter(twoWeeksAfter);
-
-  const prefetchNextMonth =
-    (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
-      !!bookerLayout.extraDays &&
-      !isNaN(dateMonth) &&
-      !isNaN(monthAfterAddingExtraDays) &&
-      dateMonth !== monthAfterAddingExtraDays) ||
-    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      !isNaN(dateMonth) &&
-      !isNaN(monthAfterAddingExtraDaysColumnView) &&
-      dateMonth !== monthAfterAddingExtraDaysColumnView) ||
-    ((bookerLayout.layout === BookerLayouts.MONTH_VIEW || bookerLayout.layout === "mobile") &&
-      (!isValidDate || isSameMonth) &&
-      isAfter2Weeks);
-
-  const monthCount =
-    ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
-    !isNaN(monthAfterAdding1Month) &&
-    !isNaN(monthAfterAddingExtraDaysColumnView) &&
-    monthAfterAdding1Month !== monthAfterAddingExtraDaysColumnView
-      ? 2
-      : undefined;
+  const prefetchNextMonth = isPrefetchNextMonthEnabled(
+    bookerLayout.layout,
+    date,
+    dateMonth,
+    monthAfterAddingExtraDays,
+    monthAfterAddingExtraDaysColumnView,
+    month,
+    bookerLayout.extraDays
+  );
+  const monthCount = getPrefetchMonthCount(
+    bookerLayout.layout,
+    bookerState,
+    monthAfterAdding1Month,
+    monthAfterAddingExtraDaysColumnView
+  );
 
   return {
     prefetchNextMonth,

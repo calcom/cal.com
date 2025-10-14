@@ -556,7 +556,7 @@ export const systemBeforeFieldEmail: EmailSystemField = {
   type: "email",
   name: "email",
   required: true,
-  editable: "system",
+  editable: "system-but-optional",
   sources: [
     {
       label: "Default",

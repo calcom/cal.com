@@ -8,7 +8,7 @@ import {
 } from "@calcom/ee/workflows/lib/constants";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-const ZWorkflow = z.object({
+export const ZWorkflow = z.object({
   id: z.number(),
   name: z.string(),
   trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -28,6 +28,7 @@ const ZWorkflow = z.object({
       sender: z.string().nullable(),
       includeCalendarEvent: z.boolean(),
       numberVerificationPending: z.boolean(),
+      verifiedAt: z.coerce.date().nullable().optional(),
     })
     .array(),
 });

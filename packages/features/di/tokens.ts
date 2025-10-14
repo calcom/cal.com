@@ -1,4 +1,4 @@
-import { BOOKING_DI_TOKENS } from "./bookings/tokens";
+import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 
 export const DI_TOKENS = {
   PRISMA_CLIENT: Symbol("PrismaClient"),

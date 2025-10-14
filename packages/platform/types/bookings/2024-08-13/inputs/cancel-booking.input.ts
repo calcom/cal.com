@@ -24,4 +24,9 @@ export class CancelSeatedBookingInput_2024_08_13 {
   })
   @IsString()
   seatUid!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({ example: "User requested cancellation" })
+  cancellationReason?: string;
 }

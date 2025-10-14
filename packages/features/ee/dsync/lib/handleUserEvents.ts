@@ -4,7 +4,7 @@ import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { assignValueToUserInOrgBulk } from "@calcom/lib/service/attribute/server/assignValueToUser";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";

@@ -11,12 +11,12 @@ import {
 import { Header } from "@calcom/features/bookings/Booker/components/Header";
 import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
+import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { formatUsername } from "../../booker/BookerPlatformWrapper";
 import type {
@@ -40,7 +40,6 @@ const CalendarViewPlatformWrapperComponent = (
     teamMemberEmail,
     crmAppSlug,
     crmOwnerRecordType,
-    view = "MONTH_VIEW",
   } = props;
 
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
@@ -73,22 +72,15 @@ const CalendarViewPlatformWrapperComponent = (
   );
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
-  const monthCount =
-    ((bookerLayout.layout !== BookerLayouts.WEEK_VIEW && bookerState === "selecting_time") ||
-      bookerLayout.layout === BookerLayouts.COLUMN_VIEW) &&
-    dayjs(date).add(1, "month").month() !==
-      dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month()
-      ? 2
-      : undefined;
   const month = useBookerStoreContext((state) => state.month);
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
 
-  const prefetchNextMonth =
-    (bookerLayout.layout === BookerLayouts.WEEK_VIEW &&
-      !!bookerLayout.extraDays &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.extraDays, "day").month()) ||
-    (bookerLayout.layout === BookerLayouts.COLUMN_VIEW &&
-      dayjs(date).month() !== dayjs(date).add(bookerLayout.columnViewExtraDays.current, "day").month());
+  const { prefetchNextMonth, monthCount } = usePrefetch({
+    date,
+    month,
+    bookerLayout,
+    bookerState,
+  });
 
   const [startTime, endTime] = useTimesForSchedule({
     month,
@@ -136,7 +128,6 @@ const CalendarViewPlatformWrapperComponent = (
   }, [props.routingFormSearchParams]);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
   const setBookingData = useBookerStoreContext((state) => state.setBookingData);
-  const layout = BookerLayouts[view];
 
   useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
@@ -154,7 +145,7 @@ const CalendarViewPlatformWrapperComponent = (
     eventId: event?.data?.id,
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
-    layout: layout,
+    layout: "week_view",
     org: props.entity?.orgSlug,
     username,
     bookingData,

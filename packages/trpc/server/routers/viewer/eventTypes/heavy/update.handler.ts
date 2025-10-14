@@ -14,7 +14,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";

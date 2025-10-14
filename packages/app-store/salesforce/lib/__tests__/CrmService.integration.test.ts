@@ -46,7 +46,7 @@ vi.mock("@jsforce/jsforce-node", () => {
   };
 });
 
-vi.mock("@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+vi.mock("@calcom/features/watchlist/lib/checkIfFreeEmailDomain", () => ({
   checkIfFreeEmailDomain: vi.fn().mockResolvedValue(false),
 }));
 
