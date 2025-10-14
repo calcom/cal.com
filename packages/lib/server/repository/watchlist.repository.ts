@@ -24,27 +24,31 @@ export class WatchlistRepository implements IWatchlistRepository {
       throw new Error("Watchlist entry already exists for this organization");
     }
 
-    const watchlist = await this.prismaClient.watchlist.create({
-      data: {
-        type: params.type,
-        value: params.value,
-        organizationId: params.organizationId,
-        action: params.action,
-        description: params.description,
-        source: WatchlistSource.MANUAL,
-        isGlobal: false,
-      },
-    });
+    const watchlist = await this.prismaClient.$transaction(async (tx) => {
+      const created = await tx.watchlist.create({
+        data: {
+          type: params.type,
+          value: params.value,
+          organizationId: params.organizationId,
+          action: params.action,
+          description: params.description,
+          source: WatchlistSource.MANUAL,
+          isGlobal: false,
+        },
+      });
 
-    await this.prismaClient.watchlistAudit.create({
-      data: {
-        watchlistId: watchlist.id,
-        type: params.type,
-        value: params.value,
-        description: params.description,
-        action: params.action,
-        changedByUserId: params.userId,
-      },
+      await tx.watchlistAudit.create({
+        data: {
+          watchlistId: created.id,
+          type: params.type,
+          value: params.value,
+          description: params.description,
+          action: params.action,
+          changedByUserId: params.userId,
+        },
+      });
+
+      return created;
     });
 
     return watchlist;
@@ -89,11 +93,20 @@ export class WatchlistRepository implements IWatchlistRepository {
         orderBy: {
           lastUpdatedAt: "desc",
         },
-        include: {
+        select: {
+          id: true,
+          type: true,
+          value: true,
+          action: true,
+          description: true,
+          organizationId: true,
+          isGlobal: true,
+          source: true,
+          lastUpdatedAt: true,
           audits: {
             take: 1,
             orderBy: {
-              changedAt: "asc",
+              changedAt: "desc",
             },
             select: {
               changedByUserId: true,
@@ -116,7 +129,16 @@ export class WatchlistRepository implements IWatchlistRepository {
   }> {
     const entry = await this.prismaClient.watchlist.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        value: true,
+        action: true,
+        description: true,
+        organizationId: true,
+        isGlobal: true,
+        source: true,
+        lastUpdatedAt: true,
         audits: {
           select: {
             id: true,
@@ -162,19 +184,21 @@ export class WatchlistRepository implements IWatchlistRepository {
       throw new Error("Watchlist entry not found");
     }
 
-    await this.prismaClient.watchlistAudit.create({
-      data: {
-        watchlistId: id,
-        type: existing.type,
-        value: existing.value,
-        description: existing.description,
-        action: existing.action,
-        changedByUserId: userId,
-      },
-    });
+    await this.prismaClient.$transaction(async (tx) => {
+      await tx.watchlistAudit.create({
+        data: {
+          watchlistId: id,
+          type: existing.type,
+          value: existing.value,
+          description: existing.description,
+          action: existing.action,
+          changedByUserId: userId,
+        },
+      });
 
-    await this.prismaClient.watchlist.delete({
-      where: { id },
+      await tx.watchlist.delete({
+        where: { id },
+      });
     });
   }
 }
