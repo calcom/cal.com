@@ -221,6 +221,17 @@ const ProfileView = ({ user }: Props) => {
     } else {
       deleteMeWithoutPasswordMutation.mutate();
     }
+
+    window.dataLayer = window.dataLayer || [];
+
+    const gtmEvent = {
+      event: "user_deletion_success",
+      booker_email_address: user.email,
+      booker_team_id: user.username,
+    };
+
+    console.log("Sent gtm event: ", gtmEvent);
+    window.dataLayer.push(gtmEvent);
   };
 
   const onConfirm = ({ totpCode }: DeleteAccountValues, e: BaseSyntheticEvent | undefined) => {
