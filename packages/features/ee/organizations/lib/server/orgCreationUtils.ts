@@ -21,7 +21,7 @@ const log = logger.getSubLogger({ prefix: ["orgCreationUtils"] });
 /**
  * We can only say for sure that the email is not a company email. We can't say for sure if it is a company email.
  */
-function isNotACompanyEmail(email: string) {
+export function isNotACompanyEmail(email: string) {
   // A list of popular @domains that can't be used to allow automatic acceptance of memberships to organization
   const emailProviders = [
     "gmail.com",
