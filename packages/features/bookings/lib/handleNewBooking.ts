@@ -70,7 +70,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
+import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
