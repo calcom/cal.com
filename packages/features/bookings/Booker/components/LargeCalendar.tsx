@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
@@ -11,6 +11,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
+import { hasBusyDetails, mapBusyDetailsToCalendarEvents } from "./mapBusyDetailsToCalendarEvents";
 
 export const LargeCalendar = ({
   extraDays,
@@ -36,49 +37,22 @@ export const LargeCalendar = ({
 
   const availableSlots = useAvailableTimeSlots({ schedule, eventDuration });
 
-  const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
-  const endDate = dayjs(startDate)
-    .add(extraDays - 1, "day")
-    .toDate();
+  const { startDate, endDate } = useMemo(() => {
+    const start = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
+    const end = dayjs(start)
+      .add(extraDays - 1, "day")
+      .toDate();
+    return { startDate: start, endDate: end };
+  }, [selectedDate, extraDays]);
 
-  // HACK: force rerender when overlay events change
-  // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
-   
-  useEffect(() => {}, [displayOverlay]);
+  // NOTE: Force remount of Calendar when overlay toggle changes to refresh internal layout state.
+  const calendarRemountKey = displayOverlay ? "overlay-on" : "overlay-off";
 
   const overlayEventsForDate = useMemo(() => {
     // Use busyDetails from schedule if available (contains event titles)
-    type BusyDetail = { start: string | Date; end: string | Date; title?: string };
-    const busyDetails = (schedule as { busyDetails?: BusyDetail[] } | undefined)?.busyDetails;
+    const busyDetails = hasBusyDetails(schedule) ? schedule.busyDetails : undefined;
     if (busyDetails && displayOverlay) {
-      return busyDetails.map((event: BusyDetail, id: number) => {
-        const start = dayjs(event.start);
-        const end = dayjs(event.end);
-        const isAllDayLike =
-          !start.isValid() || !end.isValid()
-            ? false
-            : start.startOf("day").isSame(start) &&
-              end.startOf("day").isSame(end) &&
-              end.diff(start, "hour") >= 24;
-
-        // Weekly view doesn't render options.allDay yet. Instead, render a compact banner at the top.
-        const bannerStart = start.startOf("day");
-        const bannerEnd = bannerStart.add(30, "minutes");
-
-        return {
-          id,
-          start: (isAllDayLike ? bannerStart : start).toDate(),
-          end: (isAllDayLike ? bannerEnd : end).toDate(),
-          title: event.title || "Busy",
-          options: {
-            status: "ACCEPTED",
-            hideTime: isAllDayLike,
-            className: isAllDayLike
-              ? "h-6 mt-1 rounded border border-border bg-muted text-foreground"
-              : undefined,
-          },
-        } as CalendarEvent;
-      });
+      return mapBusyDetailsToCalendarEvents(busyDetails);
     }
     // Fallback to overlayEvents (from old calendarOverlay API)
     if (!overlayEvents || !displayOverlay) return [];
@@ -98,6 +72,7 @@ export const LargeCalendar = ({
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
       <Calendar
+        key={calendarRemountKey}
         isPending={isLoading}
         availableTimeslots={availableSlots}
         startHour={0}
