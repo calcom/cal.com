@@ -1,4 +1,4 @@
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import logger from "../logger";

@@ -2,7 +2,7 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getAllDelegationCredentialsForUser } from "@calcom/app-store/delegationCredential";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
-import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
+import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";

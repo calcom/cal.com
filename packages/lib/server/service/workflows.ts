@@ -1,15 +1,18 @@
+import dayjs from "@calcom/dayjs";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
+import { tasker } from "@calcom/features/tasker";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
 import { WorkflowTriggerEvents, WorkflowType } from "@calcom/prisma/enums";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
-import { getHideBranding } from "../../hideBranding";
 import { TeamRepository } from "../repository/team";
-import { WorkflowRepository } from "../repository/workflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
@@ -83,7 +86,9 @@ export class WorkflowService {
     workflows,
     responses,
     form,
+    responseId,
   }: {
+    responseId: number;
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
     form: {
@@ -131,6 +136,44 @@ export class WorkflowService {
       hideBranding,
       workflows: workflowsToTrigger,
     });
+
+    const workflowsToSchedule: Workflow[] = [];
+
+    workflowsToSchedule.push(
+      ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT)
+    );
+
+    const promisesFormSubmittedNoEvent = workflowsToSchedule.map((workflow) => {
+      const timeUnit: timeUnitLowerCase = (workflow.timeUnit?.toLowerCase() as timeUnitLowerCase) ?? "minute";
+
+      const scheduledAt = dayjs()
+        .add(workflow.time ?? 15, timeUnit)
+        .toDate();
+
+      return tasker.create(
+        "triggerFormSubmittedNoEventWorkflow",
+        {
+          responseId,
+          responses,
+          smsReminderNumber,
+          hideBranding,
+          form: {
+            id: form.id,
+            userId: form.userId,
+            teamId: form.teamId ?? undefined,
+            user: {
+              email: form.user.email,
+              timeFormat: form.user.timeFormat,
+              locale: form.user.locale ?? "en",
+            },
+          },
+          workflow,
+          submittedAt: new Date(),
+        },
+        { scheduledAt }
+      );
+    });
+    await Promise.all(promisesFormSubmittedNoEvent);
   }
 
   static async scheduleWorkflowsForNewBooking({

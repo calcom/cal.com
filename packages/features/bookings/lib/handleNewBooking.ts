@@ -34,6 +34,7 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -55,21 +56,21 @@ import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
-import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
+import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import type { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { BookingRepository } from "../repositories/BookingRepository";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
-import type { UserRepository } from "@calcom/lib/server/repository/user";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -154,7 +155,9 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   return originalRescheduledBooking.iCalSequence + 1;
 }
 
-type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
+type CreatedBooking = Booking & {
+  isShortCircuitedBooking?: boolean;
+} & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
 export const buildDryRunBooking = ({
   eventTypeId,
@@ -504,6 +507,12 @@ async function handler(
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
   await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+
+  const spamCheckService = getSpamCheckService();
+  // Either it is a team event or a managed child event of a managed event
+  const team = eventType.team ?? eventType.parent?.team ?? null;
+  const eventOrganizationId = team?.parentId ?? null;
+  spamCheckService.startCheck({ email: bookerEmail, organizationId: eventOrganizationId });
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({
@@ -1403,6 +1412,88 @@ async function handler(
     },
     organizerUser.id
   );
+
+  const spamCheckResult = await spamCheckService.waitForCheck();
+
+  if (spamCheckResult.isBlocked) {
+    const DECOY_ORGANIZER_NAMES = ["Alex Smith", "Jordan Taylor", "Sam Johnson", "Chris Morgan"];
+    const randomOrganizerName =
+      DECOY_ORGANIZER_NAMES[Math.floor(Math.random() * DECOY_ORGANIZER_NAMES.length)];
+
+    const eventName = getEventName({
+      ...eventNameObject,
+      host: randomOrganizerName,
+    });
+
+    return {
+      id: 0,
+      uid,
+      iCalUID: "",
+      status: BookingStatus.ACCEPTED,
+      eventTypeId: eventType.id,
+      user: {
+        name: randomOrganizerName,
+        timeZone: "UTC",
+        email: null,
+      },
+      userId: null,
+      title: eventName,
+      startTime: new Date(reqBody.start),
+      endTime: new Date(reqBody.end),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      attendees: [
+        {
+          id: 0,
+          email: bookerEmail,
+          name: fullName,
+          timeZone: reqBody.timeZone,
+          locale: null,
+          phoneNumber: null,
+          bookingId: null,
+          noShow: null,
+        },
+      ],
+      oneTimePassword: null,
+      smsReminderNumber: null,
+      metadata: {},
+      idempotencyKey: null,
+      userPrimaryEmail: null,
+      description: eventType.description || null,
+      customInputs: null,
+      responses: null,
+      location: bookingLocation,
+      paid: false,
+      cancellationReason: null,
+      rejectionReason: null,
+      dynamicEventSlugRef: null,
+      dynamicGroupSlugRef: null,
+      fromReschedule: null,
+      recurringEventId: null,
+      scheduledJobs: [],
+      rescheduledBy: null,
+      destinationCalendarId: null,
+      reassignReason: null,
+      reassignById: null,
+      rescheduled: false,
+      isRecorded: false,
+      iCalSequence: 0,
+      rating: null,
+      ratingFeedback: null,
+      noShowHost: null,
+      cancelledBy: null,
+      creationSource: CreationSource.WEBAPP,
+      references: [],
+      payment: [],
+      isDryRun: false,
+      paymentRequired: false,
+      paymentUid: undefined,
+      luckyUsers: [],
+      paymentId: undefined,
+      seatReferenceUid: undefined,
+      isShortCircuitedBooking: true, // Renamed from isSpamDecoy to avoid exposing spam detection to blocked users
+    }
+  }
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
