@@ -2350,7 +2350,6 @@ model WatchlistEventAudit {
   eventTypeId Int
   actionTaken WatchlistAction
   timestamp   DateTime        @default(now())
-
 }
 
 enum BookingReportReason {
