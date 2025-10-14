@@ -178,6 +178,13 @@ export class WatchlistRepository implements IWatchlistRepository {
   async deleteEntry(id: string, userId: number): Promise<void> {
     const existing = await this.prismaClient.watchlist.findUnique({
       where: { id },
+      select: {
+        id: true,
+        type: true,
+        value: true,
+        description: true,
+        action: true,
+      },
     });
 
     if (!existing) {
