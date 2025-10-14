@@ -265,7 +265,9 @@ export const ComponentForField = ({
           minLength={field.minLength}
           maxLength={field.maxLength}
           name={field.name}
-          label={field.label}
+          noLabel={true}
+          label=""
+          // label={field.label}
           readOnly={readOnly}
           value={value as string}
           setValue={setValue as (arg: typeof value) => void}

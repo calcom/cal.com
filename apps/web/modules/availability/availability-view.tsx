@@ -137,9 +137,9 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
         </div>
       ) : (
         <>
-          <div className="mb-4 flex justify-end">
-            <NewScheduleButton />
-          </div>
+          {/* <div className="mb-4 flex justify-end">
+             <NewScheduleButton /> 
+          </div> */}
           <div className="space-y-2" data-testid="schedules" ref={animationParentRef}>
             {availabilities.schedules.map((schedule) => (
               <div key={schedule.id} className="border-default bg-default rounded-md border">
