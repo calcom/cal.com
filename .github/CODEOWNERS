@@ -10,7 +10,6 @@
 /apps/web/lib/handleOrgRedirect.ts @calcom/Foundation
 /apps/web/middleware.ts @calcom/Foundation
 /deploy/**/* @calcom/Foundation
-/infra/**/* @calcom/Foundation
 /packages/app-store/applecalendar/**/* @calcom/Foundation
 /packages/app-store/caldavcalendar/**/* @calcom/Foundation
 /packages/app-store/exchange2013calendar/**/* @calcom/Foundation
