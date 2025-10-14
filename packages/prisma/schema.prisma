@@ -834,6 +834,7 @@ model Booking {
   rating                       Int?
   ratingFeedback               String?
   noShowHost                   Boolean?                          @default(false)
+  deleted                      Boolean?
   scheduledTriggers            WebhookScheduledTriggers[]
   oneTimePassword              String?                           @unique @default(uuid())
   /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)

@@ -78,6 +78,18 @@ export function getCancelEventAction(context: BookingActionContext): ActionType 
   };
 }
 
+export function getDeleteEventAction(context: BookingActionContext): ActionType {
+  const { t } = context;
+
+  return {
+    id: "delete",
+    label: t("delete"),
+    icon: "trash",
+    color: "destructive",
+    disabled: isActionDisabled("delete", context),
+  };
+}
+
 export function getVideoOptionsActions(context: BookingActionContext): ActionType[] {
   const { booking, isBookingInPast, isConfirmed, isCalVideoLocation, t } = context;
 
@@ -221,6 +233,8 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
       return !(isBookingInPast && booking.status === BookingStatus.ACCEPTED && context.isCalVideoLocation);
     case "charge_card":
       return context.cardCharged;
+    case "delete":
+      return !isBookingInPast;
     default:
       return false;
   }
