@@ -45,7 +45,8 @@ export class PbacGuard implements CanActivate {
       return true;
     }
 
-    if (!this.hasPbacEnabled(Number(teamId))) {
+    const hasPbacEnabled = await this.hasPbacEnabled(Number(teamId));
+    if (!hasPbacEnabled) {
       request.pbacAuthorizedRequest = false;
       return true;
     }

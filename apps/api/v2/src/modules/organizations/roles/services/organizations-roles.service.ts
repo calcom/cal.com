@@ -28,6 +28,7 @@ export class OrganizationsRolesService {
       const role = await this.roleService.createRole(createRoleData);
       return this.organizationsRolesOutputService.getRoleOutput(role);
     } catch (error) {
+      console.log(error);
       if (error instanceof Error && error.message.includes("already exists")) {
         throw new BadRequestException(error.message);
       }

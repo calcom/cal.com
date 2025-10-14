@@ -13,12 +13,7 @@ export class OrganizationsRolesOutputService {
       description: role.description || null,
       teamId: role.teamId || null,
       type: role.type,
-      permissions: role.permissions.map((permission) => ({
-        id: permission.id,
-        resource: permission.resource,
-        action: permission.action,
-        createdAt: permission.createdAt.toISOString(),
-      })),
+      permissions: role.permissions.map((permission) => `${permission.resource}.${permission.action}`),
       createdAt: role.createdAt.toISOString(),
       updatedAt: role.updatedAt.toISOString(),
     };

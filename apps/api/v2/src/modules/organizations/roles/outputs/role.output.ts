@@ -1,14 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
-import {
-  IsString,
-  IsOptional,
-  IsArray,
-  ValidateNested,
-  IsEnum,
-  IsDateString,
-  IsNumber,
-} from "class-validator";
+import { Expose } from "class-transformer";
+import { IsString, IsOptional, IsArray, IsEnum, IsDateString, IsNumber } from "class-validator";
 
 enum RoleTypeEnum {
   SYSTEM = "SYSTEM",
@@ -16,28 +8,6 @@ enum RoleTypeEnum {
 }
 
 type RoleType = keyof typeof RoleTypeEnum;
-
-export class RolePermissionOutput {
-  @ApiProperty({ description: "Unique identifier for the permission" })
-  @IsString()
-  @Expose()
-  id!: string;
-
-  @ApiProperty({ description: "The resource this permission applies to" })
-  @IsString()
-  @Expose()
-  resource!: string;
-
-  @ApiProperty({ description: "The action this permission allows" })
-  @IsString()
-  @Expose()
-  action!: string;
-
-  @ApiProperty({ description: "When the permission was created" })
-  @IsDateString()
-  @Expose()
-  createdAt!: string;
-}
 
 export class RoleOutput {
   @ApiProperty({ description: "Unique identifier for the role" })
@@ -77,14 +47,14 @@ export class RoleOutput {
   type!: RoleType;
 
   @ApiProperty({
-    description: "Permissions assigned to this role",
-    type: [RolePermissionOutput],
+    description: "Permissions assigned to this role in 'resource.action' format.",
+    type: [String],
+    example: ["booking.read", "eventType.create"],
   })
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => RolePermissionOutput)
+  @IsString({ each: true })
   @Expose()
-  permissions!: RolePermissionOutput[];
+  permissions!: string[];
 
   @ApiProperty({ description: "When the role was created" })
   @IsDateString()

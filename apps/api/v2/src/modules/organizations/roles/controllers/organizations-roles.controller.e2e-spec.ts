@@ -122,6 +122,10 @@ describe("Organizations Roles Endpoints", () => {
       });
 
       // Enable PBAC for the PBAC-enabled team
+      await featuresRepositoryFixture.create({
+        slug: "pbac",
+        enabled: true,
+      });
       await featuresRepositoryFixture.enableFeatureForTeam(pbacEnabledTeam.id, "pbac");
 
       // Create memberships
@@ -204,7 +208,7 @@ describe("Organizations Roles Endpoints", () => {
       it("should allow role creation when organization has PBAC enabled and user has a create permission", async () => {
         const createRoleInput: CreateRoleInput = {
           name: "Test Role PBAC",
-          permissions: ["booking.read", "booking.create"],
+          permissions: ["booking.read", "eventType.create"],
         };
 
         return request(app.getHttpServer())
