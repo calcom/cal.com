@@ -17,10 +17,10 @@ export class SpamCheckService {
   constructor(
     private readonly globalBlockingService: GlobalBlockingService,
     private readonly organizationBlockingService: OrganizationBlockingService
-  ) {}
+  ) { }
 
-  startCheck(email: string, organizationId?: number): void {
-    this.spamCheckPromise = this.isBlocked(email, organizationId).catch((error) => {
+  startCheck({ email, organizationId }: { email: string, organizationId: number | null }): void {
+    this.spamCheckPromise = this.isBlocked(email, organizationId ?? undefined).catch((error) => {
       logger.error("Error starting spam check", safeStringify(error));
       return { isBlocked: false };
     });
@@ -37,19 +37,25 @@ export class SpamCheckService {
 
   /**
    * Checks if an email is blocked by global or organization-specific watchlist rules
+   * Runs both checks in parallel for better performance
    */
   private async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
-    const globalResult = await this.globalBlockingService.isBlocked(email);
+    const checks = [this.globalBlockingService.isBlocked(email)];
 
+    if (organizationId) {
+      checks.push(this.organizationBlockingService.isBlocked(email, organizationId));
+    }
+
+    const [globalResult, orgResult] = await Promise.all(checks);
+
+    // Global blocking takes precedence
     if (globalResult.isBlocked) {
       return globalResult;
     }
 
-    if (organizationId) {
-      const orgResult = await this.organizationBlockingService.isBlocked(email, organizationId);
-      if (orgResult.isBlocked) {
-        return orgResult;
-      }
+    // Check organization blocking if it was performed
+    if (orgResult?.isBlocked) {
+      return orgResult;
     }
 
     return { isBlocked: false };

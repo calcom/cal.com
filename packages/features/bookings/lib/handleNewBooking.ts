@@ -510,7 +510,7 @@ async function handler(
   // Either it is a team event or a managed child event of a managed event
   const team = eventType.team ?? eventType.parent?.team ?? null;
   const eventOrganizationId = team?.parentId ?? null;
-  spamCheckService.startCheck(bookerEmail, eventOrganizationId ?? undefined);
+  spamCheckService.startCheck({ email: bookerEmail, organizationId: eventOrganizationId });
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({
