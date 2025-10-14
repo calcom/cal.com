@@ -129,6 +129,7 @@ export const getEventTypesFromDB = async (id: number) => {
   return {
     isDynamic: false,
     ...restEventType,
+    profile,
     bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
     metadata,
   };

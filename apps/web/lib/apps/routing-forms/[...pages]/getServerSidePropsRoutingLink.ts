@@ -39,19 +39,6 @@ export const getServerSideProps = async function getServerSideProps(
               slug: true,
             },
           },
-          profile: {
-            select: {
-              organizationId: true,
-              organization: {
-                select: {
-                  slug: true,
-                  brandColor: true,
-                  darkBrandColor: true,
-                  theme: true,
-                },
-              },
-            },
-          },
           username: true,
           theme: true,
           brandColor: true,
@@ -96,10 +83,12 @@ export const getServerSideProps = async function getServerSideProps(
     props: {
       isEmbed,
       profile: {
-        theme: formWithUserProfile.user.profile?.organization?.theme ?? form.user.theme,
-        brandColor: formWithUserProfile.user.profile?.organization?.brandColor ?? form.user.brandColor,
+        theme: formWithUserProfile.user.profile?.organization?.theme ?? formWithUserProfile.user.theme,
+        brandColor:
+          formWithUserProfile.user.profile?.organization?.brandColor ?? formWithUserProfile.user.brandColor,
         darkBrandColor:
-          formWithUserProfile.user.profile?.organization?.darkBrandColor ?? form.user.darkBrandColor,
+          formWithUserProfile.user.profile?.organization?.darkBrandColor ??
+          formWithUserProfile.user.darkBrandColor,
       },
       form: await getSerializableForm({ form: enrichFormWithMigrationData(formWithUserProfile) }),
     },

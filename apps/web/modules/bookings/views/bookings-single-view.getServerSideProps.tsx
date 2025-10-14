@@ -131,6 +131,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    profile: eventTypeRaw.profile,
     periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
     metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventTypeRaw.metadata),
