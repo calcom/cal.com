@@ -770,6 +770,19 @@ export class UserRepository {
     });
     return !!isAdminOrOwnerOfTeam;
   }
+
+  async getUserOrganizationAndTeams({ userId }: { userId: number }) {
+    return await this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        organizationId: true,
+        teams: {
+          where: { accepted: true },
+          select: { teamId: true },
+        },
+      },
+    });
+  }
   async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await this.prismaClient.user.findUnique({
       where: {

@@ -165,6 +165,18 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   return actions.filter(Boolean) as ActionType[];
 }
 
+export function getReportAction(context: BookingActionContext): ActionType {
+  const { booking, t } = context;
+
+  return {
+    id: "report",
+    label: t("report_booking"),
+    icon: "flag",
+    color: "destructive",
+    disabled: !!booking.report,
+  };
+}
+
 export function getAfterEventActions(context: BookingActionContext): ActionType[] {
   const { booking, cardCharged, attendeeList, t } = context;
 
@@ -205,9 +217,14 @@ export function shouldShowRecurringCancelAction(context: BookingActionContext): 
   return isTabRecurring && isRecurring;
 }
 
+export function shouldShowIndividualReportButton(context: BookingActionContext): boolean {
+  const { booking, isPending, isUpcoming, isCancelled, isRejected } = context;
+  const hasDropdown = shouldShowEditActions(context);
+  return !booking.report && !hasDropdown && (isCancelled || isRejected || (isPending && isUpcoming));
+}
+
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isPending, isConfirmed } =
-    context;
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling } = context;
 
   switch (actionId) {
     case "reschedule":
@@ -227,7 +244,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
 }
 
 export function getActionLabel(actionId: string, context: BookingActionContext): string {
-  const { booking, isTabRecurring, isRecurring, attendeeList, cardCharged, t } = context;
+  const { isTabRecurring, isRecurring, attendeeList, cardCharged, t } = context;
 
   switch (actionId) {
     case "reject":
