@@ -81,7 +81,17 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
     : [];
 
-  const guestEmails = guests.map((email) => extractBaseEmail(email).toLowerCase());
+  const seenBaseEmails = new Set<string>();
+  const deduplicatedGuests = guests.filter((guest) => {
+    const baseEmail = extractBaseEmail(guest).toLowerCase();
+    if (seenBaseEmails.has(baseEmail)) {
+      return false;
+    }
+    seenBaseEmails.add(baseEmail);
+    return true;
+  });
+
+  const guestEmails = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
   const userRepo = new UserRepository(prisma);
   const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
 
@@ -91,10 +101,12 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     emailToRequiresVerification.set(baseEmail, user.requiresBookerEmailVerification ?? false);
   }
 
-  const uniqueGuests = guests.filter((guest) => {
+  const uniqueGuests = deduplicatedGuests.filter((guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
     return (
-      !booking.attendees.some((attendee) => guest === attendee.email) &&
+      !booking.attendees.some(
+        (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
+      ) &&
       !blacklistedGuestEmails.includes(baseGuestEmail) &&
       !emailToRequiresVerification.get(baseGuestEmail)
     );
@@ -197,9 +209,9 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   await eventManager.updateCalendarAttendees(evt, booking);
 
   try {
-    await sendAddGuestsEmails(evt, guests);
-  } catch {
-    console.log("Error sending AddGuestsEmails");
+    await sendAddGuestsEmails(evt, uniqueGuests);
+  } catch (err) {
+    console.error("Error sending AddGuestsEmails", err);
   }
 
   return { message: "Guests added" };
