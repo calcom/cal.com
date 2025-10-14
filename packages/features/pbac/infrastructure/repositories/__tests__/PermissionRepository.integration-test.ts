@@ -63,9 +63,6 @@ describe("PermissionRepository - Integration Tests", () => {
     });
   });
 
-  afterAll(async () => {
-    await prisma.$disconnect();
-  });
 
   describe("checkRolePermissions", () => {
     it("should successfully check single permission without serialization error", async () => {
