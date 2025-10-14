@@ -24,33 +24,20 @@ export class FeaturesRepositoryFixture {
     });
   }
 
-  async enableFeatureForTeam(teamId: number, featureSlug: string, assignedBy = "test") {
-    // First ensure the feature exists
-    await this.prismaWriteClient.feature.upsert({
-      where: { slug: featureSlug },
-      update: {},
-      create: {
-        slug: featureSlug,
-        enabled: true,
-        description: `Test feature: ${featureSlug}`,
-        type: "RELEASE",
-      },
-    });
-
-    // Then assign it to the team
-    return await this.prismaWriteClient.teamFeatures.upsert({
+  async enableFeatureForTeam(teamId: number, featureId: string, assignedBy = "test") {
+    await this.prismaWriteClient.teamFeatures.upsert({
       where: {
         teamId_featureId: {
           teamId,
-          featureId: featureSlug,
+          featureId,
         },
       },
-      update: {},
       create: {
         teamId,
-        featureId: featureSlug,
+        featureId,
         assignedBy,
       },
+      update: {},
     });
   }
 
