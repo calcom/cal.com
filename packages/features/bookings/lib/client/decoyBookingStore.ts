@@ -52,9 +52,9 @@ export function getDecoyBooking(uid: string): DecoyBookingData | null {
   try {
     const data: DecoyBookingData = JSON.parse(dataStr);
 
-    // Check if the data is too old (24 hours)
+    // Check if the data is too old (5 min)
     const dataAge = Date.now() - data.timestamp;
-    const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const maxAge = 5 * 60 * 1000; // 5 minutes in milliseconds
 
     if (dataAge > maxAge) {
       // Remove the data from localStorage if expired
