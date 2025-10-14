@@ -1,6 +1,6 @@
 import type { TFunction } from "i18next";
 
-import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
+import getLabelValueMapFromResponses from "@calcom/features/bookings/lib/getLabelValueMapFromResponses";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
