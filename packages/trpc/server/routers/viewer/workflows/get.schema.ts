@@ -1,2 +1,2 @@
-export { ZGetInputSchema } from "@calcom/lib/server/repository/workflow";
-export type { TGetInputSchema } from "@calcom/lib/server/repository/workflow";
+export { ZGetInputSchema } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+export type { TGetInputSchema } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";

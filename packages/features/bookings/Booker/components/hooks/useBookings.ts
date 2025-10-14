@@ -15,7 +15,7 @@ import { createBooking, createRecurringBooking, createInstantBooking } from "@ca
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
