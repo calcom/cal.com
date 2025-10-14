@@ -8,13 +8,12 @@ import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
+// import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
-import CustomerEngagementProviders from "@lib/customerEngagementProvider";
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
@@ -121,9 +120,7 @@ const AppProviders = (props: PageWrapperProps) => {
             isThemeSupported={isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>
-                <CustomerEngagementProviders>{props.children}</CustomerEngagementProviders>
-              </OrgBrandProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>
@@ -138,7 +135,9 @@ const AppProviders = (props: PageWrapperProps) => {
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
+        {/* <DynamicPostHogProvider> */}
+        {RemainingProviders}
+        {/* /DynamicPostHogProvider> */}
       </DynamicHelpscoutProvider>
     </>
   );
