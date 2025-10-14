@@ -11,8 +11,10 @@ import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
-import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
+import { storeDecoyBooking } from "@calcom/features/bookings/lib/client/decoyBookingStore";
+import { createBooking } from "@calcom/features/bookings/lib/create-booking";
+import { createInstantBooking } from "@calcom/features/bookings/lib/create-instant-booking";
+import { createRecurringBooking } from "@calcom/features/bookings/lib/create-recurring-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
@@ -24,6 +26,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useBookingSuccessRedirect } from "../../../lib/bookingSuccessRedirect";
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
@@ -242,7 +245,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
-      } catch (err) {
+      } catch {
         showToast(t("something_went_wrong_on_our_end"), "error");
       }
     },
@@ -253,12 +256,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
-        const validDuration = event.data?.isDynamic
-          ? duration || event.data?.length
-          : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-          ? duration
-          : event.data?.length;
-
         if (isRescheduling) {
           sdkActionManager?.fire(
             "dryRunRescheduleBookingSuccessfulV2",
@@ -280,6 +277,28 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
         router.push("/booking/dry-run-successful");
         return;
       }
+
+      if ("isShortCircuitedBooking" in booking && booking.isShortCircuitedBooking) {
+        if (!booking.uid) {
+          console.error("Decoy booking missing uid");
+          return;
+        }
+
+        const bookingData = {
+          uid: booking.uid,
+          title: booking.title ?? null,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          booker: booking.attendees?.[0] ?? null,
+          host: booking.user ?? null,
+          location: booking.location ?? null,
+        };
+
+        storeDecoyBooking(bookingData);
+        router.push(`/booking-successful/${booking.uid}`);
+        return;
+      }
+
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
@@ -374,9 +393,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
             : event?.data?.forwardParamsSuccessRedirect,
       });
     },
-    onError: (err, _, ctx) => {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
-      bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+    onError: (err) => {
+      if (bookerFormErrorRef?.current) {
+        bookerFormErrorRef.current.scrollIntoView({ behavior: "smooth" });
+      }
 
       const error = err as Error & {
         data: { rescheduleUid: string; startTime: string; attendees: string[] };
@@ -408,10 +428,11 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
       updateQueryParam("bookingId", responseData.bookingId);
       setExpiryTime(responseData.expires);
     },
-    onError: (err, _, ctx) => {
+    onError: (err) => {
       console.error("Error creating instant booking", err);
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
-      bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (bookerFormErrorRef?.current) {
+        bookerFormErrorRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     },
   });
 

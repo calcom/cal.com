@@ -274,13 +274,25 @@ export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bo
   if (emailField?.hidden && attendeePhoneNumberField?.hidden) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Both Email and Attendee Phone Number cannot be hidden`,
+      message: "booking_fields_email_and_phone_both_hidden",
     });
   }
   if (!emailField?.required && !attendeePhoneNumberField?.required) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `At least Email or Attendee Phone Number need to be required field.`,
+      message: "booking_fields_email_or_phone_required",
+    });
+  }
+  if (emailField?.hidden && !attendeePhoneNumberField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "booking_fields_phone_required_when_email_hidden",
+    });
+  }
+  if (attendeePhoneNumberField?.hidden && !emailField?.required) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "booking_fields_email_required_when_phone_hidden",
     });
   }
 }

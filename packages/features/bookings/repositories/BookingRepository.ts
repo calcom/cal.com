@@ -131,6 +131,65 @@ export class BookingRepository {
     });
   }
 
+  async getBookingWithEventTypeTeamId({ bookingId }: { bookingId: number }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        userId: true,
+        eventType: {
+          select: {
+            teamId: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findByUidIncludeEventType({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        eventType: {
+          select: {
+            teamId: true,
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   /** Determines if the user is the organizer, team admin, or org admin that the booking was created under */
   async doesUserIdHaveAccessToBooking({ userId, bookingId }: { userId: number; bookingId: number }) {
     const booking = await this.prismaClient.booking.findUnique({
@@ -184,6 +243,59 @@ export class BookingRepository {
         rescheduledBy: true,
         uid: true,
       },
+    });
+  }
+
+  async findByUidIncludeReport({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        id: true,
+        uid: true,
+        startTime: true,
+        status: true,
+        recurringEventId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        seatsReferences: {
+          select: {
+            referenceUid: true,
+            attendee: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+        report: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getActiveRecurringBookingsFromDate({
+    recurringEventId,
+    fromDate,
+  }: {
+    recurringEventId: string;
+    fromDate: Date;
+  }) {
+    return await this.prismaClient.booking.findMany({
+      where: {
+        recurringEventId,
+        startTime: { gte: fromDate },
+        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+      },
+      select: { id: true, uid: true },
+      orderBy: { startTime: "asc" },
     });
   }
 
@@ -384,6 +496,21 @@ export class BookingRepository {
       },
       select: bookingMinimalSelect,
     });
+  }
+
+  async findFirstBookingFromResponse({ responseId }: { responseId: number }) {
+    const booking = await this.prismaClient.booking.findFirst({
+      where: {
+        routedFromRoutingFormReponse: {
+          id: responseId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return booking;
   }
 
   async findBookingByUidWithEventType({ bookingUid }: { bookingUid: string }) {

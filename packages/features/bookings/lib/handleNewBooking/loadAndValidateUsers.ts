@@ -4,6 +4,7 @@ import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegati
 import type { RoutingFormResponse } from "@calcom/features/bookings/lib/getLuckyUser";
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
@@ -130,7 +131,11 @@ const _loadAndValidateUsers = async ({
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
   // Determine if users are locked
-  const containsBlockedUser = await checkIfUsersAreBlocked(users);
+  const containsBlockedUser = await checkIfUsersAreBlocked({
+    users,
+    organizationId: null,
+    span: sentrySpan,
+  });
 
   if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
