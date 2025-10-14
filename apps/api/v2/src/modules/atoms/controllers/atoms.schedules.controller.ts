@@ -11,6 +11,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Post,
   Query,
   UseGuards,
   Version,
@@ -21,8 +22,11 @@ import {
   ApiExcludeController as DocsExcludeController,
   ApiOperation,
 } from "@nestjs/swagger";
+import { z } from "zod";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { CreateScheduleHandlerReturn, CreateScheduleSchema } from "@calcom/platform-libraries/schedules";
+import { createScheduleHandler } from "@calcom/platform-libraries/schedules";
 import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
 import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
 
@@ -63,6 +67,7 @@ export class AtomsSchedulesController {
       data: schedule,
     };
   }
+
   @Patch("schedules/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
   @UseGuards(ApiAuthGuard)
@@ -81,6 +86,22 @@ export class AtomsSchedulesController {
     return {
       status: SUCCESS_STATUS,
       data: updatedSchedule,
+    };
+  }
+
+  @Post("schedules/create")
+  @Permissions([SCHEDULE_WRITE])
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Create atom schedule" })
+  async createSchedule(
+    @GetUser() user: UserWithProfile,
+    @Body() bodySchedule: z.infer<typeof CreateScheduleSchema>
+  ): Promise<ApiResponse<CreateScheduleHandlerReturn>> {
+    const createdSchedule = await createScheduleHandler({ input: bodySchedule, ctx: { user } });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: createdSchedule,
     };
   }
 }

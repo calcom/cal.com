@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { isSupportedTimeZone } from "@calcom/lib/dayjs";
-import { getAvailableSlotsService } from "@calcom/lib/di/containers/AvailableSlots";
+import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { createContext } from "@calcom/trpc/server/createContext";

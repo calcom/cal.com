@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
+const { withBotId } = require("botid/next/config");
 const { version } = require("./package.json");
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const {
@@ -117,6 +118,11 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+
+if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
+  plugins.push(withBotId);
+}
+
 const orgDomainMatcherConfig = {
   root: nextJsOrgRewriteConfig.disableRootPathRewrite
     ? null

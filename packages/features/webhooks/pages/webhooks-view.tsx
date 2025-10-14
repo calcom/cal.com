@@ -2,9 +2,9 @@
 
 import { useRouter } from "next/navigation";
 
+import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";

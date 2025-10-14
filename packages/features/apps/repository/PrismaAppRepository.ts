@@ -1,8 +1,11 @@
+import { captureException } from "@sentry/nextjs";
+
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 export class PrismaAppRepository {
-  static async seedApp(dirName: string, keys?: any) {
+  static async seedApp(dirName: string, keys?: Prisma.InputJsonValue) {
     const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
 
     if (!appMetadata) {
@@ -21,6 +24,11 @@ export class PrismaAppRepository {
   }
 
   static async findAppStore() {
-    return await prisma.app.findMany({ select: { slug: true } });
+    try {
+      return await prisma.app.findMany({ select: { slug: true } });
+    } catch (error) {
+      captureException(error);
+      throw error;
+    }
   }
 }

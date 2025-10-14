@@ -142,6 +142,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     cancellationReason: data.cancellationReason,
     user: {
       username: data.organizer.username,
+      usernameInOrg: data.organizer.usernameInOrg,
       name: data.organizer.name,
       email: data.organizer.email,
       timeZone: data.organizer.timeZone,
@@ -158,6 +159,9 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     },
     attendees: attendees,
     createdAt: data.createdAt,
+    metadata: {
+      videoCallUrl: data.metadata?.videoCallUrl,
+    },
   };
   return JSON.stringify(body);
 }
@@ -174,7 +178,7 @@ function applyTemplate(template: string, data: WebhookDataType, contentType: Con
 export function jsonParse(jsonString: string) {
   try {
     return JSON.parse(jsonString);
-  } catch (e) {
+  } catch {
     // don't do anything.
   }
   return false;

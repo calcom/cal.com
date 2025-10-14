@@ -14,7 +14,8 @@
     "@calcom/prisma": "workspace:*",
     "@jetstreamapp/soql-parser-js": "^6.1.0",
     "@jsforce/jsforce-node": "^3.6.3",
-    "@urql/core": "^5.1.1"
+    "@urql/core": "^5.1.1",
+    "@urql/exchange-retry": "^2.0.0"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*",

@@ -1,9 +1,8 @@
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 
-import type { WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
+import type { WatchlistType } from "@calcom/prisma/enums";
 
 interface WatchlistInput {
-  severity: WatchlistSeverity;
   type: WatchlistType;
   value: string;
 }

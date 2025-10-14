@@ -8,7 +8,7 @@ import { determineReschedulePreventionRedirect } from "@calcom/features/bookings
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 const querySchema = z.object({

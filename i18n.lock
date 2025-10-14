@@ -312,6 +312,8 @@ checksums:
     register_now: faae74911debb940b1f2b4a35f3a5ebf
     register: 70217f3c73ff414d22893a4f13be84d6
     page_doesnt_exist: 7b6bcd0a4f23e42eeb0c972c2004efad
+    no_active_phone_number_available: f52210e5880ee01550acf5440808f96d
+    workflow_step_not_configured: 861578dcaae35b7fa4f0a437a8fb8a90
     check_spelling_mistakes_or_go_back: 1de0398045bb1a144ff899d47d74d29f
     404_page_not_found: fb6fd76673d10b5f30246131f8e9e847
     booker_event_not_found: cc6d91b6d2eb1bd6ca6ffc57c7a79dba
@@ -839,6 +841,7 @@ checksums:
     please_enter_phone_number: 229ebb7f2c8a234c67d5394b2dfa758c
     agent_updated_successfully: f510850bdb869183c552be41ab8c5df1
     agent_created_successfully: 1489d01c489abfd673441ed8f5dd98fa
+    agent_event_type_updated_successfully: 856d142da19f588bb77224f9bad078b2
     phone_number_unsubscribed_successfully: c07d1e5f628fc79baad8c90d20eb7d35
     general_prompt_description: 014d882d1fc01cbced074b3f7c146b57
     prompt: 290a6f069b0cec4ceaedd2423fe96b53
@@ -3461,6 +3464,7 @@ checksums:
     roles_and_permissions_description: b61be30059f6de6034d6acb588d3a495
     learn_more_permissions: 9be546d0622d5bcb5336c5b417c5f29f
     role_name: 6166d263954a8c5e41e988801c2cfb20
+    role_name_required: 5650dd108c357a78fec90aa755d78367
     role_name_placeholder: b138f0b244a5680d2986db2c99b11548
     role_description: 1eccd63fc1cb4d162ff7e5353fd72660
     role_description_placeholder: d732e6a22a3e3ae60c21ac390e5248f5
@@ -3499,7 +3503,7 @@ checksums:
     role_created_successfully: 0c5e659653544f4e549c49deee5da514
     role_updated_successfully: 70f6225b70f4bcd15af464da4c838096
     delete_role: 877641ea72960f194766086aceb53346
-    confirm_delete_role: 05f1b95d4506445819c1938c456e73b6
+    confirm_delete_role: 894b27127b5afeed7e143cf3eaac87cf
     role_deleted_successfully: 3e82866aca1a2461c2cfccbad71b2610
     error_creating_role: 4d3c36c243381aa68d671ae9c58265cd
     error_updating_role: bb0758044b466e260c9bb3704b4d115f
@@ -3673,6 +3677,8 @@ checksums:
     webhook_organizer_email: 59df32359598e24c3ad299005b4d70b9
     webhook_organizer_timezone: b239e17bc05498a8853715f2b714dbba
     webhook_organizer_locale: bec80c8ae6d494b9a0f02d156897b60e
+    webhook_organizer_username: 9432525b1ab89aefe655e4dfa5aad730
+    webhook_organizer_username_in_org: 3df45d86d16144002a6019f2db9760b6
     webhook_attendee_name: cf1b24a9065f0bddce45c1b9d73bbed4
     webhook_attendee_email: 84ba9a09117d2ee1b6ccb1c91dde5598
     webhook_attendee_timezone: 28b44fac88a7af5de712b4170d4e4920
@@ -3750,4 +3756,18 @@ checksums:
     voice_id: edd27f073cc7189691a860fba3d55ea4
     use_voice: 7febf772a86e81d908386ce0d2979588
     current_voice: db1c2997b80b16eaf100733500e3b3ca
+    setup_incoming_agent: 46853a7f150d641687eee78fe35cfb22
+    setup_incoming_agent_description: ecfeb06febe2c8990bc61015cf8caf65
+    connect_a_phone_number_first: 6910324a56d403ad1a7109e72a6e95f4
+    setup_agent_for_incoming_calls: de63c63e82065b87a72a9634fd652a39
+    configure_agent_to_handle_incoming_calls: f184bbdd0aef89e04a0b07f315d29c89
+    incoming_calls: 331c42e32b8d9a175391d60deb95afa3
+    outgoing_calls: f6719ddd42e1614f75d146521a7d793a
+    inbound_agent_setup_success: 28d4323d0b0beb595cf70fa03f9c605d
+    inbound_agent_configured: 255dc9d0933b8e29d3708679a9c30047
+    setup_inbound_agent: 6f00f260ae42921215bb72e1b8ed8d9a
+    please_select_event_type_first: cbd89ece3534384e6a1e7b4e76c383d9
+    edit_configuration: 2f31628fd6323f4d96dc3915c66edd77
+    select_event_type_for_inbound_calls: 804341b3796e5e3d184cecdf5340aa28
+    setup_inbound_agent_for_incoming_calls: 34b79a95abd9d19a641baedc1a6fb766
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

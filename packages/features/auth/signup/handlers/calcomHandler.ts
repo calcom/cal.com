@@ -2,14 +2,15 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromRequest";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
@@ -45,7 +46,11 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
   const billingService = new StripeBillingService();
 
-  const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
+  const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
+    email: _email,
+    organizationId: null,
+    span: sentrySpan,
+  });
 
   log.debug("handler", { email: _email });
 

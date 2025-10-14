@@ -6,9 +6,9 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 

@@ -2,8 +2,8 @@ import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensur
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { RoleManagementError } from "@calcom/features/pbac/domain/errors/role-management.error";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
+import { checkRegularUsername } from "@calcom/features/profile/lib/checkRegularUsername";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, PrismaPromise, User, Membership, Profile } from "@calcom/prisma/client";

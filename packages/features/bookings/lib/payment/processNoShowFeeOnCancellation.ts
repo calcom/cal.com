@@ -1,6 +1,6 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import logger from "@calcom/lib/logger";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { Payment } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 

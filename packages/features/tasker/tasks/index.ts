@@ -18,6 +18,10 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
     import("./triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook").then(
       (module) => module.triggerFormSubmittedNoEventWebhook
     ),
+  triggerFormSubmittedNoEventWorkflow: () =>
+    import("./triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWorkflow").then(
+      (module) => module.triggerFormSubmittedNoEventWorkflow
+    ),
   sendSms: () => Promise.resolve(() => Promise.reject(new Error("Not implemented"))),
   translateEventTypeData: () =>
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),

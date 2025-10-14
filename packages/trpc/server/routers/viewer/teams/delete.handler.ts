@@ -1,5 +1,5 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { TeamService } from "@calcom/lib/server/service/teamService";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 

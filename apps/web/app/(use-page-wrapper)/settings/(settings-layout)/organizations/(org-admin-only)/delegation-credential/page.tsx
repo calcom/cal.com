@@ -2,8 +2,9 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 
 import DelegationCredentialList from "@calcom/features/ee/organizations/pages/settings/delegationCredential";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { MembershipRole } from "@calcom/prisma/enums";
 
-import { validateUserHasOrgAdmin } from "../../actions/validateUserHasOrgAdmin";
+import { validateUserHasOrgPerms } from "../../actions/validateUserHasOrgPerms";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -17,7 +18,10 @@ export const generateMetadata = async () =>
 const Page = async () => {
   const t = await getTranslate();
 
-  await validateUserHasOrgAdmin();
+  await validateUserHasOrgPerms({
+    permission: "organization.update",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
 
   return (
     <SettingsHeader

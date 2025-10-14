@@ -36,7 +36,7 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
 }));
 
 // Mock UserRepository
-vi.mock("@calcom/lib/server/repository/user", () => ({
+vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   UserRepository: vi.fn().mockImplementation(() => ({
     enrichUserWithItsProfile: vi.fn().mockImplementation(({ user }) => user),
   })),

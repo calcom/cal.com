@@ -1,7 +1,7 @@
 import { z } from "zod";
 
+import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { iso8601 } from "@calcom/prisma/zod-utils";
 import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
 
