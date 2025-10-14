@@ -144,9 +144,6 @@ export function BookingReportsTable() {
         header: t("reason"),
         accessorKey: "reason",
         size: 90,
-        meta: {
-          filterType: ColumnFilterType.MULTI_SELECT,
-        },
         cell: ({ row }) => {
           const reasonColors: Record<string, "red" | "orange" | "gray"> = {
             SPAM: "red",
@@ -166,9 +163,6 @@ export function BookingReportsTable() {
         header: t("in_blocklist"),
         accessorFn: (row) => (row.watchlistId ? "true" : "false"),
         size: 120,
-        meta: {
-          filterType: ColumnFilterType.MULTI_SELECT,
-        },
         cell: ({ row }) => (
           <Badge variant={row.original.watchlistId ? "blue" : "gray"}>
             {row.original.watchlistId ? t("yes") : t("no")}

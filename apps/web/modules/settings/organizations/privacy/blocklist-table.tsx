@@ -105,8 +105,12 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         header: t("blocked_by"),
         size: 180,
         cell: ({ row }) => {
-          const _creatorId = row.original.audits?.[0]?.changedByUserId;
-          return <span className="text-default">{"—"}</span>;
+          const audit = row.original.audits?.[0] as
+            | { changedByUserId: number | null }
+            | { changedByUser?: { id: number; email: string; name: string | null } | undefined; changedByUserId: number | null }
+            | undefined;
+          const email = (audit && "changedByUser" in audit ? audit.changedByUser?.email : undefined) ?? undefined;
+          return <span className="text-default">{email ?? "—"}</span>;
         },
       },
       {
@@ -160,8 +164,9 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       <DataTableWrapper
         table={table}
         isPending={isPending}
-        variant="compact"
-        totalDbDataCount={totalRowCount}>
+        variant="default"
+        paginationMode="standard"
+        totalRowCount={totalRowCount}>
         <div className="flex items-center justify-between">
           <DataTableToolbar.SearchBar />
           <div className="flex items-center gap-2">
