@@ -5,6 +5,14 @@ export const emailRegex =
   /^(?!\.)(?!.*\.\.)([A-Z0-9_+-\.']*)[A-Z0-9_+'-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 
 /**
+ * Domain regex for watchlist entries - requires @ prefix
+ * Supports international domains with Unicode characters
+ * Examples: @example.com, @münchen.de, @example.co.uk
+ */
+export const domainWithAtRegex =
+  /^@[a-zA-Z0-9\u00a1-\uffff]([a-zA-Z0-9\u00a1-\uffff-]*[a-zA-Z0-9\u00a1-\uffff])?(\.[a-zA-Z0-9\u00a1-\uffff]([a-zA-Z0-9\u00a1-\uffff-]*[a-zA-Z0-9\u00a1-\uffff])?)*$/;
+
+/**
  * RFC 5321 Section 4.5.3.1.3 specifies:
  * - Maximum email address length: 254 characters
  * - Local part (before @): max 64 characters

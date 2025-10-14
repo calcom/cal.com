@@ -39,6 +39,7 @@ import { BulkAddToBlocklist } from "./components/bulk-add-to-blocklist";
 
 type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
 
+// TODO: We would use it in system admin table
 export function BookingReportsTable() {
   const { t } = useLocale();
   const { limit, offset, searchTerm } = useDataTable();

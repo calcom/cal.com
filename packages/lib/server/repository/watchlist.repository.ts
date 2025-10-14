@@ -6,12 +6,14 @@ import type {
   CreateWatchlistInput,
   CheckWatchlistInput,
   WatchlistEntry,
+  FindAllEntriesInput,
+  WatchlistAuditEntry,
 } from "./watchlist.interface";
 
 export class WatchlistRepository implements IWatchlistRepository {
   constructor(private readonly prismaClient: PrismaClient) {}
 
-  async createEntry(params: CreateWatchlistInput): Promise<{ id: string }> {
+  async createEntry(params: CreateWatchlistInput): Promise<WatchlistEntry> {
     const existing = await this.checkExists({
       type: params.type,
       value: params.value,
@@ -32,7 +34,6 @@ export class WatchlistRepository implements IWatchlistRepository {
         source: WatchlistSource.MANUAL,
         isGlobal: false,
       },
-      select: { id: true },
     });
 
     await this.prismaClient.watchlistAudit.create({
@@ -61,5 +62,107 @@ export class WatchlistRepository implements IWatchlistRepository {
     });
 
     return entry;
+  }
+
+  async findAllEntries(params: FindAllEntriesInput): Promise<{
+    rows: WatchlistEntry[];
+    meta: { totalRowCount: number };
+  }> {
+    const where = {
+      organizationId: params.organizationId,
+      ...(params.searchTerm && {
+        value: {
+          contains: params.searchTerm,
+          mode: "insensitive" as const,
+        },
+      }),
+      ...(params.filters?.type && {
+        type: params.filters.type,
+      }),
+    };
+
+    const [rows, totalRowCount] = await Promise.all([
+      this.prismaClient.watchlist.findMany({
+        where,
+        take: params.limit,
+        skip: params.offset,
+        orderBy: {
+          lastUpdatedAt: "desc",
+        },
+        include: {
+          audits: {
+            take: 1,
+            orderBy: {
+              changedAt: "asc",
+            },
+            select: {
+              changedByUserId: true,
+            },
+          },
+        },
+      }),
+      this.prismaClient.watchlist.count({ where }),
+    ]);
+
+    return {
+      rows,
+      meta: { totalRowCount },
+    };
+  }
+
+  async findEntryWithAudit(id: string): Promise<{
+    entry: WatchlistEntry | null;
+    auditHistory: WatchlistAuditEntry[];
+  }> {
+    const entry = await this.prismaClient.watchlist.findUnique({
+      where: { id },
+      include: {
+        audits: {
+          select: {
+            id: true,
+            watchlistId: true,
+            type: true,
+            value: true,
+            description: true,
+            action: true,
+            changedByUserId: true,
+            changedAt: true,
+          },
+          orderBy: {
+            changedAt: "desc",
+          },
+        },
+      },
+    });
+
+    return {
+      entry: entry ? { ...entry, audits: undefined } : null,
+      auditHistory: entry?.audits || [],
+    };
+  }
+
+  async deleteEntry(id: string, userId: number): Promise<void> {
+    const existing = await this.prismaClient.watchlist.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new Error("Watchlist entry not found");
+    }
+
+    await this.prismaClient.watchlistAudit.create({
+      data: {
+        watchlistId: id,
+        type: existing.type,
+        value: existing.value,
+        description: existing.description,
+        action: existing.action,
+        changedByUserId: userId,
+      },
+    });
+
+    await this.prismaClient.watchlist.delete({
+      where: { id },
+    });
   }
 }

@@ -2321,6 +2321,7 @@ model Watchlist {
   lastUpdatedAt  DateTime        @default(now())
 
   bookingReports BookingReport[]
+  audits         WatchlistAudit[]
 
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
@@ -2337,7 +2338,8 @@ model WatchlistAudit {
   changedAt       DateTime @default(now())
   changedByUserId Int?
 
-  watchlistId String @db.Uuid
+  watchlistId String     @db.Uuid
+  watchlist   Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
 
   @@index([watchlistId, changedAt])
 }

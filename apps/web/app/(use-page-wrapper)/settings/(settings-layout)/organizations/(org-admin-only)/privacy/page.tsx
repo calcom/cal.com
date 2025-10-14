@@ -41,13 +41,31 @@ const Page = async () => {
     },
   });
 
+  const watchlistPermissions = await getResourcePermissions({
+    userId: session.user.id,
+    teamId: session.user.profile.organizationId,
+    resource: Resource.Watchlist,
+    userRole: session.user.org.role,
+    fallbackRoles: {
+      read: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      create: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+      delete: {
+        roles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      },
+    },
+  });
+
   if (!canRead) {
     return redirect("/settings/profile");
   }
 
   return (
     <SettingsHeader title={t("privacy_and_security")} description={t("privacy_organization_description")}>
-      <PrivacyView permissions={{ canRead, canEdit }} />
+      <PrivacyView permissions={{ canRead, canEdit }} watchlistPermissions={watchlistPermissions} />
     </SettingsHeader>
   );
 };

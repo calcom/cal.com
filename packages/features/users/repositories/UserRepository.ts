@@ -1042,6 +1042,19 @@ export class UserRepository {
     });
   }
 
+  async findUsersByIds(userIds: number[]) {
+    return this.prismaClient.user.findMany({
+      where: {
+        id: { in: userIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+  }
+
   async findUsersWithLastBooking({ userIds, eventTypeId }: { userIds: number[]; eventTypeId: number }) {
     return this.prismaClient.user.findMany({
       where: {

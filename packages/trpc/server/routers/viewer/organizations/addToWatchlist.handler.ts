@@ -22,7 +22,7 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
   if (!organizationId) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: "You must be part of an organization to manage watchlist",
+      message: "You must be part of an organization to manage blocklist",
     });
   }
 
@@ -102,7 +102,7 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
     if (error instanceof Error && error.message.includes("already exists")) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "This entry already exists in the watchlist for your organization",
+        message: "This entry already exists in the blocklist for your organization",
       });
     }
     throw error;
