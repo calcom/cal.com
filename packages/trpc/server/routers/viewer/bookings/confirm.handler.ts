@@ -10,7 +10,7 @@ import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/proc
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
