@@ -191,7 +191,7 @@ export function BaseCalProvider({
         isInit: false,
         isRefreshing: false,
         ...translations,
-        organizationId: 0,
+        organizationId: organizationId || 0,
         isEmbed: false,
       }}>
       <>
