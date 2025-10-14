@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsNumber, IsOptional, Max, Min, Validate } from "class-validator";
 
@@ -7,26 +7,24 @@ import { DEFAULT_SKIP, DEFAULT_TAKE } from "@calcom/platform-types";
 import { IsEmailStringOrArray } from "../validators/isEmailStringOrArray";
 
 export class GetUsersInput {
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description: "The number of items to return",
     example: 10,
     default: DEFAULT_TAKE,
   })
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @Transform(({ value }: { value: string }) => (value ? parseInt(value) : DEFAULT_TAKE))
   @IsNumber()
   @Min(1)
   @Max(1000)
   @IsOptional()
   take?: number;
 
-  @ApiProperty({
-    required: false,
+  @ApiPropertyOptional({
     description: "The number of items to skip",
     example: 0,
     default: DEFAULT_SKIP,
   })
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @Transform(({ value }: { value: string }) => (value ? parseInt(value) : DEFAULT_SKIP))
   @IsNumber()
   @Min(0)
   @IsOptional()
