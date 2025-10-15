@@ -1,14 +1,14 @@
-import { RolePermissionsOutputService } from "@/modules/organizations/roles/services/role-permissions-output.service";
+import { RolesPermissionsOutputService } from "@/modules/roles/permissions/services/roles-permissions-output.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import type { PermissionString, UpdateRolePermissionsData } from "@calcom/platform-libraries/pbac";
 import { RoleService } from "@calcom/platform-libraries/pbac";
 
 @Injectable()
-export class RolePermissionsService {
+export class RolesPermissionsService {
   constructor(
     private readonly roleService: RoleService,
-    private readonly rolePermissionsOutputService: RolePermissionsOutputService
+    private readonly rolesPermissionsOutputService: RolesPermissionsOutputService
   ) {}
 
   async getRolePermissions(teamId: number, roleId: string) {
@@ -22,7 +22,7 @@ export class RolePermissionsService {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
     }
 
-    return this.rolePermissionsOutputService.getPermissionsFromRole(role);
+    return this.rolesPermissionsOutputService.getPermissionsFromRole(role);
   }
 
   async addRolePermissions(teamId: number, roleId: string, permissionsToAdd: PermissionString[]) {
@@ -42,7 +42,7 @@ export class RolePermissionsService {
 
     try {
       const updatedRole = await this.roleService.update(updateData);
-      return this.rolePermissionsOutputService.getPermissionsFromRole(updatedRole);
+      return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error && error.message.includes("Invalid permissions provided")) {
         throw new BadRequestException(error.message);

@@ -1,17 +1,17 @@
-import { CreateRoleInput } from "@/modules/organizations/roles/inputs/create-role.input";
-import { UpdateRoleInput } from "@/modules/organizations/roles/inputs/update-role.input";
+import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
+import { UpdateRoleInput } from "@/modules/organizations/teams/roles/inputs/update-role.input";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { RoleService } from "@calcom/platform-libraries/pbac";
 import type { CreateRoleData, UpdateRolePermissionsData } from "@calcom/platform-libraries/pbac";
 
-import { OrganizationsRolesOutputService } from "./organizations-roles-output.service";
+import { RolesOutputService } from "./roles-output.service";
 
 @Injectable()
-export class OrganizationsRolesService {
+export class RolesService {
   constructor(
-    private readonly roleService: RoleService,
-    private readonly organizationsRolesOutputService: OrganizationsRolesOutputService
+    private readonly rolesService: RoleService,
+    private readonly rolesOutputService: RolesOutputService
   ) {}
 
   async createRole(teamId: number, data: CreateRoleInput) {
@@ -25,8 +25,8 @@ export class OrganizationsRolesService {
     };
 
     try {
-      const role = await this.roleService.createRole(createRoleData);
-      return this.organizationsRolesOutputService.getRoleOutput(role);
+      const role = await this.rolesService.createRole(createRoleData);
+      return this.rolesOutputService.getRoleOutput(role);
     } catch (error) {
       console.log(error);
       if (error instanceof Error && error.message.includes("already exists")) {
@@ -37,25 +37,25 @@ export class OrganizationsRolesService {
   }
 
   async getRole(teamId: number, roleId: string) {
-    const role = await this.roleService.getRole(roleId);
+    const role = await this.rolesService.getRole(roleId);
 
     if (!role || role.teamId !== teamId) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
     }
 
-    return this.organizationsRolesOutputService.getRoleOutput(role);
+    return this.rolesOutputService.getRoleOutput(role);
   }
 
   async getTeamRoles(teamId: number, skip = 0, take = 250) {
-    const allRoles = await this.roleService.getTeamRoles(teamId);
+    const allRoles = await this.rolesService.getTeamRoles(teamId);
 
     const paginatedRoles = allRoles.slice(skip, skip + take);
 
-    return this.organizationsRolesOutputService.getRolesOutput(paginatedRoles);
+    return this.rolesOutputService.getRolesOutput(paginatedRoles);
   }
 
   async updateRole(teamId: number, roleId: string, data: UpdateRoleInput) {
-    const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
+    const belongsToTeam = await this.rolesService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
     }
@@ -70,8 +70,8 @@ export class OrganizationsRolesService {
     };
 
     try {
-      const updatedRole = await this.roleService.update(updateData);
-      return this.organizationsRolesOutputService.getRoleOutput(updatedRole);
+      const updatedRole = await this.rolesService.update(updateData);
+      return this.rolesOutputService.getRoleOutput(updatedRole);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("Role not found")) {
@@ -89,19 +89,19 @@ export class OrganizationsRolesService {
   }
 
   async deleteRole(teamId: number, roleId: string) {
-    const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
+    const belongsToTeam = await this.rolesService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
     }
 
-    const role = await this.roleService.getRole(roleId);
+    const role = await this.rolesService.getRole(roleId);
     if (!role) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
     }
 
     try {
-      await this.roleService.deleteRole(roleId);
-      return this.organizationsRolesOutputService.getRoleOutput(role);
+      await this.rolesService.deleteRole(roleId);
+      return this.rolesOutputService.getRoleOutput(role);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("Cannot delete default roles")) {

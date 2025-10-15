@@ -13,14 +13,14 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateRoleInput } from "@/modules/organizations/roles/inputs/create-role.input";
-import { UpdateRoleInput } from "@/modules/organizations/roles/inputs/update-role.input";
-import { CreateRoleOutput } from "@/modules/organizations/roles/outputs/create-role.output";
-import { DeleteRoleOutput } from "@/modules/organizations/roles/outputs/delete-role.output";
-import { GetAllRolesOutput } from "@/modules/organizations/roles/outputs/get-all-roles.output";
-import { GetRoleOutput } from "@/modules/organizations/roles/outputs/get-role.output";
-import { UpdateRoleOutput } from "@/modules/organizations/roles/outputs/update-role.output";
-import { OrganizationsRolesService } from "@/modules/organizations/roles/services/organizations-roles.service";
+import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
+import { UpdateRoleInput } from "@/modules/organizations/teams/roles/inputs/update-role.input";
+import { CreateRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-role.output";
+import { DeleteRoleOutput } from "@/modules/organizations/teams/roles/outputs/delete-role.output";
+import { GetAllRolesOutput } from "@/modules/organizations/teams/roles/outputs/get-all-roles.output";
+import { GetRoleOutput } from "@/modules/organizations/teams/roles/outputs/get-role.output";
+import { UpdateRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-role.output";
+import { RolesService } from "@/modules/roles/services/roles.service";
 import {
   Controller,
   UseGuards,
@@ -49,8 +49,8 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
-export class OrganizationsRolesController {
-  constructor(private readonly organizationsRolesService: OrganizationsRolesService) {}
+export class OrganizationsTeamsRolesController {
+  constructor(private readonly organizationsRolesService: RolesService) {}
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")

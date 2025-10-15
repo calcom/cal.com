@@ -51,6 +51,7 @@ import { OrganizationsTeamsInviteController } from "@/modules/organizations/team
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/teams/memberships/services/organizations-teams-memberships.service";
+import { OrganizationsTeamsRolesModule } from "@/modules/organizations/teams/roles/organizations-teams-roles.module";
 import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms.module";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/teams/schedules/organizations-teams-schedules.controller";
 import { OrganizationTeamWorkflowsController } from "@/modules/organizations/teams/workflows/controllers/org-team-workflows.controller";
@@ -98,6 +99,7 @@ import { Module } from "@nestjs/common";
     OrganizationsDelegationCredentialModule,
     OrganizationsOrganizationsModule,
     OrganizationsRolesModule,
+    OrganizationsTeamsRolesModule,
     OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
     MembershipsModule,

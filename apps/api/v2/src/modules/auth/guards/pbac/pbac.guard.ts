@@ -31,12 +31,13 @@ export class PbacGuard implements CanActivate {
     const orgId = request.params.orgId;
     const requiredPermissions = this.reflector.get(Pbac, context.getHandler());
 
+    const effectiveTeamId = teamId || orgId;
     if (!user) {
       throw new UnauthorizedException("PbacGuard - the request does not have an authorized user provided");
     }
-    if (!teamId) {
+    if (!effectiveTeamId) {
       throw new BadRequestException(
-        "PbacGuard - can't check pbac because no teamId provided within the request url"
+        "PbacGuard - can't check pbac because no teamId or orgId provided within the request url"
       );
     }
 
@@ -45,7 +46,7 @@ export class PbacGuard implements CanActivate {
       return true;
     }
 
-    const hasPbacEnabled = await this.hasPbacEnabled(Number(teamId));
+    const hasPbacEnabled = await this.hasPbacEnabled(Number(effectiveTeamId));
     if (!hasPbacEnabled) {
       request.pbacAuthorizedRequest = false;
       return true;
@@ -53,7 +54,7 @@ export class PbacGuard implements CanActivate {
 
     const hasRequiredPermissions = await this.checkUserHasRequiredPermissions(
       user.id,
-      Number(teamId),
+      Number(effectiveTeamId),
       requiredPermissions
     );
 

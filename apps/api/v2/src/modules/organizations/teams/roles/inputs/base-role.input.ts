@@ -3,7 +3,7 @@ import { IsArray, IsOptional, IsString, Validate } from "class-validator";
 
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 
-import { PermissionStringValidator } from "../validators/permission-string.validator";
+import { PermissionStringValidator } from "../permissions/inputs/validators/permission-string.validator";
 
 export class BaseRoleInput {
   @ApiPropertyOptional({ description: "Color for the role (hex code)" })

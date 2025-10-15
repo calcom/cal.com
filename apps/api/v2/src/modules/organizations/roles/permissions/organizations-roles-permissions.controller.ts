@@ -13,10 +13,10 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateRolePermissionsInput } from "@/modules/organizations/roles/inputs/create-role-permissions.input";
-import { DeleteRolePermissionsQuery } from "@/modules/organizations/roles/inputs/delete-role-permissions.query";
-import { GetRolePermissionsOutput } from "@/modules/organizations/roles/outputs/get-role-permissions.output";
-import { RolePermissionsService } from "@/modules/organizations/roles/services/role-permissions.service";
+import { CreateRolePermissionsInput } from "@/modules/organizations/teams/roles/permissions/inputs/create-role-permissions.input";
+import { DeleteRolePermissionsQuery } from "@/modules/organizations/teams/roles/permissions/inputs/delete-role-permissions.query";
+import { GetRolePermissionsOutput } from "@/modules/organizations/teams/roles/permissions/outputs/get-role-permissions.output";
+import { RolesPermissionsService } from "@/modules/roles/permissions/services/roles-permissions.service";
 import {
   Body,
   Controller,
@@ -37,7 +37,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 
 @Controller({
-  path: "/v2/organizations/:orgId/teams/:teamId/roles/:roleId/permissions",
+  path: "/v2/organizations/:orgId/roles/:roleId/permissions",
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
@@ -46,7 +46,7 @@ import type { PermissionString } from "@calcom/platform-libraries/pbac";
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsRolesPermissionsController {
-  constructor(private readonly rolePermissionsService: RolePermissionsService) {}
+  constructor(private readonly rolePermissionsService: RolesPermissionsService) {}
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
@@ -56,15 +56,10 @@ export class OrganizationsRolesPermissionsController {
   @ApiOperation({ summary: "Add permissions to a role (single or batch)" })
   async addPermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string,
     @Body() body: CreateRolePermissionsInput
   ): Promise<GetRolePermissionsOutput> {
-    const permissions = await this.rolePermissionsService.addRolePermissions(
-      teamId,
-      roleId,
-      body.permissions
-    );
+    const permissions = await this.rolePermissionsService.addRolePermissions(orgId, roleId, body.permissions);
     return { status: SUCCESS_STATUS, data: permissions };
   }
 
@@ -76,10 +71,9 @@ export class OrganizationsRolesPermissionsController {
   @ApiOperation({ summary: "List permissions for a role" })
   async listPermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string
   ): Promise<GetRolePermissionsOutput> {
-    const permissions = await this.rolePermissionsService.getRolePermissions(teamId, roleId);
+    const permissions = await this.rolePermissionsService.getRolePermissions(orgId, roleId);
     return { status: SUCCESS_STATUS, data: permissions };
   }
 
@@ -91,12 +85,11 @@ export class OrganizationsRolesPermissionsController {
   @ApiOperation({ summary: "Replace all permissions for a role" })
   async setPermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string,
     @Body() body: CreateRolePermissionsInput
   ): Promise<GetRolePermissionsOutput> {
     const permissions = await this.rolePermissionsService.setRolePermissions(
-      teamId,
+      orgId,
       roleId,
       body.permissions || []
     );
@@ -111,11 +104,10 @@ export class OrganizationsRolesPermissionsController {
   @ApiOperation({ summary: "Remove a permission from a role" })
   async removePermission(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string,
     @Param("permission") permission: PermissionString
   ): Promise<void> {
-    await this.rolePermissionsService.removeRolePermission(teamId, roleId, permission);
+    await this.rolePermissionsService.removeRolePermission(orgId, roleId, permission);
   }
 
   @Roles("ORG_ADMIN")
@@ -126,10 +118,9 @@ export class OrganizationsRolesPermissionsController {
   @ApiOperation({ summary: "Remove multiple permissions from a role" })
   async removePermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string,
     @Query() query: DeleteRolePermissionsQuery
   ): Promise<void> {
-    await this.rolePermissionsService.removeRolePermissions(teamId, roleId, query.permissions || []);
+    await this.rolePermissionsService.removeRolePermissions(orgId, roleId, query.permissions || []);
   }
 }

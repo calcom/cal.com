@@ -1,20 +1,20 @@
-import { RoleOutput } from "@/modules/organizations/roles/outputs/role.output";
+import { RoleOutput } from "@/modules/organizations/teams/roles/outputs/role.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsNotEmptyObject, ValidateNested } from "class-validator";
+import { IsEnum, IsArray, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-export class CreateRoleOutput {
+export class GetAllRolesOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @ApiProperty({
-    type: RoleOutput,
+    type: [RoleOutput],
   })
-  @IsNotEmptyObject()
-  @ValidateNested()
+  @IsArray()
+  @ValidateNested({ each: true })
   @Type(() => RoleOutput)
-  data!: RoleOutput;
+  data!: RoleOutput[];
 }

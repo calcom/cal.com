@@ -3,7 +3,7 @@ import { IsArray, IsString, Validate } from "class-validator";
 
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 
-import { PermissionStringValidator } from "../validators/permission-string.validator";
+import { PermissionStringValidator } from "./validators/permission-string.validator";
 
 export class CreateRolePermissionsInput {
   @ApiProperty({

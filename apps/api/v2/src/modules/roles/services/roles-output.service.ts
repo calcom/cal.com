@@ -1,10 +1,10 @@
-import { RoleOutput } from "@/modules/organizations/roles/outputs/role.output";
+import { RoleOutput } from "@/modules/organizations/teams/roles/outputs/role.output";
 import { Injectable } from "@nestjs/common";
 
 import type { Role } from "@calcom/platform-libraries/pbac";
 
 @Injectable()
-export class OrganizationsRolesOutputService {
+export class RolesOutputService {
   getRoleOutput(role: Role): RoleOutput {
     return {
       id: role.id,

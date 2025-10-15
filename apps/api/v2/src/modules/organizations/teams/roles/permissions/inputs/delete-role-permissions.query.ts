@@ -4,7 +4,7 @@ import { ArrayNotEmpty, IsArray, IsOptional, IsString, Validate } from "class-va
 
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 
-import { PermissionStringValidator } from "../validators/permission-string.validator";
+import { PermissionStringValidator } from "./validators/permission-string.validator";
 
 export class DeleteRolePermissionsQuery {
   @ApiPropertyOptional({

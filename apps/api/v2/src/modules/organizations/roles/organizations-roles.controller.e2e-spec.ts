@@ -1,7 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateRoleInput } from "@/modules/organizations/roles/inputs/create-role.input";
-import { CreateRoleOutput } from "@/modules/organizations/roles/outputs/create-role.output";
+import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
+import { CreateRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-role.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -13,7 +13,6 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { FeaturesRepositoryFixture } from "test/fixtures/repository/features.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
@@ -27,7 +26,6 @@ describe("Organizations Roles Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
-    let teamRepositoryFixture: TeamRepositoryFixture;
     let membershipRepositoryFixture: MembershipRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let featuresRepositoryFixture: FeaturesRepositoryFixture;
@@ -47,11 +45,9 @@ describe("Organizations Roles Endpoints", () => {
     let pbacOrgUserWithoutRolePermissionApiKey: string;
     let nonOrgUserApiKey: string;
 
-    // Organization and team
+    // Organization
     let organization: Team;
-    let team: Team;
     let pbacEnabledOrganization: Team;
-    let pbacEnabledTeam: Team;
 
     const legacyOrgAdminEmail = `legacy-org-admin-${randomString()}@api.com`;
     const legacyOrgMemberEmail = `legacy-org-member-${randomString()}@api.com`;
@@ -66,7 +62,6 @@ describe("Organizations Roles Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       featuresRepositoryFixture = new FeaturesRepositoryFixture(moduleRef);
@@ -98,16 +93,10 @@ describe("Organizations Roles Endpoints", () => {
         username: nonOrgUserEmail,
       });
 
-      // Create organizations and teams
+      // Create organizations
       organization = await organizationsRepositoryFixture.create({
         name: `org-roles-test-${randomString()}`,
         isOrganization: true,
-      });
-
-      team = await teamRepositoryFixture.create({
-        name: `team-roles-test-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: organization.id } },
       });
 
       pbacEnabledOrganization = await organizationsRepositoryFixture.create({
@@ -115,18 +104,12 @@ describe("Organizations Roles Endpoints", () => {
         isOrganization: true,
       });
 
-      pbacEnabledTeam = await teamRepositoryFixture.create({
-        name: `pbac-team-roles-test-${randomString()}`,
-        isOrganization: false,
-        parent: { connect: { id: pbacEnabledOrganization.id } },
-      });
-
-      // Enable PBAC for the PBAC-enabled team
+      // Enable PBAC for the PBAC-enabled organization
       await featuresRepositoryFixture.create({
         slug: "pbac",
         enabled: true,
       });
-      await featuresRepositoryFixture.enableFeatureForTeam(pbacEnabledTeam.id, "pbac");
+      await featuresRepositoryFixture.enableFeatureForTeam(pbacEnabledOrganization.id, "pbac");
 
       // Create memberships
       await membershipRepositoryFixture.create({
@@ -212,7 +195,7 @@ describe("Organizations Roles Endpoints", () => {
         };
 
         return request(app.getHttpServer())
-          .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
+          .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
           .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
           .send(createRoleInput)
           .expect(201)
@@ -232,7 +215,7 @@ describe("Organizations Roles Endpoints", () => {
         };
 
         return request(app.getHttpServer())
-          .post(`/v2/organizations/${organization.id}/teams/${team.id}/roles`)
+          .post(`/v2/organizations/${organization.id}/roles`)
           .set("Authorization", `Bearer ${legacyOrgAdminApiKey}`)
           .send(createRoleInput)
           .expect(201)
@@ -270,7 +253,7 @@ describe("Organizations Roles Endpoints", () => {
         const noRoleApiKey = `cal_test_${noRoleKeyString}`;
 
         return request(app.getHttpServer())
-          .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
+          .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
           .set("Authorization", `Bearer ${noRoleApiKey}`)
           .send(createRoleInput)
           .expect(403);
@@ -283,7 +266,7 @@ describe("Organizations Roles Endpoints", () => {
         };
 
         return request(app.getHttpServer())
-          .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
+          .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
           .set("Authorization", `Bearer ${pbacOrgUserWithoutRolePermissionApiKey}`)
           .send(createRoleInput)
           .expect(403);
@@ -296,7 +279,7 @@ describe("Organizations Roles Endpoints", () => {
         };
 
         return request(app.getHttpServer())
-          .post(`/v2/organizations/${organization.id}/teams/${team.id}/roles`)
+          .post(`/v2/organizations/${organization.id}/roles`)
           .set("Authorization", `Bearer ${nonOrgUserApiKey}`)
           .send(createRoleInput)
           .expect(403);
@@ -309,7 +292,7 @@ describe("Organizations Roles Endpoints", () => {
         };
 
         return request(app.getHttpServer())
-          .post(`/v2/organizations/${organization.id}/teams/${team.id}/roles`)
+          .post(`/v2/organizations/${organization.id}/roles`)
           .set("Authorization", `Bearer ${legacyOrgMemberApiKey}`)
           .send(createRoleInput)
           .expect(403);
@@ -319,11 +302,7 @@ describe("Organizations Roles Endpoints", () => {
     afterAll(async () => {
       try {
         // Clean up feature flags first
-        await featuresRepositoryFixture.deleteTeamFeature(pbacEnabledTeam.id, "pbac");
-
-        // Clean up teams first (child entities)
-        await teamRepositoryFixture.delete(team.id);
-        await teamRepositoryFixture.delete(pbacEnabledTeam.id);
+        await featuresRepositoryFixture.deleteTeamFeature(pbacEnabledOrganization.id, "pbac");
 
         // Clean up organizations (parent entities)
         await organizationsRepositoryFixture.delete(organization.id);

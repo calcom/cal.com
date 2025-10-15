@@ -1,4 +1,4 @@
-import { PermissionStringValidator } from "../permission-string.validator";
+import { PermissionStringValidator } from "./permission-string.validator";
 
 describe("PermissionStringValidator", () => {
   let validator: PermissionStringValidator;

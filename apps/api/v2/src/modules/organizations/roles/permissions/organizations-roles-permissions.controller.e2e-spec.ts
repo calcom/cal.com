@@ -1,7 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateRoleInput } from "@/modules/organizations/roles/inputs/create-role.input";
-import type { CreateRoleOutput } from "@/modules/organizations/roles/outputs/create-role.output";
+import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
+import type { CreateRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-role.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -13,7 +13,6 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { FeaturesRepositoryFixture } from "test/fixtures/repository/features.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
@@ -27,7 +26,6 @@ describe("Organizations Roles Permissions Endpoints", () => {
 
   let userRepositoryFixture: UserRepositoryFixture;
   let organizationsRepositoryFixture: OrganizationRepositoryFixture;
-  let teamRepositoryFixture: TeamRepositoryFixture;
   let membershipRepositoryFixture: MembershipRepositoryFixture;
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let featuresRepositoryFixture: FeaturesRepositoryFixture;
@@ -37,7 +35,6 @@ describe("Organizations Roles Permissions Endpoints", () => {
   let pbacOrgUserWithRolePermissionApiKey: string;
 
   let pbacEnabledOrganization: Team;
-  let pbacEnabledTeam: Team;
 
   const pbacUserEmail = `pbac-org-user-with-permissions-${randomString()}@api.com`;
 
@@ -48,27 +45,20 @@ describe("Organizations Roles Permissions Endpoints", () => {
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-    teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
     featuresRepositoryFixture = new FeaturesRepositoryFixture(moduleRef);
     roleService = new RoleService();
 
-    // Create PBAC org/team
+    // Create PBAC org
     pbacEnabledOrganization = await organizationsRepositoryFixture.create({
       name: `pbac-org-role-perm-test-${randomString()}`,
       isOrganization: true,
     });
 
-    pbacEnabledTeam = await teamRepositoryFixture.create({
-      name: `pbac-team-role-perm-test-${randomString()}`,
-      isOrganization: false,
-      parent: { connect: { id: pbacEnabledOrganization.id } },
-    });
-
-    // Enable PBAC feature
+    // Enable PBAC feature on organization
     await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
-    await featuresRepositoryFixture.enableFeatureForTeam(pbacEnabledTeam.id, "pbac");
+    await featuresRepositoryFixture.enableFeatureForTeam(pbacEnabledOrganization.id, "pbac");
 
     // Create user + membership in org
     pbacOrgUserWithRolePermission = await userRepositoryFixture.create({
@@ -108,7 +98,7 @@ describe("Organizations Roles Permissions Endpoints", () => {
     };
 
     const createRes = await request(app.getHttpServer())
-      .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
+      .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
@@ -118,9 +108,7 @@ describe("Organizations Roles Permissions Endpoints", () => {
     const roleId = responseBody.data.id;
 
     const listRes = await request(app.getHttpServer())
-      .get(
-        `/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles/${roleId}/permissions`
-      )
+      .get(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${roleId}/permissions`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .expect(200);
     expect(listRes.body.status).toEqual(SUCCESS_STATUS);
@@ -138,7 +126,7 @@ describe("Organizations Roles Permissions Endpoints", () => {
     };
 
     const createRes = await request(app.getHttpServer())
-      .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
+      .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
@@ -148,9 +136,7 @@ describe("Organizations Roles Permissions Endpoints", () => {
     const roleId = responseBody.data.id;
 
     const addRes = await request(app.getHttpServer())
-      .post(
-        `/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles/${roleId}/permissions`
-      )
+      .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${roleId}/permissions`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send({ permissions: toAdd })
       .expect(200);
@@ -169,7 +155,7 @@ describe("Organizations Roles Permissions Endpoints", () => {
       permissions: initialPermissions,
     };
     const createRes = await request(app.getHttpServer())
-      .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
+      .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
@@ -180,17 +166,15 @@ describe("Organizations Roles Permissions Endpoints", () => {
 
     await request(app.getHttpServer())
       .delete(
-        `/v2/organizations/${pbacEnabledOrganization.id}/teams/${
-          pbacEnabledTeam.id
+        `/v2/organizations/${
+          pbacEnabledOrganization.id
         }/roles/${roleId}/permissions?permissions=${toRemove.join(",")}`
       )
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .expect(204);
 
     const listRes = await request(app.getHttpServer())
-      .get(
-        `/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles/${roleId}/permissions`
-      )
+      .get(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${roleId}/permissions`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .expect(200);
     expect(listRes.body.data).toEqual(expected);
@@ -205,7 +189,7 @@ describe("Organizations Roles Permissions Endpoints", () => {
       permissions: [...initialPermissions],
     };
     const createRes = await request(app.getHttpServer())
-      .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
+      .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
@@ -215,9 +199,7 @@ describe("Organizations Roles Permissions Endpoints", () => {
     const roleId = responseBody.data.id;
 
     const putRes = await request(app.getHttpServer())
-      .put(
-        `/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles/${roleId}/permissions`
-      )
+      .put(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${roleId}/permissions`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send({ permissions: replacement })
       .expect(200);
@@ -236,7 +218,7 @@ describe("Organizations Roles Permissions Endpoints", () => {
       permissions: [...initialPermissions],
     };
     const createRes = await request(app.getHttpServer())
-      .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
+      .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
@@ -246,16 +228,12 @@ describe("Organizations Roles Permissions Endpoints", () => {
     const roleId = responseBody.data.id;
 
     await request(app.getHttpServer())
-      .delete(
-        `/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles/${roleId}/permissions/${toRemove}`
-      )
+      .delete(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${roleId}/permissions/${toRemove}`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .expect(204);
 
     const listRes = await request(app.getHttpServer())
-      .get(
-        `/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles/${roleId}/permissions`
-      )
+      .get(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${roleId}/permissions`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .expect(200);
     expect(listRes.body.data).toEqual(expected);
@@ -263,11 +241,10 @@ describe("Organizations Roles Permissions Endpoints", () => {
 
   afterAll(async () => {
     try {
-      // Clean up feature flag from team
-      await featuresRepositoryFixture.deleteTeamFeature(pbacEnabledTeam.id, "pbac");
+      // Clean up feature flag from organization
+      await featuresRepositoryFixture.deleteTeamFeature(pbacEnabledOrganization.id, "pbac");
 
-      // Clean up teams and orgs
-      await teamRepositoryFixture.delete(pbacEnabledTeam.id);
+      // Clean up org
       await organizationsRepositoryFixture.delete(pbacEnabledOrganization.id);
 
       // Clean up user
