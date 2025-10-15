@@ -25,6 +25,7 @@ describe("_customer.subscription.updated handler", () => {
     vi.resetAllMocks();
     vi.stubEnv("STRIPE_TEAM_PRODUCT_ID", "prod_team_123");
     vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "prod_org_456");
+    vi.stubEnv("STRIPE_CAL_AI_PHONE_NUMBER_PRODUCT_ID", "prod_phone_789");
   });
 
   const createSubscriptionData = (overrides: Partial<Stripe.Subscription> = {}): SubscriptionData => ({
@@ -102,7 +103,10 @@ describe("_customer.subscription.updated handler", () => {
       subscriptionId: "sub_123",
       subscriptionItemId: "si_123",
       customerId: "cus_123",
-      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      status: SubscriptionStatus.ACTIVE,
+      subscriptionStart: expect.any(Date),
+      subscriptionTrialEnd: null,
+      subscriptionEnd: null,
     });
   });
 
@@ -151,7 +155,10 @@ describe("_customer.subscription.updated handler", () => {
       subscriptionId: "sub_123",
       subscriptionItemId: "si_456",
       customerId: "cus_123",
-      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      status: SubscriptionStatus.ACTIVE,
+      subscriptionStart: expect.any(Date),
+      subscriptionTrialEnd: null,
+      subscriptionEnd: null,
     });
   });
 
@@ -216,16 +223,21 @@ describe("_customer.subscription.updated handler", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    vi.mocked(PrismaPhoneNumberRepository.findByStripeSubscriptionId).mockResolvedValue(mockPhoneNumber);
+    const mockPhoneNumberRepoInstance = {
+      findByStripeSubscriptionId: vi.fn().mockResolvedValue(mockPhoneNumber),
+    };
+    vi.mocked(PrismaPhoneNumberRepository).mockImplementation(
+      () => mockPhoneNumberRepoInstance as unknown as InstanceType<typeof PrismaPhoneNumberRepository>
+    );
     vi.mocked(prisma.calAiPhoneNumber.update).mockResolvedValue(mockPhoneNumber);
 
     const data = createSubscriptionData({
       items: {
         data: [
           {
-            id: "si_other",
+            id: "si_phone",
             price: {
-              product: "prod_other_999",
+              product: "prod_phone_789",
             },
           } as Stripe.SubscriptionItem,
         ],
@@ -235,7 +247,7 @@ describe("_customer.subscription.updated handler", () => {
     const result = await handler(data);
 
     expect(result).toHaveProperty("success", true);
-    expect(PrismaPhoneNumberRepository.findByStripeSubscriptionId).toHaveBeenCalledWith({
+    expect(mockPhoneNumberRepoInstance.findByStripeSubscriptionId).toHaveBeenCalledWith({
       stripeSubscriptionId: "sub_123",
     });
   });
@@ -245,15 +257,20 @@ describe("_customer.subscription.updated handler", () => {
       "@calcom/lib/server/repository/PrismaPhoneNumberRepository"
     );
 
-    vi.mocked(PrismaPhoneNumberRepository.findByStripeSubscriptionId).mockResolvedValue(null);
+    const mockPhoneNumberRepoInstance = {
+      findByStripeSubscriptionId: vi.fn().mockResolvedValue(null),
+    };
+    vi.mocked(PrismaPhoneNumberRepository).mockImplementation(
+      () => mockPhoneNumberRepoInstance as unknown as InstanceType<typeof PrismaPhoneNumberRepository>
+    );
 
     const data = createSubscriptionData({
       items: {
         data: [
           {
-            id: "si_other",
+            id: "si_phone",
             price: {
-              product: "prod_other_999",
+              product: "prod_phone_789",
             },
           } as Stripe.SubscriptionItem,
         ],

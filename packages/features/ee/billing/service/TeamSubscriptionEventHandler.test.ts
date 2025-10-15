@@ -27,7 +27,7 @@ describe("TeamSubscriptionEventHandler", () => {
     mockBillingRepository = {
       create: vi.fn(),
       getBySubscriptionId: vi.fn(),
-      updateSubscriptionStatus: vi.fn(),
+      update: vi.fn(),
     };
 
     mockTeamRepository = {
@@ -42,7 +42,10 @@ describe("TeamSubscriptionEventHandler", () => {
       subscriptionId: "sub_123",
       subscriptionItemId: "si_456",
       customerId: "cus_789",
-      subscriptionStatus: SubscriptionStatus.ACTIVE,
+      status: SubscriptionStatus.ACTIVE,
+      subscriptionStart: new Date("2024-01-01"),
+      subscriptionTrialEnd: null,
+      subscriptionEnd: null,
     };
 
     it("should update subscription status when subscription exists in DB and status changed", async () => {
@@ -54,6 +57,9 @@ describe("TeamSubscriptionEventHandler", () => {
         customerId: "cus_789",
         planName: Plan.TEAM,
         status: SubscriptionStatus.TRIALING,
+        subscriptionStart: new Date("2024-01-01"),
+        subscriptionTrialEnd: null,
+        subscriptionEnd: null,
       };
 
       vi.mocked(mockBillingRepository.getBySubscriptionId).mockResolvedValue(existingBilling);
@@ -61,10 +67,16 @@ describe("TeamSubscriptionEventHandler", () => {
       await handler.handleUpdate(subscriptionData);
 
       expect(mockBillingRepository.getBySubscriptionId).toHaveBeenCalledWith("sub_123");
-      expect(mockBillingRepository.updateSubscriptionStatus).toHaveBeenCalledWith(
-        "sub_123",
-        SubscriptionStatus.ACTIVE
-      );
+      expect(mockBillingRepository.update).toHaveBeenCalledWith({
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_456",
+        customerId: "cus_789",
+        status: SubscriptionStatus.ACTIVE,
+        subscriptionStart: new Date("2024-01-01"),
+        subscriptionTrialEnd: null,
+        subscriptionEnd: null,
+        id: "billing_123",
+      });
     });
 
     it("should not update subscription status when status is the same", async () => {
@@ -76,6 +88,9 @@ describe("TeamSubscriptionEventHandler", () => {
         customerId: "cus_789",
         planName: Plan.TEAM,
         status: SubscriptionStatus.ACTIVE,
+        subscriptionStart: new Date("2024-01-01"),
+        subscriptionTrialEnd: null,
+        subscriptionEnd: null,
       };
 
       vi.mocked(mockBillingRepository.getBySubscriptionId).mockResolvedValue(existingBilling);
@@ -83,7 +98,7 @@ describe("TeamSubscriptionEventHandler", () => {
       await handler.handleUpdate(subscriptionData);
 
       expect(mockBillingRepository.getBySubscriptionId).toHaveBeenCalledWith("sub_123");
-      expect(mockBillingRepository.updateSubscriptionStatus).not.toHaveBeenCalled();
+      expect(mockBillingRepository.update).not.toHaveBeenCalled();
     });
 
     it("should migrate subscription when not found in DB", async () => {
@@ -119,6 +134,9 @@ describe("TeamSubscriptionEventHandler", () => {
         status: SubscriptionStatus.ACTIVE,
         customerId: "cus_789",
         planName: Plan.TEAM,
+        subscriptionStart: new Date("2024-01-01"),
+        subscriptionTrialEnd: null,
+        subscriptionEnd: null,
       });
     });
 
