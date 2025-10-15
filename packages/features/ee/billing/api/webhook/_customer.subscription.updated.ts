@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { prisma } from "@calcom/prisma";
@@ -102,6 +103,7 @@ async function handleTeamSubscriptionUpdate({
   subscriptionItem: SubscriptionItem;
   isOrganization: boolean;
 }) {
+  const log = logger.getSubLogger({ prefix: ["stripe", "webhook", "customer.subscription.updated"] });
   const billingRepository = BillingRepositoryFactory.getRepository(isOrganization);
   const teamRepository = new TeamRepository(prisma);
   const teamSubscriptionEventHandler = new TeamSubscriptionEventHandler(billingRepository, teamRepository);
@@ -125,7 +127,7 @@ async function handleTeamSubscriptionUpdate({
       subscriptionEnd,
     });
   } catch (error) {
-    console.error("Error handling team subscription update:", error);
+    log.error("Error handling team subscription update:", error);
     throw new HttpCode(202, "Failed to handle team subscription update");
   }
 }
