@@ -130,7 +130,7 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
                 render={({ field }) => (
                   <Input
                     {...field}
-                    placeholder={watchType === WatchlistType.EMAIL ? "user@example.com" : "@spammer.com"}
+                    placeholder={watchType === WatchlistType.EMAIL ? "user@example.com" : "spammer.com"}
                   />
                 )}
               />
