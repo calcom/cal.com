@@ -1,20 +1,55 @@
 "use client";
 
+import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams, usePathname } from "next/navigation";
 import { createParser, useQueryState } from "nuqs";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 
-import { DataTableProvider, type SystemFilterSegment } from "@calcom/features/data-table";
+import dayjs from "@calcom/dayjs";
+import {
+  DataTableProvider,
+  type SystemFilterSegment,
+  useDataTable,
+  ColumnFilterType,
+  useFilterValue,
+  ZMultiSelectFilterValue,
+  ZDateRangeFilterValue,
+  ZTextFilterValue,
+} from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
+import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 import { BookingsCalendarView } from "./bookings-calendar-view";
 import { BookingsListView } from "./bookings-list-view";
+
+type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
+
+type RecurringInfo = {
+  recurringEventId: string | null;
+  count: number;
+  firstDate: Date | null;
+  bookings: { [key: string]: Date[] };
+};
+
+export type RowData =
+  | {
+      type: "data";
+      booking: BookingOutput;
+      isToday: boolean;
+      recurringInfo?: RecurringInfo;
+    }
+  | {
+      type: "today" | "next";
+    };
 
 type BookingsProps = {
   status: (typeof validStatuses)[number];
@@ -76,7 +111,224 @@ const viewParser = createParser({
 function BookingsContent({ status, permissions }: BookingsProps) {
   const [view] = useQueryState("view", viewParser.withDefault("list"));
   const { t } = useLocale();
+  const user = useMeQuery().data;
+  const tableContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
+
+  const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
+  const attendeeName = useFilterValue("attendeeName", ZTextFilterValue);
+  const attendeeEmail = useFilterValue("attendeeEmail", ZTextFilterValue);
+  const bookingUid = useFilterValue("bookingUid", ZTextFilterValue)?.data?.operand as string | undefined;
+
+  const { limit, offset } = useDataTable();
+
+  const query = trpc.viewer.bookings.get.useQuery({
+    limit,
+    offset,
+    filters: {
+      status,
+      eventTypeIds,
+      teamIds,
+      userIds,
+      attendeeName,
+      attendeeEmail,
+      bookingUid,
+      afterStartDate: dateRange?.startDate
+        ? dayjs(dateRange?.startDate).startOf("day").toISOString()
+        : undefined,
+      beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+    },
+  });
+
+  const columns = useMemo(() => {
+    const columnHelper = createColumnHelper<RowData>();
+
+    return [
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
+        id: "eventTypeId",
+        header: t("event_type"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
+        id: "teamId",
+        header: t("team"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
+        id: "userId",
+        header: t("member"),
+        enableColumnFilter: permissions.canReadOthersBookings,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "attendeeName",
+        header: t("attendee_name"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "attendeeEmail",
+        header: t("attendee_email_variable"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row, {
+        id: "dateRange",
+        header: t("date_range"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.DATE_RANGE,
+            dateRangeOptions: {
+              range: status === "past" ? "past" : "custom",
+            },
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+        id: "bookingUid",
+        header: t("booking_uid"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
+            },
+          },
+        },
+      }),
+    ];
+  }, [t, status, permissions.canReadOthersBookings]);
+
+  const flatData = useMemo<RowData[]>(() => {
+    const shownBookings: Record<string, BookingOutput[]> = {};
+    const filterBookings = (booking: BookingOutput) => {
+      if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
+        if (!booking.recurringEventId) {
+          return true;
+        }
+        if (
+          shownBookings[booking.recurringEventId] !== undefined &&
+          shownBookings[booking.recurringEventId].length > 0
+        ) {
+          shownBookings[booking.recurringEventId].push(booking);
+          return false;
+        }
+        shownBookings[booking.recurringEventId] = [booking];
+      } else if (status === "upcoming") {
+        return (
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        );
+      }
+      return true;
+    };
+
+    return (
+      query.data?.bookings.filter(filterBookings).map((booking) => ({
+        type: "data",
+        booking,
+        recurringInfo: query.data?.recurringInfo.find(
+          (info) => info.recurringEventId === booking.recurringEventId
+        ),
+        isToday: false,
+      })) || []
+    );
+  }, [query.data, status, user?.timeZone]);
+
+  const bookingsToday = useMemo<RowData[]>(() => {
+    return (
+      query.data?.bookings
+        .filter(
+          (booking: BookingOutput) =>
+            dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+            dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        )
+        .map((booking) => ({
+          type: "data" as const,
+          booking,
+          recurringInfo: query.data?.recurringInfo.find(
+            (info) => info.recurringEventId === booking.recurringEventId
+          ),
+          isToday: true,
+        })) ?? []
+    );
+  }, [query.data, user?.timeZone]);
+
+  const finalData = useMemo<RowData[]>(() => {
+    if (status !== "upcoming") {
+      return flatData;
+    }
+    const merged: RowData[] = [];
+    if (bookingsToday.length > 0) {
+      merged.push({ type: "today" as const }, ...bookingsToday);
+    }
+    if (flatData.length > 0) {
+      merged.push({ type: "next" as const }, ...flatData);
+    }
+    return merged;
+  }, [bookingsToday, flatData, status]);
+
+  const getFacetedUniqueValues = useFacetedUniqueValues();
+
+  const table = useReactTable<RowData>({
+    data: finalData,
+    columns,
+    initialState: {
+      columnVisibility: {
+        eventTypeId: false,
+        teamId: false,
+        userId: false,
+        attendeeName: false,
+        attendeeEmail: false,
+        dateRange: false,
+        bookingUid: false,
+      },
+    },
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedUniqueValues,
+  });
 
   // Generate dynamic tabs that preserve query parameters
   const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
@@ -130,7 +382,14 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       <main className="w-full">
         <div className="flex w-full flex-col">
           {view === "list" ? (
-            <BookingsListView status={status} permissions={permissions} />
+            <BookingsListView
+              status={status}
+              permissions={permissions}
+              query={query}
+              table={table}
+              tableContainerRef={tableContainerRef}
+              bookingsToday={bookingsToday}
+            />
           ) : (
             <BookingsCalendarView status={status} permissions={permissions} />
           )}
