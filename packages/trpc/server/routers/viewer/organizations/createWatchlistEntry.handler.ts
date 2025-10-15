@@ -54,7 +54,7 @@ export const createWatchlistEntryHandler = async ({ ctx, input }: CreateWatchlis
   if (input.type === "DOMAIN" && !domainRegex.test(input.value)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Invalid domain format. Domain must be a valid domain (e.g., example.com)",
+      message: "Invalid domain format (e.g., example.com)",
     });
   }
 

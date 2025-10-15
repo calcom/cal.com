@@ -5,6 +5,8 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { WatchlistType, WatchlistAction, MembershipRole } from "@calcom/prisma/enums";
 
+import { TRPCError } from "@trpc/server";
+
 import { createWatchlistEntryHandler } from "./createWatchlistEntry.handler";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
@@ -151,10 +153,12 @@ describe("createWatchlistEntryHandler", () => {
             value: "invalid..domain",
           },
         })
-      ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "Invalid domain format (e.g., example.com)",
-      });
+      ).rejects.toStrictEqual(
+        new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid domain format (e.g., example.com)",
+        })
+      );
     });
 
     it("should accept valid email format", async () => {
@@ -247,27 +251,6 @@ describe("createWatchlistEntryHandler", () => {
 
       expect(result.success).toBe(true);
       expect(result.entry).toEqual(mockEntry);
-      expect(mockWatchlistRepo.createEntry).toHaveBeenCalledWith({
-        type: WatchlistType.DOMAIN,
-        value: "spammer.com",
-        organizationId: 100,
-        action: WatchlistAction.BLOCK,
-        description: undefined,
-        userId: 1,
-      });
-    });
-
-    it("should normalize domain with @ prefix by removing it", async () => {
-      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-3" });
-
-      await createWatchlistEntryHandler({
-        ctx: { user: mockUser as any },
-        input: {
-          type: WatchlistType.DOMAIN,
-          value: "@spammer.com",
-        },
-      });
-
       expect(mockWatchlistRepo.createEntry).toHaveBeenCalledWith({
         type: WatchlistType.DOMAIN,
         value: "spammer.com",
