@@ -22,7 +22,6 @@ const handler = async (data: SWHMap["customer.subscription.updated"]["data"] & {
   }
 
   const isOrganization = data.productId === STRIPE_ORG_PRODUCT_ID;
-  console.log("isOrganization", isOrganization);
   const billingRepository = BillingRepositoryFactory.getRepository(isOrganization);
   const teamRepository = new TeamRepository(prisma);
   const teamSubscriptionEventHandler = new TeamSubscriptionEventHandler(billingRepository, teamRepository);
