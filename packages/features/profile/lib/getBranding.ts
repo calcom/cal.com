@@ -24,16 +24,6 @@ type EventTypeWithBranding = {
   }>;
 };
 
-/**
- * Returns branding properties (theme, brandColor, darkBrandColor) for an event type.
- *
- * Applies organization-level brand overrides when available:
- * - For team events: organization branding → team branding → null
- * - For personal events: organization branding → user branding → null
- *
- * This ensures that organization-wide brand consistency can be enforced across
- * all event types (both team and personal) within the organization.
- */
 export function getBrandingForEventType(params: { eventType: EventTypeWithBranding }): {
   theme: string | null;
   brandColor: string | null;
