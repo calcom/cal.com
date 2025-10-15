@@ -1,5 +1,5 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import {
   ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,

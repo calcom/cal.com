@@ -5,7 +5,7 @@ import {
   sendCreditBalanceLimitReachedEmails,
   sendCreditBalanceLowWarningEmails,
 } from "@calcom/emails/email-manager";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";

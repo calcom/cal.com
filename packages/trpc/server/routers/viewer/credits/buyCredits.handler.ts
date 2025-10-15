@@ -1,6 +1,6 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
