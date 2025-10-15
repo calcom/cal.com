@@ -328,6 +328,16 @@ describe("Bookings Endpoints 2024-08-13", () => {
               placeholder: "add video url",
               disableOnPrefill: false,
             },
+            {
+              name: "test-date",
+              type: "date",
+              label: "test date",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
           ],
         },
         user.id
@@ -597,6 +607,16 @@ describe("Bookings Endpoints 2024-08-13", () => {
               disableOnPrefill: false,
             },
             {
+              name: "test-date",
+              type: "date",
+              label: "test-date",
+              hidden: false,
+              sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+              editable: "user",
+              required: false,
+              disableOnPrefill: false,
+            },
+            {
               name: "title",
               type: "text",
               hidden: true,
@@ -826,6 +846,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           bookingFieldsResponses: {
             "favorite-movie": "lord of the rings",
             "video-url": "http://video-url.com",
+            "test-date":"2025-12-25",
           },
         };
         return request(app.getHttpServer())
@@ -1160,6 +1181,63 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
         expect(response.body.error.message).toBe(
           `One or more invalid options for booking field '${fieldName}'. Allowed options are: blue, red.`
+        );
+      });
+
+      it("should reject with 400 if 'test-date' (date) is not a string", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-select": "water",
+            "test-date": 20251225, // Invalid: number instead of string
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-date'. Expected type string (compatible with field type 'date'), but received number."
+        );
+      });
+
+      it("should reject with 400 if 'test-date' (date) is a boolean", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-select": "water",
+            "test-date": true, // Invalid: boolean
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-date'. Expected type string (compatible with field type 'date'), but received boolean."
+        );
+      });
+
+      it("should reject with 400 if 'test-date' (date) is an object", async () => {
+        const payload = {
+          ...basePayload,
+          eventTypeId: eventTypeWithBookingFielsCustom.id,
+          bookingFieldsResponses: {
+            "test-select": "water",
+            "test-date": { date: "2025-12-25" }, // Invalid: object
+          },
+        };
+        const response = await request(app.getHttpServer())
+          .post(`/v2/bookings`)
+          .send(payload)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(
+          "Invalid type for booking field 'test-date'. Expected type string (compatible with field type 'date'), but received object."
         );
       });
     });
