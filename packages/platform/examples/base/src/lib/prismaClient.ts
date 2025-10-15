@@ -1,7 +1,8 @@
-// prisma client of example app
-//  using local prisma db, not related to the cal.com monorepo prisma client
-// eslint-disable-next-line
-import { PrismaClient } from "@prisma/client";
+const isE2E = process.env.NEXT_PUBLIC_IS_E2E === "1";
+
+const { PrismaClient } = isE2E
+  ? require("../../node_modules/.prisma/test-client")
+  : require("@prisma/client");
 
 const prismaClientSingleton = () => {
   return new PrismaClient();

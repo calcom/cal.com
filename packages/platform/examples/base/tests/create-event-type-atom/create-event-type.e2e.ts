@@ -4,6 +4,7 @@ import { generateRandomText } from "../../src/lib/generateRandomText";
 
 test("create event type using CreateEventTypeAtom", async ({ page }) => {
   await page.goto("/");
+  await page.reload();
 
   await page.goto("/event-types");
 
