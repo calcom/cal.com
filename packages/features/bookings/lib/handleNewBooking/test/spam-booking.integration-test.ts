@@ -10,12 +10,12 @@ import {
   BookingLocations,
   createOrganization,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { prisma } from "@calcom/prisma"
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, expect, vi } from "vitest";
 
+import { prisma } from "@calcom/prisma";
 import { WatchlistType, BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
