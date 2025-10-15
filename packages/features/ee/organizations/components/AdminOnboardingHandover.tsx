@@ -22,6 +22,8 @@ export const AdminOnboardingHandover = () => {
     return null;
   }
 
+  // Admin handover page should ONLY use store data, not DB query
+  // The DB query returns the admin's own onboarding, not the one being handed over
   if (!onboardingId) {
     return <Alert severity="error" title={t("error")} message="No onboarding ID found. Please try again." />;
   }

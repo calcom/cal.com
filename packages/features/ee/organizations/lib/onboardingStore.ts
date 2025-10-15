@@ -129,11 +129,18 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
       return;
     }
 
+    // Admin on handover page should never touch the store
+    // The DB query returns admin's own onboarding, not the one being handed over
+    if (isAdmin && path?.includes('/handover')) {
+      return;
+    }
+
     if (organizationOnboarding?.isComplete) {
       reset();
     }
 
     if (organizationOnboarding) {
+
       // Only sync from DB if we have an onboarding record (admin handover or resume flow)
       if (!window.isOrgOnboardingSynced) {
         window.isOrgOnboardingSynced = true;
@@ -160,7 +167,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
     // Note: We no longer redirect if onboardingId is missing, as regular users
     // don't create the onboarding record until the final step
-  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, reset, step, router]);
+  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, reset, step, router, path]);
 
   useEffect(() => {
     if (session.status === "loading") {

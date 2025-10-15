@@ -87,6 +87,9 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         slug: data.slug,
       });
 
+      // Small delay to ensure Zustand persist middleware has time to write to localStorage
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       if (data.handoverUrl) {
         // Admin handover flow - redirect to handover page
         console.log("Admin handover flow detected, redirecting to handover page");
