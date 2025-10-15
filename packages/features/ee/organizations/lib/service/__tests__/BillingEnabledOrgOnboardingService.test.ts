@@ -1,4 +1,4 @@
-import prismock from "../../../../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
@@ -9,8 +9,8 @@ import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizat
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { OrganizationPaymentService } from "../../OrganizationPaymentService";
-import { BillingEnabledOnboardingService } from "../BillingEnabledOnboardingService";
-import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../types";
+import { BillingEnabledOrgOnboardingService } from "../BillingEnabledOrgOnboardingService";
+import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../../onboarding/types";
 
 vi.mock("../../OrganizationPaymentService");
 
@@ -74,8 +74,8 @@ const mockInput: CreateOnboardingIntentInput = {
   ],
 };
 
-describe("BillingEnabledOnboardingService", () => {
-  let service: BillingEnabledOnboardingService;
+describe("BillingEnabledOrgOnboardingService", () => {
+  let service: BillingEnabledOrgOnboardingService;
   let mockPaymentService: any;
 
   beforeEach(async () => {
@@ -116,7 +116,7 @@ describe("BillingEnabledOnboardingService", () => {
       }),
     };
 
-    service = new BillingEnabledOnboardingService(mockUser as any, mockPaymentService);
+    service = new BillingEnabledOrgOnboardingService(mockUser as any, mockPaymentService);
   });
 
   describe("createOnboardingIntent", () => {

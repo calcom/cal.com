@@ -3,7 +3,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
-import { BillingEnabledOnboardingService } from "./BillingEnabledOnboardingService";
+import { BillingEnabledOrgOnboardingService } from "../service/BillingEnabledOrgOnboardingService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
 import { SelfHostedOnboardingService } from "./SelfHostedOnboardingService";
 import type { OnboardingUser } from "./types";
@@ -32,7 +32,7 @@ export class OrganizationOnboardingFactory {
     );
 
     if (isBillingEnabled) {
-      return new BillingEnabledOnboardingService(user);
+      return new BillingEnabledOrgOnboardingService(user);
     } else {
       return new SelfHostedOnboardingService(user);
     }

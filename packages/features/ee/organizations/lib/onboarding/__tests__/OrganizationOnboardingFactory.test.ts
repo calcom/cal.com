@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
-import { BillingEnabledOnboardingService } from "../BillingEnabledOnboardingService";
+import { BillingEnabledOrgOnboardingService } from "../../service/BillingEnabledOrgOnboardingService";
 import { OrganizationOnboardingFactory } from "../OrganizationOnboardingFactory";
 import { SelfHostedOnboardingService } from "../SelfHostedOnboardingService";
 
@@ -35,7 +35,7 @@ describe("OrganizationOnboardingFactory", () => {
   });
 
   describe("create", () => {
-    it("should return BillingEnabledOnboardingService for regular user when billing is enabled", async () => {
+    it("should return BillingEnabledOrgOnboardingService for regular user when billing is enabled", async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -47,10 +47,10 @@ describe("OrganizationOnboardingFactory", () => {
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
       const service = Factory.create(mockRegularUser as any);
 
-      expect(service.constructor.name).toBe("BillingEnabledOnboardingService");
+      expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
     });
 
-    it("should return BillingEnabledOnboardingService for admin on hosted (billing enabled)", async () => {
+    it("should return BillingEnabledOrgOnboardingService for admin on hosted (billing enabled)", async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -62,7 +62,7 @@ describe("OrganizationOnboardingFactory", () => {
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
       const service = Factory.create(mockAdminUser as any);
 
-      expect(service.constructor.name).toBe("BillingEnabledOnboardingService");
+      expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
     });
 
     it("should return SelfHostedOnboardingService for admin when IS_TEAM_BILLING_ENABLED is false", async () => {
@@ -81,7 +81,7 @@ describe("OrganizationOnboardingFactory", () => {
       expect(service.constructor.name).toBe("SelfHostedOnboardingService");
     });
 
-    it("should return BillingEnabledOnboardingService for regular user when IS_TEAM_BILLING_ENABLED is false", async () => {
+    it("should return BillingEnabledOrgOnboardingService for regular user when IS_TEAM_BILLING_ENABLED is false", async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -94,7 +94,7 @@ describe("OrganizationOnboardingFactory", () => {
       const service = Factory.create(mockRegularUser as any);
 
       // Non-admins still need billing even on self-hosted
-      expect(service.constructor.name).toBe("BillingEnabledOnboardingService");
+      expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
     });
 
     it("should return SelfHostedOnboardingService in E2E mode", async () => {
@@ -115,7 +115,7 @@ describe("OrganizationOnboardingFactory", () => {
       expect(service.constructor.name).toBe("SelfHostedOnboardingService");
     });
 
-    it("should return BillingEnabledOnboardingService when billing is enabled for regular user", async () => {
+    it("should return BillingEnabledOrgOnboardingService when billing is enabled for regular user", async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -127,7 +127,7 @@ describe("OrganizationOnboardingFactory", () => {
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
       const service = Factory.create(mockRegularUser as any);
 
-      expect(service.constructor.name).toBe("BillingEnabledOnboardingService");
+      expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
     });
   });
 
@@ -200,7 +200,7 @@ describe("OrganizationOnboardingFactory", () => {
         const service = Factory.create(user as any);
 
         if (expected === "BillingEnabled") {
-          expect(service.constructor.name).toBe("BillingEnabledOnboardingService");
+          expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
         } else {
           expect(service.constructor.name).toBe("SelfHostedOnboardingService");
         }

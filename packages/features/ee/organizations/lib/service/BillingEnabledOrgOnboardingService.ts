@@ -8,15 +8,15 @@ import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/
 import type { Team, User } from "@calcom/prisma/client";
 import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 
-import { BaseOnboardingService } from "./BaseOnboardingService";
+import { BaseOnboardingService } from "../onboarding/BaseOnboardingService";
 import type {
   CreateOnboardingIntentInput,
   OnboardingIntentResult,
   OrganizationOnboardingData,
   OrganizationData,
-} from "./types";
+} from "../onboarding/types";
 
-const log = logger.getSubLogger({ prefix: ["BillingEnabledOnboardingService"] });
+const log = logger.getSubLogger({ prefix: ["BillingEnabledOrgOnboardingService"] });
 
 const invitedMembersSchema = orgOnboardingInvitedMembersSchema;
 const teamsSchema = orgOnboardingTeamsSchema;
@@ -31,10 +31,10 @@ const teamsSchema = orgOnboardingTeamsSchema;
  * 4. Return checkout URL
  * 5. Organization created later via Stripe webhook
  */
-export class BillingEnabledOnboardingService extends BaseOnboardingService {
+export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
   async createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<OnboardingIntentResult> {
     log.debug(
-      "BillingEnabledOnboardingService.createOnboardingIntent - INPUT",
+      "BillingEnabledOrgOnboardingService.createOnboardingIntent - INPUT",
       safeStringify({
         invitedMembers: input.invitedMembers,
         teams: input.teams,
@@ -44,7 +44,7 @@ export class BillingEnabledOnboardingService extends BaseOnboardingService {
     const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
 
     log.debug(
-      "BillingEnabledOnboardingService - After filterTeamsAndInvites",
+      "BillingEnabledOrgOnboardingService - After filterTeamsAndInvites",
       safeStringify({
         teamsData,
         invitedMembersData,

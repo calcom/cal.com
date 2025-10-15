@@ -6,7 +6,7 @@ This document explains how the organization onboarding system works and how to c
 
 The organization onboarding system supports two different flows:
 
-1. **Billing-Enabled Flow** (BillingEnabledOnboardingService): Used on hosted Cal.com with Stripe integration
+1. **Billing-Enabled Flow** (BillingEnabledOrgOnboardingService): Used on hosted Cal.com with Stripe integration
 2. **Self-Hosted Flow** (SelfHostedOnboardingService): Used on self-hosted instances where admins can create organizations without payment
 
 The system automatically selects the appropriate flow based on environment variables and user permissions.
@@ -19,7 +19,7 @@ The `OrganizationOnboardingFactory` class determines which onboarding service to
 
 ```typescript
 OrganizationOnboardingFactory.create(user)
-  → BillingEnabledOnboardingService | SelfHostedOnboardingService
+  → BillingEnabledOrgOnboardingService | SelfHostedOnboardingService
 ```
 
 ### Decision Logic
@@ -31,13 +31,13 @@ IF process.env.NEXT_PUBLIC_IS_E2E is set:
   → Use SelfHostedOnboardingService (E2E tests always skip billing)
 
 ELSE IF IS_TEAM_BILLING_ENABLED is true:
-  → Use BillingEnabledOnboardingService (hosted environment with Stripe)
+  → Use BillingEnabledOrgOnboardingService (hosted environment with Stripe)
 
 ELSE IF user.role is ADMIN:
   → Use SelfHostedOnboardingService (self-hosted admins skip billing)
 
 ELSE:
-  → Use BillingEnabledOnboardingService (non-admins need billing even on self-hosted)
+  → Use BillingEnabledOrgOnboardingService (non-admins need billing even on self-hosted)
 ```
 
 ## Environment Variables
@@ -108,7 +108,7 @@ STRIPE_PRIVATE_KEY=sk_live_xxx
 - `IS_SELF_HOSTED` = `false`
 - `HOSTED_CAL_FEATURES` = `true`
 - `IS_TEAM_BILLING_ENABLED` = `true`
-- All users → **BillingEnabledOnboardingService**
+- All users → **BillingEnabledOrgOnboardingService**
 
 ### Scenario 2: Self-Hosted with Billing (Optional)
 
@@ -125,7 +125,7 @@ STRIPE_PRIVATE_KEY=sk_live_xxx
 - `IS_SELF_HOSTED` = `true`
 - `HOSTED_CAL_FEATURES` = `true` (forced)
 - `IS_TEAM_BILLING_ENABLED` = `true`
-- All users → **BillingEnabledOnboardingService**
+- All users → **BillingEnabledOrgOnboardingService**
 
 ### Scenario 3: Self-Hosted without Billing (Default)
 
@@ -140,7 +140,7 @@ STRIPE_PRIVATE_KEY=sk_live_xxx
 - `HOSTED_CAL_FEATURES` = `false`
 - `IS_TEAM_BILLING_ENABLED` = `false`
 - Admin users → **SelfHostedOnboardingService**
-- Regular users → **BillingEnabledOnboardingService** (will fail without Stripe)
+- Regular users → **BillingEnabledOrgOnboardingService** (will fail without Stripe)
 
 **Recommendation:** In this scenario, only admins should be allowed to create organizations.
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
-import { BillingEnabledOnboardingService } from "@calcom/features/ee/organizations/lib/onboarding/BillingEnabledOnboardingService";
+import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/BillingEnabledOrgOnboardingService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
@@ -113,7 +113,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
           role: "ADMIN" as const,
         };
 
-    const onboardingService = new BillingEnabledOnboardingService(userContext);
+    const onboardingService = new BillingEnabledOrgOnboardingService(userContext);
     const { organization } = await onboardingService.createOrganization(organizationOnboarding, {
       subscriptionId: paymentSubscriptionId,
       subscriptionItemId: paymentSubscriptionItemId,
