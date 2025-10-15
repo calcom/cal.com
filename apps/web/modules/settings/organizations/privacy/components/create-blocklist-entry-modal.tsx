@@ -2,7 +2,7 @@
 
 import { Controller, useForm } from "react-hook-form";
 
-import { domainWithAtRegex, emailRegex } from "@calcom/lib/emailSchema";
+import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WatchlistType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -71,7 +71,7 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
         return t("invalid_email_address");
       }
     } else if (watchType === WatchlistType.DOMAIN) {
-      if (!domainWithAtRegex.test(value)) {
+      if (!domainRegex.test(value)) {
         return t("invalid_domain_format");
       }
     }
@@ -130,7 +130,7 @@ export function CreateBlocklistEntryModal({ isOpen, onClose }: CreateBlocklistEn
                 render={({ field }) => (
                   <Input
                     {...field}
-                    placeholder={watchType === WatchlistType.EMAIL ? "user@example.com" : "@spammer.com"}
+                    placeholder={watchType === WatchlistType.EMAIL ? "user@example.com" : "spammer.com"}
                   />
                 )}
               />
