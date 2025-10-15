@@ -60,6 +60,5 @@ export class TeamSubscriptionEventHandler {
       (field) =>
         subscription[field as keyof TSubscriptionUpdate] !== dbSubscription[field as keyof BillingRecord]
     );
-    return false;
   }
 }
