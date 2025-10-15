@@ -49,8 +49,6 @@ export class OrganizationOnboardingFactory {
       return true;
     }
 
-    // Self-hosted admins can skip billing, non-admins still need billing even on self-hosted
-    const isAdmin = user.role === UserPermissionRole.ADMIN;
-    return !isAdmin;
+    return false;
   }
 }
