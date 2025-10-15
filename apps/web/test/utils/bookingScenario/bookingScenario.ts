@@ -230,6 +230,8 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       end: string;
     }[];
   };
+  requiresBookerEmailVerification?: boolean;
+  secondaryEmails?: { email: string; emailVerified: Date | null }[];
 };
 
 export type InputEventType = {
@@ -822,6 +824,21 @@ export async function addUsersToDb(users: InputUser[]) {
     }
   }
 
+  for (const user of users) {
+    if (user.secondaryEmails) {
+      log.debug("Creating SecondaryEmail entries for user", user.id);
+      for (const secondaryEmail of user.secondaryEmails) {
+        await prismock.secondaryEmail.create({
+          data: {
+            email: secondaryEmail.email,
+            emailVerified: secondaryEmail.emailVerified,
+            userId: user.id,
+          },
+        });
+      }
+    }
+  }
+
   const allUsers = await prismock.user.findMany({
     include: {
       credentials: true,
@@ -833,6 +850,7 @@ export async function addUsersToDb(users: InputUser[]) {
         },
       },
       destinationCalendar: true,
+      secondaryEmails: true,
     },
   });
 
@@ -1540,6 +1558,8 @@ export function getOrganizer({
   username,
   locked,
   emailVerified,
+  requiresBookerEmailVerification,
+  secondaryEmails,
 }: {
   name: string;
   email: string;
@@ -1558,6 +1578,8 @@ export function getOrganizer({
   username?: string;
   locked?: boolean;
   emailVerified?: Date | null;
+  requiresBookerEmailVerification?: boolean;
+  secondaryEmails?: { email: string; emailVerified: Date | null }[];
 }) {
   username = username ?? TestData.users.example.username;
   return {
@@ -1580,6 +1602,8 @@ export function getOrganizer({
     completedOnboarding,
     locked,
     emailVerified,
+    requiresBookerEmailVerification,
+    secondaryEmails,
   };
 }
 

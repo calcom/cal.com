@@ -1,6 +1,6 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -58,7 +58,7 @@ import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -427,6 +427,45 @@ export interface IBookingServiceDependencies {
   attributeRepository: AttributeRepository;
 }
 
+/**
+ * TODO: Ideally we should send organizationId directly to handleNewBooking.
+ * webapp can derive from domain and API V2 knows it already through its endpoint URL
+ */
+async function getEventOrganizationId({
+  eventType,
+}: {
+  eventType: {
+    userId: number | null;
+    team: {
+      parentId: number | null;
+    } | null;
+    parent: {
+      team: {
+        parentId: number | null;
+      } | null;
+    } | null;
+  };
+}) {
+  let eventOrganizationId: number | null = null;
+  const team = eventType.team ?? eventType.parent?.team ?? null;
+  eventOrganizationId = team?.parentId ?? null;
+
+  if (eventOrganizationId) {
+    return eventOrganizationId;
+  }
+
+  if (eventType.userId) {
+    // TODO: Moving it to instance based access through DI in a followup
+    const profile = await ProfileRepository.findFirstForUserId({
+      userId: eventType.userId,
+    });
+    eventOrganizationId = profile?.organizationId ?? null;
+    return eventOrganizationId;
+  }
+
+  return eventOrganizationId;
+}
+
 async function handler(
   input: BookingHandlerInput,
   deps: IBookingServiceDependencies,
@@ -451,6 +490,7 @@ async function handler(
   const {
     prismaClient: prisma,
     bookingRepository,
+    userRepository,
     cacheService,
     checkBookingAndDurationLimitsService,
     luckyUserService,
@@ -506,12 +546,24 @@ async function handler(
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
-  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+  try {
+    await checkIfBookerEmailIsBlocked({
+      loggedInUserId: userId,
+      bookerEmail,
+      verificationCode: reqBody.verificationCode,
+    });
+  } catch (error) {
+    if (error instanceof ErrorWithCode) {
+      throw new HttpError({ statusCode: 403, message: error.message });
+    }
+    throw error;
+  }
 
   const spamCheckService = getSpamCheckService();
-  // Either it is a team event or a managed child event of a managed event
-  const team = eventType.team ?? eventType.parent?.team ?? null;
-  const eventOrganizationId = team?.parentId ?? null;
+  const eventOrganizationId = await getEventOrganizationId({
+    eventType,
+  });
+
   spamCheckService.startCheck({ email: bookerEmail, organizationId: eventOrganizationId });
 
   if (!rawBookingData.rescheduleUid) {
@@ -1156,13 +1208,31 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
+  const guestEmails = (reqGuests || []).map((email) => extractBaseEmail(email).toLowerCase());
+  const guestUsers = await userRepository.findManyByEmailsWithEmailVerificationSettings({
+    emails: guestEmails,
+  });
+
+  const emailToRequiresVerification = new Map<string, boolean>();
+  for (const user of guestUsers) {
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
+  }
+
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+
     if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
       guestsRemoved.push(guest);
       return guestArray;
     }
+
+    if (emailToRequiresVerification.get(baseGuestEmail)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
+
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
