@@ -187,6 +187,9 @@ function BookingsContent({ status, permissions }: BookingsProps) {
     },
   });
 
+  // columns are defined here
+  // check this one out
+  // we need to have something like this in the managed user booking table
   const columns = useMemo(() => {
     const columnHelper = createColumnHelper<RowData>();
 
@@ -431,12 +434,12 @@ function BookingsContent({ status, permissions }: BookingsProps) {
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
-              I need to reuse this in the managed users booking table also maybe ask cursor or devin or gemini
-              whatever about how to setup this table
+              {/* I need to reuse this in the managed users booking table also maybe ask cursor or devin or gemini
+              whatever about how to setup this table */}
               <DataTableWrapper
                 className="mb-6"
                 tableContainerRef={tableContainerRef}
-                // actual toolbar is loaded from here
+                // actual table is loaded from here
                 table={table}
                 testId={`${status}-bookings`}
                 bodyTestId="bookings"
@@ -447,13 +450,15 @@ function BookingsContent({ status, permissions }: BookingsProps) {
                 paginationMode="standard"
                 ToolbarLeft={
                   <>
-                    toolbar left content
+                    {/* toolbar left content
+                    this contains booking filters eg. bookings uid, team, event type, attendee name, date range
+                    we need to have something like this in the managed user booking table */}
                     <DataTableFilters.FilterBar table={table} />
                   </>
                 }
                 ToolbarRight={
                   <>
-                    toolbar right content
+                    {/* toolbar right content, contains saved filters and save button, not needed in managed user booking table */}
                     <DataTableFilters.ClearFiltersButton />
                     <DataTableSegment.SaveButton />
                     <DataTableSegment.Select />
