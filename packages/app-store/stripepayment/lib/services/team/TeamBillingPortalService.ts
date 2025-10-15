@@ -28,14 +28,12 @@ export class TeamBillingPortalService extends BillingPortalService {
     let teamSubscriptionId = "";
 
     if (team.isPlatform) {
-      const subscriptionId = await getValidatedTeamSubscriptionIdForPlatform(
-        team.platformBilling?.subscriptionId
-      );
+      const subscriptionId = getValidatedTeamSubscriptionIdForPlatform(team.platformBilling?.subscriptionId);
 
       if (!subscriptionId) return null;
       teamSubscriptionId = subscriptionId;
     } else {
-      const subscriptionId = await getValidatedTeamSubscriptionId(team.metadata);
+      const subscriptionId = getValidatedTeamSubscriptionId(team.metadata);
 
       if (!subscriptionId) return null;
       teamSubscriptionId = subscriptionId;

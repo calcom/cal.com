@@ -1,7 +1,7 @@
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-export const getValidatedTeamSubscriptionId = async (metadata: Prisma.JsonValue) => {
+export const getValidatedTeamSubscriptionId = (metadata: Prisma.JsonValue) => {
   const teamMetadataParsed = teamMetadataSchema.safeParse(metadata);
 
   if (!teamMetadataParsed.success || !teamMetadataParsed.data?.subscriptionId) {
