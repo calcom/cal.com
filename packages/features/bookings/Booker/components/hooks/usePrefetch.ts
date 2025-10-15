@@ -36,7 +36,8 @@ export const usePrefetch = ({ date, month, bookerLayout, bookerState }: UsePrefe
     bookerLayout.layout,
     bookerState,
     monthAfterAdding1Month,
-    monthAfterAddingExtraDaysColumnView
+    monthAfterAddingExtraDaysColumnView,
+    prefetchNextMonth
   );
 
   return {
