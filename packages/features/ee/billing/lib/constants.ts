@@ -1,0 +1,3 @@
+export const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
+export const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID || "";
+export const STRIPE_CAL_AI_PHONE_NUMBER_PRODUCT_ID = process.env.STRIPE_CAL_AI_PHONE_NUMBER_PRODUCT_ID || "";
