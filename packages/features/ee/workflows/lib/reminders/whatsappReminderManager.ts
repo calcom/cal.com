@@ -16,7 +16,7 @@ import {
   getContentVariablesForTemplate,
 } from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
-import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
+import type { BookingInfo, ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
   whatsappEventCompletedTemplate,
@@ -26,7 +26,7 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
-export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
+export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     reminderPhone,
