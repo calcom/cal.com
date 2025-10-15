@@ -82,7 +82,7 @@ async function getResponseWithFormFieldsHandler({ ctx, input }: GetResponseWithF
     });
   }
 
-  const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const { UserRepository } = await import("@calcom/features/users/repositories/UserRepository");
   const userRepo = new UserRepository(prisma);
   const formWithUserProfile = {
     ...form,
