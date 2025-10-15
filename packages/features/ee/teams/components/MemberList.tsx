@@ -286,6 +286,15 @@ function MemberListContent(props: Props) {
     },
   });
 
+  const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
+    onSuccess: () => {
+      showToast(t("success"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   // const ownersInTeam = () => {
   //   const { members } = props.team;
   //   const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
@@ -426,15 +435,26 @@ function MemberListContent(props: Props) {
         enableResizing: false,
         cell: ({ row }) => {
           const user = row.original;
-          const isSelf = user.id === session?.user.id;
-          // TODO(SEAN) In a follow up can we rename canChangeMemberRole to canEditMembers - role is a bit specific.
+          const isSelf =
+            user.id === session?.user.id ||
+            user.email === session?.user.email ||
+            (!!user.username &&
+              user.username === (session?.user as { username?: string } | undefined)?.username);
+
           const canChangeRole = props.permissions?.canChangeMemberRole ?? false;
           const canRemove = props.permissions?.canRemove ?? false;
           const canImpersonate = props.permissions?.canImpersonate ?? false;
           const canResendInvitation = props.permissions?.canInvite ?? false;
+          const viewerIsAdminOrOwner =
+            props.isOrgAdminOrOwner ??
+            (props.team?.membership?.role === "ADMIN" || props.team?.membership?.role === "OWNER");
+          const rowRoleIsAdminOrOwner = user.role === "ADMIN" || user.role === "OWNER";
+          const rowIsOwnerSelf = isSelf && user.role === "OWNER";
+          const canChangeRoleEffective = canChangeRole || (isSelf && viewerIsAdminOrOwner);
           const editMode =
-            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) &&
-            (!isSelf || props.isOrgAdminOrOwner);
+            (isSelf && (viewerIsAdminOrOwner || rowRoleIsAdminOrOwner)) ||
+            ([canChangeRoleEffective, canRemove, canImpersonate, canResendInvitation].some(Boolean) &&
+              (!isSelf || viewerIsAdminOrOwner));
 
           const impersonationMode =
             canImpersonate &&
@@ -471,19 +491,16 @@ function MemberListContent(props: Props) {
                         StartIcon="clock"
                       />
                     </Tooltip> */}
-                    {!!user.accepted && (
-                      <Tooltip content={t("view_public_page")}>
-                        <Button
-                          target="_blank"
-                          href={`${user.bookerUrl}/${user.username}`}
-                          color="secondary"
-                          className={classNames(!editMode ? "rounded-r-md" : "")}
-                          variant="icon"
-                          StartIcon="external-link"
-                          disabled={!user.accepted}
-                        />
-                      </Tooltip>
-                    )}
+                    <Tooltip content={t("view_public_page")}>
+                      <Button
+                        target="_blank"
+                        href={`${user.bookerUrl}/${user.username}`}
+                        color="secondary"
+                        className={classNames(!editMode ? "rounded-r-md" : "")}
+                        variant="icon"
+                        StartIcon="external-link"
+                      />
+                    </Tooltip>
                     {editMode && (
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
@@ -496,7 +513,7 @@ function MemberListContent(props: Props) {
                         </DropdownMenuTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuContent>
-                            {canChangeRole ? (
+                            {canChangeRoleEffective ? (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -514,6 +531,22 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             ) : null}
+                            {rowIsOwnerSelf && (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    acceptOrLeaveMutation.mutate({
+                                      teamId: props.team?.id,
+                                      accept: false,
+                                    })
+                                  }
+                                  color="destructive"
+                                  StartIcon="log-out">
+                                  {t("leave_team")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            )}
                             {impersonationMode && (
                               <>
                                 <DropdownMenuItem>
@@ -535,7 +568,7 @@ function MemberListContent(props: Props) {
                                 <DropdownMenuSeparator />
                               </>
                             )}
-                            {canResendInvitation && (
+                            {!rowIsOwnerSelf && canResendInvitation && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -551,7 +584,7 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             )}
-                            {canRemove ? (
+                            {!rowIsOwnerSelf && canRemove ? (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -584,8 +617,7 @@ function MemberListContent(props: Props) {
                         <DropdownMenuContent>
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
-                              disabled={!user.accepted}
-                              href={!user.accepted ? undefined : `/${user.username}`}
+                              href={`/${user.username}`}
                               target="_blank"
                               type="button"
                               StartIcon="external-link">
@@ -610,6 +642,22 @@ function MemberListContent(props: Props) {
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
+                              {rowIsOwnerSelf && (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    color="destructive"
+                                    onClick={() =>
+                                      acceptOrLeaveMutation.mutate({
+                                        teamId: props.team?.id,
+                                        accept: false,
+                                      })
+                                    }
+                                    StartIcon="log-out">
+                                    {t("leave_team")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"

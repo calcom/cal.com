@@ -448,7 +448,7 @@ function UserListTableContent({
           const isSelf = user.id === session?.user.id;
 
           const permissionsForUser = {
-            canEdit: permissionsRaw.canEdit && user.accepted && (!isSelf || adminOrOwner),
+            canEdit: user.accepted && (permissionsRaw.canEdit || (isSelf && adminOrOwner)),
             canRemove: permissionsRaw.canRemove && !isSelf,
             canImpersonate:
               user.accepted &&
