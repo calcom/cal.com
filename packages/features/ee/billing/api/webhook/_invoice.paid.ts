@@ -1,6 +1,6 @@
 import logger from "@calcom/lib/logger";
 
-import type { LazyModule, SWHMap } from "./__handler";
+import type { LazyModule, SWHMap } from "../../lib/types";
 
 type Data = SWHMap["invoice.paid"]["data"];
 

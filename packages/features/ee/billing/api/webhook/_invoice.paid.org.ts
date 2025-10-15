@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
-import type { SWHMap } from "./__handler";
+import type { SWHMap } from "../../lib/types";
 
 const invoicePaidSchema = z.object({
   object: z.object({
