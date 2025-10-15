@@ -11,6 +11,7 @@ import { OrganizationsRolesPermissionsController } from "./controllers/organizat
 import { OrganizationsRolesController } from "./controllers/organizations-roles.controller";
 import { OrganizationsRolesOutputService } from "./services/organizations-roles-output.service";
 import { OrganizationsRolesService } from "./services/organizations-roles.service";
+import { RolePermissionsOutputService } from "./services/role-permissions-output.service";
 import { RolePermissionsService } from "./services/role-permissions.service";
 
 @Module({
@@ -24,6 +25,7 @@ import { RolePermissionsService } from "./services/role-permissions.service";
     OrganizationsRolesService,
     OrganizationsRolesOutputService,
     RolePermissionsService,
+    RolePermissionsOutputService,
   ],
   controllers: [OrganizationsRolesController, OrganizationsRolesPermissionsController],
   exports: [OrganizationsRolesService],

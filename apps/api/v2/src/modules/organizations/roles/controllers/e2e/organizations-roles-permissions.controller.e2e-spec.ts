@@ -19,6 +19,7 @@ import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { RoleService } from "@calcom/platform-libraries/pbac";
+import type { PermissionString } from "@calcom/platform-libraries/pbac";
 import type { Team, User } from "@calcom/prisma/client";
 
 describe("Organizations Roles Permissions Endpoints", () => {
@@ -111,8 +112,10 @@ describe("Organizations Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const createResBody: CreateRoleOutput = createRes.body;
-    const roleId = createResBody.data.id;
+    const responseBody: CreateRoleOutput = createRes.body;
+    expect(responseBody.status).toEqual(SUCCESS_STATUS);
+    expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
+    const roleId = responseBody.data.id;
 
     const listRes = await request(app.getHttpServer())
       .get(
@@ -139,8 +142,10 @@ describe("Organizations Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const createResBody1: CreateRoleOutput = createRes.body;
-    const roleId = createResBody1.data.id;
+    const responseBody: CreateRoleOutput = createRes.body;
+    expect(responseBody.status).toEqual(SUCCESS_STATUS);
+    expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
+    const roleId = responseBody.data.id;
 
     const addRes = await request(app.getHttpServer())
       .post(
@@ -155,30 +160,23 @@ describe("Organizations Roles Permissions Endpoints", () => {
 
   it("bulk removes permissions via query (DELETE /)", async () => {
     // Seed role
-    const initialPermissions = ["booking.read"] as const;
-    const toAdd = ["eventType.create", "eventType.read"] as const;
-    const toRemove = [...toAdd];
-    const expected = [...initialPermissions] as string[];
+    const initialPermissions: PermissionString[] = ["booking.read", "eventType.create", "eventType.read"];
+    const toRemove: PermissionString[] = ["eventType.create", "eventType.read"];
+    const expected: PermissionString[] = ["booking.read"];
 
     const baseRoleInput: CreateRoleInput = {
       name: `perm-target-role-delmany-${randomString()}`,
-      permissions: [...initialPermissions],
+      permissions: initialPermissions,
     };
     const createRes = await request(app.getHttpServer())
       .post(`/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles`)
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const createResBodyAdd: CreateRoleOutput = createRes.body;
-    const roleId = createResBodyAdd.data.id;
-
-    await request(app.getHttpServer())
-      .post(
-        `/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles/${roleId}/permissions`
-      )
-      .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
-      .send({ permissions: toAdd })
-      .expect(200);
+    const responseBody: CreateRoleOutput = createRes.body;
+    expect(responseBody.status).toEqual(SUCCESS_STATUS);
+    expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
+    const roleId = responseBody.data.id;
 
     await request(app.getHttpServer())
       .delete(
@@ -211,8 +209,10 @@ describe("Organizations Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const createResBodyPut2: CreateRoleOutput = createRes.body;
-    const roleId = createResBodyPut2.data.id;
+    const responseBody: CreateRoleOutput = createRes.body;
+    expect(responseBody.status).toEqual(SUCCESS_STATUS);
+    expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
+    const roleId = responseBody.data.id;
 
     const putRes = await request(app.getHttpServer())
       .put(
@@ -240,8 +240,10 @@ describe("Organizations Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const createResBody: CreateRoleOutput = createRes.body;
-    const roleId = createResBody.data.id;
+    const responseBody: CreateRoleOutput = createRes.body;
+    expect(responseBody.status).toEqual(SUCCESS_STATUS);
+    expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
+    const roleId = responseBody.data.id;
 
     await request(app.getHttpServer())
       .delete(

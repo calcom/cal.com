@@ -50,6 +50,26 @@ export class OrganizationsRolesPermissionsController {
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
+  @Pbac(["role.update"])
+  @Post("/")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Add permissions to a role (single or batch)" })
+  async addPermissions(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("roleId") roleId: string,
+    @Body() body: CreateRolePermissionsInput
+  ): Promise<GetRolePermissionsOutput> {
+    const permissions = await this.rolePermissionsService.addRolePermissions(
+      teamId,
+      roleId,
+      body.permissions
+    );
+    return { status: SUCCESS_STATUS, data: permissions };
+  }
+
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("SCALE")
   @Pbac(["role.read"])
   @Get("/")
   @HttpCode(HttpStatus.OK)
@@ -66,19 +86,19 @@ export class OrganizationsRolesPermissionsController {
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
   @Pbac(["role.update"])
-  @Post("/")
+  @Put("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Add permissions to a role (single or batch)" })
-  async addPermissions(
+  @ApiOperation({ summary: "Replace all permissions for a role" })
+  async setPermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string,
     @Body() body: CreateRolePermissionsInput
   ): Promise<GetRolePermissionsOutput> {
-    const permissions = await this.rolePermissionsService.addRolePermissions(
+    const permissions = await this.rolePermissionsService.setRolePermissions(
       teamId,
       roleId,
-      body.permissions
+      body.permissions || []
     );
     return { status: SUCCESS_STATUS, data: permissions };
   }
@@ -111,25 +131,5 @@ export class OrganizationsRolesPermissionsController {
     @Query() query: DeleteRolePermissionsQuery
   ): Promise<void> {
     await this.rolePermissionsService.removeRolePermissions(teamId, roleId, query.permissions || []);
-  }
-
-  @Roles("ORG_ADMIN")
-  @PlatformPlan("SCALE")
-  @Pbac(["role.update"])
-  @Put("/")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Replace all permissions for a role" })
-  async setPermissions(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("teamId", ParseIntPipe) teamId: number,
-    @Param("roleId") roleId: string,
-    @Body() body: CreateRolePermissionsInput
-  ): Promise<GetRolePermissionsOutput> {
-    const permissions = await this.rolePermissionsService.setRolePermissions(
-      teamId,
-      roleId,
-      body.permissions || []
-    );
-    return { status: SUCCESS_STATUS, data: permissions };
   }
 }

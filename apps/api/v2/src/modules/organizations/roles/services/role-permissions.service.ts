@@ -1,3 +1,4 @@
+import { RolePermissionsOutputService } from "@/modules/organizations/roles/services/role-permissions-output.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import type { PermissionString, UpdateRolePermissionsData } from "@calcom/platform-libraries/pbac";
@@ -5,9 +6,12 @@ import { RoleService } from "@calcom/platform-libraries/pbac";
 
 @Injectable()
 export class RolePermissionsService {
-  constructor(private readonly roleService: RoleService) {}
+  constructor(
+    private readonly roleService: RoleService,
+    private readonly rolePermissionsOutputService: RolePermissionsOutputService
+  ) {}
 
-  async getRolePermissions(teamId: number, roleId: string): Promise<PermissionString[]> {
+  async getRolePermissions(teamId: number, roleId: string) {
     const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
@@ -18,14 +22,10 @@ export class RolePermissionsService {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
     }
 
-    return role.permissions.map((p) => `${p.resource}.${p.action}` as PermissionString);
+    return this.rolePermissionsOutputService.getPermissionsFromRole(role);
   }
 
-  async addRolePermissions(
-    teamId: number,
-    roleId: string,
-    permissionsToAdd: PermissionString[]
-  ): Promise<PermissionString[]> {
+  async addRolePermissions(teamId: number, roleId: string, permissionsToAdd: PermissionString[]) {
     const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
@@ -42,7 +42,7 @@ export class RolePermissionsService {
 
     try {
       const updatedRole = await this.roleService.update(updateData);
-      return updatedRole.permissions.map((p) => `${p.resource}.${p.action}` as PermissionString);
+      return this.rolePermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error && error.message.includes("Invalid permissions provided")) {
         throw new BadRequestException(error.message);
@@ -51,11 +51,7 @@ export class RolePermissionsService {
     }
   }
 
-  async removeRolePermission(
-    teamId: number,
-    roleId: string,
-    permissionToRemove: PermissionString
-  ): Promise<void> {
+  async removeRolePermission(teamId: number, roleId: string, permissionToRemove: PermissionString) {
     const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
@@ -85,11 +81,7 @@ export class RolePermissionsService {
     }
   }
 
-  async removeRolePermissions(
-    teamId: number,
-    roleId: string,
-    permissionsToRemove: PermissionString[]
-  ): Promise<void> {
+  async removeRolePermissions(teamId: number, roleId: string, permissionsToRemove: PermissionString[]) {
     const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
@@ -120,11 +112,7 @@ export class RolePermissionsService {
     }
   }
 
-  async setRolePermissions(
-    teamId: number,
-    roleId: string,
-    permissions: PermissionString[]
-  ): Promise<PermissionString[]> {
+  async setRolePermissions(teamId: number, roleId: string, permissions: PermissionString[]) {
     const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
