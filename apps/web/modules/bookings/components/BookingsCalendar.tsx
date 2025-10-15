@@ -14,7 +14,7 @@ type BookingsCalendarViewProps = {
   };
 };
 
-export function BookingsCalendarView(_props: BookingsCalendarViewProps) {
+export function BookingsCalendar(_props: BookingsCalendarViewProps) {
   const { t } = useLocale();
 
   return (

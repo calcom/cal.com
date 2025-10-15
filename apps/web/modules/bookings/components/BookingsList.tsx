@@ -14,7 +14,7 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
-import type { RowData } from "./bookings-listing-view";
+import type { RowData } from "../views/bookings-view";
 
 type BookingListingStatus = (typeof validStatuses)[number];
 
@@ -37,7 +37,7 @@ type BookingsListViewProps = {
   bookingsToday: RowData[];
 };
 
-export function BookingsListView({
+export function BookingsList({
   status,
   permissions: _permissions,
   query,

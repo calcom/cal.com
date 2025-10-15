@@ -30,8 +30,8 @@ import BookingListItem from "@components/booking/BookingListItem";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
-import { BookingsCalendarView } from "./bookings-calendar-view";
-import { BookingsListView } from "./bookings-list-view";
+import { BookingsCalendar } from "../components/BookingsCalendar";
+import { BookingsList } from "../components/BookingsList";
 
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
@@ -419,7 +419,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       <main className="w-full">
         <div className="flex w-full flex-col">
           {view === "list" ? (
-            <BookingsListView
+            <BookingsList
               status={status}
               permissions={permissions}
               query={query}
@@ -428,7 +428,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
               bookingsToday={bookingsToday}
             />
           ) : (
-            <BookingsCalendarView status={status} permissions={permissions} />
+            <BookingsCalendar status={status} permissions={permissions} />
           )}
         </div>
       </main>
