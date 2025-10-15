@@ -1,5 +1,5 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { domainWithAtRegex, emailRegex } from "@calcom/lib/emailSchema";
+import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, WatchlistAction } from "@calcom/prisma/enums";
@@ -51,10 +51,10 @@ export const createWatchlistEntryHandler = async ({ ctx, input }: CreateWatchlis
     });
   }
 
-  if (input.type === "DOMAIN" && !domainWithAtRegex.test(input.value)) {
+  if (input.type === "DOMAIN" && !domainRegex.test(input.value)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Invalid domain format. Domain must start with @ (e.g., @example.com)",
+      message: "Invalid domain format. Domain must be a valid domain (e.g., example.com)",
     });
   }
 
