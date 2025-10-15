@@ -7,8 +7,9 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -30,7 +31,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req, params, query } = context;
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
-  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
+  const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting } = query;
   const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
 
@@ -133,6 +134,23 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const teamHasApiV2Route = await featureRepo.checkIfTeamHasFeature(team.id, "use-api-v2-for-team-slots");
   const useApiV2 = teamHasApiV2Route && hasApiV2RouteInEnv();
 
+  const branding = getBrandingForEventType({
+    eventType: {
+      team: team.parent
+        ? {
+            ...team,
+            parent: {
+              brandColor: team.parent.brandColor,
+              darkBrandColor: team.parent.darkBrandColor,
+              theme: team.parent.theme,
+            },
+          }
+        : team,
+      users: [],
+      profile: null,
+    },
+  });
+
   return {
     props: {
       useApiV2,
@@ -153,6 +171,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             : getPlaceholderAvatar(team.logoUrl, team.name),
           name,
           username: orgSlug ?? null,
+          ...branding,
         },
         title: eventData.title,
         users: eventHostsUserData,
@@ -168,7 +187,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         team,
       }),
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
-      themeBasis: null,
+      themeBasis: branding.theme,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
       teamMemberEmail,
       crmOwnerRecordType,
@@ -204,6 +223,9 @@ const getTeamWithEventsData = async (
           bannerUrl: true,
           logoUrl: true,
           hideBranding: true,
+          brandColor: true,
+          darkBrandColor: true,
+          theme: true,
           organizationSettings: {
             select: {
               allowSEOIndexing: true,
@@ -214,6 +236,9 @@ const getTeamWithEventsData = async (
       logoUrl: true,
       name: true,
       slug: true,
+      brandColor: true,
+      darkBrandColor: true,
+      theme: true,
       eventTypes: {
         where: {
           slug: meetingSlug,
