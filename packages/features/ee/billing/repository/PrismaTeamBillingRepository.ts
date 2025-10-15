@@ -3,6 +3,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
+  IBillingRepositoryUpdateArgs,
   BillingRecord,
   Plan,
   SubscriptionStatus,
@@ -24,10 +25,10 @@ export class PrismaTeamBillingRepository implements IBillingRepository {
     };
   }
 
-  async getBySubscriptionId(id: string): Promise<BillingRecord | null> {
+  async getBySubscriptionId(subscriptionId: string): Promise<BillingRecord | null> {
     const billingRecord = await this.prismaClient.teamBilling.findUnique({
       where: {
-        id,
+        subscriptionId,
       },
     });
 
@@ -40,14 +41,13 @@ export class PrismaTeamBillingRepository implements IBillingRepository {
     };
   }
 
-  async updateSubscriptionStatus(id: string, status: SubscriptionStatus) {
+  async update(args: IBillingRepositoryUpdateArgs): Promise<void> {
+    const { id, ...data } = args;
     await this.prismaClient.teamBilling.update({
       where: {
         id,
       },
-      data: {
-        status,
-      },
+      data,
     });
   }
 }

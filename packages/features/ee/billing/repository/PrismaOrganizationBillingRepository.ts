@@ -3,6 +3,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
+  IBillingRepositoryUpdateArgs,
   BillingRecord,
   Plan,
   SubscriptionStatus,
@@ -38,14 +39,13 @@ export class PrismaOrganizationBillingRepository implements IBillingRepository {
       status: billingRecord.status as SubscriptionStatus,
     };
   }
-  async updateSubscriptionStatus(id: string, status: SubscriptionStatus) {
+  async update(args: IBillingRepositoryUpdateArgs): Promise<void> {
+    const { id, ...data } = args;
     await this.prismaClient.organizationBilling.update({
       where: {
         id,
       },
-      data: {
-        status,
-      },
+      data,
     });
   }
 }

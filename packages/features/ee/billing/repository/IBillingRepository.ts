@@ -31,7 +31,7 @@ export interface BillingRecord {
 export interface IBillingRepository {
   create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord>;
   getBySubscriptionId(id: string): Promise<BillingRecord | null>;
-  updateSubscriptionStatus(id: string, status: SubscriptionStatus): Promise<void>;
+  update(args: IBillingRepositoryUpdateArgs): Promise<void>;
 }
 
 export interface IBillingRepositoryConstructorArgs {
@@ -39,16 +39,9 @@ export interface IBillingRepositoryConstructorArgs {
   isOrganization: boolean;
 }
 
-//TODO: Have this extend the BillingRecord type instead of individual
-//
-export interface IBillingRepositoryCreateArgs {
-  teamId: number;
-  subscriptionId: string;
-  subscriptionItemId: string;
-  customerId: string;
-  planName: Plan;
-  status: SubscriptionStatus;
-  subscriptionStart: Date;
-  subscriptionTrialEnd: Date | null;
-  subscriptionEnd: Date | null;
-}
+export type IBillingRepositoryCreateArgs = Omit<BillingRecord, "id">;
+
+export type IBillingRepositoryUpdateArgs = Omit<
+  BillingRecord,
+  "teamId" | "subscriptionId" | "subscriptionItemId" | "customerId" | "planName"
+>;
