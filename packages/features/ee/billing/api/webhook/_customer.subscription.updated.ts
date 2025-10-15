@@ -27,28 +27,37 @@ const handler = async (data: Data) => {
     (item) => item.price.product === process.env.STRIPE_ORG_PRODUCT_ID
   );
 
-  const subscriptionItem = orgSubscriptionItem || teamSubscriptionItem;
+  const teamOrOrgSubscriptionItem = orgSubscriptionItem || teamSubscriptionItem;
+
+  // A subscription will either have a team/org item or a cal.ai phone number item
+  const calAiPhoneNumberItem = subscription.items.data.find(
+    (item) => item.price.product === process.env.STRIPE_CAL_AI_PHONE_NUMBER_PRODUCT_ID
+  );
 
   // Handle team subscriptions
-  if (subscriptionItem) {
+  if (teamOrOrgSubscriptionItem) {
     await handleTeamSubscriptionUpdate({
       subscription,
-      subscriptionItem,
+      subscriptionItem: teamOrOrgSubscriptionItem,
       isOrganization: !!orgSubscriptionItem,
     });
     return { success: true, subscriptionId: subscription.id, subscriptionStatus: subscription.status };
   }
 
-  const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
-  const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
-    stripeSubscriptionId: subscription.id,
-  });
+  if (calAiPhoneNumberItem) {
+    const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
+    const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
+      stripeSubscriptionId: subscription.id,
+    });
 
-  if (!phoneNumber) {
-    throw new HttpCode(202, "Phone number not found");
+    if (!phoneNumber) {
+      throw new HttpCode(202, "Phone number not found");
+    }
+
+    return await handleCalAIPhoneNumberSubscriptionUpdate(subscription, phoneNumber);
   }
 
-  return await handleCalAIPhoneNumberSubscriptionUpdate(subscription, phoneNumber);
+  throw new HttpCode(202, `Unhandled subscription type ${subscription.id}`);
 };
 
 type Subscription = Data["object"];
