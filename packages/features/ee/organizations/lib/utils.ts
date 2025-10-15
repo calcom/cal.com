@@ -46,5 +46,5 @@ export function isCompanyEmail(email: string): boolean {
 
   const emailParts = email.split("@");
   if (emailParts.length < 2) return false;
-  return !personalEmailProviders.includes(emailParts[1]);
+  return !personalEmailProviders.includes(emailParts[1].toLowerCase());
 }
