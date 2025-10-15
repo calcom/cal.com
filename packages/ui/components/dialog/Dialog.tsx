@@ -1,4 +1,5 @@
 "use client";
+
 // calcom dialog
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
@@ -110,6 +111,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             </div>
           )}
           {!type && children}
+          <DialogPrimitive.Close className="data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute right-4 top-4 z-10 opacity-70 transition-opacity hover:opacity-100">
+            <Icon name="x" className="text-default text-emphasis h-4 w-4" />
+          </DialogPrimitive.Close>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     );

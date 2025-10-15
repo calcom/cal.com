@@ -23,6 +23,7 @@ function shouldAllowScripts(pathname: string | null): boolean {
     "/signup",
     "/auth/sso/google",
     "/auth/verify-email",
+    "/booking"
   ];
 
   if (pathname === "" || pathname === "/") return true;
