@@ -8,7 +8,7 @@ import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/li
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
 import type Prisma from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
