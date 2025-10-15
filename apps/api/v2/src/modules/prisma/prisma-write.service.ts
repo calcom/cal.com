@@ -22,7 +22,7 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     try {
       await this.prisma.$connect();
-      this.logger.log("Connected to read database");
+      this.logger.log("Connected to write database");
     } catch {
       this.logger.error("Database connection failed");
     }
