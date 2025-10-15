@@ -1,4 +1,4 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 
 export async function getCustomerAndCheckoutSession(checkoutSessionId: string) {
   const billingService = new StripeBillingService();

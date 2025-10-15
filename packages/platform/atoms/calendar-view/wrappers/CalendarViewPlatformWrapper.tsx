@@ -1,5 +1,5 @@
 import { AtomsWrapper } from "@/components/atoms-wrapper";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -16,33 +16,34 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
-import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 
 import { formatUsername } from "../../booker/BookerPlatformWrapper";
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
 } from "../../booker/types";
-import { useGetBookingForReschedule } from "../../hooks/bookings/useGetBookingForReschedule";
 import { useAtomGetPublicEvent } from "../../hooks/event-types/public/useAtomGetPublicEvent";
 import { useEventType } from "../../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../../hooks/event-types/public/useTeamEventType";
 import { useAvailableSlots } from "../../hooks/useAvailableSlots";
 
-const CalendarViewPlatformWrapperComponent = (
-  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
-) => {
-  const {
-    eventSlug,
-    isTeamEvent,
-    hostsLimit,
-    allowUpdatingUrlParams = false,
-    teamMemberEmail,
-    crmAppSlug,
-    crmOwnerRecordType,
-  } = props;
+type CalendarViewPlatformWrapperAtomPropsForIndividual = {
+  username: string | string[];
+  eventSlug: string;
+};
 
-  const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
+type CalendarViewPlatformWrapperAtomPropsForTeam = {
+  teamId: number;
+  eventSlug: string;
+};
+
+const CalendarViewPlatformWrapperComponent = (
+  props:
+    | (CalendarViewPlatformWrapperAtomPropsForIndividual & { teamId?: number })
+    | (CalendarViewPlatformWrapperAtomPropsForTeam & { username?: string | string[] })
+) => {
+  const isTeamEvent = !!props.teamId;
+  const teamId: number | undefined = props.teamId ? props.teamId : undefined;
   const username = useMemo(() => {
     if (props.username) {
       return formatUsername(props.username);
@@ -50,16 +51,16 @@ const CalendarViewPlatformWrapperComponent = (
     return "";
   }, [props.username]);
 
-  const { isPending } = useEventType(username, eventSlug, isTeamEvent);
-  const { isPending: isTeamPending } = useTeamEventType(teamId, eventSlug, isTeamEvent, hostsLimit);
+  const { isPending } = useEventType(username, props.eventSlug, isTeamEvent);
 
-  const setSelectedDuration = useBookerStoreContext((state) => state.setSelectedDuration);
+  const { isPending: isTeamPending } = useTeamEventType(teamId, props.eventSlug, isTeamEvent);
+
   const selectedDuration = useBookerStoreContext((state) => state.selectedDuration);
 
   const event = useAtomGetPublicEvent({
     username,
     eventSlug: props.eventSlug,
-    isTeamEvent: props.isTeamEvent,
+    isTeamEvent: isTeamEvent,
     teamId,
     selectedDuration,
   });
@@ -90,67 +91,21 @@ const CalendarViewPlatformWrapperComponent = (
     selectedDate,
   });
 
-  useEffect(() => {
-    setSelectedDuration(props.duration ?? null);
-  }, [props.duration, setSelectedDuration]);
-
   const { timezone } = useTimePreferences();
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
-  const [routingParams, setRoutingParams] = useState<{
-    routedTeamMemberIds?: number[];
-    _shouldServeCache?: boolean;
-    skipContactOwner?: boolean;
-    isBookingDryRun?: boolean;
-  }>({});
-
-  useEffect(() => {
-    const searchParams = props.routingFormSearchParams
-      ? new URLSearchParams(props.routingFormSearchParams)
-      : new URLSearchParams(window.location.search);
-
-    const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
-    const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
-
-    const _cacheParam = searchParams?.get("cal.cache");
-    const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
-    const isBookingDryRun =
-      searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true" ||
-      searchParams?.get("cal.sandbox")?.toLowerCase() === "true";
-    setRoutingParams({
-      ...(skipContactOwner ? { skipContactOwner } : {}),
-      ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
-      ...(_shouldServeCache ? { _shouldServeCache } : {}),
-      ...(isBookingDryRun ? { isBookingDryRun } : {}),
-    });
-  }, [props.routingFormSearchParams]);
   const bookingData = useBookerStoreContext((state) => state.bookingData);
-  const setBookingData = useBookerStoreContext((state) => state.setBookingData);
-
-  useGetBookingForReschedule({
-    uid: props.rescheduleUid ?? props.bookingUid ?? "",
-    onSuccess: (data) => {
-      setBookingData(data);
-    },
-  });
 
   useInitializeBookerStoreContext({
     ...props,
-    teamMemberEmail,
-    crmAppSlug,
-    crmOwnerRecordType,
-    crmRecordId: props.crmRecordId,
     eventId: event?.data?.id,
-    rescheduleUid: props.rescheduleUid ?? null,
-    bookingUid: props.bookingUid ?? null,
     layout: "week_view",
-    org: props.entity?.orgSlug,
     username,
     bookingData,
     isPlatform: true,
-    allowUpdatingUrlParams,
+    allowUpdatingUrlParams: false,
   });
 
   const schedule = useAvailableSlots({
@@ -160,11 +115,10 @@ const CalendarViewPlatformWrapperComponent = (
     endTime,
     timeZone: timezone,
     duration: selectedDuration ?? undefined,
-    rescheduleUid: props.rescheduleUid,
-    teamMemberEmail: props.teamMemberEmail ?? undefined,
-    ...(props.isTeamEvent
+    teamMemberEmail: undefined,
+    ...(isTeamEvent
       ? {
-          isTeamEvent: props.isTeamEvent,
+          isTeamEvent: isTeamEvent,
           teamId: teamId,
         }
       : {}),
@@ -172,11 +126,10 @@ const CalendarViewPlatformWrapperComponent = (
       Boolean(teamId || username) &&
       Boolean(month) &&
       Boolean(timezone) &&
-      (props.isTeamEvent ? !isTeamPending : !isPending) &&
+      (isTeamEvent ? !isTeamPending : !isPending) &&
       Boolean(event?.data?.id),
-    orgSlug: props.entity?.orgSlug ?? undefined,
-    eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
-    ...routingParams,
+    orgSlug: undefined,
+    eventTypeSlug: isDynamic ? "dynamic" : props.eventSlug || "",
   });
 
   return (
@@ -185,7 +138,7 @@ const CalendarViewPlatformWrapperComponent = (
         <Header
           isCalendarView={true}
           isMyLink={true}
-          eventSlug={eventSlug}
+          eventSlug={props.eventSlug}
           enabledLayouts={bookerLayout.bookerLayouts.enabledLayouts}
           extraDays={7}
           isMobile={false}
@@ -204,7 +157,9 @@ const CalendarViewPlatformWrapperComponent = (
 };
 
 export const CalendarViewPlatformWrapper = (
-  props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
+  props:
+    | (BookerPlatformWrapperAtomPropsForIndividual & { teamId?: number })
+    | Omit<BookerPlatformWrapperAtomPropsForTeam, "isTeamEvent">
 ) => {
   return (
     <BookerStoreProvider>
