@@ -42,7 +42,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   if (typeof productId !== "string") {
     throw new Error(`Unable to determine Product ID from subscription: ${subscription.id}`);
   }
-  const handlerGetter = handlers[productId as any];
+  const handlerGetter = handlers[productId as keyof Handlers];
   if (!handlerGetter) {
     console.log("No product handler found for product", productId);
     return {
