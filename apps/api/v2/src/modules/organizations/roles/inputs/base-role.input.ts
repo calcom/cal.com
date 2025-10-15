@@ -17,7 +17,8 @@ export class BaseRoleInput {
   description?: string;
 
   @ApiPropertyOptional({
-    description: "Permissions for this role (format: resource.action)",
+    description:
+      "Permissions for this role (format: resource.action). On update, this field replaces the entire permission set for the role (full replace). Use granular permission endpoints for one-by-one changes.",
     type: [String],
     example: ["eventType.read", "eventType.create", "booking.read"],
   })
