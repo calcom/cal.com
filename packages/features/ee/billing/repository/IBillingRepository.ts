@@ -41,7 +41,7 @@ export interface IBillingRepositoryConstructorArgs {
 
 export type IBillingRepositoryCreateArgs = Omit<BillingRecord, "id">;
 
-export type IBillingRepositoryUpdateArgs = Omit<
+export type IBillingRepositoryUpdateArgs = Pick<
   BillingRecord,
-  "teamId" | "subscriptionId" | "subscriptionItemId" | "customerId" | "planName"
+  "id" | "status" | "subscriptionStart" | "subscriptionTrialEnd" | "subscriptionEnd"
 >;
