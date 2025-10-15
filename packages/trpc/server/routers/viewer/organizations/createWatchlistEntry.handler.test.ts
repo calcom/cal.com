@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { WatchlistType, WatchlistAction, MembershipRole } from "@calcom/prisma/enums";
+
+import { TRPCError } from "@trpc/server";
 
 import { createWatchlistEntryHandler } from "./createWatchlistEntry.handler";
 
@@ -35,7 +38,7 @@ describe("createWatchlistEntryHandler", () => {
     it("should throw FORBIDDEN when user is not part of an organization", async () => {
       await expect(
         createWatchlistEntryHandler({
-          ctx: { user: { ...mockUser, organizationId: undefined, profile: null } },
+          ctx: { user: { ...(mockUser as any), organizationId: undefined, profile: null } },
           input: {
             type: WatchlistType.EMAIL,
             value: "spam@example.com",
@@ -54,7 +57,7 @@ describe("createWatchlistEntryHandler", () => {
 
       await expect(
         createWatchlistEntryHandler({
-          ctx: { user: mockUser },
+          ctx: { user: mockUser as any },
           input: {
             type: WatchlistType.EMAIL,
             value: "spam@example.com",
@@ -73,7 +76,7 @@ describe("createWatchlistEntryHandler", () => {
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-1" });
 
       await createWatchlistEntryHandler({
-        ctx: { user: mockUser },
+        ctx: { user: mockUser as any },
         input: {
           type: WatchlistType.EMAIL,
           value: "test@example.com",
@@ -97,7 +100,7 @@ describe("createWatchlistEntryHandler", () => {
     it("should throw BAD_REQUEST for invalid email format", async () => {
       await expect(
         createWatchlistEntryHandler({
-          ctx: { user: mockUser },
+          ctx: { user: mockUser as any },
           input: {
             type: WatchlistType.EMAIL,
             value: "invalid-email",
@@ -114,7 +117,7 @@ describe("createWatchlistEntryHandler", () => {
     it("should throw BAD_REQUEST for email missing @ symbol", async () => {
       await expect(
         createWatchlistEntryHandler({
-          ctx: { user: mockUser },
+          ctx: { user: mockUser as any },
           input: {
             type: WatchlistType.EMAIL,
             value: "notanemail.com",
@@ -126,43 +129,43 @@ describe("createWatchlistEntryHandler", () => {
       });
     });
 
-    it("should throw BAD_REQUEST for invalid domain format without @", async () => {
-      await expect(
-        createWatchlistEntryHandler({
-          ctx: { user: mockUser },
-          input: {
-            type: WatchlistType.DOMAIN,
-            value: "example.com",
-          },
-        })
-      ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "Invalid domain format. Domain must start with @ (e.g., @example.com)",
+    it("should accept valid domain format without @", async () => {
+      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-1" });
+
+      const result = await createWatchlistEntryHandler({
+        ctx: { user: mockUser as any },
+        input: {
+          type: WatchlistType.DOMAIN,
+          value: "example.com",
+        },
       });
 
-      expect(mockWatchlistRepo.createEntry).not.toHaveBeenCalled();
+      expect(result.success).toBe(true);
+      expect(mockWatchlistRepo.createEntry).toHaveBeenCalled();
     });
 
     it("should throw BAD_REQUEST for domain with invalid format", async () => {
       await expect(
         createWatchlistEntryHandler({
-          ctx: { user: mockUser },
+          ctx: { user: mockUser as any },
           input: {
             type: WatchlistType.DOMAIN,
-            value: "not-a-domain",
+            value: "invalid..domain",
           },
         })
-      ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "Invalid domain format. Domain must start with @ (e.g., @example.com)",
-      });
+      ).rejects.toStrictEqual(
+        new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Invalid domain format (e.g., example.com)",
+        })
+      );
     });
 
     it("should accept valid email format", async () => {
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-1" });
 
       const result = await createWatchlistEntryHandler({
-        ctx: { user: mockUser },
+        ctx: { user: mockUser as any },
         input: {
           type: WatchlistType.EMAIL,
           value: "valid@example.com",
@@ -173,19 +176,23 @@ describe("createWatchlistEntryHandler", () => {
       expect(mockWatchlistRepo.createEntry).toHaveBeenCalled();
     });
 
-    it("should accept valid domain format with @", async () => {
+    it("should accept valid domain format and normalize it", async () => {
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-1" });
 
       const result = await createWatchlistEntryHandler({
-        ctx: { user: mockUser },
+        ctx: { user: mockUser as any },
         input: {
           type: WatchlistType.DOMAIN,
-          value: "@example.com",
+          value: "example.com",
         },
       });
 
       expect(result.success).toBe(true);
-      expect(mockWatchlistRepo.createEntry).toHaveBeenCalled();
+      expect(mockWatchlistRepo.createEntry).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: "example.com",
+        })
+      );
     });
   });
 
@@ -205,7 +212,7 @@ describe("createWatchlistEntryHandler", () => {
       mockWatchlistRepo.createEntry.mockResolvedValue(mockEntry);
 
       const result = await createWatchlistEntryHandler({
-        ctx: { user: mockUser },
+        ctx: { user: mockUser as any },
         input: {
           type: WatchlistType.EMAIL,
           value: "spam@example.com",
@@ -224,21 +231,21 @@ describe("createWatchlistEntryHandler", () => {
       });
     });
 
-    it("should create watchlist entry for DOMAIN type", async () => {
+    it("should create watchlist entry for DOMAIN type and normalize it", async () => {
       const mockEntry = {
         id: "watchlist-2",
         type: WatchlistType.DOMAIN,
-        value: "@spammer.com",
+        value: "spammer.com",
         organizationId: 100,
         action: WatchlistAction.BLOCK,
       };
       mockWatchlistRepo.createEntry.mockResolvedValue(mockEntry);
 
       const result = await createWatchlistEntryHandler({
-        ctx: { user: mockUser },
+        ctx: { user: mockUser as any },
         input: {
           type: WatchlistType.DOMAIN,
-          value: "@spammer.com",
+          value: "spammer.com",
         },
       });
 
@@ -246,7 +253,7 @@ describe("createWatchlistEntryHandler", () => {
       expect(result.entry).toEqual(mockEntry);
       expect(mockWatchlistRepo.createEntry).toHaveBeenCalledWith({
         type: WatchlistType.DOMAIN,
-        value: "@spammer.com",
+        value: "spammer.com",
         organizationId: 100,
         action: WatchlistAction.BLOCK,
         description: undefined,
@@ -258,7 +265,7 @@ describe("createWatchlistEntryHandler", () => {
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-4" });
 
       await createWatchlistEntryHandler({
-        ctx: { user: mockUser },
+        ctx: { user: mockUser as any },
         input: {
           type: WatchlistType.EMAIL,
           value: "SPAM@EXAMPLE.COM",
@@ -279,7 +286,7 @@ describe("createWatchlistEntryHandler", () => {
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-5" });
 
       await createWatchlistEntryHandler({
-        ctx: { user: mockUser },
+        ctx: { user: mockUser as any },
         input: {
           type: WatchlistType.EMAIL,
           value: "test@example.com",
