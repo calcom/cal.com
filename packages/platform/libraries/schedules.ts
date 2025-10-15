@@ -5,3 +5,9 @@ export {
 
 export { updateSchedule, type UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
 export { UserAvailabilityService } from "@calcom/features/availability/lib/getUserAvailability";
+
+export {
+  createHandler as createScheduleHandler,
+  type CreateScheduleHandlerReturn,
+} from "@calcom/trpc/server/routers/viewer/availability/schedule/create.handler";
+export { ZCreateInputSchema as CreateScheduleSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/create.schema";
