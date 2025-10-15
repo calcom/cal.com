@@ -20,6 +20,8 @@ interface OnboardingUserStoreState {
   slug: string;
   logo?: string | null;
   bio?: string | null;
+  brandColor?: string | null;
+  bannerUrl?: string | null;
   onboardingId: string | null;
   invitedMembers: { email: string; name?: string }[];
   teams: { id: number; name: string; slug: string | null; isBeingMigrated: boolean }[];
@@ -37,6 +39,8 @@ interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUser
   setSlug: (slug: string) => void;
   setLogo: (logo: string) => void;
   setBio: (bio: string) => void;
+  setBrandColor: (brandColor: string) => void;
+  setBannerUrl: (bannerUrl: string) => void;
   addInvitedMember: (member: { email: string; name?: string }) => void;
   removeInvitedMember: (email: string) => void;
 
@@ -54,6 +58,8 @@ const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
   slug: "",
   logo: "",
   bio: "",
+  brandColor: "",
+  bannerUrl: "",
   orgOwnerEmail: "",
   seats: null,
   pricePerSeat: null,
@@ -79,6 +85,8 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       setSlug: (slug) => set({ slug }),
       setLogo: (logo) => set({ logo }),
       setBio: (bio) => set({ bio }),
+      setBrandColor: (brandColor) => set({ brandColor }),
+      setBannerUrl: (bannerUrl) => set({ bannerUrl }),
       setOnboardingId: (onboardingId) => set({ onboardingId }),
       addInvitedMember: (member) =>
         set((state) => ({
@@ -162,6 +170,8 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
           slug: organizationOnboarding.slug,
           bio: organizationOnboarding.bio,
           logo: organizationOnboarding.logo,
+          brandColor: organizationOnboarding.brandColor,
+          bannerUrl: organizationOnboarding.bannerUrl,
         });
       }
     }

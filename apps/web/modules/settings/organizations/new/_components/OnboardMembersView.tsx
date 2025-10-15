@@ -213,15 +213,11 @@ export const AddNewTeamMembersForm = () => {
             // Submit ALL data to intentToCreateOrg
             if (!name || !slug || !orgOwnerEmail) {
               console.error("Required fields missing", { name, slug, orgOwnerEmail });
-              orgCreation.mutation.setError({
-                message: "Required fields missing. Please go back and complete all steps.",
-                data: null,
-                shape: null,
-              });
+              showToast(t("required_fields_missing"), "error");
               return;
             }
 
-            orgCreation.mutation.mutate({
+            orgCreation.mutate({
               name,
               slug,
               orgOwnerEmail,
