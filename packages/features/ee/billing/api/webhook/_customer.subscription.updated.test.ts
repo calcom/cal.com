@@ -1,22 +1,10 @@
 import type Stripe from "stripe";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { SubscriptionStatus } from "../../repository/IBillingRepository";
-import { StripeBillingService } from "../../stripe-billing-service";
-import { HttpCode } from "./__handler";
-import handler from "./_customer.subscription.updated";
+import { HttpCode } from "../../lib/httpCode";
 
-vi.mock("@calcom/lib/server/repository/PrismaPhoneNumberRepository");
-vi.mock("@calcom/lib/server/repository/team");
-vi.mock("@calcom/prisma", () => ({
-  prisma: {
-    calAiPhoneNumber: {
-      update: vi.fn(),
-    },
-  },
-}));
-vi.mock("../../repository/billingRepositoryFactory");
-vi.mock("../../service/TeamSubscriptionEventHandler");
+vi.mock("./_customer.subscription.updated/_teamAndOrgUpdateHandler");
+vi.mock("./_customer.subscription.updated/_calAIPhoneNumberUpdateHandler");
 
 type SubscriptionData = Stripe.CustomerSubscriptionUpdatedEvent["data"];
 
@@ -41,6 +29,8 @@ describe("_customer.subscription.updated handler", () => {
   });
 
   it("should throw error if subscription ID is missing", async () => {
+    const handler = (await import("./_customer.subscription.updated/_handler")).default;
+
     const data: SubscriptionData = {
       object: {
         id: null,
@@ -54,30 +44,18 @@ describe("_customer.subscription.updated handler", () => {
   });
 
   it("should handle team subscription update", async () => {
-    const { TeamSubscriptionEventHandler } = await import("../../service/TeamSubscriptionEventHandler");
-    const { BillingRepositoryFactory } = await import("../../repository/billingRepositoryFactory");
-    const { TeamRepository } = await import("@calcom/lib/server/repository/team");
-
-    const mockHandleUpdate = vi.fn().mockResolvedValue(undefined);
-    const mockHandler = {
-      handleUpdate: mockHandleUpdate,
-    };
-    vi.mocked(TeamSubscriptionEventHandler).mockImplementation(() => mockHandler);
-
-    vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue({
-      create: vi.fn(),
-      getBySubscriptionId: vi.fn(),
-      updateSubscriptionStatus: vi.fn(),
+    const mockTeamHandler = vi.fn().mockResolvedValue({
+      success: true,
+      subscriptionId: "sub_123",
+      status: "active",
     });
-    vi.mocked(TeamRepository).mockImplementation(
-      () =>
-        ({
-          findBySubscriptionId: vi.fn(),
-        } as unknown as ReturnType<typeof TeamRepository>)
+
+    const { default: teamAndOrgHandler } = await import(
+      "./_customer.subscription.updated/_teamAndOrgUpdateHandler"
     );
-    vi.spyOn(StripeBillingService, "mapSubscriptionStatusToCalStatus").mockReturnValue(
-      SubscriptionStatus.ACTIVE
-    );
+    vi.mocked(teamAndOrgHandler).mockImplementation(mockTeamHandler);
+
+    const handler = (await import("./_customer.subscription.updated/_handler")).default;
 
     const data = createSubscriptionData({
       items: {
@@ -97,38 +75,31 @@ describe("_customer.subscription.updated handler", () => {
     expect(result).toEqual({
       success: true,
       subscriptionId: "sub_123",
-      subscriptionStatus: "active",
+      status: "active",
     });
-    expect(mockHandleUpdate).toHaveBeenCalledWith({
-      subscriptionId: "sub_123",
-      subscriptionItemId: "si_123",
-      customerId: "cus_123",
-      status: SubscriptionStatus.ACTIVE,
-      subscriptionStart: expect.any(Date),
-      subscriptionTrialEnd: null,
-      subscriptionEnd: null,
-    });
+    expect(mockTeamHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        productId: "prod_team_123",
+        object: expect.objectContaining({
+          id: "sub_123",
+        }),
+      })
+    );
   });
 
   it("should handle organization subscription update", async () => {
-    const { TeamSubscriptionEventHandler } = await import("../../service/TeamSubscriptionEventHandler");
-    const { BillingRepositoryFactory } = await import("../../repository/billingRepositoryFactory");
+    const mockOrgHandler = vi.fn().mockResolvedValue({
+      success: true,
+      subscriptionId: "sub_123",
+      status: "active",
+    });
 
-    const mockHandleUpdate = vi.fn().mockResolvedValue(undefined);
-    const mockHandler = {
-      handleUpdate: mockHandleUpdate,
-    };
-    vi.mocked(TeamSubscriptionEventHandler).mockImplementation(() => mockHandler);
-
-    const mockOrgRepository = {
-      create: vi.fn(),
-      getBySubscriptionId: vi.fn(),
-      updateSubscriptionStatus: vi.fn(),
-    };
-    vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(mockOrgRepository);
-    vi.spyOn(StripeBillingService, "mapSubscriptionStatusToCalStatus").mockReturnValue(
-      SubscriptionStatus.ACTIVE
+    const { default: teamAndOrgHandler } = await import(
+      "./_customer.subscription.updated/_teamAndOrgUpdateHandler"
     );
+    vi.mocked(teamAndOrgHandler).mockImplementation(mockOrgHandler);
+
+    const handler = (await import("./_customer.subscription.updated/_handler")).default;
 
     const data = createSubscriptionData({
       items: {
@@ -148,38 +119,31 @@ describe("_customer.subscription.updated handler", () => {
     expect(result).toEqual({
       success: true,
       subscriptionId: "sub_123",
-      subscriptionStatus: "active",
+      status: "active",
     });
-    expect(BillingRepositoryFactory.getRepository).toHaveBeenCalledWith(true);
-    expect(mockHandleUpdate).toHaveBeenCalledWith({
-      subscriptionId: "sub_123",
-      subscriptionItemId: "si_456",
-      customerId: "cus_123",
-      status: SubscriptionStatus.ACTIVE,
-      subscriptionStart: expect.any(Date),
-      subscriptionTrialEnd: null,
-      subscriptionEnd: null,
-    });
+    expect(mockOrgHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        productId: "prod_org_456",
+        object: expect.objectContaining({
+          id: "sub_123",
+        }),
+      })
+    );
   });
 
   it("should prioritize org product over team product", async () => {
-    const { TeamSubscriptionEventHandler } = await import("../../service/TeamSubscriptionEventHandler");
-    const { BillingRepositoryFactory } = await import("../../repository/billingRepositoryFactory");
-
-    const mockHandleUpdate = vi.fn().mockResolvedValue(undefined);
-    const mockHandler = {
-      handleUpdate: mockHandleUpdate,
-    };
-    vi.mocked(TeamSubscriptionEventHandler).mockImplementation(() => mockHandler);
-
-    vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue({
-      create: vi.fn(),
-      getBySubscriptionId: vi.fn(),
-      updateSubscriptionStatus: vi.fn(),
+    const mockOrgHandler = vi.fn().mockResolvedValue({
+      success: true,
+      subscriptionId: "sub_123",
+      status: "active",
     });
-    vi.spyOn(StripeBillingService, "mapSubscriptionStatusToCalStatus").mockReturnValue(
-      SubscriptionStatus.ACTIVE
+
+    const { default: teamAndOrgHandler } = await import(
+      "./_customer.subscription.updated/_teamAndOrgUpdateHandler"
     );
+    vi.mocked(teamAndOrgHandler).mockImplementation(mockOrgHandler);
+
+    const handler = (await import("./_customer.subscription.updated/_handler")).default;
 
     const data = createSubscriptionData({
       items: {
@@ -202,34 +166,34 @@ describe("_customer.subscription.updated handler", () => {
 
     await handler(data);
 
-    expect(BillingRepositoryFactory.getRepository).toHaveBeenCalledWith(true);
-    expect(mockHandleUpdate).toHaveBeenCalledWith(
+    expect(mockOrgHandler).toHaveBeenCalledTimes(2);
+    expect(mockOrgHandler).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
-        subscriptionItemId: "si_org",
+        productId: "prod_team_123",
+      })
+    );
+    expect(mockOrgHandler).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        productId: "prod_org_456",
       })
     );
   });
 
-  it("should fall through to phone number handling when no team/org product found", async () => {
-    const { PrismaPhoneNumberRepository } = await import(
-      "@calcom/lib/server/repository/PrismaPhoneNumberRepository"
-    );
-    const { prisma } = await import("@calcom/prisma");
+  it("should handle phone number subscription update", async () => {
+    const mockPhoneHandler = vi.fn().mockResolvedValue({
+      success: true,
+      subscriptionId: "sub_123",
+      subscriptionStatus: "active",
+    });
 
-    const mockPhoneNumber = {
-      id: 1,
-      phoneNumber: "+1234567890",
-      stripeSubscriptionId: "sub_123",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const mockPhoneNumberRepoInstance = {
-      findByStripeSubscriptionId: vi.fn().mockResolvedValue(mockPhoneNumber),
-    };
-    vi.mocked(PrismaPhoneNumberRepository).mockImplementation(
-      () => mockPhoneNumberRepoInstance as unknown as InstanceType<typeof PrismaPhoneNumberRepository>
+    const { default: phoneHandler } = await import(
+      "./_customer.subscription.updated/_calAIPhoneNumberUpdateHandler"
     );
-    vi.mocked(prisma.calAiPhoneNumber.update).mockResolvedValue(mockPhoneNumber);
+    vi.mocked(phoneHandler).mockImplementation(mockPhoneHandler);
+
+    const handler = (await import("./_customer.subscription.updated/_handler")).default;
 
     const data = createSubscriptionData({
       items: {
@@ -246,74 +210,53 @@ describe("_customer.subscription.updated handler", () => {
 
     const result = await handler(data);
 
-    expect(result).toHaveProperty("success", true);
-    expect(mockPhoneNumberRepoInstance.findByStripeSubscriptionId).toHaveBeenCalledWith({
-      stripeSubscriptionId: "sub_123",
+    expect(result).toEqual({
+      success: true,
+      subscriptionId: "sub_123",
+      subscriptionStatus: "active",
     });
+    expect(mockPhoneHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        productId: "prod_phone_789",
+        object: expect.objectContaining({
+          id: "sub_123",
+        }),
+      })
+    );
   });
 
-  it("should throw error when phone number not found", async () => {
-    const { PrismaPhoneNumberRepository } = await import(
-      "@calcom/lib/server/repository/PrismaPhoneNumberRepository"
-    );
-
-    const mockPhoneNumberRepoInstance = {
-      findByStripeSubscriptionId: vi.fn().mockResolvedValue(null),
-    };
-    vi.mocked(PrismaPhoneNumberRepository).mockImplementation(
-      () => mockPhoneNumberRepoInstance as unknown as InstanceType<typeof PrismaPhoneNumberRepository>
-    );
+  it("should return undefined when no matching product handler found", async () => {
+    const handler = (await import("./_customer.subscription.updated/_handler")).default;
 
     const data = createSubscriptionData({
       items: {
         data: [
           {
-            id: "si_phone",
+            id: "si_unknown",
             price: {
-              product: "prod_phone_789",
+              product: "prod_unknown_999",
             },
           } as Stripe.SubscriptionItem,
         ],
       } as Stripe.ApiList<Stripe.SubscriptionItem>,
     });
 
-    await expect(handler(data)).rejects.toThrow(new HttpCode(202, "Phone number not found"));
+    const result = await handler(data);
+
+    expect(result).toBeUndefined();
   });
 
-  it("should throw HttpCode 202 when team subscription handler fails", async () => {
-    const { TeamSubscriptionEventHandler } = await import("../../service/TeamSubscriptionEventHandler");
-    const { BillingRepositoryFactory } = await import("../../repository/billingRepositoryFactory");
-
-    const mockHandleUpdate = vi.fn().mockRejectedValue(new Error("Database error"));
-    const mockHandler = {
-      handleUpdate: mockHandleUpdate,
-    };
-    vi.mocked(TeamSubscriptionEventHandler).mockImplementation(() => mockHandler);
-
-    vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue({
-      create: vi.fn(),
-      getBySubscriptionId: vi.fn(),
-      updateSubscriptionStatus: vi.fn(),
-    });
-    vi.spyOn(StripeBillingService, "mapSubscriptionStatusToCalStatus").mockReturnValue(
-      SubscriptionStatus.ACTIVE
-    );
+  it("should return undefined when subscription items is empty", async () => {
+    const handler = (await import("./_customer.subscription.updated/_handler")).default;
 
     const data = createSubscriptionData({
       items: {
-        data: [
-          {
-            id: "si_123",
-            price: {
-              product: "prod_team_123",
-            },
-          } as Stripe.SubscriptionItem,
-        ],
+        data: [],
       } as Stripe.ApiList<Stripe.SubscriptionItem>,
     });
 
-    await expect(handler(data)).rejects.toThrow(
-      new HttpCode(202, "Failed to handle team subscription update")
-    );
+    const result = await handler(data);
+
+    expect(result).toBeUndefined();
   });
 });
