@@ -1,13 +1,16 @@
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
+
+import type { SWHMap } from "../../lib/types";
 import { TeamBilling } from "../../teams";
-import type { SWHMap } from "./__handler";
 
 const metadataSchema = z.object({
   teamId: z.coerce.number(),
 });
 
 const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) => {
+  const log = logger.getSubLogger({ prefix: ["stripe", "webhook", "customer.subscription.deleted"] });
   const subscription = data.object;
   try {
     const { teamId } = metadataSchema.parse(subscription.metadata);
@@ -17,6 +20,7 @@ const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) =>
   } catch (error) {
     // If stripe metadata is missing teamId, we attempt to find by sub ID.
     const team = await TeamBilling.repo.findBySubscriptionId(subscription.id);
+    log.error(`Error downgrading team plan for team ${team.id}`, error);
     const teamBilling = TeamBilling.init(team);
     await teamBilling.downgrade();
     return { success: true };
