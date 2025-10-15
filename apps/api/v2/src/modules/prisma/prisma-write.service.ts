@@ -2,6 +2,7 @@ import { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 import { PrismaClient } from "@calcom/prisma/client";
 
@@ -13,7 +14,8 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
 
   constructor(readonly configService: ConfigService) {
     const dbUrl = configService.get("db.writeUrl", { infer: true });
-    const adapter = new PrismaPg({ connectionString: dbUrl });
+    const pool = new Pool({ connectionString: dbUrl });
+    const adapter = new PrismaPg(pool);
 
     this.prisma = new PrismaClient({
       adapter,
