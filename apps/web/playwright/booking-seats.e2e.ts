@@ -556,12 +556,12 @@ test.describe("Reschedule for booking with seats", () => {
     await page.waitForSelector('[data-testid="bookings"]');
 
     await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    const href = await page.locator('[data-testid="reschedule"]').getAttribute("href");
+    expect(href).toBeTruthy();
+    const url = new URL(href!, page.url());
+    const seatReferenceUid = url.searchParams.get('seatReferenceUid');
+    expect(seatReferenceUid).toBe(references[1].referenceUid);
     await page.locator('[data-testid="reschedule"]').click();
-
-    await page.waitForURL((url) => {
-      const rescheduleUid = url.searchParams.get("rescheduleUid");
-      return !!rescheduleUid && rescheduleUid === references[1].referenceUid;
-    });
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
