@@ -41,6 +41,8 @@ type CreateOnboardingInput = {
   bio?: string | null;
   brandColor?: string | null;
   bannerUrl?: string | null;
+  teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
+  invitedMembers?: { email: string; name?: string; teamId?: number; teamName?: string; role?: string }[];
 };
 
 type PermissionCheckInput = {
@@ -201,6 +203,8 @@ export class OrganizationPaymentService {
       bio: input.bio ?? null,
       brandColor: input.brandColor ?? null,
       bannerUrl: input.bannerUrl ?? null,
+      teams: input.teams ?? [],
+      invitedMembers: input.invitedMembers ?? [],
     });
   }
 
@@ -372,18 +376,19 @@ export class OrganizationPaymentService {
       })
     );
 
-    log.debug("Updating onboarding");
+    log.debug("Updating onboarding with stripe details");
 
-    await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
-      bio: bio ?? null,
-      logo: logo ?? null,
-      brandColor: brandColor ?? null,
-      bannerUrl: bannerUrl ?? null,
-      invitedMembers: invitedMembers,
-      teams,
-      stripeCustomerId,
-      ...updatedConfig,
-    });
+    // Only update Stripe customer ID and adjusted seats (if member count exceeds specified seats)
+    const needsUpdate =
+      !organizationOnboarding.stripeCustomerId ||
+      updatedConfig.seats !== organizationOnboarding.seats;
+
+    if (needsUpdate) {
+      await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+        stripeCustomerId,
+        seats: updatedConfig.seats,
+      });
+    }
 
     return {
       organizationOnboarding,

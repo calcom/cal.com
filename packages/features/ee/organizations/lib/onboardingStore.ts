@@ -134,9 +134,16 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
 
     if (organizationOnboarding) {
-      // Must not keep resetting state on each step change as every step doesn't save at the moment and this would reset user's changes
+      // Only sync from DB if we have an onboarding record (admin handover or resume flow)
       if (!window.isOrgOnboardingSynced) {
         window.isOrgOnboardingSynced = true;
+
+        // Admin creating for someone else - don't sync from DB, let them proceed to handover
+        if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
+          // Don't reset or sync - admin has just created this onboarding and should see handover page
+          return;
+        }
+
         // Must reset with current state of onboarding in DB for the user
         reset({
           onboardingId: organizationOnboarding.id,
@@ -149,21 +156,11 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
           bio: organizationOnboarding.bio,
           logo: organizationOnboarding.logo,
         });
-        if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
-          reset();
-        }
-      }
-    } else {
-      // First step doesn't require onboardingId
-      const requireOnboardingId = step !== "start";
-
-      // Reset to first step if onboardingId isn't available
-      if (!onboardingId && requireOnboardingId) {
-        console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
-        router.push("/settings/organizations/new");
       }
     }
-  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, onboardingId, reset, step, router]);
+    // Note: We no longer redirect if onboardingId is missing, as regular users
+    // don't create the onboarding record until the final step
+  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, reset, step, router]);
 
   useEffect(() => {
     if (session.status === "loading") {

@@ -75,8 +75,23 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
 
   const organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
+
+  // If onboarding exists and is incomplete, this is a resume flow (e.g., admin handover)
+  // Allow proceeding with the existing onboarding record
   if (organizationOnboarding) {
-    throw new Error("organization_onboarding_already_exists");
+    if (organizationOnboarding.isComplete) {
+      // Organization already created - shouldn't create another one
+      throw new Error("organization_onboarding_already_exists");
+    }
+
+    // Incomplete onboarding exists - this is expected for resume/handover flows
+    log.debug(
+      "Found incomplete onboarding record - proceeding with resume flow",
+      safeStringify({ onboardingId: organizationOnboarding.id, slug })
+    );
+
+    // Use existing onboarding ID for the resume flow
+    input.onboardingId = organizationOnboarding.id;
   }
 
   await assertCanCreateOrg({

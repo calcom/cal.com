@@ -31,6 +31,7 @@ export type CreateOnboardingIntentInput = {
   bannerUrl?: string | null;
   teams?: TeamInput[];
   invitedMembers?: InvitedMemberInput[];
+  onboardingId?: string;
 };
 
 export type OnboardingIntentResult = {
@@ -45,6 +46,7 @@ export type OnboardingIntentResult = {
   organizationOnboardingId: string;
   checkoutUrl: string | null;
   organizationId?: number | null;
+  handoverUrl?: string | null;
 };
 
 export interface OnboardingUser {

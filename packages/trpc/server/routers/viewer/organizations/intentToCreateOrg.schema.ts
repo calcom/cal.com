@@ -23,6 +23,8 @@ export const ZIntentToCreateOrgInputSchema = z.object({
   // Teams and invites (new)
   teams: orgOnboardingTeamsSchema.optional(),
   invitedMembers: orgOnboardingInvitedMembersSchema.optional(),
+  // Optional onboarding ID for resume flows (admin handover)
+  onboardingId: z.string().optional(),
 });
 
 export type TIntentToCreateOrgInputSchema = z.infer<typeof ZIntentToCreateOrgInputSchema>;

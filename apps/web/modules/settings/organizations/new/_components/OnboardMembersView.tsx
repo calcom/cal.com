@@ -34,28 +34,28 @@ const useOrgCreation = () => {
   const session = useSession();
   const utils = trpc.useUtils();
   const [serverErrorMessage, setServerErrorMessage] = useState("");
-  const { useOnboardingStore, isBillingEnabled } = useOnboarding();
+  const { useOnboardingStore } = useOnboarding();
   const { reset } = useOnboardingStore();
 
-  const checkoutMutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
-    onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      }
-    },
-    onError: (error) => {
-      setServerErrorMessage(t(error.message));
-    },
-  });
-
-  const createOrgMutation = trpc.viewer.organizations.createSelfHosted.useMutation({
+  // Single mutation for all flows (billing, self-hosted, admin)
+  const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
-      if (data.organization) {
-        // Invalidate the organizations query to ensure fresh data on the next page
+      reset({
+        onboardingId: data.organizationOnboardingId,
+      });
+
+      if (data.checkoutUrl) {
+        // Billing enabled - redirect to Stripe
+        window.location.href = data.checkoutUrl;
+      } else if (data.organizationId) {
+        // Self-hosted - org already created, redirect to organizations
         await utils.viewer.organizations.listCurrent.invalidate();
         await session.update();
         reset();
         window.location.href = `${window.location.origin}/settings/organizations/profile`;
+      } else {
+        // Unexpected state
+        setServerErrorMessage("Unexpected response from server");
       }
     },
     onError: (error) => {
@@ -63,12 +63,10 @@ const useOrgCreation = () => {
     },
   });
 
-  const mutationToUse = isBillingEnabled ? checkoutMutation : createOrgMutation;
-
   return {
-    mutation: mutationToUse,
-    mutate: mutationToUse.mutate,
-    isPending: mutationToUse.isPending,
+    mutation: intentToCreateOrgMutation,
+    mutate: intentToCreateOrgMutation.mutate,
+    isPending: intentToCreateOrgMutation.isPending,
     errorMessage: serverErrorMessage,
   };
 };
@@ -84,7 +82,13 @@ export const AddNewTeamMembersForm = () => {
     invitedMembers,
     logo,
     bio,
-    onboardingId,
+    name,
+    slug,
+    billingPeriod,
+    seats,
+    pricePerSeat,
+    brandColor,
+    bannerUrl,
   } = useOnboardingStore();
   const orgCreation = useOrgCreation();
 
@@ -203,22 +207,34 @@ export const AddNewTeamMembersForm = () => {
         )}
       </div>
 
-      <div className="mt-3 mt-6 flex items-center justify-end">
+      <div className="mt-3 flex items-center justify-end">
         <Button
           onClick={() => {
-            if (!onboardingId) {
-              console.error("Org owner email and onboardingId are required", {
-                orgOwnerEmail,
-                onboardingId,
+            // Submit ALL data to intentToCreateOrg
+            if (!name || !slug || !orgOwnerEmail) {
+              console.error("Required fields missing", { name, slug, orgOwnerEmail });
+              orgCreation.mutation.setError({
+                message: "Required fields missing. Please go back and complete all steps.",
+                data: null,
+                shape: null,
               });
               return;
             }
+
             orgCreation.mutation.mutate({
+              name,
+              slug,
+              orgOwnerEmail,
+              seats,
+              pricePerSeat,
+              billingPeriod,
+              creationSource: "WEBAPP" as const,
               logo,
               bio,
+              brandColor,
+              bannerUrl,
               teams,
               invitedMembers,
-              onboardingId,
             });
           }}
           loading={orgCreation.isPending}>

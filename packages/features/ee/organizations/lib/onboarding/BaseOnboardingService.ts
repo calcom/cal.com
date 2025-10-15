@@ -9,6 +9,7 @@ import {
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -18,7 +19,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
-import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import {
   userMetadata,
   orgOnboardingInvitedMembersSchema,
@@ -40,6 +41,7 @@ import type {
   TeamData,
   InvitedMember,
   OrganizationOnboardingData,
+  OnboardingIntentResult,
 } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["BaseOnboardingService"] });
@@ -69,7 +71,37 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     paymentDetails?: { subscriptionId: string; subscriptionItemId: string }
   ): Promise<{ organization: Team; owner: User }>;
 
-  protected async createOnboardingRecord(input: CreateOnboardingIntentInput) {
+  protected async createOnboardingRecord(input: CreateOnboardingIntentInput & { onboardingId?: string }) {
+    // If onboardingId exists, update the existing record (resume flow)
+    if (input.onboardingId) {
+      log.debug(
+        "Updating existing organization onboarding record (resume flow)",
+        safeStringify({
+          onboardingId: input.onboardingId,
+          slug: input.slug,
+          name: input.name,
+        })
+      );
+
+      await OrganizationOnboardingRepository.update(input.onboardingId, {
+        logo: input.logo ?? null,
+        bio: input.bio ?? null,
+        brandColor: input.brandColor ?? null,
+        bannerUrl: input.bannerUrl ?? null,
+        teams: input.teams ?? [],
+        invitedMembers: input.invitedMembers ?? [],
+      });
+
+      const updatedOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);
+      if (!updatedOnboarding) {
+        throw new Error(`Onboarding record ${input.onboardingId} not found after update`);
+      }
+
+      log.debug("Organization onboarding updated", safeStringify({ onboardingId: updatedOnboarding.id }));
+      return updatedOnboarding;
+    }
+
+    // Create new onboarding record
     log.debug(
       "Creating organization onboarding record",
       safeStringify({
@@ -92,6 +124,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       bio: input.bio ?? null,
       brandColor: input.brandColor ?? null,
       bannerUrl: input.bannerUrl ?? null,
+      teams: input.teams ?? [],
+      invitedMembers: input.invitedMembers ?? [],
     });
 
     log.debug("Organization onboarding created", safeStringify({ onboardingId: organizationOnboarding.id }));
@@ -120,6 +154,55 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       }));
 
     return { teamsData, invitedMembersData };
+  }
+
+  protected handleAdminHandoverIfNeeded(
+    input: CreateOnboardingIntentInput,
+    onboardingId: string
+  ): OnboardingIntentResult | null {
+    const isAdminHandoverFlow =
+      this.user.role === UserPermissionRole.ADMIN &&
+      this.user.email !== input.orgOwnerEmail &&
+      (!input.teams || input.teams.length === 0) &&
+      (!input.invitedMembers || input.invitedMembers.length === 0);
+
+    log.debug(
+      "Checking admin handover flow",
+      safeStringify({
+        userRole: this.user.role,
+        isAdmin: this.user.role === UserPermissionRole.ADMIN,
+        userEmail: this.user.email,
+        orgOwnerEmail: input.orgOwnerEmail,
+        emailsDifferent: this.user.email !== input.orgOwnerEmail,
+        teamsEmpty: !input.teams || input.teams.length === 0,
+        membersEmpty: !input.invitedMembers || input.invitedMembers.length === 0,
+        isAdminHandoverFlow,
+      })
+    );
+
+    if (!isAdminHandoverFlow) {
+      return null;
+    }
+
+    log.debug(
+      "Admin handover flow detected",
+      safeStringify({ adminEmail: this.user.email, orgOwnerEmail: input.orgOwnerEmail })
+    );
+
+    return {
+      userId: this.user.id,
+      orgOwnerEmail: input.orgOwnerEmail,
+      name: input.name,
+      slug: input.slug,
+      seats: input.seats ?? null,
+      pricePerSeat: input.pricePerSeat ?? null,
+      billingPeriod: input.billingPeriod,
+      isPlatform: input.isPlatform,
+      organizationOnboardingId: onboardingId,
+      checkoutUrl: null,
+      organizationId: null,
+      handoverUrl: `${WEBAPP_URL}/settings/organizations/new/resume?onboardingId=${onboardingId}`,
+    };
   }
 
   protected async createOrganizationWithExistingUserAsOwner({

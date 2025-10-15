@@ -46,20 +46,24 @@ export class SelfHostedOnboardingService extends BaseOnboardingService {
       })
     );
 
-    // Step 1: Create onboarding record
-    const organizationOnboarding = await this.createOnboardingRecord(input);
-    const onboardingId = organizationOnboarding.id;
-
-    // Step 2: Filter and normalize teams/invites
+    // Step 1: Filter and normalize teams/invites
     const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
 
-    // Step 3: Store teams and invites in onboarding record
-    await OrganizationOnboardingRepository.update(onboardingId, {
+    // Step 2: Create onboarding record with ALL data at once
+    const organizationOnboarding = await this.createOnboardingRecord({
+      ...input,
       teams: teamsData,
       invitedMembers: invitedMembersData,
     });
+    const onboardingId = organizationOnboarding.id;
 
-    // Step 4: Create organization immediately
+    // Check if this is an admin handover flow
+    const handoverResult = this.handleAdminHandoverIfNeeded(input, onboardingId);
+    if (handoverResult) {
+      return handoverResult;
+    }
+
+    // Step 3: Create organization immediately (regular self-hosted flow)
     log.debug("Creating organization immediately (no payment required)", safeStringify({ onboardingId }));
 
     const { organization } = await this.createOrganization({
@@ -82,7 +86,7 @@ export class SelfHostedOnboardingService extends BaseOnboardingService {
       isDomainConfigured: false,
     });
 
-    // Step 5: Mark onboarding as complete
+    // Step 4: Mark onboarding as complete
     await OrganizationOnboardingRepository.markAsComplete(onboardingId);
 
     log.debug(
@@ -90,7 +94,7 @@ export class SelfHostedOnboardingService extends BaseOnboardingService {
       safeStringify({ onboardingId, organizationId: organization.id })
     );
 
-    // Step 6: Return result with organization ID
+    // Step 5: Return result with organization ID
     return {
       userId: this.user.id,
       orgOwnerEmail: input.orgOwnerEmail,

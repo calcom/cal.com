@@ -6,10 +6,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import type { Team, User } from "@calcom/prisma/client";
-import {
-  orgOnboardingInvitedMembersSchema,
-  orgOnboardingTeamsSchema,
-} from "@calcom/prisma/zod-utils";
+import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 
 import { BaseOnboardingService } from "./BaseOnboardingService";
 import type {
@@ -44,9 +41,6 @@ export class BillingEnabledOnboardingService extends BaseOnboardingService {
       })
     );
 
-    const organizationOnboarding = await this.createOnboardingRecord(input);
-    const onboardingId = organizationOnboarding.id;
-
     const { teamsData, invitedMembersData } = this.filterTeamsAndInvites(input.teams, input.invitedMembers);
 
     log.debug(
@@ -57,11 +51,21 @@ export class BillingEnabledOnboardingService extends BaseOnboardingService {
       })
     );
 
-    await OrganizationOnboardingRepository.update(onboardingId, {
+    // Create onboarding record with ALL data at once
+    const organizationOnboarding = await this.createOnboardingRecord({
+      ...input,
       teams: teamsData,
       invitedMembers: invitedMembersData,
     });
+    const onboardingId = organizationOnboarding.id;
 
+    // Check if this is an admin handover flow
+    const handoverResult = this.handleAdminHandoverIfNeeded(input, onboardingId);
+    if (handoverResult) {
+      return handoverResult;
+    }
+
+    // Regular flow - create payment intent
     const paymentIntent = await this.paymentService.createPaymentIntent(
       {
         logo: input.logo ?? null,

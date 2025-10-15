@@ -75,8 +75,8 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
 
   const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
-      // TODO: To be moved to _invoice.paid.org.ts
-      // telemetry.event(telemetryEventTypes.org_created);
+      console.log("intentToCreateOrg response:", data);
+
       reset({
         onboardingId: data.organizationOnboardingId,
         billingPeriod: data.billingPeriod,
@@ -87,9 +87,17 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         slug: data.slug,
       });
 
-      if (isAdmin && session.data.user.id !== data.userId) {
+      if (data.handoverUrl) {
+        // Admin handover flow - redirect to handover page
+        console.log("Admin handover flow detected, redirecting to handover page");
         router.push("/settings/organizations/new/handover");
+      } else if (data.organizationId) {
+        // Self-hosted flow - org already created, redirect to organizations list
+        console.log("Self-hosted flow detected, org already created");
+        router.push("/settings/organizations");
       } else {
+        // Regular flow - continue to next step
+        console.log("Regular flow detected, continuing to about page");
         router.push("/settings/organizations/new/about");
       }
     },
@@ -116,10 +124,30 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         id="createOrg"
         handleSubmit={async (v) => {
           if (!needToCreateOnboarding) {
+            // Resuming existing onboarding - just navigate to next step
             router.push("/settings/organizations/new/about");
-          } else if (!intentToCreateOrgMutation.isPending) {
-            setServerErrorMessage(null);
-            intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
+          } else {
+            // Check if this is admin handover flow based on the submitted form value
+            const isAdminHandoverFlow = isAdmin && v.orgOwnerEmail !== session.data.user.email;
+
+            if (isAdminHandoverFlow) {
+              // Admin creating for someone else - submit immediately with just Step 1 data
+              if (!intentToCreateOrgMutation.isPending) {
+                setServerErrorMessage(null);
+                intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
+              }
+            } else {
+              // Regular user or admin creating for self - store locally and continue
+              reset({
+                billingPeriod: v.billingPeriod,
+                pricePerSeat: v.pricePerSeat,
+                seats: v.seats,
+                orgOwnerEmail: v.orgOwnerEmail,
+                name: v.name,
+                slug: v.slug,
+              });
+              router.push("/settings/organizations/new/about");
+            }
           }
         }}>
         <div>
