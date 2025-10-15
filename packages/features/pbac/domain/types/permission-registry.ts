@@ -676,7 +676,7 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
   },
   [Resource.Watchlist]: {
     _resource: {
-      i18nKey: "pbac_resource_watchlist",
+      i18nKey: "pbac_resource_blocklist",
     },
     [CrudAction.Create]: {
       description: "Create watchlist entries",
