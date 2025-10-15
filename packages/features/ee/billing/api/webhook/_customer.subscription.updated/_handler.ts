@@ -40,7 +40,7 @@ const handler = (handlers: Handlers) => async (data: Data) => {
     results.push(result);
   }
 
-  if (results.length > 0) {
+  if (results.length > 1) {
     log.warn(`Subscription ${subscription.id} contains multiple tracked products`);
   }
 
