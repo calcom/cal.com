@@ -2,7 +2,6 @@ import { OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
 
 import { PrismaClient } from "@calcom/prisma/client";
 
@@ -14,16 +13,19 @@ export class PrismaWriteService implements OnModuleInit, OnModuleDestroy {
 
   constructor(readonly configService: ConfigService) {
     const dbUrl = configService.get("db.writeUrl", { infer: true });
-    const pool = new Pool({ connectionString: dbUrl });
-    const adapter = new PrismaPg(pool);
-
+    const adapter = new PrismaPg({ connectionString: dbUrl });
     this.prisma = new PrismaClient({
       adapter,
     });
   }
 
   async onModuleInit() {
-    this.prisma.$connect();
+    try {
+      await this.prisma.$connect();
+      this.logger.log("Connected to read database");
+    } catch {
+      this.logger.error("Database connection failed");
+    }
   }
 
   async onModuleDestroy() {
