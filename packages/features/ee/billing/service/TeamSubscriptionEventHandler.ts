@@ -20,10 +20,8 @@ export class TeamSubscriptionEventHandler {
   async handleUpdate(subscription: Omit<IBillingRepositoryCreateArgs, "teamId" | "planName">) {
     const log = logger.getSubLogger({ prefix: ["TeamSubscriptionEventHandler.handleUpdate"] });
     const { subscriptionId } = subscription;
-    console.log("subscriptionId", subscriptionId);
     // First see if the subscription is already in the billing table
     const teamSubscriptionInDb = await this.billingRepository.getBySubscriptionId(subscriptionId);
-    console.log("teamSubscriptionInDb", teamSubscriptionInDb);
 
     // If the subscription doesn't exist in the DB, migrate it
     if (!teamSubscriptionInDb) {
