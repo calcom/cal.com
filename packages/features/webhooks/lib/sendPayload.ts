@@ -78,7 +78,7 @@ export type OOOEntryPayloadType = {
 export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
-    uid?: string;
+    uid?: string | null;
     metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
     status?: string;
