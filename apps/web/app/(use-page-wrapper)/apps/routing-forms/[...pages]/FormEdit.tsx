@@ -247,7 +247,7 @@ const FormEdit = ({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       id: uuidv4(),
-      // This is same type from react-awesome-query-builder
+      // This is same type from @react-awesome-query-builder/ui
       type: "text",
       label: "",
     });

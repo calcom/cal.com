@@ -1,7 +1,7 @@
+import type { ImmutableTree, JsonLogicResult, JsonTree } from "@react-awesome-query-builder/ui";
+import type { Config } from "@react-awesome-query-builder/ui";
+import { Utils as QbUtils } from "@react-awesome-query-builder/ui";
 import async from "async";
-import type { ImmutableTree, JsonLogicResult, JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder/lib";
-import { Utils as QbUtils } from "react-awesome-query-builder/lib";
 
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
@@ -84,7 +84,7 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
     const valueError = rule.properties.valueError;
     if (valueError) {
       // Sometimes there are null values in it.
-      errors.push(valueError.filter(Boolean));
+      errors.push(valueError.filter(Boolean) as string[]);
     }
   });
   return errors;
@@ -159,7 +159,7 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = !!jsonLogic.apply(attributeJsonLogic as any, attributesData)
+      const result = jsonLogic.apply(attributeJsonLogic as any, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 

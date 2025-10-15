@@ -1,11 +1,11 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { Query, Builder, Utils as QbUtils } from "@react-awesome-query-builder/ui";
+import type { ImmutableTree, BuilderProps, Config } from "@react-awesome-query-builder/ui";
+import type { JsonTree } from "@react-awesome-query-builder/ui";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
-import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
-import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
-import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
@@ -108,7 +108,7 @@ function useEnsureEventTypeIdInRedirectUrlAction({
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return !!(route.queryValue?.children1 && Object.keys(route.queryValue.children1).length > 0);
 };
 
 function getEmptyQueryValue() {
@@ -308,7 +308,7 @@ const WeightedAttributesSelector = ({
           />
         </div>
         <div className="bg-muted mt-1 rounded-xl p-2">
-          {!!attributeIdForWeights ? (
+          {attributeIdForWeights ? (
             <SelectField
               size="sm"
               containerClassName="data-testid-select-router"
@@ -521,31 +521,40 @@ const Route = ({
         }
       : undefined;
 
-  const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
-    <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
-      <div className="ml-2 flex items-center gap-0.5">
-        <div className="border-subtle rounded-lg border p-1">
-          <Icon name="zap" className="text-subtle h-4 w-4" />
+  // Only show query builder if we have fields configured
+  const hasFields =
+    formFieldsQueryBuilderConfig.fields && Object.keys(formFieldsQueryBuilderConfig.fields).length > 0;
+
+  const formFieldsQueryBuilder =
+    shouldShowFormFieldsQueryBuilder && route.formFieldsQueryBuilderState && hasFields ? (
+      <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
+        <div className="ml-2 flex items-center gap-0.5">
+          <div className="border-subtle rounded-lg border p-1">
+            <Icon name="zap" className="text-subtle h-4 w-4" />
+          </div>
+          <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
         </div>
-        <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
+        <Query
+          {...withRaqbSettingsAndWidgets({
+            config: formFieldsQueryBuilderConfig,
+            configFor: ConfigFor.FormFields,
+          })}
+          value={route.formFieldsQueryBuilderState.tree}
+          onChange={(immutableTree, formFieldsQueryBuilderConfig) => {
+            onChangeFormFieldsQuery(
+              route,
+              immutableTree,
+              formFieldsQueryBuilderConfig as unknown as FormFieldsQueryBuilderConfigWithRaqbFields
+            );
+          }}
+          renderBuilder={renderBuilder}
+        />
       </div>
-      <Query
-        {...withRaqbSettingsAndWidgets({
-          config: formFieldsQueryBuilderConfig,
-          configFor: ConfigFor.FormFields,
-        })}
-        value={route.formFieldsQueryBuilderState.tree}
-        onChange={(immutableTree, formFieldsQueryBuilderConfig) => {
-          onChangeFormFieldsQuery(
-            route,
-            immutableTree,
-            formFieldsQueryBuilderConfig as unknown as FormFieldsQueryBuilderConfigWithRaqbFields
-          );
-        }}
-        renderBuilder={renderBuilder}
-      />
-    </div>
-  ) : null;
+    ) : shouldShowFormFieldsQueryBuilder && !hasFields ? (
+      <div className="bg-default border-subtle rounded-2xl border p-4 text-center">
+        <p className="text-subtle">Please add fields to the form before adding conditions</p>
+      </div>
+    ) : null;
 
   const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
     ? withRaqbSettingsAndWidgets({
@@ -988,7 +997,7 @@ const deserializeRoute = ({
   return {
     ...route,
     formFieldsQueryBuilderState: buildState({
-      queryValue: route.queryValue,
+      queryValue: route.queryValue || getEmptyQueryValue(),
       config: formFieldsQueryBuilderConfig,
     }),
     attributesQueryBuilderState,
@@ -1016,14 +1025,23 @@ function useRoutes({
         // Add default empty queries to existing routes otherwise they won't have 'Add Rule' button for those RAQB queries.
         if (!r.queryValue?.id) {
           r.queryValue = getEmptyQueryValue() as LocalRoute["queryValue"];
+        } else if (r.queryValue && !r.queryValue.children1) {
+          // Ensure existing queryValue has children1 property
+          r.queryValue.children1 = {};
         }
 
         if (!r.attributesQueryValue) {
           r.attributesQueryValue = getEmptyQueryValue() as LocalRoute["attributesQueryValue"];
+        } else if (r.attributesQueryValue && !r.attributesQueryValue.children1) {
+          // Ensure existing attributesQueryValue has children1 property
+          r.attributesQueryValue.children1 = {};
         }
 
         if (!r.fallbackAttributesQueryValue) {
           r.fallbackAttributesQueryValue = getEmptyQueryValue() as LocalRoute["fallbackAttributesQueryValue"];
+        } else if (r.fallbackAttributesQueryValue && !r.fallbackAttributesQueryValue.children1) {
+          // Ensure existing fallbackAttributesQueryValue has children1 property
+          r.fallbackAttributesQueryValue.children1 = {};
         }
       });
       return _routes;

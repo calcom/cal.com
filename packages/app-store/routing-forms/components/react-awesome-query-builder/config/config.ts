@@ -80,10 +80,15 @@ function getSettingsWithoutRenderFns() {
     showErrorMessage: true,
     // Disable groups
     maxNesting: 1,
+    // Prevent removal of incomplete rules - this fixes the disappearing select box issue
+    removeIncompleteRulesOnLoad: false,
+    removeEmptyGroupsOnLoad: false,
+    canLeaveEmptyGroup: true,
   };
 }
 
 export const FormFieldsBaseConfig = {
+  ctx: BasicConfig.ctx,
   conjunctions: getConjunctions(ConfigFor.FormFields),
   operators: getOperators(ConfigFor.FormFields),
   types: getTypes(ConfigFor.FormFields),
@@ -92,6 +97,7 @@ export const FormFieldsBaseConfig = {
 };
 
 export const AttributesBaseConfig = {
+  ctx: BasicConfig.ctx,
   conjunctions: getConjunctions(ConfigFor.Attributes),
   operators: getOperators(ConfigFor.Attributes),
   types: getTypes(ConfigFor.Attributes),
