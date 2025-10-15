@@ -159,7 +159,7 @@ export const AddNewTeamMembersForm = () => {
                 placeholder="colleague@company.com"
               />
             </div>
-            <Button type="submit" StartIcon="plus" color="secondary">
+            <Button type="submit" StartIcon="plus" color="secondary" data-testid="invite-new-member-button">
               {t("add")}
             </Button>
           </form>
