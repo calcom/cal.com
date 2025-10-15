@@ -1,7 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
-import { bookingReferenceExtension } from "./extensions/booking-reference";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
 import { excludeLockedUsersExtension } from "./extensions/exclude-locked-users";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
@@ -64,7 +63,6 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) => {
     .$extends(excludeLockedUsersExtension())
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
-    .$extends(bookingReferenceExtension())
     .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 };
 
@@ -78,7 +76,6 @@ export const prisma: PrismaClient = baseClient
   .$extends(excludeLockedUsersExtension())
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
-  .$extends(bookingReferenceExtension())
   .$extends(disallowUndefinedDeleteUpdateManyExtension()) as unknown as PrismaClient;
 
 // This prisma instance is meant to be used only for READ operations.
