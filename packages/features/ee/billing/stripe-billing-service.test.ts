@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { StripeBillingService } from "./stripe-billling-service";
+import { StripeBillingService } from "./stripe-billing-service";
 
 vi.mock("stripe");
 
