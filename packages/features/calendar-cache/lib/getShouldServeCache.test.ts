@@ -7,6 +7,8 @@ import { CacheService } from "./getShouldServeCache";
 describe("CacheService.getShouldServeCache", () => {
   const mockFeaturesRepository: IFeaturesRepository = {
     checkIfTeamHasFeature: vi.fn(),
+    checkIfFeatureIsEnabledGlobally: vi.fn(),
+    checkIfUserHasFeature: vi.fn(),
   };
 
   const cacheService = new CacheService({ featuresRepository: mockFeaturesRepository });

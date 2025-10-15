@@ -30,7 +30,7 @@ describe("GoogleCalendarService.getFreeBusyResult - shouldServeCache logic", () 
 
     calendarService.getFreeBusyResult = CalendarService.prototype.getFreeBusyResult.bind(calendarService);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    calendarService.credential = { id: 1, userId: 1 } as any;
+    (calendarService as any).credential = { id: 1, userId: 1 };
   });
 
   describe("shouldServeCache parameter handling", () => {
