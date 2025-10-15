@@ -58,7 +58,7 @@ import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -490,6 +490,7 @@ async function handler(
   const {
     prismaClient: prisma,
     bookingRepository,
+    userRepository,
     cacheService,
     checkBookingAndDurationLimitsService,
     luckyUserService,
@@ -545,7 +546,18 @@ async function handler(
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
-  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+  try {
+    await checkIfBookerEmailIsBlocked({
+      loggedInUserId: userId,
+      bookerEmail,
+      verificationCode: reqBody.verificationCode,
+    });
+  } catch (error) {
+    if (error instanceof ErrorWithCode) {
+      throw new HttpError({ statusCode: 403, message: error.message });
+    }
+    throw error;
+  }
 
   const spamCheckService = getSpamCheckService();
   const eventOrganizationId = await getEventOrganizationId({
@@ -1196,13 +1208,31 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
+  const guestEmails = (reqGuests || []).map((email) => extractBaseEmail(email).toLowerCase());
+  const guestUsers = await userRepository.findManyByEmailsWithEmailVerificationSettings({
+    emails: guestEmails,
+  });
+
+  const emailToRequiresVerification = new Map<string, boolean>();
+  for (const user of guestUsers) {
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
+  }
+
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+
     if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
       guestsRemoved.push(guest);
       return guestArray;
     }
+
+    if (emailToRequiresVerification.get(baseGuestEmail)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
+
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
