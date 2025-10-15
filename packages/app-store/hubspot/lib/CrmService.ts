@@ -116,7 +116,7 @@ export default class HubspotCalendarService implements CRM {
   private hubspotCancelMeeting = async (uid: string) => {
     const simplePublicObjectInput: SimplePublicObjectInput = {
       properties: {
-        hs_meeting_outcome: "CANCELLED",
+        hs_meeting_outcome: "CANCELED",
       },
     };
 
