@@ -92,15 +92,12 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
 
       if (data.handoverUrl) {
         // Admin handover flow - redirect to handover page
-        console.log("Admin handover flow detected, redirecting to handover page");
         router.push("/settings/organizations/new/handover");
       } else if (data.organizationId) {
         // Self-hosted flow - org already created, redirect to organizations list
-        console.log("Self-hosted flow detected, org already created");
         router.push("/settings/organizations");
       } else {
         // Regular flow - continue to next step
-        console.log("Regular flow detected, continuing to about page");
         router.push("/settings/organizations/new/about");
       }
     },

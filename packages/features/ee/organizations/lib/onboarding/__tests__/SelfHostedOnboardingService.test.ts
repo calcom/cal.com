@@ -138,8 +138,8 @@ describe("SelfHostedOnboardingService", () => {
     it("should store teams and invites in onboarding record", async () => {
       await service.createOnboardingIntent(mockInput);
 
-      expect(OrganizationOnboardingRepository.update).toHaveBeenCalledWith(
-        "onboarding-123",
+      // Teams and invites are now passed during creation, not via update
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           teams: expect.arrayContaining([
             { id: -1, name: "Engineering", isBeingMigrated: false, slug: null },
@@ -178,8 +178,8 @@ describe("SelfHostedOnboardingService", () => {
 
       await service.createOnboardingIntent(inputWithEmptyTeams);
 
-      expect(OrganizationOnboardingRepository.update).toHaveBeenCalledWith(
-        "onboarding-123",
+      // Teams are now passed during creation with empty names filtered out
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           teams: [{ id: -1, name: "Engineering", isBeingMigrated: false, slug: null }],
         })
@@ -198,8 +198,8 @@ describe("SelfHostedOnboardingService", () => {
 
       await service.createOnboardingIntent(inputWithEmptyInvites);
 
-      expect(OrganizationOnboardingRepository.update).toHaveBeenCalledWith(
-        "onboarding-123",
+      // Invites are now passed during creation with empty emails filtered out
+      expect(mockPaymentService.createOrganizationOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           invitedMembers: [{ email: "member1@example.com", name: "Member 1" }],
         })

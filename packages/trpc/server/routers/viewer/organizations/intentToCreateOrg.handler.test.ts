@@ -70,8 +70,8 @@ describe("intentToCreateOrgHandler", () => {
               isComplete: false,
               stripeCustomerId: null,
               createdById: data.createdByUserId,
-              teams: [],
-              invitedMembers: [],
+              teams: data.teams ?? [],
+              invitedMembers: data.invitedMembers ?? [],
               isPlatform: data.isPlatform ?? false,
             },
           });
@@ -124,7 +124,7 @@ describe("intentToCreateOrgHandler", () => {
         },
       });
 
-      // Verify the result shape
+      // Admin creating for different user with no teams/invites triggers handover
       expect(result).toEqual({
         userId: expect.any(Number),
         orgOwnerEmail: mockInput.orgOwnerEmail,
@@ -135,8 +135,9 @@ describe("intentToCreateOrgHandler", () => {
         billingPeriod: mockInput.billingPeriod,
         isPlatform: mockInput.isPlatform,
         organizationOnboardingId: expect.any(String),
-        checkoutUrl: null, // Admin flow, no checkout required
-        organizationId: expect.any(Number), // Organization created immediately for self-hosted admin
+        checkoutUrl: null,
+        organizationId: null, // Not created yet - handover flow
+        handoverUrl: expect.stringContaining("/settings/organizations/new/resume?onboardingId="),
       });
 
       // Verify organization onboarding was created
@@ -231,7 +232,7 @@ describe("intentToCreateOrgHandler", () => {
       );
     });
 
-    it("should throw error when organization onboarding already exists", async () => {
+    it("should throw error when organization onboarding already exists and is complete", async () => {
       // Create admin user
       const adminUser = await createTestUser({
         email: "admin@example.com",
@@ -245,7 +246,7 @@ describe("intentToCreateOrgHandler", () => {
         emailVerified: new Date(),
       });
 
-      // Create existing organization onboarding
+      // Create existing COMPLETE organization onboarding
       await prismock.organizationOnboarding.create({
         data: {
           name: mockInput.name,
@@ -255,6 +256,7 @@ describe("intentToCreateOrgHandler", () => {
           seats: mockInput.seats,
           pricePerSeat: mockInput.pricePerSeat,
           createdById: adminUser.id,
+          isComplete: true, // Must be complete to throw error
         },
       });
 
@@ -329,7 +331,7 @@ describe("intentToCreateOrgHandler", () => {
         },
       });
 
-      // Verify the result shape
+      // Admin creating for different user with no teams/invites triggers handover (same as hosted)
       expect(result).toEqual({
         userId: expect.any(Number),
         orgOwnerEmail: mockInput.orgOwnerEmail,
@@ -340,8 +342,9 @@ describe("intentToCreateOrgHandler", () => {
         billingPeriod: mockInput.billingPeriod,
         isPlatform: mockInput.isPlatform,
         organizationOnboardingId: expect.any(String),
-        checkoutUrl: null, // Admin flow, no checkout required
-        organizationId: expect.any(Number), // Organization created immediately for self-hosted admin
+        checkoutUrl: null,
+        organizationId: null, // Not created yet - handover flow
+        handoverUrl: expect.stringContaining("/settings/organizations/new/resume?onboardingId="),
       });
 
       // Verify organization onboarding was created
