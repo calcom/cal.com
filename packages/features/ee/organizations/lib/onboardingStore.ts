@@ -117,11 +117,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   const path = usePathname();
   const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
 
-  // Billing is disabled only in E2E mode or for self-hosted admins
-  // E2E tests always use self-hosted flow (billing disabled)
-  const isBillingEnabled = process.env.NEXT_PUBLIC_IS_E2E
-    ? false
-    : IS_TEAM_BILLING_ENABLED_CLIENT || !isAdmin;
+  const isBillingEnabled = process.env.NEXT_PUBLIC_IS_E2E ? false : IS_TEAM_BILLING_ENABLED_CLIENT;
 
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
