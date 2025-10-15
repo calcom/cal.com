@@ -111,7 +111,12 @@ const DateOverrideForm = ({
 
         if (selectedDates.length === 0) return;
 
-        if (!isDryRun && datesUnavailable) {
+        if (isDryRun) {
+          setSelectedDates([]);
+          return;
+        }
+
+        if (datesUnavailable) {
           selectedDates.map((date) => {
             datesInRanges.push({
               start: date.utc(true).startOf("day").toDate(),
@@ -119,7 +124,7 @@ const DateOverrideForm = ({
             });
           });
           onChange(datesInRanges);
-        } else if (!isDryRun) {
+        } else {
           selectedDates.map((date) => {
             values.range.map((item) => {
               datesInRanges.push({
