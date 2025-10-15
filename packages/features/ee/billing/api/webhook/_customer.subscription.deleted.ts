@@ -2,12 +2,10 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import prisma from "@calcom/prisma";
 
-import type { LazyModule, SWHMap } from "./__handler";
+import type { Handlers, SWHMap } from "../../lib/types";
 import { HttpCode } from "./__handler";
 
 type Data = SWHMap["customer.subscription.deleted"]["data"];
-
-type Handlers = Record<`prod_${string}`, () => LazyModule<Data>>;
 
 const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 
