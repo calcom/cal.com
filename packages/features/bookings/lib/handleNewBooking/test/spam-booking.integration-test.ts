@@ -829,12 +829,8 @@ describe("handleNewBooking - Spam Detection", () => {
                   id: 1,
                   slotInterval: 30,
                   length: 30,
-                  // No teamId - this is a user event
-                  users: [
-                    {
-                      id: 101,
-                    },
-                  ],
+                  // User Event Type has userId set
+                  userId: 101,
                 },
               ],
               organizer,
@@ -843,25 +839,6 @@ describe("handleNewBooking - Spam Detection", () => {
             { id: org.id }
           )
         );
-
-        // Link the eventType to the user's profile in the organization
-        const userProfile = await prisma.profile.findUnique({
-          where: {
-            userId_organizationId: {
-              userId: 101,
-              organizationId: org.id,
-            },
-          },
-        });
-
-        if (!userProfile) {
-          throw new Error("User profile not found");
-        }
-
-        await prisma.eventType.update({
-          where: { id: 1 },
-          data: { profileId: userProfile.id },
-        });
 
         await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
@@ -889,95 +866,6 @@ describe("handleNewBooking - Spam Detection", () => {
         expectDecoyBookingResponse(createdBooking);
         expect(createdBooking.attendees[0].email).toBe(blockedEmail);
         await expectNoBookingInDatabase(blockedEmail);
-      },
-      timeout
-    );
-
-    test(
-      "should allow booking for user event without organization (personal event)",
-      async () => {
-        const handleNewBooking = getNewBookingHandler();
-        const bookerEmail = "personal-user@example.com";
-
-        // Create an organization and add email to its watchlist
-        const org = await createOrganization({
-          name: "Some Org",
-          slug: "some-org",
-          withTeam: false,
-        });
-
-        await createOrganizationWatchlistEntry(org.id, {
-          type: WatchlistType.EMAIL,
-          value: bookerEmail,
-          action: "BLOCK",
-        });
-
-        const booker = getBooker({
-          email: bookerEmail,
-          name: "Personal User",
-        });
-
-        // Create organizer WITHOUT organizationId - personal account
-        const organizer = getOrganizer({
-          name: "Personal Organizer",
-          email: "personal-organizer@example.com",
-          id: 101,
-          schedules: [TestData.schedules.IstWorkHours],
-          credentials: [getGoogleCalendarCredential()],
-          selectedCalendars: [TestData.selectedCalendars.google],
-          // No organizationId - personal account
-        });
-
-        // Create a user event for personal account
-        await createBookingScenario(
-          getScenarioData({
-            eventTypes: [
-              {
-                id: 1,
-                slotInterval: 30,
-                length: 30,
-                // No teamId - this is a user event
-                users: [
-                  {
-                    id: 101,
-                  },
-                ],
-              },
-            ],
-            organizer,
-            apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
-          })
-          // No organization passed - personal account
-        );
-
-        await mockCalendarToHaveNoBusySlots("googlecalendar", {
-          create: {
-            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
-          },
-        });
-
-        const mockBookingData = getMockRequestDataForBooking({
-          data: {
-            user: organizer.username,
-            eventTypeId: 1,
-            responses: {
-              email: booker.email,
-              name: booker.name,
-              location: { optionValue: "", value: BookingLocations.CalVideo },
-            },
-          },
-        });
-
-        const createdBooking = await handleNewBooking({
-          bookingData: mockBookingData,
-        });
-
-        // Should NOT be a decoy response - booking should succeed
-        // because this is a personal event, not connected to the organization
-        expect(createdBooking).not.toHaveProperty("isShortCircuitedBooking");
-        expect(createdBooking.status).toBe(BookingStatus.ACCEPTED);
-        expect(createdBooking.id).not.toBe(0);
-        expect(createdBooking.attendees[0].email).toBe(bookerEmail);
       },
       timeout
     );

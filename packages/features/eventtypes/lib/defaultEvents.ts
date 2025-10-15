@@ -98,7 +98,6 @@ const commons = {
   id: 0,
   hideCalendarNotes: false,
   hideCalendarEventDetails: false,
-  profile: null,
   recurringEvent: null,
   destinationCalendar: null,
   team: null,

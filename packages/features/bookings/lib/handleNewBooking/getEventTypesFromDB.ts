@@ -2,9 +2,9 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import type { DefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -195,9 +195,9 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     throw new Error(ErrorCode.EventTypeNotFound);
   }
 
-  const { hosts, users, ...restEventType } = eventType;
+  const { profile, hosts, users, ...restEventType } = eventType;
 
-  const isOrgTeamEvent = !!eventType?.team && !!eventType.profile?.organizationId;
+  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
   const hostsWithSelectedCalendars = hosts.map((host) => ({
     ...host,
