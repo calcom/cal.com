@@ -541,9 +541,10 @@ test.describe("Reschedule for booking with seats", () => {
       data: bookingSeats,
     });
 
-    const references = await prisma.bookingSeat.findMany({
-      where: { bookingId: booking.id },
-      orderBy: { id: "asc" },
+    const secondAttendeeId = bookingAttendees.find((attendee)=> attendee.email === "second+seats@cal.com");
+
+    const references = await prisma.bookingSeat.findFirst({
+      where: { bookingId: booking.id, attendeeId: secondAttendeeId?.id },
     });
 
     const secondUser = await users.create({
@@ -556,12 +557,13 @@ test.describe("Reschedule for booking with seats", () => {
     await page.waitForSelector('[data-testid="bookings"]');
 
     await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    const href = await page.locator('[data-testid="reschedule"]').getAttribute("href");
+    expect(href).toBeTruthy();
+    const url = new URL(href!, page.url());
+    const seatReferenceUid = url.searchParams.get('seatReferenceUid');
+    expect(seatReferenceUid).toBeTruthy();
+    expect(seatReferenceUid).toBe(references?.referenceUid);
     await page.locator('[data-testid="reschedule"]').click();
-
-    await page.waitForURL((url) => {
-      const rescheduleUid = url.searchParams.get("rescheduleUid");
-      return !!rescheduleUid && rescheduleUid === references[1].referenceUid;
-    });
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
