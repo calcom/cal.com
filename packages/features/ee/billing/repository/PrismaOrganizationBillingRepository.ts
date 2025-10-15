@@ -24,10 +24,10 @@ export class PrismaOrganizationBillingRepository implements IBillingRepository {
       status: billingRecord.status as SubscriptionStatus,
     };
   }
-  async getBySubscriptionId(id: string): Promise<BillingRecord | null> {
+  async getBySubscriptionId(subscriptionId: string): Promise<BillingRecord | null> {
     const billingRecord = await this.prismaClient.organizationBilling.findUnique({
       where: {
-        id,
+        subscriptionId,
       },
     });
 
