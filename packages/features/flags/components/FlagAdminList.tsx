@@ -39,7 +39,7 @@ export const FlagAdminList = () => {
         {sortedTypes.map((type) => (
           <PanelCard key={type} title={type.replace(/_/g, " ")} collapsible defaultCollapsed={false}>
             <List roundContainer noBorderTreatment>
-              {groupedFlags[type].map((flag, index) => (
+              {groupedFlags[type].map((flag: Flag, index: number) => (
                 <ListItem key={flag.slug} rounded={index === 0 || index === groupedFlags[type].length - 1}>
                   <div className="flex flex-1 flex-col">
                     <ListItemTitle component="h3">{flag.slug}</ListItemTitle>
