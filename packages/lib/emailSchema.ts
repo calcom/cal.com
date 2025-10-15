@@ -7,9 +7,9 @@ export const emailRegex =
   /^(?!\.)(?!.*\.\.)([A-Z0-9_+-\.']*)[A-Z0-9_+'-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
 
 /**
- * Domain regex for watchlist entries - requires @ prefix
+ * Domain regex for watchlist entries
  * Supports international domains with Unicode characters
- * Examples: @example.com, @münchen.de, @example.co.uk
+ * Examples: example.com, münchen.de, example.co.uk
  */
 export const domainRegex =
   /^[a-zA-Z0-9\u00a1-\uffff]([a-zA-Z0-9\u00a1-\uffff-]*[a-zA-Z0-9\u00a1-\uffff])?(\.[a-zA-Z0-9\u00a1-\uffff]([a-zA-Z0-9\u00a1-\uffff-]*[a-zA-Z0-9\u00a1-\uffff])?)*$/;
