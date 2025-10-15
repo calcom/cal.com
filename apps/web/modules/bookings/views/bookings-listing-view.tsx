@@ -431,9 +431,12 @@ function BookingsContent({ status, permissions }: BookingsProps) {
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
+              I need to reuse this in the managed users booking table also maybe ask cursor or devin or gemini
+              whatever about how to setup this table
               <DataTableWrapper
                 className="mb-6"
                 tableContainerRef={tableContainerRef}
+                // actual toolbar is loaded from here
                 table={table}
                 testId={`${status}-bookings`}
                 bodyTestId="bookings"
@@ -444,11 +447,13 @@ function BookingsContent({ status, permissions }: BookingsProps) {
                 paginationMode="standard"
                 ToolbarLeft={
                   <>
+                    toolbar left content
                     <DataTableFilters.FilterBar table={table} />
                   </>
                 }
                 ToolbarRight={
                   <>
+                    toolbar right content
                     <DataTableFilters.ClearFiltersButton />
                     <DataTableSegment.SaveButton />
                     <DataTableSegment.Select />
