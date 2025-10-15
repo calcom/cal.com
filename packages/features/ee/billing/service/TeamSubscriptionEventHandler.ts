@@ -42,7 +42,6 @@ export class TeamSubscriptionEventHandler {
       return;
     }
 
-    // if (teamSubscriptionInDb && teamSubscriptionInDb.status !== subscriptionStatus) {
     if (this.hasSubscriptionChanged({ subscription, dbSubscription: teamSubscriptionInDb })) {
       await this.billingRepository.update({ ...subscription, id: teamSubscriptionInDb.id });
     }
