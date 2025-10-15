@@ -7,7 +7,8 @@ export const getPrefetchMonthCount = (
   bookerLayout: string,
   bookerState: BookerState,
   firstMonth: number,
-  secondMonth: number
+  secondMonth: number,
+  prefetchNextMonth: boolean
 ) => {
   const isDifferentMonth = areDifferentValidMonths(firstMonth, secondMonth);
 
@@ -17,7 +18,15 @@ export const getPrefetchMonthCount = (
 
   if (!isDifferentMonth) return undefined;
 
-  if (isColumnView || (!isWeekView && isSelectingTime)) return 2;
+  // For column view, always return 2 when months are different
+  if (isColumnView) return 2;
+
+  // For month view, only add extra months when:
+  // 1. User is selecting time AND
+  // 2. We're NOT already prefetching the next month
+  // This prevents duplicate calls when bookerState changes to "selecting_time"
+  // after the initial data load
+  if (!isWeekView && isSelectingTime && !prefetchNextMonth) return 2;
 
   return undefined;
 };
