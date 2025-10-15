@@ -207,7 +207,6 @@ export default class HubspotCalendarService implements CRM {
     return await this.handleMeetingCreation(event, contacts);
   }
 
-   
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     const auth = await this.auth;
     await auth.getToken();
@@ -217,7 +216,7 @@ export default class HubspotCalendarService implements CRM {
   async deleteEvent(uid: string): Promise<void> {
     const auth = await this.auth;
     await auth.getToken();
-    return await this.hubspotCancelMeeting(uid);
+    await this.hubspotCancelMeeting(uid);
   }
 
   async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
