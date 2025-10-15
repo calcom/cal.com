@@ -34,7 +34,10 @@ export class BotDetectionService {
     }
 
     if (!Number.isInteger(eventTypeId) || eventTypeId <= 0) {
-      throw new Error(`Invalid eventTypeId: ${eventTypeId}. Must be a positive integer.`);
+      throw new HttpError({
+        statusCode: 400,
+        message: `Invalid eventTypeId: ${eventTypeId}. Must be a positive integer.`,
+      });
     }
 
     // Fetch only the teamId from the event type
