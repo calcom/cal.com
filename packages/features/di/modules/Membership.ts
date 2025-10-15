@@ -1,5 +1,5 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 
 import { createModule } from "../di";
 

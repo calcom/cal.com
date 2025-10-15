@@ -11,7 +11,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { prisma } from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";

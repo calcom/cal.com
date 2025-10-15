@@ -590,6 +590,18 @@ export async function getBookings({
               .orderBy("AssignmentReason.createdAt", "desc")
               .limit(1)
           ).as("assignmentReason"),
+          jsonObjectFrom(
+            eb
+              .selectFrom("BookingReport")
+              .select([
+                "BookingReport.id",
+                "BookingReport.reportedById",
+                "BookingReport.reason",
+                "BookingReport.description",
+                "BookingReport.createdAt",
+              ])
+              .whereRef("BookingReport.bookingUid", "=", "Booking.uid")
+          ).as("report"),
         ])
         .orderBy(orderBy.key, orderBy.order)
         .execute()
@@ -688,6 +700,7 @@ export async function getBookings({
       return hostUser?.id === userId && attendeeEmails.has(hostUser.email);
     });
   };
+
   const bookings = await Promise.all(
     plainBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user

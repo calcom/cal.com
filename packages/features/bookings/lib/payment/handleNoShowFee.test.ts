@@ -1,13 +1,13 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports
+ 
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 
 import { handleNoShowFee } from "./handleNoShowFee";
@@ -37,7 +37,7 @@ vi.mock("@calcom/lib/server/repository/credential", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
     findUniqueByUserIdAndTeamId: vi.fn(),
   },

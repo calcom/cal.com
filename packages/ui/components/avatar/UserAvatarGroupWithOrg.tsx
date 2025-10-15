@@ -1,7 +1,7 @@
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import type { Team, User } from "@calcom/prisma/client";
 
 import { AvatarGroup } from "./AvatarGroup";

@@ -137,7 +137,11 @@ export class EventTypesService_2024_04_15 {
       !bookingFields.find((field) => field.type === "email") &&
       !bookingFields.find((field) => field.type === "phone")
     ) {
-      bookingFields.push({ ...systemBeforeFieldEmail, type: BaseField.email, editable: Editable.system });
+      bookingFields.push({
+        ...systemBeforeFieldEmail,
+        type: BaseField.email,
+        editable: Editable.systemButOptional,
+      });
     }
 
     await updateEventType({

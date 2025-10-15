@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 
 import isRouter from "../lib/isRouter";
@@ -12,7 +12,7 @@ import type { TargetRoutingFormForResponse } from "./formSubmissionUtils";
 import { onSubmissionOfFormResponse } from "./formSubmissionUtils";
 import { handleResponse } from "./handleResponse";
 
-vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+vi.mock("@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   findTeamMembersMatchingAttributeLogic: vi.fn(),
 }));
 
@@ -84,6 +84,8 @@ const mockForm: TargetRoutingFormForResponse = {
   user: {
     id: 1,
     email: "test@example.com",
+    timeFormat: null,
+    locale: null,
   },
   team: {
     parentId: 2,

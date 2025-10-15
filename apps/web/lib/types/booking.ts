@@ -1,3 +1,3 @@
-export type BookingResponse = Awaited<
-  ReturnType<typeof import("@calcom/features/bookings/lib/handleNewBooking").default>
->;
+import type { RegularBookingCreateResult } from "@calcom/features/bookings/lib/dto/types";
+
+export type BookingResponse = RegularBookingCreateResult;

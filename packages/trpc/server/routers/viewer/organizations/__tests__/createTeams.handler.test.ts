@@ -311,7 +311,6 @@ describe("createTeams handler", () => {
     // Verify platform team was not moved
     const platformTeam = await prismock.team.findFirst({
       where: { name: "Platform Team" },
-      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       include: { parent: true },
     });
 
@@ -422,5 +421,56 @@ describe("createTeams handler", () => {
     // Filter for redirects with null 'from' value
     const redirectsWithNullFrom = redirects.filter((redirect) => redirect.from === null);
     expect(redirectsWithNullFrom).toHaveLength(0);
+  });
+
+  it("should transfer credits from team to organization when moving team", async () => {
+    const { owner, organization, teams } = await createScenario({
+      teams: [{ name: "Team With Credits", slug: "team-with-credits", addToParentId: null }],
+    });
+
+    const teamToMove = teams[0];
+
+    // Add credits to the team before moving
+    await prismock.creditBalance.create({
+      data: {
+        teamId: teamToMove.id,
+        additionalCredits: 500,
+        limitReachedAt: null,
+        warningSentAt: null,
+      },
+    });
+
+    const result = await createTeamsHandler({
+      ctx: {
+        user: {
+          id: owner.id,
+          organizationId: organization.id,
+        },
+      },
+      input: {
+        teamNames: [],
+        orgId: organization.id,
+        moveTeams: [
+          {
+            id: teamToMove.id,
+            shouldMove: true,
+            newSlug: "moved-team-with-credits",
+          },
+        ],
+        creationSource: CreationSource.WEBAPP,
+      },
+    });
+
+    expect(result).toEqual({ duplicatedSlugs: [] });
+
+    const teamCreditBalance = await prismock.creditBalance.findFirst({
+      where: { teamId: teamToMove.id },
+    });
+    expect(teamCreditBalance?.additionalCredits).toBe(0);
+
+    const orgCreditBalance = await prismock.creditBalance.findFirst({
+      where: { teamId: organization.id },
+    });
+    expect(orgCreditBalance?.additionalCredits).toBe(500);
   });
 });

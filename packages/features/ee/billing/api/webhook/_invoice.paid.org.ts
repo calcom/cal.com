@@ -1,8 +1,10 @@
 import { z } from "zod";
 
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
@@ -96,6 +98,10 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       paymentSubscriptionItemId,
     });
 
+    // Get the Stripe subscription object
+    const stripeSubscription = await stripe.subscriptions.retrieve(paymentSubscriptionId);
+    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(stripeSubscription);
+
     const internalTeamBillingService = new InternalTeamBilling(organization);
     await internalTeamBillingService.saveTeamBilling({
       teamId: organization.id,
@@ -105,6 +111,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       // TODO: Write actual status when webhook events are added
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.ORGANIZATION,
+      subscriptionStart,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);

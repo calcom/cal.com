@@ -98,7 +98,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
             ]
           : []),
         {
-          name: "privacy",
+          name: "privacy_and_security",
           href: "/settings/organizations/privacy",
         },
 
@@ -170,7 +170,14 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = ["privacy", "OAuth Clients", "SSO", "directory_sync", "delegation_credential"];
+const organizationAdminKeys = [
+  "privacy",
+  "privacy_and_security",
+  "OAuth Clients",
+  "SSO",
+  "directory_sync",
+  "delegation_credential",
+];
 
 export interface SettingsPermissions {
   canViewRoles?: boolean;
@@ -221,8 +228,7 @@ const useTabs = ({
           });
         }
 
-        // Add pbac menu item only if feature flag is enabled AND user has permission to view roles
-        // This prevents showing the menu item when user has no organization permissions
+        // Add pbac menu item - show opt-in page if not enabled, regular page if enabled
         if (isPbacEnabled) {
           if (permissions?.canViewRoles) {
             newArray.push({
@@ -242,6 +248,14 @@ const useTabs = ({
             newArray.push({
               name: "billing",
               href: "/settings/organizations/billing",
+            });
+          }
+          // Show roles page (modal will appear if PBAC not enabled)
+          if (permissions?.canUpdateOrganization) {
+            newArray.push({
+              name: "roles",
+              href: "/settings/organizations/roles",
+              isBadged: true, // Show "New" badge
             });
           }
         }
@@ -604,17 +618,23 @@ const SettingsSidebarContainer = ({
                   </div>
                   <div className="my-3 space-y-px">
                     {tab.children?.map((child, index) => (
-                      <VerticalTabItem
-                        key={child.href}
-                        name={t(child.name)}
-                        isExternalLink={child.isExternalLink}
-                        href={child.href || "/"}
-                        textClassNames="text-emphasis font-medium text-sm"
-                        className={`me-5 h-7 w-auto !px-2 ${
-                          tab.children && index === tab.children?.length - 1 && "!mb-3"
-                        }`}
-                        disableChevron
-                      />
+                      <div key={child.href} className="flex items-start gap-2">
+                        <VerticalTabItem
+                          name={t(child.name)}
+                          isExternalLink={child.isExternalLink}
+                          href={child.href || "/"}
+                          textClassNames="text-emphasis font-medium text-sm"
+                          className={`h-7 w-fit !px-2 ${
+                            tab.children && index === tab.children?.length - 1 && "!mb-3"
+                          }`}
+                          disableChevron
+                        />
+                        {child.isBadged && (
+                          <Badge variant="blue" className="mt-0.5 text-xs">
+                            New
+                          </Badge>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </React.Fragment>

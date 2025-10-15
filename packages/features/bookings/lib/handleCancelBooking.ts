@@ -18,7 +18,7 @@ import {
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -27,7 +27,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
@@ -79,6 +79,7 @@ async function handler(input: CancelBookingInput) {
     cancelledBy,
     cancelSubsequentBookings,
     internalNote,
+    skipCancellationReasonValidation = false,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -117,7 +118,7 @@ async function handler(input: CancelBookingInput) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
-  if (!platformClientId && !cancellationReason?.trim() && isCancellationUserHost) {
+  if (!platformClientId && !cancellationReason?.trim() && isCancellationUserHost && !skipCancellationReasonValidation) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",

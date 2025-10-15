@@ -466,7 +466,7 @@ export default class GoogleCalendarService implements Calendar {
     args: FreeBusyArgs,
     shouldServeCache?: boolean
   ): Promise<calendar_v3.Schema$FreeBusyResponse> {
-    if (shouldServeCache === false) return await this.fetchAvailability(args);
+    if (!shouldServeCache) return await this.fetchAvailability(args);
     const calendarCache = await CalendarCache.init(null);
     const cached = await calendarCache.getCachedAvailability({
       credentialId: this.credential.id,

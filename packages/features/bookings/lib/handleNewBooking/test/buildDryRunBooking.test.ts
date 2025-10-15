@@ -6,6 +6,7 @@ import { buildDryRunBooking } from "../../handleNewBooking";
 
 vi.mock("@calcom/prisma", () => ({
   default: {}, // empty object as default export
+  prisma: {},
 }));
 
 describe("buildDryRunBooking", () => {

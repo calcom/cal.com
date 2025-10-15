@@ -10,14 +10,14 @@ import { moveUserToMatchingOrg } from "./verify-email";
 
 // TODO: This test passes but coverage is very low.
 vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler");
-vi.mock("@calcom/lib/server/repository/organization");
+vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository");
 vi.mock("@calcom/prisma", () => {
   return {
     prisma: vi.fn(),
   };
 });
 
-vi.mock("@calcom/features/ee/billing/stripe-billling-service", () => {
+vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => {
   return {
     StripeBillingService: vi.fn(),
   };
