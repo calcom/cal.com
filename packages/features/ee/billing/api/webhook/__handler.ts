@@ -6,21 +6,6 @@ import type Stripe from "stripe";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
 
-/** Stripe Webhook Handler Mappings */
-export type SWHMap = {
-  [T in Stripe.DiscriminatedEvent as T["type"]]: {
-    [K in keyof T as Exclude<K, "type">]: T[K];
-  };
-};
-
-export type LazyModule<D> = Promise<{
-  default: (data: D) => unknown | Promise<unknown>;
-}>;
-
-type SWHandlers = {
-  [K in keyof SWHMap]?: () => LazyModule<SWHMap[K]["data"]>;
-};
-
 /** Just a shorthand for HttpError  */
 export class HttpCode extends HttpError {
   constructor(statusCode: number, message: string) {
