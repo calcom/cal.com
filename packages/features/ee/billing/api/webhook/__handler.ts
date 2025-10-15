@@ -4,14 +4,9 @@ import type { NextApiRequest } from "next";
 import type Stripe from "stripe";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { HttpError } from "@calcom/lib/http-error";
 
-/** Just a shorthand for HttpError  */
-export class HttpCode extends HttpError {
-  constructor(statusCode: number, message: string) {
-    super({ statusCode, message });
-  }
-}
+import { HttpCode } from "../../lib/httpCode";
+import type { SWHandlers } from "../../lib/types";
 
 /**
  * Allows us to split big API handlers by webhook event, and lazy load them.
