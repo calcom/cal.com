@@ -88,7 +88,8 @@ async function getHandler(req: NextRequest) {
   });
 
   if (checkoutSession && subscription) {
-    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(subscription);
+    const { subscriptionStart, subscriptionTrialEnd, subscriptionEnd } =
+      StripeBillingService.extractSubscriptionDates(subscription);
     const internalBillingService = new InternalTeamBilling(team);
     await internalBillingService.saveTeamBilling({
       teamId: team.id,
@@ -99,6 +100,8 @@ async function getHandler(req: NextRequest) {
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.TEAM,
       subscriptionStart,
+      subscriptionTrialEnd,
+      subscriptionEnd,
     });
   }
 
