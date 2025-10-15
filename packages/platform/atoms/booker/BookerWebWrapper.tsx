@@ -139,15 +139,12 @@ const BookerPlatformWrapperComponent = (props: BookerWebWrapperAtomProps) => {
 
   const isEmbed = useIsEmbed();
 
-  console.log("[BookerWebWrapper DEBUG] date", date, month, bookerLayout, bookerState);
-
   const { prefetchNextMonth, monthCount } = usePrefetch({
     date,
     month,
     bookerLayout,
     bookerState,
   });
-  console.log("[BookerWebWrapper DEBUG] prefetchNextMonth", prefetchNextMonth, monthCount);
   /**
    * Prioritize dateSchedule load
    * Component will render but use data already fetched from here, and no duplicate requests will be made
