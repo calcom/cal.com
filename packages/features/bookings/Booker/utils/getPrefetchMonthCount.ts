@@ -18,7 +18,6 @@ export const getPrefetchMonthCount = (
 
   if (!isDifferentMonth) return undefined;
 
-  // For column view, always return 2 when months are different
   if (isColumnView) return 2;
 
   // For month view, only add extra months when:
