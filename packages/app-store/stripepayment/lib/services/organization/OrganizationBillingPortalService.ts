@@ -1,8 +1,8 @@
 import logger from "@calcom/lib/logger";
-import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getValidatedTeamSubscriptionId } from "../../getValidatedTeamSubscriptionId";
+import { getValidatedTeamSubscriptionIdForPlatform } from "../../getValidatedTeamSubscriptionIdForPlatform";
 import { getSubscriptionFromId } from "../../subscriptions";
 import { BillingPortalService } from "../base/BillingPortalService";
 
@@ -24,24 +24,6 @@ export class OrganizationBillingPortalService extends BillingPortalService {
     });
   }
 
-  async getValidatedTeamSubscriptionId(metadata: Prisma.JsonValue) {
-    const teamMetadataParsed = teamMetadataSchema.safeParse(metadata);
-
-    if (!teamMetadataParsed.success || !teamMetadataParsed.data?.subscriptionId) {
-      return null;
-    }
-
-    return teamMetadataParsed.data.subscriptionId;
-  }
-
-  async getValidatedTeamSubscriptionIdForPlatform(subscriptionId?: string | null) {
-    if (!subscriptionId) {
-      return null;
-    }
-
-    return subscriptionId;
-  }
-
   async getCustomerId(teamId: number): Promise<string | null> {
     const log = logger.getSubLogger({ prefix: ["OrganizationBillingPortalService", "getCustomerId"] });
 
@@ -51,14 +33,14 @@ export class OrganizationBillingPortalService extends BillingPortalService {
     let teamSubscriptionId = "";
 
     if (team.isPlatform) {
-      const subscriptionId = await this.getValidatedTeamSubscriptionIdForPlatform(
+      const subscriptionId = await getValidatedTeamSubscriptionIdForPlatform(
         team.platformBilling?.subscriptionId
       );
 
       if (!subscriptionId) return null;
       teamSubscriptionId = subscriptionId;
     } else {
-      const subscriptionId = await this.getValidatedTeamSubscriptionId(team.metadata);
+      const subscriptionId = await getValidatedTeamSubscriptionId(team.metadata);
 
       if (!subscriptionId) return null;
       teamSubscriptionId = subscriptionId;
