@@ -489,6 +489,9 @@ export class TeamRepository {
         isOrganization: true,
         parentId: true,
       },
+    });
+  }
+
   async findOrgTeamsExcludingTeam({ parentId, excludeTeamId }: { parentId: number; excludeTeamId: number }) {
     return await this.prismaClient.team.findMany({
       where: {
