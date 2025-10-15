@@ -165,8 +165,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
       ? {
           calIdTeamId: workflowData?.calIdTeamId,
         }
-      : {},
-    { enabled: !!workflowData?.calIdTeamId }
+      : {}
+    // { enabled: !!workflowData?.calIdTeamId }
   );
 
   verifiedEmailsData ??= [];
