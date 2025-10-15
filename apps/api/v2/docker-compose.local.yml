@@ -60,7 +60,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      API_PORT: 5555
+      API_PORT: 80
       
       # Database
       DATABASE_URL: postgresql://calcom:calcom_local_password@postgres:5432/calcom
