@@ -24,6 +24,7 @@ import { randomString } from "test/utils/randomString";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { RoleService } from "@calcom/platform-libraries/pbac";
 import type { User, Team } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 describe("Organizations Roles Endpoints", () => {
   let app: INestApplication;
@@ -305,87 +306,241 @@ describe("Organizations Roles Endpoints", () => {
           .expect(403);
       });
     });
-  });
 
-  describe("CRUD Role Endpoints", () => {
-    let createdRoleId: string;
+    describe("CRUD Role Endpoints", () => {
+      let createdRoleId: string;
 
-    it("should create a role", async () => {
-      const createRoleInput: CreateRoleInput = {
-        name: "CRUD Test Role",
-        permissions: ["booking.read", "eventType.create"],
-      };
+      it("should create a role", async () => {
+        const createRoleInput: CreateRoleInput = {
+          name: "CRUD Test Role",
+          permissions: ["booking.read", "eventType.create"],
+        };
 
-      return request(app.getHttpServer())
-        .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
-        .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
-        .send(createRoleInput)
-        .expect(201)
-        .then((response) => {
-          const responseBody: CreateRoleOutput = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-          expect(responseBody.data.name).toEqual(createRoleInput.name);
-          expect(responseBody.data.permissions).toEqual(createRoleInput.permissions);
-          createdRoleId = responseBody.data.id;
+        return request(app.getHttpServer())
+          .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
+          .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+          .send(createRoleInput)
+          .expect(201)
+          .then((response) => {
+            const responseBody: CreateRoleOutput = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseBody.data.name).toEqual(createRoleInput.name);
+            expect(responseBody.data.permissions).toEqual(createRoleInput.permissions);
+            createdRoleId = responseBody.data.id;
+          });
+      });
+
+      it("should update role permissions and name", async () => {
+        const updateRoleInput: UpdateRoleInput = {
+          name: "CRUD Test Role Updated",
+          permissions: ["booking.read", "eventType.read"],
+        };
+
+        return request(app.getHttpServer())
+          .patch(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${createdRoleId}`)
+          .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+          .send(updateRoleInput)
+          .expect(200)
+          .then((response) => {
+            const responseBody: UpdateRoleOutput = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data.id).toEqual(createdRoleId);
+            expect(responseBody.data.name).toEqual(updateRoleInput.name);
+            expect(responseBody.data.permissions).toEqual(updateRoleInput.permissions);
+          });
+      });
+
+      it("should fetch the role", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${createdRoleId}`)
+          .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+          .expect(200)
+          .then((response) => {
+            const responseBody: GetRoleOutput = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data.id).toEqual(createdRoleId);
+          });
+      });
+
+      it("should fetch all roles", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
+          .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+          .expect(200)
+          .then((response) => {
+            const responseBody: GetAllRolesOutput = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(Array.isArray(responseBody.data)).toBe(true);
+            expect(responseBody.data.find((r) => r.id === createdRoleId)).toBeDefined();
+          });
+      });
+
+      it("should delete the role", async () => {
+        return request(app.getHttpServer())
+          .delete(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${createdRoleId}`)
+          .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+          .expect(200)
+          .then((response) => {
+            const responseBody: DeleteRoleOutput = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data.id).toEqual(createdRoleId);
+          });
+      });
+
+      describe("Negative error cases", () => {
+        it("should fail to create a role with a duplicate name (400)", async () => {
+          const name = `dup-role-${randomString()}`;
+
+          const firstCreate: CreateRoleInput = { name, permissions: ["booking.read"] };
+          await request(app.getHttpServer())
+            .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+            .send(firstCreate)
+            .expect(201);
+
+          const secondCreate: CreateRoleInput = { name, permissions: ["booking.read"] };
+          const response = await request(app.getHttpServer())
+            .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+            .send(secondCreate);
+          expect(response.status).toBe(400);
+          expect(response.body.error.message).toBe(`Role with name "${name}" already exists`);
         });
-    });
 
-    it("should update role permissions and name", async () => {
-      const updateRoleInput: UpdateRoleInput = {
-        name: "CRUD Test Role Updated",
-        permissions: ["booking.read", "eventType.read"],
-      };
+        it("should fail to create a role with invalid permissions (400)", async () => {
+          const createRoleInput = {
+            name: `invalid-perms-${randomString()}`,
+            permissions: ["invalid"],
+          };
 
-      return request(app.getHttpServer())
-        .patch(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${createdRoleId}`)
-        .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
-        .send(updateRoleInput)
-        .expect(200)
-        .then((response) => {
-          const responseBody: UpdateRoleOutput = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data.id).toEqual(createdRoleId);
-          expect(responseBody.data.name).toEqual(updateRoleInput.name);
-          expect(responseBody.data.permissions).toEqual(updateRoleInput.permissions);
+          const response = await request(app.getHttpServer())
+            .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+            .send(createRoleInput);
+          expect(response.status).toBe(400);
+          expect(response.body.error.message).toBe(
+            "Permission 'invalid' must be a valid permission string in format 'resource.action' (e.g., 'eventType.read', 'booking.create')"
+          );
         });
-    });
 
-    it("should fetch the role", async () => {
-      return request(app.getHttpServer())
-        .get(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${createdRoleId}`)
-        .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
-        .expect(200)
-        .then((response) => {
-          const responseBody: GetRoleOutput = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data.id).toEqual(createdRoleId);
-        });
-    });
+        it("should return 404 when updating a role not belonging to the organization", async () => {
+          const defaultAdminRoleId = await roleService.getDefaultRoleId(MembershipRole.ADMIN);
+          const updateRoleInput: UpdateRoleInput = {
+            name: `no-update-default-${randomString()}`,
+            permissions: ["booking.read"],
+          };
 
-    it("should fetch all roles", async () => {
-      return request(app.getHttpServer())
-        .get(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
-        .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
-        .expect(200)
-        .then((response) => {
-          const responseBody: GetAllRolesOutput = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(Array.isArray(responseBody.data)).toBe(true);
-          expect(responseBody.data.find((r) => r.id === createdRoleId)).toBeDefined();
+          const response = await request(app.getHttpServer())
+            .patch(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${defaultAdminRoleId}`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+            .send(updateRoleInput);
+          expect(response.status).toBe(404);
+          expect(response.body.error.message).toBe(
+            `Role with id ${defaultAdminRoleId} within team id ${pbacEnabledOrganization.id} not found`
+          );
         });
-    });
 
-    it("should delete the role", async () => {
-      return request(app.getHttpServer())
-        .delete(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${createdRoleId}`)
-        .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
-        .expect(200)
-        .then((response) => {
-          const responseBody: DeleteRoleOutput = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data.id).toEqual(createdRoleId);
+        it("should return 404 when updating a default (system) role not belonging to the organization", async () => {
+          const defaultAdminRoleId = await roleService.getDefaultRoleId(MembershipRole.ADMIN);
+          const updateRoleInput: UpdateRoleInput = {
+            name: `no-update-default-${randomString()}`,
+            permissions: ["booking.read"],
+          };
+
+          const response = await request(app.getHttpServer())
+            .patch(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${defaultAdminRoleId}`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+            .send(updateRoleInput);
+          expect(response.status).toBe(404);
+          expect(response.body.error.message).toBe(
+            `Role with id ${defaultAdminRoleId} within team id ${pbacEnabledOrganization.id} not found`
+          );
         });
+
+        it("should fail to update with invalid permissions (400)", async () => {
+          // Create a fresh role to update
+          const { body: createRes } = await request(app.getHttpServer())
+            .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+            .send({ name: `update-invalid-${randomString()}` as string, permissions: ["booking.read"] })
+            .expect(201);
+          const roleId: string = createRes.data.id;
+
+          const updateRoleInput = {
+            name: `update-invalid-${randomString()}`,
+            permissions: ["invalid"],
+          };
+
+          const response = await request(app.getHttpServer())
+            .patch(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${roleId}`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+            .send(updateRoleInput);
+          expect(response.status).toBe(400);
+          expect(response.body.error.message).toBe(
+            "Permission 'invalid' must be a valid permission string in format 'resource.action' (e.g., 'eventType.read', 'booking.create')"
+          );
+        });
+
+        it("should return 404 when updating a role from a different organization", async () => {
+          // Create a role in a different org (legacy/non-PBAC org)
+          const foreignRole = await roleService.createRole({
+            name: `foreign-update-${randomString()}`,
+            teamId: organization.id,
+            permissions: ["booking.read"],
+            type: "CUSTOM",
+          });
+
+          const response = await request(app.getHttpServer())
+            .patch(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${foreignRole.id}`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+            .send({ permissions: ["eventType.read"] });
+          expect(response.status).toBe(404);
+          expect(response.body.error.message).toBe(
+            `Role with id ${foreignRole.id} within team id ${pbacEnabledOrganization.id} not found`
+          );
+        });
+
+        it("should return 404 when deleting a role not belonging to the organization", async () => {
+          const defaultMemberRoleId = await roleService.getDefaultRoleId(MembershipRole.MEMBER);
+          const response = await request(app.getHttpServer())
+            .delete(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${defaultMemberRoleId}`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`);
+          expect(response.status).toBe(404);
+          expect(response.body.error.message).toBe(
+            `Role with id ${defaultMemberRoleId} within team id ${pbacEnabledOrganization.id} not found`
+          );
+        });
+
+        it("should return 404 when deleting a default (system) role not belonging to the organization", async () => {
+          const defaultMemberRoleId = await roleService.getDefaultRoleId(MembershipRole.MEMBER);
+          const response = await request(app.getHttpServer())
+            .delete(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${defaultMemberRoleId}`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`);
+          expect(response.status).toBe(404);
+          expect(response.body.error.message).toBe(
+            `Role with id ${defaultMemberRoleId} within team id ${pbacEnabledOrganization.id} not found`
+          );
+        });
+
+        it("should return 404 when deleting a role from a different organization", async () => {
+          // Create a role in a different org
+          const foreignRole = await roleService.createRole({
+            name: `foreign-delete-${randomString()}`,
+            teamId: organization.id,
+            permissions: ["booking.read"],
+            type: "CUSTOM",
+          });
+
+          const response = await request(app.getHttpServer())
+            .delete(`/v2/organizations/${pbacEnabledOrganization.id}/roles/${foreignRole.id}`)
+            .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`);
+          expect(response.status).toBe(404);
+          expect(response.body.error.message).toBe(
+            `Role with id ${foreignRole.id} within team id ${pbacEnabledOrganization.id} not found`
+          );
+        });
+      });
     });
   });
 

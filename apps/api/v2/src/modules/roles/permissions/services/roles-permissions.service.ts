@@ -2,7 +2,7 @@ import { RolesPermissionsOutputService } from "@/modules/roles/permissions/servi
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import type { PermissionString, UpdateRolePermissionsData } from "@calcom/platform-libraries/pbac";
-import { RoleService } from "@calcom/platform-libraries/pbac";
+import { RoleService, isValidPermissionString } from "@calcom/platform-libraries/pbac";
 
 @Injectable()
 export class RolesPermissionsService {
@@ -52,6 +52,11 @@ export class RolesPermissionsService {
   }
 
   async removeRolePermission(teamId: number, roleId: string, permissionToRemove: PermissionString) {
+    if (!isValidPermissionString(permissionToRemove)) {
+      throw new BadRequestException(
+        `Permission '${permissionToRemove}' must be a valid permission string in format 'resource.action' (e.g., 'eventType.read', 'booking.create')`
+      );
+    }
     const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
@@ -82,6 +87,15 @@ export class RolesPermissionsService {
   }
 
   async removeRolePermissions(teamId: number, roleId: string, permissionsToRemove: PermissionString[]) {
+    if (permissionsToRemove && permissionsToRemove.length > 0) {
+      for (const permission of permissionsToRemove) {
+        if (!isValidPermissionString(permission)) {
+          throw new BadRequestException(
+            `Permission '${permission}' must be a valid permission string in format 'resource.action' (e.g., 'eventType.read', 'booking.create')`
+          );
+        }
+      }
+    }
     const belongsToTeam = await this.roleService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);

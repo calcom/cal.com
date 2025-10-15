@@ -29,8 +29,14 @@ export class RolesService {
       return this.rolesOutputService.getRoleOutput(role);
     } catch (error) {
       console.log(error);
-      if (error instanceof Error && error.message.includes("already exists")) {
-        throw new BadRequestException(error.message);
+      if (error instanceof Error) {
+        if (error.message.includes("already exists")) {
+          throw new BadRequestException(error.message);
+        }
+        // Map permission validation failures from PBAC service
+        if (error.message.toLowerCase().includes("permission")) {
+          throw new BadRequestException(error.message);
+        }
       }
       throw error;
     }
@@ -80,7 +86,10 @@ export class RolesService {
         if (error.message.includes("Cannot update default roles")) {
           throw new BadRequestException(error.message);
         }
-        if (error.message.includes("Invalid permissions provided")) {
+        if (
+          error.message.includes("Invalid permissions provided") ||
+          error.message.toLowerCase().includes("permission")
+        ) {
           throw new BadRequestException(error.message);
         }
       }
@@ -106,6 +115,10 @@ export class RolesService {
       if (error instanceof Error) {
         if (error.message.includes("Cannot delete default roles")) {
           throw new BadRequestException(error.message);
+        }
+
+        if (error.message.includes("Role not found")) {
+          throw new NotFoundException(error.message);
         }
       }
       throw error;
