@@ -226,8 +226,8 @@ const ProfileView = ({ user }: Props) => {
 
     const gtmEvent = {
       event: "user_deletion_success",
-      booker_email_address: user.email,
-      booker_team_id: user.username,
+      email: user.email,
+      username: user.username,
     };
 
     console.log("Sent gtm event: ", gtmEvent);
