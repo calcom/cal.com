@@ -8,7 +8,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import type { OnboardingUser } from "./onboarding/types";
+import type { OnboardingUser } from "./service/onboarding/types";
 
 const log = logger.getSubLogger({ prefix: ["ee", "organizations", "OrganizationPermissionService"] });
 type SeatsPrice = {

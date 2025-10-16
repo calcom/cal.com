@@ -16,7 +16,7 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
-import type { OnboardingUser } from "./onboarding/types";
+import type { OnboardingUser } from "./service/onboarding/types";
 
 type OrganizationOnboardingId = string;
 const log = logger.getSubLogger({ prefix: ["OrganizationPaymentService"] });
