@@ -28,7 +28,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
   }
 
   async findAllReportedBookings(params: {
-    organizationId: number;
+    organizationId?: number;
     skip?: number;
     take?: number;
     searchTerm?: string;
@@ -37,9 +37,11 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     rows: BookingReportWithDetails[];
     meta: { totalRowCount: number };
   }> {
-    const where: Prisma.BookingReportWhereInput = {
-      organizationId: params.organizationId,
-    };
+    const where: Prisma.BookingReportWhereInput = {};
+
+    if (params.organizationId !== undefined) {
+      where.organizationId = params.organizationId;
+    }
 
     if (params.searchTerm) {
       where.OR = [
@@ -141,13 +143,18 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
 
   async findReportsByIds(params: {
     reportIds: string[];
-    organizationId: number;
+    organizationId?: number;
   }): Promise<BookingReportWithDetails[]> {
+    const where: Prisma.BookingReportWhereInput = {
+      id: { in: params.reportIds },
+    };
+
+    if (params.organizationId !== undefined) {
+      where.organizationId = params.organizationId;
+    }
+
     const reports = await this.prismaClient.bookingReport.findMany({
-      where: {
-        id: { in: params.reportIds },
-        organizationId: params.organizationId,
-      },
+      where,
       select: {
         id: true,
         bookingUid: true,
@@ -192,12 +199,17 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     }));
   }
 
-  async deleteReport(params: { reportId: string; organizationId: number }): Promise<void> {
+  async deleteReport(params: { reportId: string; organizationId?: number }): Promise<void> {
+    const where: Prisma.BookingReportWhereInput & { id: string } = {
+      id: params.reportId,
+    };
+
+    if (params.organizationId !== undefined) {
+      where.organizationId = params.organizationId;
+    }
+
     await this.prismaClient.bookingReport.delete({
-      where: {
-        id: params.reportId,
-        organizationId: params.organizationId,
-      },
+      where,
     });
   }
 }

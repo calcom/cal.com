@@ -8,7 +8,7 @@ import { Button } from "@calcom/ui/components/button";
 
 import { AddToBlocklistModal } from "./add-to-blocklist-modal";
 
-type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
+type BookingReport = RouterOutputs["viewer"]["admin"]["listBookingReports"]["rows"][number];
 
 interface BulkAddToBlocklistProps {
   reports: BookingReport[];

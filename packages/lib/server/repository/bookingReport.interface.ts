@@ -64,7 +64,7 @@ export interface IBookingReportRepository {
   createReport(input: CreateBookingReportInput): Promise<{ id: string }>;
 
   findAllReportedBookings(params: {
-    organizationId: number;
+    organizationId?: number;
     skip?: number;
     take?: number;
     searchTerm?: string;
@@ -76,10 +76,10 @@ export interface IBookingReportRepository {
 
   findReportsByIds(params: {
     reportIds: string[];
-    organizationId: number;
+    organizationId?: number;
   }): Promise<BookingReportWithDetails[]>;
 
   linkWatchlistToReport(params: { reportId: string; watchlistId: string }): Promise<void>;
 
-  deleteReport(params: { reportId: string; organizationId: number }): Promise<void>;
+  deleteReport(params: { reportId: string; organizationId?: number }): Promise<void>;
 }

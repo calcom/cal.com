@@ -8,7 +8,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Sheet, SheetContent, SheetHeader, SheetBody } from "@calcom/ui/components/sheet";
 
-type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
+type BookingReport = RouterOutputs["viewer"]["admin"]["listBookingReports"]["rows"][number];
 
 interface BookingReportDetailsSheetProps {
   open: boolean;
@@ -94,7 +94,7 @@ export function BookingReportDetailsSheet({
               <div className="flex flex-col">
                 <span className="text-subtle text-xs">{t("reported_by")}</span>
                 <span className="text-default text-sm">
-                  {(report.reporter?.name || "")} ({report.reporter?.email ?? "-"})
+                  {report.reporter?.name || ""} ({report.reporter?.email ?? "-"})
                 </span>
               </div>
               <div className="flex flex-col">

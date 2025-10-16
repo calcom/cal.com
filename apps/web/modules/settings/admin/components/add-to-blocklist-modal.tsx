@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
+import { WatchlistType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter } from "@calcom/ui/co
 import { Form, Label, Select, TextAreaField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
+type BookingReport = RouterOutputs["viewer"]["admin"]["listBookingReports"]["rows"][number];
 
 interface AddToWatchlistModalProps {
   open: boolean;
@@ -50,10 +50,10 @@ export function AddToBlocklistModal({ open, onClose, report, reports }: AddToWat
 
   const watchlistType = form.watch("type");
 
-  const addToWatchlistMutation = trpc.viewer.organizations.addToWatchlist.useMutation({
+  const addToWatchlistMutation = trpc.viewer.admin.addToWatchlist.useMutation({
     onSuccess: () => {
       showToast(t("successfully_added_to_blocklist"), "success");
-      utils.viewer.organizations.listBookingReports.invalidate();
+      utils.viewer.admin.listBookingReports.invalidate();
       onClose();
       form.reset();
     },

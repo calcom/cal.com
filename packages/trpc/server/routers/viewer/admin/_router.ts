@@ -1,8 +1,11 @@
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZAddToWatchlistInputSchema } from "./addToWatchlist.schema";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+import { ZDeleteBookingReportInputSchema } from "./deleteBookingReport.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
+import { ZListBookingReportsInputSchema } from "./listBookingReports.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
@@ -18,10 +21,6 @@ import {
   workspacePlatformUpdateServiceAccountSchema,
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
-
-const NAMESPACE = "admin";
-
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
@@ -63,18 +62,14 @@ export const adminRouter = router({
     const { default: handler } = await import("./whitelistUserWorkflows.handler");
     return handler(opts);
   }),
-  getTeamsForFeature: authedAdminProcedure
-    .input(ZAdminGetTeamsForFeatureSchema)
-    .query(async (opts) => {
-      const { default: handler } = await import("./getTeamsForFeature.handler");
-      return handler(opts);
-    }),
-  assignFeatureToTeam: authedAdminProcedure
-    .input(ZAdminAssignFeatureToTeamSchema)
-    .mutation(async (opts) => {
-      const { default: handler } = await import("./assignFeatureToTeam.handler");
-      return handler(opts);
-    }),
+  getTeamsForFeature: authedAdminProcedure.input(ZAdminGetTeamsForFeatureSchema).query(async (opts) => {
+    const { default: handler } = await import("./getTeamsForFeature.handler");
+    return handler(opts);
+  }),
+  assignFeatureToTeam: authedAdminProcedure.input(ZAdminAssignFeatureToTeamSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./assignFeatureToTeam.handler");
+    return handler(opts);
+  }),
   unassignFeatureFromTeam: authedAdminProcedure
     .input(ZAdminUnassignFeatureFromTeamSchema)
     .mutation(async (opts) => {
@@ -104,5 +99,17 @@ export const adminRouter = router({
       const { default: handler } = await import("./workspacePlatform/toggleEnabled.handler");
       return handler(opts);
     }),
+  }),
+  listBookingReports: authedAdminProcedure.input(ZListBookingReportsInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listBookingReports.handler");
+    return handler(opts);
+  }),
+  deleteBookingReport: authedAdminProcedure.input(ZDeleteBookingReportInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./deleteBookingReport.handler");
+    return handler(opts);
+  }),
+  addToWatchlist: authedAdminProcedure.input(ZAddToWatchlistInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./addToWatchlist.handler");
+    return handler(opts);
   }),
 });

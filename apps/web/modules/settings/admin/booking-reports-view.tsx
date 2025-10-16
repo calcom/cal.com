@@ -13,7 +13,9 @@ import {
   useColumnFilters,
   convertFacetedValuesToMap,
   DataTableSelectionBar,
+  DataTableProvider,
 } from "@calcom/features/data-table";
+import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -37,10 +39,9 @@ import { AddToBlocklistModal } from "./components/add-to-blocklist-modal";
 import { BookingReportDetailsSheet } from "./components/booking-report-details-sheet";
 import { BulkAddToBlocklist } from "./components/bulk-add-to-blocklist";
 
-type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
+type BookingReport = RouterOutputs["viewer"]["admin"]["listBookingReports"]["rows"][number];
 
-// TODO: We would use it in system admin table
-export function BookingReportsTable() {
+function BookingReportsTable() {
   const { t } = useLocale();
   const { limit, offset, searchTerm } = useDataTable();
   const columnFilters = useColumnFilters();
@@ -52,17 +53,17 @@ export function BookingReportsTable() {
   const [rowSelection, setRowSelection] = useState({});
 
   const filters = useMemo(() => {
-    const hasWatchlistFilter = columnFilters.find((f) => f.id === "hasWatchlist");
+    const statusFilter = columnFilters.find((f) => f.id === "status");
 
     let hasWatchlistValue: boolean | undefined = undefined;
 
-    if (hasWatchlistFilter && hasWatchlistFilter.value.type === ColumnFilterType.MULTI_SELECT) {
-      const filterValues = hasWatchlistFilter.value.data;
+    if (statusFilter && statusFilter.value.type === ColumnFilterType.MULTI_SELECT) {
+      const filterValues = statusFilter.value.data;
       if (Array.isArray(filterValues) && filterValues.length > 0) {
         if (filterValues.length === 2 || filterValues.length === 0) {
           hasWatchlistValue = undefined;
         } else {
-          hasWatchlistValue = filterValues[0] === "true";
+          hasWatchlistValue = filterValues[0] === "blocked";
         }
       }
     }
@@ -72,7 +73,7 @@ export function BookingReportsTable() {
     };
   }, [columnFilters]);
 
-  const { data, isPending } = trpc.viewer.organizations.listBookingReports.useQuery(
+  const { data, isPending } = trpc.viewer.admin.listBookingReports.useQuery(
     {
       limit,
       offset,
@@ -86,9 +87,9 @@ export function BookingReportsTable() {
 
   const utils = trpc.useUtils();
 
-  const deleteReportMutation = trpc.viewer.organizations.deleteBookingReport.useMutation({
+  const deleteReportMutation = trpc.viewer.admin.deleteBookingReport.useMutation({
     onSuccess: async () => {
-      await utils.viewer.organizations.listBookingReports.invalidate();
+      await utils.viewer.admin.listBookingReports.invalidate();
       showToast(t("booking_report_deleted"), "success");
       setShowDeleteDialog(false);
       setSelectedReport(null);
@@ -159,13 +160,13 @@ export function BookingReportsTable() {
         },
       },
       {
-        id: "hasWatchlist",
-        header: t("in_blocklist"),
-        accessorFn: (row) => (row.watchlistId ? "true" : "false"),
+        id: "status",
+        header: t("status"),
+        accessorFn: (row) => (row.watchlistId ? "blocked" : "pending"),
         size: 120,
         cell: ({ row }) => (
-          <Badge variant={row.original.watchlistId ? "blue" : "gray"}>
-            {row.original.watchlistId ? t("yes") : t("no")}
+          <Badge variant={row.original.watchlistId ? "blue" : "orange"}>
+            {row.original.watchlistId ? t("blocked") : t("pending")}
           </Badge>
         ),
       },
@@ -319,10 +320,10 @@ export function BookingReportsTable() {
     enableRowSelection: true,
     getFacetedUniqueValues: (_, columnId) => () => {
       switch (columnId) {
-        case "hasWatchlist":
+        case "status":
           return convertFacetedValuesToMap([
-            { label: t("no"), value: "false" },
-            { label: t("yes"), value: "true" },
+            { label: t("pending"), value: "pending" },
+            { label: t("blocked"), value: "blocked" },
           ]);
         case "reason":
           return convertFacetedValuesToMap([
@@ -420,5 +421,13 @@ export function BookingReportsTable() {
         </Dialog>
       )}
     </>
+  );
+}
+
+export default function BookingReportsView() {
+  return (
+    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+      <BookingReportsTable />
+    </DataTableProvider>
   );
 }
