@@ -271,46 +271,50 @@ export class TeamService {
   }
   static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
-      // Check if user is the last owner before allowing leave
-      const ownerCount = await prisma.membership.count({
-        where: {
-          teamId,
-          role: "OWNER",
-          accepted: true,
-        },
-      });
-
-      const userMembership = await prisma.membership.findUnique({
-        where: {
-          userId_teamId: { userId, teamId },
-        },
-        select: {
-          role: true,
-        },
-      });
-
-      if (userMembership?.role === "OWNER" && ownerCount <= 1) {
-        throw new Error("Cannot leave team as the last owner");
-      }
-
-      const membership = await prisma.membership.delete({
-        where: {
-          userId_teamId: { userId, teamId },
-        },
-        select: {
-          team: true,
-        },
-      });
-
-      if (membership.team.parentId) {
-        await prisma.membership.delete({
+      await prisma.$transaction(async (tx) => {
+        const ownerCount = await tx.membership.count({
           where: {
-            userId_teamId: { userId, teamId: membership.team.parentId },
+            teamId,
+            role: MembershipRole.OWNER,
+            accepted: true,
           },
         });
-      }
+
+        const userMembership = await tx.membership.findUnique({
+          where: {
+            userId_teamId: { userId, teamId },
+          },
+          select: {
+            role: true,
+          },
+        });
+
+        if (userMembership?.role === MembershipRole.OWNER && ownerCount <= 1) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Cannot leave team as the last owner",
+          });
+        }
+
+        const membership = await tx.membership.delete({
+          where: {
+            userId_teamId: { userId, teamId },
+          },
+          select: {
+            team: true,
+          },
+        });
+
+        if (membership.team.parentId) {
+          await tx.membership.delete({
+            where: {
+              userId_teamId: { userId, teamId: membership.team.parentId },
+            },
+          });
+        }
+      });
     } catch (e) {
-      console.log(e);
+      log.error("Failed to leave team membership", e);
       throw e;
     }
   }
