@@ -41,7 +41,7 @@ export function BlocklistEntryDetailsSheet({ entry, isOpen, onClose }: Blocklist
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{t("blocklist_entry_details")}</SheetTitle>
