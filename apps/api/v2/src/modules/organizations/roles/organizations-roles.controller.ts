@@ -13,13 +13,13 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
-import { UpdateRoleInput } from "@/modules/organizations/teams/roles/inputs/update-role.input";
-import { CreateRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-role.output";
-import { DeleteRoleOutput } from "@/modules/organizations/teams/roles/outputs/delete-role.output";
-import { GetAllRolesOutput } from "@/modules/organizations/teams/roles/outputs/get-all-roles.output";
-import { GetRoleOutput } from "@/modules/organizations/teams/roles/outputs/get-role.output";
-import { UpdateRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-role.output";
+import { CreateOrgRoleInput } from "@/modules/organizations/roles/inputs/create-org-role.input";
+import { UpdateOrgRoleInput } from "@/modules/organizations/roles/inputs/update-org-role.input";
+import { CreateOrgRoleOutput } from "@/modules/organizations/roles/outputs/create-org-role.output";
+import { DeleteOrgRoleOutput } from "@/modules/organizations/roles/outputs/delete-org-role.output";
+import { GetAllOrgRolesOutput } from "@/modules/organizations/roles/outputs/get-all-org-roles.output";
+import { GetOrgRoleOutput } from "@/modules/organizations/roles/outputs/get-org-role.output";
+import { UpdateOrgRoleOutput } from "@/modules/organizations/roles/outputs/update-org-role.output";
 import { RolesService } from "@/modules/roles/services/roles.service";
 import {
   Controller,
@@ -50,19 +50,19 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsRolesController {
-  constructor(private readonly organizationsRolesService: RolesService) {}
+  constructor(private readonly rolesService: RolesService) {}
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
   @Pbac(["role.create"])
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create a new role" })
+  @ApiOperation({ summary: "Create a new organization role" })
   async createRole(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Body() body: CreateRoleInput
-  ): Promise<CreateRoleOutput> {
-    const role = await this.organizationsRolesService.createRole(orgId, body);
+    @Body() body: CreateOrgRoleInput
+  ): Promise<CreateOrgRoleOutput> {
+    const role = await this.rolesService.createRole(orgId, body);
     return {
       status: SUCCESS_STATUS,
       data: role,
@@ -74,12 +74,12 @@ export class OrganizationsRolesController {
   @Pbac(["role.read"])
   @Get("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get a specific role" })
+  @ApiOperation({ summary: "Get a specific organization role" })
   async getRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string
-  ): Promise<GetRoleOutput> {
-    const role = await this.organizationsRolesService.getRole(orgId, roleId);
+  ): Promise<GetOrgRoleOutput> {
+    const role = await this.rolesService.getRole(orgId, roleId);
     return {
       status: SUCCESS_STATUS,
       data: role,
@@ -91,13 +91,13 @@ export class OrganizationsRolesController {
   @Pbac(["role.read"])
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get all roles for an organization" })
+  @ApiOperation({ summary: "Get all organization roles" })
   async getAllRoles(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
-  ): Promise<GetAllRolesOutput> {
+  ): Promise<GetAllOrgRolesOutput> {
     const { skip, take } = queryParams;
-    const roles = await this.organizationsRolesService.getTeamRoles(orgId, skip ?? 0, take ?? 250);
+    const roles = await this.rolesService.getTeamRoles(orgId, skip ?? 0, take ?? 250);
     return {
       status: SUCCESS_STATUS,
       data: roles,
@@ -109,13 +109,13 @@ export class OrganizationsRolesController {
   @Pbac(["role.update"])
   @Patch("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update a role" })
+  @ApiOperation({ summary: "Update an organization role" })
   async updateRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string,
-    @Body() body: UpdateRoleInput
-  ): Promise<UpdateRoleOutput> {
-    const role = await this.organizationsRolesService.updateRole(orgId, roleId, body);
+    @Body() body: UpdateOrgRoleInput
+  ): Promise<UpdateOrgRoleOutput> {
+    const role = await this.rolesService.updateRole(orgId, roleId, body);
     return {
       status: SUCCESS_STATUS,
       data: role,
@@ -127,12 +127,12 @@ export class OrganizationsRolesController {
   @Pbac(["role.delete"])
   @Delete("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete a role" })
+  @ApiOperation({ summary: "Delete an organization role" })
   async deleteRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string
-  ): Promise<DeleteRoleOutput> {
-    const role = await this.organizationsRolesService.deleteRole(orgId, roleId);
+  ): Promise<DeleteOrgRoleOutput> {
+    const role = await this.rolesService.deleteRole(orgId, roleId);
     return {
       status: SUCCESS_STATUS,
       data: role,

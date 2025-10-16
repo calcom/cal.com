@@ -1,10 +1,10 @@
-import { PermissionStringValidator } from "./permission-string.validator";
+import { TeamPermissionStringValidator } from "./team-permission-string.validator";
 
 describe("PermissionStringValidator", () => {
-  let validator: PermissionStringValidator;
+  let validator: TeamPermissionStringValidator;
 
   beforeEach(() => {
-    validator = new PermissionStringValidator();
+    validator = new TeamPermissionStringValidator();
   });
 
   describe("validate", () => {

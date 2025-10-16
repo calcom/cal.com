@@ -1,11 +1,11 @@
-import { RoleOutput } from "@/modules/organizations/teams/roles/outputs/role.output";
+import { TeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/team-role.output";
 import { Injectable } from "@nestjs/common";
 
 import type { Role } from "@calcom/platform-libraries/pbac";
 
 @Injectable()
 export class RolesOutputService {
-  getRoleOutput(role: Role): RoleOutput {
+  getRoleOutput(role: Role): TeamRoleOutput {
     return {
       id: role.id,
       name: role.name,
@@ -19,7 +19,7 @@ export class RolesOutputService {
     };
   }
 
-  getRolesOutput(roles: Role[]): RoleOutput[] {
+  getRolesOutput(roles: Role[]): TeamRoleOutput[] {
     return roles.map((role) => this.getRoleOutput(role));
   }
 }

@@ -13,13 +13,13 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
-import { UpdateRoleInput } from "@/modules/organizations/teams/roles/inputs/update-role.input";
-import { CreateRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-role.output";
-import { DeleteRoleOutput } from "@/modules/organizations/teams/roles/outputs/delete-role.output";
-import { GetAllRolesOutput } from "@/modules/organizations/teams/roles/outputs/get-all-roles.output";
-import { GetRoleOutput } from "@/modules/organizations/teams/roles/outputs/get-role.output";
-import { UpdateRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-role.output";
+import { CreateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/create-team-role.input";
+import { UpdateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/update-team-role.input";
+import { CreateTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-team-role.output";
+import { DeleteTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/delete-team-role.output";
+import { GetAllTeamRolesOutput } from "@/modules/organizations/teams/roles/outputs/get-all-team-roles.output";
+import { GetTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/get-team-role.output";
+import { UpdateTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-team-role.output";
 import { RolesService } from "@/modules/roles/services/roles.service";
 import {
   Controller,
@@ -45,25 +45,25 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
-@DocsTags("Orgs / Roles")
+@DocsTags("Orgs / Teams / Roles")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsRolesController {
-  constructor(private readonly organizationsRolesService: RolesService) {}
+  constructor(private readonly rolesService: RolesService) {}
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
   @Pbac(["role.create"])
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create a new role" })
+  @ApiOperation({ summary: "Create a new organization team role" })
   async createRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Body() body: CreateRoleInput
-  ): Promise<CreateRoleOutput> {
-    const role = await this.organizationsRolesService.createRole(teamId, body);
+    @Body() body: CreateTeamRoleInput
+  ): Promise<CreateTeamRoleOutput> {
+    const role = await this.rolesService.createRole(teamId, body);
     return {
       status: SUCCESS_STATUS,
       data: role,
@@ -75,13 +75,13 @@ export class OrganizationsTeamsRolesController {
   @Pbac(["role.read"])
   @Get("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get a specific role" })
+  @ApiOperation({ summary: "Get a specific organization team role" })
   async getRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string
-  ): Promise<GetRoleOutput> {
-    const role = await this.organizationsRolesService.getRole(teamId, roleId);
+  ): Promise<GetTeamRoleOutput> {
+    const role = await this.rolesService.getRole(teamId, roleId);
     return {
       status: SUCCESS_STATUS,
       data: role,
@@ -93,14 +93,14 @@ export class OrganizationsTeamsRolesController {
   @Pbac(["role.read"])
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get all roles for an organization" })
+  @ApiOperation({ summary: "Get all organization team roles" })
   async getAllRoles(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: SkipTakePagination
-  ): Promise<GetAllRolesOutput> {
+  ): Promise<GetAllTeamRolesOutput> {
     const { skip, take } = queryParams;
-    const roles = await this.organizationsRolesService.getTeamRoles(teamId, skip ?? 0, take ?? 250);
+    const roles = await this.rolesService.getTeamRoles(teamId, skip ?? 0, take ?? 250);
     return {
       status: SUCCESS_STATUS,
       data: roles,
@@ -112,14 +112,14 @@ export class OrganizationsTeamsRolesController {
   @Pbac(["role.update"])
   @Patch("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update a role" })
+  @ApiOperation({ summary: "Update an organization team role" })
   async updateRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string,
-    @Body() body: UpdateRoleInput
-  ): Promise<UpdateRoleOutput> {
-    const role = await this.organizationsRolesService.updateRole(teamId, roleId, body);
+    @Body() body: UpdateTeamRoleInput
+  ): Promise<UpdateTeamRoleOutput> {
+    const role = await this.rolesService.updateRole(teamId, roleId, body);
     return {
       status: SUCCESS_STATUS,
       data: role,
@@ -131,13 +131,13 @@ export class OrganizationsTeamsRolesController {
   @Pbac(["role.delete"])
   @Delete("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete a role" })
+  @ApiOperation({ summary: "Delete an organization team role" })
   async deleteRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("roleId") roleId: string
-  ): Promise<DeleteRoleOutput> {
-    const role = await this.organizationsRolesService.deleteRole(teamId, roleId);
+  ): Promise<DeleteTeamRoleOutput> {
+    const role = await this.rolesService.deleteRole(teamId, roleId);
     return {
       status: SUCCESS_STATUS,
       data: role,

@@ -1,9 +1,9 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsString, IsOptional } from "class-validator";
 
-import { BaseRoleInput } from "./base-role.input";
+import { BaseOrgRoleInput } from "./base-org-role.input";
 
-export class UpdateRoleInput extends BaseRoleInput {
+export class UpdateOrgRoleInput extends BaseOrgRoleInput {
   @ApiPropertyOptional({ description: "Name of the role" })
   @IsString()
   @IsOptional()

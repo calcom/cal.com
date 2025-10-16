@@ -3,16 +3,18 @@ import { IsArray, IsString, Validate } from "class-validator";
 
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 
-import { PermissionStringValidator } from "./validators/permission-string.validator";
+import { teamPermissionEnum } from "../../inputs/base-team-role.input";
+import { TeamPermissionStringValidator } from "./validators/team-permission-string.validator";
 
-export class CreateRolePermissionsInput {
+export class CreateTeamRolePermissionsInput {
   @ApiProperty({
     description: "Permissions to add (format: resource.action)",
-    type: [String],
+    enum: teamPermissionEnum,
+    isArray: true,
     example: ["eventType.read", "booking.read"],
   })
   @IsArray()
   @IsString({ each: true })
-  @Validate(PermissionStringValidator, { each: true })
+  @Validate(TeamPermissionStringValidator, { each: true })
   permissions!: PermissionString[];
 }

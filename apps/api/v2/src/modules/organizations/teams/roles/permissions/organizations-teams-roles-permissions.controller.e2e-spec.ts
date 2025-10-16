@@ -1,7 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
-import type { CreateRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-role.output";
+import { CreateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/create-team-role.input";
+import type { CreateTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-team-role.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -102,7 +102,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
 
   it("lists permissions for a role (GET /)", async () => {
     const initialPermissions = ["booking.read"] as const;
-    const baseRoleInput: CreateRoleInput = {
+    const baseRoleInput: CreateTeamRoleInput = {
       name: `perm-target-role-list-${randomString()}`,
       permissions: [...initialPermissions],
     };
@@ -112,7 +112,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const responseBody: CreateRoleOutput = createRes.body;
+    const responseBody: CreateTeamRoleOutput = createRes.body;
     expect(responseBody.status).toEqual(SUCCESS_STATUS);
     expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
     const roleId = responseBody.data.id;
@@ -132,7 +132,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
     const toAdd = ["eventType.create", "eventType.read"] as const;
     const expected = [...initialPermissions, ...toAdd] as string[];
 
-    const baseRoleInput: CreateRoleInput = {
+    const baseRoleInput: CreateTeamRoleInput = {
       name: `perm-target-role-add-${randomString()}`,
       permissions: [...initialPermissions],
     };
@@ -142,7 +142,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const responseBody: CreateRoleOutput = createRes.body;
+    const responseBody: CreateTeamRoleOutput = createRes.body;
     expect(responseBody.status).toEqual(SUCCESS_STATUS);
     expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
     const roleId = responseBody.data.id;
@@ -164,7 +164,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
     const toRemove: PermissionString[] = ["eventType.create", "eventType.read"];
     const expected: PermissionString[] = ["booking.read"];
 
-    const baseRoleInput: CreateRoleInput = {
+    const baseRoleInput: CreateTeamRoleInput = {
       name: `perm-target-role-delmany-${randomString()}`,
       permissions: initialPermissions,
     };
@@ -173,7 +173,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const responseBody: CreateRoleOutput = createRes.body;
+    const responseBody: CreateTeamRoleOutput = createRes.body;
     expect(responseBody.status).toEqual(SUCCESS_STATUS);
     expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
     const roleId = responseBody.data.id;
@@ -200,7 +200,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
     const initialPermissions = ["booking.read"] as const;
     const replacement = ["booking.read", "eventType.update"] as const;
 
-    const baseRoleInput: CreateRoleInput = {
+    const baseRoleInput: CreateTeamRoleInput = {
       name: `perm-target-role-put-${randomString()}`,
       permissions: [...initialPermissions],
     };
@@ -209,7 +209,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const responseBody: CreateRoleOutput = createRes.body;
+    const responseBody: CreateTeamRoleOutput = createRes.body;
     expect(responseBody.status).toEqual(SUCCESS_STATUS);
     expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
     const roleId = responseBody.data.id;
@@ -231,7 +231,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
     const toRemove = "eventType.update" as const;
     const expected = ["booking.read"] as const;
 
-    const baseRoleInput: CreateRoleInput = {
+    const baseRoleInput: CreateTeamRoleInput = {
       name: `perm-target-role-delone-${randomString()}`,
       permissions: [...initialPermissions],
     };
@@ -240,7 +240,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
       .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
       .send(baseRoleInput)
       .expect(201);
-    const responseBody: CreateRoleOutput = createRes.body;
+    const responseBody: CreateTeamRoleOutput = createRes.body;
     expect(responseBody.status).toEqual(SUCCESS_STATUS);
     expect(responseBody.data.permissions).toEqual(baseRoleInput.permissions);
     const roleId = responseBody.data.id;

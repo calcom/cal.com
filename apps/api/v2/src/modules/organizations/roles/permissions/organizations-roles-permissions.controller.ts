@@ -13,9 +13,9 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { CreateRolePermissionsInput } from "@/modules/organizations/teams/roles/permissions/inputs/create-role-permissions.input";
-import { DeleteRolePermissionsQuery } from "@/modules/organizations/teams/roles/permissions/inputs/delete-role-permissions.query";
-import { GetRolePermissionsOutput } from "@/modules/organizations/teams/roles/permissions/outputs/get-role-permissions.output";
+import { CreateOrgRolePermissionsInput } from "@/modules/organizations/roles/permissions/inputs/create-org-role-permissions.input";
+import { DeleteOrgRolePermissionsQuery } from "@/modules/organizations/roles/permissions/inputs/delete-org-role-permissions.query";
+import { GetOrgRolePermissionsOutput } from "@/modules/organizations/roles/permissions/outputs/get-org-role-permissions.output";
 import { RolesPermissionsService } from "@/modules/roles/permissions/services/roles-permissions.service";
 import {
   Body,
@@ -53,12 +53,12 @@ export class OrganizationsRolesPermissionsController {
   @Pbac(["role.update"])
   @Post("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Add permissions to a role (single or batch)" })
+  @ApiOperation({ summary: "Add permissions to an organization role (single or batch)" })
   async addPermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string,
-    @Body() body: CreateRolePermissionsInput
-  ): Promise<GetRolePermissionsOutput> {
+    @Body() body: CreateOrgRolePermissionsInput
+  ): Promise<GetOrgRolePermissionsOutput> {
     const permissions = await this.rolePermissionsService.addRolePermissions(orgId, roleId, body.permissions);
     return { status: SUCCESS_STATUS, data: permissions };
   }
@@ -68,11 +68,11 @@ export class OrganizationsRolesPermissionsController {
   @Pbac(["role.read"])
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "List permissions for a role" })
+  @ApiOperation({ summary: "List permissions for an organization role" })
   async listPermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string
-  ): Promise<GetRolePermissionsOutput> {
+  ): Promise<GetOrgRolePermissionsOutput> {
     const permissions = await this.rolePermissionsService.getRolePermissions(orgId, roleId);
     return { status: SUCCESS_STATUS, data: permissions };
   }
@@ -82,12 +82,12 @@ export class OrganizationsRolesPermissionsController {
   @Pbac(["role.update"])
   @Put("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Replace all permissions for a role" })
+  @ApiOperation({ summary: "Replace all permissions for an organization role" })
   async setPermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string,
-    @Body() body: CreateRolePermissionsInput
-  ): Promise<GetRolePermissionsOutput> {
+    @Body() body: CreateOrgRolePermissionsInput
+  ): Promise<GetOrgRolePermissionsOutput> {
     const permissions = await this.rolePermissionsService.setRolePermissions(
       orgId,
       roleId,
@@ -101,7 +101,7 @@ export class OrganizationsRolesPermissionsController {
   @Pbac(["role.update"])
   @Delete("/:permission")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Remove a permission from a role" })
+  @ApiOperation({ summary: "Remove a permission from an organization role" })
   async removePermission(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string,
@@ -115,11 +115,11 @@ export class OrganizationsRolesPermissionsController {
   @Pbac(["role.update"])
   @Delete("/")
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: "Remove multiple permissions from a role" })
+  @ApiOperation({ summary: "Remove multiple permissions from an organization role" })
   async removePermissions(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string,
-    @Query() query: DeleteRolePermissionsQuery
+    @Query() query: DeleteOrgRolePermissionsQuery
   ): Promise<void> {
     await this.rolePermissionsService.removeRolePermissions(orgId, roleId, query.permissions || []);
   }

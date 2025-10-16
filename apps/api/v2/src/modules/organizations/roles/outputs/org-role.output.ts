@@ -2,6 +2,8 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsString, IsOptional, IsArray, IsEnum, IsDateString, IsNumber } from "class-validator";
 
+import { orgPermissionEnum } from "../inputs/base-org-role.input";
+
 enum RoleTypeEnum {
   SYSTEM = "SYSTEM",
   CUSTOM = "CUSTOM",
@@ -9,7 +11,7 @@ enum RoleTypeEnum {
 
 type RoleType = keyof typeof RoleTypeEnum;
 
-export class RoleOutput {
+export class OrgRoleOutput {
   @ApiProperty({ description: "Unique identifier for the role" })
   @IsString()
   @Expose()
@@ -48,7 +50,8 @@ export class RoleOutput {
 
   @ApiProperty({
     description: "Permissions assigned to this role in 'resource.action' format.",
-    type: [String],
+    enum: orgPermissionEnum,
+    isArray: true,
     example: ["booking.read", "eventType.create"],
   })
   @IsArray()

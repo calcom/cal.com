@@ -4,14 +4,16 @@ import { ArrayNotEmpty, IsArray, IsOptional, IsString, Validate } from "class-va
 
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 
-import { PermissionStringValidator } from "./validators/permission-string.validator";
+import { orgPermissionEnum } from "../../inputs/base-org-role.input";
+import { OrgPermissionStringValidator } from "./validators/org-permission-string.validator";
 
-export class DeleteRolePermissionsQuery {
+export class DeleteOrgRolePermissionsQuery {
   @ApiPropertyOptional({
     description:
       "Permissions to remove (format: resource.action). Supports comma-separated values as well as repeated query params.",
     example: "?permissions=eventType.read,booking.read",
-    type: [String],
+    enum: orgPermissionEnum,
+    isArray: true,
   })
   @IsOptional()
   @Transform(({ value }) => {
@@ -26,6 +28,6 @@ export class DeleteRolePermissionsQuery {
   @IsArray()
   @ArrayNotEmpty({ message: "permissions cannot be empty." })
   @IsString({ each: true })
-  @Validate(PermissionStringValidator, { each: true })
+  @Validate(OrgPermissionStringValidator, { each: true })
   permissions?: PermissionString[];
 }

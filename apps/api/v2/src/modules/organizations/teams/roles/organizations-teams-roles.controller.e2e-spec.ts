@@ -1,12 +1,12 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
-import { UpdateRoleInput } from "@/modules/organizations/teams/roles/inputs/update-role.input";
-import { CreateRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-role.output";
-import { DeleteRoleOutput } from "@/modules/organizations/teams/roles/outputs/delete-role.output";
-import { GetAllRolesOutput } from "@/modules/organizations/teams/roles/outputs/get-all-roles.output";
-import { GetRoleOutput } from "@/modules/organizations/teams/roles/outputs/get-role.output";
-import { UpdateRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-role.output";
+import { CreateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/create-team-role.input";
+import { UpdateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/update-team-role.input";
+import { CreateTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-team-role.output";
+import { DeleteTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/delete-team-role.output";
+import { GetAllTeamRolesOutput } from "@/modules/organizations/teams/roles/outputs/get-all-team-roles.output";
+import { GetTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/get-team-role.output";
+import { UpdateRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-team-role.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -213,7 +213,7 @@ describe("Organizations Roles Endpoints", () => {
   describe("Role Creation Authorization", () => {
     describe("Positive Tests", () => {
       it("should allow role creation when organization has PBAC enabled and user has a create permission", async () => {
-        const createRoleInput: CreateRoleInput = {
+        const createRoleInput: CreateTeamRoleInput = {
           name: "Test Role PBAC",
           permissions: ["booking.read", "eventType.create"],
         };
@@ -224,7 +224,7 @@ describe("Organizations Roles Endpoints", () => {
           .send(createRoleInput)
           .expect(201)
           .then((response) => {
-            const responseBody: CreateRoleOutput = response.body;
+            const responseBody: CreateTeamRoleOutput = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.name).toEqual(createRoleInput.name);
@@ -233,7 +233,7 @@ describe("Organizations Roles Endpoints", () => {
       });
 
       it("should allow role creation when organization does not have PBAC enabled and user is org admin", async () => {
-        const createRoleInput: CreateRoleInput = {
+        const createRoleInput: CreateTeamRoleInput = {
           name: "Test Role Legacy Admin",
           permissions: ["booking.read"],
         };
@@ -244,7 +244,7 @@ describe("Organizations Roles Endpoints", () => {
           .send(createRoleInput)
           .expect(201)
           .then((response) => {
-            const responseBody: CreateRoleOutput = response.body;
+            const responseBody: CreateTeamRoleOutput = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.name).toEqual(createRoleInput.name);
@@ -254,7 +254,7 @@ describe("Organizations Roles Endpoints", () => {
 
     describe("Negative Tests", () => {
       it("should not allow role creation when organization has PBAC enabled but user has no role assigned", async () => {
-        const createRoleInput: CreateRoleInput = {
+        const createRoleInput: CreateTeamRoleInput = {
           name: "Test Role No Role",
           permissions: ["booking.read"],
         };
@@ -284,7 +284,7 @@ describe("Organizations Roles Endpoints", () => {
       });
 
       it("should not allow role creation when organization has PBAC enabled but user role lacks required permission", async () => {
-        const createRoleInput: CreateRoleInput = {
+        const createRoleInput: CreateTeamRoleInput = {
           name: "Test Role No Permission",
           permissions: ["booking.read"],
         };
@@ -297,7 +297,7 @@ describe("Organizations Roles Endpoints", () => {
       });
 
       it("should not allow role creation when organization does not have PBAC enabled and user has no membership", async () => {
-        const createRoleInput: CreateRoleInput = {
+        const createRoleInput: CreateTeamRoleInput = {
           name: "Test Role No Membership",
           permissions: ["booking.read"],
         };
@@ -310,7 +310,7 @@ describe("Organizations Roles Endpoints", () => {
       });
 
       it("should not allow role creation when organization does not have PBAC enabled and user has member membership (not admin)", async () => {
-        const createRoleInput: CreateRoleInput = {
+        const createRoleInput: CreateTeamRoleInput = {
           name: "Test Role Member Only",
           permissions: ["booking.read"],
         };
@@ -328,7 +328,7 @@ describe("Organizations Roles Endpoints", () => {
     let createdRoleId: string;
 
     it("should create a role", async () => {
-      const createRoleInput: CreateRoleInput = {
+      const createRoleInput: CreateTeamRoleInput = {
         name: "CRUD Test Role",
         permissions: ["booking.read", "eventType.create"],
       };
@@ -339,7 +339,7 @@ describe("Organizations Roles Endpoints", () => {
         .send(createRoleInput)
         .expect(201)
         .then((response) => {
-          const responseBody: CreateRoleOutput = response.body;
+          const responseBody: CreateTeamRoleOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.name).toEqual(createRoleInput.name);
@@ -349,7 +349,7 @@ describe("Organizations Roles Endpoints", () => {
     });
 
     it("should update role permissions and name", async () => {
-      const updateRoleInput: UpdateRoleInput = {
+      const updateRoleInput: UpdateTeamRoleInput = {
         name: "CRUD Test Role Updated",
         permissions: ["booking.read", "eventType.read"],
       };
@@ -378,7 +378,7 @@ describe("Organizations Roles Endpoints", () => {
         .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
         .expect(200)
         .then((response) => {
-          const responseBody: GetRoleOutput = response.body;
+          const responseBody: GetTeamRoleOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(createdRoleId);
         });
@@ -390,7 +390,7 @@ describe("Organizations Roles Endpoints", () => {
         .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
         .expect(200)
         .then((response) => {
-          const responseBody: GetAllRolesOutput = response.body;
+          const responseBody: GetAllTeamRolesOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(Array.isArray(responseBody.data)).toBe(true);
           expect(responseBody.data.find((r) => r.id === createdRoleId)).toBeDefined();
@@ -405,7 +405,7 @@ describe("Organizations Roles Endpoints", () => {
         .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
         .expect(200)
         .then((response) => {
-          const responseBody: DeleteRoleOutput = response.body;
+          const responseBody: DeleteTeamRoleOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(createdRoleId);
         });

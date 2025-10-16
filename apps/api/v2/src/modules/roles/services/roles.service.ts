@@ -1,5 +1,5 @@
-import { CreateRoleInput } from "@/modules/organizations/teams/roles/inputs/create-role.input";
-import { UpdateRoleInput } from "@/modules/organizations/teams/roles/inputs/update-role.input";
+import { CreateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/create-team-role.input";
+import { UpdateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/update-team-role.input";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { RoleService } from "@calcom/platform-libraries/pbac";
@@ -14,7 +14,7 @@ export class RolesService {
     private readonly rolesOutputService: RolesOutputService
   ) {}
 
-  async createRole(teamId: number, data: CreateRoleInput) {
+  async createRole(teamId: number, data: CreateTeamRoleInput) {
     const createRoleData: CreateRoleData = {
       name: data.name,
       color: data.color,
@@ -60,7 +60,7 @@ export class RolesService {
     return this.rolesOutputService.getRolesOutput(paginatedRoles);
   }
 
-  async updateRole(teamId: number, roleId: string, data: UpdateRoleInput) {
+  async updateRole(teamId: number, roleId: string, data: UpdateTeamRoleInput) {
     const belongsToTeam = await this.rolesService.roleBelongsToTeam(roleId, teamId);
     if (!belongsToTeam) {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);

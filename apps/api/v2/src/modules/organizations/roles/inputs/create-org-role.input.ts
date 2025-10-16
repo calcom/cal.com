@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
 
-import { BaseRoleInput } from "./base-role.input";
+import { BaseOrgRoleInput } from "./base-org-role.input";
 
-export class CreateRoleInput extends BaseRoleInput {
+export class CreateOrgRoleInput extends BaseOrgRoleInput {
   @ApiProperty({ description: "Name of the role" })
   @IsString()
   name!: string;
