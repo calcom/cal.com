@@ -6,6 +6,8 @@ import { Pool } from "pg";
 
 import { PrismaClient } from "@calcom/prisma/client";
 
+const DB_MAX_POOL_CONNECTION = 10;
+
 @Injectable()
 export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
   private logger = new Logger("PrismaReadService");
@@ -15,7 +17,8 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
   constructor(readonly configService: ConfigService) {
     const dbUrl = configService.get("db.readUrl", { infer: true });
-    this.pool = new Pool({ connectionString: dbUrl, max: 1 });
+    const isE2E = configService.get<boolean>("e2e", { infer: true }) ?? false;
+    this.pool = new Pool({ connectionString: dbUrl, max: isE2E ? 1 : DB_MAX_POOL_CONNECTION });
     const adapter = new PrismaPg(this.pool);
     this.prisma = new PrismaClient({
       adapter,
