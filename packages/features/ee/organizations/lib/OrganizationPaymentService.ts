@@ -376,19 +376,22 @@ export class OrganizationPaymentService {
       })
     );
 
-    log.debug("Updating onboarding with stripe details");
+    log.debug("Updating onboarding with stripe details and form data");
 
-    // Only update Stripe customer ID and adjusted seats (if member count exceeds specified seats)
-    const needsUpdate =
-      !organizationOnboarding.stripeCustomerId ||
-      updatedConfig.seats !== organizationOnboarding.seats;
-
-    if (needsUpdate) {
-      await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
-        stripeCustomerId,
-        seats: updatedConfig.seats,
-      });
-    }
+    // Update the onboarding record with all the form data
+    await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+      stripeCustomerId,
+      seats: updatedConfig.seats,
+      pricePerSeat: updatedConfig.pricePerSeat,
+      billingPeriod: updatedConfig.billingPeriod,
+      logo,
+      bio,
+      brandColor: brandColor ?? null,
+      bannerUrl: bannerUrl ?? null,
+      teams,
+      invitedMembers,
+      updatedAt: new Date(),
+    });
 
     return {
       organizationOnboarding,

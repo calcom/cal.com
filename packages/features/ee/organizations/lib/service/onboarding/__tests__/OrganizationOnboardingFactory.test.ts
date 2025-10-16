@@ -77,7 +77,7 @@ describe("OrganizationOnboardingFactory", () => {
       expect(service.constructor.name).toBe("SelfHostedOnboardingService");
     });
 
-    it("should return BillingEnabledOrgOnboardingService for regular user when IS_TEAM_BILLING_ENABLED is false", async () => {
+    it("should return SelfHostedOnboardingService for regular user when IS_TEAM_BILLING_ENABLED is false", async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -89,8 +89,8 @@ describe("OrganizationOnboardingFactory", () => {
       const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
       const service = Factory.create(mockRegularUser as any);
 
-      // Non-admins still need billing even on self-hosted
-      expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
+      // When billing is disabled, everyone uses self-hosted flow
+      expect(service.constructor.name).toBe("SelfHostedOnboardingService");
     });
 
     it("should return SelfHostedOnboardingService in E2E mode", async () => {
@@ -148,14 +148,14 @@ describe("OrganizationOnboardingFactory", () => {
         user: mockRegularUser,
         isBillingEnabled: false,
         isE2E: false,
-        expected: "BillingEnabled", // Non-admins still need billing
+        expected: "SelfHosted", // Everyone uses self-hosted when billing disabled
       },
       {
         scenario: "Self-hosted (billing disabled) + Admin User",
         user: mockAdminUser,
         isBillingEnabled: false,
         isE2E: false,
-        expected: "SelfHosted", // Admins skip billing on self-hosted
+        expected: "SelfHosted", // Everyone uses self-hosted when billing disabled
       },
       {
         scenario: "E2E mode + Admin User",
