@@ -79,6 +79,8 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
+import type { TeamSubscriptionPaymentFailedEmailData } from "./templates/team-subscription-payment-failed-email";
+import TeamSubscriptionPaymentFailedEmail from "./templates/team-subscription-payment-failed-email";
 import type { WorkflowEmailData } from "./templates/workflow-email";
 import WorkflowEmail from "./templates/workflow-email";
 
@@ -886,4 +888,10 @@ export const sendDelegationCredentialDisabledEmail = async ({
         conferencingAppName,
       })
   );
+};
+
+export const sendTeamSubscriptionPaymentFailedEmail = async (
+  teamData: TeamSubscriptionPaymentFailedEmailData
+) => {
+  await sendEmail(() => new TeamSubscriptionPaymentFailedEmail(teamData));
 };
