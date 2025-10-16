@@ -17,7 +17,7 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-vi.mock("@calcom/features/ee/billing/stripe-billling-service", () => {
+vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => {
   return {
     StripeBillingService: vi.fn(),
   };

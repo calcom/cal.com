@@ -1,9 +1,10 @@
-import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { ArrayMaxSize, ArrayNotEmpty, IsEmail, IsOptional } from "class-validator";
 
-export class GetTeamMembershipsInput extends GetUsersInput {
+import { SkipTakePagination } from "@calcom/platform-types";
+
+export class GetTeamMembershipsInput extends SkipTakePagination {
   @IsOptional()
   @Transform(({ value }) => {
     if (value == null) return undefined;

@@ -9,7 +9,7 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { CreditType } from "@calcom/prisma/enums";
 
 import { CreditService } from "./credit-service";
-import { StripeBillingService } from "./stripe-billling-service";
+import { StripeBillingService } from "./stripe-billing-service";
 import { InternalTeamBilling } from "./teams/internal-team-billing";
 
 const MOCK_TX = {};
