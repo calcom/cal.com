@@ -253,7 +253,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             </div>
           )}
 
-          <SheetBody className="mt-4 flex flex-col space-y-4 overflow-hidden">
+          <SheetBody className="mt-4 flex flex-col space-y-4 overflow-y-auto overflow-x-hidden">
             <div>
               <Label className="text-emphasis">
                 <>{t("timezone")}</>
@@ -299,7 +299,9 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                   <option value="past">Past</option>
                   <option value="upcoming">Upcoming</option>
                 </select>
-                <div className=" flex-1 overflow-y-auto overflow-x-clip" ref={bookingsDivRef}>
+                <div
+                  className="max-h-[300px] flex-shrink-0 overflow-y-auto overflow-x-clip rounded-md border p-2"
+                  ref={bookingsDivRef}>
                   <div>
                     <div className=" h-full   py-2">
                       {query.isFetching && !query.data ? (

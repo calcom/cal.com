@@ -6,6 +6,7 @@ import { IS_DEV, ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL, WEBAPP_URL } from 
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
+import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
@@ -59,8 +60,17 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   // const isCalVideoLocationActive = locations.some((location) => location.type === DailyLocationType);
 
+  const lastEventType = await prisma.eventType.findMany({
+    select: {
+      position: true,
+    },
+    orderBy: [{ position: "desc" }],
+    take: 1,
+  });
+
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
+    position: rest.position ?? (lastEventType[0]?.position ?? 0) + 1,
     owner: calIdTeamId ? undefined : { connect: { id: userId } },
     metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
     // Only connecting the current user for non-managed event types and non team event types

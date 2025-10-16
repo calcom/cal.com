@@ -1,6 +1,5 @@
 "use client";
 
-import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
@@ -9,6 +8,7 @@ import { z } from "zod";
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 
@@ -253,7 +253,7 @@ export const EventTypes = () => {
   return (
     <div className="bg-background min-h-screen">
       {/* Responsive Container */}
-      <div className="mx-auto w-full ">
+      <div className="mx-auto w-full px-2 lg:px-0">
         {/* Team Tabs */}
         <TeamTabs
           eventTypeGroups={eventTypeGroups}

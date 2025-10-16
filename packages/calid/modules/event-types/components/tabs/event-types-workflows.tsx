@@ -384,7 +384,7 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
               <Button
                 StartIcon="plus"
                 onClick={() => createMutation.mutate({ calIdTeamId: eventType.calIdTeam?.id })}>
-                {t("create_workflow")}
+                {t("create")}
               </Button>
             </div>
 

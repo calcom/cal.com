@@ -206,7 +206,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           size={size}
           className={cn(
             className,
-            "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed focus:border-none focus:ring-brand-default focus:ring-2"
+            "disabled:bg-subtle disabled:hover:border-subtle focus:ring-brand-default focus:border-none focus:ring-2 disabled:cursor-not-allowed"
           )}
           {...passThrough}
           readOnly={readOnly}

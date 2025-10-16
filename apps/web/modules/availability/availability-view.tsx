@@ -207,7 +207,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
 
   return (
     <div className="flex items-center gap-2">
-      <ToggleGroup
+      {/* <ToggleGroup
         className="hidden h-fit md:block"
         defaultValue={searchParams?.get("type") ?? "mine"}
         onValueChange={(value) => {
@@ -215,7 +215,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
           router.push(`${pathname}?${createQueryString("type", value)}`);
         }}
         options={toggleGroupOptions}
-      />
+      /> */}
       <NewScheduleButton />
     </div>
   );

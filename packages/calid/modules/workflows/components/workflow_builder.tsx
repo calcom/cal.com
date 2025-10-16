@@ -965,7 +965,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
         subtitle={t("workflows_edit_description")}
         CTA={
           !readOnly && (
-            <div className="flex gap-2">
+            <div className="mr-2 flex gap-2">
               {workflowId && (
                 <Button
                   data-testid="delete-workflow"

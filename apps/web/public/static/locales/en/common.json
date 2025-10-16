@@ -417,6 +417,8 @@
   "add_events_to": "Add events to",
   "add_another_calendar": "Add another calendar",
   "other": "Other",
+  "in person": "In Person",
+  "phone": "Phone",
   "email_sign_in_subject": "Your sign-in link for {{appName}}",
   "round_robin_emailed_you_and_attendees": "You are meeting with {{user}}. We sent an email with a calendar invitation with the details to everyone.",
   "round_robin_emailed_host_and_attendee": "{{host}} is meeting with {{attendee}}. We sent an email with a calendar invitation with the details to everyone.",
@@ -3067,6 +3069,7 @@
   "are_you_sure_you_want_to_remove_this_app_from": "Are you sure you want to remove this app from",
   "disconnect_app_from": "Disconnect app from",
   "salesforce_ignore_guests": "Do not create new records for guests added to the booking",
+  "jitsi": "Jitsi",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
   "office_365_video": "MS Teams Video",
@@ -3489,6 +3492,7 @@
   "expires_on": "Expires on",
   "max_usage_count": "Maximum number of uses",
   "link_settings": "Link Settings",
+  "link_settings_description": "Configure the settings for this link",
   "link_expired_on_date": "This link expired on {{date}}, end of day",
   "usage_limit_reached": "Usage limit reached",
   "usage_count_error": "Maximum usage count must be greater than current usage count",
@@ -3581,5 +3585,7 @@
   "create_new_team_event_type_description": "Create a new event type for people to book times with.",
   "username_required": "Username is required",
   "username_available": "Username available",
-  "checking_username_availability": "Checking username availability"
+  "checking_username_availability": "Checking username availability",
+  "avail_offer": "Avail Offer",
+  "avail_offer_description": "Special offers for your account"
 }
