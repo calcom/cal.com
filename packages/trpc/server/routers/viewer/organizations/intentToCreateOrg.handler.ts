@@ -1,5 +1,5 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { OrganizationOnboardingFactory } from "@calcom/features/ee/organizations/lib/onboarding";
+import { OrganizationOnboardingFactory } from "@calcom/ee/organizations/lib/service/onboarding/OrganizationOnboardingFactory";
 import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,

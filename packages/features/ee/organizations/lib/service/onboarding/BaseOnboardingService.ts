@@ -29,8 +29,8 @@ import {
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
-import { OrganizationPaymentService } from "../OrganizationPaymentService";
-import { OrganizationPermissionService } from "../OrganizationPermissionService";
+import { OrganizationPaymentService } from "../../OrganizationPaymentService";
+import { OrganizationPermissionService } from "../../OrganizationPermissionService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
 import type {
   TeamInput,

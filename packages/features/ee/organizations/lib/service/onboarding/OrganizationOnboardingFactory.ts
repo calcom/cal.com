@@ -1,9 +1,8 @@
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserPermissionRole } from "@calcom/prisma/enums";
 
-import { BillingEnabledOrgOnboardingService } from "../service/BillingEnabledOrgOnboardingService";
+import { BillingEnabledOrgOnboardingService } from "./BillingEnabledOrgOnboardingService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
 import { SelfHostedOnboardingService } from "./SelfHostedOnboardingService";
 import type { OnboardingUser } from "./types";

@@ -4,13 +4,11 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import * as constants from "@calcom/lib/constants";
-import { createDomain } from "@calcom/lib/domainManager/organization";
-import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
-import { OrganizationPaymentService } from "../../OrganizationPaymentService";
 import { SelfHostedOnboardingService } from "../SelfHostedOnboardingService";
 import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../types";
 
@@ -269,11 +267,7 @@ describe("SelfHostedOnboardingService", () => {
       });
     }
 
-    async function createTestMembership(data: {
-      userId: number;
-      teamId: number;
-      role?: MembershipRole;
-    }) {
+    async function createTestMembership(data: { userId: number; teamId: number; role?: MembershipRole }) {
       return prismock.membership.create({
         data: {
           createdAt: new Date(),

@@ -2,10 +2,6 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
-import { BillingEnabledOrgOnboardingService } from "../../service/BillingEnabledOrgOnboardingService";
-import { OrganizationOnboardingFactory } from "../OrganizationOnboardingFactory";
-import { SelfHostedOnboardingService } from "../SelfHostedOnboardingService";
-
 const mockRegularUser = {
   id: 1,
   email: "user@example.com",
@@ -194,9 +190,7 @@ describe("OrganizationOnboardingFactory", () => {
           };
         });
 
-        const { OrganizationOnboardingFactory: Factory } = await import(
-          "../OrganizationOnboardingFactory"
-        );
+        const { OrganizationOnboardingFactory: Factory } = await import("../OrganizationOnboardingFactory");
         const service = Factory.create(user as any);
 
         if (expected === "BillingEnabled") {

@@ -1,3 +1,4 @@
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
@@ -11,7 +12,6 @@ import type { Team, User } from "@calcom/prisma/client";
 import { BillingPeriod } from "@calcom/prisma/enums";
 import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 
-import { LicenseKeySingleton } from "../../../common/server/LicenseKeyService";
 import { BaseOnboardingService } from "./BaseOnboardingService";
 import type {
   CreateOnboardingIntentInput,
