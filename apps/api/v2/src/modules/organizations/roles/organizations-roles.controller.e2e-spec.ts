@@ -1,5 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/create-team-role.input";
 import { UpdateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/update-team-role.input";
 import { CreateTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/create-team-role.output";
@@ -195,6 +197,10 @@ describe("Organizations Roles Endpoints", () => {
   });
 
   describe("Role Creation Authorization", () => {
+    beforeEach(() => {
+      jest.restoreAllMocks();
+    });
+
     describe("Positive Tests", () => {
       it("should allow role creation when organization has PBAC enabled and user has a create permission", async () => {
         const createRoleInput: CreateTeamRoleInput = {
@@ -202,17 +208,40 @@ describe("Organizations Roles Endpoints", () => {
           permissions: ["booking.read", "eventType.create"],
         };
 
+        const pbacSpyCanActivate = jest.spyOn(PbacGuard.prototype, "canActivate");
+        const pbacSpyHasPbacEnabled = jest.spyOn(
+          PbacGuard.prototype as unknown as PbacGuard,
+          "hasPbacEnabled"
+        );
+
+        const rolesSpyCanActivate = jest.spyOn(RolesGuard.prototype, "canActivate");
+        const rolesSpyCheckUserRoleAccess = jest.spyOn(
+          RolesGuard.prototype as unknown as RolesGuard,
+          "checkUserRoleAccess"
+        );
+
         return request(app.getHttpServer())
           .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
           .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
           .send(createRoleInput)
           .expect(201)
-          .then((response) => {
+          .then(async (response) => {
             const responseBody: CreateTeamRoleOutput = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.name).toEqual(createRoleInput.name);
             expect(responseBody.data.permissions).toEqual(createRoleInput.permissions);
+
+            expect(pbacSpyCanActivate).toHaveBeenCalled();
+            expect(pbacSpyHasPbacEnabled).toHaveBeenCalled();
+            expect(rolesSpyCanActivate).toHaveBeenCalled();
+            const pbacCanActivateResult = await pbacSpyCanActivate.mock.results[0].value;
+            const rolesCanActivateResult = await rolesSpyCanActivate.mock.results[0].value;
+            const hasPbac = await pbacSpyHasPbacEnabled.mock.results[0].value;
+            expect(pbacCanActivateResult).toBe(true);
+            expect(rolesCanActivateResult).toBe(true);
+            expect(hasPbac).toBe(true);
+            expect(rolesSpyCheckUserRoleAccess).not.toHaveBeenCalled();
           });
       });
 
@@ -222,16 +251,37 @@ describe("Organizations Roles Endpoints", () => {
           permissions: ["booking.read"],
         };
 
+        const pbacSpyCanActivate = jest.spyOn(PbacGuard.prototype, "canActivate");
+        const pbacSpyHasPbacEnabled = jest.spyOn(
+          PbacGuard.prototype as unknown as PbacGuard,
+          "hasPbacEnabled"
+        );
+        const rolesSpyCanActivate = jest.spyOn(RolesGuard.prototype, "canActivate");
+        const rolesSpyCheckUserRoleAccess = jest.spyOn(
+          RolesGuard.prototype as unknown as RolesGuard,
+          "checkUserRoleAccess"
+        );
+
         return request(app.getHttpServer())
           .post(`/v2/organizations/${organization.id}/roles`)
           .set("Authorization", `Bearer ${legacyOrgAdminApiKey}`)
           .send(createRoleInput)
           .expect(201)
-          .then((response) => {
+          .then(async (response) => {
             const responseBody: CreateTeamRoleOutput = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.name).toEqual(createRoleInput.name);
+            expect(pbacSpyCanActivate).toHaveBeenCalled();
+            expect(rolesSpyCanActivate).toHaveBeenCalled();
+            expect(pbacSpyHasPbacEnabled).toHaveBeenCalled();
+            const pbacCanActivateResult = await pbacSpyCanActivate.mock.results[0].value;
+            const rolesCanActivateResult = await rolesSpyCanActivate.mock.results[0].value;
+            const hasPbac = await pbacSpyHasPbacEnabled.mock.results[0].value;
+            expect(pbacCanActivateResult).toBe(true);
+            expect(rolesCanActivateResult).toBe(true);
+            expect(hasPbac).toBe(false);
+            expect(rolesSpyCheckUserRoleAccess).toHaveBeenCalled();
           });
       });
     });
@@ -260,11 +310,14 @@ describe("Organizations Roles Endpoints", () => {
         );
         const noRoleApiKey = `cal_test_${noRoleKeyString}`;
 
-        return request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
           .set("Authorization", `Bearer ${noRoleApiKey}`)
-          .send(createRoleInput)
-          .expect(403);
+          .send(createRoleInput);
+        expect(response.status).toBe(403);
+        expect(response.body.error.message).toBe(
+          `PbacGuard - user with id=${userWithNoRole.id} does not have the minimum required permissions=role.create within organization with id=${pbacEnabledOrganization.id}.`
+        );
       });
 
       it("should not allow role creation when organization has PBAC enabled but user role lacks required permission", async () => {
@@ -273,11 +326,14 @@ describe("Organizations Roles Endpoints", () => {
           permissions: ["booking.read"],
         };
 
-        return request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .post(`/v2/organizations/${pbacEnabledOrganization.id}/roles`)
           .set("Authorization", `Bearer ${pbacOrgUserWithoutRolePermissionApiKey}`)
-          .send(createRoleInput)
-          .expect(403);
+          .send(createRoleInput);
+        expect(response.status).toBe(403);
+        expect(response.body.error.message).toBe(
+          `PbacGuard - user with id=${pbacOrgUserWithoutRolePermission.id} does not have the minimum required permissions=role.create within organization with id=${pbacEnabledOrganization.id}.`
+        );
       });
 
       it("should not allow role creation when organization does not have PBAC enabled and user has no membership", async () => {
@@ -286,11 +342,14 @@ describe("Organizations Roles Endpoints", () => {
           permissions: ["booking.read"],
         };
 
-        return request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .post(`/v2/organizations/${organization.id}/roles`)
           .set("Authorization", `Bearer ${nonOrgUserApiKey}`)
-          .send(createRoleInput)
-          .expect(403);
+          .send(createRoleInput);
+        expect(response.status).toBe(403);
+        expect(response.body.error.message).toBe(
+          `RolesGuard - User is not a member of the organization with id=${organization.id}.`
+        );
       });
 
       it("should not allow role creation when organization does not have PBAC enabled and user has member membership (not admin)", async () => {
@@ -299,11 +358,14 @@ describe("Organizations Roles Endpoints", () => {
           permissions: ["booking.read"],
         };
 
-        return request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .post(`/v2/organizations/${organization.id}/roles`)
           .set("Authorization", `Bearer ${legacyOrgMemberApiKey}`)
-          .send(createRoleInput)
-          .expect(403);
+          .send(createRoleInput);
+        expect(response.status).toBe(403);
+        expect(response.body.error.message).toBe(
+          `RolesGuard - user with id=${legacyOrgMemberUser.id} does not have the minimum required role=ORG_ADMIN within organization with id=${organization.id}.`
+        );
       });
     });
 
