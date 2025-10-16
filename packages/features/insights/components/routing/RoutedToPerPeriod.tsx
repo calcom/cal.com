@@ -100,7 +100,7 @@ function FormCard({ selectedPeriod, onPeriodChange, searchQuery, onSearchChange,
               onValueChange={(value) => value && onPeriodChange(value as "perDay" | "perWeek" | "perMonth")}
             />
             <div className="flex items-center gap-2">
-              <div className="w-64">
+              <div className="max-w-64">
                 <Input
                   type="text"
                   placeholder={t("search")}
