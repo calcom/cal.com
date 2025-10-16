@@ -876,28 +876,20 @@ function MemberListContent(props: Props) {
         />
       )}
       {showLeaveConfirm && (
-        <Dialog
-          open={showLeaveConfirm}
-          onOpenChange={setShowLeaveConfirm}
-          title={t("leave_team")}
-          description={t("are_you_sure_you_want_to_leave_this_team")}>
-          <DialogFooter>
-            <Button color="secondary" onClick={() => setShowLeaveConfirm(false)}>
-              {t("cancel")}
-            </Button>
-            <Button
-              color="destructive"
-              onClick={() => {
-                acceptOrLeaveMutation.mutate({
-                  teamId: props.team?.id,
-                  accept: false,
-                });
-                setShowLeaveConfirm(false);
-              }}
-              disabled={acceptOrLeaveMutation.isPending}>
-              {t("leave_team")}
-            </Button>
-          </DialogFooter>
+        <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("leave_team")}
+            confirmBtnText={t("leave_team")}
+            onConfirm={() => {
+              acceptOrLeaveMutation.mutate({
+                teamId: props.team?.id,
+                accept: false,
+              });
+              setShowLeaveConfirm(false);
+            }}>
+            {t("are_you_sure_you_want_to_leave_this_team")}
+          </ConfirmationDialogContent>
         </Dialog>
       )}
     </>

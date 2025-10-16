@@ -269,14 +269,30 @@ export class TeamService {
 
     await updateNewTeamMemberEventTypes(userId, teamId);
   }
-  static async leaveTeamMembership({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }) {
+  static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
+      // Check if user is the last owner before allowing leave
+      const ownerCount = await prisma.membership.count({
+        where: {
+          teamId,
+          role: "OWNER",
+          accepted: true,
+        },
+      });
+
+      const userMembership = await prisma.membership.findUnique({
+        where: {
+          userId_teamId: { userId, teamId },
+        },
+        select: {
+          role: true,
+        },
+      });
+
+      if (userMembership?.role === "OWNER" && ownerCount <= 1) {
+        throw new Error("Cannot leave team as the last owner");
+      }
+
       const membership = await prisma.membership.delete({
         where: {
           userId_teamId: { userId, teamId },
@@ -295,6 +311,7 @@ export class TeamService {
       }
     } catch (e) {
       console.log(e);
+      throw e;
     }
   }
 
