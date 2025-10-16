@@ -5,10 +5,10 @@ import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/BillingEnabledOrgOnboardingService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserRepository } from "@calcom/packages/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 
 import type { SWHMap } from "./__handler";
