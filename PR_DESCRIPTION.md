@@ -43,9 +43,9 @@ const alertActions = (
 - This prevents React from treating the actions as new props on every render, improving performance
 
 ## Performance Impact
-- **Reduced Re-renders**: Alert components no longer unnecessarily re-render when actions haven't changed
+- **Reduced Reconciliation**: React no longer treats the actions prop as changed on every render, preventing unnecessary reconciliation of the actions subtree
 - **Memory Efficiency**: Single JSX element is reused instead of creating new objects in each iteration
-- **Better Reconciliation**: React's diffing algorithm can skip the actions subtree more efficiently
+- **Better Performance**: React's diffing algorithm can skip the actions subtree more efficiently when parent components re-render
 
 ## Testing
 Existing tests in `packages/ui/components/alert/alert.test.tsx` continue to pass, including:
