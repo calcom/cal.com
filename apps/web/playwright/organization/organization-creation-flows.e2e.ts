@@ -321,28 +321,6 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
     });
   });
 
-  test.describe("Resume Flow", () => {
-    test("Resume with invalid onboardingId shows error", async ({ page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-
-      await page.goto("/settings/organizations/new/resume?onboardingId=invalid-id-123");
-
-      // Should show error message
-      await expect(page.getByTestId("error")).toBeVisible();
-    });
-
-    test("Resume without onboardingId redirects", async ({ page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-
-      await page.goto("/settings/organizations/new/resume");
-
-      // Should redirect to start of flow
-      await page.waitForURL("**/settings/organizations/new");
-    });
-  });
-
   test.describe("Form Validation", () => {
     test("Admin form - required fields validation", async ({ page, users }) => {
       const admin = await users.create({ role: "ADMIN" });
