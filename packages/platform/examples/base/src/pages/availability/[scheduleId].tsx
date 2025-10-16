@@ -1,5 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import { useRouter } from "next/router";
 import { useRef, useCallback } from "react";
 
 import type { AvailabilitySettingsFormRef } from "@calcom/atoms";
@@ -8,6 +10,7 @@ import { AvailabilitySettings } from "@calcom/atoms";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Availability(props: { calUsername: string; calEmail: string }) {
+  const router = useRouter();
   const availabilityRef = useRef<AvailabilitySettingsFormRef>(null);
 
   const handleFormStateChange = useCallback((formState: unknown) => {
@@ -50,7 +53,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
         </div>
 
         <AvailabilitySettings
-          // isDryRun={true}
+          id={router.query.scheduleId as string}
           ref={availabilityRef}
           enableOverrides={true}
           customClassNames={{
@@ -83,6 +86,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
           onFormStateChange={handleFormStateChange}
           onUpdateSuccess={() => {
             console.log("Updated successfully");
+            router.push(`/availability`);
           }}
           onUpdateError={() => {
             console.log("update error");
