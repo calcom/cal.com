@@ -2,7 +2,7 @@ import { MembershipService } from "@calcom/features/membership/services/membersh
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
 
-import { HashedLinkRepository, type HashedLinkInputType } from "../repositories/HashedLinkRepository";
+import { HashedLinkRepository, type HashedLinkInputType } from "../repositories/hashedLinkRepository";
 
 type NormalizedLink = {
   link: string;

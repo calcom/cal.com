@@ -8,7 +8,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { HashedLinkRepository } from "@calcom/features/hashedLink/repositories/HashedLinkRepository";
+import { HashedLinkRepository } from "@calcom/features/hashedLink/repositories/hashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import tasker from "@calcom/features/tasker";
