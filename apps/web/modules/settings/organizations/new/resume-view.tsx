@@ -56,6 +56,8 @@ const ResumeOnboardingView = () => {
       pricePerSeat: dbOnboarding.pricePerSeat,
       logo: dbOnboarding.logo,
       bio: dbOnboarding.bio,
+      brandColor: dbOnboarding.brandColor,
+      bannerUrl: dbOnboarding.bannerUrl,
     });
 
     // Redirect to next step (About page)
