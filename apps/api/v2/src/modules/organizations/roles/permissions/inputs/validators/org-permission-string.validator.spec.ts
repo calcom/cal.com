@@ -1,10 +1,12 @@
-import { TeamPermissionStringValidator } from "./org-permission-string.validator";
+import { BadRequestException } from "@nestjs/common";
+
+import { OrgPermissionStringValidator } from "./org-permission-string.validator";
 
 describe("PermissionStringValidator", () => {
-  let validator: TeamPermissionStringValidator;
+  let validator: OrgPermissionStringValidator;
 
   beforeEach(() => {
-    validator = new TeamPermissionStringValidator();
+    validator = new OrgPermissionStringValidator();
   });
 
   describe("validate", () => {
@@ -24,8 +26,7 @@ describe("PermissionStringValidator", () => {
         "team.invite",
         "organization.read",
         "organization.listMembers",
-        "*.read", // wildcard resource
-        "eventType.*", // wildcard action
+        // no wildcards here
       ];
 
       validPermissions.forEach((permission) => {
@@ -33,7 +34,7 @@ describe("PermissionStringValidator", () => {
       });
     });
 
-    it("should return false for invalid permission strings", () => {
+    it("should throw for invalid permission strings", () => {
       const invalidPermissions = [
         "invalid", // no dot
         "invalid.", // no action
@@ -47,7 +48,15 @@ describe("PermissionStringValidator", () => {
       ];
 
       invalidPermissions.forEach((permission) => {
-        expect(validator.validate(permission)).toBe(false);
+        expect(() => validator.validate(permission)).toThrow(BadRequestException);
+      });
+    });
+
+    it("should throw for wildcard permission strings", () => {
+      const wildcardPermissions = ["*", "*.read", "eventType.*"];
+
+      wildcardPermissions.forEach((permission) => {
+        expect(() => validator.validate(permission)).toThrow(BadRequestException);
       });
     });
   });
