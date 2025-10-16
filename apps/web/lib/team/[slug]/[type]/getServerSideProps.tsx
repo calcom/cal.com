@@ -187,7 +187,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         team,
       }),
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
-      themeBasis: branding.theme,
+      themeBasis: null,
       orgBannerUrl: team.parent?.bannerUrl ?? "",
       teamMemberEmail,
       crmOwnerRecordType,
