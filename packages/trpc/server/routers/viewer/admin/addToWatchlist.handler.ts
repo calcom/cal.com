@@ -45,18 +45,6 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
   try {
     const results = await Promise.all(
       reportsToAdd.map(async (report) => {
-        const reportWithOrg = await prisma.bookingReport.findUnique({
-          where: { id: report.id },
-          select: { organizationId: true },
-        });
-
-        if (!reportWithOrg?.organizationId) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Report ${report.id} does not have an associated organization`,
-          });
-        }
-
         const value =
           input.type === "EMAIL"
             ? report.bookerEmail
@@ -65,7 +53,7 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
         const existingWatchlist = await watchlistRepo.checkExists({
           type: input.type,
           value,
-          organizationId: reportWithOrg.organizationId,
+          isGlobal: true,
         });
 
         let watchlistId: string;
@@ -76,10 +64,11 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
           const newWatchlist = await watchlistRepo.createEntry({
             type: input.type,
             value,
-            organizationId: reportWithOrg.organizationId,
+            organizationId: null,
             action: WatchlistAction.BLOCK,
             description: input.description,
             userId: user.id,
+            isGlobal: true,
           });
           watchlistId = newWatchlist.id;
         }
@@ -104,7 +93,7 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
     if (error instanceof Error && error.message.includes("already exists")) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "This entry already exists in the watchlist for the organization",
+        message: "This entry already exists in the global watchlist",
       });
     }
     throw error;

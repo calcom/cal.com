@@ -118,23 +118,6 @@ describe("addToWatchlistHandler (Admin)", () => {
       });
     });
 
-    it("should throw BAD_REQUEST when report has no organizationId", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      vi.mocked(prisma.bookingReport.findUnique).mockResolvedValue({ organizationId: null } as any);
-
-      await expect(
-        addToWatchlistHandler({
-          ctx: { user: mockUser },
-          input: {
-            reportIds: ["report-1"],
-            type: WatchlistType.EMAIL,
-          },
-        })
-      ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: expect.stringContaining("does not have an associated organization"),
-      });
-    });
   });
 
   describe("duplicate prevention", () => {
@@ -158,9 +141,8 @@ describe("addToWatchlistHandler (Admin)", () => {
   });
 
   describe("successful addition", () => {
-    it("should create new watchlist entry for EMAIL type and link report", async () => {
+    it("should create new global watchlist entry for EMAIL type and link report", async () => {
       mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      vi.mocked(prisma.bookingReport.findUnique).mockResolvedValue({ organizationId: 100 } as any);
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
@@ -176,13 +158,19 @@ describe("addToWatchlistHandler (Admin)", () => {
 
       expect(result.success).toBe(true);
       expect(result.addedCount).toBe(1);
+      expect(mockWatchlistRepo.checkExists).toHaveBeenCalledWith({
+        type: WatchlistType.EMAIL,
+        value: "spammer@example.com",
+        isGlobal: true,
+      });
       expect(mockWatchlistRepo.createEntry).toHaveBeenCalledWith({
         type: WatchlistType.EMAIL,
         value: "spammer@example.com",
-        organizationId: 100,
+        organizationId: null,
         action: WatchlistAction.BLOCK,
         description: "Spam user",
         userId: 1,
+        isGlobal: true,
       });
       expect(mockReportRepo.linkWatchlistToReport).toHaveBeenCalledWith({
         reportId: "report-1",
@@ -190,9 +178,8 @@ describe("addToWatchlistHandler (Admin)", () => {
       });
     });
 
-    it("should create new watchlist entry for DOMAIN type and link report", async () => {
+    it("should create new global watchlist entry for DOMAIN type and link report", async () => {
       mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      vi.mocked(prisma.bookingReport.findUnique).mockResolvedValue({ organizationId: 100 } as any);
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-domain" });
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
@@ -209,17 +196,17 @@ describe("addToWatchlistHandler (Admin)", () => {
       expect(mockWatchlistRepo.createEntry).toHaveBeenCalledWith({
         type: WatchlistType.DOMAIN,
         value: "example.com",
-        organizationId: 100,
+        organizationId: null,
         action: WatchlistAction.BLOCK,
         description: undefined,
         userId: 1,
+        isGlobal: true,
       });
     });
 
-    it("should reuse existing watchlist entry when value already exists", async () => {
+    it("should reuse existing global watchlist entry when value already exists", async () => {
       mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      vi.mocked(prisma.bookingReport.findUnique).mockResolvedValue({ organizationId: 100 } as any);
-      mockWatchlistRepo.checkExists.mockResolvedValue({ id: "existing-watchlist" });
+      mockWatchlistRepo.checkExists.mockResolvedValue({ id: "existing-watchlist" } as any);
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
 
       const result = await addToWatchlistHandler({
@@ -240,13 +227,10 @@ describe("addToWatchlistHandler (Admin)", () => {
 
     it("should process multiple reports in batch", async () => {
       mockReportRepo.findReportsByIds.mockResolvedValue(mockReports);
-      vi.mocked(prisma.bookingReport.findUnique)
-        .mockResolvedValueOnce({ organizationId: 100 } as any)
-        .mockResolvedValueOnce({ organizationId: 100 } as any);
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
       mockWatchlistRepo.createEntry
-        .mockResolvedValueOnce({ id: "watchlist-1" })
-        .mockResolvedValueOnce({ id: "watchlist-2" });
+        .mockResolvedValueOnce({ id: "watchlist-1" } as any)
+        .mockResolvedValueOnce({ id: "watchlist-2" } as any);
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
 
       const result = await addToWatchlistHandler({
@@ -267,9 +251,8 @@ describe("addToWatchlistHandler (Admin)", () => {
     it("should return correct counts when processing multiple reports", async () => {
       const mixedReports = [mockReports[0], { ...mockReports[1], watchlistId: "already-added" }];
       mockReportRepo.findReportsByIds.mockResolvedValue(mixedReports);
-      vi.mocked(prisma.bookingReport.findUnique).mockResolvedValue({ organizationId: 100 } as any);
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
-      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "new-watchlist" });
+      mockWatchlistRepo.createEntry.mockResolvedValue({ id: "new-watchlist" } as any);
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
 
       const result = await addToWatchlistHandler({
@@ -286,72 +269,4 @@ describe("addToWatchlistHandler (Admin)", () => {
     });
   });
 
-  describe("cross-organization support", () => {
-    it("should handle reports from different organizations", async () => {
-      const crossOrgReports = [
-        { ...mockReports[0], id: "report-org-100" },
-        { ...mockReports[1], id: "report-org-200" },
-      ];
-      mockReportRepo.findReportsByIds.mockResolvedValue(crossOrgReports);
-      vi.mocked(prisma.bookingReport.findUnique)
-        .mockResolvedValueOnce({ organizationId: 100 } as any)
-        .mockResolvedValueOnce({ organizationId: 200 } as any);
-      mockWatchlistRepo.checkExists.mockResolvedValue(null);
-      mockWatchlistRepo.createEntry
-        .mockResolvedValueOnce({ id: "watchlist-org-100" })
-        .mockResolvedValueOnce({ id: "watchlist-org-200" });
-      mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
-
-      const result = await addToWatchlistHandler({
-        ctx: { user: mockUser },
-        input: {
-          reportIds: ["report-org-100", "report-org-200"],
-          type: WatchlistType.EMAIL,
-        },
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.addedCount).toBe(2);
-      expect(mockWatchlistRepo.createEntry).toHaveBeenNthCalledWith(1, {
-        type: WatchlistType.EMAIL,
-        value: "spammer@example.com",
-        organizationId: 100,
-        action: WatchlistAction.BLOCK,
-        description: undefined,
-        userId: 1,
-      });
-      expect(mockWatchlistRepo.createEntry).toHaveBeenNthCalledWith(2, {
-        type: WatchlistType.EMAIL,
-        value: "user@spammer.com",
-        organizationId: 200,
-        action: WatchlistAction.BLOCK,
-        description: undefined,
-        userId: 1,
-      });
-    });
-  });
-
-  describe("error handling", () => {
-    it("should handle already exists errors gracefully", async () => {
-      mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
-      vi.mocked(prisma.bookingReport.findUnique).mockResolvedValue({ organizationId: 100 } as any);
-      mockWatchlistRepo.checkExists.mockResolvedValue(null);
-      mockWatchlistRepo.createEntry.mockRejectedValue(
-        new Error("Watchlist entry already exists for this value")
-      );
-
-      await expect(
-        addToWatchlistHandler({
-          ctx: { user: mockUser },
-          input: {
-            reportIds: ["report-1"],
-            type: WatchlistType.EMAIL,
-          },
-        })
-      ).rejects.toMatchObject({
-        code: "BAD_REQUEST",
-        message: "This entry already exists in the watchlist for the organization",
-      });
-    });
-  });
 });

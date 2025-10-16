@@ -18,6 +18,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       type: params.type,
       value: params.value,
       organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
     });
 
     if (existing) {
@@ -29,11 +30,11 @@ export class WatchlistRepository implements IWatchlistRepository {
         data: {
           type: params.type,
           value: params.value,
-          organizationId: params.organizationId,
+          organizationId: params.organizationId ?? null,
           action: params.action,
           description: params.description,
           source: WatchlistSource.MANUAL,
-          isGlobal: false,
+          isGlobal: params.isGlobal ?? false,
         },
       });
 
@@ -55,12 +56,24 @@ export class WatchlistRepository implements IWatchlistRepository {
   }
 
   async checkExists(params: CheckWatchlistInput): Promise<WatchlistEntry | null> {
+    if (params.isGlobal) {
+      const entry = await this.prismaClient.watchlist.findFirst({
+        where: {
+          type: params.type,
+          value: params.value,
+          isGlobal: true,
+          organizationId: null,
+        },
+      });
+      return entry;
+    }
+
     const entry = await this.prismaClient.watchlist.findUnique({
       where: {
         type_value_organizationId: {
           type: params.type,
           value: params.value,
-          organizationId: params.organizationId,
+          organizationId: params.organizationId ?? null,
         },
       },
     });
