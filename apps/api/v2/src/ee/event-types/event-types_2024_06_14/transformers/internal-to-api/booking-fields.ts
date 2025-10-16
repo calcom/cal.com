@@ -24,6 +24,7 @@ import type {
   TextAreaFieldOutput_2024_06_14,
   TextFieldOutput_2024_06_14,
   UrlFieldOutput_2024_06_14,
+  DateFieldOutput_2024_06_14,
 } from "@calcom/platform-types";
 
 export function transformBookingFieldsInternalToApi(
@@ -280,6 +281,18 @@ export function transformBookingFieldsInternalToApi(
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           } satisfies UrlFieldOutput_2024_06_14;
+
+        case "date":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label || "",
+            required: !!field.required,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies DateFieldOutput_2024_06_14;
+
         default:
           return {
             type: "unknown",
@@ -305,6 +318,7 @@ const CustomFieldTypeEnum = z.enum([
   "radio",
   "radioInput",
   "url",
+  "date",
 ]);
 
 const CustomFieldsSchema = z.object({

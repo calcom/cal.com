@@ -791,6 +791,42 @@ describe("transformBookingFieldsInternalToApi", () => {
     expect(result).toEqual(expectedOutput);
   });
 
+  it("should reverse transform date field", () => {
+    const transformedField: CustomField[] = [
+      {
+        name: "event-date",
+        type: "date",
+        label: "Event Date",
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: true,
+      },
+    ];
+
+    const expectedOutput = [
+      {
+        isDefault: false,
+        type: "date",
+        slug: "event-date",
+        label: "Event Date",
+        required: true,
+        disableOnPrefill: false,
+        hidden: false,
+      },
+    ];
+
+    const result = transformBookingFieldsInternalToApi(transformedField);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
   it("should reverse transform boolean field", () => {
     const transformedField: CustomField[] = [
       {
