@@ -266,15 +266,22 @@ export const professionTypeAndEventTypes: TProfessionTypeAndEventTypes = {
     },
   ],
   others: [
-    { title: "15min_meeting", slug: "15min", length: [15] },
+    {
+      title: "15min_meeting",
+      slug: "15min",
+      description: "15min_meeting_description",
+      length: [15],
+    },
     {
       title: "30min_meeting",
       slug: "30min",
+      description: "30min_meeting_description",
       length: [30],
     },
     {
       title: "secret_meeting",
       slug: "secret",
+      description: "secret_meeting_description",
       length: [15],
       hidden: true,
     },
@@ -394,5 +401,14 @@ export const customEvents: {
     "📘 Start your mentoring journey with an introductory call. We'll discuss your goals, explore your potential, and set the stage for a fruitful mentoring relationship. Let's begin your path to growth!",
   deep_dive_call: "Deep Dive Call",
   deep_dive_call_meeting_description:
-    "🔍 Dive deeper into your development with a focused deep dive call. Together, we'll tackle complex challenges, refine your skills, and chart a clear path forward for your growth. Let’s unlock your full potential!",
+    "🔍 Dive deeper into your development with a focused deep dive call. Together, we'll tackle complex challenges, refine your skills, and chart a clear path forward for your growth. Let's unlock your full potential!",
+  "15min_meeting": "15 Minute Meeting",
+  "15min_meeting_description":
+    "Quick 15-minute meeting to discuss your needs and see how we can help you achieve your goals.",
+  "30min_meeting": "30 Minute Meeting",
+  "30min_meeting_description":
+    "A 30-minute session to dive deeper into your requirements and explore potential solutions together.",
+  secret_meeting: "Secret Meeting",
+  secret_meeting_description:
+    "A confidential 15-minute discussion for sensitive matters that require discretion and privacy.",
 };

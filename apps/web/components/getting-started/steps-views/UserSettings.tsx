@@ -98,6 +98,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
     (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || "founder"
   );
+  const [numberVerified, _setNumberVerified] = useState(false);
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
     (key) => ({
@@ -152,7 +153,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     mutation.mutate({
       metadata: {
         currentOnboardingStep: "connected-calendar",
-        phoneNumber: data.metadata.phoneNumber,
+        phoneNumber: isPhoneFieldMandatory ? data.metadata.phoneNumber : "",
       },
       name: data.name,
       username: data.username,
@@ -206,18 +207,20 @@ const UserSettings = (props: IUserSettingsProps) => {
           </p>
         )}
       </div>
-      <PhoneNumberField
-        getValue={getPhoneValue}
-        setValue={setPhoneValue}
-        getValues={getValues}
-        defaultValues={defaultValues}
-        isRequired={isPhoneFieldMandatory}
-        allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
-        hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
-        errorMessage={errors.metadata?.phoneNumber?.message}
-        onDeleteNumber={handlePhoneDelete}
-        isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
-      />
+      {isPhoneFieldMandatory && (
+        <PhoneNumberField
+          getValue={getPhoneValue}
+          setValue={setPhoneValue}
+          getValues={getValues}
+          defaultValues={defaultValues}
+          isRequired={isPhoneFieldMandatory}
+          allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
+          hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
+          errorMessage={errors.metadata?.phoneNumber?.message}
+          onDeleteNumber={handlePhoneDelete}
+          isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+        />
+      )}
 
       {/* Designation select field */}
       <div className="w-full">

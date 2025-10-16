@@ -48,12 +48,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "clock-2",
   },
   {
-    name: "avail_offer",
-    href: "/avail",
-    icon: "badge-percent",
-    onlyDesktop: true,
-  },
-  {
     name: "teams",
     href: "/teams",
     icon: "users",

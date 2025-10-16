@@ -117,7 +117,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hasCompletedOnboarding: hasNotStartedOnboarding,
       google_signup_tracked,
       metadata: user.metadata,
-      identityProvider: user.identityProvider 
+      identityProvider: user.identityProvider,
     },
   };
 };
