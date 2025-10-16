@@ -15,7 +15,7 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
   constructor(readonly configService: ConfigService) {
     const dbUrl = configService.get("db.readUrl", { infer: true });
-    this.pool = new Pool({ connectionString: dbUrl });
+    this.pool = new Pool({ connectionString: dbUrl, max: 1 });
     const adapter = new PrismaPg(this.pool);
     this.prisma = new PrismaClient({
       adapter,
