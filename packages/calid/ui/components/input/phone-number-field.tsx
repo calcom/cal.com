@@ -130,7 +130,12 @@ export function PhoneNumberField<T extends Record<string, any>>({
 
       <div className="flex gap-3">
         <div className="w-full">
-          <PhoneInput name={fieldName} value={getValue()} onChange={handlePhoneNumberChange} autoFormat={true} />
+          <PhoneInput
+            name={fieldName}
+            value={getValue()}
+            onChange={handlePhoneNumberChange}
+            autoFormat={true}
+          />
         </div>
 
         {isNumberVerificationRequired && (

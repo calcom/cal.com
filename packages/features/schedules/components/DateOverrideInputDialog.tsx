@@ -28,6 +28,7 @@ const DateOverrideForm = ({
   workingHours,
   excludedDates,
   onChange,
+  onClose,
   userTimeFormat,
   weekStart,
 }: {
@@ -137,6 +138,7 @@ const DateOverrideForm = ({
 
         onChange(datesInRanges);
         setSelectedDates([]);
+        onClose?.();
       }}
       className="p-6 sm:flex sm:p-0 xl:flex-row">
       <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">

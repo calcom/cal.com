@@ -7,6 +7,7 @@ import {
   PhoneNumberField,
   isStrictlyValidNumber,
 } from "@calid/features/ui/components/input/phone-number-field";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -24,7 +25,6 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -198,7 +198,7 @@ const UserSettings = (props: IUserSettingsProps) => {
           type="text"
           autoComplete="off"
           autoCorrect="off"
-          className="w-full"
+          className="focus:ring-brand-default w-full focus:border-none focus:ring-2"
         />
         {errors.name && (
           <p data-testid="required" className="mt-1 text-xs text-red-500">
@@ -256,7 +256,7 @@ const UserSettings = (props: IUserSettingsProps) => {
       <Button
         EndIcon="arrow-right"
         type="submit"
-        className="mt-8 w-full justify-center bg-active dark:bg-gray-200 border-active dark:border-default"
+        className="bg-active border-active dark:border-default mt-8 w-full justify-center dark:bg-gray-200"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
         {t("next_step_text")}

@@ -21,6 +21,12 @@ import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
 
+declare global {
+  interface Window {
+    openOneHashChat?: () => void;
+  }
+}
+
 export const MORE_SEPARATOR_NAME = "more";
 
 const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
@@ -42,6 +48,12 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "clock-2",
   },
   {
+    name: "avail_offer",
+    href: "/avail",
+    icon: "badge-percent",
+    onlyDesktop: true,
+  },
+  {
     name: "teams",
     href: "/teams",
     icon: "users",
@@ -56,6 +68,22 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+    },
+  },
+  {
+    name: "help",
+    icon: "circle-help",
+    onlyMobile: true,
+    onClick: (e) => {
+      e.preventDefault();
+      if (typeof window !== "undefined") {
+        if (window.openOneHashChat) {
+          window.openOneHashChat();
+        } else {
+        }
+      } else {
+        console.error("Window object not available");
+      }
     },
   },
   {
@@ -87,6 +115,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "settings",
     href: "/settings/my-account/profile",
     icon: "settings",
+    onlyDesktop: true,
   },
 ];
 
@@ -145,7 +174,9 @@ const useNavigationItems = (isPlatformNavigation = false) => {
   return useMemo(() => {
     const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
 
-    const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
+    const desktopNavigationItems = items.filter(
+      (item) => item.name !== MORE_SEPARATOR_NAME && !item.onlyMobile
+    );
     const mobileNavigationBottomItems = items.filter(
       (item) => (!item.moreOnMobile && !item.onlyDesktop) || item.name === MORE_SEPARATOR_NAME
     );

@@ -128,7 +128,7 @@ const SettingsToggle = ({
     (fieldPermissions && fieldName ? fieldPermissions.getFieldState(fieldName).isDisabled : false);
   return (
     <Card className={classNames(switchContainerClassName)}>
-      <CardHeader className="flex flex-row items-start justify-between space-y-0 p-6">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div className="flex-1 pr-8">
           <CardTitle
             className={classNames("flex items-center text-sm font-medium text-gray-700", labelClassName)}>
@@ -155,7 +155,7 @@ const SettingsToggle = ({
         />
       </CardHeader>
       {checked && children && (
-        <CardContent className={classNames("border-muted border-t pt-6", childrenClassName)}>
+        <CardContent className={classNames("border-muted border-t", childrenClassName)}>
           {children}
         </CardContent>
       )}
@@ -646,23 +646,21 @@ const RequiresConfirmationController = ({
                     {/* Always require confirmation option */}
                     <div className="flex items-center">
                       <RadioGroupItem value="always" id="always" className="mr-2" />
-                      <label htmlFor="always" className="text-sm">
-                        {t("always")}
-                      </label>
+                      <Label>{t("always")}</Label>
                     </div>
 
                     {/* Conditional confirmation with time threshold */}
                     <>
                       <div className="flex items-center">
                         <RadioGroupItem value="notice" id="notice" className="mr-2" />
-                        <label htmlFor="notice" className="flex items-center space-x-2 text-sm">
+                        <Label>
                           <ServerTrans
                             t={t}
                             i18nKey="when_booked_with_less_than_notice"
                             components={[
                               <div
                                 key="when_booked_with_less_than_notice"
-                                className="mx-2 inline-flex items-center">
+                                className="inline-flex items-center gap-2">
                                 <Input
                                   type="number"
                                   min={1}
@@ -670,11 +668,11 @@ const RequiresConfirmationController = ({
                                     const val = Number(evt.target?.value);
                                     handleTimeChange(val);
                                   }}
-                                  className="border-default !m-0 block h-9 w-16 rounded-r-none border border-r-0 text-sm [appearance:textfield] focus:z-10"
+                                  className="!m-0 block"
                                   defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
                                 />
 
-                                <label>
+                                <Label>
                                   <Select
                                     value={timeUnitOptions.find((opt) => opt.value === defaultValue?.value)}
                                     onChange={(option) => {
@@ -686,43 +684,46 @@ const RequiresConfirmationController = ({
                                       value: opt.value,
                                       label: opt.label,
                                     }))}
-                                    className="border-default h-9 w-auto rounded-l-none border px-3 text-sm"
+                                    className="w-24"
                                   />
-                                </label>
+                                </Label>
                               </div>,
                             ]}
                           />
-                        </label>
+                        </Label>
                       </div>
 
-                      {/* Additional confirmation options */}
-                      <div className="flex items-center gap-2">
-                        <CheckboxField
-                          checked={requiresConfirmationWillBlockSlot}
-                          onCheckedChange={(checked) => {
-                            formMethods.setValue("requiresConfirmationWillBlockSlot", !!checked, {
-                              shouldDirty: true,
-                            });
-                          }}
-                        />
-                        <label className="text-foreground text-sm">
-                          {t("requires_confirmation_will_block_slot_description")}
-                        </label>
-                      </div>
+                      <Controller
+                        name="requiresConfirmationWillBlockSlot"
+                        render={({ field: { value, onChange } }) => (
+                          <CheckboxField
+                            checked={value}
+                            onCheckedChange={(checked) => {
+                              onChange(!!checked, {
+                                shouldDirty: true,
+                              });
+                            }}
+                            descriptionAsLabel
+                            description={t("requires_confirmation_will_block_slot_description")}
+                          />
+                        )}
+                      />
 
-                      <div className="flex items-center gap-2">
-                        <Controller
-                          name="requiresConfirmationForFreeEmail"
-                          render={({ field: { value, onChange } }) => (
-                            <CheckboxField
-                              checked={value}
-                              onCheckedChange={onChange}
-                              descriptionAsLabel
-                              description={t("require_confirmation_for_free_email")}
-                            />
-                          )}
-                        />
-                      </div>
+                      <Controller
+                        name="requiresConfirmationForFreeEmail"
+                        render={({ field: { value, onChange } }) => (
+                          <CheckboxField
+                            checked={value}
+                            onCheckedChange={(checked) => {
+                              onChange(!!checked, {
+                                shouldDirty: true,
+                              });
+                            }}
+                            descriptionAsLabel
+                            description={t("require_confirmation_for_free_email")}
+                          />
+                        )}
+                      />
                     </>
                   </div>
                 </RadioGroup>
@@ -1182,52 +1183,50 @@ export const EventAdvanced = ({
                 t={t}
               />
             }>
-            <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
-              <TextField
-                className="w-full"
-                label={t("redirect_success_booking")}
-                labelSrOnly
-                placeholder={t("external_redirect_url")}
-                data-testid="external-redirect-url"
-                required={redirectUrlVisible}
-                type="text"
-                value={field.value || ""}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                ref={field.ref}
-                disabled={fieldPermissions.getFieldState("successRedirectUrl").isDisabled}
-                LockedIcon={
-                  <FieldPermissionIndicator
-                    fieldName="successRedirectUrl"
-                    fieldPermissions={fieldPermissions}
-                    t={t}
-                  />
-                }
-              />
-
-              {fieldState.error && <p className="mt-2 text-sm text-red-600">{fieldState.error.message}</p>}
-
-              <div className="mt-4">
-                <Controller
-                  name="forwardParamsSuccessRedirect"
-                  render={({ field: { value: forwardValue, onChange: forwardOnChange } }) => (
-                    <div className="flex items-center gap-2">
-                      <CheckboxField checked={forwardValue} onCheckedChange={forwardOnChange} />
-                      <Label className="text-foreground text-sm">{t("forward_params_redirect")}</Label>
-                    </div>
-                  )}
+            <TextField
+              className="w-full"
+              label={t("redirect_success_booking")}
+              labelSrOnly
+              placeholder={t("external_redirect_url")}
+              data-testid="external-redirect-url"
+              required={redirectUrlVisible}
+              type="text"
+              value={field.value || ""}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              disabled={fieldPermissions.getFieldState("successRedirectUrl").isDisabled}
+              LockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="successRedirectUrl"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
                 />
-              </div>
+              }
+            />
 
-              <div
-                className={classNames(
-                  "p-1 text-sm text-orange-600",
-                  formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
+            {fieldState.error && <p className="mt-2 text-sm text-red-600">{fieldState.error.message}</p>}
+
+            <div className="mt-4">
+              <Controller
+                name="forwardParamsSuccessRedirect"
+                render={({ field: { value: forwardValue, onChange: forwardOnChange } }) => (
+                  <div className="flex items-center gap-2">
+                    <CheckboxField checked={forwardValue} onCheckedChange={forwardOnChange} />
+                    <Label>{t("forward_params_redirect")}</Label>
+                  </div>
                 )}
-                data-testid="redirect-url-warning">
-                {t("redirect_url_warning")}
-              </div>
-            </CardContent>
+              />
+            </div>
+
+            <div
+              className={classNames(
+                "p-1 text-sm text-orange-600",
+                formMethods.getValues("successRedirectUrl") ? "block" : "hidden"
+              )}
+              data-testid="redirect-url-warning">
+              {t("redirect_url_warning")}
+            </div>
           </SettingsToggle>
         )}
       />
@@ -1264,7 +1263,7 @@ export const EventAdvanced = ({
                   t={t}
                 />
               }>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div>
                 <MultiplePrivateLinksController
                   team={team ?? null}
                   bookerUrl={eventType.bookerUrl}
@@ -1324,7 +1323,7 @@ export const EventAdvanced = ({
                   t={t}
                 />
               }>
-              <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <CardContent className="border-subtle rounded-b-lg border border-t-0">
                 <Controller
                   name="seatsPerTimeSlot"
                   render={({ field: { value: seatValue, onChange: seatOnChange } }) => (
@@ -1444,29 +1443,25 @@ export const EventAdvanced = ({
                 />
               }>
               {showSelector && (
-                <CardContent className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
-                  <div>
-                    <Controller
-                      name="lockedTimeZone"
-                      control={formMethods.control}
-                      render={({ field: { value: timezoneValue } }) => (
-                        <>
-                          <label className="text-default mb-2 block text-sm font-medium">
-                            {t("timezone")}
-                          </label>
-                          <TimezoneSelect
-                            id="lockedTimeZone"
-                            value={timezoneValue ?? "Europe/London"}
-                            onChange={(event) => {
-                              if (event)
-                                formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
-                            }}
-                          />
-                        </>
-                      )}
-                    />
-                  </div>
-                </CardContent>
+                <div>
+                  <Controller
+                    name="lockedTimeZone"
+                    control={formMethods.control}
+                    render={({ field: { value: timezoneValue } }) => (
+                      <>
+                        <label className="text-default mb-2 block text-sm font-medium">{t("timezone")}</label>
+                        <TimezoneSelect
+                          id="lockedTimeZone"
+                          value={timezoneValue ?? "Europe/London"}
+                          onChange={(event) => {
+                            if (event)
+                              formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
+                          }}
+                        />
+                      </>
+                    )}
+                  />
+                </div>
               )}
             </SettingsToggle>
           );
@@ -1555,7 +1550,7 @@ export const EventAdvanced = ({
               {verifiedEmails && verifiedEmails.length === 0 ? (
                 <p className="text-destructive text-sm">{t("custom_reply_to_email_no_verified_emails")}</p>
               ) : (
-                <CardContent className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <CardContent className="border-subtle rounded-b-lg border border-t-0">
                   <Select
                     value={verifiedEmails?.find((email) => email === value)}
                     onChange={(option) => onChange(option?.value || null)}
@@ -1574,69 +1569,6 @@ export const EventAdvanced = ({
           )}
         />
       )}
-
-      {/* Event Type Color Configuration */}
-      {/* <Controller
-        name="eventTypeColor"
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            labelClassName="text-sm"
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(isEventTypeColorChecked && "rounded-b-none")}
-            title={t("event_type_color")}
-            disabled={lockedFields.eventTypeColor.disabled}
-            lockedIcon={lockedFields.eventTypeColor.LockedIcon}
-            description={t("event_type_color_description")}
-            checked={isEventTypeColorChecked}
-            onCheckedChange={(e) => {
-              const newValue = e ? eventTypeColorState : null;
-              onChange(newValue);
-            }}
-            childrenClassName="lg:ml-0">
-            <CardContent className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
-              <div>
-                <p className="text-default mb-2 block text-sm font-medium">{t("light_event_type_color")}</p>
-                <ColorPicker
-                  defaultValue={eventTypeColorState.lightEventTypeColor}
-                  onChange={(newColor) => {
-                    const newVal = {
-                      ...eventTypeColorState,
-                      lightEventTypeColor: newColor,
-                    };
-                    onChange(newVal);
-                    setLightModeError(!checkWCAGContrastColor("#ffffff", newColor));
-                  }}
-                />
-                {lightModeError && (
-                  <div className="mt-4">
-                    <Alert severity="warning" message={t("event_type_color_light_theme_contrast_error")} />
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 sm:mt-0">
-                <p className="text-default mb-2 block text-sm font-medium">{t("dark_event_type_color")}</p>
-                <ColorPicker
-                  defaultValue={eventTypeColorState.darkEventTypeColor}
-                  onChange={(newColor) => {
-                    const newVal = {
-                      ...eventTypeColorState,
-                      darkEventTypeColor: newColor,
-                    };
-                    onChange(newVal);
-                    setDarkModeError(!checkWCAGContrastColor("#101010", newColor));
-                  }}
-                />
-                {darkModeError && (
-                  <div className="mt-4">
-                    <Alert severity="warning" message={t("event_type_color_dark_theme_contrast_error")} />
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </SettingsToggle>
-        )}
-      /> */}
 
       {/* Round Robin Reschedule Setting */}
       {isRoundRobinEventType && (

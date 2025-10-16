@@ -139,7 +139,6 @@ export default function Login({
   );
 
   const onSubmit = async (values: LoginValues) => {
-
     setErrorMessage(null);
     telemetry.event(telemetryEventTypes.login, collectPageParameters());
     const res = await signIn<"credentials">("credentials", {
@@ -188,7 +187,7 @@ export default function Login({
                 {isGoogleLoginEnabled && (
                   <Button
                     color="secondary"
-                    className="text-subtle bg-primary w-full justify-center rounded-md"
+                    className="text-subtle bg-primary relative w-full justify-center rounded-md"
                     disabled={formState.isSubmitting}
                     data-testid="google"
                     CustomStartIcon={<GoogleIcon />}
@@ -199,7 +198,8 @@ export default function Login({
                         callbackUrl,
                       });
                     }}>
-                    <span>{t("signin_with_google")}</span>
+                    <span className="sm:hidden">{t("sign_in")}</span>
+                    <span className="hidden sm:inline">{t("signin_with_google")}</span>
                     {lastUsed === "google" && <LastUsed />}
                   </Button>
                 )}

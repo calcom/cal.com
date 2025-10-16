@@ -46,7 +46,7 @@ function BasePhoneInput({
         onChange(`+${value}`);
       }}
       containerClass={cn(
-        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:shadow-outline-gray-focused disabled:cursor-not-allowed",
+        "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:ring-2 focus-within:ring-brand-default focus-within:border-none disabled:cursor-not-allowed",
         className
       )}
       inputClass="text-sm focus:ring-0 !bg-default text-default placeholder:text-muted"

@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from "@calid/features/ui/components/dialog";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
-import { Input, TextField } from "@calid/features/ui/components/input/input";
+import { Input, InputField, TextField } from "@calid/features/ui/components/input/input";
 import React, { useState, useMemo, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -304,7 +304,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
         }
       `}</style>
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="bg-muted flex max-h-[80vh] max-w-4xl flex-col">
+        <DialogContent className="bg-default flex max-h-[80vh] max-w-4xl flex-col">
           <DialogHeader>
             <DialogTitle className="text-default">{t("choose_icon")}</DialogTitle>
             <TextField
@@ -328,8 +328,8 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                   disabled={isTransitioning}
                   className={`relative transform rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200 ease-in-out ${
                     selectedCategory === category
-                      ? "bg-brand-default scale-105 text-white shadow-sm"
-                      : "bg-muted text-default hover:text-emphasis hover:bg-muted/80 hover:scale-102"
+                      ? "bg-brand-default text-brand shadow-sm"
+                      : "bg-muted text-default hover:text-emphasis"
                   } ${isTransitioning ? "opacity-70" : ""}`}>
                   {category}
                   {selectedCategory === category && (
@@ -376,7 +376,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                           />
                           {isSelected && (
                             <div className="bg-brand-default absolute right-0 top-0 -translate-y-1/2 translate-x-1/2 rounded-full p-0.5">
-                              <Icon name="check" className="text-default h-2.5 w-2.5" />
+                              <Icon name="check" className="text-brand h-2.5 w-2.5" />
                             </div>
                           )}
                         </button>
@@ -387,7 +387,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
               </div>
             </div>
 
-            <div className="border-border border-t pt-4">
+            <div className="border-border border-t py-4">
               <div className="space-y-3">
                 <h4 className="text-sm font-medium">{t("icon_color")}</h4>
                 <div className="flex items-center space-x-2">
@@ -397,7 +397,7 @@ export const EventTypeIconPicker: React.FC<EventTypeIconPickerProps> = ({
                     value={selectedColor}
                     onChange={(e) => handleColorChange(e.target.value)}
                   />
-                  <Input
+                  <InputField
                     type="text"
                     value={selectedColor}
                     onChange={(e) => handleColorChange(e.target.value)}

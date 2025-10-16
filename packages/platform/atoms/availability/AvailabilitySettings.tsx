@@ -390,7 +390,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                   <Skeleton
                     as={Label}
                     htmlFor="hiddenSwitch"
-                    className="mt-2 cursor-pointer self-center pe-2"
+                    className="cursor-pointer self-center pe-2"
                     loadingClassName="me-4"
                     waitForTranslation={!isPlatform}>
                     {t("set_to_default")}
@@ -455,8 +455,14 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                     )}>
                     <div className="flex flex-row items-center pt-16">
-                      <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
-                      <p className="-ml-2">{t("availability_settings")}</p>
+                      <Button
+                        StartIcon="arrow-left"
+                        className="mr-2"
+                        variant="icon"
+                        color="secondary"
+                        onClick={() => setOpenSidebar(false)}
+                      />
+                      <p>{t("availability_settings")}</p>
                       {allowDelete && (
                         <DeleteDialogButton
                           buttonClassName={cn("ml-16 inline", customClassNames?.deleteButtonClassname)}
@@ -478,7 +484,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                         name="name"
                         render={({ field }) => (
                           <input
-                            className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle focus:border-subtle mb-2 block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
+                            className="hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis focus:ring-brand-default disabled:bg-subtle disabled:hover:border-subtle focus:border-subtle block h-9 w-full rounded-md border px-3 py-2 text-sm leading-4 focus:outline-none focus:ring-2 disabled:cursor-not-allowed"
                             {...field}
                           />
                         )}
@@ -490,7 +496,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                           <Skeleton
                             as={Label}
                             htmlFor="hiddenSwitch"
-                            className="mt-2 cursor-pointer self-center pr-2 sm:inline"
+                            className="cursor-pointer self-center pr-2 sm:inline"
                             waitForTranslation={!isPlatform}>
                             {t("set_to_default")}
                           </Skeleton>
@@ -514,7 +520,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                       )}
                     </div>
 
-                    <div className="col-span-3 min-w-40 space-y-2 border px-2 py-4 lg:col-span-1">
+                    <div className="col-span-3 min-w-40 space-y-2 px-2 py-4 lg:col-span-1">
                       <div className="w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0 xl:max-w-80">
                         <div>
                           <Skeleton
@@ -574,6 +580,13 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             </SmallScreenSideBar>
             <div className="border-default border-l-2" />
             <Button
+              className="ml-3 sm:hidden"
+              StartIcon="ellipsis"
+              variant="icon"
+              color="secondary"
+              onClick={() => setOpenSidebar(true)}
+            />
+            <Button
               ref={saveButtonRef}
               className="ml-4 lg:ml-0"
               type="submit"
@@ -581,13 +594,6 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               loading={isSaving}>
               {t("save")}
             </Button>
-            <Button
-              className="ml-3 sm:hidden"
-              StartIcon="ellipsis-vertical"
-              variant="icon"
-              color="secondary"
-              onClick={() => setOpenSidebar(true)}
-            />
           </div>
         }>
         <div className="mt-4 w-full md:mt-0">
