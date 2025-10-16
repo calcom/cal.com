@@ -9,7 +9,7 @@ import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } fro
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
-import { SelfHostedOnboardingService } from "../SelfHostedOnboardingService";
+import { SelfHostedOrganizationOnboardingService } from "../SelfHostedOnboardingService";
 import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../types";
 
 vi.mock("../../OrganizationPaymentService");
@@ -80,8 +80,8 @@ const mockInput: CreateOnboardingIntentInput = {
   ],
 };
 
-describe("SelfHostedOnboardingService", () => {
-  let service: SelfHostedOnboardingService;
+describe("SelfHostedOrganizationOnboardingService", () => {
+  let service: SelfHostedOrganizationOnboardingService;
   let mockPaymentService: any;
 
   beforeEach(async () => {
@@ -116,7 +116,7 @@ describe("SelfHostedOnboardingService", () => {
 
     vi.mocked(OrganizationOnboardingRepository.markAsComplete).mockResolvedValue({} as any);
 
-    service = new SelfHostedOnboardingService(mockAdminUser as any, mockPaymentService);
+    service = new SelfHostedOrganizationOnboardingService(mockAdminUser as any, mockPaymentService);
   });
 
   describe("createOnboardingIntent", () => {

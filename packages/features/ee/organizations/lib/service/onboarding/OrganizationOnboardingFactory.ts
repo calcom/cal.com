@@ -4,7 +4,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 
 import { BillingEnabledOrgOnboardingService } from "./BillingEnabledOrgOnboardingService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
-import { SelfHostedOnboardingService } from "./SelfHostedOnboardingService";
+import { SelfHostedOrganizationOnboardingService } from "./SelfHostedOnboardingService";
 import type { OnboardingUser } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
@@ -33,7 +33,7 @@ export class OrganizationOnboardingFactory {
     if (isBillingEnabled) {
       return new BillingEnabledOrgOnboardingService(user);
     } else {
-      return new SelfHostedOnboardingService(user);
+      return new SelfHostedOrganizationOnboardingService(user);
     }
   }
 

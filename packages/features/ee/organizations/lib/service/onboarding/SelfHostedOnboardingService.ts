@@ -20,7 +20,7 @@ import type {
   OrganizationData,
 } from "./types";
 
-const log = logger.getSubLogger({ prefix: ["SelfHostedOnboardingService"] });
+const log = logger.getSubLogger({ prefix: ["SelfHostedOrganizationOnboardingService"] });
 
 const invitedMembersSchema = orgOnboardingInvitedMembersSchema;
 const teamsSchema = orgOnboardingTeamsSchema;
@@ -35,7 +35,7 @@ const teamsSchema = orgOnboardingTeamsSchema;
  * 4. Mark onboarding as complete
  * 5. Return organization ID
  */
-export class SelfHostedOnboardingService extends BaseOnboardingService {
+export class SelfHostedOrganizationOnboardingService extends BaseOnboardingService {
   async createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<OnboardingIntentResult> {
     log.debug(
       "Starting self-hosted onboarding flow (immediate organization creation)",

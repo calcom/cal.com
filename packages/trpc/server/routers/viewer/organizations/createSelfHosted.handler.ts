@@ -1,4 +1,4 @@
-import { SelfHostedOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/SelfHostedOnboardingService";
+import { SelfHostedOrganizationOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/SelfHostedOnboardingService";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
@@ -52,7 +52,7 @@ export const createSelfHostedHandler = async ({ input, ctx }: CreateSelfHostedOp
     name: ctx.user.name || undefined,
   };
 
-  const onboardingService = new SelfHostedOnboardingService(userContext);
+  const onboardingService = new SelfHostedOrganizationOnboardingService(userContext);
   const { organization } = await onboardingService.createOrganization({
     id: input.onboardingId,
     logo: input.logo ?? null,

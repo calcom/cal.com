@@ -61,7 +61,7 @@ describe("OrganizationOnboardingFactory", () => {
       expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
     });
 
-    it("should return SelfHostedOnboardingService for admin when IS_TEAM_BILLING_ENABLED is false", async () => {
+    it("should return SelfHostedOrganizationOnboardingService for admin when IS_TEAM_BILLING_ENABLED is false", async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -74,10 +74,10 @@ describe("OrganizationOnboardingFactory", () => {
       const service = Factory.create(mockAdminUser as any);
 
       // Self-hosted admins skip billing
-      expect(service.constructor.name).toBe("SelfHostedOnboardingService");
+      expect(service.constructor.name).toBe("SelfHostedOrganizationOnboardingService");
     });
 
-    it("should return SelfHostedOnboardingService for regular user when IS_TEAM_BILLING_ENABLED is false", async () => {
+    it("should return SelfHostedOrganizationOnboardingService for regular user when IS_TEAM_BILLING_ENABLED is false", async () => {
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
         const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
         return {
@@ -90,10 +90,10 @@ describe("OrganizationOnboardingFactory", () => {
       const service = Factory.create(mockRegularUser as any);
 
       // When billing is disabled, everyone uses self-hosted flow
-      expect(service.constructor.name).toBe("SelfHostedOnboardingService");
+      expect(service.constructor.name).toBe("SelfHostedOrganizationOnboardingService");
     });
 
-    it("should return SelfHostedOnboardingService in E2E mode", async () => {
+    it("should return SelfHostedOrganizationOnboardingService in E2E mode", async () => {
       process.env.NEXT_PUBLIC_IS_E2E = "1";
 
       vi.doMock("@calcom/lib/constants", async (importOriginal) => {
@@ -108,7 +108,7 @@ describe("OrganizationOnboardingFactory", () => {
       const service = Factory.create(mockAdminUser as any);
 
       // E2E mode returns false from isBillingEnabled, meaning SelfHosted flow
-      expect(service.constructor.name).toBe("SelfHostedOnboardingService");
+      expect(service.constructor.name).toBe("SelfHostedOrganizationOnboardingService");
     });
 
     it("should return BillingEnabledOrgOnboardingService when billing is enabled for regular user", async () => {
@@ -196,7 +196,7 @@ describe("OrganizationOnboardingFactory", () => {
         if (expected === "BillingEnabled") {
           expect(service.constructor.name).toBe("BillingEnabledOrgOnboardingService");
         } else {
-          expect(service.constructor.name).toBe("SelfHostedOnboardingService");
+          expect(service.constructor.name).toBe("SelfHostedOrganizationOnboardingService");
         }
       });
     });
