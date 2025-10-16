@@ -243,8 +243,8 @@ describe("handleNewBooking - Spam Detection", () => {
       "should block booking when domain is in global watchlist and return decoy response",
       async () => {
         const handleNewBooking = getNewBookingHandler();
-        const blockedDomain = "@globalspammydomain.com";
-        const blockedEmail = `user${blockedDomain}`;
+        const blockedDomain = "globalspammydomain.com";
+        const blockedEmail = `user@${blockedDomain}`;
 
         const booker = getBooker({
           email: blockedEmail,
@@ -496,8 +496,8 @@ describe("handleNewBooking - Spam Detection", () => {
       "should block booking when domain is in organization watchlist and return decoy response",
       async () => {
         const handleNewBooking = getNewBookingHandler();
-        const blockedDomain = "@spammydomain.com";
-        const blockedEmail = `user${blockedDomain}`;
+        const blockedDomain = "spammydomain.com";
+        const blockedEmail = `user@${blockedDomain}`;
 
         // Create organization with a team
         const org = await createOrganization({

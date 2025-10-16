@@ -21,4 +21,3 @@ export default function Availability(props: { calUsername: string; calEmail: str
     </main>
   );
 }
-
