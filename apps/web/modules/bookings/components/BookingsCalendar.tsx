@@ -10,9 +10,6 @@ import type { RowData, BookingListingStatus } from "../types";
 type BookingsCalendarViewProps = {
   status: BookingListingStatus;
   table: ReactTable<RowData>;
-  permissions: {
-    canReadOthersBookings: boolean;
-  };
 };
 
 export function BookingsCalendar({ table }: BookingsCalendarViewProps) {

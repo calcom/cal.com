@@ -98,6 +98,45 @@ function BookingsContent({ status, permissions }: BookingsProps) {
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
 
+  // Generate dynamic tabs that preserve query parameters
+  const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
+    const queryString = searchParams?.toString() || "";
+
+    const baseTabConfigs = [
+      {
+        name: "upcoming",
+        path: "/bookings/upcoming",
+        "data-testid": "upcoming",
+      },
+      {
+        name: "unconfirmed",
+        path: "/bookings/unconfirmed",
+        "data-testid": "unconfirmed",
+      },
+      {
+        name: "recurring",
+        path: "/bookings/recurring",
+        "data-testid": "recurring",
+      },
+      {
+        name: "past",
+        path: "/bookings/past",
+        "data-testid": "past",
+      },
+      {
+        name: "cancelled",
+        path: "/bookings/cancelled",
+        "data-testid": "cancelled",
+      },
+    ];
+
+    return baseTabConfigs.map((tabConfig) => ({
+      name: tabConfig.name,
+      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
+      "data-testid": tabConfig["data-testid"],
+    }));
+  }, [searchParams]);
+
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -350,44 +389,8 @@ function BookingsContent({ status, permissions }: BookingsProps) {
     getFacetedUniqueValues,
   });
 
-  // Generate dynamic tabs that preserve query parameters
-  const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
-    const queryString = searchParams?.toString() || "";
-
-    const baseTabConfigs = [
-      {
-        name: "upcoming",
-        path: "/bookings/upcoming",
-        "data-testid": "upcoming",
-      },
-      {
-        name: "unconfirmed",
-        path: "/bookings/unconfirmed",
-        "data-testid": "unconfirmed",
-      },
-      {
-        name: "recurring",
-        path: "/bookings/recurring",
-        "data-testid": "recurring",
-      },
-      {
-        name: "past",
-        path: "/bookings/past",
-        "data-testid": "past",
-      },
-      {
-        name: "cancelled",
-        path: "/bookings/cancelled",
-        "data-testid": "cancelled",
-      },
-    ];
-
-    return baseTabConfigs.map((tabConfig) => ({
-      name: tabConfig.name,
-      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
-      "data-testid": tabConfig["data-testid"],
-    }));
-  }, [searchParams]);
+  const isPending = query.isPending;
+  const totalRowCount = query.data?.totalCount;
 
   return (
     <div className="flex flex-col">
@@ -410,9 +413,14 @@ function BookingsContent({ status, permissions }: BookingsProps) {
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
               {view === "list" ? (
-                <BookingsList status={status} permissions={permissions} query={query} table={table} />
+                <BookingsList
+                  status={status}
+                  table={table}
+                  isPending={isPending}
+                  totalRowCount={totalRowCount}
+                />
               ) : (
-                <BookingsCalendar status={status} table={table} permissions={permissions} />
+                <BookingsCalendar status={status} table={table} />
               )}
             </>
           )}

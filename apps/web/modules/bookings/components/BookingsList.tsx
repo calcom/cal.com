@@ -20,14 +20,12 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
 
 type BookingsListViewProps = {
   status: BookingListingStatus;
-  permissions: {
-    canReadOthersBookings: boolean;
-  };
-  query: ReturnType<typeof import("@calcom/trpc/react").trpc.viewer.bookings.get.useQuery>;
   table: ReactTable<RowData>;
+  isPending: boolean;
+  totalRowCount?: number;
 };
 
-export function BookingsList({ status, permissions: _permissions, query, table }: BookingsListViewProps) {
+export function BookingsList({ status, table, isPending, totalRowCount }: BookingsListViewProps) {
   const { t } = useLocale();
 
   return (
@@ -37,8 +35,8 @@ export function BookingsList({ status, permissions: _permissions, query, table }
       testId={`${status}-bookings`}
       bodyTestId="bookings"
       headerClassName="hidden"
-      isPending={query.isPending}
-      totalRowCount={query.data?.totalCount}
+      isPending={isPending}
+      totalRowCount={totalRowCount}
       variant="compact"
       paginationMode="standard"
       ToolbarLeft={
