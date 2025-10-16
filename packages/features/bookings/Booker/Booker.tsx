@@ -236,11 +236,8 @@ const BookerComponent = ({
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
 
-  const onSubmit = (timeSlot?: string) => {
-    console.log("onsubmit");
-
-    return renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
-  };
+  const onSubmit = (timeSlot?: string) =>
+    renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
 
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
@@ -259,11 +256,7 @@ const BookerComponent = ({
             setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
           }
         }}
-        onSubmit={() => {
-          alert("submit");
-          console.log("on submit");
-          return renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail();
-        }}
+        onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
         isTimeslotUnavailable={!isInstantMeeting && unavailableTimeSlots.includes(selectedTimeslot || "")}

@@ -356,7 +356,7 @@ function preprocess<T extends z.ZodType>({
           continue;
         }
 
-        // adding console.log so anyone in future adding will knew the preprocess is missing this field type
+        // adding console.log so anyone in future adding new field type will knew the preprocess is missing for the field
         console.log(`Can't parse unknown booking field type: ${bookingField.type}`);
 
         ctx.addIssue({

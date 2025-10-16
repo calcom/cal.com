@@ -71,7 +71,6 @@ export const useHandleBookEvent = ({
   const searchParams = useSearchParams();
 
   const handleBookEvent = (inputTimeSlot?: string) => {
-    console.log('handleBookEvent called with inputTimeSlot:', inputTimeSlot);
     const values = bookingForm.getValues();
     const timeslot = inputTimeSlot ?? storeTimeSlot;
     const callbacks = inputTimeSlot && !isPlatform ? { onError: handleError } : undefined;

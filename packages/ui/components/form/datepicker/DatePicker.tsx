@@ -16,7 +16,6 @@ type Props = {
 
 const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props) => {
   function handleDayClick(newDate: Date) {
-    console.log(newDate,'date')
     onDatesChange?.(newDate ?? new Date());
   }
   const fromDate = minDate ?? new Date();
