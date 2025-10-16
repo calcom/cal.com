@@ -533,7 +533,7 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             ) : null}
-                            {rowIsOwnerSelf && ownersCount > 1 && (
+                            {rowIsOwnerSelf && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -641,7 +641,7 @@ function MemberListContent(props: Props) {
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
-                              {rowIsOwnerSelf && ownersCount > 1 && (
+                              {rowIsOwnerSelf && (
                                 <DropdownMenuItem>
                                   <DropdownItem
                                     type="button"
@@ -690,7 +690,6 @@ function MemberListContent(props: Props) {
   }, [props.isOrgAdminOrOwner, dispatch, totalRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
-  const ownersCount = flatData.filter((m) => m.role === "OWNER" && m.accepted).length;
 
   const table = useReactTable({
     data: flatData,

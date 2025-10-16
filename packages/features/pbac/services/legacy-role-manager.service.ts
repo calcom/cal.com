@@ -44,8 +44,8 @@ export class LegacyRoleManager implements IRoleManager {
       );
     }
 
-    // Cannot change the role of the only owner
-    if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner) {
+    // Cannot change the role of the only owner (unless it's self-changing)
+    if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner && memberId !== userId) {
       throw new RoleManagementError(
         "You can not change the role of the only owner of a team.",
         RoleManagementErrorCode.UNAUTHORIZED
@@ -112,7 +112,7 @@ export class LegacyRoleManager implements IRoleManager {
     organizationId: number,
     role: MembershipRole | string,
     // Used in other implementation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     _membershipId: number
   ): Promise<void> {
     await prisma.membership.update({
@@ -129,7 +129,7 @@ export class LegacyRoleManager implements IRoleManager {
   }
 
   // Used in other implementation
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async getAllRoles(_organizationId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
@@ -139,7 +139,7 @@ export class LegacyRoleManager implements IRoleManager {
   }
 
   // Used in other implementation
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async getTeamRoles(_teamId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
