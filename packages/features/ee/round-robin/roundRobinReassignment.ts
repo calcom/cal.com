@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
 import {
@@ -26,6 +25,8 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
+import type { TeamBrandingContext } from "@calcom/lib/branding/types";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -36,8 +37,6 @@ import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
-import type { TeamBrandingContext } from "@calcom/lib/branding/types";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import { handleWorkflowsUpdate } from "./roundRobinManualReassignment";
@@ -344,38 +343,21 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
-  try {
-    const teamForBranding = eventType.teamId
-      ? await prisma.team.findUnique({
-          where: { id: eventType.teamId },
-          select: {
-            id: true,
-            hideBranding: true,
-            parentId: true,
-            parent: { select: { hideBranding: true } },
-          },
-        })
-      : null;
-    const organizationIdForBranding = teamForBranding?.parentId
-      ? teamForBranding.parentId
-      : (
-          await prisma.profile.findFirst({
-            where: { userId: organizer.id },
-            select: { organizationId: true },
-          })
-        )?.organizationId ?? null;
-    const brandingService = new BrandingApplicationService(prisma);
-    const hideBranding = await brandingService.computeHideBranding({
-      eventTypeId: eventType.id,
-      teamContext: (teamForBranding as TeamBrandingContext) ?? null,
-      owner: { id: organizer.id, hideBranding: null },
-      organizationId: organizationIdForBranding,
-    });
-    (evt as any).hideBranding = hideBranding;
-  } catch {
-    (evt as any).hideBranding = false;
-  }
+  const brandingService = new BrandingApplicationService(prisma);
+  const hideBranding = await brandingService.computeHideBranding({
+    eventTypeId: eventType.id,
+    teamContext: (teamForBranding as TeamBrandingContext) ?? null,
+    owner: { id: organizer.id, hideBranding: null },
+    organizationId: organizationIdForBranding,
+  });
+  (evt as any).hideBranding = hideBranding;
 
+  if (hasOrganizerChanged) {
+    // location might changed and will be new created in eventManager.create (organizer default location)
+    evt.videoCallData = undefined;
+    // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+    evt.iCalUID = undefined;
+  }
   const credentials = await prisma.credential.findMany({
     where: {
       userId: organizer.id,

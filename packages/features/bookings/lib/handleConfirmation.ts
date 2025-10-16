@@ -3,6 +3,7 @@ import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/sc
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -13,10 +14,9 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
@@ -109,7 +109,7 @@ export async function handleConfirmation(args: {
   const eventTypeId = eventType?.id ?? booking.eventTypeId ?? null;
 
   let hideBranding = false;
-  
+
   if (eventTypeId) {
     const brandingService = new BrandingApplicationService(prisma);
     hideBranding = await brandingService.computeHideBranding({

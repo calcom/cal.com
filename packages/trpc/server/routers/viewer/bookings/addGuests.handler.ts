@@ -1,10 +1,12 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
-import type { TeamBrandingContext } from "@calcom/lib/branding/types";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
+import type { TeamBrandingContext } from "@calcom/lib/branding/types";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
@@ -81,11 +83,36 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
     : [];
 
-  const uniqueGuests = guests.filter(
-    (guest) =>
-      !booking.attendees.some((attendee) => guest === attendee.email) &&
-      !blacklistedGuestEmails.includes(guest)
-  );
+  const seenBaseEmails = new Set<string>();
+  const deduplicatedGuests = guests.filter((guest) => {
+    const baseEmail = extractBaseEmail(guest).toLowerCase();
+    if (seenBaseEmails.has(baseEmail)) {
+      return false;
+    }
+    seenBaseEmails.add(baseEmail);
+    return true;
+  });
+
+  const guestEmails = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
+  const userRepo = new UserRepository(prisma);
+  const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
+
+  const emailToRequiresVerification = new Map<string, boolean>();
+  for (const user of guestUsers) {
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
+  }
+
+  const uniqueGuests = deduplicatedGuests.filter((guest) => {
+    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    return (
+      !booking.attendees.some(
+        (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
+      ) &&
+      !blacklistedGuestEmails.includes(baseGuestEmail) &&
+      !emailToRequiresVerification.get(baseGuestEmail)
+    );
+  });
 
   if (uniqueGuests.length === 0)
     throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
@@ -184,46 +211,19 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   await eventManager.updateCalendarAttendees(evt, booking);
 
   try {
-    const teamForBranding = booking.eventType?.teamId
-      ? await prisma.team.findUnique({
-          where: { id: booking.eventType.teamId },
-          select: {
-            id: true,
-            hideBranding: true,
-            parentId: true,
-            parent: { select: { hideBranding: true } },
-          },
-        })
-      : null;
-    const organizationIdForBranding = teamForBranding?.parentId
-      ? teamForBranding.parentId
-      : (
-          await prisma.profile.findFirst({
-            where: { userId: booking.userId || undefined },
-            select: { organizationId: true },
-          })
-        )?.organizationId ?? null;
-    const userForBranding = !booking.eventType?.teamId
-      ? await prisma.user.findUnique({
-          where: { id: booking.userId || 0 },
-          select: { id: true, hideBranding: true },
-        })
-      : null;
     const eventTypeId = booking.eventTypeId;
     let hideBranding = false;
     if (eventTypeId) {
       const brandingService = new BrandingApplicationService(prisma);
       hideBranding = await brandingService.computeHideBranding({
         eventTypeId,
-        teamContext: (teamForBranding as TeamBrandingContext) ?? null,
-        owner: userForBranding,
-        organizationId: organizationIdForBranding,
+        ownerIdFallback: booking.userId ?? null,
       });
     }
 
-    await sendAddGuestsEmails({ ...evt, hideBranding }, guests);
+    await sendAddGuestsEmails({ ...evt, hideBranding }, uniqueGuests);
   } catch (err) {
-    console.log("Error sending AddGuestsEmails");
+    console.error("Error sending AddGuestsEmails", err);
   }
 
   return { message: "Guests added" };

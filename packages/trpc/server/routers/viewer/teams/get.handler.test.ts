@@ -1,12 +1,12 @@
 import { describe, it, beforeEach, vi, expect } from "vitest";
 
 import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 
 import type { TrpcSessionUser } from "../../../types";
 import getTeam from "./get.handler";
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
     findUniqueByUserIdAndTeamId: vi.fn(),
   },
