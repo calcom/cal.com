@@ -86,7 +86,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // Checking the role of the user within the organization
-    else if (Boolean(orgId) && !teamId) {
+    else if (Boolean(orgId) && !Boolean(teamId)) {
       const membership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the organization (${orgId}), denying access.`);
@@ -105,7 +105,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // Checking the role of the user within the team
-    else if (Boolean(teamId) && !orgId) {
+    else if (Boolean(teamId) && !Boolean(orgId)) {
       const membership = await this.membershipRepository.findMembershipByTeamId(Number(teamId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the team (${teamId}), denying access.`);
