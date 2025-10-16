@@ -19,7 +19,7 @@ interface TeamGroupMapping {
 
 const GroupTeamMappingTable = () => {
   return (
-    <DataTableProvider tableIdentifier="dsync-group-team-mapping">
+    <DataTableProvider tableIdentifier="group-team-mapping-table">
       <GroupTeamMappingTableContent />
     </DataTableProvider>
   );

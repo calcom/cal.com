@@ -76,7 +76,7 @@ export default function OutOfOfficeEntriesList() {
           <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
         </div>
       }>
-      <DataTableProvider tableIdentifier="out-of-office-entries" useSegments={useSegments}>
+      <DataTableProvider tableIdentifier="out-of-office-entries-list" useSegments={useSegments}>
         <OutOfOfficeEntriesListContent />
       </DataTableProvider>
     </SettingsHeader>

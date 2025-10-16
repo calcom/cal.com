@@ -45,7 +45,7 @@ const PrivacyView = ({
               <p className="text-muted text-sm">{t("manage_blocked_emails_and_domains")}</p>
             </div>
             <div className="mt-2">
-              <DataTableProvider tableIdentifier="org-privacy-blocklist" useSegments={useSegments} defaultPageSize={25}>
+              <DataTableProvider tableIdentifier="organization-privacy-blocklist" useSegments={useSegments} defaultPageSize={25}>
                 <BlocklistTable permissions={watchlistPermissions} />
               </DataTableProvider>
             </div>

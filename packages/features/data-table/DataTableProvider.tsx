@@ -100,6 +100,9 @@ export function DataTableProvider({
   preferredSegmentId,
   systemSegments,
 }: DataTableProviderProps) {
+  if (!tableIdentifier || tableIdentifier.trim() === "") {
+    throw new Error("tableIdentifier is required and cannot be empty");
+  }
 
   const filterToOpen = useRef<string | undefined>(undefined);
   const [pageIndex, setPageIndex] = useQueryState("page", pageIndexParser);

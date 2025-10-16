@@ -167,7 +167,7 @@ interface Props {
 
 export default function MemberList(props: Props) {
   return (
-    <DataTableProvider tableIdentifier="team-members">
+    <DataTableProvider tableIdentifier="team-member-list">
       <MemberListContent {...props} />
     </DataTableProvider>
   );
