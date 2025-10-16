@@ -198,7 +198,6 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           if (typeof window === "undefined") return;
 
           try {
-            // @ts-expect-error - StorageValue is essentially a string, but TS requires explicit conversion
             const valueStr = value as unknown as string;
             const parsed = JSON.parse(valueStr);
             const onboardingId = parsed.state?.onboardingId;
@@ -213,7 +212,6 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
             }
           } catch (e) {
             // If parsing fails, just use the default key
-            // @ts-expect-error - StorageValue is essentially a string, but TS requires explicit conversion
             window.localStorage.setItem(name, value as unknown as string);
           }
         },
