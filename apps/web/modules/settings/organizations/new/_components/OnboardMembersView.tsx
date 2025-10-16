@@ -209,6 +209,7 @@ export const AddNewTeamMembersForm = () => {
 
       <div className="mt-3 flex items-center justify-end">
         <Button
+          data-testid="publish-button"
           onClick={() => {
             // Submit ALL data to intentToCreateOrg
             if (!name || !slug || !orgOwnerEmail) {
