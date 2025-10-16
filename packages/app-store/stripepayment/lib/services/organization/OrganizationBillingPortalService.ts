@@ -1,8 +1,8 @@
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { getValidatedTeamSubscriptionId } from "../../getValidatedTeamSubscriptionId";
-import { getValidatedTeamSubscriptionIdForPlatform } from "../../getValidatedTeamSubscriptionIdForPlatform";
+// import { getValidatedTeamSubscriptionId } from "../../getValidatedTeamSubscriptionId";
+// import { getValidatedTeamSubscriptionIdForPlatform } from "../../getValidatedTeamSubscriptionIdForPlatform";
 import { getSubscriptionFromId } from "../../subscriptions";
 import { BillingPortalService } from "../base/BillingPortalService";
 
@@ -33,12 +33,14 @@ export class OrganizationBillingPortalService extends BillingPortalService {
     let teamSubscriptionId = "";
 
     if (team.isPlatform) {
-      const subscriptionId = getValidatedTeamSubscriptionIdForPlatform(team.platformBilling?.subscriptionId);
+      const subscriptionId = this.getValidatedTeamSubscriptionIdForPlatform(
+        team.platformBilling?.subscriptionId
+      );
 
       if (!subscriptionId) return null;
       teamSubscriptionId = subscriptionId;
     } else {
-      const subscriptionId = getValidatedTeamSubscriptionId(team.metadata);
+      const subscriptionId = this.getValidatedTeamSubscriptionId(team.metadata);
 
       if (!subscriptionId) return null;
       teamSubscriptionId = subscriptionId;
