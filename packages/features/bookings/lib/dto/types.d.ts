@@ -7,6 +7,7 @@ import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBo
 import type { SchedulingType } from "@calcom/prisma/enums";
 
 import type { ExtendedBookingCreateBody } from "../bookingCreateBodySchema";
+import type { BookingFlowConfig } from "../dto/types";
 import type { RegularBookingService } from "../service/RegularBookingService";
 
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
@@ -53,4 +54,9 @@ export type InstantBookingCreateResult = {
   bookingUid: string;
   expires: Date;
   userId: number | null;
+}
+
+// More properties to be added to this config in followup PRs
+export type BookingFlowConfig = {
+  isDryRun: boolean;
 };
