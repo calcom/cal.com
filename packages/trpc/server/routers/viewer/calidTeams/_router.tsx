@@ -1,8 +1,9 @@
 import authedProcedure from "../../../procedures/authedProcedure";
-import { ZAllTeamsListMembersInput } from "./allTeamsListMembers.schema";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZAddMembersToEventType } from "./addMemberstoEventType.schema";
+import { ZAllTeamsListMembersInput } from "./allTeamsListMembers.schema";
+import { ZCalidListTeamAvailaiblityScheme } from "./calidListTeamAvailability.schema";
 import { ZChangeCalidMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCreateCalidTeamSchema } from "./create.schema";
 import { ZDeleteCalidTeamSchema } from "./delete.schema";
@@ -101,7 +102,6 @@ export const calIdTeamsRouter = router({
     return listMembersHandler({ ctx, input });
   }),
 
-
   // Check if user has pending invitations
   listPendingInvitations: authedProcedure.query(async ({ ctx }) => {
     const { listPendingInvitationsHandler } = await import("./listPendingInvitations.handler");
@@ -118,5 +118,14 @@ export const calIdTeamsRouter = router({
   resendInvitation: authedProcedure.input(ZResendCalidInvitationSchema).mutation(async ({ ctx, input }) => {
     const { resendCalidInvitationHandler } = await import("./resendInvitation.handler");
     return resendCalidInvitationHandler({ ctx, input });
+  }),
+
+  calidListTeam: authedProcedure.input(ZCalidListTeamAvailaiblityScheme).query(async ({ ctx, input }) => {
+    const { listTeamAvailabilityHandler } = await import("./calidListTeamAvailability.handler");
+
+    return listTeamAvailabilityHandler({
+      ctx,
+      input,
+    });
   }),
 });
