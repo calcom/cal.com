@@ -209,6 +209,7 @@ function MemberListContent(props: Props) {
 
   const columnFilters = useColumnFilters();
   const [rowSelection, setRowSelection] = useState({});
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const removeMemberFromCache = ({
     utils,
@@ -494,7 +495,8 @@ function MemberListContent(props: Props) {
                     <Tooltip content={t("view_public_page")}>
                       <Button
                         target="_blank"
-                        href={`${user.bookerUrl}/${user.username}`}
+                        href={user.username ? `/${user.username}` : undefined}
+                        disabled={!user.username}
                         color="secondary"
                         className={classNames(!editMode ? "rounded-r-md" : "")}
                         variant="icon"
@@ -531,16 +533,12 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             ) : null}
-                            {rowIsOwnerSelf && (
+                            {rowIsOwnerSelf && ownersCount > 1 && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
-                                  onClick={() =>
-                                    acceptOrLeaveMutation.mutate({
-                                      teamId: props.team?.id,
-                                      accept: false,
-                                    })
-                                  }
+                                  onClick={() => setShowLeaveConfirm(true)}
+                                  disabled={acceptOrLeaveMutation.isPending}
                                   color="destructive"
                                   StartIcon="log-out">
                                   {t("leave_team")}
@@ -617,7 +615,8 @@ function MemberListContent(props: Props) {
                         <DropdownMenuContent>
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
-                              href={`/${user.username}`}
+                              href={user.username ? `/${user.username}` : undefined}
+                              disabled={!user.username}
                               target="_blank"
                               type="button"
                               StartIcon="external-link">
@@ -642,39 +641,37 @@ function MemberListContent(props: Props) {
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
-                              {rowIsOwnerSelf && (
+                              {rowIsOwnerSelf && ownersCount > 1 && (
                                 <DropdownMenuItem>
                                   <DropdownItem
                                     type="button"
                                     color="destructive"
-                                    onClick={() =>
-                                      acceptOrLeaveMutation.mutate({
-                                        teamId: props.team?.id,
-                                        accept: false,
-                                      })
-                                    }
+                                    onClick={() => setShowLeaveConfirm(true)}
+                                    disabled={acceptOrLeaveMutation.isPending}
                                     StartIcon="log-out">
                                     {t("leave_team")}
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  color="destructive"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "SET_DELETE_ID",
-                                      payload: {
-                                        user,
-                                        showModal: true,
-                                      },
-                                    })
-                                  }
-                                  StartIcon="user-x">
-                                  {t("remove")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
+                              {!rowIsOwnerSelf && canRemove && (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    color="destructive"
+                                    onClick={() =>
+                                      dispatch({
+                                        type: "SET_DELETE_ID",
+                                        payload: {
+                                          user,
+                                          showModal: true,
+                                        },
+                                      })
+                                    }
+                                    StartIcon="user-x">
+                                    {t("remove")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              )}
                             </>
                           )}
                         </DropdownMenuContent>
@@ -693,6 +690,7 @@ function MemberListContent(props: Props) {
   }, [props.isOrgAdminOrOwner, dispatch, totalRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
+  const ownersCount = flatData.filter((m) => m.role === "OWNER" && m.accepted).length;
 
   const table = useReactTable({
     data: flatData,
@@ -876,6 +874,31 @@ function MemberListContent(props: Props) {
           currentMember={props.team.membership.role}
           teamId={props.team.id}
         />
+      )}
+      {showLeaveConfirm && (
+        <Dialog
+          open={showLeaveConfirm}
+          onOpenChange={setShowLeaveConfirm}
+          title={t("leave_team")}
+          description={t("are_you_sure_you_want_to_leave_this_team")}>
+          <DialogFooter>
+            <Button color="secondary" onClick={() => setShowLeaveConfirm(false)}>
+              {t("cancel")}
+            </Button>
+            <Button
+              color="destructive"
+              onClick={() => {
+                acceptOrLeaveMutation.mutate({
+                  teamId: props.team?.id,
+                  accept: false,
+                });
+                setShowLeaveConfirm(false);
+              }}
+              disabled={acceptOrLeaveMutation.isPending}>
+              {t("leave_team")}
+            </Button>
+          </DialogFooter>
+        </Dialog>
       )}
     </>
   );
