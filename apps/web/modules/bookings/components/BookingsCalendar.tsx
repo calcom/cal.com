@@ -1,29 +1,41 @@
 "use client";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { Table as ReactTable } from "@tanstack/react-table";
+
+import { DataTableFilters, DataTableSegment } from "@calcom/features/data-table";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
+
+import type { RowData } from "../views/bookings-view";
 
 type BookingListingStatus = (typeof validStatuses)[number];
 
 type BookingsCalendarViewProps = {
   status: BookingListingStatus;
+  table: ReactTable<RowData>;
   permissions: {
     canReadOthersBookings: boolean;
   };
 };
 
-export function BookingsCalendar(_props: BookingsCalendarViewProps) {
-  const { t } = useLocale();
-
+export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
   return (
-    <div className="flex items-center justify-center pt-2 xl:pt-0">
-      <EmptyScreen
-        Icon="calendar"
-        headline={t("calendar_view_coming_soon")}
-        description={t("calendar_view_coming_soon_description")}
-      />
-    </div>
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <DataTableFilters.FilterBar table={table} />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <DataTableFilters.ClearFiltersButton />
+          <DataTableSegment.SaveButton />
+          <DataTableSegment.Select />
+        </div>
+      </div>
+      <div className="flex items-center justify-center pt-2 xl:pt-0">
+        <EmptyScreen Icon="calendar" headline="Calendar view" description="Calendar view is coming soon." />
+      </div>
+    </>
   );
 }

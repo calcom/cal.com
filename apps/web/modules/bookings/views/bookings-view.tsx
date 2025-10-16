@@ -3,7 +3,7 @@
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams, usePathname } from "next/navigation";
 import { createParser, useQueryState } from "nuqs";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -21,9 +21,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Alert } from "@calcom/ui/components/alert";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import BookingListItem from "@components/booking/BookingListItem";
 
@@ -114,7 +116,6 @@ function BookingsContent({ status, permissions }: BookingsProps) {
   const [view] = useQueryState("view", viewParser.withDefault("list"));
   const { t } = useLocale();
   const user = useMeQuery().data;
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -277,6 +278,8 @@ function BookingsContent({ status, permissions }: BookingsProps) {
     ];
   }, [user, status, t, permissions.canReadOthersBookings]);
 
+  const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
+
   const flatData = useMemo<RowData[]>(() => {
     const shownBookings: Record<string, BookingOutput[]> = {};
     const filterBookings = (booking: BookingOutput) => {
@@ -418,17 +421,20 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
-          {view === "list" ? (
-            <BookingsList
-              status={status}
-              permissions={permissions}
-              query={query}
-              table={table}
-              tableContainerRef={tableContainerRef}
-              bookingsToday={bookingsToday}
-            />
-          ) : (
-            <BookingsCalendar status={status} permissions={permissions} />
+          {query.status === "error" && (
+            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+          )}
+          {query.status !== "error" && (
+            <>
+              {!!bookingsToday.length && status === "upcoming" && (
+                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+              )}
+              {view === "list" ? (
+                <BookingsList status={status} permissions={permissions} query={query} table={table} />
+              ) : (
+                <BookingsCalendar status={status} table={table} permissions={permissions} />
+              )}
+            </>
           )}
         </div>
       </main>
