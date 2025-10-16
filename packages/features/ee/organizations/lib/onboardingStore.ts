@@ -5,7 +5,6 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { WEBAPP_URL, IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
-import { localStorage } from "@calcom/lib/webstorage";
 import { BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
@@ -102,9 +101,9 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           const currentState = get();
           // Save to the new key
           const newKey = getStorageKey(onboardingId);
-          localStorage.setItem(newKey, JSON.stringify({ state: currentState, version: 0 }));
+          window.localStorage.setItem(newKey, JSON.stringify({ state: currentState, version: 0 }));
           // Remove the old key
-          localStorage.removeItem("org-creation-onboarding");
+          window.localStorage.removeItem("org-creation-onboarding");
         }
         set({ onboardingId });
       },
@@ -130,9 +129,9 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           if (typeof window !== "undefined" && currentId !== newId) {
             // Remove old key if it exists
             if (currentId) {
-              localStorage.removeItem(getStorageKey(currentId));
+              window.localStorage.removeItem(getStorageKey(currentId));
             } else {
-              localStorage.removeItem("org-creation-onboarding");
+              window.localStorage.removeItem("org-creation-onboarding");
             }
 
             // Set new state which will be persisted with new key
@@ -141,7 +140,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
             // Immediately save to new key
             if (newId) {
               const newKey = getStorageKey(newId);
-              localStorage.setItem(newKey, JSON.stringify({ state, version: 0 }));
+              window.localStorage.setItem(newKey, JSON.stringify({ state, version: 0 }));
             }
           } else {
             set(state);
@@ -151,9 +150,9 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           if (typeof window !== "undefined") {
             const currentId = get().onboardingId;
             if (currentId) {
-              localStorage.removeItem(getStorageKey(currentId));
+              window.localStorage.removeItem(getStorageKey(currentId));
             } else {
-              localStorage.removeItem("org-creation-onboarding");
+              window.localStorage.removeItem("org-creation-onboarding");
             }
           }
           set(initialState);
@@ -172,10 +171,12 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
 
           // Try to find the most recent onboarding state
           // First check if there's a state with onboardingId
-          const keys = Object.keys(localStorage).filter((key) => key.startsWith("org-creation-onboarding"));
+          const keys = Object.keys(window.localStorage).filter((key) =>
+            key.startsWith("org-creation-onboarding")
+          );
 
           for (const key of keys) {
-            const item = localStorage.getItem(key);
+            const item = window.localStorage.getItem(key);
             if (item) {
               try {
                 const parsed = JSON.parse(item);
@@ -190,7 +191,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           }
 
           // Fall back to default key
-          return localStorage.getItem(name);
+          return window.localStorage.getItem(name);
         },
         setItem: (name, value) => {
           if (typeof window === "undefined") return;
@@ -201,23 +202,25 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
             const key = getStorageKey(onboardingId);
 
             // Save with the appropriate key
-            localStorage.setItem(key, value);
+            window.localStorage.setItem(key, value);
 
             // If this is a different key than the default, remove the default
             if (key !== name) {
-              localStorage.removeItem(name);
+              window.localStorage.removeItem(name);
             }
           } catch (e) {
             // If parsing fails, just use the default key
-            localStorage.setItem(name, value);
+            window.localStorage.setItem(name, value);
           }
         },
         removeItem: () => {
           if (typeof window === "undefined") return;
 
           // Remove all org-creation-onboarding keys
-          const keys = Object.keys(localStorage).filter((key) => key.startsWith("org-creation-onboarding"));
-          keys.forEach((key) => localStorage.removeItem(key));
+          const keys = Object.keys(window.localStorage).filter((key) =>
+            key.startsWith("org-creation-onboarding")
+          );
+          keys.forEach((key) => window.localStorage.removeItem(key));
         },
       },
     }
