@@ -37,7 +37,7 @@ function VoiceSelectionTable({
   onVoiceSelect: (voiceId: string) => void;
 }) {
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={1000}>
+    <DataTableProvider tableIdentifier="voice-selection" useSegments={useSegments} defaultPageSize={1000}>
       <VoiceSelectionContent selectedVoiceId={selectedVoiceId} onVoiceSelect={onVoiceSelect} />
     </DataTableProvider>
   );

@@ -95,9 +95,9 @@ export default function Bookings(props: BookingsProps) {
   const systemSegments = useSystemSegments(props.userId);
   return (
     <DataTableProvider
+      tableIdentifier={pathname ?? "bookings"}
       useSegments={useSegments}
-      systemSegments={systemSegments}
-      tableIdentifier={pathname || undefined}>
+      systemSegments={systemSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );

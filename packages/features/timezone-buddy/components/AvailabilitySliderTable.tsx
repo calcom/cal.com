@@ -69,7 +69,7 @@ function UpgradeTeamTip() {
 
 export function AvailabilitySliderTable(props: { isOrg: boolean }) {
   return (
-    <DataTableProvider>
+    <DataTableProvider tableIdentifier="timezone-buddy">
       <AvailabilitySliderTableContent {...props} />
     </DataTableProvider>
   );

@@ -63,7 +63,7 @@ function reducer(state: CallDetailsState, action: CallDetailsAction): CallDetail
 
 function CallHistoryTable(props: CallHistoryProps) {
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier="insights-call-history" useSegments={useSegments} defaultPageSize={25}>
       <CallHistoryContent {...props} />
     </DataTableProvider>
   );

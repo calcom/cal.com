@@ -40,7 +40,7 @@ import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider useSegments={useSegments} timeZone={timeZone}>
+    <DataTableProvider tableIdentifier="insights" useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>

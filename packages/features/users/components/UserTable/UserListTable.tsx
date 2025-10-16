@@ -127,7 +127,7 @@ export type UserListTableProps = {
 
 export function UserListTable(props: UserListTableProps) {
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier="user-list" useSegments={useSegments} defaultPageSize={25}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
