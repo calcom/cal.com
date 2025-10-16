@@ -1265,7 +1265,7 @@ export class AvailableSlotsService {
       }
       const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
         if (!c.isSeat) {
-          if (eventType.schedulingType === "ROUND_ROBIN") {
+          if (eventType?.schedulingType === "ROUND_ROBIN") {
             // For Round-Robin, count all reservations for this slot (including generic userId: -1)
             const reservationsForSlot = reservedSlots.filter(
               slot => slot.slotUtcStartDate.getTime() === c.slotUtcStartDate.getTime() &&
@@ -1278,7 +1278,7 @@ export class AvailableSlotsService {
             if (reservationsForSlot.length >= usersWithCredentials.length) {
               r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
             }
-          } else if (eventType.schedulingType === "COLLECTIVE") {
+          } else if (eventType?.schedulingType === "COLLECTIVE") {
             // For Collective, any reservation blocks the slot (all hosts must be available)
             r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
           } else {
@@ -1359,7 +1359,7 @@ export class AvailableSlotsService {
           
           // Calculate available hosts for this time slot
           let availableHosts = usersWithCredentials.length;
-          if (eventType.schedulingType === "ROUND_ROBIN") {
+          if (eventType?.schedulingType === "ROUND_ROBIN") {
             const reservationsForSlot = reservedSlots.filter(
               slot => slot.slotUtcStartDate.getTime() === time.toDate().getTime() && 
                      !slot.isSeat &&
@@ -1368,7 +1368,7 @@ export class AvailableSlotsService {
             availableHosts = Math.max(0, usersWithCredentials.length - reservationsForSlot.length);
             
 
-          } else if (eventType.schedulingType === "COLLECTIVE") {
+          } else if (eventType?.schedulingType === "COLLECTIVE") {
             // For Collective, if any reservation exists, no hosts are available
             const hasReservation = reservedSlots.some(
               slot => slot.slotUtcStartDate.getTime() === time.toDate().getTime() && !slot.isSeat
