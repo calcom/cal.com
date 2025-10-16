@@ -13061,11 +13061,12 @@
             "name": "take",
             "required": false,
             "in": "query",
-            "description": "The number of items to return",
-            "example": 10,
+            "description": "Maximum number of items to return",
+            "example": 25,
             "schema": {
               "minimum": 1,
-              "maximum": 1000,
+              "maximum": 250,
+              "default": 250,
               "type": "number"
             }
           },
@@ -13073,10 +13074,11 @@
             "name": "skip",
             "required": false,
             "in": "query",
-            "description": "The number of items to skip",
+            "description": "Number of items to skip",
             "example": 0,
             "schema": {
               "minimum": 0,
+              "default": 0,
               "type": "number"
             }
           },
@@ -15647,6 +15649,20 @@
           }
         }
       },
+      "BookerActiveBookingsLimit_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "maximumActiveBookings": {
+            "type": "number",
+            "description": "The maximum number of active bookings a booker can have for this event type.",
+            "example": 3
+          },
+          "offerReschedule": {
+            "type": "boolean",
+            "description": "Whether to offer rescheduling the last active booking to the chosen time slot when limit is reached."
+          }
+        }
+      },
       "Disabled_2024_06_14": {
         "type": "object",
         "properties": {
@@ -15984,6 +16000,19 @@
         },
         "required": ["type"]
       },
+      "EmailSettings_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disableEmailsToAttendees": {
+            "type": "boolean",
+            "description": "Disables all email communication to attendees for this event type, including booking confirmations, reminders, and cancellations. This DOES NOT include emails sent by custom email workflows."
+          },
+          "disableEmailsToHosts": {
+            "type": "boolean",
+            "description": "Disables all email communication to hosts for this event type, including booking confirmations, reminders, and cancellations. This DOES NOT include emails sent by custom email workflows."
+          }
+        }
+      },
       "CalVideoSettings": {
         "type": "object",
         "properties": {
@@ -16138,6 +16167,17 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
               },
               {
                 "$ref": "#/components/schemas/Disabled_2024_06_14"
@@ -17387,6 +17427,9 @@
           "bookingLimitsCount": {
             "type": "object"
           },
+          "bookerActiveBookingsLimit": {
+            "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
           },
@@ -17665,6 +17708,17 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/BaseBookingLimitsCount_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
               },
               {
                 "$ref": "#/components/schemas/Disabled_2024_06_14"
@@ -19242,6 +19296,17 @@
               }
             ]
           },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
@@ -19418,6 +19483,18 @@
                 }
               ]
             }
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type - only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         },
         "required": ["lengthInMinutes", "title", "slug", "schedulingType"]
@@ -19651,6 +19728,9 @@
           "bookingLimitsCount": {
             "type": "object"
           },
+          "bookerActiveBookingsLimit": {
+            "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
           },
@@ -19753,6 +19833,18 @@
           },
           "team": {
             "$ref": "#/components/schemas/EventTypeTeam"
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type. Only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         },
         "required": [
@@ -20041,6 +20133,17 @@
               }
             ]
           },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
@@ -20211,6 +20314,18 @@
                 }
               ]
             }
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type. Only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         }
       },
@@ -21311,10 +21426,10 @@
             "type": "string",
             "description": "Trigger type for the workflow",
             "example": "formSubmitted",
-            "enum": ["formSubmitted"]
+            "enum": ["formSubmitted", "formSubmittedNoEvent"]
           },
           "offset": {
-            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT)",
+            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT/FORM_SUBMITTED_NO_EVENT)",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetOutputDto"
@@ -21536,7 +21651,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21557,7 +21672,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21669,7 +21784,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21690,7 +21805,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -22327,12 +22442,33 @@
         },
         "required": ["type"]
       },
+      "OnFormSubmittedNoEventTriggerDto": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
+              }
+            ]
+          },
+          "type": {
+            "type": "string",
+            "default": "formSubmittedNoEvent",
+            "enum": ["formSubmittedNoEvent"],
+            "description": "Trigger type for the workflow",
+            "example": "formSubmittedNoEvent"
+          }
+        },
+        "required": ["offset", "type"]
+      },
       "RoutingFormWorkflowTriggerDto": {
         "type": "object",
         "properties": {
           "type": {
-            "type": "string",
-            "enum": ["formSubmitted"],
+            "type": "object",
+            "enum": ["formSubmitted", "formSubmittedNoEvent"],
             "description": "Trigger type for the routing-form workflow",
             "example": "formSubmitted"
           }
@@ -22375,15 +22511,13 @@
             ]
           },
           "trigger": {
-            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted",
+            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted,formSubmittedNoEvent",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
-              }
-            ],
-            "allOf": [
+              },
               {
-                "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
+                "$ref": "#/components/schemas/OnFormSubmittedNoEventTriggerDto"
               }
             ]
           },
@@ -22976,15 +23110,13 @@
             "example": "Rounting-form Test Workflow"
           },
           "trigger": {
-            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted",
+            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted,formSubmittedNoEvent",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
-              }
-            ],
-            "allOf": [
+              },
               {
-                "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
+                "$ref": "#/components/schemas/OnFormSubmittedNoEventTriggerDto"
               }
             ]
           },

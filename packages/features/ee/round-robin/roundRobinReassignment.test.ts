@@ -17,7 +17,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, vi, expect } from "vitest";
 
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 

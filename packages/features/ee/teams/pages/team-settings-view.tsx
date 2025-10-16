@@ -159,7 +159,6 @@ const PrivacySettingsView = ({ team }: ProfileViewProps) => {
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
   const isOrgAdminOrOwner = checkAdminOrOwner(session?.data?.user.org?.role);
   const isInviteOpen = !team?.membership.accepted;
-  const { t } = useLocale();
 
   return (
     <>
@@ -173,12 +172,14 @@ const PrivacySettingsView = ({ team }: ProfileViewProps) => {
         )}
 
         {team && team.id && (isAdmin || isOrgAdminOrOwner) && (
-          <MakeTeamPrivateSwitch
-            isOrg={false}
-            teamId={team.id}
-            isPrivate={team.isPrivate ?? false}
-            disabled={isInviteOpen}
-          />
+          <div className="mt-6">
+            <MakeTeamPrivateSwitch
+              isOrg={false}
+              teamId={team.id}
+              isPrivate={team.isPrivate ?? false}
+              disabled={isInviteOpen}
+            />
+          </div>
         )}
       </div>
     </>
