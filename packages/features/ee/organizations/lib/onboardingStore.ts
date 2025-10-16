@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, StorageValue } from "zustand/middleware";
 
 import { WEBAPP_URL, IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
 import { BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
@@ -166,7 +166,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
         return state;
       },
       storage: {
-        getItem: (name) => {
+        getItem: (name): StorageValue<OnboardingStoreState> | null => {
           if (typeof window === "undefined") return null;
 
           // Try to find the most recent onboarding state
@@ -182,7 +182,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
                 const parsed = JSON.parse(item);
                 if (parsed.state?.onboardingId) {
                   // Found a state with an onboardingId, use its key from now on
-                  return item;
+                  return item as StorageValue<OnboardingStoreState>;
                 }
               } catch (e) {
                 // Invalid JSON, skip
@@ -191,18 +191,20 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           }
 
           // Fall back to default key
-          return window.localStorage.getItem(name);
+          const fallbackItem = window.localStorage.getItem(name);
+          return fallbackItem as StorageValue<OnboardingStoreState> | null;
         },
         setItem: (name, value) => {
           if (typeof window === "undefined") return;
 
           try {
-            const parsed = JSON.parse(value);
+            const valueStr = value as string;
+            const parsed = JSON.parse(valueStr);
             const onboardingId = parsed.state?.onboardingId;
             const key = getStorageKey(onboardingId);
 
             // Save with the appropriate key
-            window.localStorage.setItem(key, value);
+            window.localStorage.setItem(key, valueStr);
 
             // If this is a different key than the default, remove the default
             if (key !== name) {
@@ -210,7 +212,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
             }
           } catch (e) {
             // If parsing fails, just use the default key
-            window.localStorage.setItem(name, value);
+            window.localStorage.setItem(name, value as string);
           }
         },
         removeItem: () => {
