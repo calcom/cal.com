@@ -312,6 +312,13 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
+  if( hasOrganizerChanged ){
+    // location might changed and will be new created in eventManager.create (organizer default location)
+    evt.videoCallData = undefined;
+    // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+    evt.iCalUID = undefined;
+  }
+
   const credentials = await prisma.credential.findMany({
     where: { userId: newUser.id },
     include: { user: { select: { email: true } } },
