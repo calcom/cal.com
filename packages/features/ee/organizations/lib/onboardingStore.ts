@@ -182,7 +182,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
                 const parsed = JSON.parse(item);
                 if (parsed.state?.onboardingId) {
                   // Found a state with an onboardingId, use its key from now on
-                  return item as StorageValue<OnboardingStoreState>;
+                  return item as unknown as StorageValue<OnboardingStoreState>;
                 }
               } catch (e) {
                 // Invalid JSON, skip
@@ -192,13 +192,14 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
 
           // Fall back to default key
           const fallbackItem = window.localStorage.getItem(name);
-          return fallbackItem as StorageValue<OnboardingStoreState> | null;
+          return fallbackItem as unknown as StorageValue<OnboardingStoreState> | null;
         },
         setItem: (name, value) => {
           if (typeof window === "undefined") return;
 
           try {
-            const valueStr = value as string;
+            // @ts-expect-error - StorageValue is essentially a string, but TS requires explicit conversion
+            const valueStr = value as unknown as string;
             const parsed = JSON.parse(valueStr);
             const onboardingId = parsed.state?.onboardingId;
             const key = getStorageKey(onboardingId);
@@ -212,7 +213,8 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
             }
           } catch (e) {
             // If parsing fails, just use the default key
-            window.localStorage.setItem(name, value as string);
+            // @ts-expect-error - StorageValue is essentially a string, but TS requires explicit conversion
+            window.localStorage.setItem(name, value as unknown as string);
           }
         },
         removeItem: () => {
