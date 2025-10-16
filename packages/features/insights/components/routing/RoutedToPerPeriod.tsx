@@ -293,7 +293,7 @@ export function RoutedToPerPeriod() {
                 <TableHeader className="bg-subtle sticky top-0 z-10">
                   <TableRow>
                     <TableHead className="bg-subtle sticky left-0 z-30 w-[200px]">{t("user")}</TableHead>
-                    {uniquePeriods.map((period, _index) => {
+                    {uniquePeriods.map((period) => {
                       const date = period;
                       const today = new Date();
 
@@ -313,7 +313,7 @@ export function RoutedToPerPeriod() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="relative">
-                  {processedData.map((row, _index) => {
+                  {processedData.map((row) => {
                     return (
                       <TableRow key={row.id} className="divide-muted divide-x">
                         <TableCell className="w-[200px]">
