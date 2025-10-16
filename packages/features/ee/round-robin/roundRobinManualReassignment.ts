@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
@@ -311,6 +311,13 @@ export const roundRobinManualReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
+
+  if( hasOrganizerChanged ){
+    // location might changed and will be new created in eventManager.create (organizer default location)
+    evt.videoCallData = undefined;
+    // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+    evt.iCalUID = undefined;
+  }
 
   const credentials = await prisma.credential.findMany({
     where: { userId: newUser.id },

@@ -694,7 +694,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="break-words">{bookingInfo.description}</p>
+                              <p className="whitespace-pre-line break-words">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}

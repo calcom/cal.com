@@ -17241,6 +17241,20 @@
         },
         "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
       },
+      "BookerActiveBookingsLimitOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "maximumActiveBookings": {
+            "type": "number",
+            "description": "The maximum number of active bookings a booker can have for this event type.",
+            "example": 3
+          },
+          "offerReschedule": {
+            "type": "boolean",
+            "description": "Whether to offer rescheduling the last active booking to the chosen time slot when limit is reached."
+          }
+        }
+      },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -17428,7 +17442,7 @@
             "type": "object"
           },
           "bookerActiveBookingsLimit": {
-            "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+            "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
@@ -19729,7 +19743,7 @@
             "type": "object"
           },
           "bookerActiveBookingsLimit": {
-            "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+            "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
