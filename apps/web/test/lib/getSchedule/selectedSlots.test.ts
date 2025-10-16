@@ -401,4 +401,148 @@ describe("getSchedule", () => {
       expect(remainingSlots).toHaveLength(2);
     });
   });
+
+  describe("Round-Robin capacity-based reservations", () => {
+    beforeEach(async () => {
+      await prisma.selectedSlots.deleteMany({});
+    });
+
+    test("should show available slots when reservations < host count", async () => {
+      vi.setSystemTime("2024-05-31T01:30:00Z");
+      const yesterdayDateString = "2024-05-30";
+      const plus2DateString = "2024-06-02";
+      const plus5DateString = "2024-06-05";
+
+      const scenarioData: ScheduleScenario = {
+        ...getBaseScenarioData(),
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [{ id: 101 }, { id: 102 }, { id: 103 }], // 3 hosts
+            schedulingType: "ROUND_ROBIN",
+          },
+        ],
+        users: [
+          ...getBaseScenarioData().users,
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+          {
+            ...TestData.users.example,
+            id: 103,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        selectedSlots: [
+          {
+            eventTypeId: 1,
+            userId: -1,
+            slotUtcStartDate: new Date(`${plus2DateString}T04:00:00.000Z`),
+            slotUtcEndDate: new Date(`${plus2DateString}T04:45:00.000Z`),
+            uid: "rr-reservation-1",
+            releaseAt: new Date(Date.now() + 1000 * 60 * 60),
+          },
+          {
+            eventTypeId: 1,
+            userId: -1,
+            slotUtcStartDate: new Date(`${plus2DateString}T04:00:00.000Z`),
+            slotUtcEndDate: new Date(`${plus2DateString}T04:45:00.000Z`),
+            uid: "rr-reservation-2",
+            releaseAt: new Date(Date.now() + 1000 * 60 * 60),
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+      await mockCalendarToHaveNoBusySlots("googlecalendar");
+
+      const schedule = await availableSlotsService.getAvailableSlots({
+        input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
+      });
+
+      // With 2 reservations and 3 hosts, all slots should be available
+      expect(schedule).toHaveTimeSlots([
+        "04:00:00.000Z",
+        "04:45:00.000Z",
+        "05:30:00.000Z",
+        "06:15:00.000Z",
+        "07:00:00.000Z",
+        "07:45:00.000Z",
+        "08:30:00.000Z",
+        "09:15:00.000Z",
+        "10:00:00.000Z",
+        "10:45:00.000Z",
+        "11:30:00.000Z",
+      ], {
+        dateString: plus2DateString,
+      });
+    });
+
+    test("should hide slots when reservations >= host count", async () => {
+      vi.setSystemTime("2024-05-31T01:30:00Z");
+      const yesterdayDateString = "2024-05-30";
+      const plus2DateString = "2024-06-02";
+      const plus5DateString = "2024-06-05";
+
+      const scenarioData: ScheduleScenario = {
+        ...getBaseScenarioData(),
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [{ id: 101 }, { id: 102 }], // 2 hosts
+            schedulingType: "ROUND_ROBIN",
+          },
+        ],
+        users: [
+          ...getBaseScenarioData().users,
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        selectedSlots: [
+          {
+            eventTypeId: 1,
+            userId: -1,
+            slotUtcStartDate: new Date(`${plus2DateString}T04:00:00.000Z`),
+            slotUtcEndDate: new Date(`${plus2DateString}T04:45:00.000Z`),
+            uid: "rr-reservation-1",
+            releaseAt: new Date(Date.now() + 1000 * 60 * 60),
+          },
+          {
+            eventTypeId: 1,
+            userId: -1,
+            slotUtcStartDate: new Date(`${plus2DateString}T04:00:00.000Z`),
+            slotUtcEndDate: new Date(`${plus2DateString}T04:45:00.000Z`),
+            uid: "rr-reservation-2",
+            releaseAt: new Date(Date.now() + 1000 * 60 * 60),
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+      await mockCalendarToHaveNoBusySlots("googlecalendar");
+
+      const schedule = await availableSlotsService.getAvailableSlots({
+        input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
+      });
+
+      expect(schedule).not.toHaveTimeSlots(["04:00:00.000Z"], {
+        dateString: plus2DateString,
+      });
+    });
+  });
 });

@@ -3,6 +3,8 @@ export interface IRedisService {
 
   set: <TData>(key: string, value: TData, opts?: { ttl?: number }) => Promise<"OK" | TData | null>;
 
+  setex: (key: string, seconds: number, value: string) => Promise<"OK">;
+
   expire: (key: string, seconds: number) => Promise<0 | 1>;
 
   lrange: <TResult = string>(key: string, start: number, end: number) => Promise<TResult[]>;
