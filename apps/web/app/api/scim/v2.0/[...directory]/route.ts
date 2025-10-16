@@ -45,7 +45,7 @@ const handleEvents = async (event: DirectorySyncEvent) => {
   }
 
   if (event.event.includes("group")) {
-    handleGroupEvents(event, organizationId);
+    await handleGroupEvents(event, organizationId);
   }
 
   if (event.event === "user.created" || event.event === "user.updated") {
