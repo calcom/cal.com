@@ -1,5 +1,6 @@
 "use client";
 
+import { Button as CossButton } from "@coss/ui/components/button";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -1009,10 +1010,13 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
   }, [orgBranding, user]);
 
   return (
-    <InfiniteScrollMain
-      profiles={userEventGroupsData.profiles}
-      eventTypeGroups={userEventGroupsData.eventTypeGroups}
-    />
+    <div>
+      <CossButton variant="outline">hey</CossButton>
+      <InfiniteScrollMain
+        profiles={userEventGroupsData.profiles}
+        eventTypeGroups={userEventGroupsData.eventTypeGroups}
+      />
+    </div>
   );
 };
 

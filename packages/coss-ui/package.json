@@ -1,0 +1,13 @@
+{
+  "name": "@coss/ui",
+  "private": true,
+  "version": "0.0.0",
+  "exports": {
+    "./styles.css": "./styles.css",
+    "./components/button": "./components/button.tsx"
+  },
+  "dependencies": {
+    "@base-ui-components/react": "^1.0.0-beta.4",
+    "class-variance-authority": "^0.4.0"
+  }
+}

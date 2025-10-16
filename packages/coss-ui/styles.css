@@ -1,0 +1,11 @@
+@theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
+}
+
+:root {
+  --destructive-foreground: oklch(0.505 0.213 27.518);
+}
+
+.dark {
+  --destructive-foreground: oklch(0.704 0.191 22.216);
+}
