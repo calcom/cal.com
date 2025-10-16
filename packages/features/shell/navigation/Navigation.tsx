@@ -21,6 +21,12 @@ import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
 import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
 
+declare global {
+  interface Window {
+    openOneHashChat?: () => void;
+  }
+}
+
 export const MORE_SEPARATOR_NAME = "more";
 
 const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
@@ -59,6 +65,22 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     },
   },
   {
+    name: "help",
+    icon: "circle-help",
+    onlyMobile: true,
+    onClick: (e) => {
+      e.preventDefault();
+      if (typeof window !== "undefined") {
+        if (window.openOneHashChat) {
+          window.openOneHashChat();
+        } else {
+        }
+      } else {
+        console.error("Window object not available");
+      }
+    },
+  },
+  {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
     icon: "ellipsis",
@@ -87,6 +109,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "settings",
     href: "/settings/my-account/profile",
     icon: "settings",
+    onlyDesktop: true,
   },
 ];
 
@@ -145,7 +168,9 @@ const useNavigationItems = (isPlatformNavigation = false) => {
   return useMemo(() => {
     const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
 
-    const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
+    const desktopNavigationItems = items.filter(
+      (item) => item.name !== MORE_SEPARATOR_NAME && !item.onlyMobile
+    );
     const mobileNavigationBottomItems = items.filter(
       (item) => (!item.moreOnMobile && !item.onlyDesktop) || item.name === MORE_SEPARATOR_NAME
     );

@@ -7,6 +7,7 @@ import {
   PhoneNumberField,
   isStrictlyValidNumber,
 } from "@calid/features/ui/components/input/phone-number-field";
+import { triggerToast } from "@calid/features/ui/components/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -24,7 +25,6 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
 import { Select } from "@calcom/ui/components/form";
-import { triggerToast } from "@calid/features/ui/components/toast";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
@@ -98,6 +98,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
     (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || "founder"
   );
+  const [numberVerified, _setNumberVerified] = useState(false);
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
     (key) => ({
@@ -152,7 +153,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     mutation.mutate({
       metadata: {
         currentOnboardingStep: "connected-calendar",
-        phoneNumber: data.metadata.phoneNumber,
+        phoneNumber: isPhoneFieldMandatory ? data.metadata.phoneNumber : "",
       },
       name: data.name,
       username: data.username,
@@ -198,7 +199,7 @@ const UserSettings = (props: IUserSettingsProps) => {
           type="text"
           autoComplete="off"
           autoCorrect="off"
-          className="w-full"
+          className="focus:ring-brand-default w-full focus:border-none focus:ring-2"
         />
         {errors.name && (
           <p data-testid="required" className="mt-1 text-xs text-red-500">
@@ -206,18 +207,20 @@ const UserSettings = (props: IUserSettingsProps) => {
           </p>
         )}
       </div>
-      <PhoneNumberField
-        getValue={getPhoneValue}
-        setValue={setPhoneValue}
-        getValues={getValues}
-        defaultValues={defaultValues}
-        isRequired={isPhoneFieldMandatory}
-        allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
-        hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
-        errorMessage={errors.metadata?.phoneNumber?.message}
-        onDeleteNumber={handlePhoneDelete}
-        isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
-      />
+      {isPhoneFieldMandatory && (
+        <PhoneNumberField
+          getValue={getPhoneValue}
+          setValue={setPhoneValue}
+          getValues={getValues}
+          defaultValues={defaultValues}
+          isRequired={isPhoneFieldMandatory}
+          allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
+          hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
+          errorMessage={errors.metadata?.phoneNumber?.message}
+          onDeleteNumber={handlePhoneDelete}
+          isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+        />
+      )}
 
       {/* Designation select field */}
       <div className="w-full">
@@ -256,7 +259,7 @@ const UserSettings = (props: IUserSettingsProps) => {
       <Button
         EndIcon="arrow-right"
         type="submit"
-        className="mt-8 w-full justify-center bg-active dark:bg-gray-200 border-active dark:border-default"
+        className="bg-active border-active dark:border-default mt-8 w-full justify-center dark:bg-gray-200"
         loading={mutation.isPending}
         disabled={mutation.isPending}>
         {t("next_step_text")}

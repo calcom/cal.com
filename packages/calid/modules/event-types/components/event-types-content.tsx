@@ -29,7 +29,7 @@ export const EventTypesContent: React.FC<EventTypesContentProps> = ({
   onLoadMore,
   onCreatePersonal,
   onCreateTeam,
-  buttonInViewRef
+  buttonInViewRef,
 }) => {
   if (isLoading) {
     return (
@@ -41,19 +41,17 @@ export const EventTypesContent: React.FC<EventTypesContentProps> = ({
 
   if (filteredEvents.length === 0) {
     return (
-      <div className="mx-auto w-full max-w-2xl px-4 sm:px-0">
-        <BlankCard
-          Icon="search"
-          headline={debouncedSearchTerm ? `No events found for "${debouncedSearchTerm}"` : "No events found."}
-          description={
-            debouncedSearchTerm
-              ? "Try adjusting your search terms or create a new event."
-              : "Get started by creating your first event."
-          }
-          buttonText={selectedTeam === "personal" ? "Create an event" : "Create a team event"}
-          buttonOnClick={selectedTeam === "personal" ? onCreatePersonal : onCreateTeam}
-        />
-      </div>
+      <BlankCard
+        Icon="search"
+        headline={debouncedSearchTerm ? `No events found for "${debouncedSearchTerm}"` : "No events found."}
+        description={
+          debouncedSearchTerm
+            ? "Try adjusting your search terms or create a new event."
+            : "Get started by creating your first event."
+        }
+        buttonText={selectedTeam === "personal" ? "Create an event" : "Create a team event"}
+        buttonOnClick={selectedTeam === "personal" ? onCreatePersonal : onCreateTeam}
+      />
     );
   }
 

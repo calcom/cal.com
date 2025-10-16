@@ -240,7 +240,7 @@ export const EventWebhooks = ({ eventType }: Pick<EventTypeSetupProps, "eventTyp
         data-testid="new_webhook"
         onClick={() => setCreateModalOpen(true)}
         StartIcon="plus">
-        {t("create_webhook")}
+        {t("create")}
       </Button>
     );
   };

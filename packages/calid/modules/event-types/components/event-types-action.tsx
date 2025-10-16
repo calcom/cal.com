@@ -62,6 +62,50 @@ export const EventTypeActions = ({
 
   return (
     <div className="mr-2 flex items-center justify-end space-x-4">
+      {/* Mobile dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          {!shouldHideRedirectAndCopy && (
+            <DropdownMenuItem>
+              <ButtonOrLink
+                target="_blank"
+                rel="noreferrer"
+                type="button"
+                href={permalink}
+                className="flex w-full items-center">
+                <Icon name="external-link" className="mr-2 h-4 w-4" />
+                {t("preview")}
+              </ButtonOrLink>
+            </DropdownMenuItem>
+          )}
+          {!shouldHideRedirectAndCopy && (
+            <DropdownMenuItem>
+              <ButtonOrLink
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(permalink);
+                }}
+                className="flex w-full items-center">
+                <Icon name="link" className="mr-2 h-4 w-4" />
+                {t("copy_link")}
+              </ButtonOrLink>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem disabled={!hasPermsToDelete}>
+            <ButtonOrLink
+              type="button"
+              onClick={onDeleteClick}
+              className="text-destructive flex w-full items-center">
+              <Icon name="trash" className="mr-2 h-4 w-4" />
+              {t("delete")}
+            </ButtonOrLink>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       {/* Hidden toggle */}
       {(() => {
         try {
@@ -132,50 +176,6 @@ export const EventTypeActions = ({
           onClick={onDeleteClick}
         />
       </ButtonGroup>
-
-      {/* Mobile dropdown */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button className="lg:hidden" StartIcon="ellipsis" variant="icon" color="secondary" />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {!shouldHideRedirectAndCopy && (
-            <DropdownMenuItem>
-              <ButtonOrLink
-                target="_blank"
-                rel="noreferrer"
-                type="button"
-                href={permalink}
-                className="flex w-full items-center">
-                <Icon name="external-link" className="mr-2 h-4 w-4" />
-                {t("preview")}
-              </ButtonOrLink>
-            </DropdownMenuItem>
-          )}
-          {!shouldHideRedirectAndCopy && (
-            <DropdownMenuItem>
-              <ButtonOrLink
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(permalink);
-                }}
-                className="flex w-full items-center">
-                <Icon name="link" className="mr-2 h-4 w-4" />
-                {t("copy_link")}
-              </ButtonOrLink>
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem disabled={!hasPermsToDelete}>
-            <ButtonOrLink
-              type="button"
-              onClick={onDeleteClick}
-              className="text-destructive flex w-full items-center">
-              <Icon name="trash" className="mr-2 h-4 w-4" />
-              {t("delete")}
-            </ButtonOrLink>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
 
       <Button
         type="button"
