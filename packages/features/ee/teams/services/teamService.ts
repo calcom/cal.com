@@ -3,11 +3,11 @@ import { randomBytes } from "crypto";
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { prisma } from "@calcom/prisma";
@@ -269,15 +269,9 @@ export class TeamService {
 
     await updateNewTeamMemberEventTypes(userId, teamId);
   }
-  static async leaveTeamMembership({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }) {
+  static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
-      const membership = await prisma.membership.delete({
+      const membership = await prisma.membership.findUnique({
         where: {
           userId_teamId: { userId, teamId },
         },
@@ -286,11 +280,16 @@ export class TeamService {
         },
       });
 
-      if (membership.team.parentId) {
-        await prisma.membership.delete({
-          where: {
-            userId_teamId: { userId, teamId: membership.team.parentId },
-          },
+      if (membership) {
+        const teamIdsToRemove = [teamId];
+        if (membership.team.parentId) {
+          teamIdsToRemove.push(membership.team.parentId);
+        }
+
+        await TeamService.removeMembers({
+          teamIds: teamIdsToRemove,
+          userIds: [userId],
+          isOrg: membership.team.parentId !== null,
         });
       }
     } catch (e) {
