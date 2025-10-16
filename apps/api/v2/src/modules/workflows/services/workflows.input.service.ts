@@ -21,9 +21,6 @@ import {
   WHATSAPP_NUMBER,
 } from "../inputs/workflow-step.input";
 import {
-  OnAfterEventTriggerDto,
-  OnBeforeEventTriggerDto,
-  OnFormSubmittedNoEventTriggerDto,
   OffsetTriggerDTOInstances,
   OffsetTriggerDTOInstancesType,
   TIME_UNIT_TO_ENUM,
