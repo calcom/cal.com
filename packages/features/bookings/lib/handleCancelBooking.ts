@@ -5,6 +5,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
@@ -17,7 +18,6 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -42,6 +42,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
+import type { Actor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -58,6 +59,12 @@ export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 export type CancelBookingInput = {
   userId?: number;
   bookingData: z.infer<typeof bookingCancelInput>;
+  /**
+   * The actor performing the cancellation.
+   * Used for audit logging to track who cancelled the booking.
+   * Optional for backward compatibility - defaults to System actor if not provided.
+   */
+  actor?: Actor;
 } & PlatformParams;
 
 export type HandleCancelBookingResponse = {
