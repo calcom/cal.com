@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -46,19 +46,12 @@ const attendeeRescheduleSeatedBooking = async (
       })
     : null;
 
-  const hideBranding = await shouldHideBrandingForEvent({
+  const brandingService = new BrandingApplicationService(prisma);
+  const hideBranding = await brandingService.computeHideBranding({
     eventTypeId: eventType.id,
-    team: teamForBranding ?? null,
+    teamContext: teamForBranding ?? null,
     owner: organizerUser ?? null,
-    organizationId: (await (async () => {
-      if (teamForBranding?.parentId) return teamForBranding.parentId;
-      if (!organizerUser) return null;
-      const organizerProfile = await prisma.profile.findFirst({
-        where: { userId: organizerUser.id },
-        select: { organizationId: true },
-      });
-      return organizerProfile?.organizationId ?? null;
-    })()),
+    ownerIdFallback: organizerUser?.id ?? null,
   });
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };

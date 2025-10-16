@@ -13,7 +13,7 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -357,52 +357,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
     const eventTypeIdForBranding = booking.eventTypeId ?? null;
     let hideBranding = false;
-    let userForBranding: { id: number; hideBranding: boolean | null } | null = null;
-    let fullEventType: {
-      team: {
-        id: number | null;
-        hideBranding: boolean | null;
-        parentId: number | null;
-        parent: { hideBranding: boolean | null } | null;
-      } | null;
-      teamId: number | null;
-    } | null = null;
 
     if (eventTypeIdForBranding) {
-      fullEventType = await prisma.eventType.findUnique({
-        where: { id: eventTypeIdForBranding },
-        select: {
-          team: {
-            select: {
-              id: true,
-              hideBranding: true,
-              parentId: true,
-              parent: {
-                select: {
-                  hideBranding: true,
-                },
-              },
-            },
-          },
-          teamId: true,
-        },
-      });
-
-      if (!fullEventType?.teamId && booking.userId) {
-        userForBranding = await prisma.user.findUnique({
-          where: { id: booking.userId },
-          select: {
-            id: true,
-            hideBranding: true,
-          },
-        });
-      }
-
-      hideBranding = await shouldHideBrandingForEvent({
+      const brandingService = new BrandingApplicationService(prisma);
+      hideBranding = await brandingService.computeHideBranding({
         eventTypeId: eventTypeIdForBranding,
-        team: fullEventType?.team ?? null,
-        owner: userForBranding,
         organizationId: orgId ?? null,
+        ownerIdFallback: booking.userId ?? null,
       });
     }
 

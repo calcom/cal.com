@@ -4,7 +4,7 @@ import { v5 as uuidv5 } from "uuid";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { getVideoAdapters } from "@calcom/app-store/getVideoAdapters";
-import { sendBrokenIntegrationEmail } from "@calcom/emails";
+import { sendBrokenIntegrationEmail, withHideBranding } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
@@ -80,7 +80,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
     log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
-    await sendBrokenIntegrationEmail({ ...calEvent, hideBranding: calEvent.hideBranding ?? false }, "video");
+    await sendBrokenIntegrationEmail(withHideBranding(calEvent), "video");
     log.error(
       "createMeeting failed",
       safeStringify(err),
@@ -109,7 +109,7 @@ const updateMeeting = async (
   const canCallUpdateMeeting = !!(credential && bookingRef);
   const updatedMeeting = canCallUpdateMeeting
     ? await firstVideoAdapter?.updateMeeting(bookingRef, calEvent).catch(async (e) => {
-        await sendBrokenIntegrationEmail({ ...calEvent, hideBranding: calEvent.hideBranding ?? false }, "video");
+        await sendBrokenIntegrationEmail(withHideBranding(calEvent), "video");
         log.error("updateMeeting failed", e, calEvent);
         success = false;
         return undefined;

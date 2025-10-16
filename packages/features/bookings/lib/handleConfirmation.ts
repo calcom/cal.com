@@ -16,7 +16,7 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
@@ -108,47 +108,16 @@ export async function handleConfirmation(args: {
 
   const eventTypeId = eventType?.id ?? booking.eventTypeId ?? null;
 
-  const fullEventType = eventTypeId
-    ? await prisma.eventType.findUnique({
-        where: { id: eventTypeId },
-        select: {
-          id: true,
-          team: {
-            select: {
-              id: true,
-              hideBranding: true,
-              parentId: true,
-              parent: {
-                select: {
-                  hideBranding: true,
-                },
-              },
-            },
-          },
-          teamId: true,
-        },
-      })
-    : null;
-
-  const userForBranding =
-    !fullEventType?.teamId && booking.userId
-      ? await prisma.user.findUnique({
-          where: { id: booking.userId },
-          select: {
-            id: true,
-            hideBranding: true,
-          },
-        })
-      : null;
-
-  const hideBranding = eventTypeId
-    ? await shouldHideBrandingForEvent({
-        eventTypeId,
-        team: fullEventType?.team ?? null,
-        owner: userForBranding,
-        organizationId: orgId ?? null,
-      })
-    : false;
+  let hideBranding = false;
+  
+  if (eventTypeId) {
+    const brandingService = new BrandingApplicationService(prisma);
+    hideBranding = await brandingService.computeHideBranding({
+      eventTypeId,
+      organizationId: orgId ?? null,
+      ownerIdFallback: booking.userId ?? null,
+    });
+  }
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {

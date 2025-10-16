@@ -5,7 +5,8 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
+import type { TeamBrandingContext } from "@calcom/lib/branding/types";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
@@ -318,14 +319,16 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
       : null;
 
     const eventTypeId = booking.eventTypeId;
-    const hideBranding = eventTypeId
-      ? await shouldHideBrandingForEvent({
-          eventTypeId,
-          team: (teamForBranding as any) ?? null,
-          owner: userForBranding,
-          organizationId: organizationIdForBranding,
-        })
-      : false;
+    let hideBranding = false;
+    if (eventTypeId) {
+      const brandingService = new BrandingApplicationService(prisma);
+      hideBranding = await brandingService.computeHideBranding({
+        eventTypeId,
+        teamContext: (teamForBranding as TeamBrandingContext) ?? null,
+        owner: userForBranding,
+        organizationId: organizationIdForBranding,
+      });
+    }
 
     await sendLocationChangeEmailsAndSMS(
       { ...evt, additionalInformation, hideBranding },

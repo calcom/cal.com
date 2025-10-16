@@ -1,7 +1,8 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
+import type { TeamBrandingContext } from "@calcom/lib/branding/types";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -209,14 +210,16 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
         })
       : null;
     const eventTypeId = booking.eventTypeId;
-    const hideBranding = eventTypeId
-      ? await shouldHideBrandingForEvent({
-          eventTypeId,
-          team: (teamForBranding as any) ?? null,
-          owner: userForBranding,
-          organizationId: organizationIdForBranding,
-        })
-      : false;
+    let hideBranding = false;
+    if (eventTypeId) {
+      const brandingService = new BrandingApplicationService(prisma);
+      hideBranding = await brandingService.computeHideBranding({
+        eventTypeId,
+        teamContext: (teamForBranding as TeamBrandingContext) ?? null,
+        owner: userForBranding,
+        organizationId: organizationIdForBranding,
+      });
+    }
 
     await sendAddGuestsEmails({ ...evt, hideBranding }, guests);
   } catch (err) {

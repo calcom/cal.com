@@ -2,7 +2,7 @@
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { sendNoShowFeeChargedEmail, withHideBranding } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -157,7 +157,7 @@ export const handleNoShowFee = async ({
       throw new Error("Payment processing failed");
     }
 
-    await sendNoShowFeeChargedEmail(attendee, { ...evt, hideBranding: evt.hideBranding ?? false }, eventTypeMetdata);
+    await sendNoShowFeeChargedEmail(attendee, withHideBranding(evt), eventTypeMetdata);
 
     return paymentData;
   } catch (err) {

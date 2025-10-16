@@ -4,7 +4,7 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
@@ -61,51 +61,16 @@ export async function handleBookingRequested(args: {
 
   log.debug("Emails: Sending booking requested emails");
 
-  const teamForBranding = booking.eventType?.teamId
-    ? await prisma.team.findUnique({
-        where: { id: booking.eventType.teamId },
-        select: {
-          id: true,
-          hideBranding: true,
-          parentId: true,
-          parent: {
-            select: {
-              hideBranding: true,
-            },
-          },
-        },
-      })
-    : null;
-
-  const organizationIdForBranding = teamForBranding?.parentId
-    ? teamForBranding.parentId
-    : (
-        await prisma.profile.findFirst({
-          where: { userId: booking.userId ?? undefined },
-          select: { organizationId: true },
-        })
-      )?.organizationId ?? null;
-
-  const userForBranding =
-    !booking.eventType?.teamId && booking.userId
-      ? await prisma.user.findUnique({
-          where: { id: booking.userId },
-          select: {
-            id: true,
-            hideBranding: true,
-          },
-        })
-      : null;
-
   const eventTypeId = booking.eventType?.id ?? booking.eventTypeId ?? null;
-  const hideBranding = eventTypeId
-    ? await shouldHideBrandingForEvent({
-        eventTypeId,
-        team: (teamForBranding as any) ?? null,
-        owner: userForBranding,
-        organizationId: organizationIdForBranding,
-      })
-    : false;
+  let hideBranding = false;
+  
+  if (eventTypeId) {
+    const brandingService = new BrandingApplicationService(prisma);
+    hideBranding = await brandingService.computeHideBranding({
+      eventTypeId,
+      ownerIdFallback: booking.userId ?? null,
+    });
+  }
 
   await sendOrganizerRequestEmail(
     { ...evt, hideBranding },

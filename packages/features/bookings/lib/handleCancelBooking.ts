@@ -4,8 +4,7 @@ import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
-type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
+import { sendCancelledEmailsAndSMS, withHideBranding } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
@@ -22,7 +21,7 @@ import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -254,12 +253,18 @@ async function handler(input: CancelBookingInput) {
       )?.organizationId
     : null;
 
-  const hideBranding = await shouldHideBrandingForEvent({
-    eventTypeId: bookingToDelete.eventTypeId ?? 0,
-    team: bookingToDelete.eventType?.team ?? null,
-    owner: bookingToDelete.user ?? null,
-    organizationId: bookingToDelete.eventType?.team?.parentId ?? userOrganizationId ?? null,
-  });
+  let hideBranding = false;
+  
+  if (bookingToDelete.eventTypeId) {
+    const brandingService = new BrandingApplicationService(prisma);
+    hideBranding = await brandingService.computeHideBranding({
+      eventTypeId: bookingToDelete.eventTypeId,
+      teamContext: bookingToDelete.eventType?.team ?? null,
+      owner: bookingToDelete.user ?? null,
+      organizationId: bookingToDelete.eventType?.team?.parentId ?? userOrganizationId ?? null,
+      ownerIdFallback: bookingToDelete.userId,
+    });
+  }
 
   log.debug("Branding configuration", {
     hideBranding,
@@ -612,7 +617,7 @@ async function handler(input: CancelBookingInput) {
       });
 
       await sendCancelledEmailsAndSMS(
-        evt as CalendarEventWithBranding,
+        withHideBranding(evt, hideBranding),
         { eventName: bookingToDelete?.eventType?.eventName },
         bookingToDelete?.eventType?.metadata as EventTypeMetadata
       );

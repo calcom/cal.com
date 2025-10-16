@@ -15,6 +15,10 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
 
+export function withHideBranding(calEvent: CalendarEvent, explicit?: boolean): CalendarEventWithBranding {
+  return { ...calEvent, hideBranding: explicit ?? calEvent.hideBranding ?? false };
+}
+
 import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";
 import CancelledSeatSMS from "../sms/attendee/cancelled-seat-sms";
 import EventCancelledSMS from "../sms/attendee/event-cancelled-sms";

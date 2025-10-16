@@ -1,5 +1,5 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS, withHideBranding } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
@@ -96,7 +96,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
-    await sendScheduledEmailsAndSMS({ ...evt, hideBranding: evt.hideBranding ?? false }, undefined, undefined, undefined, eventType.metadata);
+    await sendScheduledEmailsAndSMS(withHideBranding(evt), undefined, undefined, undefined, eventType.metadata);
   }
 
   throw new HttpCode({

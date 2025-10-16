@@ -15,6 +15,7 @@ import {
   sendScheduledEmailsAndSMS,
   sendOrganizerRequestEmail,
   sendAttendeeRequestEmailAndSMS,
+  withHideBranding,
 } from "@calcom/emails";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -126,13 +127,12 @@ export class BookingEmailSmsHandler {
     } = data;
 
     await sendRescheduledEmailsAndSMS(
-      {
+      withHideBranding({
         ...evt,
-        hideBranding: evt.hideBranding ?? false,
         additionalInformation,
         additionalNotes,
         cancellationReason: `$RCH$${rescheduleReason || ""}`,
-      },
+      }),
       metadata
     );
   }
@@ -228,17 +228,17 @@ export class BookingEmailSmsHandler {
     try {
       await Promise.all([
         sendRoundRobinRescheduledEmailsAndSMS(
-          { ...copyEventAdditionalInfo, iCalUID, hideBranding: copyEventAdditionalInfo.hideBranding ?? false },
+          withHideBranding({ ...copyEventAdditionalInfo, iCalUID }),
           rescheduledMembers,
           metadata
         ),
         sendRoundRobinScheduledEmailsAndSMS({
-          calEvent: { ...copyEventAdditionalInfo, hideBranding: copyEventAdditionalInfo.hideBranding ?? false },
+          calEvent: withHideBranding(copyEventAdditionalInfo),
           members: newBookedMembers,
           eventTypeMetadata: metadata,
         }),
         sendRoundRobinCancelledEmailsAndSMS(
-          { ...cancelledRRHostEvt, hideBranding: cancelledRRHostEvt.hideBranding ?? false },
+          withHideBranding(cancelledRRHostEvt),
           cancelledMembers,
           metadata,
           reassignedTo
@@ -282,7 +282,7 @@ export class BookingEmailSmsHandler {
 
     try {
       await sendScheduledEmailsAndSMS(
-        { ...evt, additionalInformation, additionalNotes, customInputs, hideBranding: evt.hideBranding ?? false },
+        withHideBranding({ ...evt, additionalInformation, additionalNotes, customInputs }),
         eventNameObject,
         isHostConfirmationEmailsDisabled,
         isAttendeeConfirmationEmailDisabled,
@@ -312,7 +312,7 @@ export class BookingEmailSmsHandler {
       safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
     );
 
-      const eventWithNotes = { ...evt, additionalNotes, hideBranding: evt.hideBranding ?? false };
+      const eventWithNotes = withHideBranding({ ...evt, additionalNotes });
 
     try {
       await Promise.all([

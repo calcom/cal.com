@@ -6,7 +6,8 @@ import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
+import type { TeamBrandingContext } from "@calcom/lib/branding/types";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -152,18 +153,12 @@ const combineTwoSeatedBookings = async (
         })
       : null;
 
-    const hideBranding = await shouldHideBrandingForEvent({
+    const brandingService = new BrandingApplicationService(prisma);
+    const hideBranding = await brandingService.computeHideBranding({
       eventTypeId: eventType.id,
-      team: (teamForBranding as any) ?? null,
+      teamContext: (teamForBranding as TeamBrandingContext) ?? null,
       owner: organizerUser ?? null,
-      organizationId: (await (async () => {
-        if (teamForBranding?.parentId) return teamForBranding.parentId;
-        const organizerProfile = await prisma.profile.findFirst({
-          where: { userId: organizerUser.id },
-          select: { organizationId: true },
-        });
-        return organizerProfile?.organizationId ?? null;
-      })()),
+      ownerIdFallback: organizerUser?.id ?? null,
     });
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");

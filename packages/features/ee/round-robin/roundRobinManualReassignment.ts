@@ -8,6 +8,7 @@ import {
   sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
+  withHideBranding,
 } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -36,7 +37,7 @@ import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
@@ -313,46 +314,13 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
-  try {
-    type TeamForBranding = {
-      id: number;
-      hideBranding: boolean | null;
-      parentId: number | null;
-      parent: { hideBranding: boolean | null } | null;
-    };
-
-    const teamForBranding: TeamForBranding | null = eventType.teamId
-      ? await prisma.team.findUnique({
-          where: { id: eventType.teamId },
-          select: {
-            id: true,
-            hideBranding: true,
-            parentId: true,
-            parent: { select: { hideBranding: true } },
-          },
-        })
-      : null;
-    const organizationIdForBranding =
-      teamForBranding?.parentId ??
-      orgId ??
-      (
-        await prisma.profile.findFirst({
-          where: { userId: organizer.id, organizationId: orgId ?? undefined },
-          select: { organizationId: true },
-        })
-      )?.organizationId ??
-      null;
-    const hideBranding = await shouldHideBrandingForEvent({
-      eventTypeId: eventType.id,
-      team: teamForBranding ?? null,
-      owner: organizer,
-      organizationId: organizationIdForBranding,
-    });
-    evt.hideBranding = hideBranding;
-  } catch (error) {
-    roundRobinReassignLogger.error("Failed to compute hideBranding", error);
-    evt.hideBranding = false;
-  }
+  const brandingService = new BrandingApplicationService(prisma);
+  const hideBranding = await brandingService.computeHideBranding({
+    eventTypeId: eventType.id,
+    organizationId: orgId ?? null,
+    ownerIdFallback: organizer.id,
+  });
+  evt.hideBranding = hideBranding;
 
   const credentials = await prisma.credential.findMany({
     where: { userId: newUser.id },
@@ -425,7 +393,7 @@ export const roundRobinManualReassignment = async ({
   // Send emails
   if (emailsEnabled) {
     await sendRoundRobinScheduledEmailsAndSMS({
-      calEvent: { ...evtWithoutCancellationReason, hideBranding: evtWithoutCancellationReason.hideBranding ?? false },
+      calEvent: withHideBranding(evtWithoutCancellationReason),
       members: [
         {
           ...newUser,
@@ -455,7 +423,7 @@ export const roundRobinManualReassignment = async ({
 
   if (previousRRHost && emailsEnabled) {
     await sendRoundRobinReassignedEmailsAndSMS({
-      calEvent: { ...cancelledEvt, hideBranding: cancelledEvt.hideBranding ?? false },
+      calEvent: withHideBranding(cancelledEvt),
       members: [
         {
           ...previousRRHost,
@@ -474,7 +442,7 @@ export const roundRobinManualReassignment = async ({
     if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
-        calEvent: { ...evtWithoutCancellationReason, hideBranding: evtWithoutCancellationReason.hideBranding ?? false },
+        calEvent: withHideBranding(evtWithoutCancellationReason),
         eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }

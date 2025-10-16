@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { sendOrganizerRequestReminderEmail } from "@calcom/emails";
+import { sendOrganizerRequestReminderEmail, withHideBranding } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -14,7 +14,6 @@ import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
 
 async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
@@ -179,7 +178,7 @@ async function postHandler(request: NextRequest) {
         hideBranding,
       };
 
-      await sendOrganizerRequestReminderEmail(evt as CalendarEventWithBranding, booking?.eventType?.metadata as EventTypeMetadata);
+      await sendOrganizerRequestReminderEmail(withHideBranding(evt), booking?.eventType?.metadata as EventTypeMetadata);
 
       await prisma.reminderMail.create({
         data: {

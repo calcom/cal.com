@@ -125,7 +125,7 @@ import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validate
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
 import type { IBookingService } from "./interfaces/IBookingService";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
+import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -1222,9 +1222,11 @@ async function handler(
   });
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
-  const hideBranding = await shouldHideBrandingForEvent({
+  
+  const brandingService = new BrandingApplicationService(prisma);
+  const hideBranding = await brandingService.computeHideBranding({
     eventTypeId: eventType.id,
-    team: eventType.team ?? null,
+    teamContext: eventType.team ?? null,
     owner: organizerUser ?? null,
     organizationId: organizerOrganizationId ?? null,
   });
