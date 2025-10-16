@@ -5,13 +5,24 @@ export interface CountryDetectionResult {
   region?: string;
   city?: string;
   timezone?: string;
-  detectionMethod: "vercel-ip" | "fallback-header" | "none";
+  detectionMethod: "browser-language" | "vercel-ip" | "fallback-header" | "none";
   fallbackCountryCode?: string;
 }
 
 export function detectCountryFromHeaders(req: IncomingMessage): CountryDetectionResult {
   const headers = req.headers;
 
+  // Try to get country from Accept-Language header first (more reliable)
+  const acceptLanguage = headers["accept-language"];
+  let browserCountry = "";
+  if (acceptLanguage && typeof acceptLanguage === "string") {
+    const langMatch = acceptLanguage.match(/([a-z]{2})-([A-Z]{2})/);
+    if (langMatch) {
+      browserCountry = langMatch[2].toLowerCase();
+    }
+  }
+
+  // Fallback to IP-based detection (less reliable)
   const vercelCountryCode: string | string[] = headers["x-vercel-ip-country"] ?? "";
   const primaryCountryCode = Array.isArray(vercelCountryCode) ? vercelCountryCode[0] : vercelCountryCode;
 
@@ -31,8 +42,11 @@ export function detectCountryFromHeaders(req: IncomingMessage): CountryDetection
   const normalizedCity = Array.isArray(cityHeader) ? cityHeader[0] : cityHeader;
   const normalizedTimezone = Array.isArray(timezoneHeader) ? timezoneHeader[0] : timezoneHeader;
 
-  const countryCode = primaryCountryCode || normalizedFallback || "";
-  const detectionMethod = primaryCountryCode
+  // Prioritize browser language over IP-based detection
+  const countryCode = browserCountry || primaryCountryCode || normalizedFallback || "";
+  const detectionMethod = browserCountry
+    ? "browser-language"
+    : primaryCountryCode
     ? "vercel-ip"
     : normalizedFallback
     ? "fallback-header"

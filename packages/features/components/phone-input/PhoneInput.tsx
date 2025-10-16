@@ -162,12 +162,23 @@ const useDefaultCountry = () => {
     function detectCountryWithFallbacks() {
       const detectCountry = async () => {
         try {
-          if (query.data?.countryCode && isSupportedCountry(query.data.countryCode)) {
-            setDefaultCountry(query.data.countryCode.toLowerCase());
+          // Method 1: Try browser language first (most reliable)
+          const browserCountry = navigator.language.split("-")[1]?.toLowerCase();
+          if (browserCountry && isSupportedCountry(browserCountry.toUpperCase())) {
+            setDefaultCountry(browserCountry);
             setIsDetecting(false);
             return;
           }
 
+          // Method 2: Try timezone-based detection
+          const timezoneCountry = getCountryFromTimezone();
+          if (timezoneCountry && isSupportedCountry(timezoneCountry)) {
+            setDefaultCountry(timezoneCountry.toLowerCase());
+            setIsDetecting(false);
+            return;
+          }
+
+          // Method 3: Try browser geolocation API (with user permission)
           if (navigator.geolocation && "geolocation" in navigator) {
             try {
               const position = await new Promise<GeolocationPosition>((resolve, reject) => {
@@ -189,16 +200,9 @@ const useDefaultCountry = () => {
             }
           }
 
-          const timezoneCountry = getCountryFromTimezone();
-          if (timezoneCountry && isSupportedCountry(timezoneCountry)) {
-            setDefaultCountry(timezoneCountry.toLowerCase());
-            setIsDetecting(false);
-            return;
-          }
-
-          const browserCountry = navigator.language.split("-")[1]?.toLowerCase();
-          if (browserCountry && isSupportedCountry(browserCountry.toUpperCase())) {
-            setDefaultCountry(browserCountry);
+          // Method 4: Fallback to IP-based detection (least reliable)
+          if (query.data?.countryCode && isSupportedCountry(query.data.countryCode)) {
+            setDefaultCountry(query.data.countryCode.toLowerCase());
             setIsDetecting(false);
             return;
           }
