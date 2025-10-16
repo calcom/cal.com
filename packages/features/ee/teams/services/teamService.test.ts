@@ -192,16 +192,22 @@ describe("TeamService", () => {
         team: { id: 1, parentId: null },
       };
 
-      prismaMock.membership.delete.mockResolvedValue(mockMembership as Membership & { team: Team });
+      prismaMock.membership.findUnique.mockResolvedValue(mockMembership as Membership & { team: Team });
+      const removeMembersSpy = vi.spyOn(TeamService, "removeMembers").mockResolvedValue(undefined);
 
       await TeamService.leaveTeamMembership({
         userId: 1,
         teamId: 1,
       });
 
-      expect(prismaMock.membership.delete).toHaveBeenCalledWith({
+      expect(prismaMock.membership.findUnique).toHaveBeenCalledWith({
         where: { userId_teamId: { userId: 1, teamId: 1 } },
         select: { team: true },
+      });
+      expect(removeMembersSpy).toHaveBeenCalledWith({
+        teamIds: [1],
+        userIds: [1],
+        isOrg: false,
       });
     });
 
@@ -210,18 +216,22 @@ describe("TeamService", () => {
         team: { id: 1, parentId: 2 },
       };
 
-      prismaMock.membership.delete
-        .mockResolvedValueOnce(mockMembership as Membership & { team: Team })
-        .mockResolvedValueOnce({} as Membership);
+      prismaMock.membership.findUnique.mockResolvedValue(mockMembership as Membership & { team: Team });
+      const removeMembersSpy = vi.spyOn(TeamService, "removeMembers").mockResolvedValue(undefined);
 
       await TeamService.leaveTeamMembership({
         userId: 1,
         teamId: 1,
       });
 
-      expect(prismaMock.membership.delete).toHaveBeenCalledTimes(2);
-      expect(prismaMock.membership.delete).toHaveBeenNthCalledWith(2, {
-        where: { userId_teamId: { userId: 1, teamId: 2 } },
+      expect(prismaMock.membership.findUnique).toHaveBeenCalledWith({
+        where: { userId_teamId: { userId: 1, teamId: 1 } },
+        select: { team: true },
+      });
+      expect(removeMembersSpy).toHaveBeenCalledWith({
+        teamIds: [1, 2],
+        userIds: [1],
+        isOrg: true,
       });
     });
   });
