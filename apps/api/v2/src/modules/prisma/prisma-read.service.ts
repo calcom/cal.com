@@ -11,11 +11,12 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
   private logger = new Logger("PrismaReadService");
 
   public prisma: PrismaClient;
+  private pool: Pool;
 
   constructor(readonly configService: ConfigService) {
     const dbUrl = configService.get("db.readUrl", { infer: true });
-    const pool = new Pool({ connectionString: dbUrl });
-    const adapter = new PrismaPg(pool);
+    this.pool = new Pool({ connectionString: dbUrl });
+    const adapter = new PrismaPg(this.pool);
     this.prisma = new PrismaClient({
       adapter,
     });
@@ -33,6 +34,7 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
   async onModuleDestroy() {
     try {
       await this.prisma.$disconnect();
+      await this.pool.end();
     } catch (error) {
       this.logger.error(error);
     }
