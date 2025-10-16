@@ -1,6 +1,6 @@
 import type { Team } from "@calcom/prisma/client";
 
-export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization">;
+export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization" | "name">;
 export const TeamBillingPublishResponseStatus = {
   REQUIRES_PAYMENT: "REQUIRES_PAYMENT",
   REQUIRES_UPGRADE: "REQUIRES_UPGRADE",

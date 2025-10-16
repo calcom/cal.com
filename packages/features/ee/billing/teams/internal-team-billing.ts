@@ -1,6 +1,9 @@
+import type { TFunction } from "next-i18next";
 import type { z } from "zod";
 
+import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { sendSubscriptionPaymentFailedEmail } from "@calcom/emails/email-manager";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
@@ -207,5 +210,43 @@ export class InternalTeamBilling implements TeamBilling {
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
     await this.billingRepository.create(args);
+  }
+
+  /**
+   * Sends a payment failed email to team/organization admins with billing portal link
+   * @param recipientEmail - Email address to send the notification to
+   * @param translate - Translation function for email content
+   * @returns {Promise<void>}
+   */
+  async sendPaymentFailedEmail(recipientEmail: string, translate: TFunction): Promise<void> {
+    try {
+      const { subscriptionId } = this.team.metadata;
+
+      if (!subscriptionId) {
+        log.warn(`No subscription ID found for team ${this.team.id}`);
+        return;
+      }
+
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      const customerId =
+        typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
+
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${WEBAPP_URL}/settings/billing`,
+      });
+
+      await sendSubscriptionPaymentFailedEmail({
+        entityName: this.team.name,
+        billingPortalUrl: portalSession.url,
+        to: recipientEmail,
+        language: { translate },
+      });
+
+      log.info(`Sent payment failed email for team ${this.team.id} to ${recipientEmail}`);
+    } catch (error) {
+      this.logErrorFromUnknown(error);
+      throw error;
+    }
   }
 }
