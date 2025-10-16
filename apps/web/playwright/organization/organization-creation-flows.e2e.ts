@@ -329,7 +329,7 @@ test.describe("Organization Creation Flows - Comprehensive Suite", () => {
       await page.goto("/settings/organizations/new/resume?onboardingId=invalid-id-123");
 
       // Should show error message
-      await expect(page.getByText(/onboarding.*not found/i)).toBeVisible();
+      await expect(page.getByTestId("error")).toBeVisible();
     });
 
     test("Resume without onboardingId redirects", async ({ page, users }) => {

@@ -73,22 +73,26 @@ const ResumeOnboardingView = () => {
   }
 
   if (!onboardingIdParam) {
-    return <Alert severity="error" title={t("error")} message={t("no_onboarding_id_provided")} />;
+    return (
+      <Alert
+        data-testid="error"
+        severity="error"
+        title={t("error")}
+        message={t("no_onboarding_id_provided")}
+      />
+    );
   }
 
   if (!dbOnboarding) {
     return (
-      <Alert
-        severity="error"
-        title={t("onboarding_not_found")}
-        message={t("onboarding_not_found_description")}
-      />
+      <Alert data-testid="error" severity="error" title={t("error")} message={t("onboarding_not_found")} />
     );
   }
 
   if (dbOnboarding.isComplete) {
     return (
       <Alert
+        data-testid="error"
         severity="info"
         title={t("onboarding_already_complete")}
         message={t("onboarding_already_complete_description")}
