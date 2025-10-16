@@ -9,6 +9,10 @@ export enum SubscriptionStatus {
   CANCELLED = "CANCELLED",
   PAST_DUE = "PAST_DUE",
   TRIALING = "TRIALING",
+  INCOMPLETE = "INCOMPLETE",
+  INCOMPLETE_EXPIRED = "INCOMPLETE_EXPIRED",
+  UNPAID = "UNPAID",
+  PAUSED = "PAUSED",
 }
 
 export interface BillingRecord {
@@ -37,4 +41,7 @@ export interface IBillingRepositoryCreateArgs {
   customerId: string;
   planName: Plan;
   status: SubscriptionStatus;
+  subscriptionStart?: Date;
+  subscriptionTrialEnd?: Date;
+  subscriptionEnd?: Date;
 }
