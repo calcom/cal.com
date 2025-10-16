@@ -8,11 +8,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-import type { validStatuses } from "~/bookings/lib/validStatuses";
-
-import type { RowData } from "../views/bookings-view";
-
-type BookingListingStatus = (typeof validStatuses)[number];
+import type { RowData, BookingListingStatus } from "../types";
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",

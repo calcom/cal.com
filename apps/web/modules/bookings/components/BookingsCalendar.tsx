@@ -5,11 +5,7 @@ import type { Table as ReactTable } from "@tanstack/react-table";
 import { DataTableFilters, DataTableSegment } from "@calcom/features/data-table";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
-import type { validStatuses } from "~/bookings/lib/validStatuses";
-
-import type { RowData } from "../views/bookings-view";
-
-type BookingListingStatus = (typeof validStatuses)[number];
+import type { RowData, BookingListingStatus } from "../types";
 
 type BookingsCalendarViewProps = {
   status: BookingListingStatus;

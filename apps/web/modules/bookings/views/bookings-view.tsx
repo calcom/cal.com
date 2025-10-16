@@ -18,7 +18,6 @@ import {
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
@@ -34,26 +33,7 @@ import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 import { BookingsCalendar } from "../components/BookingsCalendar";
 import { BookingsList } from "../components/BookingsList";
-
-type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
-
-type RecurringInfo = {
-  recurringEventId: string | null;
-  count: number;
-  firstDate: Date | null;
-  bookings: { [key: string]: Date[] };
-};
-
-export type RowData =
-  | {
-      type: "data";
-      booking: BookingOutput;
-      isToday: boolean;
-      recurringInfo?: RecurringInfo;
-    }
-  | {
-      type: "today" | "next";
-    };
+import type { RowData, BookingOutput } from "../types";
 
 type BookingsProps = {
   status: (typeof validStatuses)[number];
