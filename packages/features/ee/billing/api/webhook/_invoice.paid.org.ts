@@ -8,7 +8,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/packages/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 
 import type { SWHMap } from "./__handler";

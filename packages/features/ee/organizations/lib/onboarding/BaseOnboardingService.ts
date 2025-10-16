@@ -8,14 +8,14 @@ import {
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
@@ -396,11 +396,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     );
   }
 
-  protected async inviteMembers(
-    invitedMembers: InvitedMember[],
-    organization: Team,
-    teamsData: TeamData[]
-  ) {
+  protected async inviteMembers(invitedMembers: InvitedMember[], organization: Team, teamsData: TeamData[]) {
     if (invitedMembers.length === 0) return;
 
     log.info(
@@ -462,7 +458,9 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       } else if (member.teamName) {
         targetTeamId = teamNameToId.get(member.teamName.toLowerCase());
         log.debug(
-          `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${targetTeamId || "not found"}`
+          `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${
+            targetTeamId || "not found"
+          }`
         );
       }
 

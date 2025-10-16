@@ -1,10 +1,10 @@
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
