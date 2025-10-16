@@ -1,5 +1,4 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { renderEmail } from "@calcom/emails";
@@ -8,13 +7,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 
 /**
  * This API endpoint is used for development purposes to preview email templates
- *
- * Usage:
- * - /api/email - Default: MonthlyDigestEmail
- * - /api/email?template=SubscriptionPaymentFailedEmail
- * - /api/email?template=SubscriptionPaymentFailedEmail&entityName=Acme%20Corp
  */
-async function getHandler(req: NextRequest) {
+async function getHandler() {
   // Only allow in development mode
   if (IS_PRODUCTION) {
     return new NextResponse("Only for development purposes", {
@@ -23,67 +17,53 @@ async function getHandler(req: NextRequest) {
   }
 
   const t = await getTranslation("en", "common");
-  const { searchParams } = new URL(req.url);
-  const template = searchParams.get("template") || "MonthlyDigestEmail";
 
-  let emailHtml: string;
-
-  // Render the email template based on query parameter
-  if (template === "SubscriptionPaymentFailedEmail") {
-    emailHtml = await renderEmail("SubscriptionPaymentFailedEmail", {
-      entityName: searchParams.get("entityName") || "Acme Team",
-      billingPortalUrl:
-        searchParams.get("billingPortalUrl") || "https://billing.stripe.com/p/session/test_example",
-      supportEmail: process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "support@cal.com",
-      language: { translate: t },
-    });
-  } else {
-    emailHtml = await renderEmail("MonthlyDigestEmail", {
-      language: t,
-      Created: 12,
-      Completed: 13,
-      Rescheduled: 14,
-      Cancelled: 16,
-      mostBookedEvents: [
-        {
-          eventTypeId: 3,
-          eventTypeName: "Test1",
-          count: 3,
+  // Render the email template
+  const emailHtml = await renderEmail("MonthlyDigestEmail", {
+    language: t,
+    Created: 12,
+    Completed: 13,
+    Rescheduled: 14,
+    Cancelled: 16,
+    mostBookedEvents: [
+      {
+        eventTypeId: 3,
+        eventTypeName: "Test1",
+        count: 3,
+      },
+      {
+        eventTypeId: 4,
+        eventTypeName: "Test2",
+        count: 5,
+      },
+    ],
+    membersWithMostBookings: [
+      {
+        userId: 4,
+        user: {
+          id: 4,
+          name: "User1 name",
+          email: "email.com",
+          avatar: "none",
+          username: "User1",
         },
-        {
-          eventTypeId: 4,
-          eventTypeName: "Test2",
-          count: 5,
+        count: 4,
+      },
+      {
+        userId: 6,
+        user: {
+          id: 6,
+          name: "User2 name",
+          email: "email2.com",
+          avatar: "none",
+          username: "User2",
         },
-      ],
-      membersWithMostBookings: [
-        {
-          userId: 4,
-          user: {
-            id: 4,
-            name: "User1 name",
-            email: "email.com",
-            avatar: "none",
-            username: "User1",
-          },
-          count: 4,
-        },
-        {
-          userId: 6,
-          user: {
-            id: 6,
-            name: "User2 name",
-            email: "email2.com",
-            avatar: "none",
-            username: "User2",
-          },
-          count: 8,
-        },
-      ],
-      admin: { email: "admin.com", name: "admin" },
-      team: { name: "Team1", id: 4 },
-    });
-  }
+        count: 8,
+      },
+    ],
+    admin: { email: "admin.com", name: "admin" },
+    team: { name: "Team1", id: 4 },
+  });
 
   // Create a response with the HTML content
   const response = new NextResponse(emailHtml);
