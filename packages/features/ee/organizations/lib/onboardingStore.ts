@@ -69,9 +69,16 @@ const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
   teams: [],
 };
 
+const getStorageKey = (onboardingId?: string | null) => {
+  if (onboardingId) {
+    return `org-creation-onboarding-${onboardingId}`;
+  }
+  return "org-creation-onboarding";
+};
+
 export const useOnboardingStore = create<OnboardingStoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
 
       // Admin actions
@@ -87,7 +94,19 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       setBio: (bio) => set({ bio }),
       setBrandColor: (brandColor) => set({ brandColor }),
       setBannerUrl: (bannerUrl) => set({ bannerUrl }),
-      setOnboardingId: (onboardingId) => set({ onboardingId }),
+      setOnboardingId: (onboardingId) => {
+        const currentId = get().onboardingId;
+        // If we're setting an onboardingId for the first time, migrate the data
+        if (onboardingId && !currentId && typeof window !== "undefined") {
+          const currentState = get();
+          // Save to the new key
+          const newKey = getStorageKey(onboardingId);
+          localStorage.setItem(newKey, JSON.stringify({ state: currentState, version: 0 }));
+          // Remove the old key
+          localStorage.removeItem("org-creation-onboarding");
+        }
+        set({ onboardingId });
+      },
       addInvitedMember: (member) =>
         set((state) => ({
           invitedMembers: [...state.invitedMembers, member],
@@ -103,11 +122,38 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       // Reset action
       reset: (state) => {
         if (state) {
-          set(state);
+          const currentId = get().onboardingId;
+          const newId = state.onboardingId;
+
+          // If onboardingId is changing, handle localStorage migration
+          if (typeof window !== "undefined" && currentId !== newId) {
+            // Remove old key if it exists
+            if (currentId) {
+              localStorage.removeItem(getStorageKey(currentId));
+            } else {
+              localStorage.removeItem("org-creation-onboarding");
+            }
+
+            // Set new state which will be persisted with new key
+            set(state);
+
+            // Immediately save to new key
+            if (newId) {
+              const newKey = getStorageKey(newId);
+              localStorage.setItem(newKey, JSON.stringify({ state, version: 0 }));
+            }
+          } else {
+            set(state);
+          }
         } else {
           // Clear the localStorage entry for this store
           if (typeof window !== "undefined") {
-            localStorage.removeItem("org-creation-onboarding");
+            const currentId = get().onboardingId;
+            if (currentId) {
+              localStorage.removeItem(getStorageKey(currentId));
+            } else {
+              localStorage.removeItem("org-creation-onboarding");
+            }
           }
           set(initialState);
         }
@@ -115,6 +161,64 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
     }),
     {
       name: "org-creation-onboarding",
+      partialize: (state) => {
+        // When persisting, use the dynamic key if onboardingId is present
+        return state;
+      },
+      storage: {
+        getItem: (name) => {
+          if (typeof window === "undefined") return null;
+
+          // Try to find the most recent onboarding state
+          // First check if there's a state with onboardingId
+          const keys = Object.keys(localStorage).filter((key) => key.startsWith("org-creation-onboarding"));
+
+          for (const key of keys) {
+            const item = localStorage.getItem(key);
+            if (item) {
+              try {
+                const parsed = JSON.parse(item);
+                if (parsed.state?.onboardingId) {
+                  // Found a state with an onboardingId, use its key from now on
+                  return item;
+                }
+              } catch (e) {
+                // Invalid JSON, skip
+              }
+            }
+          }
+
+          // Fall back to default key
+          return localStorage.getItem(name);
+        },
+        setItem: (name, value) => {
+          if (typeof window === "undefined") return;
+
+          try {
+            const parsed = JSON.parse(value);
+            const onboardingId = parsed.state?.onboardingId;
+            const key = getStorageKey(onboardingId);
+
+            // Save with the appropriate key
+            localStorage.setItem(key, value);
+
+            // If this is a different key than the default, remove the default
+            if (key !== name) {
+              localStorage.removeItem(name);
+            }
+          } catch (e) {
+            // If parsing fails, just use the default key
+            localStorage.setItem(name, value);
+          }
+        },
+        removeItem: () => {
+          if (typeof window === "undefined") return;
+
+          // Remove all org-creation-onboarding keys
+          const keys = Object.keys(localStorage).filter((key) => key.startsWith("org-creation-onboarding"));
+          keys.forEach((key) => localStorage.removeItem(key));
+        },
+      },
     }
   )
 );
@@ -139,7 +243,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
 
     // Admin on handover page should never touch the store
     // The DB query returns admin's own onboarding, not the one being handed over
-    if (isAdmin && path?.includes('/handover')) {
+    if (isAdmin && path?.includes("/handover")) {
       return;
     }
 
@@ -148,7 +252,6 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
 
     if (organizationOnboarding) {
-
       // Only sync from DB if we have an onboarding record (admin handover or resume flow)
       if (!window.isOrgOnboardingSynced) {
         window.isOrgOnboardingSynced = true;
