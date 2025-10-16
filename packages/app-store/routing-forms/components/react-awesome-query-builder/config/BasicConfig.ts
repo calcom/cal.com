@@ -212,7 +212,7 @@ const operators: Operators = {
     label: "All in",
     reversedOp: "multiselect_not_equals",
     // jsonLogic2: "all-in",
-    jsonLogic: (field: any, op: any, vals: any, ..._rest) => {
+    jsonLogic: (field: any, op: any, vals: any, ..._rest: any[]) => {
       return {
         // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
         all: [field, { in: [{ var: "" }, vals] }],
