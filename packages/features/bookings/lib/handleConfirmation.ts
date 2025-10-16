@@ -9,12 +9,12 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -55,11 +55,19 @@ export async function handleConfirmation(args: {
       title: string;
       team?: {
         parentId: number | null;
+        hideBranding: boolean | null;
+        parent: {
+          hideBranding: boolean | null;
+        } | null;
       } | null;
       teamId?: number | null;
       parentId?: number | null;
       parent?: {
         teamId: number | null;
+      } | null;
+      owner?: {
+        id: number;
+        hideBranding: boolean | null;
       } | null;
       workflows?: {
         workflow: Workflow;
@@ -70,6 +78,10 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     userId: number | null;
     location: string | null;
+    user?: {
+      id: number;
+      hideBranding: boolean | null;
+    } | null;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
@@ -108,14 +120,21 @@ export async function handleConfirmation(args: {
 
   const eventTypeId = eventType?.id ?? booking.eventTypeId ?? null;
 
+  // Use existing data from booking - no additional queries needed!
   let hideBranding = false;
 
-  if (eventTypeId) {
-    const brandingService = new BrandingApplicationService(prisma);
-    hideBranding = await brandingService.computeHideBranding({
+  if (!eventTypeId) {
+    log.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
+      bookingId: booking.id,
+      userId: booking.userId,
+    });
+    hideBranding = false;
+  } else {
+    hideBranding = await shouldHideBrandingForEvent({
       eventTypeId,
+      team: booking.eventType?.team ?? null,
+      owner: booking.user ?? null,
       organizationId: orgId ?? null,
-      ownerIdFallback: booking.userId ?? null,
     });
   }
 

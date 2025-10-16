@@ -4,10 +4,9 @@ import { uuid } from "short-uuid";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
-import type { TeamBrandingContext } from "@calcom/lib/branding/types";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -137,40 +136,22 @@ const combineTwoSeatedBookings = async (
     : calendarResult?.updatedEvent?.iCalUID || undefined;
 
   if (noEmail !== true && isConfirmedByDefault) {
-    const teamForBranding = eventType.team?.id
-      ? await prisma.team.findUnique({
-          where: { id: eventType.team.id },
-          select: {
-            id: true,
-            hideBranding: true,
-            parentId: true,
-            parent: {
-              select: {
-                hideBranding: true,
-              },
-            },
-          },
-        })
-      : null;
-
-    const brandingService = new BrandingApplicationService(prisma);
-    const hideBranding = await brandingService.computeHideBranding({
+    // Use pre-fetched branding data from eventType
+    const hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: eventType.id,
-      teamContext: (teamForBranding as TeamBrandingContext) ?? null,
+      team: eventType.team ?? null,
       owner: organizerUser ?? null,
-      ownerIdFallback: organizerUser?.id ?? null,
+      organizationId: eventType.team?.parentId ?? null,
     });
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
-      (
-        {
-          ...copyEvent,
-          additionalNotes,
-          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
-          hideBranding,
-        } as any
-      ),
+      {
+        ...copyEvent,
+        additionalNotes,
+        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
+        hideBranding,
+      } as any,
       eventType.metadata
     );
   }

@@ -25,8 +25,7 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
-import type { TeamBrandingContext } from "@calcom/lib/branding/types";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -343,12 +342,11 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
-  const brandingService = new BrandingApplicationService(prisma);
-  const hideBranding = await brandingService.computeHideBranding({
+  const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType.id,
-    teamContext: (teamForBranding as TeamBrandingContext) ?? null,
-    owner: { id: organizer.id, hideBranding: null },
-    organizationId: organizationIdForBranding,
+    team: eventType.team ?? null,
+    owner: organizer,
+    organizationId: orgId ?? null,
   });
   (evt as any).hideBranding = hideBranding;
 

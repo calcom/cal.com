@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { handleConfirmation } from "../lib/handleConfirmation";
+
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import type { PrismaClient } from "@calcom/prisma";
 
-// Mock the BrandingApplicationService
-vi.mock("@calcom/lib/branding/BrandingApplicationService", () => ({
-  BrandingApplicationService: vi.fn().mockImplementation(() => ({
-    computeHideBranding: vi.fn().mockResolvedValue(true),
-  })),
+import { handleConfirmation } from "../lib/handleConfirmation";
+
+// Mock the shouldHideBrandingForEvent function
+vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
+  shouldHideBrandingForEvent: vi.fn().mockResolvedValue(true),
 }));
 
 // Mock other dependencies
@@ -46,7 +47,7 @@ describe("handleConfirmation Integration", () => {
 
   it("should include hideBranding in email calls", async () => {
     const { sendScheduledEmailsAndSMS } = await import("@calcom/emails");
-    
+
     const mockBooking = {
       id: 1,
       userId: 1,
@@ -88,14 +89,11 @@ describe("handleConfirmation Integration", () => {
   });
 
   it("should handle branding computation errors gracefully", async () => {
-    const { BrandingApplicationService } = await import("@calcom/lib/branding/BrandingApplicationService");
-    const mockService = new BrandingApplicationService(mockPrisma);
-    
-    // Mock service to return false on error
-    vi.mocked(mockService.computeHideBranding).mockResolvedValue(false);
+    // Mock shouldHideBrandingForEvent to return false on error
+    vi.mocked(shouldHideBrandingForEvent).mockResolvedValue(false);
 
     const { sendScheduledEmailsAndSMS } = await import("@calcom/emails");
-    
+
     const mockBooking = {
       id: 1,
       userId: 1,

@@ -9,7 +9,10 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -18,17 +21,14 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import { HttpError } from "@calcom/lib/http-error";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
@@ -119,7 +119,12 @@ async function handler(input: CancelBookingInput) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
-  if (!platformClientId && !cancellationReason?.trim() && isCancellationUserHost && !skipCancellationReasonValidation) {
+  if (
+    !platformClientId &&
+    !cancellationReason?.trim() &&
+    isCancellationUserHost &&
+    !skipCancellationReasonValidation
+  ) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
@@ -241,42 +246,27 @@ async function handler(input: CancelBookingInput) {
     bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
   );
 
-  const userOrganizationId = !bookingToDelete.eventType?.team
-    ? (
-        await prisma.profile.findFirst({
-          where: {
-            userId: bookingToDelete.userId,
-          },
-          select: {
-            organizationId: true,
-          },
-        })
-      )?.organizationId
-    : null;
-
+  // Use existing data from bookingToDelete - no additional queries needed!
   let hideBranding = false;
-  
-  if (bookingToDelete.eventTypeId) {
-    const brandingService = new BrandingApplicationService(prisma);
-    hideBranding = await brandingService.computeHideBranding({
+
+  if (!bookingToDelete.eventTypeId) {
+    log.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
+      bookingId: bookingToDelete.id,
+      userId: bookingToDelete.userId,
+    });
+    hideBranding = false;
+  } else {
+    hideBranding = await shouldHideBrandingForEvent({
       eventTypeId: bookingToDelete.eventTypeId,
-      teamContext: bookingToDelete.eventType?.team ?? null,
+      team: bookingToDelete.eventType?.team ?? null,
       owner: bookingToDelete.user ?? null,
-      organizationId: bookingToDelete.eventType?.team?.parentId ?? userOrganizationId ?? null,
-      ownerIdFallback: bookingToDelete.userId,
+      organizationId: bookingToDelete.eventType?.team?.parentId ?? null,
     });
   }
 
-  log.debug("Branding configuration", {
+  log.debug("Computed hideBranding", {
     hideBranding,
     eventTypeId: bookingToDelete.eventTypeId,
-    teamHideBranding: bookingToDelete.eventType?.team?.hideBranding,
-    teamParentHideBranding: bookingToDelete.eventType?.team?.parent?.hideBranding,
-    ownerHideBranding: bookingToDelete.user?.hideBranding,
-    teamParentId: bookingToDelete.eventType?.team?.parentId,
-    userOrganizationId,
-    finalOrganizationId: bookingToDelete.eventType?.team?.parentId ?? userOrganizationId,
-    isTeamEvent: !!bookingToDelete.eventType?.team,
   });
 
   const evt: CalendarEvent = {
@@ -331,7 +321,7 @@ async function handler(input: CancelBookingInput) {
     iCalUID: bookingToDelete.iCalUID,
     iCalSequence: bookingToDelete.iCalSequence + 1,
     platformClientId,
-    hideBranding: hideBranding ?? false,
+    hideBranding,
     platformRescheduleUrl,
     platformCancelUrl,
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,

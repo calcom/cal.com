@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -23,35 +23,12 @@ const attendeeRescheduleSeatedBooking = async (
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
   const { organizerUser } = rescheduleSeatedBookingObject;
 
-  type TeamForBranding = {
-    id: number;
-    hideBranding: boolean | null;
-    parentId: number | null;
-    parent: { hideBranding: boolean | null } | null;
-  };
-
-  const teamForBranding: TeamForBranding | null = eventType.team?.id
-    ? await prisma.team.findUnique({
-        where: { id: eventType.team.id },
-        select: {
-          id: true,
-          hideBranding: true,
-          parentId: true,
-          parent: {
-            select: {
-              hideBranding: true,
-            },
-          },
-        },
-      })
-    : null;
-
-  const brandingService = new BrandingApplicationService(prisma);
-  const hideBranding = await brandingService.computeHideBranding({
+  // Use pre-fetched branding data from eventType
+  const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType.id,
-    teamContext: teamForBranding ?? null,
+    team: eventType.team ?? null,
     owner: organizerUser ?? null,
-    ownerIdFallback: organizerUser?.id ?? null,
+    organizationId: eventType.team?.parentId ?? null,
   });
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
@@ -84,7 +61,11 @@ const attendeeRescheduleSeatedBooking = async (
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
-    await sendRescheduledSeatEmailAndSMS({ ...evt, hideBranding }, seatAttendee as Person, eventType.metadata);
+    await sendRescheduledSeatEmailAndSMS(
+      { ...evt, hideBranding },
+      seatAttendee as Person,
+      eventType.metadata
+    );
 
     return null;
   }
@@ -126,7 +107,11 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  await sendRescheduledSeatEmailAndSMS({ ...copyEvent, hideBranding }, seatAttendee as Person, eventType.metadata);
+  await sendRescheduledSeatEmailAndSMS(
+    { ...copyEvent, hideBranding },
+    seatAttendee as Person,
+    eventType.metadata
+  );
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });

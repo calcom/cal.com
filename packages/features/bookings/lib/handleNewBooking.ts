@@ -1,6 +1,6 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -43,6 +43,8 @@ import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -126,7 +128,6 @@ import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validate
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
 import type { IBookingService } from "./interfaces/IBookingService";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -1301,11 +1302,10 @@ async function handler(
   });
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
-  
-  const brandingService = new BrandingApplicationService(prisma);
-  const hideBranding = await brandingService.computeHideBranding({
+
+  const hideBranding = await shouldHideBrandingForEvent({
     eventTypeId: eventType.id,
-    teamContext: eventType.team ?? null,
+    team: eventType.team ?? null,
     owner: organizerUser ?? null,
     organizationId: organizerOrganizationId ?? null,
   });

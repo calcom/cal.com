@@ -7,13 +7,13 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -73,7 +73,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       eventType: {
         select: {
           id: true,
-          owner: true,
+          owner: {
+            select: {
+              id: true,
+              hideBranding: true,
+            },
+          },
           teamId: true,
           recurringEvent: true,
           title: true,
@@ -96,6 +101,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
             },
           },
           workflows: {
@@ -126,6 +137,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          hideBranding: true,
         },
       },
       id: true,
@@ -358,12 +370,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     const eventTypeIdForBranding = booking.eventTypeId ?? null;
     let hideBranding = false;
 
-    if (eventTypeIdForBranding) {
-      const brandingService = new BrandingApplicationService(prisma);
-      hideBranding = await brandingService.computeHideBranding({
+    if (!eventTypeIdForBranding) {
+      console.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
+        bookingId: booking.id,
+        userId: booking.userId,
+      });
+      hideBranding = false;
+    } else {
+      hideBranding = await shouldHideBrandingForEvent({
         eventTypeId: eventTypeIdForBranding,
+        team: booking.eventType?.team ?? null,
+        owner: booking.user ?? null,
         organizationId: orgId ?? null,
-        ownerIdFallback: booking.userId ?? null,
       });
     }
 

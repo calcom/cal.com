@@ -3,9 +3,8 @@ import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { BrandingApplicationService } from "@calcom/lib/branding/BrandingApplicationService";
-import type { TeamBrandingContext } from "@calcom/lib/branding/types";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -35,13 +34,42 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     },
     include: {
       attendees: true,
-      eventType: true,
+      eventType: {
+        include: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+              parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
+          owner: {
+            select: {
+              id: true,
+              hideBranding: true,
+            },
+          },
+        },
+      },
       destinationCalendar: true,
       references: true,
       user: {
-        include: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          timeZone: true,
+          timeFormat: true,
+          name: true,
           destinationCalendar: true,
           credentials: true,
+          hideBranding: true,
         },
       },
     },
@@ -213,11 +241,18 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   try {
     const eventTypeId = booking.eventTypeId;
     let hideBranding = false;
-    if (eventTypeId) {
-      const brandingService = new BrandingApplicationService(prisma);
-      hideBranding = await brandingService.computeHideBranding({
+    if (!eventTypeId) {
+      console.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
+        bookingId: booking.id,
+        userId: booking.userId,
+      });
+      hideBranding = false;
+    } else {
+      hideBranding = await shouldHideBrandingForEvent({
         eventTypeId,
-        ownerIdFallback: booking.userId ?? null,
+        team: booking.eventType?.team ?? null,
+        owner: booking.user ?? null,
+        organizationId: null, // Will be fetched by the function if needed
       });
     }
 

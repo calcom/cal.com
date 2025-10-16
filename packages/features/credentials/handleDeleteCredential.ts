@@ -11,12 +11,12 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deletePayment } from "@calcom/features/bookings/lib/payment/deletePayment";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { buildNonDelegationCredential } from "@calcom/lib/delegationCredential";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
@@ -326,14 +326,14 @@ const handleDeleteCredential = async ({
 
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
-            
+
             const hideBranding = await shouldHideBrandingForEvent({
               eventTypeId: booking.eventTypeId ?? 0,
               team: booking.eventType?.team ?? null,
               owner: booking.user ?? null,
               organizationId: null,
             });
-            
+
             await sendCancelledEmailsAndSMS(
               {
                 type: booking?.eventType?.title as string,

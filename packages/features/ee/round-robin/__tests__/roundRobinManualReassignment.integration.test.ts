@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { roundRobinManualReassignment } from "../roundRobinManualReassignment";
+
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import type { PrismaClient } from "@calcom/prisma";
 
-// Mock the BrandingApplicationService
-vi.mock("@calcom/lib/branding/BrandingApplicationService", () => ({
-  BrandingApplicationService: vi.fn().mockImplementation(() => ({
-    computeHideBranding: vi.fn().mockResolvedValue(true),
-  })),
+import { roundRobinManualReassignment } from "../roundRobinManualReassignment";
+
+// Mock the shouldHideBrandingForEvent function
+vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
+  shouldHideBrandingForEvent: vi.fn().mockResolvedValue(true),
 }));
 
 // Mock other dependencies
@@ -53,12 +54,12 @@ describe("roundRobinManualReassignment Integration", () => {
   });
 
   it("should include hideBranding in round-robin email calls", async () => {
-    const { 
+    const {
       sendRoundRobinScheduledEmailsAndSMS,
       sendRoundRobinReassignedEmailsAndSMS,
-      sendRoundRobinUpdatedEmailsAndSMS 
+      sendRoundRobinUpdatedEmailsAndSMS,
     } = await import("@calcom/emails");
-    
+
     await roundRobinManualReassignment({
       bookingId: 1,
       newUserId: 2,
@@ -95,18 +96,15 @@ describe("roundRobinManualReassignment Integration", () => {
   });
 
   it("should handle branding computation errors gracefully", async () => {
-    const { BrandingApplicationService } = await import("@calcom/lib/branding/BrandingApplicationService");
-    const mockService = new BrandingApplicationService(mockPrisma);
-    
-    // Mock service to return false on error
-    vi.mocked(mockService.computeHideBranding).mockResolvedValue(false);
+    // Mock shouldHideBrandingForEvent to return false on error
+    vi.mocked(shouldHideBrandingForEvent).mockResolvedValue(false);
 
-    const { 
+    const {
       sendRoundRobinScheduledEmailsAndSMS,
       sendRoundRobinReassignedEmailsAndSMS,
-      sendRoundRobinUpdatedEmailsAndSMS 
+      sendRoundRobinUpdatedEmailsAndSMS,
     } = await import("@calcom/emails");
-    
+
     await roundRobinManualReassignment({
       bookingId: 1,
       newUserId: 2,

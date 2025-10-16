@@ -5,15 +5,14 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { sendOrganizerRequestReminderEmail, withHideBranding } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { shouldHideBrandingForEvent } from "@calcom/lib/hideBranding";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus, ReminderType } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 
 async function postHandler(request: NextRequest) {
   const apiKey = request.headers.get("authorization") || request.nextUrl.searchParams.get("apiKey");
@@ -72,6 +71,7 @@ async function postHandler(request: NextRequest) {
             team: {
               select: {
                 id: true,
+                parentId: true,
                 hideBranding: true,
                 parent: {
                   select: {
@@ -131,25 +131,13 @@ async function postHandler(request: NextRequest) {
 
       const attendeesList = await Promise.all(attendeesListPromises);
       const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
-      
-      const userOrganizationId = !booking.eventType?.team && booking.user
-        ? (
-            await prisma.profile.findFirst({
-              where: {
-                userId: booking.user.id,
-              },
-              select: {
-                organizationId: true,
-              },
-            })
-          )?.organizationId
-        : null;
 
+      // Use pre-fetched branding data from booking query
       const hideBranding = await shouldHideBrandingForEvent({
         eventTypeId: booking.eventType?.id ?? 0,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,
-        organizationId: userOrganizationId ?? null,
+        organizationId: booking.eventType?.team?.parentId ?? null,
       });
 
       const evt: CalendarEvent = {
@@ -178,7 +166,10 @@ async function postHandler(request: NextRequest) {
         hideBranding,
       };
 
-      await sendOrganizerRequestReminderEmail(withHideBranding(evt), booking?.eventType?.metadata as EventTypeMetadata);
+      await sendOrganizerRequestReminderEmail(
+        withHideBranding(evt),
+        booking?.eventType?.metadata as EventTypeMetadata
+      );
 
       await prisma.reminderMail.create({
         data: {
