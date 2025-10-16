@@ -1,7 +1,7 @@
 import { BaseEmailHtml } from "../components";
 
-type TeamSubscriptionPaymentFailedEmailProps = {
-  teamName: string;
+type SubscriptionPaymentFailedEmailProps = {
+  entityName: string;
   billingPortalUrl: string;
   supportEmail: string;
   language: {
@@ -9,14 +9,14 @@ type TeamSubscriptionPaymentFailedEmailProps = {
   };
 };
 
-export const TeamSubscriptionPaymentFailedEmail = (props: TeamSubscriptionPaymentFailedEmailProps) => {
+export const SubscriptionPaymentFailedEmail = (props: SubscriptionPaymentFailedEmailProps) => {
   const t = props.language.translate;
 
   return (
     <BaseEmailHtml
       headerType="xCircle"
-      subject="team_subscription_payment_failed_subject"
-      title={t("team_subscription_payment_failed_title")}
+      subject="subscription_payment_failed_subject"
+      title={t("subscription_payment_failed_title")}
       callToAction={
         props.billingPortalUrl
           ? {
@@ -27,8 +27,8 @@ export const TeamSubscriptionPaymentFailedEmail = (props: TeamSubscriptionPaymen
       }
       subtitle={
         <>
-          {t("team_subscription_payment_failed_description", {
-            teamName: props.teamName,
+          {t("subscription_payment_failed_description", {
+            entityName: props.entityName,
           })}
         </>
       }>
@@ -37,7 +37,7 @@ export const TeamSubscriptionPaymentFailedEmail = (props: TeamSubscriptionPaymen
   );
 };
 
-function PaymentFailedInformation(props: TeamSubscriptionPaymentFailedEmailProps) {
+function PaymentFailedInformation(props: SubscriptionPaymentFailedEmailProps) {
   const t = props.language.translate;
 
   return (
@@ -53,7 +53,7 @@ function PaymentFailedInformation(props: TeamSubscriptionPaymentFailedEmailProps
               textAlign: "center",
               color: "#494949",
             }}>
-            {t("team_subscription_payment_failed_next_steps")}
+            {t("subscription_payment_failed_next_steps")}
           </div>
         </td>
       </tr>
@@ -68,7 +68,7 @@ function PaymentFailedInformation(props: TeamSubscriptionPaymentFailedEmailProps
               textAlign: "center",
               color: "#666666",
             }}>
-            {t("team_subscription_payment_failed_contact_support", {
+            {t("subscription_payment_failed_contact_support", {
               supportEmail: props.supportEmail,
             })}
           </div>

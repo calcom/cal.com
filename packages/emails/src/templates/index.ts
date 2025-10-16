@@ -43,4 +43,4 @@ export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
 export { OrganizerAddGuestsEmail } from "./OrganizerAddGuestsEmail";
 export { AttendeeAddGuestsEmail } from "./AttendeeAddGuestsEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";
-export { TeamSubscriptionPaymentFailedEmail } from "./TeamSubscriptionPaymentFailedEmail";
+export { SubscriptionPaymentFailedEmail } from "./SubscriptionPaymentFailedEmail";
