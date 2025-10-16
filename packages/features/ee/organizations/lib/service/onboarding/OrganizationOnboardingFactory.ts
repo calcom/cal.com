@@ -10,8 +10,8 @@ import type { OnboardingUser } from "./types";
 const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
 
 /**
- * Billing is disabled (self-hosted flow) when:
- * - IS_TEAM_BILLING_ENABLED=false AND user is ADMIN
+ * Factory that selects the appropriate onboarding service based on configuration:
+ * - Self-hosted flow (billing disabled) when: IS_TEAM_BILLING_ENABLED=false
  * - Exception: E2E tests always use self-hosted flow
  * Otherwise, billing is enabled (Stripe flow).
  */
