@@ -55,7 +55,7 @@ export function CellHighlightContainer({ children }: { children: React.ReactNode
         {children}
 
         <m.div
-          className="border-subtle opcaity-0 pointer-events-none absolute left-0 top-0 h-full rounded-lg border-2"
+          className="border-default border-emphasis opcacity-0 pointer-events-none absolute left-0 top-0 h-full rounded-lg border-2"
           animate={{ x: [null, x], opacity: isAnimating || isHover ? 1 : 0.1 }}
           style={{ y, height, width: DAY_CELL_WIDTH }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}

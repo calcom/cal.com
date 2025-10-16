@@ -340,54 +340,52 @@ export class InsightsBookingService {
     options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
     {
-      /**
-    const usersFromTeam = await this.prisma.calIdMembership.findMany({
-      where: {
-        calIdTeamId: { in: [options.teamId] },
-        acceptedInvitation: true,
-      },
-      select: { userId: true },
-    });
+      // const usersFromTeam = await this.prisma.calIdMembership.findMany({
+      //   where: {
+      //     calIdTeamId: { in: [options.teamId] },
+      //     acceptedInvitation: true,
+      //   },
+      //   select: { userId: true },
+      // });
 
-    const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+      // const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
 
-    const conditions: Prisma.Sql[] = [
-      Prisma.sql`("calIdTeamId" = ${options.teamId}) AND ("isTeamBooking" = true)`,
-    ];
+      const conditions: Prisma.Sql[] = [
+        Prisma.sql`("calIdTeamId" = ${options.teamId}) AND ("isTeamBooking" = true)`,
+      ];
 
-    if (userIdsFromTeam.length > 0) {
-      conditions.push(Prisma.sql`("userId" = ANY(${userIdsFromTeam})) AND ("isTeamBooking" = false)`);
+      // if (userIdsFromTeam.length > 0) {
+      //   conditions.push(Prisma.sql`("userId" = ANY(${userIdsFromTeam})) AND ("isTeamBooking" = false)`);
+      // }
+
+      return conditions.reduce((acc, condition, index) => {
+        if (index === 0) return condition;
+        return Prisma.sql`(${acc}) OR (${condition})`;
+      });
     }
+    // // Get all event types belonging to this team
+    // const teamEventTypes = await this.prisma.eventType.findMany({
+    //   where: {
+    //     calIdTeamId: options.teamId,
+    //   },
+    //   select: {
+    //     id: true,
+    //   },
+    // });
 
-    return conditions.reduce((acc, condition, index) => {
-      if (index === 0) return condition;
-      return Prisma.sql`(${acc}) OR (${condition})`;
-    });  
-    */
-    }
-    // Get all event types belonging to this team
-    const teamEventTypes = await this.prisma.eventType.findMany({
-      where: {
-        calIdTeamId: options.teamId,
-      },
-      select: {
-        id: true,
-      },
-    });
+    // const eventTypeIds = teamEventTypes.map((et) => et.id);
 
-    const eventTypeIds = teamEventTypes.map((et) => et.id);
+    // if (eventTypeIds.length === 0) {
+    //   return NOTHING_CONDITION;
+    // }
 
-    if (eventTypeIds.length === 0) {
-      return NOTHING_CONDITION;
-    }
-
-    // Filter bookings by these event type IDs
-    // Include both direct eventTypeId matches and child event types (eventParentId)
-    return Prisma.sql`(
-      ("eventTypeId" = ANY(${eventTypeIds})) 
-      OR 
-      ("eventParentId" = ANY(${eventTypeIds}))
-    )`;
+    // // Filter bookings by these event type IDs
+    // // Include both direct eventTypeId matches and child event types (eventParentId)
+    // return Prisma.sql`(
+    //   ("eventTypeId" = ANY(${eventTypeIds}))
+    //   OR
+    //   ("eventParentId" = ANY(${eventTypeIds}))
+    // )`;
 
     //return Prisma.sql`("calIdTeamId" = ${options.teamId}) AND ("isTeamBooking" = true)`;
 

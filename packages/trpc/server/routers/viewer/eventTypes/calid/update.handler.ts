@@ -85,7 +85,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     multiplePrivateLinks,
     // Extract this from the input so it doesn't get saved in the db
     // eslint-disable-next-line
-      userId,
+    userId,
     bookingFields,
     offsetStart,
     secondaryEmailId,
@@ -497,7 +497,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   for (const appKey in apps) {
     const app = apps[appKey as keyof typeof appDataSchemas];
     // There should only be one enabled payment app in the metadata
-    if (app.enabled && app.price && app.currency) {
+    if (app.enabled && app.price && app.currency && app.appCategories.includes("payment")) {
       data.price = app.price;
       data.currency = app.currency;
       break;

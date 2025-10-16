@@ -1765,6 +1765,7 @@ model BookingDenormalized {
   rescheduled    Boolean?
   userId         Int?
   teamId         Int?
+  calIdTeamId    Int?
   eventLength    Int?
   eventParentId  Int?
   userEmail      String?
@@ -1780,10 +1781,12 @@ model BookingDenormalized {
   @@index([eventTypeId])
   @@index([eventParentId])
   @@index([teamId])
+  @@index([calIdTeamId])
   @@index([startTime])
   @@index([endTime])
   @@index([status])
   @@index([teamId, isTeamBooking])
+  @@index([calIdTeamId, isTeamBooking])
   @@index([userId, isTeamBooking])
 }
 

@@ -152,10 +152,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
   // Get verified numbers and emails
   let { data: verifiedNumbersData } = trpc.viewer.workflows.calid_getVerifiedNumbers.useQuery(
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    workflowData?.calIdTeamId ? { calIdTeamId: workflowData?.calIdTeamId } : {},
-    {
-      enabled: !!workflowData?.calIdTeamId,
-    }
+    workflowData?.calIdTeamId ? { calIdTeamId: workflowData?.calIdTeamId } : {}
+    // { enabled: !!workflowData?.calIdTeamId, }
   );
 
   verifiedNumbersData ??= [];
@@ -166,6 +164,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
           calIdTeamId: workflowData?.calIdTeamId,
         }
       : {}
+    // { enabled: !!workflowData?.calIdTeamId }
   );
 
   verifiedEmailsData ??= [];
