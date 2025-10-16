@@ -6,7 +6,7 @@ import { CreateTeamRoleOutput } from "@/modules/organizations/teams/roles/output
 import { DeleteTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/delete-team-role.output";
 import { GetAllTeamRolesOutput } from "@/modules/organizations/teams/roles/outputs/get-all-team-roles.output";
 import { GetTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/get-team-role.output";
-import { UpdateRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-team-role.output";
+import { UpdateTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-team-role.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -343,7 +343,7 @@ describe("Organizations Roles Endpoints", () => {
           .send(updateRoleInput)
           .expect(200)
           .then((response) => {
-            const responseBody: UpdateRoleOutput = response.body;
+            const responseBody: UpdateTeamRoleOutput = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data.id).toEqual(createdRoleId);
             expect(responseBody.data.name).toEqual(updateRoleInput.name);
