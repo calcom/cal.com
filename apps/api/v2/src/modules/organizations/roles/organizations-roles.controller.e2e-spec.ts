@@ -316,7 +316,7 @@ describe("Organizations Roles Endpoints", () => {
           .send(createRoleInput);
         expect(response.status).toBe(403);
         expect(response.body.error.message).toBe(
-          `PbacGuard - user with id=${userWithNoRole.id} does not have the minimum required permissions=role.create within organization with id=${pbacEnabledOrganization.id}.`
+          `RolesGuard - user with id=${userWithNoRole.id} does not have the minimum required role=ORG_ADMIN within organization with id=${pbacEnabledOrganization.id}.`
         );
       });
 
@@ -332,7 +332,7 @@ describe("Organizations Roles Endpoints", () => {
           .send(createRoleInput);
         expect(response.status).toBe(403);
         expect(response.body.error.message).toBe(
-          `PbacGuard - user with id=${pbacOrgUserWithoutRolePermission.id} does not have the minimum required permissions=role.create within organization with id=${pbacEnabledOrganization.id}.`
+          `RolesGuard - user with id=${pbacOrgUserWithoutRolePermission.id} does not have the minimum required role=ORG_ADMIN within organization with id=${pbacEnabledOrganization.id}.`
         );
       });
 

@@ -59,7 +59,8 @@ export class PbacGuard implements CanActivate {
     );
 
     if (!hasRequiredPermissions) {
-      this.throwForbiddenError(user.id, teamId, orgId, requiredPermissions);
+      request.pbacAuthorizedRequest = false;
+      return true;
     }
 
     request.pbacAuthorizedRequest = true;
