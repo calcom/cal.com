@@ -25,9 +25,9 @@
 /packages/features/auth/lib/next-auth-options.ts @calcom/Foundation
 /packages/features/bookings/lib/**/* @calcom/Foundation
 /packages/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability.ts @calcom/Foundation
-/packages/lib/getUserAvailability.ts @calcom/Foundation
-/packages/lib/server/getLuckyUser.ts @calcom/Foundation
-/packages/lib/slots.ts @calcom/Foundation
+/packages/features/availability/lib/getUserAvailability.ts @calcom/Foundation
+/packages/features/bookings/lib/getLuckyUser.ts @calcom/Foundation
+/packages/features/schedules/lib/slots.ts @calcom/Foundation
 /packages/platform/atoms/**/*WebWrapper.tsx @calcom/Consumer
 /packages/platform/**/* @calcom/Platform @calcom/Foundation
 /packages/prisma/**/* @calcom/Foundation
