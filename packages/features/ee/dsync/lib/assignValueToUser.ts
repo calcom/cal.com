@@ -1,11 +1,15 @@
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
-
-import { PrismaAttributeOptionRepository } from "../../../server/repository/PrismaAttributeOptionRepository";
-import { PrismaAttributeRepository } from "../../../server/repository/PrismaAttributeRepository";
-import type { AttributeId, AttributeName, BulkAttributeAssigner, AttributeOptionAssignment } from "../types";
+import { PrismaAttributeOptionRepository } from "@calcom/lib/server/repository/PrismaAttributeOptionRepository";
+import { PrismaAttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import { findAssignmentsForMember } from "@calcom/lib/service/attribute/server/utils";
+import type {
+  AttributeId,
+  AttributeName,
+  BulkAttributeAssigner,
+  AttributeOptionAssignment,
+} from "@calcom/lib/service/attribute/types";
 import {
   doesSupportMultipleValues,
   isAssignmentForLockedAttribute,
@@ -13,8 +17,8 @@ import {
   isAssignmentSame,
   buildSlugFromValue,
   canSetValueBeyondOptions,
-} from "../utils";
-import { findAssignmentsForMember } from "./utils";
+} from "@calcom/lib/service/attribute/utils";
+import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["entity/attribute"] });
 
