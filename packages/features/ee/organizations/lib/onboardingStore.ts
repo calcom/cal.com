@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { persist, StorageValue } from "zustand/middleware";
 
 import { WEBAPP_URL, IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
+import { localStorage } from "@calcom/lib/webstorage";
 import { BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
@@ -101,9 +102,9 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           const currentState = get();
           // Save to the new key
           const newKey = getStorageKey(onboardingId);
-          window.localStorage.setItem(newKey, JSON.stringify({ state: currentState, version: 0 }));
+          localStorage.setItem(newKey, JSON.stringify({ state: currentState, version: 0 }));
           // Remove the old key
-          window.localStorage.removeItem("org-creation-onboarding");
+          localStorage.removeItem("org-creation-onboarding");
         }
         set({ onboardingId });
       },
@@ -129,9 +130,9 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           if (typeof window !== "undefined" && currentId !== newId) {
             // Remove old key if it exists
             if (currentId) {
-              window.localStorage.removeItem(getStorageKey(currentId));
+              localStorage.removeItem(getStorageKey(currentId));
             } else {
-              window.localStorage.removeItem("org-creation-onboarding");
+              localStorage.removeItem("org-creation-onboarding");
             }
 
             // Set new state which will be persisted with new key
@@ -140,7 +141,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
             // Immediately save to new key
             if (newId) {
               const newKey = getStorageKey(newId);
-              window.localStorage.setItem(newKey, JSON.stringify({ state, version: 0 }));
+              localStorage.setItem(newKey, JSON.stringify({ state, version: 0 }));
             }
           } else {
             set(state);
@@ -150,9 +151,9 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
           if (typeof window !== "undefined") {
             const currentId = get().onboardingId;
             if (currentId) {
-              window.localStorage.removeItem(getStorageKey(currentId));
+              localStorage.removeItem(getStorageKey(currentId));
             } else {
-              window.localStorage.removeItem("org-creation-onboarding");
+              localStorage.removeItem("org-creation-onboarding");
             }
           }
           set(initialState);
@@ -169,19 +170,16 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
         getItem: (name): StorageValue<OnboardingStoreState> | null => {
           if (typeof window === "undefined") return null;
 
-          // Try to find the most recent onboarding state
-          // First check if there's a state with onboardingId
           const keys = Object.keys(window.localStorage).filter((key) =>
             key.startsWith("org-creation-onboarding")
           );
 
           for (const key of keys) {
-            const item = window.localStorage.getItem(key);
+            const item = localStorage.getItem(key);
             if (item) {
               try {
                 const parsed = JSON.parse(item);
                 if (parsed.state?.onboardingId) {
-                  // Found a state with an onboardingId, use its key from now on
                   return item as unknown as StorageValue<OnboardingStoreState>;
                 }
               } catch (e) {
@@ -190,39 +188,35 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
             }
           }
 
-          // Fall back to default key
-          const fallbackItem = window.localStorage.getItem(name);
+          const fallbackItem = localStorage.getItem(name);
           return fallbackItem as unknown as StorageValue<OnboardingStoreState> | null;
         },
         setItem: (name, value) => {
           if (typeof window === "undefined") return;
 
+          const valueStr = typeof value === "string" ? value : JSON.stringify(value);
+
           try {
-            const valueStr = value as unknown as string;
             const parsed = JSON.parse(valueStr);
             const onboardingId = parsed.state?.onboardingId;
             const key = getStorageKey(onboardingId);
 
-            // Save with the appropriate key
-            window.localStorage.setItem(key, valueStr);
+            localStorage.setItem(key, valueStr);
 
-            // If this is a different key than the default, remove the default
             if (key !== name) {
-              window.localStorage.removeItem(name);
+              localStorage.removeItem(name);
             }
           } catch (e) {
-            // If parsing fails, just use the default key
-            window.localStorage.setItem(name, value as unknown as string);
+            localStorage.setItem(name, valueStr);
           }
         },
         removeItem: () => {
           if (typeof window === "undefined") return;
 
-          // Remove all org-creation-onboarding keys
           const keys = Object.keys(window.localStorage).filter((key) =>
             key.startsWith("org-creation-onboarding")
           );
-          keys.forEach((key) => window.localStorage.removeItem(key));
+          keys.forEach((key) => localStorage.removeItem(key));
         },
       },
     }
@@ -258,10 +252,13 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
 
     if (organizationOnboarding) {
-      // Only sync from DB if we have an onboarding record (admin handover or resume flow)
-      if (!window.isOrgOnboardingSynced) {
-        window.isOrgOnboardingSynced = true;
+      const currentOnboardingId = onboardingId;
+      const dbOnboardingId = organizationOnboarding.id;
 
+      // Only sync from DB if the onboardingId doesn't match or if we don't have one yet
+      const needsSync = currentOnboardingId !== dbOnboardingId;
+
+      if (needsSync) {
         // Admin creating for someone else - don't sync from DB, let them proceed to handover
         if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
           // Don't reset or sync - admin has just created this onboarding and should see handover page
@@ -281,6 +278,8 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
           logo: organizationOnboarding.logo,
           brandColor: organizationOnboarding.brandColor,
           bannerUrl: organizationOnboarding.bannerUrl,
+          invitedMembers: [],
+          teams: [],
         });
       }
     }
