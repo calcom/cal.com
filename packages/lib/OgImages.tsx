@@ -1,4 +1,3 @@
-import { createHash } from "crypto";
 import React from "react";
 
 import { CAL_URL, LOGO, WEBAPP_URL } from "./constants";
@@ -92,7 +91,7 @@ const OG_ASSETS = {
   },
 };
 
-const getOgImageVersion = (type: "meeting" | "app" | "generic") => {
+const getOgImageVersion = async (type: "meeting" | "app" | "generic") => {
   const style = OG_ASSETS.styles[type];
   const versionInputs = {
     layout: style.layout,
@@ -104,7 +103,14 @@ const getOgImageVersion = (type: "meeting" | "app" | "generic") => {
 
   const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
 
-  return createHash("md5").update(content).digest("hex").substring(0, 8);
+  // Use Web Crypto API instead of Node.js crypto for Edge Runtime compatibility
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  return hashHex.substring(0, 8);
 };
 
 /**
@@ -115,7 +121,11 @@ const getOgImageVersion = (type: "meeting" | "app" | "generic") => {
  * 4. Team event (round robin) http://localhost:3000/api/social/og/image?type=meeting&title=Round%20Robin%20Seeded%20Team%20Event&meetingProfileName=Seeded%20Team
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
-export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
+export const constructMeetingImage = async ({
+  title,
+  users = [],
+  profile,
+}: MeetingImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "meeting",
     title,
@@ -132,7 +142,7 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
   });
 
   // Use content-based versioning instead of environment variable
-  params.set("v", getOgImageVersion("meeting"));
+  params.set("v", await getOgImageVersion("meeting"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
@@ -141,7 +151,12 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
  * Test url:
  * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
  */
-export const constructAppImage = ({ name, slug, logoUrl, description }: AppImageProps): string => {
+export const constructAppImage = async ({
+  name,
+  slug,
+  logoUrl,
+  description,
+}: AppImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "app",
     name,
@@ -151,12 +166,12 @@ export const constructAppImage = ({ name, slug, logoUrl, description }: AppImage
   });
 
   // Use content-based versioning instead of environment variable
-  params.set("v", getOgImageVersion("app"));
+  params.set("v", await getOgImageVersion("app"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
-export const constructGenericImage = ({ title, description }: GenericImageProps) => {
+export const constructGenericImage = async ({ title, description }: GenericImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "generic",
     title,
@@ -164,7 +179,7 @@ export const constructGenericImage = ({ title, description }: GenericImageProps)
   });
 
   // Use content-based versioning instead of environment variable
-  params.set("v", getOgImageVersion("generic"));
+  params.set("v", await getOgImageVersion("generic"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
