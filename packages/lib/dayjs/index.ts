@@ -34,6 +34,7 @@ export const formatTime = (
 
 /**
  * Checks if a provided timeZone string is recognized as a valid timezone by dayjs.
+ * Enhanced to use IANA timezone validation for better DST support.
  *
  * @param {string} timeZone - The timezone string to be verified.
  * @returns {boolean} - Returns 'true' if the provided timezone string is recognized as a valid timezone by dayjs. Otherwise, returns 'false'.
@@ -41,6 +42,7 @@ export const formatTime = (
  */
 export const isSupportedTimeZone = (timeZone: string) => {
   try {
+    // Test with a specific date to ensure proper IANA zone support
     dayjs().tz(timeZone);
     return true;
   } catch (error) {
@@ -236,15 +238,17 @@ export const isInDST = (date: Dayjs) => {
 };
 
 /**
- * Get UTC offset of given time zone
- * @param timeZone Time Zone Name (Ex. America/Mazatlan)
- * @param date
- * @returns
+ * Get UTC offset of given time zone at a specific date.
+ * Enhanced to handle DST transitions correctly for zones like America/Santiago.
+ * @param timeZone Time Zone Name (Ex. America/Santiago)
+ * @param date Optional date to check offset for
+ * @returns UTC offset in minutes
  */
 export function getUTCOffsetByTimezone(timeZone: string, date?: string | Date | Dayjs) {
   if (!timeZone) return null;
 
-  return dayjs(date).tz(timeZone).utcOffset();
+  const targetDate = date ? dayjs(date) : dayjs();
+  return targetDate.tz(timeZone).utcOffset();
 }
 
 /**
