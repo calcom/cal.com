@@ -8,13 +8,13 @@ import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/que
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
-import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
@@ -470,6 +470,22 @@ export async function createMemberships({
   }
 }
 
+const createVerificationToken = async (identifier: string, teamId: number) => {
+  const token = randomBytes(32).toString("hex");
+  return prisma.verificationToken.create({
+    data: {
+      identifier,
+      token,
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
+      team: {
+        connect: {
+          id: teamId,
+        },
+      },
+    },
+  });
+};
+
 export async function sendSignupToOrganizationEmail({
   usernameOrEmail,
   team,
@@ -486,26 +502,13 @@ export async function sendSignupToOrganizationEmail({
   isOrg: boolean;
 }) {
   try {
-    const token: string = randomBytes(32).toString("hex");
-
-    await prisma.verificationToken.create({
-      data: {
-        identifier: usernameOrEmail,
-        token,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
-        team: {
-          connect: {
-            id: teamId,
-          },
-        },
-      },
-    });
+    const verificationToken = await createVerificationToken(usernameOrEmail, teamId);
     await sendTeamInviteEmail({
       language: translation,
       from: inviterName || `${team.name}'s admin`,
       to: usernameOrEmail,
       teamName: team.name,
-      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`,
+      joinLink: `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`,
       isCalcomMember: false,
       isOrg: isOrg,
       parentTeamName: team?.parent?.name,
@@ -712,22 +715,22 @@ export const sendExistingUserTeamInviteEmails = async ({
        * This only changes if the user is a CAL user and has not completed onboarding and has no password
        */
       if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
-        const token = randomBytes(32).toString("hex");
-        await prisma.verificationToken.create({
-          data: {
+        const verificationToken = await createVerificationToken(user.email, teamId);
+
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`;
+        inviteTeamOptions.isCalcomMember = false;
+      } else if (!isAutoJoin) {
+        let verificationToken = await prisma.verificationToken.findFirst({
+          where: {
             identifier: user.email,
-            token,
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
-            team: {
-              connect: {
-                id: teamId,
-              },
-            },
+            teamId: teamId,
           },
         });
 
-        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/getting-started`;
-        inviteTeamOptions.isCalcomMember = false;
+        if (!verificationToken) {
+          verificationToken = await createVerificationToken(user.email, teamId);
+        }
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
       }
 
       return sendTeamInviteEmail({

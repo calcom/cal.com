@@ -9,10 +9,12 @@ import type { TCreateInputSchema } from "./create.schema";
 
 type CreateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "timeZone" | "defaultScheduleId">;
   };
   input: TCreateInputSchema;
 };
+
+export type CreateScheduleHandlerReturn = Awaited<ReturnType<typeof createHandler>>;
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { user } = ctx;
