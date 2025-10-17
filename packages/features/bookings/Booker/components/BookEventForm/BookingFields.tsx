@@ -8,11 +8,10 @@ import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocati
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { SystemField } from "@calcom/lib/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
-
-import { SystemField } from "../../../lib/SystemField";
 
 type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
 export const BookingFields = ({

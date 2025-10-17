@@ -70,6 +70,19 @@ export const WORKFLOW_TRIGGER_TO_ENUM = {
   [BOOKING_PAID]: WorkflowTriggerEvents.BOOKING_PAID,
 } as const;
 
+export const ENUM_ROUTING_FORM_WORFLOW_TRIGGERS = [
+  WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED_NO_EVENT],
+  WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED],
+];
+
+export const ENUM_OFFSET_WORFLOW_TRIGGERS = [
+  WORKFLOW_TRIGGER_TO_ENUM[FORM_SUBMITTED_NO_EVENT],
+  WORKFLOW_TRIGGER_TO_ENUM[BEFORE_EVENT],
+  WORKFLOW_TRIGGER_TO_ENUM[AFTER_EVENT],
+  WORKFLOW_TRIGGER_TO_ENUM[AFTER_GUESTS_CAL_VIDEO_NO_SHOW],
+  WORKFLOW_TRIGGER_TO_ENUM[AFTER_HOSTS_CAL_VIDEO_NO_SHOW],
+];
+
 export const ENUM_TO_WORKFLOW_TRIGGER = {
   [WorkflowTriggerEvents.BEFORE_EVENT]: BEFORE_EVENT,
   [WorkflowTriggerEvents.EVENT_CANCELLED]: EVENT_CANCELLED,
@@ -276,3 +289,12 @@ export class OnFormSubmittedNoEventTriggerDto extends TriggerOffsetDTO {
   @IsIn([FORM_SUBMITTED_NO_EVENT])
   type: typeof FORM_SUBMITTED_NO_EVENT = FORM_SUBMITTED_NO_EVENT;
 }
+
+export const OffsetTriggerDTOInstances = [
+  OnFormSubmittedNoEventTriggerDto,
+  OnBeforeEventTriggerDto,
+  OnAfterEventTriggerDto,
+  OnAfterCalVideoGuestsNoShowTriggerDto,
+  OnAfterEventTriggerDto,
+];
+export type OffsetTriggerDTOInstancesType = InstanceType<(typeof OffsetTriggerDTOInstances)[number]>;
