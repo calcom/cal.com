@@ -8,6 +8,7 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 
 import type { ExtendedBookingCreateBody } from "../bookingCreateBodySchema";
 import type { RegularBookingService } from "../service/RegularBookingService";
+import type { Actor } from "../types/actor";
 
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
 
@@ -37,6 +38,12 @@ export type CreateBookingMeta = {
   hostname?: string;
   forcedSlug?: string;
   noEmail?: boolean;
+  /**
+   * The actor performing the booking action.
+   * Used for audit logging to track who created/modified the booking.
+   * Optional for backward compatibility - defaults to System actor if not provided.
+   */
+  actor?: Actor;
 } & PlatformParams;
 
 export type BookingHandlerInput = {

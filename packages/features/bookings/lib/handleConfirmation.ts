@@ -1,6 +1,9 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -11,9 +14,6 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -30,6 +30,8 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import type { Actor } from "./types/actor";
+import { logBookingAudit } from "./utils/auditLog";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -73,6 +75,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  actor?: Actor;
 }) {
   const {
     user,
@@ -84,6 +87,7 @@ export async function handleConfirmation(args: {
     paid,
     emailsEnabled = true,
     platformClientParams,
+    actor: _actor,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -110,8 +114,6 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
-
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
@@ -254,6 +256,21 @@ export async function handleConfirmation(args: {
 
     const updatedBookingsResult = await Promise.all(updateBookingsPromise);
     updatedBookings = updatedBookings.concat(updatedBookingsResult);
+
+    for (const updatedBooking of updatedBookingsResult) {
+      await logBookingAudit({
+        bookingId: updatedBooking.id,
+        actor: _actor,
+        type: "RECORD_UPDATED",
+        action: "ACCEPTED",
+        data: {
+          status: BookingStatus.ACCEPTED,
+          startTime: updatedBooking.startTime.toISOString(),
+          endTime: updatedBooking.endTime.toISOString(),
+          videoCallUrl: meetingUrl,
+        },
+      });
+    }
   } else {
     // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
     // Should perform update on booking (confirm) -> then trigger the rest handlers
@@ -314,6 +331,19 @@ export async function handleConfirmation(args: {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    await logBookingAudit({
+      bookingId: updatedBooking.id,
+      actor: _actor,
+      type: "RECORD_UPDATED",
+      action: "ACCEPTED",
+      data: {
+        status: BookingStatus.ACCEPTED,
+        startTime: updatedBooking.startTime.toISOString(),
+        endTime: updatedBooking.endTime.toISOString(),
+        videoCallUrl: meetingUrl,
+      },
+    });
   }
 
   const teamId = await getTeamIdFromEventType({

@@ -2,14 +2,15 @@ import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
+import { createUserActor, createSystemActor } from "@calcom/features/bookings/lib/types/actor";
 import { BotDetectionService } from "@calcom/features/bot-detection";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 
@@ -52,6 +53,12 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       userId: session?.user?.id || -1,
       hostname: req.headers.host || "",
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+      actor: session?.user
+        ? createUserActor(session.user.id, {
+            email: session.user.email,
+            name: session.user.name || undefined,
+          })
+        : createSystemActor({ automationName: "public-booking-page" }),
     },
   });
   // const booking = await createBookingThroughFactory();

@@ -7,10 +7,11 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -239,7 +240,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
-    team: !!booking.eventType?.team
+    team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
           id: booking.eventType.team.id,
@@ -308,6 +309,10 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       booking,
       emailsEnabled,
       platformClientParams,
+      actor: createUserActor(user.id, {
+        email: user.email,
+        name: user.username || undefined,
+      }),
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -326,7 +331,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     } else {
       // handle refunds
-      if (!!booking.payment.length) {
+      if (booking.payment.length) {
         await processPaymentRefund({
           booking: booking,
           teamId: booking.eventType?.teamId,
@@ -411,7 +416,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
   }
 
-  const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
+  const message = confirmed ? "Booking confirmed" : "Booking rejected";
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };
