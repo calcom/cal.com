@@ -205,7 +205,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     };
   }
 
-  protected isAdminCreatingForSelf(input: CreateOnboardingIntentInput): boolean {
+  protected isAdminCreatingForSelf(input: { orgOwnerEmail: string }): boolean {
     return this.user.role === UserPermissionRole.ADMIN && this.user.email === input.orgOwnerEmail;
   }
 

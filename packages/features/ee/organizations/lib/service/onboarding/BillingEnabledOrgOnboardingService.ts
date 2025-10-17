@@ -68,7 +68,11 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
     }
 
     // Check if admin is creating org for themselves - skip payment, create immediately
-    if (this.isAdminCreatingForSelf(input)) {
+    if (
+      this.isAdminCreatingForSelf({
+        orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+      })
+    ) {
       log.debug(
         "Admin creating org for self - skipping payment and creating organization immediately",
         safeStringify({ adminEmail: this.user.email, onboardingId })
@@ -147,7 +151,15 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
       })
     );
 
-    if (!IS_SELF_HOSTED && (!paymentDetails?.subscriptionId || !paymentDetails?.subscriptionItemId)) {
+    const isAdminForSelf = this.isAdminCreatingForSelf({
+      orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+    });
+
+    if (
+      !IS_SELF_HOSTED &&
+      !isAdminForSelf &&
+      (!paymentDetails?.subscriptionId || !paymentDetails?.subscriptionItemId)
+    ) {
       throw new Error("payment_subscription_id_and_payment_subscription_item_id_are_required");
     }
 
