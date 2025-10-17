@@ -101,7 +101,17 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       // Team actions
       setTeams: (teams) => set({ teams }),
 
-      reset: (state) => set(state ?? initialState),
+      reset: (state) => {
+        if (state) {
+          set(state);
+        } else {
+          // Clear the localStorage entry for this store
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("org-creation-onboarding");
+          }
+          set(initialState);
+        }
+      },
     }),
     {
       name: "org-creation-onboarding",
@@ -109,7 +119,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
   )
 );
 
-export const useOnboarding = (params?: { step?: "start" | "status" | null }) => {
+export const useOnboarding = () => {
   const session = useSession();
   const router = useRouter();
   const path = usePathname();
@@ -120,8 +130,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
     trpc.viewer.organizations.getOrganizationOnboarding.useQuery();
-  const { reset, onboardingId } = useOnboardingStore();
-  const step = params?.step ?? null;
+  const { reset } = useOnboardingStore();
   useEffect(() => {
     if (isLoadingOrgOnboarding) {
       return;
