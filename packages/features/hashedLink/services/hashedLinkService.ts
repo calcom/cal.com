@@ -1,7 +1,7 @@
 import {
   HashedLinkRepository,
   type HashedLinkInputType,
-} from "@calcom/features/hashedLink/repositories/HashedLinkRepository";
+} from "@calcom/features/hashedLink/repositories/hashedLinkRepository";
 import { MembershipService } from "@calcom/features/membership/services/membershipService";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
