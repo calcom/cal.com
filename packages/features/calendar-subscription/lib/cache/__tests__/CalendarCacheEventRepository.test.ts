@@ -239,9 +239,7 @@ describe("CalendarCacheEventRepository", () => {
 
       expect(mockPrismaClient.calendarCacheEvent.deleteMany).toHaveBeenCalledWith({
         where: {
-          end: {
-            lte: expect.any(Date),
-          },
+          OR: [{ end: { lte: expect.any(Date) } }, { start: { gte: expect.any(Date) } }],
         },
       });
     });
