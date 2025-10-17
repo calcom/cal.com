@@ -8998,6 +8998,65 @@
         "tags": ["Bookings"]
       }
     },
+    "/v2/bookings/{bookingUid}/guests": {
+      "post": {
+        "operationId": "BookingAttendeesController_2024_08_13_addAttendees",
+        "summary": "Add guests to an existing booking",
+        "description": "Add one or more guests to an existing booking.\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddGuestsInput_2024_08_13"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddGuestsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
     "/v2/calendars/{calendar}/event/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
@@ -27269,6 +27328,60 @@
             "items": {
               "$ref": "#/components/schemas/BookingReference"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "AddGuestsInput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "guests": {
+            "description": "Array of guest email addresses to add to the booking",
+            "example": ["john.doe@example.com", "jane.smith@example.com"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["guests"]
+      },
+      "AddGuestsOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/RecurringBookingOutput_2024_08_13"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/GetSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/GetRecurringSeatedBookingOutput_2024_08_13"
+                }
+              }
+            ],
+            "description": "Booking data, which can be either a BookingOutput object, a RecurringBookingOutput object, or an array of RecurringBookingOutput objects"
           }
         },
         "required": ["status", "data"]

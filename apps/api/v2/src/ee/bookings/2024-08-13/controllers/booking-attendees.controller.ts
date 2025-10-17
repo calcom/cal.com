@@ -1,5 +1,5 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
-import { AddAttendeesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendees.output";
+import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-guests.output";
 import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
@@ -12,7 +12,7 @@ import { Controller, Post, Logger, Body, UseGuards, Param, HttpCode, HttpStatus 
 import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 
 import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { AddAttendeesInput_2024_08_13 } from "@calcom/platform-types";
+import { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/bookings",
@@ -34,23 +34,23 @@ export class BookingAttendeesController_2024_08_13 {
 
   constructor(private readonly bookingAttendeesService: BookingAttendeesService_2024_08_13) {}
 
-  @Post("/:bookingUid/attendees")
+  @Post("/:bookingUid/guests")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Add attendees to an existing booking",
-    description: `Add one or more attendees to an existing booking.
+    summary: "Add guests to an existing booking",
+    description: `Add one or more guests to an existing booking.
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
   async addAttendees(
     @Param("bookingUid") bookingUid: string,
-    @Body() body: AddAttendeesInput_2024_08_13,
+    @Body() body: AddGuestsInput_2024_08_13,
     @GetUser() user: ApiAuthGuardUser
-  ): Promise<AddAttendeesOutput_2024_08_13> {
-    const booking = await this.bookingAttendeesService.addAttendees(bookingUid, body, user);
+  ): Promise<AddGuestsOutput_2024_08_13> {
+    const booking = await this.bookingAttendeesService.addGuests(bookingUid, body, user);
 
     return {
       status: SUCCESS_STATUS,
