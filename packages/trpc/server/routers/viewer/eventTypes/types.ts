@@ -56,6 +56,7 @@ const hostSchema = z.object({
   weight: z.number().min(0).optional().nullable(),
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
+  email: z.string().email().optional(),
 });
 
 const hostGroupSchema = z.object({
@@ -82,12 +83,10 @@ const BaseEventTypeUpdateInput = EventTypeSchema.extend({
   calVideoSettings: calVideoSettingsSchema,
   calAiPhoneScript: z.string(),
   customInputs: z.array(customInputSchema),
-  destinationCalendar: DestinationCalendarSchema
-    .pick({
-      integration: true,
-      externalId: true,
-    })
-    .nullable(),
+  destinationCalendar: DestinationCalendarSchema.pick({
+    integration: true,
+    externalId: true,
+  }).nullable(),
   users: z.array(stringOrNumber),
   children: z.array(childSchema),
   hosts: z.array(hostSchema),

@@ -8,13 +8,13 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
 import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
@@ -452,22 +452,100 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (teamId && hosts) {
-    // check if all hosts can be assigned (memberships that have accepted invite)
+    // Separate email invites from regular hosts
+    const emailInvites = hosts.filter((host) => host.email && host.userId === 0);
+    const regularHosts = hosts.filter((host) => !host.email || host.userId !== 0);
+
+    if (emailInvites.length > 0) {
+      const { inviteMembersWithNoInviterPermissionCheck } = await import(
+        "../../teams/inviteMember/inviteMember.handler"
+      );
+      const { MembershipRole, CreationSource } = await import("@calcom/prisma/enums");
+      const fullTeam = await ctx.prisma.team.findUnique({
+        where: { id: teamId },
+        include: { parent: true },
+      });
+
+      if (!fullTeam) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+      }
+
+      const invitations = emailInvites.map((invite) => ({
+        usernameOrEmail: invite.email!,
+        role: MembershipRole.MEMBER,
+      }));
+
+      try {
+        await inviteMembersWithNoInviterPermissionCheck({
+          inviterName: ctx.user.email,
+          team: fullTeam,
+          language: ctx.user.locale,
+          creationSource: CreationSource.WEBAPP,
+          orgSlug: fullTeam.parent?.slug ?? null,
+          invitations,
+        });
+      } catch (error) {
+        logger.error("Error inviting team members from event type assignment", error);
+      }
+
+      const invitedEmails = emailInvites.map((invite) => invite.email!);
+      const invitedUsers = await ctx.prisma.user.findMany({
+        where: {
+          email: {
+            in: invitedEmails,
+          },
+        },
+        select: {
+          id: true,
+          email: true,
+        },
+      });
+
+      // Map email invites to regular hosts using found user IDs
+      const emailHostsWithIds = emailInvites
+        .map((invite) => {
+          const user = invitedUsers.find((u) => u.email === invite.email);
+          if (user) {
+            return {
+              ...invite,
+              userId: user.id,
+            };
+          }
+          return null;
+        })
+        .filter((h): h is NonNullable<typeof h> => h !== null);
+      regularHosts.push(...emailHostsWithIds);
+    }
+
+    // check if all hosts can be assigned (memberships that have accepted or pending invite)
+    // we allow pending members to be added as hosts, but they won't be bookable until they accept
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
+    const pendingMemberIds = await ctx.prisma.membership
+      .findMany({
+        where: { teamId, accepted: false },
+        select: { userId: true },
+      })
+      .then((memberships) => memberships.map((m) => m.userId));
+
+    const allAllowedMemberIds = [...teamMemberIds, ...pendingMemberIds];
+
     // guard against missing IDs, this may mean a member has just been removed
     // or this request was forged.
     // we let this pass through on organization sub-teams
-    if (!hosts.every((host) => teamMemberIds.includes(host.userId)) && !eventType.team?.parentId) {
+    if (
+      !regularHosts.every((host) => allAllowedMemberIds.includes(host.userId)) &&
+      !eventType.team?.parentId
+    ) {
       throw new TRPCError({
         code: "FORBIDDEN",
       });
     }
 
     const oldHostsSet = new Set(eventType.hosts.map((oldHost) => oldHost.userId));
-    const newHostsSet = new Set(hosts.map((oldHost) => oldHost.userId));
+    const newHostsSet = new Set(regularHosts.map((oldHost) => oldHost.userId));
 
-    const existingHosts = hosts.filter((newHost) => oldHostsSet.has(newHost.userId));
-    const newHosts = hosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
+    const existingHosts = regularHosts.filter((newHost) => oldHostsSet.has(newHost.userId));
+    const newHosts = regularHosts.filter((newHost) => !oldHostsSet.has(newHost.userId));
     const removedHosts = eventType.hosts.filter((oldHost) => !newHostsSet.has(oldHost.userId));
 
     data.hosts = {
@@ -479,11 +557,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       create: newHosts.map((host) => {
         return {
-          ...host,
+          userId: host.userId,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2,
           weight: host.weight ?? 100,
           groupId: host.groupId,
+          scheduleId: host.scheduleId ?? null,
         };
       }),
       update: existingHosts.map((host) => ({
@@ -599,13 +678,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
         update: {
           ...aiPhoneCallConfig,
-          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
         },
         create: {
           ...aiPhoneCallConfig,
-          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
           eventTypeId: id,
         },
       });
