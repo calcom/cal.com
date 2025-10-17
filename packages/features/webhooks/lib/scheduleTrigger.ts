@@ -205,6 +205,7 @@ export async function listBookings(
         id: "desc",
       },
       select: {
+        uid: true,
         title: true,
         description: true,
         customInputs: true,

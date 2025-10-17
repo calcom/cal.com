@@ -86,7 +86,7 @@ describe("WatchlistService", () => {
       const mockEntry = {
         id: "456",
         type: WatchlistType.DOMAIN,
-        value: "@spam.com",
+        value: "spam.com",
         description: "Spam domain",
         action: WatchlistAction.BLOCK,
         isGlobal: true,
@@ -107,7 +107,7 @@ describe("WatchlistService", () => {
 
       expect(mockGlobalRepo.createEntry).toHaveBeenCalledWith({
         type: WatchlistType.DOMAIN,
-        value: "@spam.com", // Normalized with @ prefix
+        value: "spam.com", // Normalized without @ prefix
         description: "Spam domain",
         action: WatchlistAction.BLOCK,
         source: undefined,
@@ -172,7 +172,7 @@ describe("WatchlistService", () => {
       const mockEntry = {
         id: "free-1",
         type: WatchlistType.DOMAIN,
-        value: "@gmail.com",
+        value: "gmail.com",
         description: null,
         action: WatchlistAction.REPORT,
         isGlobal: true,
@@ -193,7 +193,7 @@ describe("WatchlistService", () => {
 
       expect(mockGlobalRepo.createEntry).toHaveBeenCalledWith({
         type: WatchlistType.DOMAIN,
-        value: "@gmail.com",
+        value: "gmail.com",
         description: undefined,
         action: WatchlistAction.REPORT,
         source: WatchlistSource.FREE_DOMAIN_POLICY,
@@ -326,7 +326,7 @@ describe("WatchlistService", () => {
         {
           id: "2",
           type: WatchlistType.DOMAIN,
-          value: "@competitor.com",
+          value: "competitor.com",
           description: null,
           action: WatchlistAction.BLOCK,
           isGlobal: false,
