@@ -1,11 +1,12 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsString, IsOptional } from "class-validator";
+import { IsString, IsOptional, MinLength } from "class-validator";
 
 import { BaseTeamRoleInput } from "./base-team-role.input";
 
 export class UpdateTeamRoleInput extends BaseTeamRoleInput {
-  @ApiPropertyOptional({ description: "Name of the role" })
+  @ApiPropertyOptional({ description: "Name of the role", minLength: 1 })
   @IsString()
+  @MinLength(1)
   @IsOptional()
   name?: string;
 }
