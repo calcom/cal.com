@@ -11,6 +11,7 @@ import {
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
@@ -166,8 +167,9 @@ interface Props {
 }
 
 export default function MemberList(props: Props) {
+  const pathname = usePathname();
   return (
-    <DataTableProvider tableIdentifier="team-member-list">
+    <DataTableProvider tableIdentifier={pathname}>
       <MemberListContent {...props} />
     </DataTableProvider>
   );
@@ -668,7 +670,7 @@ function MemberListContent(props: Props) {
     getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
-          case "role":
+          case "role": {
             // Include both traditional roles and PBAC custom roles
             const allRoles = facetedTeamValues.roles.map((role) => ({
               label: role.name,
@@ -676,6 +678,7 @@ function MemberListContent(props: Props) {
             }));
 
             return convertFacetedValuesToMap(allRoles);
+          }
           default:
             return new Map();
         }
@@ -685,7 +688,7 @@ function MemberListContent(props: Props) {
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
+  useFetchMoreOnBottomReached({
     tableContainerRef,
     hasNextPage,
     fetchNextPage,

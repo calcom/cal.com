@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import { DataTableProvider } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -20,10 +22,10 @@ const PrivacyView = ({
     canDelete: boolean;
   };
 }) => {
+  const pathname = usePathname();
   const { t } = useLocale();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
   const isInviteOpen = !currentOrg?.user.accepted;
-
   const isDisabled = !permissions.canEdit || isInviteOpen;
 
   if (!currentOrg) return null;
@@ -45,7 +47,7 @@ const PrivacyView = ({
               <p className="text-muted text-sm">{t("manage_blocked_emails_and_domains")}</p>
             </div>
             <div className="mt-2">
-              <DataTableProvider tableIdentifier="organization-privacy-blocklist" useSegments={useSegments} defaultPageSize={25}>
+              <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
                 <BlocklistTable permissions={watchlistPermissions} />
               </DataTableProvider>
             </div>
