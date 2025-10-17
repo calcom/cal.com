@@ -12,6 +12,7 @@ export enum Resource {
   Webhook = "webhook",
   Availability = "availability",
   OutOfOffice = "ooo",
+  Watchlist = "watchlist",
 }
 
 export enum CrudAction {
@@ -120,7 +121,7 @@ export const isValidPermissionString = (val: unknown): val is PermissionString =
  * @returns A new object without the _resource property
  */
 export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfig, "_resource"> => {
-   
+
   const { _resource, ...rest } = config;
   return rest;
 };
@@ -694,6 +695,42 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       descriptionI18nKey: "pbac_desc_delete_out_of_office",
       scope: [],
       dependsOn: ["ooo.read"],
+    },
+  },
+  [Resource.Watchlist]: {
+    _resource: {
+      i18nKey: "pbac_resource_blocklist",
+    },
+    [CrudAction.Create]: {
+      description: "Create watchlist entries",
+      category: "watchlist",
+      i18nKey: "pbac_action_create",
+      descriptionI18nKey: "pbac_desc_create_watchlist_entries",
+      scope: [Scope.Organization],
+      dependsOn: ["watchlist.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View watchlist entries",
+      category: "watchlist",
+      i18nKey: "pbac_action_read",
+      descriptionI18nKey: "pbac_desc_view_watchlist_entries",
+      scope: [Scope.Organization],
+    },
+    [CrudAction.Update]: {
+      description: "Update watchlist entries",
+      category: "watchlist",
+      i18nKey: "pbac_action_update",
+      descriptionI18nKey: "pbac_desc_update_watchlist_entries",
+      scope: [Scope.Organization],
+      dependsOn: ["watchlist.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete watchlist entries",
+      category: "watchlist",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_watchlist_entries",
+      scope: [Scope.Organization],
+      dependsOn: ["watchlist.read"],
     },
   },
 };
