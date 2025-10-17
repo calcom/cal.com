@@ -1,4 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
@@ -7,8 +8,17 @@ import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-pa
 import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
+declare const __USE_POOL__: boolean;
+
 const connectionString = process.env.DATABASE_URL || "";
-const adapter = new PrismaPg({ connectionString });
+const pool = __USE_POOL__
+  ? new Pool({
+      connectionString: connectionString,
+      max: 3,
+    })
+  : undefined;
+console.log("POOLED", !!pool);
+const adapter = pool ? new PrismaPg(pool) : new PrismaPg({ connectionString });
 const prismaOptions: Prisma.PrismaClientOptions = {
   adapter,
 };
@@ -16,7 +26,6 @@ const prismaOptions: Prisma.PrismaClientOptions = {
 const globalForPrisma = global as unknown as {
   baseClient: PrismaClient;
 };
-
 const loggerLevel = parseInt(process.env.NEXT_PUBLIC_LOGGER_LEVEL ?? "", 10);
 
 if (!isNaN(loggerLevel)) {
@@ -37,7 +46,7 @@ if (!isNaN(loggerLevel)) {
       break;
   }
 }
-
+console.log("globalForPrisma exist or not?", !!globalForPrisma.baseClient, "USEPOOL", __USE_POOL__);
 const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) => {

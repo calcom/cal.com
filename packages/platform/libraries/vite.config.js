@@ -12,6 +12,11 @@ export default defineConfig({
     target: "node18",
     platform: "node",
   },
+  define: {
+    // This will replace `__USE_POOL__` in your code with `true` or `false` at build time.
+    // We control it with a `USE_POOL` environment variable.
+    __USE_POOL__: "true",
+  },
   build: {
     target: "node18",
     platform: "node",
