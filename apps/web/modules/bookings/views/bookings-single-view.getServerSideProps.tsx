@@ -8,6 +8,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -150,9 +151,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
     email: eventType.team ? null : eventType.users[0].email || null,
-    theme: (!eventType.team?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.team ? null : eventType.users[0].brandColor || null,
-    darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
+    ...getBrandingForEventType({ eventType: eventTypeRaw }),
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
