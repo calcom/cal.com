@@ -8,38 +8,67 @@ import { PrismaClient } from "@calcom/prisma/client";
 
 const DB_MAX_POOL_CONNECTION = 10;
 
+export interface PrismaServiceOptions {
+  readUrl?: string;
+  maxReadConnections?: number;
+  e2e?: boolean;
+}
+
 @Injectable()
 export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
   private logger = new Logger("PrismaReadService");
 
-  public prisma: PrismaClient;
-  private pool: Pool;
+  public prisma!: PrismaClient;
+  private pool!: Pool;
+  private options!: PrismaServiceOptions;
 
-  constructor(readonly configService: ConfigService) {
-    const dbUrl = configService.get("db.readUrl", { infer: true });
-    const isE2E = configService.get<boolean>("e2e", { infer: true }) ?? false;
-    this.pool = new Pool({ connectionString: dbUrl, max: isE2E ? 1 : DB_MAX_POOL_CONNECTION });
-    const adapter = new PrismaPg(this.pool);
-    this.prisma = new PrismaClient({
-      adapter,
+  constructor(private configService?: ConfigService) {
+    if (configService) {
+      // Use ConfigService defaults
+      const readUrl = configService.get<string>("db.readUrl", { infer: true });
+      const poolMax = configService.get<number>("db.readPoolMax", { infer: true }) ?? DB_MAX_POOL_CONNECTION;
+      const e2e = configService.get<boolean>("e2e", { infer: true }) ?? false;
+
+      this.setOptions({
+        readUrl,
+        maxReadConnections: poolMax,
+        e2e,
+      });
+    }
+  }
+
+  setOptions(options: PrismaServiceOptions) {
+    this.options = options;
+
+    const dbUrl = options.readUrl;
+    const isE2E = options.e2e ?? false;
+
+    this.pool = new Pool({
+      connectionString: dbUrl,
+      max: isE2E ? 1 : options.maxReadConnections ?? DB_MAX_POOL_CONNECTION,
     });
+
+    const adapter = new PrismaPg(this.pool);
+    this.prisma = new PrismaClient({ adapter });
   }
 
   async onModuleInit() {
+    if (!this.prisma) return;
+
     try {
       await this.prisma.$connect();
       this.logger.log("Connected to read database");
-    } catch {
-      this.logger.error("Database connection failed");
+    } catch (error) {
+      this.logger.error("Database connection failed", error);
     }
   }
 
   async onModuleDestroy() {
     try {
-      await this.prisma.$disconnect();
-      await this.pool.end();
+      if (this.prisma) await this.prisma.$disconnect();
+      if (this.pool) await this.pool.end();
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error("Error disconnecting from read database", error);
     }
   }
 }

@@ -22,6 +22,10 @@ const loadConfig = (): AppConfig => {
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),
       writeUrl: getEnv("DATABASE_WRITE_URL"),
+      readPoolMax: getEnv("DATABASE_READ_POOL_MAX", 10),
+      writePoolMax: getEnv("DATABASE_WRITE_POOL_MAX", 10),
+      workerReadPoolMax: getEnv("DATABASE_READ_WORKER_POOL_MAX", 3),
+      workerWritePoolMax: getEnv("DATABASE_WRITE_WORKER_POOL_MAX", 2),
       redisUrl: getEnv("REDIS_URL"),
     },
     next: {
