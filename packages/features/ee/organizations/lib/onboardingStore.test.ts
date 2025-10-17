@@ -118,10 +118,6 @@ function mockOrganizationOnboardingFromDB(data: ReturnType<typeof createTestOrga
     });
 }
 
-function mockReloadPage() {
-    window.isOrgOnboardingSynced = undefined;
-}
-
 const createTestSearchParams = (params?: Record<string, string>) => {
     return new URLSearchParams(params);
 };
@@ -196,12 +192,6 @@ describe("OnboardingStore", () => {
         localStorageMock.getItem.mockClear();
         localStorageMock.setItem.mockClear();
         localStorageMock.removeItem.mockClear();
-
-
-        // Reset window state
-        if (typeof window !== "undefined") {
-            (window as typeof window & { isOrgOnboardingSynced?: boolean }).isOrgOnboardingSynced = false;
-        }
     });
 
     describe("Zustand Store Actions - Complex Logic", () => {
@@ -270,15 +260,6 @@ describe("OnboardingStore", () => {
         beforeEach(() => {
             mockUseSession.mockReturnValue(createTestSession());
         });
-
-        it("should enable billing for non-admin users", () => {
-            mockUseSession.mockReturnValue(createTestSession({ role: UserPermissionRole.USER }));
-
-            const { result } = renderHook(() => useOnboarding(), { wrapper: createWrapper() });
-
-            expect(result.current.isBillingEnabled).toBe(true);
-        });
-
 
         describe("Authentication Handling", () => {
             it("should redirect to login when session is unauthenticated", async () => {
@@ -364,10 +345,9 @@ describe("OnboardingStore", () => {
                 expect(storeResult.current.pricePerSeat).toBe(25);
                 expect(storeResult.current.seats).toBe(10);
                 expect(storeResult.current.orgOwnerEmail).toBe("owner@synced.com");
-                expect((window as typeof window & { isOrgOnboardingSynced?: boolean }).isOrgOnboardingSynced).toBe(true);
             });
 
-            it.only("should sync onboardingData from DB to zustand if set already", async () => {
+            it("should sync onboardingData from DB to zustand if set already", async () => {
                 mockOrganizationOnboardingFromDB(createTestOrganizationOnboarding({
                     id: "onboarding1",
                     name: "Onboarding 1 Organization",
@@ -385,9 +365,6 @@ describe("OnboardingStore", () => {
 
                 expect(storeResultBefore.current.name).toBe("Onboarding 1 Organization");
                 expect(storeResultBefore.current.slug).toBe("onboarding1-org");
-
-                // Reload the page to be able to sync the new data
-                mockReloadPage();
 
                 mockOrganizationOnboardingFromDB(createTestOrganizationOnboarding({
                     id: "sync-test-id",

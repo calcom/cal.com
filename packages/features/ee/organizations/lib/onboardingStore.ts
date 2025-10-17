@@ -101,7 +101,17 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       // Team actions
       setTeams: (teams) => set({ teams }),
 
-      reset: (state) => set(state ?? initialState),
+      reset: (state) => {
+        if (state) {
+          set(state);
+        } else {
+          // Clear the localStorage entry for this store
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("org-creation-onboarding");
+          }
+          set(initialState);
+        }
+      },
     }),
     {
       name: "org-creation-onboarding",
