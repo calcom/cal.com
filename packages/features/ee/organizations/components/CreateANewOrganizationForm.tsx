@@ -36,7 +36,7 @@ function extractDomainFromEmail(email: string) {
 export const CreateANewOrganizationForm = () => {
   const session = useSession();
 
-  const { isLoadingOrgOnboarding } = useOnboarding({ step: "start" });
+  const { isLoadingOrgOnboarding } = useOnboarding();
   if (!session.data || isLoadingOrgOnboarding) {
     return null;
   }
@@ -51,7 +51,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
   const defaultOrgOwnerEmail = (!isAdmin || IS_SELF_HOSTED ? session.data.user.email : null) ?? "";
-  const { useOnboardingStore, isBillingEnabled } = useOnboarding({ step: "start" });
+  const { useOnboardingStore, isBillingEnabled } = useOnboarding();
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
     useOnboardingStore();
 

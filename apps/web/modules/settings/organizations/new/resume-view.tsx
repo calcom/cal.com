@@ -23,7 +23,7 @@ const ResumeOnboardingView = () => {
   const searchParams = useSearchParams();
   const onboardingIdParam = searchParams?.get("onboardingId");
 
-  const { dbOnboarding, isLoadingOrgOnboarding, useOnboardingStore } = useOnboarding({ step: "start" });
+  const { dbOnboarding, isLoadingOrgOnboarding, useOnboardingStore } = useOnboarding();
   const { reset } = useOnboardingStore();
 
   useEffect(() => {
