@@ -3,6 +3,8 @@ import { z } from "zod";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 
+import { formatTimeWithDST } from "../timezone-conversion";
+
 // converts a date to 2022-04-25 for example.
 export const yyyymmdd = (date: Date | Dayjs) =>
   date instanceof Date ? dayjs(date).format("YYYY-MM-DD") : date.format("YYYY-MM-DD");
@@ -18,18 +20,16 @@ export const daysInMonth = (date: Date | Dayjs) => {
 /**
  * Expects timeFormat to be either 12 or 24, if null or undefined
  * is passed in, we always default back to 24 hour notation.
+ *
+ * This function now uses DST-aware timezone conversion for better accuracy
+ * during daylight saving time transitions.
  */
 export const formatTime = (
   date: string | Date | Dayjs,
   timeFormat?: number | null,
   timeZone?: string | null
 ) => {
-  // console.log(timeZone, date);
-  return timeZone
-    ? dayjs(date)
-        .tz(timeZone)
-        .format(timeFormat === 12 ? "h:mma" : "HH:mm")
-    : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
+  return formatTimeWithDST(date, timeFormat, timeZone);
 };
 
 /**
@@ -43,7 +43,7 @@ export const isSupportedTimeZone = (timeZone: string) => {
   try {
     dayjs().tz(timeZone);
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };
