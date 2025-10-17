@@ -1,8 +1,8 @@
 import { describe, expect, it, beforeAll, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 
-import type { DateRange } from "./date-ranges";
 import getSlots from "./slots";
 
 let dateRangesNextDay: DateRange[];

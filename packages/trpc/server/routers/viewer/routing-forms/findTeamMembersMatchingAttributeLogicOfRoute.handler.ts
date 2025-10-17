@@ -10,7 +10,7 @@ import { enrichHostsWithDelegationCredentials } from "@calcom/app-store/delegati
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
-import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils.server";
+import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";

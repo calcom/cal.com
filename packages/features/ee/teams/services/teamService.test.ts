@@ -6,8 +6,8 @@ import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Membership, Team, User, VerificationToken, Profile } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -16,8 +16,8 @@ import { TRPCError } from "@trpc/server";
 import { TeamService } from "./teamService";
 
 vi.mock("@calcom/features/ee/billing/teams");
-vi.mock("@calcom/lib/server/repository/team");
-vi.mock("@calcom/lib/server/service/workflows");
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
+vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 vi.mock("@calcom/features/profile/lib/createAProfileForAnExistingUser");

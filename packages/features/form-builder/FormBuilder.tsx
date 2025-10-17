@@ -949,6 +949,7 @@ function VariantFields({
     <>
       {supportsVariantToggle ? (
         <Switch
+          classNames={{ container: "mt-1" }}
           checked={!isDefaultVariant}
           label={variantToggleLabel}
           data-testid="variant-toggle"

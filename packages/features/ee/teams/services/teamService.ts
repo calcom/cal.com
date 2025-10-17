@@ -8,8 +8,8 @@ import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/cr
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";

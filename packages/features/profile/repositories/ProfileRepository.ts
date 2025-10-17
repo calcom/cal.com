@@ -50,6 +50,9 @@ const organizationSelect = {
   bannerUrl: true,
   isPlatform: true,
   hideBranding: true,
+  brandColor: true,
+  darkBrandColor: true,
+  theme: true,
 };
 const organizationWithSettingsSelect = {
   ...organizationSelect,
@@ -496,6 +499,9 @@ export class ProfileRepository {
             isPrivate: true,
             isPlatform: true,
             hideBranding: true,
+            brandColor: true,
+            darkBrandColor: true,
+            theme: true,
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,

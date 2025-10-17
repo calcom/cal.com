@@ -4,8 +4,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 
 import { TeamService } from "./teamService";
 
@@ -14,8 +14,8 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 vi.mock("@calcom/features/ee/billing/teams");
-vi.mock("@calcom/lib/server/repository/team");
-vi.mock("@calcom/lib/server/service/workflows");
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
+vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 class Database {

@@ -6,7 +6,7 @@ import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getB
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTeam, getOrg } from "@calcom/lib/server/repository/team";
+import { getTeam, getOrg } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
