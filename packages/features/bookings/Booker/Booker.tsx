@@ -239,6 +239,7 @@ const BookerComponent = ({
   const onSubmit = (timeSlot?: string) =>
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
 
+
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
       <BookEventForm

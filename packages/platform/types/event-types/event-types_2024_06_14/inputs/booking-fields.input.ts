@@ -886,7 +886,11 @@ export class BooleanFieldInput_2024_06_14 {
 
 export class DateFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty({ example: "date", description: "only allowed value for type is `date string (YYYY-MM-DD)`" })
+  @DocsProperty({
+    example: "date",
+    description:
+      "The only allowed value for type is 'date'. Date values must be formatted as a string in YYYY-MM-DD format.",
+  })
   type!: "date";
 
   @IsString()

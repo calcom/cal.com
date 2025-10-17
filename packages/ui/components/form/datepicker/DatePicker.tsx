@@ -11,7 +11,7 @@ type Props = {
   onDatesChange?: ((date: Date) => void) | undefined;
   className?: string;
   disabled?: boolean;
-  minDate?: Date;
+  minDate?: Date | null;
 };
 
 const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props) => {
