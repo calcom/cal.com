@@ -1,12 +1,14 @@
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
@@ -31,6 +33,10 @@ export async function handleBookingRequested(args: {
       } | null;
       team?: {
         parentId: number | null;
+        hideBranding: boolean | null;
+        parent: {
+          hideBranding: boolean | null;
+        } | null;
       } | null;
       currency: string;
       hosts?: {
@@ -52,6 +58,10 @@ export async function handleBookingRequested(args: {
     } | null;
     eventTypeId: number | null;
     userId: number | null;
+    user?: {
+      id: number;
+      hideBranding: boolean | null;
+    } | null;
     id: number;
   };
 }) {
@@ -59,9 +69,30 @@ export async function handleBookingRequested(args: {
 
   log.debug("Emails: Sending booking requested emails");
 
-  await sendOrganizerRequestEmail({ ...evt }, booking?.eventType?.metadata as EventTypeMetadata);
+  const eventTypeId = booking.eventType?.id ?? booking.eventTypeId ?? null;
+  let hideBranding = false;
+
+  if (!eventTypeId) {
+    log.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
+      bookingId: booking.id,
+      userId: booking.userId,
+    });
+    hideBranding = false;
+  } else {
+    hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId,
+      team: booking.eventType?.team ?? null,
+      owner: booking.user ?? null,
+      organizationId: booking.eventType?.team?.parentId ?? null,
+    });
+  }
+
+  await sendOrganizerRequestEmail(
+    { ...evt, hideBranding },
+    booking?.eventType?.metadata as EventTypeMetadata
+  );
   await sendAttendeeRequestEmailAndSMS(
-    { ...evt },
+    { ...evt, hideBranding },
     evt.attendees[0],
     booking?.eventType?.metadata as EventTypeMetadata
   );
@@ -106,7 +137,7 @@ export async function handleBookingRequested(args: {
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding,
         calendarEvent: {
           ...evt,
           bookerUrl: evt.bookerUrl as string,

@@ -128,8 +128,9 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       platformClientParams: platformOAuthClient ? getPlatformParams(platformOAuthClient) : undefined,
     });
   } else if (areEmailsEnabled) {
-    await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);
-    await sendAttendeeRequestEmailAndSMS({ ...evt }, evt.attendees[0], eventType.metadata);
+    const evtWithBranding = { ...evt, hideBranding: evt.hideBranding ?? false };
+    await sendOrganizerRequestEmail(evtWithBranding, eventType.metadata);
+    await sendAttendeeRequestEmailAndSMS(evtWithBranding, evt.attendees[0], eventType.metadata);
   }
 };
 

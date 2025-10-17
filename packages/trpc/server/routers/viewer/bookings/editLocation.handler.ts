@@ -5,14 +5,15 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
@@ -284,8 +285,26 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   });
 
   try {
+    // Use pre-fetched branding data from booking context
+    const eventTypeId = booking.eventTypeId;
+    let hideBranding = false;
+    if (!eventTypeId) {
+      console.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
+        bookingId: booking.id,
+        userId: booking.userId,
+      });
+      hideBranding = false;
+    } else {
+      hideBranding = await shouldHideBrandingForEvent({
+        eventTypeId,
+        team: booking.eventType?.team ?? null,
+        owner: booking.user ?? null,
+        organizationId: booking.eventType?.team?.parentId ?? null,
+      });
+    }
+
     await sendLocationChangeEmailsAndSMS(
-      { ...evt, additionalInformation },
+      { ...evt, additionalInformation, hideBranding },
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {

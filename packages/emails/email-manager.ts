@@ -13,6 +13,12 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
+type CalendarEventWithBranding = CalendarEvent & { hideBranding: boolean };
+
+export function withHideBranding(calEvent: CalendarEvent, explicit?: boolean): CalendarEventWithBranding {
+  return { ...calEvent, hideBranding: explicit ?? calEvent.hideBranding ?? false };
+}
+
 import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";
 import CancelledSeatSMS from "../sms/attendee/cancelled-seat-sms";
 import EventCancelledSMS from "../sms/attendee/event-cancelled-sms";
@@ -104,7 +110,7 @@ const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
 };
 
 const _sendScheduledEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
   attendeeEmailDisabled?: boolean,
@@ -162,7 +168,7 @@ export const sendRoundRobinScheduledEmailsAndSMS = async ({
   eventTypeMetadata,
   reassigned,
 }: {
-  calEvent: CalendarEvent;
+  calEvent: CalendarEventWithBranding;
   members: Person[];
   eventTypeMetadata?: EventTypeMetadata;
   reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
@@ -185,7 +191,7 @@ export const sendRoundRobinScheduledEmailsAndSMS = async ({
 };
 
 export const sendRoundRobinRescheduledEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   teamMembersAndAttendees: Person[],
   eventTypeMetadata?: EventTypeMetadata
 ) => {
@@ -221,7 +227,7 @@ export const sendRoundRobinUpdatedEmailsAndSMS = async ({
   calEvent,
   eventTypeMetadata,
 }: {
-  calEvent: CalendarEvent;
+  calEvent: CalendarEventWithBranding;
   eventTypeMetadata?: EventTypeMetadata;
 }) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
@@ -234,7 +240,7 @@ export const sendRoundRobinUpdatedEmailsAndSMS = async ({
 };
 
 export const sendRoundRobinCancelledEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   members: Person[],
   eventTypeMetadata?: EventTypeMetadata,
   reassignedTo?: { name: string | null; email: string; reason?: string }
@@ -259,7 +265,7 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
 };
 
 export const sendRoundRobinReassignedEmailsAndSMS = async (args: {
-  calEvent: CalendarEvent;
+  calEvent: CalendarEventWithBranding;
   members: Person[];
   reassignedTo: { name: string | null; email: string };
   eventTypeMetadata?: EventTypeMetadata;
@@ -285,7 +291,7 @@ export const sendRoundRobinReassignedEmailsAndSMS = async (args: {
 };
 
 const _sendRescheduledEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
@@ -321,7 +327,7 @@ export const sendRescheduledEmailsAndSMS = withReporting(
 );
 
 export const sendRescheduledSeatEmailAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   attendee: Person,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
@@ -342,7 +348,7 @@ export const sendRescheduledSeatEmailAndSMS = async (
 };
 
 export const sendScheduledSeatsEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   invitee: Person,
   newSeat: boolean,
   showAttendees: boolean,
@@ -387,7 +393,7 @@ export const sendScheduledSeatsEmailsAndSMS = async (
 };
 
 export const sendCancelledSeatEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   cancelledAttendee: Person,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
@@ -413,7 +419,10 @@ export const sendCancelledSeatEmailsAndSMS = async (
   await cancelledSeatSMS.sendSMSToAttendee(cancelledAttendee);
 };
 
-const _sendOrganizerRequestEmail = async (calEvent: CalendarEvent, eventTypeMetadata?: EventTypeMetadata) => {
+const _sendOrganizerRequestEmail = async (
+  calEvent: CalendarEventWithBranding,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
 
@@ -436,7 +445,7 @@ export const sendOrganizerRequestEmail = withReporting(
 );
 
 const _sendAttendeeRequestEmailAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   attendee: Person,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
@@ -454,7 +463,7 @@ export const sendAttendeeRequestEmailAndSMS = withReporting(
 );
 
 export const sendDeclinedEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
@@ -474,7 +483,7 @@ export const sendDeclinedEmailsAndSMS = async (
 };
 
 export const sendCancelledEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   eventNameObject: Pick<EventNameObjectType, "eventName">,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
@@ -534,7 +543,7 @@ export const sendCancelledEmailsAndSMS = async (
 };
 
 export const sendOrganizerRequestReminderEmail = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
@@ -554,7 +563,7 @@ export const sendOrganizerRequestReminderEmail = async (
 };
 
 export const sendAwaitingPaymentEmailAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
@@ -570,7 +579,7 @@ export const sendAwaitingPaymentEmailAndSMS = async (
   await awaitingPaymentSMS.sendSMSToAttendees();
 };
 
-export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEvent) => {
+export const sendOrganizerPaymentRefundFailedEmail = async (calEvent: CalendarEventWithBranding) => {
   const emailsToSend: Promise<unknown>[] = [];
   emailsToSend.push(sendEmail(() => new OrganizerPaymentRefundFailedEmail({ calEvent })));
 
@@ -638,7 +647,7 @@ export const sendRequestRescheduleEmailAndSMS = async (
 };
 
 export const sendLocationChangeEmailsAndSMS = async (
-  calEvent: CalendarEvent,
+  calEvent: CalendarEventWithBranding,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
@@ -669,7 +678,7 @@ export const sendLocationChangeEmailsAndSMS = async (
   const eventLocationChangedSMS = new EventLocationChangedSMS(calendarEvent);
   await eventLocationChangedSMS.sendSMSToAttendees();
 };
-export const sendAddGuestsEmails = async (calEvent: CalendarEvent, newGuests: string[]) => {
+export const sendAddGuestsEmails = async (calEvent: CalendarEventWithBranding, newGuests: string[]) => {
   const calendarEvent = formatCalEvent(calEvent);
 
   const emailsToSend: Promise<unknown>[] = [];
@@ -699,7 +708,10 @@ export const sendFeedbackEmail = async (feedback: Feedback) => {
   await sendEmail(() => new FeedbackEmail(feedback));
 };
 
-export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "video" | "calendar") => {
+export const sendBrokenIntegrationEmail = async (
+  evt: CalendarEventWithBranding,
+  type: "video" | "calendar"
+) => {
   const calendarEvent = formatCalEvent(evt);
   await sendEmail(() => new BrokenIntegrationEmail(calendarEvent, type));
 };
@@ -740,14 +752,17 @@ export const sendSlugReplacementEmail = async ({
 
 export const sendNoShowFeeChargedEmail = async (
   attendee: Person,
-  evt: CalendarEvent,
+  evt: CalendarEventWithBranding,
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };
 
-export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
+export const sendDailyVideoRecordingEmails = async (
+  calEvent: CalendarEventWithBranding,
+  downloadLink: string
+) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
@@ -763,7 +778,10 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
   await Promise.all(emailsToSend);
 };
 
-export const sendDailyVideoTranscriptEmails = async (calEvent: CalendarEvent, transcripts: string[]) => {
+export const sendDailyVideoTranscriptEmails = async (
+  calEvent: CalendarEventWithBranding,
+  transcripts: string[]
+) => {
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerDailyVideoDownloadTranscriptEmail(calEvent, transcripts)));
