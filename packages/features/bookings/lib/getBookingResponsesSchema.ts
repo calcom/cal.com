@@ -337,7 +337,7 @@ function preprocess<T extends z.ZodType>({
           if (!result.success) {
             // This should never happen in production since date picker ensures format
             // But good to have for edge cases
-            console.error(`Unexpected date format received: ${value}`);
+            console.error("Unexpected date format received");
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("Invalid date"),
