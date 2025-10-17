@@ -3,7 +3,7 @@ import { sendOrganizationAdminNoSlotsNotification } from "@calcom/emails";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { TeamRepository } from "@calcom/lib/server/repository/team";
 
 type EventDetails = {
