@@ -117,9 +117,9 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     };
 
     if (!syncToken) {
-      const now = dayjs();
+      const now = dayjs().startOf("day");
       // first sync or unsync (3 months)
-      const threeMonths = now.add(3, "month");
+      const threeMonths = now.add(3, "month").endOf("day");
 
       const timeMinISO = now.toISOString();
       const timeMaxISO = threeMonths.toISOString();

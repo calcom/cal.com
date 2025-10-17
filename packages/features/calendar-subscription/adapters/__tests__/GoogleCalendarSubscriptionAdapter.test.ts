@@ -10,8 +10,7 @@ import { GoogleCalendarSubscriptionAdapter } from "../GoogleCalendarSubscription
 
 const addMonthsFromNow = (months: number) => {
   const date = dayjs();
-  date.add(months, "months");
-  return date.startOf("day");
+  return date.add(months, "months").startOf("day");
 };
 
 const today = dayjs().startOf("day");
@@ -332,8 +331,8 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
           {
             id: "event-1",
             iCalUID: "event-1@cal.com",
-            start: oneWeekFromNow,
-            end: eventEndTime,
+            start: oneWeekFromNow.toDate(),
+            end: eventEndTime.toDate(),
             busy: true,
             summary: "Test Event",
             description: "Test Description",
@@ -345,8 +344,8 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
             timeZone: "UTC",
             recurringEventId: null,
             originalStartDate: null,
-            createdAt: today,
-            updatedAt: today,
+            createdAt: today.toDate(),
+            updatedAt: today.toDate(),
           },
         ],
       });
@@ -369,8 +368,8 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
 
       const result = await adapter.fetchEvents(calendarWithoutSyncToken, mockCredential);
 
-      const expectedTimeMin = dayjs(today).startOf("day").toISOString();
-      const expectedTimeMax = dayjs(addMonthsFromNow(3)).endOf("day").toISOString();
+      const expectedTimeMin = today.startOf("day").toISOString();
+      const expectedTimeMax = addMonthsFromNow(3).endOf("day").toISOString();
 
       expect(mockClient.events.list).toHaveBeenCalledWith({
         calendarId: "test@example.com",
@@ -384,8 +383,8 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
     });
 
     test("should handle all-day events", async () => {
-      const allDayStart = today.startOf("day");
-      const allDayEnd = today.endOf("day");
+      const allDayStart = oneWeekFromNow.startOf("day");
+      const allDayEnd = oneWeekFromNow.endOf("day");
 
       const mockEventsResponse = {
         data: {
