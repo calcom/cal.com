@@ -9,8 +9,8 @@ import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizat
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import { OrganizationPaymentService } from "../../OrganizationPaymentService";
-import { BillingEnabledOrgOnboardingService } from "../BillingEnabledOrgOnboardingService";
 import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../../onboarding/types";
+import { BillingEnabledOrgOnboardingService } from "../BillingEnabledOrgOnboardingService";
 
 vi.mock("../../OrganizationPaymentService");
 
@@ -222,6 +222,71 @@ describe("BillingEnabledOrgOnboardingService", () => {
         checkoutUrl: "https://stripe.com/checkout/session",
         organizationId: null,
       });
+    });
+
+    it("should immediately create organization when admin creates org for self", async () => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
+
+      const adminUser = {
+        id: 1,
+        email: "admin@example.com",
+        role: UserPermissionRole.ADMIN,
+        name: "Admin User",
+      };
+
+      const adminInput = {
+        ...mockInput,
+        orgOwnerEmail: adminUser.email,
+      };
+
+      await prismock.user.create({
+        data: {
+          id: adminUser.id,
+          email: adminUser.email,
+          name: adminUser.name,
+          username: "admin",
+          onboardingCompleted: true,
+          emailVerified: new Date(),
+        },
+      });
+
+      const adminService = new BillingEnabledOrgOnboardingService(adminUser as any, mockPaymentService);
+
+      const result = await adminService.createOnboardingIntent(adminInput);
+
+      expect(result.organizationId).not.toBeNull();
+      expect(result.checkoutUrl).toBeNull();
+      expect(mockPaymentService.createPaymentIntent).not.toHaveBeenCalled();
+
+      const onboarding = await prismock.organizationOnboarding.findUnique({
+        where: { id: result.organizationOnboardingId },
+      });
+      expect(onboarding?.isComplete).toBe(true);
+    });
+
+    it("should use checkout flow when admin creates org for someone else with no teams/invites (handover)", async () => {
+      const adminUser = {
+        id: 1,
+        email: "admin@example.com",
+        role: UserPermissionRole.ADMIN,
+        name: "Admin User",
+      };
+
+      const handoverInput = {
+        ...mockInput,
+        orgOwnerEmail: "other@example.com",
+        teams: [],
+        invitedMembers: [],
+      };
+
+      const adminService = new BillingEnabledOrgOnboardingService(adminUser as any, mockPaymentService);
+
+      const result = await adminService.createOnboardingIntent(handoverInput);
+
+      expect(result.organizationId).toBeNull();
+      expect(result.checkoutUrl).toBeNull();
+      expect(result.handoverUrl).toContain("/settings/organizations/new/resume");
+      expect(mockPaymentService.createPaymentIntent).not.toHaveBeenCalled();
     });
   });
 
@@ -580,9 +645,9 @@ describe("BillingEnabledOrgOnboardingService", () => {
       expect(inviteMembersWithNoInviterPermissionCheck).toHaveBeenCalledTimes(3);
 
       // Check org-level invite
-      const orgInviteCall = vi.mocked(inviteMembersWithNoInviterPermissionCheck).mock.calls.find(
-        (call) => call[0].teamId === result.organization.id
-      );
+      const orgInviteCall = vi
+        .mocked(inviteMembersWithNoInviterPermissionCheck)
+        .mock.calls.find((call) => call[0].teamId === result.organization.id);
       expect(orgInviteCall).toBeDefined();
       expect(orgInviteCall![0].invitations).toEqual([
         { usernameOrEmail: "orguser@example.com", role: MembershipRole.MEMBER },
@@ -634,9 +699,9 @@ describe("BillingEnabledOrgOnboardingService", () => {
         subscriptionItemId: "si_123",
       });
 
-      const inviteCall = vi.mocked(inviteMembersWithNoInviterPermissionCheck).mock.calls.find(
-        (call) => call[0].teamId === result.organization.id
-      );
+      const inviteCall = vi
+        .mocked(inviteMembersWithNoInviterPermissionCheck)
+        .mock.calls.find((call) => call[0].teamId === result.organization.id);
 
       expect(inviteCall).toBeDefined();
       expect(inviteCall![0].invitations).toEqual([
@@ -724,7 +789,9 @@ describe("BillingEnabledOrgOnboardingService", () => {
       const onboardingWithNonMatchingTeam = {
         ...mockOrganizationOnboarding,
         teams: [{ id: -1, name: "Marketing", isBeingMigrated: false, slug: null }],
-        invitedMembers: [{ email: "user@example.com", teamName: "NonExistentTeam", role: MembershipRole.MEMBER }],
+        invitedMembers: [
+          { email: "user@example.com", teamName: "NonExistentTeam", role: MembershipRole.MEMBER },
+        ],
       };
 
       vi.mocked(createTeamsHandler).mockResolvedValue({

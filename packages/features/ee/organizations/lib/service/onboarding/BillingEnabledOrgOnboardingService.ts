@@ -30,6 +30,8 @@ const teamsSchema = orgOnboardingTeamsSchema;
  * 3. Create Stripe checkout session
  * 4. Return checkout URL
  * 5. Organization created later via Stripe webhook
+ *
+ * Exception: Admin creating org for self - immediately creates organization (no payment required)
  */
 export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
   async createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<OnboardingIntentResult> {
@@ -63,6 +65,37 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
     const handoverResult = this.handleAdminHandoverIfNeeded(input, onboardingId);
     if (handoverResult) {
       return handoverResult;
+    }
+
+    // Check if admin is creating org for themselves - skip payment, create immediately
+    if (this.isAdminCreatingForSelf(input)) {
+      log.debug(
+        "Admin creating org for self - skipping payment and creating organization immediately",
+        safeStringify({ adminEmail: this.user.email, onboardingId })
+      );
+
+      const { organization } = await this.createOrganization(organizationOnboarding);
+
+      await OrganizationOnboardingRepository.markAsComplete(onboardingId);
+
+      log.debug(
+        "Organization created successfully for admin",
+        safeStringify({ onboardingId, organizationId: organization.id })
+      );
+
+      return {
+        userId: this.user.id,
+        orgOwnerEmail: input.orgOwnerEmail,
+        name: input.name,
+        slug: input.slug,
+        seats: input.seats ?? null,
+        pricePerSeat: input.pricePerSeat ?? null,
+        billingPeriod: input.billingPeriod,
+        isPlatform: input.isPlatform,
+        organizationOnboardingId: onboardingId,
+        checkoutUrl: null,
+        organizationId: organization.id,
+      };
     }
 
     // Regular flow - create payment intent
