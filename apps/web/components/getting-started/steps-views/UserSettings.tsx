@@ -107,16 +107,18 @@ const UserSettings = (props: IUserSettingsProps) => {
     })
   );
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
-  const createEventType = trpc.viewer.eventTypes.create.useMutation();
+  const createEventType = trpc.viewer.eventTypes.calid_create.useMutation();
   const utils = trpc.useUtils();
   const onSuccess = async () => {
     if (eventTypes?.length === 0 && selectedBusiness !== null) {
       await Promise.all(
-        professionTypeAndEventTypes[selectedBusiness].map(async (event): Promise<void> => {
+        professionTypeAndEventTypes[selectedBusiness].map(async (event, i): Promise<void> => {
+          const reverseIndex = professionTypeAndEventTypes[selectedBusiness].length - i - 1;
           const eventType = {
             ...event,
             title: customEvents[event.title],
             description: customEvents[event.description as string],
+            position: reverseIndex,
             length: (event.length as number[])[0],
             metadata: {
               multipleDuration: event.length as number[],
