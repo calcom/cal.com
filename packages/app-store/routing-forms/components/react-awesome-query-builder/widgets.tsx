@@ -1,6 +1,5 @@
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";
-import { useEffect } from "react";
 import type {
   ButtonGroupProps,
   ButtonProps,
@@ -196,7 +195,7 @@ function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPro
 
   return (
     <div className="mb-2 w-full">
-      <DatePicker date={dateValue} onDatesChange={handleDateChange} {...remainingProps} />
+      <DatePicker date={dateValue} onDatesChange={handleDateChange} minDate={null} {...remainingProps} />
     </div>
   );
 }
