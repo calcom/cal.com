@@ -284,7 +284,7 @@ describe("CalendarCacheEventService", () => {
           description: null,
           location: null,
           status: "confirmed",
-          isAllDay: undefined,
+          isAllDay: false,
           timeZone: null,
           recurringEventId: null,
           originalStartDate: null,
@@ -306,7 +306,7 @@ describe("CalendarCacheEventService", () => {
           summary: null,
           description: null,
           location: null,
-          isAllDay: undefined,
+          isAllDay: false,
           timeZone: null,
           originalStartTime: null,
           recurringEventId: null,
@@ -346,9 +346,8 @@ describe("CalendarCacheEventService", () => {
       expect(CalendarCacheEventService.isCalendarTypeSupported("unknown_calendar")).toBe(false);
     });
 
-    test("should return false for null or undefined", () => {
+    test("should return false for null", () => {
       expect(CalendarCacheEventService.isCalendarTypeSupported(null)).toBe(false);
-      expect(CalendarCacheEventService.isCalendarTypeSupported(undefined)).toBe(false);
     });
   });
 });

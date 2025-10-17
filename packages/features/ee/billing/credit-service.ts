@@ -13,7 +13,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import type { CreditUsageType } from "@calcom/prisma/enums";
 import { CreditType } from "@calcom/prisma/enums";
