@@ -80,7 +80,7 @@ export class PbacGuard implements CanActivate {
     const hasPbacEnabled = await featuresRepository.checkIfTeamHasFeature(teamId, pbacFeatureFlag);
 
     if (hasPbacEnabled) {
-      await this.redisService.redis.set(REDIS_CACHE_KEY, String(cachedHasPbacEnabled), "EX", 300);
+      await this.redisService.redis.set(REDIS_CACHE_KEY, String(hasPbacEnabled), "EX", 300);
     }
 
     return hasPbacEnabled;
