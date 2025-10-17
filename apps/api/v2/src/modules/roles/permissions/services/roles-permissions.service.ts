@@ -134,7 +134,7 @@ export class RolesPermissionsService {
 
     const updateData: UpdateRolePermissionsData = {
       roleId,
-      permissions: permissions || [],
+      permissions,
       updates: {},
     };
 

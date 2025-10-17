@@ -74,7 +74,7 @@ export class RolesService {
 
     const updateData: UpdateRolePermissionsData = {
       roleId,
-      permissions: data.permissions || [],
+      permissions: data.permissions,
       updates: {
         name: data.name,
         color: data.color,

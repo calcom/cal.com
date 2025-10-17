@@ -370,6 +370,28 @@ describe("Organizations Roles Endpoints", () => {
         });
     });
 
+    it("should update only name and keep permissions unchanged", async () => {
+      const updateNameOnly: UpdateTeamRoleInput = {
+        name: "CRUD Test Role Renamed Only",
+      };
+      const expectedPermissions = ["booking.read", "eventType.read"]; // from previous update
+
+      return request(app.getHttpServer())
+        .patch(
+          `/v2/organizations/${pbacEnabledOrganization.id}/teams/${pbacEnabledTeam.id}/roles/${createdRoleId}`
+        )
+        .set("Authorization", `Bearer ${pbacOrgUserWithRolePermissionApiKey}`)
+        .send(updateNameOnly)
+        .expect(200)
+        .then((response) => {
+          const responseBody: UpdateTeamRoleOutput = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.id).toEqual(createdRoleId);
+          expect(responseBody.data.name).toEqual(updateNameOnly.name);
+          expect(responseBody.data.permissions).toEqual(expectedPermissions);
+        });
+    });
+
     it("should fetch the role", async () => {
       return request(app.getHttpServer())
         .get(
