@@ -1,5 +1,4 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { Pool } from "pg";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
@@ -9,9 +8,7 @@ import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-
+const adapter = new PrismaPg({ connectionString });
 const prismaOptions: Prisma.PrismaClientOptions = {
   adapter,
 };
