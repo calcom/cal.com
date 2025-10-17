@@ -1,4 +1,4 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import {
   eventTypeBookingFieldsSchema,
   EventTypeWithOwnerAndTeam,
@@ -10,7 +10,12 @@ import {
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { apiToInternalintegrationsMapping } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import {
+  apiToInternalintegrationsMapping,
+  BookingFieldSchema,
+  CustomField,
+  SystemField,
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { defaultBookingResponses } from "@/lib/safe-parse/default-responses-booking";
 import { safeParse } from "@/lib/safe-parse/safe-parse";
@@ -32,6 +37,7 @@ import { z } from "zod";
 import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
 import type {
+  AddAttendeesInput_2024_08_13,
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
@@ -554,7 +560,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -770,7 +776,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
@@ -829,6 +835,63 @@ export class InputBookingsService_2024_08_13 {
       attendees: inputBooking.attendees?.map((attendee) => ({
         email: attendee.email,
         noShow: attendee.absent,
+      })),
+    };
+  }
+
+  async validateAndTransformAddAttendeesInput(bookingUid: string, input: AddAttendeesInput_2024_08_13) {
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
+    }
+
+    if (!booking.eventTypeId) {
+      throw new BadRequestException("Cannot add attendees to a booking without an event type");
+    }
+
+    const eventType = await this.eventTypesRepository.getEventTypeById(booking.eventTypeId);
+
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id ${booking.eventTypeId} not found`);
+    }
+
+    const transformedBookingFields: (SystemField | CustomField)[] = [];
+
+    for (const bookingField of eventType.bookingFields as unknown as []) {
+      const validationResult = BookingFieldSchema.safeParse(bookingField);
+      if (validationResult.success) {
+        transformedBookingFields.push(validationResult.data);
+      }
+    }
+
+    const guestsBookingField = transformedBookingFields.find((field) => field.name === "guests");
+    if (guestsBookingField?.hidden) {
+      throw new BadRequestException(
+        `Cannot add guests to this booking. The guests field is disabled for event type "${eventType.title}" (ID: ${eventType.id}). Please contact the event organizer to enable guest additions.`
+      );
+    }
+
+    const existingEmails = new Set(booking.attendees.map((att) => att.email.toLowerCase()));
+    const duplicateEmails = input.attendees.filter((att) => existingEmails.has(att.email.toLowerCase()));
+
+    if (duplicateEmails.length > 0) {
+      throw new BadRequestException(
+        `The following attendee emails already exist in this booking: ${duplicateEmails
+          .map((a) => a.email)
+          .join(", ")}`
+      );
+    }
+
+    return {
+      booking,
+      eventType,
+      attendeesToAdd: input.attendees.map((attendee) => ({
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        phoneNumber: attendee.phoneNumber,
+        locale: "en",
       })),
     };
   }
