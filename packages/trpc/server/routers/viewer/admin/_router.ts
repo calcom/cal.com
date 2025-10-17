@@ -2,6 +2,7 @@ import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+import { ZDowngradeOrganizationInputSchema } from "./downgradeOrganization.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
@@ -10,6 +11,7 @@ import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
+import { ZValidateDowngradeInputSchema } from "./validateDowngrade.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
@@ -79,6 +81,16 @@ export const adminRouter = router({
     .input(ZAdminUnassignFeatureFromTeamSchema)
     .mutation(async (opts) => {
       const { default: handler } = await import("./unassignFeatureFromTeam.handler");
+      return handler(opts);
+    }),
+  validateDowngrade: authedAdminProcedure.input(ZValidateDowngradeInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./validateDowngrade.handler");
+    return handler(opts);
+  }),
+  downgradeOrganization: authedAdminProcedure
+    .input(ZDowngradeOrganizationInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./downgradeOrganization.handler");
       return handler(opts);
     }),
   workspacePlatform: router({

@@ -53,7 +53,24 @@ export function AdminOrgTable() {
     });
   };
 
+  const downgradeMutation = trpc.viewer.admin.downgradeOrganization.useMutation({
+    onSuccess: async (result, variables) => {
+      showToast(
+        t("org_downgraded_successfully", {
+          teamsCount: result.teams.length,
+          membersRemoved: result.removedMembers.length,
+        }),
+        "success"
+      );
+      await invalidateQueries(utils, { orgId: variables.organizationId });
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
   const [orgToDelete, setOrgToDelete] = useState<(typeof data)[number] | null>(null);
+  const [orgToDowngrade, setOrgToDowngrade] = useState<(typeof data)[number] | null>(null);
   return (
     <div>
       <Table>
@@ -193,6 +210,14 @@ export function AdminOrgTable() {
                         icon: "terminal" as const,
                       },
                       {
+                        id: "downgrade",
+                        label: t("downgrade_to_teams"),
+                        onClick: () => {
+                          setOrgToDowngrade(org);
+                        },
+                        icon: "arrow-down-to-line" as const,
+                      },
+                      {
                         id: "delete",
                         label: t("delete"),
                         onClick: () => {
@@ -208,6 +233,18 @@ export function AdminOrgTable() {
           ))}
         </Body>
       </Table>
+      <DowngradeOrgDialog
+        org={orgToDowngrade}
+        onClose={() => setOrgToDowngrade(null)}
+        onConfirm={(targetTeamIdForCredits) => {
+          if (!orgToDowngrade) return;
+          downgradeMutation.mutate({
+            organizationId: orgToDowngrade.id,
+            targetTeamIdForCredits,
+          });
+          setOrgToDowngrade(null);
+        }}
+      />
       <DeleteOrgDialog
         org={orgToDelete}
         onClose={() => setOrgToDelete(null)}
@@ -223,6 +260,91 @@ export function AdminOrgTable() {
 }
 
 export default AdminOrgTable;
+
+const DowngradeOrgDialog = ({
+  org,
+  onConfirm,
+  onClose,
+}: {
+  org: {
+    id: number;
+    name: string;
+  } | null;
+  onConfirm: (targetTeamIdForCredits?: number) => void;
+  onClose: () => void;
+}) => {
+  const { t } = useLocale();
+  const [selectedTeamForCredits, setSelectedTeamForCredits] = useState<number | undefined>();
+
+  // Fetch validation data to get available teams and credit info
+  const { data: validation } = trpc.viewer.admin.validateDowngrade.useQuery(
+    { organizationId: org?.id ?? 0 },
+    { enabled: !!org?.id }
+  );
+
+  if (!org) {
+    return null;
+  }
+
+  const hasCredits = (validation?.organizationCredits ?? 0) > 0;
+  const availableTeams = validation?.availableTeamsForCredits ?? [];
+
+  return (
+    // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
+    <Dialog name="downgrade-org" open={!!org.id} onOpenChange={(open) => (open ? () => {} : onClose())}>
+      <ConfirmationDialogContent
+        title={t("admin_downgrade_organization_title", {
+          organizationName: org.name,
+        })}
+        confirmBtnText={t("downgrade")}
+        cancelBtnText={t("cancel")}
+        variety="danger"
+        onConfirm={() => onConfirm(selectedTeamForCredits)}>
+        <p className="mb-4">{t("admin_downgrade_organization_description")}</p>
+        <ul className="ml-4 mt-5 list-disc space-y-2">
+          <li>{t("admin_downgrade_organization_point_1")}</li>
+          <li>{t("admin_downgrade_organization_point_2")}</li>
+          <li>{t("admin_downgrade_organization_point_3")}</li>
+          <li>{t("admin_downgrade_organization_point_4")}</li>
+          <li>{t("admin_downgrade_organization_point_5")}</li>
+        </ul>
+
+        {hasCredits && availableTeams.length > 0 && (
+          <div className="mt-6 rounded-md border border-gray-200 p-4">
+            <h4 className="text-sm font-medium text-gray-900">
+              {t("admin_downgrade_credit_allocation")}
+            </h4>
+            <p className="text-subtle mt-1 text-sm">
+              {t("admin_downgrade_credit_allocation_description", {
+                credits: validation?.organizationCredits,
+              })}
+            </p>
+            <div className="mt-3">
+              <label htmlFor="credit-team-select" className="text-sm font-medium text-gray-700">
+                {t("admin_downgrade_select_team_for_credits")}
+              </label>
+              <select
+                id="credit-team-select"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                value={selectedTeamForCredits ?? ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedTeamForCredits(value ? Number(value) : undefined);
+                }}>
+                <option value="">{t("admin_downgrade_distribute_evenly")}</option>
+                {availableTeams.map((team) => (
+                  <option key={team.teamId} value={team.teamId}>
+                    {team.teamName} ({team.memberCount} {t("members")})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+      </ConfirmationDialogContent>
+    </Dialog>
+  );
+};
 
 const DeleteOrgDialog = ({
   org,
