@@ -138,40 +138,31 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
 
     if (organizationOnboarding) {
-      const currentOnboardingId = onboardingId;
-      const dbOnboardingId = organizationOnboarding.id;
-
-      // Only sync from DB if the onboardingId doesn't match or if we don't have one yet
-      const needsSync = currentOnboardingId !== dbOnboardingId;
-
-      if (needsSync) {
-        // Admin creating for someone else - don't sync from DB, let them proceed to handover
-        if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
-          // Don't reset or sync - admin has just created this onboarding and should see handover page
-          return;
-        }
-
-        // Must reset with current state of onboarding in DB for the user
-        reset({
-          onboardingId: organizationOnboarding.id,
-          billingPeriod: organizationOnboarding.billingPeriod as BillingPeriod,
-          pricePerSeat: organizationOnboarding.pricePerSeat,
-          seats: organizationOnboarding.seats,
-          orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
-          name: organizationOnboarding.name,
-          slug: organizationOnboarding.slug,
-          bio: organizationOnboarding.bio,
-          logo: organizationOnboarding.logo,
-          brandColor: organizationOnboarding.brandColor,
-          bannerUrl: organizationOnboarding.bannerUrl,
-          invitedMembers: [],
-          teams: [],
-        });
+      // Admin creating for someone else - don't sync from DB, let them proceed to handover
+      if (isAdmin && organizationOnboarding?.orgOwnerEmail !== session.data?.user.email) {
+        return;
       }
+
+      // Always sync from DB to ensure UI reflects latest changes
+      reset({
+        onboardingId: organizationOnboarding.id,
+        billingPeriod: organizationOnboarding.billingPeriod as BillingPeriod,
+        pricePerSeat: organizationOnboarding.pricePerSeat,
+        seats: organizationOnboarding.seats,
+        orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+        name: organizationOnboarding.name,
+        slug: organizationOnboarding.slug,
+        bio: organizationOnboarding.bio,
+        logo: organizationOnboarding.logo,
+        brandColor: organizationOnboarding.brandColor,
+        bannerUrl: organizationOnboarding.bannerUrl,
+        invitedMembers: [],
+        teams: [],
+      });
     }
     // Note: We no longer redirect if onboardingId is missing, as regular users
     // don't create the onboarding record until the final step
-  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, reset, , path]);
+  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, reset, path]);
 
   useEffect(() => {
     if (session.status === "loading") {

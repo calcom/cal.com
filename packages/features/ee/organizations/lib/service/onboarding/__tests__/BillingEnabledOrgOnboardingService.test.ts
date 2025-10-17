@@ -8,8 +8,7 @@ import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } fro
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
-import { OrganizationPaymentService } from "../../OrganizationPaymentService";
-import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../../onboarding/types";
+import type { CreateOnboardingIntentInput } from "../../onboarding/types";
 import { BillingEnabledOrgOnboardingService } from "../BillingEnabledOrgOnboardingService";
 
 vi.mock("../../OrganizationPaymentService");
@@ -245,7 +244,7 @@ describe("BillingEnabledOrgOnboardingService", () => {
           email: adminUser.email,
           name: adminUser.name,
           username: "admin",
-          onboardingCompleted: true,
+          completedOnboarding: true,
           emailVerified: new Date(),
         },
       });
