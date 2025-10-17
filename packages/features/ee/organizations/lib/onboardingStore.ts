@@ -180,7 +180,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
               try {
                 const parsed = JSON.parse(item);
                 if (parsed.state?.onboardingId) {
-                  return item as unknown as StorageValue<OnboardingStoreState>;
+                  return parsed as unknown as StorageValue<OnboardingStoreState>;
                 }
               } catch (e) {
                 // Invalid JSON, skip
