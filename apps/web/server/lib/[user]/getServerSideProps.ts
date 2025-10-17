@@ -6,6 +6,7 @@ import type { z } from "zod";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
+import { getBrandingForUser } from "@calcom/features/profile/lib/getBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -133,16 +134,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const [user] = usersInOrgContext; //to be used when dealing with single user, not dynamic group
 
+  const branding = getBrandingForUser({ user });
+
   const profile = {
     name: user.name || user.username || "",
     image: getUserAvatarUrl({
       avatarUrl: user.avatarUrl,
     }),
-    theme: user.profile.organization?.theme ?? user.theme,
-    brandColor: user.profile.organization?.brandColor ?? user.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+    theme: branding.theme,
+    brandColor: branding.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
     darkBrandColor:
-      user.profile.organization?.darkBrandColor ?? user.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+      branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: user.profile.organization,
