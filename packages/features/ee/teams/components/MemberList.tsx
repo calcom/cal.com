@@ -11,6 +11,7 @@ import {
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
@@ -174,6 +175,7 @@ export default function MemberList(props: Props) {
 }
 
 function MemberListContent(props: Props) {
+  const router = useRouter();
   const { facetedTeamValues } = props;
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
@@ -254,23 +256,29 @@ function MemberListContent(props: Props) {
         teamId: teamIds[0],
         searchTerm,
       });
-
+      const deletedUserEmail = state.deleteMember.user?.id;
       if (previousValue) {
         removeMemberFromCache({
           utils,
-          memberId: state.deleteMember.user?.id as number,
+          memberId: deletedUserEmail as number,
           teamId: teamIds[0],
           searchTerm,
         });
       }
-      return { previousValue };
+      return { previousValue, deletedUserEmail };
     },
-    async onSuccess() {
+    async onSuccess(data, variables, context) {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
       showToast(t("success"), "success");
+      const { previousValue: _previousValue, deletedUserEmail } = context;
+      const currentUserEmail = session?.user.id;
+      const isSelf = deletedUserEmail === currentUserEmail;
+      if (isSelf) {
+        router.push("/teams");
+      }
     },
     async onError(err) {
       showToast(err.message, "error");
