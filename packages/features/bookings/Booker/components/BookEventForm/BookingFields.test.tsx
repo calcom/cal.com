@@ -25,7 +25,6 @@ vi.mock("@calcom/ui/components/address", async (originalImport) => {
   };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type FormMethods = UseFormReturn<any>;
 
 // Add tRPC mock before tests
@@ -50,7 +49,7 @@ const renderComponent = ({
   formDefaultValues,
 }: {
   props: Parameters<typeof BookingFields>[0];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   formDefaultValues?: any;
 }) => {
   let formMethods: UseFormReturn | undefined;
@@ -66,7 +65,7 @@ const renderComponent = ({
     );
   };
   const result = render(<BookingFields {...props} />, { wrapper: Wrapper });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   return { result, formMethods: formMethods! };
 };
 

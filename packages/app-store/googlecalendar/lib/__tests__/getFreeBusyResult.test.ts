@@ -29,7 +29,7 @@ describe("GoogleCalendarService.getFreeBusyResult - shouldServeCache logic", () 
     fetchAvailabilitySpy = mockFetchAvailability;
 
     calendarService.getFreeBusyResult = CalendarService.prototype.getFreeBusyResult.bind(calendarService);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     (calendarService as any).credential = { id: 1, userId: 1 };
   });
 
@@ -79,7 +79,6 @@ describe("GoogleCalendarService.getFreeBusyResult - shouldServeCache logic", () 
         items: [{ id: "test@example.com" }],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await calendarService.getFreeBusyResult(args, null as any);
 
       expect(fetchAvailabilitySpy).toHaveBeenCalledWith(args);
@@ -99,7 +98,6 @@ describe("GoogleCalendarService.getFreeBusyResult - shouldServeCache logic", () 
         items: [{ id: "test@example.com" }],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await calendarService.getFreeBusyResult(args, 0 as any);
 
       expect(fetchAvailabilitySpy).toHaveBeenCalledWith(args);
@@ -119,7 +117,6 @@ describe("GoogleCalendarService.getFreeBusyResult - shouldServeCache logic", () 
         items: [{ id: "test@example.com" }],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await calendarService.getFreeBusyResult(args, "" as any);
 
       expect(fetchAvailabilitySpy).toHaveBeenCalledWith(args);

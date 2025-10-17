@@ -1523,7 +1523,6 @@ function expectToBeTokenGetCall({
   userId,
   appSlug,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fetchCall: any[];
   useCredentialSyncVariables: {
     APP_CREDENTIAL_SHARING_ENABLED: boolean;

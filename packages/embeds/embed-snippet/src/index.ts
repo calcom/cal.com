@@ -1,10 +1,7 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-
 /* eslint-disable @typescript-eslint/ban-ts-comment,prefer-rest-params,prefer-const */
 import type { GlobalCal, GlobalCalWithoutNs, Queue } from "@calcom/embed-core";
 // FIXME: embed-snippet is a published package and shouldn't import from @calcom/types which is unpublished
 // This isn't a problem at the moment because embed-snippet isn't directly imported and embed-react which uses it doesn't depend on this
-// eslint-disable-next-line no-restricted-imports
 import type { Optional } from "@calcom/types/utils";
 
 /**

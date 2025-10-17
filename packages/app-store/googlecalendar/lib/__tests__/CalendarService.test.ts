@@ -691,7 +691,6 @@ describe.skip("Calendar Cache", () => {
 
     const mockAvailabilityData = { busy: [] };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.spyOn(calendarService, "fetchAvailability").mockResolvedValue(mockAvailabilityData as any);
     const setAvailabilityInCacheSpy = vi.spyOn(calendarService, "setAvailabilityInCache");
 

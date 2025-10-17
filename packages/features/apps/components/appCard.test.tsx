@@ -1,4 +1,3 @@
-/* eslint-disable playwright/missing-playwright-await */
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { vi, describe, expect } from "vitest";

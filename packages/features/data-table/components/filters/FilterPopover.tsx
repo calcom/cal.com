@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 
 import { Badge } from "@calcom/ui/components/badge";

@@ -14,7 +14,7 @@ vi.mock("next/script", () => {
 });
 
 const windowProps: string[] = [];
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 function setOnWindow(prop: any, value: any) {
   window[prop] = value;
   windowProps.push(prop);

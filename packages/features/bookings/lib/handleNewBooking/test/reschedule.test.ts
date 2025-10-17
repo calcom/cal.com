@@ -201,7 +201,6 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
             rescheduledBy: organizer.email,
@@ -220,7 +219,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -438,7 +437,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -629,7 +628,7 @@ describe("handleNewBooking", () => {
             to: {
               description: "",
               location: "integrations:daily",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -827,7 +826,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 // Rescheduled booking sill stays in pending state
@@ -1058,7 +1057,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1307,7 +1306,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1522,7 +1521,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 // Rescheduled booking sill stays in pending state
@@ -1766,7 +1765,7 @@ describe("handleNewBooking", () => {
               },
               to: {
                 description: "",
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
                 uid: createdBooking.uid!,
                 eventTypeId: mockBookingData.eventTypeId,
                 status: BookingStatus.ACCEPTED,
@@ -1982,7 +1981,6 @@ describe("handleNewBooking", () => {
               location: BookingLocations.GoogleMeet,
             },
             to: {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2123,7 +2121,6 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
             rescheduledBy: booker.email,
@@ -2144,7 +2141,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2275,7 +2272,6 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2293,7 +2289,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2475,7 +2471,6 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2493,7 +2488,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2630,7 +2625,6 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2651,7 +2645,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -2800,7 +2794,6 @@ describe("handleNewBooking", () => {
 
           // Expect previous booking to be cancelled
           await expectBookingToBeInDatabase({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             uid: uidOfBookingToBeRescheduled,
             status: BookingStatus.CANCELLED,
           });
@@ -2820,7 +2813,7 @@ describe("handleNewBooking", () => {
             },
             to: {
               description: "",
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
               uid: createdBooking.uid!,
               eventTypeId: mockBookingData.eventTypeId,
               status: BookingStatus.ACCEPTED,
@@ -3086,7 +3079,7 @@ describe("handleNewBooking", () => {
           },
           to: {
             description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
             uid: createdBooking.uid!,
             eventTypeId: 1,
             // Only recurring event can have recurringEventId

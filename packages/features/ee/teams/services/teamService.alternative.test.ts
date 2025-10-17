@@ -3,9 +3,9 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
-import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { deleteDomain } from "@calcom/lib/domainManager/organization";
 
 import { TeamService } from "./teamService";
 
@@ -51,7 +51,7 @@ const mockTeamRepo = {
     throw new Error(`Team with id ${id} not found`);
   }),
 };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 vi.mocked(TeamRepository).mockImplementation(() => mockTeamRepo as any);
 
 vi.mocked(deleteDomain).mockImplementation(async (slug) => {

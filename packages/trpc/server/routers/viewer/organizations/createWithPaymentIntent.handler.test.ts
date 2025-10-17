@@ -18,12 +18,9 @@ vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "test-stripe-org-product-id");
 vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS", "30");
 vi.stubEnv("NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW", "37");
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID!;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 
 const STRIPE_ORG_MONTHLY_PRICE_ID = process.env.STRIPE_ORG_MONTHLY_PRICE_ID!;
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 
 const checkoutSessionsCreate = vi.fn();
 const pricesCreate = vi.fn();

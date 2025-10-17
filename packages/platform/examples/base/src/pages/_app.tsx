@@ -73,7 +73,7 @@ export default function App({ Component, pageProps }: AppProps) {
     }
   }, []);
   useEffect(() => {
-    if (!!selectedUser) {
+    if (selectedUser) {
       setAccessToken(selectedUser.accessToken);
       setUserEmail(selectedUser.email);
       setUsername(selectedUser.username);
@@ -87,9 +87,7 @@ export default function App({ Component, pageProps }: AppProps) {
       )}
       <CalProvider
         accessToken={accessToken}
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
         clientId={process.env.NEXT_PUBLIC_X_CAL_ID ?? ""}
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
         options={{ apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "", refreshUrl: "/api/refresh" }}>
         {email ? (
           <>

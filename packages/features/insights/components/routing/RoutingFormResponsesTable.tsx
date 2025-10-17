@@ -1,7 +1,6 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 

@@ -4,7 +4,6 @@ import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
 import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
-// eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
 import { useEffect, useState, memo, useMemo } from "react";
 

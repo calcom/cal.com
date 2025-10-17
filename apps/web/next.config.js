@@ -406,7 +406,7 @@ const nextConfig = (phase) => {
       }, */
       ];
 
-      if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
+      if (process.env.NEXT_PUBLIC_API_V2_URL) {
         afterFiles.push({
           source: "/api/v2/:path*",
           destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,

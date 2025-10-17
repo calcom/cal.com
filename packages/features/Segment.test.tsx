@@ -17,9 +17,7 @@ const mockGetAttributesForTeam = (
     trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery as Mock<
       typeof trpc.viewer.appRoutingForms.getAttributesForTeam.useQuery
     >
-  )
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockReturnValue(arg as any);
+  ).mockReturnValue(arg as any);
 };
 
 const mockGetMatchingTeamMembers = (
@@ -37,9 +35,7 @@ const mockGetMatchingTeamMembers = (
     trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery as Mock<
       typeof trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery
     >
-  )
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockReturnValue(arg as any);
+  ).mockReturnValue(arg as any);
 };
 
 const mockAttributesWithSingleSelect = () => {

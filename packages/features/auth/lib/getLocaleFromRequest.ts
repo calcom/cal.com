@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import parser from "accept-language-parser";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
 

@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import shuffle from "lodash/shuffle";
 import { useState, memo } from "react";
 

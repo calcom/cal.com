@@ -1,4 +1,3 @@
-/* eslint-disable playwright/missing-playwright-await */
 import { render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { test } from "./lib/fixtures";
 
 const SAML_DATABASE_URL = process.env.SAML_DATABASE_URL!;

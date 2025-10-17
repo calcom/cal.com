@@ -31,7 +31,6 @@ const mockProps = {
   LockedIcon: <div>MockedIcon</div>,
   disabled: false,
   onAppInstallSuccess: vi.fn(),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
 
 describe("Tests for EventTypeAppCard component", () => {

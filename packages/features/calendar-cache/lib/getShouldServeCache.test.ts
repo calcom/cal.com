@@ -39,7 +39,6 @@ describe("CacheService.getShouldServeCache", () => {
     });
 
     it("should return false when teamId is null", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await cacheService.getShouldServeCache(undefined, null as any);
       expect(result).toBe(false);
       expect(mockFeaturesRepository.checkIfTeamHasFeature).not.toHaveBeenCalled();

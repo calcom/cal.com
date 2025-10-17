@@ -1,7 +1,6 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
 

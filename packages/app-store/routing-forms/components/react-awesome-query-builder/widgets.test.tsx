@@ -16,9 +16,9 @@ vi.mock("next/dynamic", () => ({
       isMulti,
     }: {
       options: { value: string; label: string }[];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       onChange: (value: any) => void;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       value: any;
       isMulti: boolean;
     }) {
@@ -26,7 +26,6 @@ vi.mock("next/dynamic", () => ({
         <select
           data-testid="mock-select"
           multiple={isMulti}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           value={isMulti ? value.map((v: any) => v.value) : value?.value}
           onChange={(e) => {
             const selectedOptions = Array.from(e.target.selectedOptions, (option) => ({

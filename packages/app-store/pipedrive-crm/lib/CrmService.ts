@@ -52,7 +52,7 @@ export default class PipedriveCrmService implements CRM {
       headers.append("x-revert-t-id", this.tenantId);
       headers.append("Content-Type", "application/json");
 
-      const [firstname, lastname] = !!attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
+      const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, "-"];
       const bodyRaw = JSON.stringify({
         firstName: firstname,
         lastName: lastname || "-",

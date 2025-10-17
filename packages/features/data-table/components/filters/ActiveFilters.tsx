@@ -1,7 +1,6 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import { Fragment } from "react";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";

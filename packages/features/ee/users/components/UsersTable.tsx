@@ -345,7 +345,6 @@ const DeleteUserDialog = ({
   onClose: () => void;
 }) => {
   return (
-    // eslint-disable-next-line @typescript-eslint/no-empty-function -- noop
     <Dialog name="delete-user" open={!!user} onOpenChange={(open) => (open ? () => {} : onClose())}>
       <ConfirmationDialogContent
         title="Delete User"

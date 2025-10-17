@@ -13,7 +13,6 @@ vi.mock("@calcom/prisma", () => ({
 vi.mock("@calcom/features/eventtypes/repositories/eventTypeRepository");
 
 describe("duplicateHandler", () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ctx = { user: { id: 1, profile: { id: 1 } } } as any;
   const input = { id: 123, slug: "test-event", title: "Test", description: "Test", length: 30, teamId: null };
   const eventType = { id: 123, userId: 1, teamId: null, users: [{ id: 1 }] };
@@ -36,7 +35,6 @@ describe("duplicateHandler", () => {
               clientVersion: "mockedVersion",
             })
           ),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any)
     );
 

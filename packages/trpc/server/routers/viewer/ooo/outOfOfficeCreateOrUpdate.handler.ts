@@ -47,7 +47,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   let oooUserFullName = ctx.user.name;
 
   let isAdmin;
-  if (!!input.forUserId) {
+  if (input.forUserId) {
     isAdmin = await isAdminForUser(ctx.user.id, input.forUserId);
     if (!isAdmin) {
       throw new TRPCError({ code: "NOT_FOUND", message: "only_admin_can_create_ooo" });

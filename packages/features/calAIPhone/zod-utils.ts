@@ -21,19 +21,19 @@ export const createPhoneCallSchema = requiredFields.merge(
       .string()
       .optional()
       .transform((val) => {
-        return !!val ? val : undefined;
+        return val ? val : undefined;
       }),
     guestEmail: z
       .string()
       .optional()
       .transform((val) => {
-        return !!val ? val : undefined;
+        return val ? val : undefined;
       }),
     guestCompany: z
       .string()
       .optional()
       .transform((val) => {
-        return !!val ? val : undefined;
+        return val ? val : undefined;
       }),
     beginMessage: z.string().optional(),
     generalPrompt: z.string().optional(),

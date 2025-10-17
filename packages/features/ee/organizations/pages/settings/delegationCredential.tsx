@@ -403,7 +403,7 @@ function DelegationCredentialList() {
 
   return (
     <div>
-      {!!delegations?.length ? (
+      {delegations?.length ? (
         <>
           <ul className="space-y-2 [&>*:last-child]:rounded-b-xl">
             {delegations.map(
