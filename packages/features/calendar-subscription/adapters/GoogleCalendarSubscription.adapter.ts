@@ -161,7 +161,7 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
 
     function filterEventsByDateRange(event: calendar_v3.Schema$Event) {
       const start = dayjs(event.start?.dateTime || event.start?.date);
-      return start.isAfter(now) && start.isBefore(monthsAhead);
+      return !start.isBefore(now) && !start.isAfter(monthsAhead);
     }
 
     return events
