@@ -1,14 +1,15 @@
-// eslint-disable-next-line
+ 
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendNoShowFeeChargedEmail, withHideBranding } from "@calcom/emails";
+import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -28,15 +29,24 @@ export const handleNoShowFee = async ({
     userPrimaryEmail: string | null;
     userId: number | null;
     user?: {
+      id: number;
       email: string;
       name?: string | null;
       locale: string | null;
       timeZone: string;
+      hideBranding: boolean;
     } | null;
     eventType: {
+      id: number;
       title: string;
       hideOrganizerEmail: boolean;
       teamId: number | null;
+      team?: {
+        id: number;
+        hideBranding: boolean;
+        parentId: number | null;
+        parent: { hideBranding: boolean | null } | null;
+      } | null;
       metadata?: Prisma.JsonValue;
     } | null;
     attendees: {
@@ -157,7 +167,14 @@ export const handleNoShowFee = async ({
       throw new Error("Payment processing failed");
     }
 
-    await sendNoShowFeeChargedEmail(attendee, withHideBranding(evt), eventTypeMetdata);
+    const hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId: booking.eventType?.id ?? 0,
+      team: booking.eventType?.team ?? null,
+      owner: booking.user ?? null,
+      organizationId: booking.eventType?.team?.parentId ?? null,
+    });
+
+    await sendNoShowFeeChargedEmail(attendee, { ...evt, hideBranding }, eventTypeMetdata);
 
     return paymentData;
   } catch (err) {

@@ -1,5 +1,6 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { sendScheduledEmailsAndSMS, withHideBranding } from "@calcom/emails";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
@@ -7,7 +8,7 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -96,7 +97,20 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else if (areEmailsEnabled) {
-    await sendScheduledEmailsAndSMS(withHideBranding(evt), undefined, undefined, undefined, eventType.metadata);
+    const hideBranding = await shouldHideBrandingForEvent({
+      eventTypeId: booking.eventType?.id ?? 0,
+      team: booking.eventType?.team ?? null,
+      owner: userWithCredentials ?? null,
+      organizationId: booking.eventType?.team?.parentId ?? null,
+    });
+
+    await sendScheduledEmailsAndSMS(
+      { ...evt, hideBranding },
+      undefined,
+      undefined,
+      undefined,
+      booking.eventType?.metadata as EventTypeMetadata
+    );
   }
 
   throw new HttpCode({
