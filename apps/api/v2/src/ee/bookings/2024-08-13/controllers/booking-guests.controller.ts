@@ -1,6 +1,6 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
 import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-guests.output";
-import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
+import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -29,10 +29,10 @@ import { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
     default: VERSION_2024_08_13,
   },
 })
-export class BookingAttendeesController_2024_08_13 {
-  private readonly logger = new Logger("BookingAttendeesController_2024_08_13");
+export class BookingGuestsController_2024_08_13 {
+  private readonly logger = new Logger("BookingGuestsController_2024_08_13");
 
-  constructor(private readonly bookingAttendeesService: BookingAttendeesService_2024_08_13) {}
+  constructor(private readonly bookingGuestsService: BookingGuestsService_2024_08_13) {}
 
   @Post("/:bookingUid/guests")
   @HttpCode(HttpStatus.OK)
@@ -50,7 +50,7 @@ export class BookingAttendeesController_2024_08_13 {
     @Body() body: AddGuestsInput_2024_08_13,
     @GetUser() user: ApiAuthGuardUser
   ): Promise<AddGuestsOutput_2024_08_13> {
-    const booking = await this.bookingAttendeesService.addGuests(bookingUid, body, user);
+    const booking = await this.bookingGuestsService.addGuests(bookingUid, body, user);
 
     return {
       status: SUCCESS_STATUS,

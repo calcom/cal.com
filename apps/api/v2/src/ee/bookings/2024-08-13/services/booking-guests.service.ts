@@ -10,8 +10,8 @@ import type { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
 import { InputBookingsService_2024_08_13 } from "./input.service";
 
 @Injectable()
-export class BookingAttendeesService_2024_08_13 {
-  private readonly logger = new Logger("BookingAttendeesService_2024_08_13");
+export class BookingGuestsService_2024_08_13 {
+  private readonly logger = new Logger("BookingGuestsService_2024_08_13");
 
   constructor(
     private readonly inputService: InputBookingsService_2024_08_13,

@@ -9000,7 +9000,7 @@
     },
     "/v2/bookings/{bookingUid}/guests": {
       "post": {
-        "operationId": "BookingAttendeesController_2024_08_13_addAttendees",
+        "operationId": "BookingGuestsController_2024_08_13_addAttendees",
         "summary": "Add guests to an existing booking",
         "description": "Add one or more guests to an existing booking.\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
