@@ -283,4 +283,75 @@ export class PermissionRepository implements IPermissionRepository {
     const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
     return allTeamIds;
   }
+
+  async getUsersWithPermissionInTeam({
+    teamId,
+    permission,
+    fallbackRoles,
+    take = 100,
+  }: {
+    teamId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+    take?: number;
+  }): Promise<{ id: number; name: string | null; email: string }[]> {
+    const { resource, action } = parsePermissionString(permission);
+
+    // Query for users with PBAC permissions
+    const usersWithPermissionPromise = this.client.$queryRaw<
+      { id: number; name: string | null; email: string }[]
+    >`
+      SELECT DISTINCT u.id, u.name, u.email
+      FROM "User" u
+      INNER JOIN "Membership" m ON u.id = m."userId"
+      INNER JOIN "Role" r ON m."customRoleId" = r.id
+      WHERE m."teamId" = ${teamId}
+        AND m."accepted" = true
+        AND m."customRoleId" IS NOT NULL
+        AND EXISTS (
+          SELECT 1
+          FROM "RolePermission" rp
+          WHERE rp."roleId" = r.id
+            AND (
+              (rp."resource" = '*' AND rp."action" = '*') OR
+              (rp."resource" = '*' AND rp."action" = ${action}) OR
+              (rp."resource" = ${resource} AND rp."action" = '*') OR
+              (rp."resource" = ${resource} AND rp."action" = ${action})
+            )
+        )
+      LIMIT ${take}
+    `;
+
+    // Query for users with fallback roles (when PBAC is not enabled for the team)
+    const usersWithFallbackRolesPromise = this.client.$queryRaw<
+      { id: number; name: string | null; email: string }[]
+    >`
+      SELECT DISTINCT u.id, u.name, u.email
+      FROM "User" u
+      INNER JOIN "Membership" m ON u.id = m."userId"
+      INNER JOIN "Team" t ON m."teamId" = t.id
+      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+      WHERE m."teamId" = ${teamId}
+        AND m."accepted" = true
+        AND m."role"::text = ANY(${fallbackRoles})
+        AND f."teamId" IS NULL
+      LIMIT ${take}
+    `;
+
+    const [usersWithPermission, usersWithFallbackRoles] = await Promise.all([
+      usersWithPermissionPromise,
+      usersWithFallbackRolesPromise,
+    ]);
+
+    // Combine and deduplicate results
+    const userMap = new Map<number, { id: number; name: string | null; email: string }>();
+
+    usersWithPermission.forEach((user) => userMap.set(user.id, user));
+    usersWithFallbackRoles.forEach((user) => userMap.set(user.id, user));
+
+    const allUsers = Array.from(userMap.values());
+
+    // Apply take limit to combined results
+    return allUsers.slice(0, take);
+  }
 }
