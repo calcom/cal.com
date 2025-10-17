@@ -317,9 +317,12 @@ const getError = ({
     count = error.data.count;
   }
 
+  const messageKey =
+    error.message === ErrorCode.BookerLimitExceeded ? "booker_upcoming_limit_reached" : error.message;
+
   return error?.message ? (
     <>
-      {responseVercelIdHeader ?? ""} {t(error.message, { date, count })}
+      {responseVercelIdHeader ?? ""} {t(messageKey, { date, count })}
     </>
   ) : (
     <>{t("can_you_try_again")}</>
