@@ -1,4 +1,5 @@
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
+import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import type { PrismaClient } from "@calcom/prisma";
 import type { CalendarCacheEvent } from "@calcom/prisma/client";
 
@@ -80,13 +81,13 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     });
   }
 
-  async deleteStale({ monthsAhead = 3 }: { monthsAhead?: number }) {
+  async deleteStale({ monthsAhead = CalendarCacheEventService.MONTHS_AHEAD }: { monthsAhead?: number }) {
     // cleanup events with 3 months ahead
-    const threeMonthsAhead = new Date();
-    threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + monthsAhead);
+    const monthsAheadCut = new Date();
+    monthsAheadCut.setMonth(monthsAheadCut.getMonth() + monthsAhead);
     return this.prismaClient.calendarCacheEvent.deleteMany({
       where: {
-        OR: [{ end: { lte: new Date() } }, { start: { gte: threeMonthsAhead } }],
+        OR: [{ end: { lte: new Date() } }, { start: { gte: monthsAheadCut } }],
       },
     });
   }
