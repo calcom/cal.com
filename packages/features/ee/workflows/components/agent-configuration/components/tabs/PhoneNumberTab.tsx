@@ -248,6 +248,7 @@ export function PhoneNumberTab({
             teamId={teamId}
             isOrganization={isOrganization}
             form={form}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 

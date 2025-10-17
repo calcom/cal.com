@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import dayjs from "@calcom/dayjs";
 import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/SystemField";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
@@ -11,6 +12,7 @@ import { WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
+import type { FormSubmissionData, WorkflowContextData } from "./reminderScheduler";
 import type { BookingInfo } from "./smsReminderManager";
 
 type timeUnitLowerCase = "day" | "hour" | "minute";
@@ -37,12 +39,12 @@ function extractPhoneNumber(responses: BookingInfo["responses"]): string | undef
   return undefined;
 }
 
-interface CreateWorkflowReminderAndExtractPhoneArgs {
-  evt: BookingInfo;
+type CreateWorkflowReminderAndExtractPhoneArgs = WorkflowContextData & {
   workflowStepId: number;
   scheduledDate: dayjs.Dayjs;
   seatReferenceUid?: string;
-}
+  submittedPhoneNumber?: string | null;
+};
 
 interface CreateWorkflowReminderAndExtractPhoneResult {
   workflowReminder: { id: number; uuid: string | null };
@@ -52,35 +54,34 @@ interface CreateWorkflowReminderAndExtractPhoneResult {
 const createWorkflowReminderAndExtractPhone = async (
   args: CreateWorkflowReminderAndExtractPhoneArgs
 ): Promise<CreateWorkflowReminderAndExtractPhoneResult> => {
-  const { evt, workflowStepId, scheduledDate, seatReferenceUid } = args;
-
+  const { evt, workflowStepId, scheduledDate, seatReferenceUid, submittedPhoneNumber } = args;
   // 1) Determine attendee phone first (fail early)
-  let attendeePhoneNumber = extractPhoneNumber(evt.responses);
+  let attendeePhoneNumber = extractPhoneNumber(evt?.responses) || submittedPhoneNumber;
   if (!attendeePhoneNumber) {
-    const attendeePhone = evt.attendees?.[0]?.phoneNumber;
-    if (attendeePhone) {
-      attendeePhoneNumber = attendeePhone;
+    if (evt?.attendees?.[0]?.phoneNumber) {
+      attendeePhoneNumber = evt.attendees?.[0]?.phoneNumber;
     } else {
+      // do we really want to throw an error here?
       throw new Error(`No attendee phone number found for workflow step ${workflowStepId}`);
     }
   }
 
   const workflowReminder = await prisma.workflowReminder.create({
     data: {
-      bookingUid: evt.uid as string,
       workflowStepId,
       method: WorkflowMethods.AI_PHONE_CALL,
       scheduledDate: scheduledDate.toDate(),
       scheduled: true,
       seatReferenceId: seatReferenceUid,
+      bookingUid: evt?.uid,
     },
   });
 
   return { workflowReminder, attendeePhoneNumber };
 };
 
-interface ScheduleAIPhoneCallArgs {
-  evt: BookingInfo;
+type ScheduleAIPhoneCallArgs = {
+  reminderPhone: string | null;
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
@@ -91,17 +92,35 @@ interface ScheduleAIPhoneCallArgs {
   teamId: number | null;
   seatReferenceUid?: string;
   verifiedAt: Date | null;
-}
+} & WorkflowContextData;
+
+export type ScheduleAIPhoneCallArgsWithRequiredFields = Omit<ScheduleAIPhoneCallArgs, "workflowStepId"> & {
+  workflowStepId: number; // Required
+  agent: Agent;
+  activePhoneNumber: string;
+};
+
+type Agent = {
+  id: string;
+  providerAgentId: string;
+  outboundPhoneNumbers: {
+    phoneNumber: string;
+    subscriptionStatus: PhoneNumberSubscriptionStatus | null;
+  }[];
+};
 
 export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
-  const { evt, triggerEvent, timeSpan, workflowStepId, userId, teamId, seatReferenceUid, verifiedAt } = args;
-
-  if (!verifiedAt || !workflowStepId) {
-    logger.warn(`Workflow step ${workflowStepId} not yet verified or not found`);
+  const { workflowStepId, verifiedAt } = args;
+  if (!workflowStepId) {
+    logger.warn(`Workflow step ID is required for AI phone call scheduling`);
     return;
   }
 
-  // Get the workflow step to check if it has an agent configured
+  if (!verifiedAt) {
+    logger.warn(`Workflow step ${workflowStepId} not yet verified`);
+    return;
+  }
+
   const workflowStep = await prisma.workflowStep.findUnique({
     where: { id: workflowStepId },
     select: {
@@ -143,6 +162,35 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
     logger.warn("Cal AI voice agents are disabled - skipping AI phone call scheduling");
     return;
   }
+  const params = { ...args, agent: workflowStep.agent, activePhoneNumber: activePhoneNumbers[0].phoneNumber };
+
+  if (params.evt) {
+    await scheduleAIPhoneCallForEvt(
+      params as ScheduleAIPhoneCallArgsWithRequiredFields & { evt: BookingInfo }
+    );
+  } else {
+    await scheduleAIPhoneCallForForm(
+      params as ScheduleAIPhoneCallArgsWithRequiredFields & {
+        formData: FormSubmissionData;
+      }
+    );
+  }
+};
+
+const scheduleAIPhoneCallForEvt = async (
+  args: ScheduleAIPhoneCallArgsWithRequiredFields & { evt: BookingInfo }
+) => {
+  const {
+    evt,
+    triggerEvent,
+    timeSpan,
+    workflowStepId,
+    userId,
+    teamId,
+    seatReferenceUid,
+    agent,
+    activePhoneNumber,
+  } = args;
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -183,14 +231,15 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
       await scheduleAIPhoneCallTask({
         workflowReminderId: workflowReminder.id,
         scheduledDate: scheduledDate.toDate(),
-        agentId: workflowStep.agent.id,
-        phoneNumber: activePhoneNumbers[0].phoneNumber,
+        agentId: agent.id,
+        phoneNumber: activePhoneNumber,
         attendeePhoneNumber,
         bookingUid: uid,
         userId,
         teamId,
-        providerAgentId: workflowStep.agent.providerAgentId,
+        providerAgentId: agent.providerAgentId,
         referenceUid: workflowReminder.uuid || uuidv4(),
+        formResponses: null,
       });
 
       logger.info(`AI phone call scheduled for workflow step ${workflowStepId} at ${scheduledDate}`);
@@ -207,19 +256,20 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
         seatReferenceUid,
       });
 
-      // Schedule the actual AI phone call immediatel
+      // Schedule the actual AI phone call immediately
       // Should i execute the task immediately or schedule it for later?
       await scheduleAIPhoneCallTask({
         workflowReminderId: workflowReminder.id,
         scheduledDate: currentDate.toDate(),
-        agentId: workflowStep.agent.id,
-        phoneNumber: activePhoneNumbers[0].phoneNumber,
+        agentId: agent.id,
+        phoneNumber: activePhoneNumber,
         attendeePhoneNumber,
         bookingUid: uid,
         userId,
         teamId,
-        providerAgentId: workflowStep.agent.providerAgentId,
+        providerAgentId: agent.providerAgentId,
         referenceUid: workflowReminder.uuid || uuidv4(),
+        formResponses: null,
       });
 
       logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
@@ -229,17 +279,63 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   }
 };
 
+// sends all immediately, no scheduling needed
+const scheduleAIPhoneCallForForm = async (
+  args: ScheduleAIPhoneCallArgsWithRequiredFields & {
+    formData: FormSubmissionData;
+  }
+) => {
+  const {
+    formData,
+    workflowStepId,
+    userId,
+    teamId,
+    seatReferenceUid,
+    reminderPhone,
+    agent,
+    activePhoneNumber,
+  } = args;
+
+  try {
+    const { workflowReminder, attendeePhoneNumber } = await createWorkflowReminderAndExtractPhone({
+      formData,
+      workflowStepId,
+      submittedPhoneNumber: reminderPhone,
+      scheduledDate: dayjs(),
+      seatReferenceUid,
+    });
+
+    await scheduleAIPhoneCallTask({
+      workflowReminderId: workflowReminder.id,
+      agentId: agent.id,
+      phoneNumber: activePhoneNumber,
+      attendeePhoneNumber,
+      userId,
+      teamId,
+      scheduledDate: null,
+      formResponses: formData.responses,
+      bookingUid: null,
+      providerAgentId: agent.providerAgentId,
+      referenceUid: workflowReminder.uuid || uuidv4(),
+    });
+    logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
+  } catch (error) {
+    logger.error(`Error scheduling immediate AI phone call with error ${error}`);
+  }
+};
+
 interface ScheduleAIPhoneCallTaskArgs {
   workflowReminderId: number;
-  scheduledDate: Date;
+  scheduledDate: Date | null;
   agentId: string;
   phoneNumber: string;
   attendeePhoneNumber: string;
-  bookingUid: string;
+  bookingUid: string | null;
   userId: number | null;
   teamId: number | null;
   providerAgentId: string;
   referenceUid: string;
+  formResponses: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
 }
 
 const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
@@ -254,7 +350,13 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     teamId,
     providerAgentId,
     referenceUid,
+    formResponses,
   } = args;
+
+  if (!formResponses && !bookingUid) {
+    logger.warn("context missing for creating AI phone call task");
+    return;
+  }
 
   const featuresRepository = new FeaturesRepository(prisma);
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
@@ -282,9 +384,10 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
         userId,
         teamId,
         providerAgentId,
+        responses: formResponses,
       },
       {
-        scheduledAt: scheduledDate,
+        scheduledAt: scheduledDate || undefined,
         maxAttempts: 1,
         referenceUid,
       }

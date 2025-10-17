@@ -125,6 +125,7 @@ export async function _onFormSubmission(
   chosenAction?: {
     type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
     value: string;
+    eventTypeId?: number;
   }
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
@@ -219,11 +220,17 @@ export async function _onFormSubmission(
       await Promise.all(promises);
 
       const workflows = await WorkflowService.getAllWorkflowsFromRoutingForm(form);
-
+      const routedEventTypeId: number | null =
+        chosenAction && chosenAction.type === "eventTypeRedirectUrl" && chosenAction.eventTypeId
+          ? chosenAction.eventTypeId
+          : null;
+      console.log("routedEventTypeId", routedEventTypeId);
       await WorkflowService.scheduleFormWorkflows({
         workflows,
         responseId,
         responses: fieldResponsesByIdentifier,
+        routedEventTypeId,
+        responseId,
         form: {
           ...form,
           fields: form.fields.map((field) => ({
@@ -287,6 +294,7 @@ export const onSubmissionOfFormResponse = async ({
   chosenRouteAction: {
     type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
     value: string;
+    eventTypeId?: number;
   } | null;
 }) => {
   if (!form.fields) {

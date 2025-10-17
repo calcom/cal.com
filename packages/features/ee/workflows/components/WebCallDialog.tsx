@@ -5,14 +5,17 @@ import type { RetellWebClient } from "retell-client-js-sdk";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import type { Option } from "@calcom/ui/components/form/checkbox/MultiSelectCheckboxes";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
+import { isFormTrigger } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 
 interface WebCallDialogProps {
@@ -22,6 +25,8 @@ interface WebCallDialogProps {
   teamId?: number;
   isOrganization?: boolean;
   form: UseFormReturn<FormValues>;
+  eventTypeOptions?: Option[];
+  outboundEventTypeId?: number | null;
 }
 
 interface TranscriptEntry {
@@ -39,6 +44,8 @@ export function WebCallDialog({
   teamId,
   isOrganization = false,
   form,
+  eventTypeOptions = [],
+  outboundEventTypeId,
 }: WebCallDialogProps) {
   const { t } = useLocale();
   const [callStatus, setCallStatus] = useState<CallStatus>("idle");
@@ -195,10 +202,33 @@ export function WebCallDialog({
   };
 
   const handleStartCall = () => {
-    const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
-    if (!firstEventTypeId) {
-      showToast(t("choose_at_least_one_event_type_test_call"), "error");
-      return;
+    const trigger = form.getValues("trigger");
+
+    let eventTypeId: number;
+
+    if (isFormTrigger(trigger)) {
+      if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
+        if (!outboundEventTypeId) {
+          showToast(t("agent_outbound_event_type_not_configured"), "error");
+          return;
+        }
+        eventTypeId = outboundEventTypeId;
+      } else {
+        if (!eventTypeOptions || eventTypeOptions.length === 0) {
+          showToast(t("no_event_types_available_for_test_call"), "error");
+          return;
+        }
+        // Pick first type from available options
+        eventTypeId = parseInt(eventTypeOptions[0].value, 10);
+      }
+    } else {
+      // For regular event type triggers, use the selected event type
+      const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
+      if (!firstEventTypeId) {
+        showToast(t("choose_at_least_one_event_type_test_call"), "error");
+        return;
+      }
+      eventTypeId = parseInt(firstEventTypeId, 10);
     }
 
     if (agentId) {
@@ -208,7 +238,7 @@ export function WebCallDialog({
       createWebCallMutation.mutate({
         agentId: agentId,
         teamId: teamId,
-        eventTypeId: parseInt(firstEventTypeId, 10),
+        eventTypeId: eventTypeId,
       });
     }
   };
@@ -278,7 +308,6 @@ export function WebCallDialog({
 
   useEffect(() => {
     if (transcriptEndRef.current) {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed
       transcriptEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [transcript]);

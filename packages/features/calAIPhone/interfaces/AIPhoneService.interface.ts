@@ -331,6 +331,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     generalTools?: AIPhoneServiceTools<T>;
     voiceId?: string;
     language?: string;
+    outboundEventTypeId?: number;
   }): Promise<{ message: string }>;
 
   /**
