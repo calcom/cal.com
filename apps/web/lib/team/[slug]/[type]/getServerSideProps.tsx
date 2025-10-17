@@ -136,16 +136,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const branding = getBrandingForEventType({
     eventType: {
-      team: team.parent
-        ? {
-            ...team,
-            parent: {
-              brandColor: team.parent.brandColor,
-              darkBrandColor: team.parent.darkBrandColor,
-              theme: team.parent.theme,
-            },
-          }
-        : team,
+      team: team.parent ?? team,
       users: [],
       profile: null,
     },

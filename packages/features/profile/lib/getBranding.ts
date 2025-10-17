@@ -32,17 +32,18 @@ export function getBrandingForEventType(params: { eventType: EventTypeWithBrandi
   const { eventType } = params;
 
   if (eventType.team) {
+    const branding = eventType.team.parent ?? eventType.team;
     return {
-      theme: eventType.team.parent?.theme ?? eventType.team.theme ?? null,
-      brandColor: eventType.team.parent?.brandColor ?? eventType.team.brandColor ?? null,
-      darkBrandColor: eventType.team.parent?.darkBrandColor ?? eventType.team.darkBrandColor ?? null,
+      theme: branding.theme ?? null,
+      brandColor: branding.brandColor ?? null,
+      darkBrandColor: branding.darkBrandColor ?? null,
     };
   }
 
-  const user = eventType.users[0];
+  const branding = eventType.profile?.organization ?? eventType.users[0];
   return {
-    theme: eventType.profile?.organization?.theme ?? user?.theme ?? null,
-    brandColor: eventType.profile?.organization?.brandColor ?? user?.brandColor ?? null,
-    darkBrandColor: eventType.profile?.organization?.darkBrandColor ?? user?.darkBrandColor ?? null,
+    theme: branding?.theme ?? null,
+    brandColor: branding?.brandColor ?? null,
+    darkBrandColor: branding?.darkBrandColor ?? null,
   };
 }
