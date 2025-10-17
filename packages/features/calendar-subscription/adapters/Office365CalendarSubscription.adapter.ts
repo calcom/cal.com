@@ -70,7 +70,9 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
   constructor(cfg: AdapterConfig = {}) {
     this.baseUrl = cfg.baseUrl ?? "https://graph.microsoft.com/v1.0";
     this.webhookToken = cfg.webhookToken ?? process.env.MICROSOFT_WEBHOOK_TOKEN ?? null;
-    this.webhookUrl = cfg.webhookUrl ?? process.env.MICROSOFT_WEBHOOK_URL ?? null;
+    this.webhookUrl = `${
+      process.env.MICROSOFT_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL
+    }/api/webhooks/calendar-subscription/microsoft_calendar`;
     this.subscriptionTtlMs = cfg.subscriptionTtlMs ?? 3 * 24 * 60 * 60 * 1000;
   }
 
@@ -81,7 +83,7 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
       try {
         const urlObj = new URL(request.url);
         validationToken = urlObj.searchParams.get("validationToken");
-      } catch (e) {
+      } catch {
         log.warn("Invalid request URL", { url: request.url });
       }
     }
