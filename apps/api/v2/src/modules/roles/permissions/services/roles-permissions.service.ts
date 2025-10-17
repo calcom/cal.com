@@ -140,7 +140,7 @@ export class RolesPermissionsService {
 
     try {
       const updatedRole = await this.roleService.update(updateData);
-      return updatedRole.permissions.map((p) => `${p.resource}.${p.action}` as PermissionString);
+      return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("Invalid permissions provided")) {
