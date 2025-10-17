@@ -3303,6 +3303,8 @@
   "onboarding_not_found": "Onboarding not found",
   "onboarding_already_complete": "Onboarding already complete",
   "onboarding_already_complete_description": "This onboarding has already been completed. You can view your organization in settings.",
+  "resume_onboarding": "Resume Onboarding",
+  "resume_onboarding_description": "Continue with your organization onboarding process",
   "payment_successful": "Payment successful!",
   "handover_onboarding_page_title": "Handover onboarding",
   "handover_onboarding_page_description": "Handover onboarding to the user",

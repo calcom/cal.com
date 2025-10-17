@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/resume-view";
+import ResumeOnboardingPage, { LayoutWrapper } from "~/settings/organizations/new/resume-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -14,7 +14,7 @@ export const generateMetadata = async () =>
 const ServerPage = async () => {
   return (
     <LayoutWrapper>
-      <LegacyPage />
+      <ResumeOnboardingPage />
     </LayoutWrapper>
   );
 };

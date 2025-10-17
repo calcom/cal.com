@@ -286,7 +286,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     }
     // Note: We no longer redirect if onboardingId is missing, as regular users
     // don't create the onboarding record until the final step
-  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, reset, step, router, path]);
+  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, reset, , path]);
 
   useEffect(() => {
     if (session.status === "loading") {

@@ -75,8 +75,6 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
 
   const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
-      console.log("intentToCreateOrg response:", data);
-
       reset({
         onboardingId: data.organizationOnboardingId,
         billingPeriod: data.billingPeriod,
