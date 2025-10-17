@@ -34,7 +34,7 @@ export class TeamRoleOutput {
   @Expose()
   description?: string | null;
 
-  @ApiPropertyOptional({ description: "Team/Organization ID this role belongs to" })
+  @ApiPropertyOptional({ description: "Team ID this role belongs to" })
   @IsNumber()
   @IsOptional()
   @Expose()

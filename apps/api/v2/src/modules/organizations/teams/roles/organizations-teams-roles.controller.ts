@@ -20,6 +20,7 @@ import { DeleteTeamRoleOutput } from "@/modules/organizations/teams/roles/output
 import { GetAllTeamRolesOutput } from "@/modules/organizations/teams/roles/outputs/get-all-team-roles.output";
 import { GetTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/get-team-role.output";
 import { UpdateTeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/update-team-role.output";
+import { TeamRolesOutputService } from "@/modules/organizations/teams/roles/services/team-roles-output.service";
 import { RolesService } from "@/modules/roles/services/roles.service";
 import {
   Controller,
@@ -50,7 +51,10 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
 export class OrganizationsTeamsRolesController {
-  constructor(private readonly rolesService: RolesService) {}
+  constructor(
+    private readonly rolesService: RolesService,
+    private readonly rolesOutputService: TeamRolesOutputService
+  ) {}
 
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
@@ -66,7 +70,7 @@ export class OrganizationsTeamsRolesController {
     const role = await this.rolesService.createRole(teamId, body);
     return {
       status: SUCCESS_STATUS,
-      data: role,
+      data: this.rolesOutputService.getTeamRoleOutput(role),
     };
   }
 
@@ -84,7 +88,7 @@ export class OrganizationsTeamsRolesController {
     const role = await this.rolesService.getRole(teamId, roleId);
     return {
       status: SUCCESS_STATUS,
-      data: role,
+      data: this.rolesOutputService.getTeamRoleOutput(role),
     };
   }
 
@@ -103,7 +107,7 @@ export class OrganizationsTeamsRolesController {
     const roles = await this.rolesService.getTeamRoles(teamId, skip ?? 0, take ?? 250);
     return {
       status: SUCCESS_STATUS,
-      data: roles,
+      data: this.rolesOutputService.getTeamRolesOutput(roles),
     };
   }
 
@@ -122,7 +126,7 @@ export class OrganizationsTeamsRolesController {
     const role = await this.rolesService.updateRole(teamId, roleId, body);
     return {
       status: SUCCESS_STATUS,
-      data: role,
+      data: this.rolesOutputService.getTeamRoleOutput(role),
     };
   }
 
@@ -140,7 +144,7 @@ export class OrganizationsTeamsRolesController {
     const role = await this.rolesService.deleteRole(teamId, roleId);
     return {
       status: SUCCESS_STATUS,
-      data: role,
+      data: this.rolesOutputService.getTeamRoleOutput(role),
     };
   }
 }

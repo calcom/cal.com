@@ -5,15 +5,10 @@ import { BadRequestException, Injectable, NotFoundException, Logger } from "@nes
 import { RoleService } from "@calcom/platform-libraries/pbac";
 import type { CreateRoleData, UpdateRolePermissionsData } from "@calcom/platform-libraries/pbac";
 
-import { RolesOutputService } from "./roles-output.service";
-
 @Injectable()
 export class RolesService {
   private readonly logger = new Logger(RolesService.name);
-  constructor(
-    private readonly rolesService: RoleService,
-    private readonly rolesOutputService: RolesOutputService
-  ) {}
+  constructor(private readonly rolesService: RoleService) {}
 
   async createRole(teamId: number, data: CreateTeamRoleInput) {
     const createRoleData: CreateRoleData = {
@@ -26,8 +21,7 @@ export class RolesService {
     };
 
     try {
-      const role = await this.rolesService.createRole(createRoleData);
-      return this.rolesOutputService.getRoleOutput(role);
+      return await this.rolesService.createRole(createRoleData);
     } catch (error) {
       this.logger.error(
         `RolesService - createRole failed (teamId=${teamId}, roleName=${data.name}): ${
@@ -55,7 +49,7 @@ export class RolesService {
       throw new NotFoundException(`Role with id ${roleId} within team id ${teamId} not found`);
     }
 
-    return this.rolesOutputService.getRoleOutput(role);
+    return role;
   }
 
   async getTeamRoles(teamId: number, skip = 0, take = 250) {
@@ -63,7 +57,7 @@ export class RolesService {
 
     const paginatedRoles = allRoles.slice(skip, skip + take);
 
-    return this.rolesOutputService.getRolesOutput(paginatedRoles);
+    return paginatedRoles;
   }
 
   async updateRole(teamId: number, roleId: string, data: UpdateTeamRoleInput) {
@@ -82,8 +76,7 @@ export class RolesService {
     };
 
     try {
-      const updatedRole = await this.rolesService.update(updateData);
-      return this.rolesOutputService.getRoleOutput(updatedRole);
+      return await this.rolesService.update(updateData);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("Role not found")) {
@@ -116,7 +109,7 @@ export class RolesService {
 
     try {
       await this.rolesService.deleteRole(roleId);
-      return this.rolesOutputService.getRoleOutput(role);
+      return role;
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("Cannot delete default roles")) {

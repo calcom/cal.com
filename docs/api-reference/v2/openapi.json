@@ -2826,7 +2826,11 @@
                   "webhook.create",
                   "webhook.read",
                   "webhook.update",
-                  "webhook.delete"
+                  "webhook.delete",
+                  "watchlist.create",
+                  "watchlist.read",
+                  "watchlist.update",
+                  "watchlist.delete"
                 ]
               }
             }
@@ -26140,12 +26144,17 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "watchlist.create",
+                "watchlist.read",
+                "watchlist.update",
+                "watchlist.delete"
               ]
             }
           },
           "name": {
             "type": "string",
+            "minLength": 1,
             "description": "Name of the role"
           }
         },
@@ -26172,10 +26181,10 @@
             "nullable": true,
             "description": "Description of the role"
           },
-          "teamId": {
+          "organizationId": {
             "type": "number",
             "nullable": true,
-            "description": "Team/Organization ID this role belongs to"
+            "description": "Organization ID this role belongs to"
           },
           "type": {
             "type": "string",
@@ -26238,7 +26247,11 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "watchlist.create",
+                "watchlist.read",
+                "watchlist.update",
+                "watchlist.delete"
               ]
             }
           },
@@ -26365,12 +26378,17 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "watchlist.create",
+                "watchlist.read",
+                "watchlist.update",
+                "watchlist.delete"
               ]
             }
           },
           "name": {
             "type": "string",
+            "minLength": 1,
             "description": "Name of the role"
           }
         }
@@ -26462,7 +26480,11 @@
                 "webhook.create",
                 "webhook.read",
                 "webhook.update",
-                "webhook.delete"
+                "webhook.delete",
+                "watchlist.create",
+                "watchlist.read",
+                "watchlist.update",
+                "watchlist.delete"
               ]
             }
           }
@@ -26542,6 +26564,7 @@
           },
           "name": {
             "type": "string",
+            "minLength": 1,
             "description": "Name of the role"
           }
         },
@@ -26571,7 +26594,7 @@
           "teamId": {
             "type": "number",
             "nullable": true,
-            "description": "Team/Organization ID this role belongs to"
+            "description": "Team ID this role belongs to"
           },
           "type": {
             "type": "string",
@@ -26735,6 +26758,7 @@
           },
           "name": {
             "type": "string",
+            "minLength": 1,
             "description": "Name of the role"
           }
         }

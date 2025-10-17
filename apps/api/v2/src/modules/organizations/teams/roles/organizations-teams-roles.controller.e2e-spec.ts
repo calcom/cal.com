@@ -229,6 +229,7 @@ describe("Organizations Roles Endpoints", () => {
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.name).toEqual(createRoleInput.name);
             expect(responseBody.data.permissions).toEqual(createRoleInput.permissions);
+            expect(responseBody.data.teamId).toEqual(pbacEnabledTeam.id);
           });
       });
 
@@ -248,6 +249,7 @@ describe("Organizations Roles Endpoints", () => {
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.name).toEqual(createRoleInput.name);
+            expect(responseBody.data.teamId).toEqual(team.id);
           });
       });
     });
@@ -344,6 +346,7 @@ describe("Organizations Roles Endpoints", () => {
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.name).toEqual(createRoleInput.name);
           expect(responseBody.data.permissions).toEqual(createRoleInput.permissions);
+          expect(responseBody.data.teamId).toEqual(pbacEnabledTeam.id);
           createdRoleId = responseBody.data.id;
         });
     });
@@ -367,6 +370,7 @@ describe("Organizations Roles Endpoints", () => {
           expect(responseBody.data.id).toEqual(createdRoleId);
           expect(responseBody.data.name).toEqual(updateRoleInput.name);
           expect(responseBody.data.permissions).toEqual(updateRoleInput.permissions);
+          expect(responseBody.data.teamId).toEqual(pbacEnabledTeam.id);
         });
     });
 
@@ -389,6 +393,7 @@ describe("Organizations Roles Endpoints", () => {
           expect(responseBody.data.id).toEqual(createdRoleId);
           expect(responseBody.data.name).toEqual(updateNameOnly.name);
           expect(responseBody.data.permissions).toEqual(expectedPermissions);
+          expect(responseBody.data.teamId).toEqual(pbacEnabledTeam.id);
         });
     });
 
@@ -403,6 +408,7 @@ describe("Organizations Roles Endpoints", () => {
           const responseBody: GetTeamRoleOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(createdRoleId);
+          expect(responseBody.data.teamId).toEqual(pbacEnabledTeam.id);
         });
     });
 
@@ -416,6 +422,8 @@ describe("Organizations Roles Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(Array.isArray(responseBody.data)).toBe(true);
           expect(responseBody.data.find((r) => r.id === createdRoleId)).toBeDefined();
+          const created = responseBody.data.find((r) => r.id === createdRoleId);
+          expect(created?.teamId).toEqual(pbacEnabledTeam.id);
         });
     });
 
@@ -430,6 +438,7 @@ describe("Organizations Roles Endpoints", () => {
           const responseBody: DeleteTeamRoleOutput = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(createdRoleId);
+          expect(responseBody.data.teamId).toEqual(pbacEnabledTeam.id);
         });
     });
   });
