@@ -72,7 +72,7 @@ export class SelfHostedOrganizationDowngradeService implements IOrganizationDown
         type: "insufficient_permissions",
         message: "Organization not found",
       });
-      return this.buildValidationResult(false, blockers, warnings, null);
+      return this.buildValidationResult(false, blockers, warnings, null, [], [], [], [], 0);
     }
 
     if (!organization.isOrganization) {
@@ -80,7 +80,7 @@ export class SelfHostedOrganizationDowngradeService implements IOrganizationDown
         type: "insufficient_permissions",
         message: "This is not an organization",
       });
-      return this.buildValidationResult(false, blockers, warnings, null);
+      return this.buildValidationResult(false, blockers, warnings, null, [], [], [], [], 0);
     }
 
     // Check if platform organization (cannot be downgraded)
@@ -159,6 +159,74 @@ export class SelfHostedOrganizationDowngradeService implements IOrganizationDown
       memberCount: team._count.members,
     }));
 
+    // Build teams preview with new slugs
+    const teamsPreview = subTeams.map((team) => {
+      const slugResolution = conflictResolutions.teamSlugs.find((t) => t.teamId === team.id);
+      return {
+        teamId: team.id,
+        teamName: team.name,
+        currentSlug: team.slug || "",
+        newSlug: slugResolution?.resolvedSlug || team.slug || "",
+        memberCount: team._count.members,
+        hasSlugConflict: slugResolution?.hadConflict || false,
+      };
+    });
+
+    // Get org-level event types that will be deleted
+    const orgEventTypes = await prisma.eventType.findMany({
+      where: {
+        teamId: organizationId,
+        parentId: null, // Only org-level event types, not child team event types
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        length: true,
+      },
+    });
+
+    // Get members that will be removed (org-only members)
+    // First get all org members with their membership counts
+    const orgMembers = await prisma.membership.findMany({
+      where: {
+        teamId: organizationId,
+      },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            teams: {
+              select: {
+                teamId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Get sub-team IDs
+    const subTeamIds = subTeams.map((t) => t.id);
+
+    // Filter to only members who are NOT in any sub-teams
+    const membersToRemoveFormatted = orgMembers
+      .filter((member) => {
+        // Check if user has membership in any sub-team
+        const hasSubTeamMembership = member.user.teams.some((membership) =>
+          subTeamIds.includes(membership.teamId)
+        );
+        return !hasSubTeamMembership;
+      })
+      .map((m) => ({
+        userId: m.user.id,
+        email: m.user.email,
+        username: m.user.username,
+      }));
+
     const canDowngrade = blockers.length === 0;
 
     return this.buildValidationResult(
@@ -166,6 +234,9 @@ export class SelfHostedOrganizationDowngradeService implements IOrganizationDown
       blockers,
       warnings,
       conflictResolutions,
+      teamsPreview,
+      orgEventTypes,
+      membersToRemoveFormatted,
       availableTeamsForCredits,
       organizationCredits
     );
@@ -310,6 +381,9 @@ export class SelfHostedOrganizationDowngradeService implements IOrganizationDown
     blockers: DowngradeBlocker[],
     warnings: DowngradeWarning[],
     conflictResolutions: any,
+    teamsPreview: any[],
+    orgEventTypes: any[],
+    membersToRemove: any[],
     availableTeamsForCredits: Array<{ teamId: number; teamName: string; memberCount: number }>,
     organizationCredits: number
   ): DowngradeValidationResult {
@@ -318,6 +392,9 @@ export class SelfHostedOrganizationDowngradeService implements IOrganizationDown
       blockers,
       warnings,
       conflictResolutions: conflictResolutions || { usernames: [], teamSlugs: [] },
+      teamsPreview: teamsPreview || [],
+      orgEventTypesToDelete: orgEventTypes || [],
+      membersToRemove: membersToRemove || [],
       estimatedCost: {
         current: { totalMonthly: 0, seats: 0, pricePerSeat: 0 },
         afterDowngrade: { totalMonthly: 0, teams: [] },

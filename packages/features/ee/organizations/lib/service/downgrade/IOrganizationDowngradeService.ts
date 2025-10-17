@@ -17,6 +17,25 @@ export type DowngradeValidationResult = {
   blockers: DowngradeBlocker[];
   warnings: DowngradeWarning[];
   conflictResolutions: ConflictResolutionResult;
+  teamsPreview: Array<{
+    teamId: number;
+    teamName: string;
+    currentSlug: string;
+    newSlug: string;
+    memberCount: number;
+    hasSlugConflict: boolean;
+  }>;
+  orgEventTypesToDelete: Array<{
+    id: number;
+    title: string;
+    slug: string;
+    length: number;
+  }>;
+  membersToRemove: Array<{
+    userId: number;
+    email: string;
+    username: string | null;
+  }>;
   estimatedCost: {
     current: {
       totalMonthly: number;
