@@ -1,5 +1,4 @@
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -15,7 +14,6 @@ import { RolesService } from "./services/roles.service";
 @Module({
   imports: [StripeModule, PrismaModule, RedisModule, MembershipsModule],
   providers: [
-    OrganizationsRepository,
     {
       provide: RoleService,
       useFactory: () => new RoleService(),
