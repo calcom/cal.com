@@ -28,6 +28,8 @@ import {
   RecentNoShowGuestsChart,
   RecentFeedbackTable,
   TimezoneBadge,
+  NoShowHostsOverTimeChart,
+  CSATOverTimeChart,
 } from "@calcom/features/insights/components/booking";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { DateTargetSelector, type DateTarget } from "@calcom/features/insights/filters/DateTargetSelector";
@@ -101,6 +103,11 @@ function InsightsPageContent() {
         <BookingKPICards />
 
         <EventTrendsChart />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <NoShowHostsOverTimeChart />
+          <CSATOverTimeChart />
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">
