@@ -83,9 +83,7 @@ export class CalendarCacheEventService {
    */
   async cleanupStaleCache(): Promise<void> {
     log.debug("cleanupStaleCache");
-    await this.deps.calendarCacheEventRepository.deleteStale({
-      monthsAhead: CalendarCacheEventService.MONTHS_AHEAD,
-    });
+    await this.deps.calendarCacheEventRepository.deleteStale();
   }
 
   /**

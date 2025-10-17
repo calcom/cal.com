@@ -4,7 +4,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { CalendarCacheEvent } from "@calcom/prisma/client";
 
 import { CalendarCacheEventRepository } from "../CalendarCacheEventRepository";
-import { CalendarCacheEventService } from "../CalendarCacheEventService";
 
 const mockPrismaClient = {
   calendarCacheEvent: {
@@ -236,11 +235,11 @@ describe("CalendarCacheEventRepository", () => {
     test("should delete stale events", async () => {
       vi.mocked(mockPrismaClient.calendarCacheEvent.deleteMany).mockResolvedValue({ count: 3 });
 
-      await repository.deleteStale({ monthsAhead: CalendarCacheEventService.MONTHS_AHEAD });
+      await repository.deleteStale();
 
       expect(mockPrismaClient.calendarCacheEvent.deleteMany).toHaveBeenCalledWith({
         where: {
-          OR: [{ end: { lte: expect.any(Date) } }, { start: { gte: expect.any(Date) } }],
+          end: { lte: expect.any(Date) },
         },
       });
     });

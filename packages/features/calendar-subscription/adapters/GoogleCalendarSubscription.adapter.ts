@@ -155,13 +155,18 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     const now = dayjs().startOf("day");
     const monthsAhead = now.add(CalendarCacheEventService.MONTHS_AHEAD, "month").endOf("day");
 
+    function filterEventsWithoutId(event: calendar_v3.Schema$Event) {
+      return typeof event.id === "string" && !!event.id;
+    }
+
+    function filterEventsByDateRange(event: calendar_v3.Schema$Event) {
+      const start = dayjs(event.start?.dateTime || event.start?.date);
+      return start.isAfter(now) && start.isBefore(monthsAhead);
+    }
+
     return events
-      .filter((event) => typeof event.id === "string" && !!event.id)
-      .filter((event) => {
-        // only in 3 months range
-        const start = dayjs(event.start?.dateTime || event.start?.date);
-        return start.isAfter(now) && start.isBefore(monthsAhead);
-      })
+      .filter(filterEventsWithoutId)
+      .filter(filterEventsByDateRange)
       .map((event) => {
         // empty or opaque is busy
         const busy = !event.transparency || event.transparency === "opaque";
