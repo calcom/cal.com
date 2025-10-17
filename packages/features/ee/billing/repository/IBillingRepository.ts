@@ -23,10 +23,15 @@ export interface BillingRecord {
   customerId: string;
   planName: Plan;
   status: SubscriptionStatus;
+  subscriptionStart: Date | null;
+  subscriptionTrialEnd: Date | null;
+  subscriptionEnd: Date | null;
 }
 
 export interface IBillingRepository {
   create(args: IBillingRepositoryCreateArgs): Promise<BillingRecord>;
+  getBySubscriptionId(id: string): Promise<BillingRecord | null>;
+  update(args: IBillingRepositoryUpdateArgs): Promise<void>;
 }
 
 export interface IBillingRepositoryConstructorArgs {
@@ -34,14 +39,9 @@ export interface IBillingRepositoryConstructorArgs {
   isOrganization: boolean;
 }
 
-export interface IBillingRepositoryCreateArgs {
-  teamId: number;
-  subscriptionId: string;
-  subscriptionItemId: string;
-  customerId: string;
-  planName: Plan;
-  status: SubscriptionStatus;
-  subscriptionStart?: Date;
-  subscriptionTrialEnd?: Date;
-  subscriptionEnd?: Date;
-}
+export type IBillingRepositoryCreateArgs = Omit<BillingRecord, "id">;
+
+export type IBillingRepositoryUpdateArgs = Pick<
+  BillingRecord,
+  "id" | "status" | "subscriptionStart" | "subscriptionTrialEnd" | "subscriptionEnd"
+>;

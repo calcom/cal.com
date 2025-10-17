@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
-import type { SWHMap } from "./__handler";
+import type { SWHMap } from "../../lib/types";
 
 const invoicePaidSchema = z.object({
   object: z.object({
@@ -100,7 +100,8 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
 
     // Get the Stripe subscription object
     const stripeSubscription = await stripe.subscriptions.retrieve(paymentSubscriptionId);
-    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(stripeSubscription);
+    const { subscriptionStart, subscriptionTrialEnd, subscriptionEnd } =
+      StripeBillingService.extractSubscriptionDates(stripeSubscription);
 
     const internalTeamBillingService = new InternalTeamBilling(organization);
     await internalTeamBillingService.saveTeamBilling({
@@ -112,6 +113,8 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.ORGANIZATION,
       subscriptionStart,
+      subscriptionTrialEnd,
+      subscriptionEnd,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);

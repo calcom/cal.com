@@ -7,8 +7,8 @@ import prisma from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { CHECKOUT_SESSION_TYPES } from "../../constants";
-import type { SWHMap } from "./__handler";
-import { HttpCode } from "./__handler";
+import { HttpCode } from "../../lib/httpCode";
+import type { SWHMap } from "../../lib/types";
 
 const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const session = data.object;

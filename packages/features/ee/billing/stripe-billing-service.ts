@@ -214,14 +214,14 @@ export class StripeBillingService implements BillingService {
     return { subscriptionStart, subscriptionTrialEnd, subscriptionEnd };
   }
 
-  static mapStripeStatusToCalStatus = ({
+  static mapSubscriptionStatusToCalStatus = ({
     stripeStatus,
     subscriptionId,
   }: {
     stripeStatus: string;
     subscriptionId: string;
   }) => {
-    const log = logger.getSubLogger({ prefix: ["mapStripeStatusToCalStatus"] });
+    const log = logger.getSubLogger({ prefix: ["mapSubscriptionStatusToCalStatus"] });
     const statusMap: Record<string, SubscriptionStatus> = {
       active: SubscriptionStatus.ACTIVE,
       past_due: SubscriptionStatus.PAST_DUE,

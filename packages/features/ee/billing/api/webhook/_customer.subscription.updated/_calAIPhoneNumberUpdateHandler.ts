@@ -1,19 +1,12 @@
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
-import type { SWHMap } from "./__handler";
-import { HttpCode } from "./__handler";
+import { HttpCode } from "../../../lib/httpCode";
+import type { SWHMap } from "../../../lib/types";
 
-type Data = SWHMap["customer.subscription.updated"]["data"];
-
-const handler = async (data: Data) => {
+const handler = async (data: SWHMap["customer.subscription.updated"]["data"] & { productId: string }) => {
   const subscription = data.object;
-
-  if (!subscription.id) {
-    throw new HttpCode(400, "Subscription ID not found");
-  }
-
   const phoneNumberRepo = new PrismaPhoneNumberRepository(prisma);
   const phoneNumber = await phoneNumberRepo.findByStripeSubscriptionId({
     stripeSubscriptionId: subscription.id,
@@ -23,15 +16,6 @@ const handler = async (data: Data) => {
     throw new HttpCode(202, "Phone number not found");
   }
 
-  return await handleCalAIPhoneNumberSubscriptionUpdate(subscription, phoneNumber);
-};
-
-type Subscription = Data["object"];
-
-async function handleCalAIPhoneNumberSubscriptionUpdate(
-  subscription: Subscription,
-  phoneNumber: { id: number; phoneNumber: string }
-) {
   // Map Stripe subscription status to our enum
   const statusMap: Record<string, PhoneNumberSubscriptionStatus> = {
     active: PhoneNumberSubscriptionStatus.ACTIVE,
@@ -54,8 +38,7 @@ async function handleCalAIPhoneNumberSubscriptionUpdate(
       subscriptionStatus,
     },
   });
-
   return { success: true, subscriptionId: subscription.id, status: subscriptionStatus };
-}
+};
 
 export default handler;

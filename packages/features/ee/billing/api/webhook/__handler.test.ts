@@ -1,11 +1,13 @@
 import { buffer } from "micro";
 import type { NextApiRequest } from "next";
 import { createMocks } from "node-mocks-http";
+import type Stripe from "stripe";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 
-import { stripeWebhookHandler, HttpCode } from "./__handler";
+import { HttpCode } from "../../lib/httpCode";
+import { stripeWebhookHandler } from "./__handler";
 
 vi.mock("micro", () => ({
   buffer: vi.fn(),
@@ -54,15 +56,16 @@ describe("stripeWebhookHandler", () => {
   });
 
   it("should return success false if event type is unhandled", async () => {
-    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       headers: {
         "stripe-signature": "test_signature",
       },
     });
-    // const req = mockRequest({ "stripe-signature": "test_signature" }, "test_payload");
-    (buffer as any).mockResolvedValueOnce(Buffer.from("test_payload"));
-    (stripe.webhooks.constructEvent as any).mockReturnValueOnce({ type: "unhandled_event" });
+    vi.mocked(buffer).mockResolvedValueOnce(Buffer.from("test_payload"));
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValueOnce({
+      type: "unhandled_event",
+    } as unknown as Stripe.DiscriminatedEvent);
 
     const handler = stripeWebhookHandler({});
     const response = await handler(req);
@@ -74,11 +77,11 @@ describe("stripeWebhookHandler", () => {
 
   it("should call the appropriate handler for a valid event", async () => {
     const req = mockRequest({ "stripe-signature": "test_signature" }, "test_payload");
-    (buffer as any).mockResolvedValueOnce(Buffer.from("test_payload"));
-    (stripe.webhooks.constructEvent as any).mockReturnValueOnce({
+    vi.mocked(buffer).mockResolvedValueOnce(Buffer.from("test_payload"));
+    vi.mocked(stripe.webhooks.constructEvent).mockReturnValueOnce({
       type: "payment_intent.succeeded",
       data: "test_data",
-    });
+    } as unknown as Stripe.DiscriminatedEvent);
 
     const mockHandler = vi.fn().mockResolvedValueOnce("handler_response");
     const handlers = {
