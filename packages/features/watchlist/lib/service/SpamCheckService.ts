@@ -17,9 +17,9 @@ export class SpamCheckService {
   constructor(
     private readonly globalBlockingService: GlobalBlockingService,
     private readonly organizationBlockingService: OrganizationBlockingService
-  ) { }
+  ) {}
 
-  startCheck({ email, organizationId }: { email: string, organizationId: number | null }): void {
+  startCheck({ email, organizationId }: { email: string; organizationId: number | null }): void {
     this.spamCheckPromise = this.isBlocked(email, organizationId ?? undefined).catch((error) => {
       logger.error("Error starting spam check", safeStringify(error));
       return { isBlocked: false };

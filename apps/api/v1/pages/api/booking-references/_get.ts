@@ -33,7 +33,7 @@ async function getHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const args: Prisma.BookingReferenceFindManyArgs = isSystemWideAdmin
     ? {}
-    : { where: { booking: { userId } } };
+    : { where: { booking: { userId }, deleted: null } };
   const data = await prisma.bookingReference.findMany(args);
   return { booking_references: data.map((br) => schemaBookingReferenceReadPublic.parse(br)) };
 }

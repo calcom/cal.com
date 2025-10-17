@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 // vite.config.ts
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
@@ -10,6 +11,11 @@ export default defineConfig({
   esbuild: {
     target: "node18",
     platform: "node",
+  },
+  define: {
+    // This will replace `__USE_POOL__` in your code with `true` or `false` at build time.
+    // We control it with a `USE_POOL` environment variable.
+    __USE_POOL__: "true",
   },
   build: {
     target: "node18",
@@ -50,6 +56,8 @@ export default defineConfig({
         "fs/promises",
         "perf_hooks",
         "@prisma/client",
+        "@prisma/adapter-pg",
+        "pg",
         "async",
         "libphonenumber-js",
         "lodash",
@@ -121,6 +129,8 @@ export default defineConfig({
           "fs/promises": "fs/promises",
           perf_hooks: "perf_hooks",
           "@prisma/client": "@prisma/client",
+          "@prisma/adapter-pg": "@prisma/adapter-pg",
+          pg: "pg",
           async: "async",
           "libphonenumber-js": "libphonenumber-js",
           lodash: "lodash",
@@ -187,6 +197,7 @@ export default defineConfig({
   },
   plugins: [react(), dts()],
   resolve: {
+    conditions: ["node", "import", "require", "default"],
     alias: {
       "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
       "./server/i18n": path.resolve(__dirname, "./i18n.ts"),
@@ -195,13 +206,10 @@ export default defineConfig({
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
       "@calcom/trpc": resolve("../../trpc"),
       "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
-      "@calcom/prisma/client/runtime/library": resolve(
-        "../../../node_modules/@calcom/prisma/client/runtime/library.js"
-      ),
-      "@calcom/prisma/client": resolve("../../../node_modules/@calcom/prisma/client/index.js"),
+      "@calcom/prisma/client/runtime/library": resolve("../../prisma/client/runtime/library"),
+      "@calcom/prisma/client": resolve("../../prisma/client"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
-      // eslint-disable-next-line prettier/prettier
       tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
     },
   },

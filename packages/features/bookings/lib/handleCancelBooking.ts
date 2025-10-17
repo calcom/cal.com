@@ -5,10 +5,13 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -17,8 +20,6 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -27,7 +28,6 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
@@ -118,7 +118,12 @@ async function handler(input: CancelBookingInput) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
-  if (!platformClientId && !cancellationReason?.trim() && isCancellationUserHost && !skipCancellationReasonValidation) {
+  if (
+    !platformClientId &&
+    !cancellationReason?.trim() &&
+    isCancellationUserHost &&
+    !skipCancellationReasonValidation
+  ) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
@@ -520,10 +525,11 @@ async function handler(input: CancelBookingInput) {
 
     await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
-    await prisma.bookingReference.deleteMany({
+    await prisma.bookingReference.updateMany({
       where: {
         bookingId: bookingToDelete.id,
       },
+      data: { deleted: true },
     });
   } catch (error) {
     log.error(`Error deleting integrations`, safeStringify({ error }));

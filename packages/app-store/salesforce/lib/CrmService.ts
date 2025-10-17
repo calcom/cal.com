@@ -741,6 +741,7 @@ export default class SalesforceCRMService implements CRM {
         booking: {
           uid: bookingUid,
         },
+        deleted: null,
       },
     });
 

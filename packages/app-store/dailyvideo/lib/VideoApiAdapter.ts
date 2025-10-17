@@ -172,7 +172,7 @@ export const updateMeetingTokenIfExpired = async ({
 
   try {
     await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
-  } catch (err) {
+  } catch {
     const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: {
         room_name: roomName,
@@ -185,6 +185,7 @@ export const updateMeetingTokenIfExpired = async ({
     await prisma.bookingReference.update({
       where: {
         id: bookingReferenceId,
+        deleted: null,
       },
       data: {
         meetingPassword: organizerMeetingToken.token,
@@ -244,6 +245,7 @@ export const setEnableRecordingUIAndUserIdForOrganizer = async (
   await prisma.bookingReference.update({
     where: {
       id: bookingReferenceId,
+      deleted: null,
     },
     data: {
       meetingPassword: organizerMeetingToken.token,
@@ -426,7 +428,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           getRecordingsResponseSchema.parse
         );
         return Promise.resolve(res);
-      } catch (err) {
+      } catch {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },

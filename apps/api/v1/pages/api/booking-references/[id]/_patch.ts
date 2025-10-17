@@ -72,7 +72,7 @@ export async function patchHandler(req: NextApiRequest) {
         { where: { id: data.bookingId, userId } };
     await prisma.booking.findFirstOrThrow(args);
   }
-  const booking_reference = await prisma.bookingReference.update({ where: { id }, data });
+  const booking_reference = await prisma.bookingReference.update({ where: { id, deleted: null }, data });
   return { booking_reference: schemaBookingReferenceReadPublic.parse(booking_reference) };
 }
 

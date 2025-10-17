@@ -426,7 +426,7 @@ export const FormBuilder = function FormBuilder({
 function Options({
   label = "Options",
   value,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   onChange = () => {},
   className = "",
   readOnly = false,
@@ -700,7 +700,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {!!fieldType?.supportsLengthCheck ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 

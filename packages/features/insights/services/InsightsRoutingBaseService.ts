@@ -10,9 +10,9 @@ import {
   isNumberFilterValue,
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { BookingStatus } from "@calcom/prisma/enums";
