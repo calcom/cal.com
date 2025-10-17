@@ -801,7 +801,6 @@ describe("addValueForMember", () => {
           membershipId: membership.id,
           // Engineering
           attributeOptionId: "101",
-          //@ts-expect-error - prismock can't handle string ids it seems
           dsyncId: dsync.id,
         });
 

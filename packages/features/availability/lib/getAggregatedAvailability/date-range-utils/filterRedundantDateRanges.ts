@@ -1,4 +1,4 @@
-import type { DateRange } from "@calcom/lib/date-ranges";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { IntervalTree, ContainmentSearchAlgorithm, createIntervalNodes } from "@calcom/lib/intervalTree";
 
 /**

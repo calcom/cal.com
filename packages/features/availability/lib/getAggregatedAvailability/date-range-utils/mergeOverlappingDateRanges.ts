@@ -1,4 +1,4 @@
-import type { DateRange } from "@calcom/lib/date-ranges";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 
 export function mergeOverlappingDateRanges(dateRanges: DateRange[]) {
   dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
