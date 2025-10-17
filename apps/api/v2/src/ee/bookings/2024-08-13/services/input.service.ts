@@ -873,26 +873,18 @@ export class InputBookingsService_2024_08_13 {
     }
 
     const existingEmails = new Set(booking.attendees.map((att) => att.email.toLowerCase()));
-    const duplicateEmails = input.attendees.filter((att) => existingEmails.has(att.email.toLowerCase()));
+    const duplicateEmails = input.attendees.filter((att) => existingEmails.has(att.toLowerCase()));
 
     if (duplicateEmails.length > 0) {
       throw new BadRequestException(
-        `The following attendee emails already exist in this booking: ${duplicateEmails
-          .map((a) => a.email)
-          .join(", ")}`
+        `The following attendee emails already exist in this booking: ${duplicateEmails.join(", ")}`
       );
     }
 
     return {
       booking,
       eventType,
-      attendeesToAdd: input.attendees.map((attendee) => ({
-        email: attendee.email,
-        name: attendee.name,
-        timeZone: attendee.timeZone,
-        phoneNumber: attendee.phoneNumber,
-        locale: "en",
-      })),
+      attendeesToAdd: input.attendees,
     };
   }
 }

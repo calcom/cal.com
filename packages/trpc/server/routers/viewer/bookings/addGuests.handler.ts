@@ -10,6 +10,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -19,7 +20,7 @@ import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
 type AddGuestsOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email">;
   };
   input: TAddGuestsInputSchema;
 };
@@ -45,7 +46,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     },
   });
 
-  if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
+  if (!booking || !booking.user) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
 
   const isOrganizer = booking.userId === user.id;
   const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
@@ -60,9 +61,20 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
   }
-
   if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
     throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
+  }
+
+  const parsedBookingFields = booking?.eventType?.bookingFields
+    ? eventTypeBookingFields.parse(booking.eventType.bookingFields)
+    : [];
+
+  const guestsBookingField = parsedBookingFields.find((field) => field.name === "guests");
+  if (guestsBookingField?.hidden) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Cannot add guests to this booking. The guests field is disabled for event type "${booking?.eventType?.title}" (ID: ${booking?.eventTypeId}). Please contact the event organizer to enable guest additions.`,
+    });
   }
 
   const organizer = await prisma.user.findUniqueOrThrow({
@@ -199,10 +211,10 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     };
   }
 
-  const credentials = await getUsersCredentialsIncludeServiceAccountKey(ctx.user);
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(booking.user);
 
   const eventManager = new EventManager({
-    ...user,
+    ...booking.user,
     credentials: [...credentials],
   });
 

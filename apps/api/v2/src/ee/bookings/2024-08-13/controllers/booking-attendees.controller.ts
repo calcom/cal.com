@@ -3,9 +3,11 @@ import { AddAttendeesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/
 import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { Controller, Post, Logger, Body, UseGuards, Param, HttpCode, HttpStatus } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 
@@ -45,9 +47,10 @@ export class BookingAttendeesController_2024_08_13 {
   })
   async addAttendees(
     @Param("bookingUid") bookingUid: string,
-    @Body() body: AddAttendeesInput_2024_08_13
+    @Body() body: AddAttendeesInput_2024_08_13,
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<AddAttendeesOutput_2024_08_13> {
-    const booking = await this.bookingAttendeesService.addAttendees(bookingUid, body);
+    const booking = await this.bookingAttendeesService.addAttendees(bookingUid, body, user);
 
     return {
       status: SUCCESS_STATUS,

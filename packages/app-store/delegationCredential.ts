@@ -3,6 +3,7 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
 import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   buildNonDelegationCredential,
   buildNonDelegationCredentials,
@@ -13,7 +14,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
 import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -653,7 +653,7 @@ export async function getCredentialForCalendarCache({ credentialId }: { credenti
 /**
  * It includes in-memory DelegationCredential credentials as well.
  */
-export async function getUsersCredentialsIncludeServiceAccountKey(user: User) {
+export async function getUsersCredentialsIncludeServiceAccountKey(user: Pick<User, "id" | "email">) {
   const credentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
