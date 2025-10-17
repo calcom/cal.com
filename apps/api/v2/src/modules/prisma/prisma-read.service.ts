@@ -3,6 +3,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { uuid } from "short-uuid";
 
 import { PrismaClient } from "@calcom/prisma/client";
 
@@ -12,6 +13,7 @@ export interface PrismaServiceOptions {
   readUrl?: string;
   maxReadConnections?: number;
   e2e?: boolean;
+  type: "main" | "worker";
 }
 
 @Injectable()
@@ -20,19 +22,25 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
   public prisma!: PrismaClient;
   private pool!: Pool;
+  private openedConnections = 0;
+  private activeConnections = 0;
+  private id = uuid();
   private options!: PrismaServiceOptions;
 
   constructor(private configService?: ConfigService) {
     if (configService) {
       // Use ConfigService defaults
       const readUrl = configService.get<string>("db.readUrl", { infer: true });
-      const poolMax = configService.get<number>("db.readPoolMax", { infer: true }) ?? DB_MAX_POOL_CONNECTION;
+      const poolMax = parseInt(
+        configService.get<number>("db.readPoolMax", { infer: true }) ?? DB_MAX_POOL_CONNECTION
+      );
       const e2e = configService.get<boolean>("e2e", { infer: true }) ?? false;
 
       this.setOptions({
         readUrl,
         maxReadConnections: poolMax,
         e2e,
+        type: "main",
       });
     }
   }
@@ -46,6 +54,33 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
     this.pool = new Pool({
       connectionString: dbUrl,
       max: isE2E ? 1 : options.maxReadConnections ?? DB_MAX_POOL_CONNECTION,
+      idleTimeoutMillis: 300000,
+    });
+
+    this.pool.on("connect", () => {
+      this.openedConnections++;
+      this.logger.log(
+        `Connection Opened | Opened connections: ${this.openedConnections} on Prisma Read ${this.id}`
+      );
+    });
+    this.pool.on("acquire", () => {
+      this.activeConnections++;
+      this.logger.log(
+        `Connection acquired | Active connections: ${this.activeConnections} on ${this.options.type} Prisma Read ${this.id}`
+      );
+    });
+    this.pool.on("release", () => {
+      this.activeConnections--;
+      this.logger.log(
+        `Connection released | Active connections: ${this.activeConnections} on ${this.options.type} Prisma Read ${this.id}`
+      );
+    });
+
+    this.pool.on("remove", () => {
+      this.openedConnections--;
+      this.logger.log(
+        `Connection closed | Opened connections: ${this.openedConnections} on ${this.options.type} Prisma Read ${this.id}`
+      );
     });
 
     const adapter = new PrismaPg(this.pool);

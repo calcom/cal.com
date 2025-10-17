@@ -1,5 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { uuid } from "short-uuid";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { disallowUndefinedDeleteUpdateManyExtension } from "./extensions/disallow-undefined-delete-update-many";
@@ -15,9 +16,40 @@ const pool = __USE_POOL__
   ? new Pool({
       connectionString: connectionString,
       max: 3,
+      idleTimeoutMillis: 300000,
     })
   : undefined;
-console.log("POOLED", !!pool);
+
+if (pool) {
+  let openedConnections = 0;
+  let activeConnections = 0;
+  const id = uuid();
+  pool.on("connect", () => {
+    openedConnections++;
+    console.log(
+      `Connection Opened | Opened connections: ${openedConnections} on libraries Prisma client ${id}`
+    );
+  });
+  pool.on("acquire", () => {
+    activeConnections++;
+    console.log(
+      `Connection acquired | Active connections: ${activeConnections} on libraries Prisma client ${id}`
+    );
+  });
+  pool.on("release", () => {
+    activeConnections--;
+    console.log(
+      `Connection released | Active connections: ${activeConnections} on libraries Prisma client ${id}`
+    );
+  });
+
+  pool.on("remove", () => {
+    openedConnections--;
+    console.log(
+      `Connection closed | Opened connections: ${openedConnections} on libraries Prisma client ${id}`
+    );
+  });
+}
 const adapter = pool ? new PrismaPg(pool) : new PrismaPg({ connectionString });
 const prismaOptions: Prisma.PrismaClientOptions = {
   adapter,
@@ -46,7 +78,6 @@ if (!isNaN(loggerLevel)) {
       break;
   }
 }
-console.log("globalForPrisma exist or not?", !!globalForPrisma.baseClient, "USEPOOL", __USE_POOL__);
 const baseClient = globalForPrisma.baseClient || new PrismaClient(prismaOptions);
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) => {

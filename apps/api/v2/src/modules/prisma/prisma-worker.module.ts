@@ -12,8 +12,9 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
         const service = new PrismaReadService();
         service.setOptions({
           readUrl: config.get<string>("db.readUrl", { infer: true }),
-          maxReadConnections: config.get<number>("db.workerReadPoolMax", { infer: true }) ?? 2,
+          maxReadConnections: parseInt(config.get<number>("db.workerReadPoolMax", { infer: true }) ?? 2),
           e2e: config.get<boolean>("e2e", { infer: true }) ?? false,
+          type: "worker",
         });
         return service;
       },
@@ -25,8 +26,9 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
         const service = new PrismaWriteService();
         service.setOptions({
           writeUrl: config.get<string>("db.writeUrl", { infer: true }),
-          maxWriteConnections: config.get<number>("db.workerWritePoolMax", { infer: true }) ?? 3,
+          maxWriteConnections: parseInt(config.get<number>("db.workerWritePoolMax", { infer: true }) ?? 3),
           e2e: config.get<boolean>("e2e", { infer: true }) ?? false,
+          type: "worker",
         });
         return service;
       },
