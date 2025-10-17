@@ -302,7 +302,7 @@ export class PermissionRepository implements IPermissionRepository {
       { id: number; name: string | null; email: string }[]
     >`
       SELECT DISTINCT u.id, u.name, u.email
-      FROM "User" u
+      FROM "user" u
       INNER JOIN "Membership" m ON u.id = m."userId"
       INNER JOIN "Role" r ON m."customRoleId" = r.id
       WHERE m."teamId" = ${teamId}
@@ -327,7 +327,7 @@ export class PermissionRepository implements IPermissionRepository {
       { id: number; name: string | null; email: string }[]
     >`
       SELECT DISTINCT u.id, u.name, u.email
-      FROM "User" u
+      FROM "user" u
       INNER JOIN "Membership" m ON u.id = m."userId"
       INNER JOIN "Team" t ON m."teamId" = t.id
       LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
