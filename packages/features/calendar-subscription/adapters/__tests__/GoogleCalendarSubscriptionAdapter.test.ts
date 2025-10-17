@@ -44,16 +44,16 @@ const mockSelectedCalendar: SelectedCalendar = {
   watchAttempts: 0,
   maxAttempts: 3,
   unwatchAttempts: 0,
-  createdAt: today,
-  updatedAt: today,
+  createdAt: today.toDate(),
+  updatedAt: today.toDate(),
   channelId: "test-channel-id",
   channelKind: "web_hook",
   channelResourceId: "test-resource-id",
   channelResourceUri: "test-resource-uri",
   channelExpiration: channelExpirationDate,
-  syncSubscribedAt: today,
+  syncSubscribedAt: today.toDate(),
   syncToken: "test-sync-token",
-  syncedAt: today,
+  syncedAt: today.toDate(),
   syncErrorAt: null,
   syncErrorCount: 0,
 };
@@ -442,7 +442,7 @@ describe("GoogleCalendarSubscriptionAdapter", () => {
     });
 
     test("should handle pagination", async () => {
-      const date2 = new Date(oneWeekFromNow);
+      const date2 = new Date(oneWeekFromNow.toDate());
       date2.setDate(date2.getDate() + 1);
 
       const mockEventsResponse1 = {

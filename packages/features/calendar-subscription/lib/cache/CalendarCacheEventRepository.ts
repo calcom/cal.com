@@ -80,10 +80,10 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     });
   }
 
-  async deleteStale() {
+  async deleteStale({ monthsAhead = 3 }: { monthsAhead?: number }) {
     // cleanup events with 3 months ahead
     const threeMonthsAhead = new Date();
-    threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + 3);
+    threeMonthsAhead.setMonth(threeMonthsAhead.getMonth() + monthsAhead);
     return this.prismaClient.calendarCacheEvent.deleteMany({
       where: {
         OR: [{ end: { lte: new Date() } }, { start: { gte: threeMonthsAhead } }],

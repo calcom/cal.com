@@ -25,7 +25,7 @@ export interface ICalendarCacheEventRepository {
   /**
    * Deletes all stale events
    */
-  deleteStale(): Promise<unknown>;
+  deleteStale({ monthsAhead }: { monthsAhead?: number }): Promise<unknown>;
 
   /**
    *
