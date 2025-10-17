@@ -72,7 +72,7 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
     this.webhookToken = cfg.webhookToken ?? process.env.MICROSOFT_WEBHOOK_TOKEN ?? null;
     this.webhookUrl = `${
       process.env.MICROSOFT_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL
-    }/api/webhooks/calendar-subscription/microsoft_calendar`;
+    }/api/webhooks/calendar-subscription/office365_calendar`;
     this.subscriptionTtlMs = cfg.subscriptionTtlMs ?? 3 * 24 * 60 * 60 * 1000;
   }
 
