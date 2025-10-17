@@ -72,7 +72,8 @@ export class RolesPermissionsService {
     };
 
     try {
-      await this.roleService.update(updateData);
+      const updatedRole = await this.roleService.update(updateData);
+      return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("Invalid permissions provided")) {
@@ -112,7 +113,8 @@ export class RolesPermissionsService {
     };
 
     try {
-      await this.roleService.update(updateData);
+      const updatedRole = await this.roleService.update(updateData);
+      return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("Invalid permissions provided")) {
