@@ -5,10 +5,9 @@ import type {
   IOutOfOfficeData,
   IToUser,
 } from "@calcom/features/availability/lib/getUserAvailability";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
+import { getTimeZone } from "@calcom/lib/dayjs";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-
-import type { DateRange } from "./date-ranges";
-import { getTimeZone } from "./dayjs";
 
 export type GetSlots = {
   inviteeDate: Dayjs;

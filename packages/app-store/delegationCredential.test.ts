@@ -4,9 +4,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
+import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
-import type { ServiceAccountKey } from "@calcom/lib/server/repository/delegationCredential";
-import { DelegationCredentialRepository } from "@calcom/lib/server/repository/delegationCredential";
 import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -28,7 +28,7 @@ vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository",
 }));
 
 // Mock DelegationCredentialRepository
-vi.mock("@calcom/lib/server/repository/delegationCredential", () => ({
+vi.mock("@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository", () => ({
   DelegationCredentialRepository: {
     findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey: vi.fn(),
     findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey: vi.fn(),

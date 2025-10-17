@@ -3,9 +3,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/email-manager";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import { CreditType } from "@calcom/prisma/enums";
 
 import { CreditService } from "./credit-service";
@@ -61,7 +60,7 @@ vi.mock("@calcom/prisma/enums", async (importOriginal) => {
 
 vi.mock("@calcom/lib/server/repository/credits");
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
-vi.mock("@calcom/lib/server/repository/team");
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/emails/email-manager");
 vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
   cancelScheduledMessagesAndScheduleEmails: vi.fn().mockResolvedValue(undefined),

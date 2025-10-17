@@ -1,10 +1,10 @@
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
+import { intersect } from "@calcom/features/schedules/lib/date-ranges";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import type { DateRange } from "@calcom/lib/date-ranges";
-import { intersect } from "@calcom/lib/date-ranges";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { filterRedundantDateRanges } from "./getAggregatedAvailability/date-range-utils/filterRedundantDateRanges";
-import { mergeOverlappingDateRanges } from "./getAggregatedAvailability/date-range-utils/mergeOverlappingDateRanges";
+import { filterRedundantDateRanges } from "./date-range-utils/filterRedundantDateRanges";
+import { mergeOverlappingDateRanges } from "./date-range-utils/mergeOverlappingDateRanges";
 
 function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
   const seen = new Set<string>();
@@ -42,7 +42,7 @@ export const getAggregatedAvailability = (
   const fixedDateRanges = mergeOverlappingDateRanges(
     intersect(fixedHosts.map((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges)))
   );
-  const dateRangesToIntersect = !!fixedDateRanges.length ? [fixedDateRanges] : [];
+  const dateRangesToIntersect = fixedDateRanges.length ? [fixedDateRanges] : [];
   const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
   if (roundRobinHosts.length) {
     // Group round robin hosts by their groupId

@@ -12,11 +12,10 @@ import {
   isNumberFilterValue,
   isDateRangeFilterValue,
 } from "@calcom/features/data-table/lib/utils";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";

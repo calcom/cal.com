@@ -5,7 +5,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
-import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";

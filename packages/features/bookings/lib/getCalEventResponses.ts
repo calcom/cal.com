@@ -1,7 +1,7 @@
 import type z from "zod";
 
 import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import { SystemField } from "@calcom/lib/SystemField";
+import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { HttpError } from "@calcom/lib/http-error";
