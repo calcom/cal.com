@@ -3,11 +3,13 @@ import { z } from "zod";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
-import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
+import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { prisma } from "@calcom/prisma";
 
 import type { SWHMap } from "./__handler";
 
@@ -92,10 +94,31 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
       };
     }
 
-    const { organization } = await createOrganizationFromOnboarding({
-      organizationOnboarding,
-      paymentSubscriptionId,
-      paymentSubscriptionItemId,
+    // Get the user who created the onboarding (for service instantiation)
+    const userRepo = new UserRepository(prisma);
+    const creator = organizationOnboarding.createdById
+      ? await userRepo.findById({ id: organizationOnboarding.createdById })
+      : null;
+
+    // Create a minimal user context for the service
+    // If no creator, use a system user context (webhook is system-initiated)
+    const userContext = creator
+      ? {
+          id: creator.id,
+          email: creator.email,
+          role: "ADMIN" as const,
+          name: creator.name || undefined,
+        }
+      : {
+          id: 0, // System user
+          email: organizationOnboarding.orgOwnerEmail,
+          role: "ADMIN" as const,
+        };
+
+    const onboardingService = new BillingEnabledOrgOnboardingService(userContext);
+    const { organization } = await onboardingService.createOrganization(organizationOnboarding, {
+      subscriptionId: paymentSubscriptionId,
+      subscriptionItemId: paymentSubscriptionItemId,
     });
 
     // Get the Stripe subscription object

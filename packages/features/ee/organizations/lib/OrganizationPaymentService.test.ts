@@ -135,6 +135,8 @@ describe("OrganizationPaymentService", () => {
       expect(data).toEqual({
         bio: "BIO",
         logo: "LOGO",
+        brandColor: null,
+        bannerUrl: null,
         teams: [
           {
             id: 1,
@@ -183,6 +185,8 @@ describe("OrganizationPaymentService", () => {
       expect(data).toEqual({
         bio: "BIO",
         logo: "LOGO",
+        brandColor: null,
+        bannerUrl: null,
         teams: [
           {
             id: 1,
@@ -232,6 +236,9 @@ describe("OrganizationPaymentService", () => {
         expect(data).toEqual({
           bio: "BIO",
           logo: "LOGO",
+          brandColor: null,
+          bannerUrl: null,
+          invitedMembers: undefined,
           teams: [
             {
               id: 1,
@@ -261,6 +268,9 @@ describe("OrganizationPaymentService", () => {
         expect(data).toEqual({
           bio: "BIO",
           logo: "LOGO",
+          brandColor: null,
+          bannerUrl: null,
+          invitedMembers: undefined,
           teams: [
             {
               id: 1,
