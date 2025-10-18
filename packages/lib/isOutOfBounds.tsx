@@ -113,14 +113,11 @@ export function calculatePeriodLimits({
       // We use organizer's timezone here(in contrast with ROLLING/ROLLING_WINDOW where number of days is available and not the specific date objects).
       // This is because in case of range the start and end date objects are determined by the organizer, so we should consider the range in organizer/event's timezone.
 
-      // FIX: Dates are stored as midnight UTC (e.g., "2024-01-31T00:00:00.000Z") but represent calendar dates.
-      // We need to extract the calendar date and reinterpret it as midnight in the event's timezone.
-      // For example, "2024-01-31T00:00:00.000Z" should represent "Jan 31" in the event timezone, not "Jan 30 4pm PST".
+      // Dates are stored as midnight UTC but represent calendar dates in the event timezone
+      // Extract the date and reinterpret it as midnight in the event timezone
       const startCalendarDate = dayjs.utc(periodStartDate).format("YYYY-MM-DD");
       const endCalendarDate = dayjs.utc(periodEndDate).format("YYYY-MM-DD");
 
-      // Reinterpret these calendar dates as midnight in the event timezone, then find start/end of day
-      // For PST (offset = -480), we add 480 minutes to shift from UTC midnight to PST midnight
       const startOfRangeStartDayInEventTz = dayjs
         .utc(startCalendarDate)
         .add(-eventUtcOffset, "minutes")
