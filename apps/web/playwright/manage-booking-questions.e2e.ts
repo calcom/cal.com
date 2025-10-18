@@ -102,7 +102,6 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
-
       test.setTimeout(testInfo.timeout * 2);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
@@ -185,20 +184,12 @@ test.describe("Manage Booking Questions", () => {
           await expect(datePickerButton).not.toContainText("Pick a date");
           const buttonText = await datePickerButton.textContent();
           expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
-          // pickAnyAvailableDateInCurrentGrid closes the popover; no extra Escape needed
         });
       });
 
       await test.step("Complete booking and verify date format in webhook", async () => {
         await doOnFreshPreview(page, context, async (page) => {
-          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
-          const dateButton = dateFieldLocator.locator('[data-testid="pick-date"]');
-          if ((await dateButton.textContent())?.includes('Pick a date')) {
-            await dateButton.click();
-            await pickAnyAvailableDateInCurrentGrid(page);
-            // pickAnyAvailableDateInCurrentGrid closes the popover; no extra Escape needed
-          }
-
+          // Date will be auto-selected by bookTimeSlot
           await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -591,11 +582,6 @@ async function pickAnyAvailableDateInCurrentGrid(page: Page): Promise<boolean> {
       const num = txt ? parseInt(txt) : NaN;
       if (!isNaN(num) && num > 0) {
         await cell.click({ timeout: 5000 });
-        // Close the calendar popover immediately to prevent it from blocking subsequent interactions
-        if (await page.locator('[role="dialog"]').first().isVisible()) {
-          await page.keyboard.press('Escape');
-          await expect(page.locator('[role="dialog"]').first()).toBeHidden();
-        }
         return true;
       }
     } catch {
