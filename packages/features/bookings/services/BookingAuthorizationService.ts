@@ -2,6 +2,8 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import type { PrismaClient } from "@calcom/prisma";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
 
+import { TRPCError } from "@trpc/server";
+
 export class BookingAuthorizationService {
   constructor(private prismaClient: PrismaClient) {}
 
@@ -29,11 +31,8 @@ export class BookingAuthorizationService {
   }): Promise<void> {
     // Check system-wide admin
     if (userRole === UserPermissionRole.ADMIN) return;
-
-    // Check if the user is the owner of the booking
     if (bookingUserId === loggedInUserId) return;
 
-    // Check if user is associated with the event type
     if (eventTypeId) {
       const isUserAssociatedWithEventType = await this.isUserAssociatedWithEventType(
         eventTypeId,
@@ -42,23 +41,21 @@ export class BookingAuthorizationService {
       if (isUserAssociatedWithEventType) return;
     }
 
-    // Check if the user is an admin/owner of the team the booking belongs to
     if (teamId) {
       const isTeamAdmin = await this.isUserTeamAdmin(loggedInUserId, teamId);
       if (isTeamAdmin) return;
     }
 
-    // Check if user is org admin of the booking user
     if (bookingUserId && (await this.isUserOrgAdminOfBookingUser(loggedInUserId, bookingUserId))) {
       return;
     }
 
-    throw new Error("User is not authorized to perform this booking operation");
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "User is not authorized to perform this booking operation",
+    });
   }
 
-  /**
-   * Checks if a user is associated with an event type (as host or user)
-   */
   private async isUserAssociatedWithEventType(eventTypeId: number, userId: number): Promise<boolean> {
     const eventType = await this.prismaClient.eventType.findUnique({
       where: {
@@ -71,17 +68,11 @@ export class BookingAuthorizationService {
     return !!eventType;
   }
 
-  /**
-   * Checks if a user is an admin or owner of a team
-   */
   private async isUserTeamAdmin(userId: number, teamId: number): Promise<boolean> {
     const membership = await MembershipRepository.getAdminOrOwnerMembership(userId, teamId);
     return !!membership;
   }
 
-  /**
-   * Checks if the logged-in user is an organization admin of the booking user
-   */
   private async isUserOrgAdminOfBookingUser(loggedInUserId: number, bookingUserId: number): Promise<boolean> {
     const orgIdsWhereLoggedInUserAdmin = await this.getOrgIdsWhereAdmin(loggedInUserId);
 
@@ -119,9 +110,6 @@ export class BookingAuthorizationService {
     return !!bookingUserOrgTeamMembership;
   }
 
-  /**
-   * Gets all organization IDs where the user has admin or owner role
-   */
   private async getOrgIdsWhereAdmin(userId: number): Promise<number[]> {
     const loggedInUserOrgMemberships = await this.prismaClient.membership.findMany({
       where: {
