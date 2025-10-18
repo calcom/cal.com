@@ -66,7 +66,7 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
 }));
 
 const mockFindOriginalRescheduledBooking = vi.fn();
-vi.mock("@calcom/lib/server/repository/booking", () => ({
+vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
   BookingRepository: vi.fn().mockImplementation(() => ({
     findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
   })),
@@ -133,7 +133,7 @@ vi.mock("@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers", (
   }),
 }));
 
-vi.mock("@calcom/lib/server/repository/profile", () => ({
+vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   ProfileRepository: {
     findManyForUser: vi.fn().mockResolvedValue([]),
     buildPersonalProfileFromUser: vi.fn().mockReturnValue({

@@ -3,7 +3,7 @@ import type { Logger } from "tslog";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
-import { buildDateRanges } from "@calcom/lib/date-ranges";
+import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { ErrorCode } from "@calcom/lib/errorCodes";
