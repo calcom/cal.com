@@ -454,6 +454,8 @@ model User {
   createdTranslations            EventTypeTranslation[]        @relation("CreatedEventTypeTranslations")
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
   reportedBookings               BookingReport[]               @relation("ReportedBy")
+  blockedEmails                  OrganizationBlockedEmail[]
+  blockedDomains                 OrganizationBlockedDomain[]
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -576,6 +578,8 @@ model Team {
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
   bookingReports         BookingReport[]
+  blockedEmails          OrganizationBlockedEmail[]
+  blockedDomains         OrganizationBlockedDomain[]
 
   features TeamFeatures[]
 
@@ -2378,12 +2382,48 @@ model BookingReport {
   reportedBy   User?      @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
   organization Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   watchlist    Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+  blockedEmails OrganizationBlockedEmail[]
+  blockedDomains OrganizationBlockedDomain[]
 
   @@index([bookerEmail])
   @@index([reportedById])
   @@index([organizationId])
   @@index([watchlistId])
   @@index([createdAt])
+}
+
+model OrganizationBlockedEmail {
+  id             String         @id @default(uuid()) @db.Uuid
+  email          String
+  organizationId Int
+  createdAt      DateTime       @default(now())
+  createdById    Int
+  reason         String?
+  bookingReportId String?       @db.Uuid
+
+  organization   Team           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  bookingReport  BookingReport? @relation(fields: [bookingReportId], references: [id], onDelete: SetNull)
+
+  @@unique([email, organizationId])
+  @@index([organizationId])
+}
+
+model OrganizationBlockedDomain {
+  id             String         @id @default(uuid()) @db.Uuid
+  domain         String
+  organizationId Int
+  createdAt      DateTime       @default(now())
+  createdById    Int
+  reason         String?
+  bookingReportId String?       @db.Uuid
+
+  organization   Team           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  bookingReport  BookingReport? @relation(fields: [bookingReportId], references: [id], onDelete: SetNull)
+
+  @@unique([domain, organizationId])
+  @@index([organizationId])
 }
 
 enum BillingPeriod {
