@@ -25,6 +25,11 @@ import {
 import { z } from "zod";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type {
+  GetAvailabilityListHandlerReturn,
+  DuplicateScheduleHandlerReturn,
+} from "@calcom/platform-libraries/schedules";
+import { getAvailabilityListHandler, duplicateScheduleHandler } from "@calcom/platform-libraries/schedules";
 import type { CreateScheduleHandlerReturn, CreateScheduleSchema } from "@calcom/platform-libraries/schedules";
 import { createScheduleHandler } from "@calcom/platform-libraries/schedules";
 import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
@@ -68,6 +73,21 @@ export class AtomsSchedulesController {
     };
   }
 
+  @Get("/schedules/all")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  @Permissions([SCHEDULE_READ])
+  async getAllUserSchedules(
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<Awaited<GetAvailabilityListHandlerReturn>>> {
+    const userSchedules = await getAvailabilityListHandler({ ctx: { user } });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: userSchedules,
+    };
+  }
+
   @Patch("schedules/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
   @UseGuards(ApiAuthGuard)
@@ -102,6 +122,22 @@ export class AtomsSchedulesController {
     return {
       status: SUCCESS_STATUS,
       data: createdSchedule,
+    };
+  }
+
+  @Post("schedules/:scheduleId/duplicate")
+  @Permissions([SCHEDULE_WRITE])
+  @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Duplicate existing schedule" })
+  async duplicateExistingSchedule(
+    @GetUser() user: UserWithProfile,
+    @Param("scheduleId", ParseIntPipe) scheduleId: number
+  ): Promise<ApiResponse<Awaited<DuplicateScheduleHandlerReturn>>> {
+    const duplicatedSchedule = await duplicateScheduleHandler({ ctx: { user }, input: { scheduleId } });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: duplicatedSchedule,
     };
   }
 }
