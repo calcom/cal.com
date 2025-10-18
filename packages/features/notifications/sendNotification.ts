@@ -50,7 +50,7 @@ export const sendNotification = async ({
   type?: string;
 }) => {
   if (!isVapidConfigured) {
-    logger.error("Cannot send notification VAPID keys not configured.");
+    logger.error("Cannot send notification. VAPID keys not configured.");
     return;
   }
   try {
