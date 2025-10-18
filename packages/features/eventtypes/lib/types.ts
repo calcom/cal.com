@@ -37,6 +37,7 @@ export type Host = {
   weight: number;
   scheduleId?: number | null;
   groupId: string | null;
+  email?: string;
 };
 export type TeamMember = {
   value: string;
