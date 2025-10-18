@@ -16,7 +16,7 @@ const RadioArea = ({ children, className, classNames: innerClassNames, ...props 
   return (
     <div
       className={classNames(
-        "border-subtle [&:has(input:checked)]:border-emphasis relative flex items-start rounded-[10px] border ",
+        "border-subtle [&:has(input:checked)]:border-emphasis relative flex items-start rounded-md border ",
         className
       )}>
       <RadioGroupPrimitive.Item
@@ -33,7 +33,7 @@ const RadioArea = ({ children, className, classNames: innerClassNames, ...props 
           )}
         />
       </RadioGroupPrimitive.Item>
-      <label htmlFor={id} className={classNames("text-default p-4 pl-10 pt-3", innerClassNames?.container)}>
+      <label htmlFor={id} className={classNames("text-default p-5 pl-12 pt-4", innerClassNames?.container)}>
         {children}
       </label>
     </div>
