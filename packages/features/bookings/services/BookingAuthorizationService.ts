@@ -57,7 +57,7 @@ export class BookingAuthorizationService {
   }
 
   private async isUserAssociatedWithEventType(eventTypeId: number, userId: number): Promise<boolean> {
-    const eventType = await this.prismaClient.eventType.findUnique({
+    const eventType = await this.prismaClient.eventType.findFirst({
       where: {
         id: eventTypeId,
         OR: [{ hosts: { some: { userId } } }, { users: { some: { id: userId } } }],
