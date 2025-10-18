@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
@@ -11,6 +11,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
+import { hasBusyDetails, mapBusyDetailsToCalendarEvents } from "./mapBusyDetailsToCalendarEvents";
 
 export const LargeCalendar = ({
   extraDays,
@@ -36,17 +37,24 @@ export const LargeCalendar = ({
 
   const availableSlots = useAvailableTimeSlots({ schedule, eventDuration });
 
-  const startDate = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
-  const endDate = dayjs(startDate)
-    .add(extraDays - 1, "day")
-    .toDate();
+  const { startDate, endDate } = useMemo(() => {
+    const start = selectedDate ? dayjs(selectedDate).toDate() : dayjs().toDate();
+    const end = dayjs(start)
+      .add(extraDays - 1, "day")
+      .toDate();
+    return { startDate: start, endDate: end };
+  }, [selectedDate, extraDays]);
 
-  // HACK: force rerender when overlay events change
-  // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  useEffect(() => {}, [displayOverlay]);
+  // NOTE: Force remount of Calendar when overlay toggle changes to refresh internal layout state.
+  const calendarRemountKey = displayOverlay ? "overlay-on" : "overlay-off";
 
   const overlayEventsForDate = useMemo(() => {
+    // Use busyDetails from schedule if available (contains event titles)
+    const busyDetails = hasBusyDetails(schedule) ? schedule.busyDetails : undefined;
+    if (busyDetails && displayOverlay) {
+      return mapBusyDetailsToCalendarEvents(busyDetails);
+    }
+    // Fallback to overlayEvents (from old calendarOverlay API)
     if (!overlayEvents || !displayOverlay) return [];
     return overlayEvents.map((event, id) => {
       return {
@@ -59,11 +67,12 @@ export const LargeCalendar = ({
         },
       } as CalendarEvent;
     });
-  }, [overlayEvents, displayOverlay]);
+  }, [schedule, overlayEvents, displayOverlay]);
 
   return (
     <div className="h-full [--calendar-dates-sticky-offset:66px]">
       <Calendar
+        key={calendarRemountKey}
         isPending={isLoading}
         availableTimeslots={availableSlots}
         startHour={0}
