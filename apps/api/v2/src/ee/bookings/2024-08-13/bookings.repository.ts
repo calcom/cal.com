@@ -170,6 +170,7 @@ export class BookingsRepository_2024_08_13 {
       responses: booking.responses as Prisma.JsonObject,
       metadata: booking.metadata as Prisma.JsonObject | null,
       attendees: booking.attendees,
+      eventTypeId: booking.eventTypeId,
     };
   }
 
