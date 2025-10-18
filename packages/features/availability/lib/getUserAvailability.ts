@@ -12,9 +12,9 @@ import {
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
+import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";
 import { getWorkingHours } from "@calcom/lib/availability";
-import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
-import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
@@ -641,9 +641,9 @@ export class UserAvailabilityService {
           // you can obtain that from user availability defined outside of here
           fromUser: { id: user.id, displayName: user.name },
           // optional chaining destructuring toUser
-          toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
-          reason: !!reason ? reason.reason : null,
-          emoji: !!reason ? reason.emoji : null,
+          toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+          reason: reason ? reason.reason : null,
+          emoji: reason ? reason.emoji : null,
         };
       }
 

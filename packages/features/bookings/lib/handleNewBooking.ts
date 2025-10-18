@@ -1,6 +1,6 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -34,8 +34,9 @@ import type { CheckBookingAndDurationLimitsService } from "@calcom/features/book
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -57,9 +58,8 @@ import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -70,8 +70,8 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
@@ -95,6 +95,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { BookingRepository } from "../repositories/BookingRepository";
 import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -161,7 +162,9 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   return originalRescheduledBooking.iCalSequence + 1;
 }
 
-type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
+type CreatedBooking = Booking & {
+  isShortCircuitedBooking?: boolean;
+} & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
 export const buildDryRunBooking = ({
   eventTypeId,
@@ -431,6 +434,45 @@ export interface IBookingServiceDependencies {
   attributeRepository: AttributeRepository;
 }
 
+/**
+ * TODO: Ideally we should send organizationId directly to handleNewBooking.
+ * webapp can derive from domain and API V2 knows it already through its endpoint URL
+ */
+async function getEventOrganizationId({
+  eventType,
+}: {
+  eventType: {
+    userId: number | null;
+    team: {
+      parentId: number | null;
+    } | null;
+    parent: {
+      team: {
+        parentId: number | null;
+      } | null;
+    } | null;
+  };
+}) {
+  let eventOrganizationId: number | null = null;
+  const team = eventType.team ?? eventType.parent?.team ?? null;
+  eventOrganizationId = team?.parentId ?? null;
+
+  if (eventOrganizationId) {
+    return eventOrganizationId;
+  }
+
+  if (eventType.userId) {
+    // TODO: Moving it to instance based access through DI in a followup
+    const profile = await ProfileRepository.findFirstForUserId({
+      userId: eventType.userId,
+    });
+    eventOrganizationId = profile?.organizationId ?? null;
+    return eventOrganizationId;
+  }
+
+  return eventOrganizationId;
+}
+
 async function handler(
   input: BookingHandlerInput,
   deps: IBookingServiceDependencies,
@@ -455,6 +497,7 @@ async function handler(
   const {
     prismaClient: prisma,
     bookingRepository,
+    userRepository,
     cacheService,
     checkBookingAndDurationLimitsService,
     luckyUserService,
@@ -514,7 +557,25 @@ async function handler(
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
-  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+  try {
+    await checkIfBookerEmailIsBlocked({
+      loggedInUserId: userId,
+      bookerEmail,
+      verificationCode: reqBody.verificationCode,
+    });
+  } catch (error) {
+    if (error instanceof ErrorWithCode) {
+      throw new HttpError({ statusCode: 403, message: error.message });
+    }
+    throw error;
+  }
+
+  const spamCheckService = getSpamCheckService();
+  const eventOrganizationId = await getEventOrganizationId({
+    eventType,
+  });
+
+  spamCheckService.startCheck({ email: bookerEmail, organizationId: eventOrganizationId });
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({
@@ -1159,13 +1220,31 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
+  const guestEmails = (reqGuests || []).map((email) => extractBaseEmail(email).toLowerCase());
+  const guestUsers = await userRepository.findManyByEmailsWithEmailVerificationSettings({
+    emails: guestEmails,
+  });
+
+  const emailToRequiresVerification = new Map<string, boolean>();
+  for (const user of guestUsers) {
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
+  }
+
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+
     if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
       guestsRemoved.push(guest);
       return guestArray;
     }
+
+    if (emailToRequiresVerification.get(baseGuestEmail)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
+
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
@@ -1415,6 +1494,88 @@ async function handler(
     },
     organizerUser.id
   );
+
+  const spamCheckResult = await spamCheckService.waitForCheck();
+
+  if (spamCheckResult.isBlocked) {
+    const DECOY_ORGANIZER_NAMES = ["Alex Smith", "Jordan Taylor", "Sam Johnson", "Chris Morgan"];
+    const randomOrganizerName =
+      DECOY_ORGANIZER_NAMES[Math.floor(Math.random() * DECOY_ORGANIZER_NAMES.length)];
+
+    const eventName = getEventName({
+      ...eventNameObject,
+      host: randomOrganizerName,
+    });
+
+    return {
+      id: 0,
+      uid,
+      iCalUID: "",
+      status: BookingStatus.ACCEPTED,
+      eventTypeId: eventType.id,
+      user: {
+        name: randomOrganizerName,
+        timeZone: "UTC",
+        email: null,
+      },
+      userId: null,
+      title: eventName,
+      startTime: new Date(reqBody.start),
+      endTime: new Date(reqBody.end),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      attendees: [
+        {
+          id: 0,
+          email: bookerEmail,
+          name: fullName,
+          timeZone: reqBody.timeZone,
+          locale: null,
+          phoneNumber: null,
+          bookingId: null,
+          noShow: null,
+        },
+      ],
+      oneTimePassword: null,
+      smsReminderNumber: null,
+      metadata: {},
+      idempotencyKey: null,
+      userPrimaryEmail: null,
+      description: eventType.description || null,
+      customInputs: null,
+      responses: null,
+      location: bookingLocation,
+      paid: false,
+      cancellationReason: null,
+      rejectionReason: null,
+      dynamicEventSlugRef: null,
+      dynamicGroupSlugRef: null,
+      fromReschedule: null,
+      recurringEventId: null,
+      scheduledJobs: [],
+      rescheduledBy: null,
+      destinationCalendarId: null,
+      reassignReason: null,
+      reassignById: null,
+      rescheduled: false,
+      isRecorded: false,
+      iCalSequence: 0,
+      rating: null,
+      ratingFeedback: null,
+      noShowHost: null,
+      cancelledBy: null,
+      creationSource: CreationSource.WEBAPP,
+      references: [],
+      payment: [],
+      isDryRun: false,
+      paymentRequired: false,
+      paymentUid: undefined,
+      luckyUsers: [],
+      paymentId: undefined,
+      seatReferenceUid: undefined,
+      isShortCircuitedBooking: true, // Renamed from isSpamDecoy to avoid exposing spam detection to blocked users
+    };
+  }
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
