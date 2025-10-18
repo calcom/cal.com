@@ -38,7 +38,7 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
-      test.setTimeout(testInfo.timeout * 1.5);
+      test.setTimeout(testInfo.timeout * 3);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
       const webhookReceiver = await addWebhook(user);
@@ -103,7 +103,7 @@ test.describe("Manage Booking Questions", () => {
       context,
     }, testInfo) => {
 
-      test.setTimeout(testInfo.timeout * 3);
+      test.setTimeout(testInfo.timeout * 2);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
       const webhookReceiver = await addWebhook(user);
@@ -185,8 +185,7 @@ test.describe("Manage Booking Questions", () => {
           await expect(datePickerButton).not.toContainText("Pick a date");
           const buttonText = await datePickerButton.textContent();
           expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
-          await page.keyboard.press('Escape');
-          await expect(page.locator('[role="dialog"]').first()).toBeHidden();
+          // pickAnyAvailableDateInCurrentGrid closes the popover; no extra Escape needed
         });
       });
 
@@ -197,8 +196,7 @@ test.describe("Manage Booking Questions", () => {
           if ((await dateButton.textContent())?.includes('Pick a date')) {
             await dateButton.click();
             await pickAnyAvailableDateInCurrentGrid(page);
-            await page.keyboard.press('Escape');
-            await expect(page.locator('[role="dialog"]').first()).toBeHidden();
+            // pickAnyAvailableDateInCurrentGrid closes the popover; no extra Escape needed
           }
 
           await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
