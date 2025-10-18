@@ -20,6 +20,7 @@ import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
+import descript_config_json from "./descript/config.json";
 import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
 import dub_config_json from "./dub/config.json";
@@ -83,6 +84,7 @@ import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
 import skype_config_json from "./skype/config.json";
+import squadcast_config_json from "./squadcast/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import synthflow_config_json from "./synthflow/config.json";
@@ -130,6 +132,7 @@ export const appStoreMetadata = {
   dailyvideo: dailyvideo__metadata_ts,
   deel: deel_config_json,
   demodesk: demodesk_config_json,
+  descript: descript_config_json,
   dialpad: dialpad_config_json,
   discord: discord_config_json,
   dub: dub_config_json,
@@ -193,6 +196,7 @@ export const appStoreMetadata = {
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
   skype: skype_config_json,
+  squadcast: squadcast_config_json,
   stripepayment: stripepayment__metadata_ts,
   sylapsvideo: sylapsvideo_config_json,
   synthflow: synthflow_config_json,
