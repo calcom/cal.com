@@ -34,6 +34,7 @@ import { withSelectedCalendars } from "@calcom/features/users/repositories/UserR
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import { getInvalidCalendarCredentials } from "@calcom/lib/getInvalidCalendarCredentials";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -85,6 +86,11 @@ export interface IGetAvailableSlots {
     }[]
   >;
   troubleshooter?: any;
+  warnings?: Array<{
+    message: string;
+    credentialId: number;
+    appName: string;
+  }>;
 }
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -1477,9 +1483,17 @@ export class AvailableSlotsService {
         }
       : null;
 
+    const hostUserIds = usersWithCredentials.map((user) => user.id);
+    const allInvalidCredentials = await Promise.all(
+      hostUserIds.map((userId) => getInvalidCalendarCredentials(userId))
+    );
+
+    const invalidCredentialWarnings = allInvalidCredentials.flat();
+
     return {
       slots: withinBoundsSlotsMappedToDate,
       ...troubleshooterData,
+      ...(invalidCredentialWarnings.length > 0 && { warnings: invalidCredentialWarnings }),
     };
   }
 }
