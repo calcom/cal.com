@@ -1,4 +1,4 @@
-import type { ImmutableTree, Config } from "react-awesome-query-builder";
+import type { ImmutableTree, Config } from "@react-awesome-query-builder/ui";
 import type z from "zod";
 
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
