@@ -112,8 +112,22 @@ export function calculatePeriodLimits({
       // We take the start of the day for the start of the range and endOf the day for end of range, so that entire days are covered
       // We use organizer's timezone here(in contrast with ROLLING/ROLLING_WINDOW where number of days is available and not the specific date objects).
       // This is because in case of range the start and end date objects are determined by the organizer, so we should consider the range in organizer/event's timezone.
-      const startOfRangeStartDayInEventTz = dayjs(periodStartDate).utcOffset(eventUtcOffset).startOf("day");
-      const endOfRangeEndDayInEventTz = dayjs(periodEndDate).utcOffset(eventUtcOffset).endOf("day");
+
+      // Dates are stored as midnight UTC but represent calendar dates in the event timezone
+      // Extract the date and reinterpret it as midnight in the event timezone
+      const startCalendarDate = dayjs.utc(periodStartDate).format("YYYY-MM-DD");
+      const endCalendarDate = dayjs.utc(periodEndDate).format("YYYY-MM-DD");
+
+      const startOfRangeStartDayInEventTz = dayjs
+        .utc(startCalendarDate)
+        .add(-eventUtcOffset, "minutes")
+        .utcOffset(eventUtcOffset)
+        .startOf("day");
+      const endOfRangeEndDayInEventTz = dayjs
+        .utc(endCalendarDate)
+        .add(-eventUtcOffset, "minutes")
+        .utcOffset(eventUtcOffset)
+        .endOf("day");
 
       return {
         endOfRollingPeriodEndDayInBookerTz: null,
