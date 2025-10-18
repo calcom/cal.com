@@ -38,7 +38,7 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
-      test.setTimeout(testInfo.timeout * 3);
+      test.setTimeout(testInfo.timeout * 1.5);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
       const webhookReceiver = await addWebhook(user);
