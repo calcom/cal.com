@@ -1,6 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import logger from "@calcom/lib/logger";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
@@ -330,6 +330,34 @@ export class PermissionCheckService {
       }
 
       return await this.repository.getTeamIdsWithPermissions({ userId, permissions, fallbackRoles });
+    } catch (error) {
+      this.logger.error(error);
+      return [];
+    }
+  }
+
+  /**
+   * Gets all users who have a specific permission for a team
+   * Includes both PBAC permissions and fallback role-based access
+   * Returns user objects with id, name, email, and locale
+   */
+  async getUsersWithPermissionForTeam({
+    teamId,
+    permission,
+    fallbackRoles,
+  }: {
+    teamId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<Array<{ id: number; name: string | null; email: string; locale: string | null }>> {
+    try {
+      const validationResult = this.permissionService.validatePermission(permission);
+      if (!validationResult.isValid) {
+        this.logger.error(validationResult.error);
+        return [];
+      }
+
+      return await this.repository.getUsersWithPermissionInTeam({ teamId, permission, fallbackRoles });
     } catch (error) {
       this.logger.error(error);
       return [];
