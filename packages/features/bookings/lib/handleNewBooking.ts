@@ -1,9 +1,12 @@
- 
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import {
+  enrichHostsWithDelegationCredentials,
+  getFirstDelegationConferencingCredentialAppLocation,
+} from "@calcom/app-store/delegationCredential";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import {
   getLocationValueForDB,
@@ -11,26 +14,37 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import {
+  eventTypeMetaDataSchemaWithTypedApps,
+  eventTypeAppMetadataOptionalSchema,
+} from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
-import type { CreateRegularBookingData, CreateBookingMeta } from "@calcom/features/bookings/lib/dto/types";
+import type {
+  CreateRegularBookingData,
+  CreateBookingMeta,
+  BookingHandlerInput,
+} from "@calcom/features/bookings/lib/dto/types";
 import type { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -43,32 +57,23 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import {
-  enrichHostsWithDelegationCredentials,
-  getFirstDelegationConferencingCredentialAppLocation,
-} from "@calcom/lib/delegationCredential/server";
-import { getCheckBookingAndDurationLimitsService } from "@calcom/features/di/containers/BookingLimits";
-import { getCacheService } from "@calcom/features/di/containers/Cache";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
-import type { CheckBookingLimitsService } from "@calcom/lib/intervalLimits/server/checkBookingLimits";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
+import type { HostRepository } from "@calcom/lib/server/repository/host";
+import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
+import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
 import {
   BookingStatus,
@@ -90,10 +95,12 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { BookingRepository } from "../repositories/BookingRepository";
 import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
+import { LuckyUserService } from "./getLuckyUser";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
@@ -148,7 +155,9 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   return originalRescheduledBooking.iCalSequence + 1;
 }
 
-type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
+type CreatedBooking = Booking & {
+  isShortCircuitedBooking?: boolean;
+} & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
 export const buildDryRunBooking = ({
   eventTypeId,
@@ -387,27 +396,6 @@ function buildTroubleshooterData({
   return troubleshooterData;
 }
 
-export type PlatformParams = {
-  platformClientId?: string;
-  platformCancelUrl?: string;
-  platformBookingUrl?: string;
-  platformRescheduleUrl?: string;
-  platformBookingLocation?: string;
-  areCalendarEventsEnabled?: boolean;
-};
-
-export type BookingHandlerInput = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  bookingData: Record<string, any>;
-  userId?: number;
-  // These used to come from headers but now we're passing them as params
-  hostname?: string;
-  forcedSlug?: string;
-  skipAvailabilityCheck?: boolean;
-  skipEventLimitsCheck?: boolean;
-  skipCalendarSyncTaskCreation?: boolean;
-} & PlatformParams;
-
 function formatAvailabilitySnapshot(data: {
   dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
   oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
@@ -425,8 +413,62 @@ function formatAvailabilitySnapshot(data: {
   };
 }
 
+export interface IBookingServiceDependencies {
+  cacheService: CacheService;
+  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
+  prismaClient: PrismaClient;
+  bookingRepository: BookingRepository;
+  featuresRepository: FeaturesRepository;
+  checkBookingLimitsService: CheckBookingLimitsService;
+  luckyUserService: LuckyUserService;
+  hostRepository: HostRepository;
+  oooRepository: OooRepository;
+  userRepository: UserRepository;
+  attributeRepository: AttributeRepository;
+}
+
+/**
+ * TODO: Ideally we should send organizationId directly to handleNewBooking.
+ * webapp can derive from domain and API V2 knows it already through its endpoint URL
+ */
+async function getEventOrganizationId({
+  eventType,
+}: {
+  eventType: {
+    userId: number | null;
+    team: {
+      parentId: number | null;
+    } | null;
+    parent: {
+      team: {
+        parentId: number | null;
+      } | null;
+    } | null;
+  };
+}) {
+  let eventOrganizationId: number | null = null;
+  const team = eventType.team ?? eventType.parent?.team ?? null;
+  eventOrganizationId = team?.parentId ?? null;
+
+  if (eventOrganizationId) {
+    return eventOrganizationId;
+  }
+
+  if (eventType.userId) {
+    // TODO: Moving it to instance based access through DI in a followup
+    const profile = await ProfileRepository.findFirstForUserId({
+      userId: eventType.userId,
+    });
+    eventOrganizationId = profile?.organizationId ?? null;
+    return eventOrganizationId;
+  }
+
+  return eventOrganizationId;
+}
+
 async function handler(
   input: BookingHandlerInput,
+  deps: IBookingServiceDependencies,
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const {
@@ -444,6 +486,15 @@ async function handler(
     skipEventLimitsCheck = false,
     skipCalendarSyncTaskCreation = false,
   } = input;
+
+  const {
+    prismaClient: prisma,
+    bookingRepository,
+    userRepository,
+    cacheService,
+    checkBookingAndDurationLimitsService,
+    luckyUserService,
+  } = deps;
 
   const isPlatformBooking = !!platformClientId;
 
@@ -495,7 +546,25 @@ async function handler(
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
-  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+  try {
+    await checkIfBookerEmailIsBlocked({
+      loggedInUserId: userId,
+      bookerEmail,
+      verificationCode: reqBody.verificationCode,
+    });
+  } catch (error) {
+    if (error instanceof ErrorWithCode) {
+      throw new HttpError({ statusCode: 403, message: error.message });
+    }
+    throw error;
+  }
+
+  const spamCheckService = getSpamCheckService();
+  const eventOrganizationId = await getEventOrganizationId({
+    eventType,
+  });
+
+  spamCheckService.startCheck({ email: bookerEmail, organizationId: eventOrganizationId });
 
   if (!rawBookingData.rescheduleUid) {
     await checkActiveBookingsLimitForBooker({
@@ -546,7 +615,7 @@ async function handler(
   const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
   const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
   const isNormalBookingOrFirstRecurringSlot = input.bookingData.allRecurringDates
-    ? input.bookingData.isFirstRecurringSlot
+    ? !!input.bookingData.isFirstRecurringSlot
     : true;
 
   let originalRescheduledBooking = rescheduleUid
@@ -572,11 +641,9 @@ async function handler(
     (!isConfirmedByDefault && !userReschedulingIsOwner) ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN
   ) {
-    const bookingRepo = new BookingRepository(prisma);
-
     const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
 
-    const existingBooking = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+    const existingBooking = await bookingRepository.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
@@ -613,7 +680,6 @@ async function handler(
     }
   }
 
-  const cacheService = getCacheService();
   const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
@@ -726,7 +792,6 @@ async function handler(
   });
 
   if (!skipEventLimitsCheck) {
-    const checkBookingAndDurationLimitsService = getCheckBookingAndDurationLimitsService();
     await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
       eventType,
       reqBodyStart: reqBody.start,
@@ -786,7 +851,11 @@ async function handler(
         },
       }),
     };
-    if (input.bookingData.allRecurringDates && input.bookingData.isFirstRecurringSlot) {
+    if (
+      input.bookingData.allRecurringDates &&
+      input.bookingData.isFirstRecurringSlot &&
+      input.bookingData.numSlotsToCheckForAvailability
+    ) {
       const isTeamEvent =
         eventType.schedulingType === SchedulingType.COLLECTIVE ||
         eventType.schedulingType === SchedulingType.ROUND_ROBIN;
@@ -943,7 +1012,6 @@ async function handler(
             memberId: eventTypeWithUsers.users[0].id ?? null,
             teamId: eventType.teamId,
           });
-          const luckyUserService = getLuckyUserService();
           const newLuckyUser = await luckyUserService.getLuckyUser({
             // find a lucky user that is not already in the luckyUsers array
             availableUsers: freeUsers,
@@ -968,7 +1036,9 @@ async function handler(
           }
           if (
             input.bookingData.isFirstRecurringSlot &&
-            eventType.schedulingType === SchedulingType.ROUND_ROBIN
+            eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+            input.bookingData.numSlotsToCheckForAvailability &&
+            input.bookingData.allRecurringDates
           ) {
             // for recurring round robin events check if lucky user is available for next slots
             try {
@@ -1138,13 +1208,31 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
+  const guestEmails = (reqGuests || []).map((email) => extractBaseEmail(email).toLowerCase());
+  const guestUsers = await userRepository.findManyByEmailsWithEmailVerificationSettings({
+    emails: guestEmails,
+  });
+
+  const emailToRequiresVerification = new Map<string, boolean>();
+  for (const user of guestUsers) {
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
+  }
+
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+
     if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
       guestsRemoved.push(guest);
       return guestArray;
     }
+
+    if (emailToRequiresVerification.get(baseGuestEmail)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
+
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
@@ -1395,6 +1483,88 @@ async function handler(
     organizerUser.id
   );
 
+  const spamCheckResult = await spamCheckService.waitForCheck();
+
+  if (spamCheckResult.isBlocked) {
+    const DECOY_ORGANIZER_NAMES = ["Alex Smith", "Jordan Taylor", "Sam Johnson", "Chris Morgan"];
+    const randomOrganizerName =
+      DECOY_ORGANIZER_NAMES[Math.floor(Math.random() * DECOY_ORGANIZER_NAMES.length)];
+
+    const eventName = getEventName({
+      ...eventNameObject,
+      host: randomOrganizerName,
+    });
+
+    return {
+      id: 0,
+      uid,
+      iCalUID: "",
+      status: BookingStatus.ACCEPTED,
+      eventTypeId: eventType.id,
+      user: {
+        name: randomOrganizerName,
+        timeZone: "UTC",
+        email: null,
+      },
+      userId: null,
+      title: eventName,
+      startTime: new Date(reqBody.start),
+      endTime: new Date(reqBody.end),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      attendees: [
+        {
+          id: 0,
+          email: bookerEmail,
+          name: fullName,
+          timeZone: reqBody.timeZone,
+          locale: null,
+          phoneNumber: null,
+          bookingId: null,
+          noShow: null,
+        },
+      ],
+      oneTimePassword: null,
+      smsReminderNumber: null,
+      metadata: {},
+      idempotencyKey: null,
+      userPrimaryEmail: null,
+      description: eventType.description || null,
+      customInputs: null,
+      responses: null,
+      location: bookingLocation,
+      paid: false,
+      cancellationReason: null,
+      rejectionReason: null,
+      dynamicEventSlugRef: null,
+      dynamicGroupSlugRef: null,
+      fromReschedule: null,
+      recurringEventId: null,
+      scheduledJobs: [],
+      rescheduledBy: null,
+      destinationCalendarId: null,
+      reassignReason: null,
+      reassignById: null,
+      rescheduled: false,
+      isRecorded: false,
+      iCalSequence: 0,
+      rating: null,
+      ratingFeedback: null,
+      noShowHost: null,
+      cancelledBy: null,
+      creationSource: CreationSource.WEBAPP,
+      references: [],
+      payment: [],
+      isDryRun: false,
+      paymentRequired: false,
+      paymentUid: undefined,
+      luckyUsers: [],
+      paymentId: undefined,
+      seatReferenceUid: undefined,
+      isShortCircuitedBooking: true, // Renamed from isSpamDecoy to avoid exposing spam detection to blocked users
+    };
+  }
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -1480,7 +1650,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
@@ -1619,9 +1790,9 @@ async function handler(
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
           (attendee) =>
-            attendee.email === input.bookingData.responses.email ||
-            (input.bookingData.responses.attendeePhoneNumber &&
-              attendee.phoneNumber === input.bookingData.responses.attendeePhoneNumber)
+            attendee.email === bookingData.responses.email ||
+            (bookingData.responses.attendeePhoneNumber &&
+              attendee.phoneNumber === bookingData.responses.attendeePhoneNumber)
         );
 
         // Save description to bookingSeat
@@ -2434,17 +2605,6 @@ async function handler(
   };
 }
 
-export default handler;
-
-export interface IBookingServiceDependencies {
-  cacheService: CacheService;
-  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
-  prismaClient: PrismaClient;
-  bookingRepository: BookingRepository;
-  featuresRepository: FeaturesRepository;
-  checkBookingLimitsService: CheckBookingLimitsService;
-}
-
 /**
  * Takes care of creating/rescheduling non-recurring, non-instant bookings. Such bookings could be TeamBooking, UserBooking, SeatedUserBooking, SeatedTeamBooking, etc.
  * We can't name it CoreBookingService because non-instant booking also creates a booking but it is entirely different from the regular booking.
@@ -2454,19 +2614,29 @@ export class RegularBookingService implements IBookingService {
   constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    // deps to be passed to handler in follow-up PR
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta });
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
   }
 
   async rescheduleBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta });
+    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
   }
 
-  async rescheduleBookingForApiV1(input: {
+  /**
+   * @deprecated Exists only till API v1 is removed.
+   */
+  async createBookingForApiV1(input: {
     bookingData: CreateRegularBookingData;
     bookingMeta?: CreateBookingMeta;
     bookingDataSchemaGetter: BookingDataSchemaGetter;
   }) {
-    return handler({ bookingData: input.bookingData, ...input.bookingMeta }, input.bookingDataSchemaGetter);
+    const bookingMeta = input.bookingMeta ?? {};
+    return handler(
+      {
+        bookingData: input.bookingData,
+        ...bookingMeta,
+      },
+      this.deps,
+      input.bookingDataSchemaGetter
+    );
   }
 }

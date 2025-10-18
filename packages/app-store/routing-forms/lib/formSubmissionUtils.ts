@@ -6,6 +6,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { App_RoutingForms_Form, User } from "@calcom/prisma/client";
@@ -14,6 +15,7 @@ import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
 import type { FormResponse, SerializableForm, SerializableField, OrderedResponses } from "../types/types";
+import getFieldIdentifier from "./getFieldIdentifier";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/formSubmissionUtils"] });
 
@@ -112,7 +114,10 @@ function getWebhookTargetEntity(form: { teamId?: number | null; user: { id: numb
  */
 export async function _onFormSubmission(
   form: Ensure<
-    SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
+    SerializableForm<App_RoutingForms_Form> & {
+      user: Pick<User, "id" | "email" | "timeFormat" | "locale">;
+      userWithEmails?: string[];
+    },
     "fields"
   >,
   response: FormResponse,
@@ -159,6 +164,7 @@ export async function _onFormSubmission(
   };
 
   const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
+
   const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
 
   const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
@@ -211,6 +217,22 @@ export async function _onFormSubmission(
       const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
       await Promise.all(promises);
+
+      const workflows = await WorkflowService.getAllWorkflowsFromRoutingForm(form);
+
+      await WorkflowService.scheduleFormWorkflows({
+        workflows,
+        responseId,
+        responses: fieldResponsesByIdentifier,
+        form: {
+          ...form,
+          fields: form.fields.map((field) => ({
+            type: field.type,
+            identifier: getFieldIdentifier(field),
+          })),
+        },
+      });
+
       const orderedResponses = form.fields.reduce((acc, field) => {
         acc.push(response[field.id]);
         return acc;
@@ -243,6 +265,8 @@ export type TargetRoutingFormForResponse = SerializableForm<
     user: {
       id: number;
       email: string;
+      timeFormat: number | null;
+      locale: string | null;
     };
     team: {
       parentId: number | null;

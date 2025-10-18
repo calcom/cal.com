@@ -5,6 +5,18 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@0no-co/graphql.web@npm:^1.0.13":
+  version: 1.2.0
+  resolution: "@0no-co/graphql.web@npm:1.2.0"
+  peerDependencies:
+    graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+  peerDependenciesMeta:
+    graphql:
+      optional: true
+  checksum: 4d5a54b93e6024b7d476e94b991e4e4ebc4ecb97e4ce886f76889741f5e419b587bedc6a00488753069534d8ae3e4de2e901ad58506ba2f74eeb8642edccc4ca
+  languageName: node
+  linkType: hard
+
 "@0no-co/graphql.web@npm:^1.0.5":
   version: 1.1.2
   resolution: "@0no-co/graphql.web@npm:1.1.2"
@@ -3598,7 +3610,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
+"@calcom/lib@*, @calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"
   dependencies:
@@ -3946,6 +3958,7 @@ __metadata:
     "@jsforce/jsforce-node": ^3.6.3
     "@parcel/watcher": ^2.5.1
     "@urql/core": ^5.1.1
+    "@urql/exchange-retry": ^2.0.0
     graphql-config: ^5.1.3
     graphql-introspection-json-to-sdl: ^1.0.3
   languageName: unknown
@@ -19342,6 +19355,28 @@ __metadata:
     "@0no-co/graphql.web": ^1.0.5
     wonka: ^6.3.2
   checksum: c28736706abe5d0a0172bcde1c80807aba44606041347beba8e73d5237598034301cccad0169c4f63ba08f5bffe7b3a3ad95ee4a53a0d719ad5525f44b84dbcc
+  languageName: node
+  linkType: hard
+
+"@urql/core@npm:^6.0.0":
+  version: 6.0.1
+  resolution: "@urql/core@npm:6.0.1"
+  dependencies:
+    "@0no-co/graphql.web": ^1.0.13
+    wonka: ^6.3.2
+  checksum: 6cedd18dc9f386d361991c6cbde61dc45c1cac9dfa9db60274fdd9acec91185d176a5c63bb39593152490f539441e226db32bdf88cfba0af4488d90399e58482
+  languageName: node
+  linkType: hard
+
+"@urql/exchange-retry@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@urql/exchange-retry@npm:2.0.0"
+  dependencies:
+    "@urql/core": ^6.0.0
+    wonka: ^6.3.2
+  peerDependencies:
+    "@urql/core": ^6.0.0
+  checksum: a75b4bfa4cdf55f202d6e35201b2a8c3219e9d5d4660b43bc29bfecc373266f1bdd6adf1efd39566a8a3e6bdf1e8e506c17a7a598b6d4205cb5ab2d79c95ab21
   languageName: node
   linkType: hard
 
