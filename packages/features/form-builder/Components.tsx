@@ -29,11 +29,16 @@ export const isValidValueProp: Record<Component["propsType"], (val: unknown) => 
   text: (val) => typeof val === "string",
   textList: (val) => val instanceof Array && val.every((v) => typeof v === "string"),
   variants: (val) => (typeof val === "object" && val !== null) || typeof val === "string",
+  date:(val) =>(typeof val === 'string')
 };
 
 type Component =
   | {
       propsType: "text";
+      factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
+    }
+  | {
+      propsType: "date";
       factory: <TProps extends TextLikeComponentProps>(props: TProps) => JSX.Element;
     }
   | {
@@ -101,6 +106,10 @@ export const Components: Record<FieldType, Component> = {
   number: {
     propsType: propsTypes.number,
     factory: (props) => <Widgets.NumberWidget id={props.name} noLabel={true} {...props} />,
+  },
+  date: {
+    propsType: propsTypes.date,
+    factory: (props) => <Widgets.DateWidget id={props.name} {...props} />,
   },
   name: {
     propsType: propsTypes.name,
@@ -423,7 +432,7 @@ export const Components: Record<FieldType, Component> = {
         }
 
         return label.search(/^https?:\/\//) !== -1 ? (
-          <a href={label} target="_blank">
+          <a href={label} target="_blank" rel="noreferrer">
             <span className="underline">{label}</span>
           </a>
         ) : (

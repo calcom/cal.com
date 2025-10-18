@@ -11,7 +11,7 @@ import type {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { TextField, DatePicker } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 const Select = dynamic(
@@ -147,6 +147,60 @@ function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentP
       }}
       {...remainingProps}
     />
+  );
+}
+
+function DateWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
+  // Parse the string value to a Date at local midnight.
+  // If the value is empty or invalid, use null (asserted as Date to satisfy TypeScript).
+  const dateValue =
+    value && value.trim() ? parseLocalDate(value) || (null as unknown as Date) : (null as unknown as Date);
+
+  function parseLocalDate(dateString: string): Date | null {
+    try {
+      const [year, month, day] = dateString?.trim()?.split("-")?.map(Number) || [];
+
+      // Check if we got valid numbers
+      if (!year || !month || !day) {
+        return null;
+      }
+
+      const date = new Date(year, month - 1, day);
+
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+
+      // Verify the date components match (catches invalid dates like Feb 30)
+      if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+        return null;
+      }
+
+      return date;
+    } catch (error) {
+      console.error("Error parsing date:", error);
+      return null;
+    }
+  }
+
+  const handleDateChange = (date: Date) => {
+    if (!date) {
+      setValue("");
+      return;
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+    // pass as string in YYYY-MM-DD format
+    setValue(formattedDate);
+  };
+
+  return (
+    <div className="mb-2 w-full">
+      <DatePicker date={dateValue} onDatesChange={handleDateChange} minDate={null} {...remainingProps} />
+    </div>
   );
 }
 
@@ -378,6 +432,7 @@ const widgets = {
   Button,
   ButtonGroup,
   Conjs,
+  DateWidget,
   Provider,
 };
 
