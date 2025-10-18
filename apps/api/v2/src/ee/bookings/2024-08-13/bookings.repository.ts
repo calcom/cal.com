@@ -139,7 +139,7 @@ export class BookingsRepository_2024_08_13 {
   }
 
   async getByUidForCalendarLinks(uid: string) {
-    return this.dbRead.prisma.booking.findUnique({
+    const booking = await this.dbRead.prisma.booking.findUnique({
       where: { uid },
       select: {
         startTime: true,
@@ -158,6 +158,19 @@ export class BookingsRepository_2024_08_13 {
         },
       },
     });
+    if (!booking) {
+      return null;
+    }
+
+    return {
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      location: booking.location,
+      title: booking.title,
+      responses: booking.responses as Prisma.JsonObject,
+      metadata: booking.metadata as Prisma.JsonObject | null,
+      attendees: booking.attendees,
+    };
   }
 
   async getRecurringByUid(uid: string) {
