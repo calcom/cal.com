@@ -5,6 +5,7 @@ import type Stripe from "stripe";
 import { z } from "zod";
 
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/IBillingRepository";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
@@ -87,6 +88,7 @@ async function getHandler(req: NextRequest) {
   });
 
   if (checkoutSession && subscription) {
+    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(subscription);
     const internalBillingService = new InternalTeamBilling(team);
     await internalBillingService.saveTeamBilling({
       teamId: team.id,
@@ -96,6 +98,7 @@ async function getHandler(req: NextRequest) {
       // TODO: Implement true subscription status when webhook events are implemented
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.TEAM,
+      subscriptionStart,
     });
   }
 

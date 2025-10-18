@@ -1,4 +1,6 @@
-import { BOOKING_DI_TOKENS } from "./bookings/tokens";
+import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
+
+import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
 
 export const DI_TOKENS = {
   PRISMA_CLIENT: Symbol("PrismaClient"),
@@ -55,4 +57,6 @@ export const DI_TOKENS = {
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
   // Booking service tokens
   ...BOOKING_DI_TOKENS,
+  // Watchlist service tokens
+  ...WATCHLIST_DI_TOKENS,
 };

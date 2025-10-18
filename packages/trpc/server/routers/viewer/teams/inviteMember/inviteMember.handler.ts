@@ -6,7 +6,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";

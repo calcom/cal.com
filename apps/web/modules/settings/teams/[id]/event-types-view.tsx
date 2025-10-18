@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
+import { useCreateEventType } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
