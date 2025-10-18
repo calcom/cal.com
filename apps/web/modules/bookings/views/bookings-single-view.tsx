@@ -159,8 +159,21 @@ export default function Success(props: PageProps) {
   const utmParams = bookingInfo.tracking;
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
+  
+  const calendarLinksBooking = {
+    startTime: bookingWithParsedMetadata.startTime,
+    endTime: bookingWithParsedMetadata.endTime,
+    location: bookingWithParsedMetadata.location,
+    title: bookingWithParsedMetadata.title,
+    responses: bookingWithParsedMetadata.responses,
+    metadata: bookingWithParsedMetadata.metadata,
+    attendees: bookingWithParsedMetadata.attendees?.map(attendee => ({
+      bookingSeat: null // No bookingSeat data in this context
+    })) || []
+  };
+  
   const calendarLinks = getCalendarLinks({
-    booking: bookingWithParsedMetadata,
+    booking: calendarLinksBooking,
     eventType: eventType,
     t,
   });
