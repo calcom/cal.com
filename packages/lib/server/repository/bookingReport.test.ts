@@ -19,6 +19,9 @@ describe("PrismaBookingReportRepository", () => {
       findUnique: vi.fn(),
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      count: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
   } as unknown as PrismaClient;
 
@@ -94,37 +97,53 @@ describe("PrismaBookingReportRepository", () => {
       const mockReports = [
         {
           id: "report-1",
+          bookingUid: "uid-1",
+          bookerEmail: "a@example.com",
           reportedById: 1,
           reason: BookingReportReason.SPAM,
           description: "Spam",
+          cancelled: false,
           createdAt: new Date("2025-01-01T10:00:00Z"),
+          watchlistId: null,
+          reportedBy: { id: 1, name: "Admin", email: "admin@example.com" },
+          booking: { id: 1, startTime: new Date(), endTime: new Date(), title: "t", uid: "uid-1" },
+          watchlist: null,
         },
         {
           id: "report-2",
+          bookingUid: "uid-2",
+          bookerEmail: "b@example.com",
           reportedById: 2,
           reason: BookingReportReason.DONT_KNOW_PERSON,
           description: null,
+          cancelled: true,
           createdAt: new Date("2025-01-01T11:00:00Z"),
+          watchlistId: null,
+          reportedBy: { id: 2, name: "User", email: "user@example.com" },
+          booking: { id: 2, startTime: new Date(), endTime: new Date(), title: "t2", uid: "uid-2" },
+          watchlist: null,
         },
       ];
 
+      mockPrisma.bookingReport.count.mockResolvedValue(mockReports.length);
       mockPrisma.bookingReport.findMany.mockResolvedValue(mockReports);
 
-      const result = await repository.findAllReportedBookings({ skip: 0, take: 10 });
+      const result = await repository.findAllReportedBookings({ organizationId: 10, skip: 0, take: 10 });
 
-      expect(result).toEqual(mockReports);
-      expect(mockPrisma.bookingReport.findMany).toHaveBeenCalledWith({
-        skip: 0,
-        take: 10,
-        select: {
-          id: true,
-          reportedById: true,
-          reason: true,
-          description: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: "desc" },
-      });
+      expect(result.meta.totalRowCount).toBe(2);
+      expect(result.rows).toEqual(
+        mockReports.map((r) => ({ ...r, reporter: r.reportedBy }))
+      );
+      expect(mockPrisma.bookingReport.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ organizationId: 10 }),
+          skip: 0,
+          take: 10,
+        })
+      );
+      expect(mockPrisma.bookingReport.count).toHaveBeenCalledWith(
+        expect.objectContaining({ where: expect.objectContaining({ organizationId: 10 }) })
+      );
     });
   });
 });
