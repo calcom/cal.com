@@ -33,6 +33,18 @@ import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
+import {
+  getBlockedEmailsSchema,
+  getBlockedDomainsSchema,
+  getReportedBookingsSchema,
+  createBlockedEmailSchema,
+  createBlockedDomainSchema,
+  deleteBlockedEmailSchema,
+  deleteBlockedDomainSchema,
+  ignoreReportSchema,
+  blockEmailFromReportSchema,
+  blockDomainFromReportSchema,
+} from "./blockList.schema";
 
 export const viewerOrganizationsRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
@@ -190,6 +202,77 @@ export const viewerOrganizationsRouter = router({
     .query(async (opts) => {
       const { default: handler } = await import("./getWatchlistEntryDetails.handler");
       return handler(opts);
+    }),
+
+  // Block List Management
+  getBlockedEmails: authedOrgAdminProcedure
+    .input(getBlockedEmailsSchema)
+    .query(async (opts) => {
+      const { getBlockedEmailsHandler } = await import("./blockList.handler");
+      return getBlockedEmailsHandler(opts);
+    }),
+
+  getBlockedDomains: authedOrgAdminProcedure
+    .input(getBlockedDomainsSchema)
+    .query(async (opts) => {
+      const { getBlockedDomainsHandler } = await import("./blockList.handler");
+      return getBlockedDomainsHandler(opts);
+    }),
+
+  getReportedBookings: authedOrgAdminProcedure
+    .input(getReportedBookingsSchema)
+    .query(async (opts) => {
+      const { getReportedBookingsHandler } = await import("./blockList.handler");
+      return getReportedBookingsHandler(opts);
+    }),
+
+  createBlockedEmail: authedOrgAdminProcedure
+    .input(createBlockedEmailSchema)
+    .mutation(async (opts) => {
+      const { createBlockedEmailHandler } = await import("./blockList.handler");
+      return createBlockedEmailHandler(opts);
+    }),
+
+  createBlockedDomain: authedOrgAdminProcedure
+    .input(createBlockedDomainSchema)
+    .mutation(async (opts) => {
+      const { createBlockedDomainHandler } = await import("./blockList.handler");
+      return createBlockedDomainHandler(opts);
+    }),
+
+  deleteBlockedEmail: authedOrgAdminProcedure
+    .input(deleteBlockedEmailSchema)
+    .mutation(async (opts) => {
+      const { deleteBlockedEmailHandler } = await import("./blockList.handler");
+      return deleteBlockedEmailHandler(opts);
+    }),
+
+  deleteBlockedDomain: authedOrgAdminProcedure
+    .input(deleteBlockedDomainSchema)
+    .mutation(async (opts) => {
+      const { deleteBlockedDomainHandler } = await import("./blockList.handler");
+      return deleteBlockedDomainHandler(opts);
+    }),
+
+  ignoreReport: authedOrgAdminProcedure
+    .input(ignoreReportSchema)
+    .mutation(async (opts) => {
+      const { ignoreReportHandler } = await import("./blockList.handler");
+      return ignoreReportHandler(opts);
+    }),
+
+  blockEmailFromReport: authedOrgAdminProcedure
+    .input(blockEmailFromReportSchema)
+    .mutation(async (opts) => {
+      const { blockEmailFromReportHandler } = await import("./blockList.handler");
+      return blockEmailFromReportHandler(opts);
+    }),
+
+  blockDomainFromReport: authedOrgAdminProcedure
+    .input(blockDomainFromReportSchema)
+    .mutation(async (opts) => {
+      const { blockDomainFromReportHandler } = await import("./blockList.handler");
+      return blockDomainFromReportHandler(opts);
     }),
 
 });

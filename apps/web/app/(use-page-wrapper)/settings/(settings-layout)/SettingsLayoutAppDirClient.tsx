@@ -90,12 +90,12 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         },
         ...(orgBranding
           ? [
-              {
-                name: "members",
-                href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
-                isExternalLink: true,
-              },
-            ]
+            {
+              name: "members",
+              href: `${WEBAPP_URL}/settings/organizations/${orgBranding.slug}/members`,
+              isExternalLink: true,
+            },
+          ]
           : []),
         {
           name: "privacy_and_security",
@@ -110,6 +110,10 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "directory_sync",
           href: "/settings/organizations/dsync",
+        },
+        {
+          name: "block_list",
+          href: "/settings/organizations/block-list",
         },
         {
           name: "admin_api",
@@ -421,9 +425,8 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         setTeamMenuState(newTeamMenuState);
                       }
                     }}
-                    aria-label={`${team.name} ${
-                      teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
-                    }`}>
+                    aria-label={`${team.name} ${teamMenuState[index].teamMenuOpen ? t("collapse_menu") : t("expand_menu")
+                      }`}>
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
                         <Icon name="chevron-down" className="h-4 w-4" />
@@ -469,42 +472,42 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                     // @ts-ignore this exists wtf?
                     (team.isOrgAdmin && team.isOrgAdmin)) && (
-                    <>
-                      {/* TODO */}
-                      {/* <VerticalTabItem
+                      <>
+                        {/* TODO */}
+                        {/* <VerticalTabItem
                 name={t("general")}
                 href={`${WEBAPP_URL}/settings/my-account/appearance`}
                 textClassNames="px-3 text-emphasis font-medium text-sm"
                 disableChevron
               /> */}
-                      <VerticalTabItem
-                        name={t("appearance")}
-                        href={`/settings/teams/${team.id}/appearance`}
-                        textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
-                        disableChevron
-                      />
-                      {/* Hide if there is a parent ID */}
-                      {!team.parentId ? (
-                        <>
-                          <VerticalTabItem
-                            name={t("billing")}
-                            href={`/settings/teams/${team.id}/billing`}
-                            textClassNames="px-3 text-emphasis font-medium text-sm"
-                            className="me-5 h-7 w-auto !px-2"
-                            disableChevron
-                          />
-                        </>
-                      ) : null}
-                      <VerticalTabItem
-                        name={t("settings")}
-                        href={`/settings/teams/${team.id}/settings`}
-                        textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
-                        disableChevron
-                      />
-                    </>
-                  )}
+                        <VerticalTabItem
+                          name={t("appearance")}
+                          href={`/settings/teams/${team.id}/appearance`}
+                          textClassNames="px-3 text-emphasis font-medium text-sm"
+                          className="me-5 h-7 w-auto !px-2"
+                          disableChevron
+                        />
+                        {/* Hide if there is a parent ID */}
+                        {!team.parentId ? (
+                          <>
+                            <VerticalTabItem
+                              name={t("billing")}
+                              href={`/settings/teams/${team.id}/billing`}
+                              textClassNames="px-3 text-emphasis font-medium text-sm"
+                              className="me-5 h-7 w-auto !px-2"
+                              disableChevron
+                            />
+                          </>
+                        ) : null}
+                        <VerticalTabItem
+                          name={t("settings")}
+                          href={`/settings/teams/${team.id}/settings`}
+                          textClassNames="px-3 text-emphasis font-medium text-sm"
+                          className="me-5 h-7 w-auto !px-2"
+                          disableChevron
+                        />
+                      </>
+                    )}
                 </CollapsibleContent>
               </Collapsible>
             );
@@ -624,9 +627,8 @@ const SettingsSidebarContainer = ({
                           isExternalLink={child.isExternalLink}
                           href={child.href || "/"}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`h-7 w-fit !px-2 ${
-                            tab.children && index === tab.children?.length - 1 && "!mb-3"
-                          }`}
+                          className={`h-7 w-fit !px-2 ${tab.children && index === tab.children?.length - 1 && "!mb-3"
+                            }`}
                           disableChevron
                         />
                         {child.isBadged && (
@@ -739,11 +741,10 @@ const SettingsSidebarContainer = ({
                                       setOtherTeamMenuState(newOtherTeamMenuState);
                                     }
                                   }}
-                                  aria-label={`${otherTeam.name} ${
-                                    otherTeamMenuState[index].teamMenuOpen
+                                  aria-label={`${otherTeam.name} ${otherTeamMenuState[index].teamMenuOpen
                                       ? t("collapse_menu")
                                       : t("expand_menu")
-                                  }`}>
+                                    }`}>
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
                                       <Icon name="chevron-down" className="h-4 w-4" />
