@@ -73,15 +73,24 @@ type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
+type LoggedInUser = {
+  userId: number | undefined;
+  userTimeZone: string | undefined;
+  userTimeFormat: number | null | undefined;
+  userEmail: string | undefined;
+  userIsOrgAdminOrOwner: boolean | undefined;
+  teamsWhereUserIsAdminOrOwner:
+    | {
+        id: number;
+        teamId: number;
+      }[]
+    | undefined;
+};
+
 export type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
+  loggedInUser: LoggedInUser;
   isToday: boolean;
 };
 
@@ -240,6 +249,34 @@ function BookingListItem(booking: BookingItemProps) {
     return userSeat?.referenceUid;
   };
 
+  const checkIfUserIsHost = (userId?: number | null) => {
+    if (!userId) return false;
+
+    return (
+      booking.user?.id === userId ||
+      booking.eventType.hosts?.some(
+        (host) =>
+          host.user?.id === userId &&
+          booking.attendees.some((attendee) => attendee.email === host.user?.email)
+      )
+    );
+  };
+
+  const checkIfUserIsAuthorizedToConfirmBooking = () => {
+    const isUserOwner = booking.user?.id === booking.loggedInUser.userId;
+    const isUserTeamEventHost = checkIfUserIsHost(booking.loggedInUser.userId);
+    const isUserTeamAdminOrOwner = booking.loggedInUser.teamsWhereUserIsAdminOrOwner?.some(
+      (team) =>
+        team.teamId === booking.eventType?.team?.id || team.teamId === booking.eventType?.parent?.teamId
+    );
+    return (
+      isUserOwner ||
+      isUserTeamEventHost ||
+      booking.loggedInUser.userIsOrgAdminOrOwner ||
+      isUserTeamAdminOrOwner
+    );
+  };
+
   const actionContext: BookingActionContext = {
     booking,
     isUpcoming,
@@ -266,6 +303,7 @@ function BookingListItem(booking: BookingItemProps) {
     attendeeList,
     getSeatReferenceUid,
     t,
+    checkIfUserIsAuthorizedToConfirmBooking,
   } as BookingActionContext;
 
   const basePendingActions = getPendingActions(actionContext);

@@ -32,31 +32,54 @@ export interface BookingActionContext {
   }>;
   getSeatReferenceUid: () => string | undefined;
   t: (key: string) => string;
+  checkIfUserIsAuthorizedToConfirmBooking: () => boolean;
 }
 
 export function getPendingActions(context: BookingActionContext): ActionType[] {
-  const { booking, isPending, isTabRecurring, isTabUnconfirmed, isRecurring, showPendingPayment, t } =
-    context;
+  const {
+    booking,
+    isPending,
+    isTabRecurring,
+    isTabUnconfirmed,
+    isRecurring,
+    showPendingPayment,
+    t,
+    checkIfUserIsAuthorizedToConfirmBooking,
+    getSeatReferenceUid,
+  } = context;
 
-  const actions: ActionType[] = [
-    {
+  const actions: ActionType[] = [];
+
+  if (!checkIfUserIsAuthorizedToConfirmBooking()) {
+    actions.push({
+      id: "cancel",
+      label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel_event"),
+      href: `/booking/${booking.uid}?cancel=true${
+        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}`,
+      icon: "circle-x",
+      color: "destructive",
+      disabled: isActionDisabled("cancel", context),
+    });
+  } else {
+    actions.push({
       id: "reject",
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
       icon: "ban",
       disabled: false, // This would be controlled by mutation state in the component
-    },
-  ];
-
-  // For bookings with payment, only confirm if the booking is paid for
-  // Original logic: (isPending && !paymentAppData.enabled) || (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
-  if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
-    actions.push({
-      id: "confirm",
-      bookingId: booking.id,
-      label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
-      icon: "check" as const,
-      disabled: false, // This would be controlled by mutation state in the component
     });
+
+    // For bookings with payment, only confirm if the booking is paid for
+    // Original logic: (isPending && !paymentAppData.enabled) || (paymentAppData.enabled && !!paymentAppData.price && booking.paid)
+    if ((isPending && !showPendingPayment) || (showPendingPayment && booking.paid)) {
+      actions.push({
+        id: "confirm",
+        bookingId: booking.id,
+        label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("confirm_all") : t("confirm"),
+        icon: "check" as const,
+        disabled: false, // This would be controlled by mutation state in the component
+      });
+    }
   }
 
   return actions;
