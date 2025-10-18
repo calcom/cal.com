@@ -1,4 +1,4 @@
-import { BaseEmailHtml } from "../components";
+import { BaseEmailHtml, CallToAction } from "../components";
 
 type SubscriptionPaymentFailedEmailProps = {
   entityName: string;
@@ -16,21 +16,11 @@ export const SubscriptionPaymentFailedEmail = (props: SubscriptionPaymentFailedE
     <BaseEmailHtml
       headerType="xCircle"
       subject="subscription_payment_failed_subject"
-      title={t("subscription_payment_failed_title")}
+      title={t("subscription_payment_failed_title", { entityName: props.entityName })}
       callToAction={
-        props.billingPortalUrl
-          ? {
-              href: props.billingPortalUrl,
-              text: t("update_payment_method"),
-            }
-          : null
-      }
-      subtitle={
-        <>
-          {t("subscription_payment_failed_description", {
-            entityName: props.entityName,
-          })}
-        </>
+        props.billingPortalUrl ? (
+          <CallToAction label={t("update_payment_method")} href={props.billingPortalUrl} />
+        ) : null
       }>
       <PaymentFailedInformation {...props} />
     </BaseEmailHtml>
