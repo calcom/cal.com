@@ -87,5 +87,5 @@ export interface IPermissionRepository {
     permission: PermissionString;
     fallbackRoles: MembershipRole[];
     take?: number;
-  }): Promise<{ id: number; name: string | null; email: string }[]>;
+  }): Promise<{ id: number; name: string | null; email: string; locale: string | null }[]>;
 }

@@ -294,15 +294,15 @@ export class PermissionRepository implements IPermissionRepository {
     permission: PermissionString;
     fallbackRoles: MembershipRole[];
     take?: number;
-  }): Promise<{ id: number; name: string | null; email: string }[]> {
+  }): Promise<{ id: number; name: string | null; email: string; locale: string | null }[]> {
     const { resource, action } = parsePermissionString(permission);
 
     // Query for users with PBAC permissions
     const usersWithPermissionPromise = this.client.$queryRaw<
-      { id: number; name: string | null; email: string }[]
+      { id: number; name: string | null; email: string; locale: string | null }[]
     >`
-      SELECT DISTINCT u.id, u.name, u.email
-      FROM "user" u
+      SELECT DISTINCT u.id, u.name, u.email, u.locale
+      FROM users u
       INNER JOIN "Membership" m ON u.id = m."userId"
       INNER JOIN "Role" r ON m."customRoleId" = r.id
       WHERE m."teamId" = ${teamId}
@@ -324,10 +324,10 @@ export class PermissionRepository implements IPermissionRepository {
 
     // Query for users with fallback roles (when PBAC is not enabled for the team)
     const usersWithFallbackRolesPromise = this.client.$queryRaw<
-      { id: number; name: string | null; email: string }[]
+      { id: number; name: string | null; email: string; locale: string | null }[]
     >`
-      SELECT DISTINCT u.id, u.name, u.email
-      FROM "user" u
+      SELECT DISTINCT u.id, u.name, u.email, u.locale
+      FROM users u
       INNER JOIN "Membership" m ON u.id = m."userId"
       INNER JOIN "Team" t ON m."teamId" = t.id
       LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
@@ -344,7 +344,10 @@ export class PermissionRepository implements IPermissionRepository {
     ]);
 
     // Combine and deduplicate results
-    const userMap = new Map<number, { id: number; name: string | null; email: string }>();
+    const userMap = new Map<
+      number,
+      { id: number; name: string | null; email: string; locale: string | null }
+    >();
 
     usersWithPermission.forEach((user) => userMap.set(user.id, user));
     usersWithFallbackRoles.forEach((user) => userMap.set(user.id, user));
