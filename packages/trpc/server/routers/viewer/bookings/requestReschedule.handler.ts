@@ -7,6 +7,8 @@ import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
@@ -15,18 +17,16 @@ import {
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
 
@@ -38,7 +38,9 @@ import type { PersonAttendeeCommonFields } from "./types";
 
 type RequestRescheduleOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: NonNullable<TrpcSessionUser> & {
+      role: string;
+    };
   };
   input: TRequestRescheduleInputSchema;
 };
@@ -99,32 +101,13 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     throw new TRPCError({ code: "FORBIDDEN", message: "EventType not found for current booking." });
   }
 
-  const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
-
-  const userTeams = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: user.id,
-    },
-    select: {
-      teams: true,
-    },
+  await checkIfUserIsAuthorizedToRequestReschedule({
+    eventTypeId: bookingToReschedule.eventTypeId,
+    loggedInUserId: user.id,
+    teamId: bookingToReschedule.eventType?.teamId,
+    bookingUserId: bookingToReschedule.userId,
+    userRole: user.role,
   });
-
-  if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
-    const userTeamIds = userTeams.teams.map((item) => item.teamId);
-    if (userTeamIds.indexOf(bookingToReschedule.eventType?.teamId) === -1) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "User isn't a member on the team" });
-    }
-    log.debug(
-      "Request reschedule for team booking",
-      safeStringify({
-        teamId: bookingToReschedule.eventType?.teamId,
-      })
-    );
-  }
-  if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
-  }
 
   if (!bookingToReschedule) return;
 
@@ -347,3 +330,122 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   );
   await Promise.all(promises);
 };
+
+const checkIfUserIsAuthorizedToRequestReschedule = async ({
+  eventTypeId,
+  loggedInUserId,
+  teamId,
+  bookingUserId,
+  userRole,
+}: {
+  eventTypeId: number | null;
+  loggedInUserId: number;
+  teamId?: number | null;
+  bookingUserId: number | null;
+  userRole: string;
+}): Promise<void> => {
+  // check system wide admin
+  if (userRole === UserPermissionRole.ADMIN) return;
+
+  // Check if the user is the owner of the event type
+  if (bookingUserId === loggedInUserId) return;
+
+  // Check if user is associated with the event type
+  if (eventTypeId) {
+    const [loggedInUserAsHostOfEventType, loggedInUserAsUserOfEventType] = await Promise.all([
+      prisma.eventType.findUnique({
+        where: {
+          id: eventTypeId,
+          hosts: { some: { userId: loggedInUserId } },
+        },
+        select: { id: true },
+      }),
+      prisma.eventType.findUnique({
+        where: {
+          id: eventTypeId,
+          users: { some: { id: loggedInUserId } },
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    if (loggedInUserAsHostOfEventType || loggedInUserAsUserOfEventType) return;
+  }
+
+  // Check if the user is an admin/owner of the team the booking belongs to
+  if (teamId) {
+    const membership = await prisma.membership.findFirst({
+      where: {
+        userId: loggedInUserId,
+        teamId: teamId,
+        role: {
+          in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+        },
+      },
+    });
+    if (membership) return;
+  }
+
+  if (bookingUserId && (await isLoggedInUserOrgAdminOfBookingUser(loggedInUserId, bookingUserId))) {
+    return;
+  }
+
+  throw new TRPCError({
+    code: "UNAUTHORIZED",
+    message: "User is not authorized to request reschedule for this booking",
+  });
+};
+
+async function isLoggedInUserOrgAdminOfBookingUser(loggedInUserId: number, bookingUserId: number) {
+  const orgIdsWhereLoggedInUserAdmin = await getOrgIdsWhereAdmin(loggedInUserId);
+
+  if (orgIdsWhereLoggedInUserAdmin.length === 0) {
+    return false;
+  }
+
+  const bookingUserOrgMembership = await prisma.membership.findFirst({
+    where: {
+      userId: bookingUserId,
+      teamId: {
+        in: orgIdsWhereLoggedInUserAdmin,
+      },
+      team: {
+        parentId: null,
+      },
+    },
+  });
+
+  if (bookingUserOrgMembership) return true;
+
+  const bookingUserOrgTeamMembership = await prisma.membership.findFirst({
+    where: {
+      userId: bookingUserId,
+      team: {
+        parentId: {
+          in: orgIdsWhereLoggedInUserAdmin,
+        },
+      },
+    },
+  });
+
+  return !!bookingUserOrgTeamMembership;
+}
+
+async function getOrgIdsWhereAdmin(loggedInUserId: number) {
+  const loggedInUserOrgMemberships = await prisma.membership.findMany({
+    where: {
+      userId: loggedInUserId,
+      role: {
+        in: [MembershipRole.OWNER, MembershipRole.ADMIN],
+      },
+      team: {
+        parentId: null,
+      },
+    },
+    select: {
+      teamId: true,
+    },
+  });
+
+  return loggedInUserOrgMemberships.map((m) => m.teamId);
+}
