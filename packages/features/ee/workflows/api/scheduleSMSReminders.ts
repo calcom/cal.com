@@ -148,6 +148,7 @@ export async function handler(req: NextRequest) {
           eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
             reminder.booking.attendees[0].timeZone
           ),
+          bookingTitle: reminder.booking.title,
         };
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",
