@@ -209,6 +209,7 @@ function MemberListContent(props: Props) {
 
   const columnFilters = useColumnFilters();
   const [rowSelection, setRowSelection] = useState({});
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   const removeMemberFromCache = ({
     utils,
@@ -280,6 +281,15 @@ function MemberListContent(props: Props) {
   const resendInvitationMutation = trpc.viewer.teams.resendInvitation.useMutation({
     onSuccess: () => {
       showToast(t("invitation_resent"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
+    onSuccess: () => {
+      showToast(t("success"), "success");
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -426,14 +436,26 @@ function MemberListContent(props: Props) {
         enableResizing: false,
         cell: ({ row }) => {
           const user = row.original;
-          const isSelf = user.id === session?.user.id;
-          // TODO(SEAN) In a follow up can we rename canChangeMemberRole to canEditMembers - role is a bit specific.
+          const isSelf =
+            user.id === session?.user.id ||
+            user.email === session?.user.email ||
+            (!!user.username &&
+              user.username === (session?.user as { username?: string } | undefined)?.username);
+
           const canChangeRole = props.permissions?.canChangeMemberRole ?? false;
           const canRemove = props.permissions?.canRemove ?? false;
           const canImpersonate = props.permissions?.canImpersonate ?? false;
           const canResendInvitation = props.permissions?.canInvite ?? false;
+          const viewerIsAdminOrOwner =
+            props.isOrgAdminOrOwner ??
+            (props.team?.membership?.role === "ADMIN" || props.team?.membership?.role === "OWNER");
+          const rowRoleIsAdminOrOwner = user.role === "ADMIN" || user.role === "OWNER";
+          const rowIsOwnerSelf = isSelf && user.role === "OWNER";
+          const canChangeRoleEffective = canChangeRole || (isSelf && viewerIsAdminOrOwner);
           const editMode =
-            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) && !isSelf;
+            (isSelf && (viewerIsAdminOrOwner || rowRoleIsAdminOrOwner)) ||
+            ([canChangeRoleEffective, canRemove, canImpersonate, canResendInvitation].some(Boolean) &&
+              (!isSelf || viewerIsAdminOrOwner));
 
           const impersonationMode =
             canImpersonate &&
@@ -470,19 +492,17 @@ function MemberListContent(props: Props) {
                         StartIcon="clock"
                       />
                     </Tooltip> */}
-                    {!!user.accepted && (
-                      <Tooltip content={t("view_public_page")}>
-                        <Button
-                          target="_blank"
-                          href={`${user.bookerUrl}/${user.username}`}
-                          color="secondary"
-                          className={classNames(!editMode ? "rounded-r-md" : "")}
-                          variant="icon"
-                          StartIcon="external-link"
-                          disabled={!user.accepted}
-                        />
-                      </Tooltip>
-                    )}
+                    <Tooltip content={t("view_public_page")}>
+                      <Button
+                        target="_blank"
+                        href={user.username ? `/${user.username}` : undefined}
+                        disabled={!user.username}
+                        color="secondary"
+                        className={classNames(!editMode ? "rounded-r-md" : "")}
+                        variant="icon"
+                        StartIcon="external-link"
+                      />
+                    </Tooltip>
                     {editMode && (
                       <Dropdown>
                         <DropdownMenuTrigger asChild>
@@ -495,7 +515,7 @@ function MemberListContent(props: Props) {
                         </DropdownMenuTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuContent>
-                            {canChangeRole ? (
+                            {canChangeRoleEffective ? (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -513,6 +533,18 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             ) : null}
+                            {rowIsOwnerSelf && (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() => setShowLeaveConfirm(true)}
+                                  disabled={acceptOrLeaveMutation.isPending}
+                                  color="destructive"
+                                  StartIcon="log-out">
+                                  {t("leave_team")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            )}
                             {impersonationMode && (
                               <>
                                 <DropdownMenuItem>
@@ -534,7 +566,7 @@ function MemberListContent(props: Props) {
                                 <DropdownMenuSeparator />
                               </>
                             )}
-                            {canResendInvitation && (
+                            {!rowIsOwnerSelf && canResendInvitation && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -550,7 +582,7 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             )}
-                            {canRemove ? (
+                            {!rowIsOwnerSelf && canRemove ? (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -583,8 +615,8 @@ function MemberListContent(props: Props) {
                         <DropdownMenuContent>
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
-                              disabled={!user.accepted}
-                              href={!user.accepted ? undefined : `/${user.username}`}
+                              href={user.username ? `/${user.username}` : undefined}
+                              disabled={!user.username}
                               target="_blank"
                               type="button"
                               StartIcon="external-link">
@@ -609,23 +641,37 @@ function MemberListContent(props: Props) {
                                   {t("edit")}
                                 </DropdownItem>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <DropdownItem
-                                  type="button"
-                                  color="destructive"
-                                  onClick={() =>
-                                    dispatch({
-                                      type: "SET_DELETE_ID",
-                                      payload: {
-                                        user,
-                                        showModal: true,
-                                      },
-                                    })
-                                  }
-                                  StartIcon="user-x">
-                                  {t("remove")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
+                              {rowIsOwnerSelf && (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    color="destructive"
+                                    onClick={() => setShowLeaveConfirm(true)}
+                                    disabled={acceptOrLeaveMutation.isPending}
+                                    StartIcon="log-out">
+                                    {t("leave_team")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              )}
+                              {!rowIsOwnerSelf && canRemove && (
+                                <DropdownMenuItem>
+                                  <DropdownItem
+                                    type="button"
+                                    color="destructive"
+                                    onClick={() =>
+                                      dispatch({
+                                        type: "SET_DELETE_ID",
+                                        payload: {
+                                          user,
+                                          showModal: true,
+                                        },
+                                      })
+                                    }
+                                    StartIcon="user-x">
+                                    {t("remove")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              )}
                             </>
                           )}
                         </DropdownMenuContent>
@@ -668,7 +714,7 @@ function MemberListContent(props: Props) {
     getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
-          case "role":
+          case "role": {
             // Include both traditional roles and PBAC custom roles
             const allRoles = facetedTeamValues.roles.map((role) => ({
               label: role.name,
@@ -676,6 +722,7 @@ function MemberListContent(props: Props) {
             }));
 
             return convertFacetedValuesToMap(allRoles);
+          }
           default:
             return new Map();
         }
@@ -685,7 +732,7 @@ function MemberListContent(props: Props) {
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
+  const _fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
     hasNextPage,
     fetchNextPage,
@@ -826,6 +873,23 @@ function MemberListContent(props: Props) {
           currentMember={props.team.membership.role}
           teamId={props.team.id}
         />
+      )}
+      {showLeaveConfirm && (
+        <Dialog open={showLeaveConfirm} onOpenChange={setShowLeaveConfirm}>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("leave_team")}
+            confirmBtnText={t("leave_team")}
+            onConfirm={() => {
+              acceptOrLeaveMutation.mutate({
+                teamId: props.team?.id,
+                accept: false,
+              });
+              setShowLeaveConfirm(false);
+            }}>
+            {t("are_you_sure_you_want_to_leave_this_team")}
+          </ConfirmationDialogContent>
+        </Dialog>
       )}
     </>
   );

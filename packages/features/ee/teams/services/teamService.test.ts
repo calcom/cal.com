@@ -192,14 +192,25 @@ describe("TeamService", () => {
         team: { id: 1, parentId: null },
       };
 
-      prismaMock.membership.delete.mockResolvedValue(mockMembership as Membership & { team: Team });
+      const mockTx = {
+        membership: {
+          count: vi.fn().mockResolvedValue(2), // Multiple owners exist
+          findUnique: vi.fn().mockResolvedValue({ role: MembershipRole.MEMBER }),
+          delete: vi.fn().mockResolvedValue(mockMembership),
+        },
+      };
+
+      prismaMock.$transaction.mockImplementation(async (callback) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return callback(mockTx as any);
+      });
 
       await TeamService.leaveTeamMembership({
         userId: 1,
         teamId: 1,
       });
 
-      expect(prismaMock.membership.delete).toHaveBeenCalledWith({
+      expect(mockTx.membership.delete).toHaveBeenCalledWith({
         where: { userId_teamId: { userId: 1, teamId: 1 } },
         select: { team: true },
       });
@@ -210,17 +221,29 @@ describe("TeamService", () => {
         team: { id: 1, parentId: 2 },
       };
 
-      prismaMock.membership.delete
-        .mockResolvedValueOnce(mockMembership as Membership & { team: Team })
-        .mockResolvedValueOnce({} as Membership);
+      const mockTx = {
+        membership: {
+          count: vi.fn().mockResolvedValue(2), // Multiple owners exist
+          findUnique: vi.fn().mockResolvedValue({ role: MembershipRole.MEMBER }),
+          delete: vi
+            .fn()
+            .mockResolvedValueOnce(mockMembership)
+            .mockResolvedValueOnce({} as Membership),
+        },
+      };
+
+      prismaMock.$transaction.mockImplementation(async (callback) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return callback(mockTx as any);
+      });
 
       await TeamService.leaveTeamMembership({
         userId: 1,
         teamId: 1,
       });
 
-      expect(prismaMock.membership.delete).toHaveBeenCalledTimes(2);
-      expect(prismaMock.membership.delete).toHaveBeenNthCalledWith(2, {
+      expect(mockTx.membership.delete).toHaveBeenCalledTimes(2);
+      expect(mockTx.membership.delete).toHaveBeenNthCalledWith(2, {
         where: { userId_teamId: { userId: 1, teamId: 2 } },
       });
     });
