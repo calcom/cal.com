@@ -91,6 +91,9 @@ export class BookingAuthorizationService {
           parentId: null,
         },
       },
+      select: {
+        id: true,
+      },
     });
 
     if (bookingUserOrgMembership) return true;
@@ -104,6 +107,9 @@ export class BookingAuthorizationService {
             in: orgIdsWhereLoggedInUserAdmin,
           },
         },
+      },
+      select: {
+        id: true,
       },
     });
 
