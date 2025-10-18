@@ -177,6 +177,9 @@ test.describe("Manage Booking Questions", () => {
           const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
           const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
 
+          // Wait for the page to be fully loaded and interactive
+          await page.waitForLoadState('networkidle');
+          await datePickerButton.waitFor({ state: 'visible' });
           await datePickerButton.click();
           const initialDateClicked = await pickAnyAvailableDateInCurrentGrid(page);
           expect(initialDateClicked).toBe(true);
@@ -569,8 +572,41 @@ async function runTestStepsCommonForTeamAndUserEventType(
 async function pickAnyAvailableDateInCurrentGrid(page: Page): Promise<boolean> {
   await expect(page.locator('[role="dialog"]').first()).toBeVisible();
   await expect(page.locator('[role="grid"]').first()).toBeVisible();
+  
+  // Wait for the grid to stabilize
+  await page.waitForTimeout(500);
+  
   const grid = page.locator('[role="grid"]').first();
   const cells = await grid.locator('[role="gridcell"]').all();
+  
+  // Prefer mid-month dates to avoid edge cases
+  const preferredDays = [15, 16, 14, 17, 13, 18, 12, 19, 11, 20, 10];
+  
+  // First try preferred days
+  for (const preferredDay of preferredDays) {
+    for (const cell of cells) {
+      try {
+        const isDisabled = await cell.getAttribute('aria-disabled');
+        const outside = await cell.getAttribute('data-outside');
+        const hidden = await cell.getAttribute('data-hidden');
+        const unavailable = await cell.getAttribute('data-unavailable');
+        if (isDisabled === 'true' || outside === 'true' || hidden === 'true' || unavailable === 'true') continue;
+        
+        const txt = (await cell.textContent())?.trim() || "";
+        const num = txt ? parseInt(txt) : NaN;
+        if (num === preferredDay) {
+          await cell.click({ timeout: 5000 });
+          // Wait for the picker to close
+          await page.waitForTimeout(200);
+          return true;
+        }
+      } catch {
+        // keep trying others
+      }
+    }
+  }
+  
+  // Fallback: try any available date
   for (const cell of cells) {
     try {
       const isDisabled = await cell.getAttribute('aria-disabled');
@@ -578,10 +614,13 @@ async function pickAnyAvailableDateInCurrentGrid(page: Page): Promise<boolean> {
       const hidden = await cell.getAttribute('data-hidden');
       const unavailable = await cell.getAttribute('data-unavailable');
       if (isDisabled === 'true' || outside === 'true' || hidden === 'true' || unavailable === 'true') continue;
+      
       const txt = (await cell.textContent())?.trim() || "";
       const num = txt ? parseInt(txt) : NaN;
       if (!isNaN(num) && num > 0) {
         await cell.click({ timeout: 5000 });
+        // Wait for the picker to close
+        await page.waitForTimeout(200);
         return true;
       }
     } catch {
@@ -695,13 +734,20 @@ async function bookTimeSlot({
       const text = (await btn.textContent()) || "";
       const hasPickText = text.toLowerCase().includes("pick a date");
       if (hasPickText) {
+        // Wait for page to be interactive
+        await page.waitForLoadState('networkidle');
+        await btn.waitFor({ state: 'visible' });
         await btn.click();
+        
         // Ensure calendar is visible
         await expect(page.locator('[role="dialog"]').first()).toBeVisible();
         await expect(page.locator('[role="grid"]').first()).toBeVisible();
+        
+        // Wait for grid to stabilize
+        await page.waitForTimeout(300);
+        
         const grid = page.locator('[role="grid"]').first();
         const gridCells = await grid.locator('[role="gridcell"]').all();
-        // Prefer a mid-month day to avoid edge days from prev/next months
         let selected = false;
         const preferredDays = [15, 16, 14, 13, 17, 12, 18, 11, 19, 10];
         const tryClickDay = async (preferred?: number) => {
@@ -720,6 +766,8 @@ async function bookTimeSlot({
               if (!isNaN(dayNum) && dayNum > 0 && (!preferred || dayNum === preferred)) {
                 await cell.click({ timeout: 5000 });
                 selected = true;
+                // Wait for picker to close after selection
+                await page.waitForTimeout(200);
                 break;
               }
             } catch {
