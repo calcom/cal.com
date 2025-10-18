@@ -1,17 +1,19 @@
-import type { TFunction } from "next-i18next";
 import type { z } from "zod";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { BillingPortalServiceFactory } from "@calcom/app-store/stripepayment/lib/services/factory/BillingPortalServiceFactory";
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { sendSubscriptionPaymentFailedEmail } from "@calcom/emails/email-manager";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import billing from "..";
@@ -214,36 +216,47 @@ export class InternalTeamBilling implements TeamBilling {
 
   /**
    * Sends a payment failed email to team/organization admins with billing portal link
-   * @param recipientEmail - Email address to send the notification to
-   * @param translate - Translation function for email content
-   * @returns {Promise<void>}
    */
-  async sendPaymentFailedEmail(recipientEmail: string, translate: TFunction): Promise<void> {
+  async sendPaymentFailedEmails(): Promise<void> {
     try {
-      const { subscriptionId } = this.team.metadata;
-
-      if (!subscriptionId) {
-        log.warn(`No subscription ID found for team ${this.team.id}`);
-        return;
-      }
-
-      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-      const customerId =
-        typeof subscription.customer === "string" ? subscription.customer : subscription.customer.id;
-
-      const portalSession = await stripe.billingPortal.sessions.create({
-        customer: customerId,
-        return_url: `${WEBAPP_URL}/settings/billing`,
+      // Get members of the team that have access to billing
+      const billingPortalService = await BillingPortalServiceFactory.createService(this.team.id);
+      const billingPortalUrl = await billingPortalService.processBillingPortalWithoutPermissionChecks({
+        teamId: this.team.id,
       });
 
-      await sendSubscriptionPaymentFailedEmail({
-        entityName: this.team.name,
-        billingPortalUrl: portalSession.url,
-        to: recipientEmail,
-        language: { translate },
+      const permissionService = new PermissionCheckService();
+      // Use the correct permission based on whether this is an organization or team
+      const billingPermission = this.team.isOrganization
+        ? "organization.manageBilling"
+        : "team.manageBilling";
+      const membersToSendBillingEmail = await permissionService.getUsersWithPermissionForTeam({
+        teamId: this.team.id,
+        permission: billingPermission,
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
       });
 
-      log.info(`Sent payment failed email for team ${this.team.id} to ${recipientEmail}`);
+      const emailsSent = await Promise.allSettled(
+        membersToSendBillingEmail.map(async (member) => {
+          const translate = await getTranslation(member.locale || "en", "common");
+
+          await sendSubscriptionPaymentFailedEmail({
+            entityName: `${this.team.name} ${this.team.isOrganization ? "organization" : "team"}`,
+            billingPortalUrl: billingPortalUrl,
+            to: member.email,
+            language: { translate },
+          });
+        })
+      );
+
+      const failedEmails = emailsSent.filter((result) => result.status === "rejected");
+      const failedEmailCount = failedEmails.length;
+
+      log.info(
+        `Sent payment failed email for team ${this.team.id} to ${
+          membersToSendBillingEmail.length - failedEmailCount
+        } members. Failed to send email to ${failedEmailCount} members.`
+      );
     } catch (error) {
       this.logErrorFromUnknown(error);
       throw error;
