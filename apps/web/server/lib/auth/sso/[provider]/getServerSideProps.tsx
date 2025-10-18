@@ -7,7 +7,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
-import { checkUsername } from "@calcom/lib/server/checkUsername";
+import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
 import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";

@@ -4,6 +4,7 @@ import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
+import { GetTeamMembershipsInput } from "@/modules/teams/memberships/inputs/get-team-memberships.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { CreateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/create-team-membership.output";
 import { DeleteTeamMembershipOutput } from "@/modules/teams/memberships/outputs/delete-team-membership.output";
@@ -32,7 +33,6 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries/event-types";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/teams/:teamId/memberships",
@@ -85,16 +85,20 @@ export class TeamsMembershipsController {
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get all memberships" })
+  @ApiOperation({
+    summary: "Get all memberships",
+    description: "Retrieve team memberships with optional filtering by email addresses. Supports pagination.",
+  })
   @Roles("TEAM_ADMIN")
   @HttpCode(HttpStatus.OK)
   async getTeamMemberships(
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Query() queryParams: SkipTakePagination
+    @Query() queryParams: GetTeamMembershipsInput
   ): Promise<GetTeamMembershipsOutput> {
-    const { skip, take } = queryParams;
+    const { skip, take, emails } = queryParams;
     const orgTeamMemberships = await this.teamsMembershipsService.getPaginatedTeamMemberships(
       teamId,
+      emails,
       skip ?? 0,
       take ?? 250
     );
