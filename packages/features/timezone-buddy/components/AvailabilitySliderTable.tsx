@@ -10,7 +10,7 @@ import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider
 import { DataTable, DataTableToolbar } from "@calcom/features/data-table/components";
 import { useDataTable } from "@calcom/features/data-table/hooks";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
-import type { DateRange } from "@calcom/lib/date-ranges";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import type { MembershipRole } from "@calcom/prisma/enums";
@@ -67,7 +67,7 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable(props: { userTimeFormat: number | null; isOrg: boolean }) {
+export function AvailabilitySliderTable(props: { isOrg: boolean }) {
   return (
     <DataTableProvider>
       <AvailabilitySliderTableContent {...props} />
@@ -75,7 +75,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   );
 }
 
-function AvailabilitySliderTableContent(props: { userTimeFormat: number | null; isOrg: boolean }) {
+function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);

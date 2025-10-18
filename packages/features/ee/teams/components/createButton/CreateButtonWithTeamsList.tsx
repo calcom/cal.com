@@ -1,5 +1,7 @@
 "use client";
 
+import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 import type { CreateBtnProps, Option } from "./CreateButton";
@@ -11,10 +13,20 @@ export function CreateButtonWithTeamsList(
     onlyShowWithNoTeams?: boolean;
     isAdmin?: boolean;
     includeOrg?: boolean;
+    withPermission?: {
+      permission: PermissionString;
+      fallbackRoles?: MembershipRole[];
+    };
   }
 ) {
   const query = trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery({
     includeOrg: props.includeOrg,
+    withPermission: props.withPermission
+      ? {
+          permission: props.withPermission.permission,
+          fallbackRoles: props.withPermission.fallbackRoles,
+        }
+      : undefined,
   });
   if (!query.data) return null;
 

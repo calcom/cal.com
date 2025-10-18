@@ -2,7 +2,7 @@
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
-import type EventManager from "@calcom/lib/EventManager";
+import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
@@ -50,6 +50,8 @@ const attendeeRescheduleSeatedBooking = async (
 
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
+
+    await sendRescheduledSeatEmailAndSMS(evt, seatAttendee as Person, eventType.metadata);
 
     return null;
   }

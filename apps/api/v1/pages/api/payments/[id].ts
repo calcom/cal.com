@@ -46,6 +46,7 @@ export async function paymentById(
   if (safeQuery.success && method === "GET") {
     const userWithBookings = await prisma.user.findUnique({
       where: { id: userId },
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       include: { bookings: true },
     });
     await prisma.payment

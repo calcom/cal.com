@@ -26,6 +26,7 @@ export function ScheduleListItem({
   updateDefault,
   isDeletable,
   duplicateFunction,
+  redirectUrl,
 }: {
   schedule: RouterOutputs["viewer"]["availability"]["list"]["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
@@ -37,6 +38,7 @@ export function ScheduleListItem({
   isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
+  redirectUrl: string;
 }) {
   const { t, i18n } = useLocale();
 
@@ -44,14 +46,11 @@ export function ScheduleListItem({
     <li key={schedule.id}>
       <div className="hover:bg-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
         <div className="group flex w-full items-center justify-between ">
-          <Link
-            href={`/availability/${schedule.id}`}
-            className="flex-grow truncate text-sm"
-            title={schedule.name}>
+          <Link href={redirectUrl} className="flex-grow truncate text-sm" title={schedule.name}>
             <div className="space-x-2 rtl:space-x-reverse">
               <span className="text-emphasis truncate font-medium">{schedule.name}</span>
               {schedule.isDefault && (
-                <Badge variant="success" className="text-xs">
+                <Badge variant="gray" className="text-xs">
                   {t("default")}
                 </Badge>
               )}
@@ -74,10 +73,10 @@ export function ScheduleListItem({
                   </Fragment>
                 ))}
               {(schedule.timeZone || displayOptions?.timeZone) && (
-                <p className="my-1 flex items-center first-letter:text-xs">
+                <span className="my-1 flex items-center first-letter:text-xs">
                   <Icon name="globe" className="h-3.5 w-3.5" />
                   &nbsp;{schedule.timeZone ?? displayOptions?.timeZone}
-                </p>
+                </span>
               )}
             </p>
           </Link>
@@ -127,6 +126,7 @@ export function ScheduleListItem({
                 color="destructive"
                 StartIcon="trash"
                 data-testid="delete-schedule"
+                className="rounded-t-none"
                 onClick={() => {
                   if (!isDeletable) {
                     showToast(t("requires_at_least_one_schedule"), "error");

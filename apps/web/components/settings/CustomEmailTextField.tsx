@@ -105,7 +105,7 @@ const CustomEmailTextField = ({
                 <DropdownItem
                   StartIcon="trash"
                   color="destructive"
-                  className="disabled:opacity-40"
+                  className="rounded-t-none disabled:opacity-40"
                   onClick={handleItemDelete}
                   disabled={emailPrimary}
                   data-testid="secondary-email-delete-button">

@@ -19,6 +19,7 @@ const getUserBooking = async (uid: string) => {
       status: true,
       metadata: true,
       cancellationReason: true,
+      cancelledBy: true,
       responses: true,
       rejectionReason: true,
       userPrimaryEmail: true,

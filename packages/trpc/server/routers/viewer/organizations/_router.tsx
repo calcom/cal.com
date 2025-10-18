@@ -1,4 +1,4 @@
-import { createPhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { createPhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 
 import authedProcedure, {
@@ -15,15 +15,20 @@ import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
+import { ZCreateSelfHostedInputSchema } from "./createSelfHosted.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
+import { ZCreateWatchlistEntryInputSchema } from "./createWatchlistEntry.schema";
 import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
+import { ZDeleteWatchlistEntryInputSchema } from "./deleteWatchlistEntry.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
 import { ZGetUserInput } from "./getUser.schema";
+import { ZGetWatchlistEntryDetailsInputSchema } from "./getWatchlistEntryDetails.schema";
 import { ZIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
+import { ZListWatchlistEntriesInputSchema } from "./listWatchlistEntries.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
@@ -158,4 +163,33 @@ export const viewerOrganizationsRouter = router({
     const { default: handler } = await import("./createPhoneCall.handler");
     return handler(opts);
   }),
+  createSelfHosted: authedProcedure.input(ZCreateSelfHostedInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./createSelfHosted.handler");
+    return handler(opts);
+  }),
+  listWatchlistEntries: authedOrgAdminProcedure
+    .input(ZListWatchlistEntriesInputSchema)
+    .query(async (opts) => {
+      const { default: handler } = await import("./listWatchlistEntries.handler");
+      return handler(opts);
+    }),
+  createWatchlistEntry: authedOrgAdminProcedure
+    .input(ZCreateWatchlistEntryInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./createWatchlistEntry.handler");
+      return handler(opts);
+    }),
+  deleteWatchlistEntry: authedOrgAdminProcedure
+    .input(ZDeleteWatchlistEntryInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./deleteWatchlistEntry.handler");
+      return handler(opts);
+    }),
+  getWatchlistEntryDetails: authedOrgAdminProcedure
+    .input(ZGetWatchlistEntryDetailsInputSchema)
+    .query(async (opts) => {
+      const { default: handler } = await import("./getWatchlistEntryDetails.handler");
+      return handler(opts);
+    }),
+
 });

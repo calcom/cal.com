@@ -108,6 +108,7 @@ export function TimezoneSelectComponent({
       className={`${className} ${timezoneSelectCustomClassname}`}
       aria-label="Timezone Select"
       isLoading={isPending}
+      data-testid="timezone-select"
       isDisabled={isPending}
       {...reactSelectProps}
       timezones={{
@@ -127,6 +128,24 @@ export function TimezoneSelectComponent({
       }}
       onInputChange={handleInputChange}
       {...props}
+      onChange={(selectedOption) => {
+        if (!props.onChange) return;
+
+        if (!selectedOption) {
+          props.onChange(selectedOption);
+          return;
+        }
+
+        // Fix inconsistent timezone naming formats
+        const corrections: Record<string, string> = {
+          "America/Port_Of_Spain": "America/Port_of_Spain",
+          "Africa/Porto-novo": "Africa/Porto-Novo",
+          "Africa/Dar_Es_Salaam": "Africa/Dar_es_Salaam",
+        };
+
+        const correctedValue = corrections[selectedOption.value] || selectedOption.value;
+        props.onChange({ ...selectedOption, value: correctedValue });
+      }}
       formatOptionLabel={(option) => (
         <p className="truncate">{(option as ITimezoneOption).value.replace(/_/g, " ")}</p>
       )}

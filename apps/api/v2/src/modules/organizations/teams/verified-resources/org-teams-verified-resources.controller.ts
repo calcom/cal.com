@@ -52,8 +52,8 @@ import { SkipTakePagination } from "@calcom/platform-types";
 export class OrgTeamsVerifiedResourcesController {
   constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
   @ApiOperation({
-    summary: "Request Email Verification Code",
-    description: `Sends a verification code to the email.`,
+    summary: "Request email verification code",
+    description: `Sends a verification code to the email`,
   })
   @Roles("TEAM_ADMIN")
   @Throttle({
@@ -82,8 +82,8 @@ export class OrgTeamsVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Request Phone Number Verification Code",
-    description: `Sends a verification code to the phone number.`,
+    summary: "Request phone number verification code",
+    description: `Sends a verification code to the phone number`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
@@ -108,7 +108,7 @@ export class OrgTeamsVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Verify an email for an org team.",
+    summary: "Verify an email for an org team",
     description: `Use code to verify an email`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -134,7 +134,7 @@ export class OrgTeamsVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Verify a phone number for an org team.",
+    summary: "Verify a phone number for an org team",
     description: `Use code to verify a phone number`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -166,7 +166,7 @@ export class OrgTeamsVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Get list of verified emails of an org team.",
+    summary: "Get list of verified emails of an org team",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
@@ -189,7 +189,7 @@ export class OrgTeamsVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Get list of verified phone numbers of an org team.",
+    summary: "Get list of verified phone numbers of an org team",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @PlatformPlan("ESSENTIALS")
@@ -214,7 +214,7 @@ export class OrgTeamsVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Get verified email of an org team by id.",
+    summary: "Get verified email of an org team by id",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
@@ -233,7 +233,7 @@ export class OrgTeamsVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Get verified phone number of an org team by id.",
+    summary: "Get verified phone number of an org team by id",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")

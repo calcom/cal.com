@@ -6,6 +6,8 @@ import prisma from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
 
+test.describe.configure({ mode: "parallel" });
+
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Forgot password", async () => {
@@ -68,7 +70,7 @@ test.describe("Forgot password", async () => {
     // Wait for page to fully load
     await page.waitForSelector("text=Reset Password");
 
-    await page.fill('input[name="new_password"]', newPassword);
+    await page.fill('input[name="newPassword"]', newPassword);
     await page.click('button[type="submit"]');
 
     await page.waitForSelector("text=Password updated");

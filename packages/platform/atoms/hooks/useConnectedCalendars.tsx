@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
@@ -22,6 +22,7 @@ export const useConnectedCalendars = (props: { enabled?: boolean }) => {
       });
     },
     enabled: props?.enabled !== undefined ? props.enabled && isInit : isInit,
+    staleTime: 5000,
   });
 
   return calendars;

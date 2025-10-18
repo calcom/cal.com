@@ -8,7 +8,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
@@ -80,7 +80,8 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const user = await UserRepository.enrichUserWithTheProfile({
+  const userRepository = new UserRepository(prisma);
+  const user = await userRepository.enrichUserWithTheProfile({
     user: userFromDb,
     upId,
   });
@@ -95,6 +96,7 @@ export async function getServerSession(options: {
       email: user.email,
       emailVerified: user.emailVerified,
       email_verified: user.emailVerified !== null,
+      completedOnboarding: user.completedOnboarding,
       role: user.role,
       image: getUserAvatarUrl({
         avatarUrl: user.avatarUrl,

@@ -17,29 +17,31 @@ export async function openFilter(page: Page, columnId: string) {
   await page.getByTestId(`filter-popover-trigger-${columnId}`).click();
 }
 
+export async function addOrOpenFilter(page: Page, columnId: string) {
+  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
+  if (await existingFilter.isVisible()) {
+    await openFilter(page, columnId);
+  } else {
+    await addFilter(page, columnId);
+  }
+}
+
 /**
  * Apply a filter with a specific value
  */
 export async function applySelectFilter(page: Page, columnId: string, value: string) {
-  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
-  if (!(await existingFilter.isVisible())) {
-    await addFilter(page, columnId);
-  }
-  await openFilter(page, columnId);
+  await addOrOpenFilter(page, columnId);
   await selectOptionValue(page, columnId, value);
   await page.keyboard.press("Escape");
 }
 
 export async function selectOptionValue(page: Page, columnId: string, value: string) {
+  await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).waitFor();
   await page.getByTestId(`select-filter-options-${columnId}`).getByRole("option", { name: value }).click();
 }
 
 export async function applyTextFilter(page: Page, columnId: string, operator: string, operand?: string) {
-  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
-  if (!(await existingFilter.isVisible())) {
-    await addFilter(page, columnId);
-  }
-  await openFilter(page, columnId);
+  await addOrOpenFilter(page, columnId);
 
   await page.getByTestId(`text-filter-options-select-${columnId}`).click();
   await page
@@ -57,11 +59,7 @@ export async function applyTextFilter(page: Page, columnId: string, operator: st
 }
 
 export async function applyNumberFilter(page: Page, columnId: string, operator: string, operand: number) {
-  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
-  if (!(await existingFilter.isVisible())) {
-    await addFilter(page, columnId);
-  }
-  await openFilter(page, columnId);
+  await addOrOpenFilter(page, columnId);
 
   await page.getByTestId(`number-filter-options-select-${columnId}`).click();
   await page
@@ -175,4 +173,72 @@ export async function listSegments(page: Page): Promise<string[]> {
 
 export function locateSelectedSegmentName(page: Page, expectedName: string) {
   return page.locator('[data-testid="filter-segment-select"]').filter({ hasText: expectedName });
+}
+
+/**
+ * Check if a system segment is visible in the dropdown
+ */
+export async function expectSystemSegmentVisible(page: Page, segmentName: string) {
+  await page.getByTestId("filter-segment-select").click();
+  await expect(
+    page.locator('[data-testid="filter-segment-select-content"]').getByText("Default")
+  ).toBeVisible();
+  await expect(
+    page
+      .locator('[data-testid="filter-segment-select-content"] [role="menuitem"]')
+      .filter({ hasText: segmentName })
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
+}
+
+/**
+ * Check that no segment is currently selected
+ */
+export async function expectSegmentCleared(page: Page) {
+  // Check that no segment is selected (button shows default text)
+  const segmentSelect = page.getByTestId("filter-segment-select");
+  const buttonText = await segmentSelect.textContent();
+  expect(buttonText?.trim()).toEqual("Saved filters");
+}
+
+/**
+ * Check that a specific segment is currently selected
+ */
+export async function expectSegmentSelected(page: Page, segmentName: string) {
+  await expect(locateSelectedSegmentName(page, segmentName)).toBeVisible();
+}
+
+/**
+ * Duplicate an existing segment
+ */
+export async function duplicateSegment(page: Page, originalName: string, newName: string) {
+  await openSegmentSubmenu(page, originalName);
+  await page.getByTestId("filter-segment-select-submenu-content").getByText("Duplicate").click();
+  await page.getByTestId("duplicate-segment-name").fill(newName);
+  await page.getByRole("button", { name: "Duplicate" }).click();
+  await expect(page.getByText("Filter segment duplicated")).toBeVisible();
+  await page.keyboard.press("Escape");
+}
+
+/**
+ * Rename an existing segment
+ */
+export async function renameSegment(page: Page, originalName: string, newName: string) {
+  await openSegmentSubmenu(page, originalName);
+  await page.getByTestId("filter-segment-select-submenu-content").getByText("Rename").click();
+  await page.getByTestId("rename-segment-name").fill(newName);
+  await page.getByRole("button", { name: "Save" }).click();
+  await expect(page.getByText("Filter segment updated")).toBeVisible();
+  await page.keyboard.press("Escape");
+}
+
+/**
+ * Check if a segment group (like "Default" or "Personal") is visible
+ */
+export async function expectSegmentGroupVisible(page: Page, groupName: string) {
+  await page.getByTestId("filter-segment-select").click();
+  await expect(
+    page.locator('[data-testid="filter-segment-select-content"]').getByText(groupName)
+  ).toBeVisible();
+  await page.keyboard.press("Escape");
 }

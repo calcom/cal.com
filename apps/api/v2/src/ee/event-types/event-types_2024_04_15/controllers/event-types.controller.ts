@@ -18,6 +18,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -33,14 +34,20 @@ import {
   HttpStatus,
   Delete,
   Query,
+  Headers,
   InternalServerErrorException,
   ParseIntPipe,
 } from "@nestjs/common";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
-import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
-import { PrismaClient } from "@calcom/prisma";
+import {
+  EVENT_TYPE_READ,
+  EVENT_TYPE_WRITE,
+  SUCCESS_STATUS,
+  X_CAL_CLIENT_ID,
+} from "@calcom/platform-constants";
+import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries/event-types";
+import type { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "/v2/event-types",
@@ -51,7 +58,8 @@ import { PrismaClient } from "@calcom/prisma";
 export class EventTypesController_2024_04_15 {
   constructor(
     private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly prismaReadService: PrismaReadService
+    private readonly prismaReadService: PrismaReadService,
+    private readonly organizationsRepository: OrganizationsRepository
   ) {}
 
   @Post("/")
@@ -109,19 +117,32 @@ export class EventTypesController_2024_04_15 {
   async getPublicEventType(
     @Param("username") username: string,
     @Param("eventSlug") eventSlug: string,
-    @Query() queryParams: GetPublicEventTypeQueryParams_2024_04_15
+    @Query() queryParams: GetPublicEventTypeQueryParams_2024_04_15,
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<GetEventTypePublicOutput> {
     try {
+      let orgSlug = queryParams.org;
+
+      if (clientId && !orgSlug && username.includes(`-${clientId}`)) {
+        const org = await this.organizationsRepository
+          .findTeamIdAndSlugFromClientId(clientId)
+          .catch(() => null);
+        if (org) {
+          orgSlug = org.slug;
+        }
+      }
+
       const event = await getPublicEvent(
         username.toLowerCase(),
         eventSlug,
         queryParams.isTeamEvent,
-        queryParams.org || null,
+        orgSlug ?? null,
         this.prismaReadService.prisma as unknown as PrismaClient,
         // We should be fine allowing unpublished orgs events to be servable through platform because Platform access is behind license
         // If there is ever a need to restrict this, we can introduce a new query param `fromRedirectOfNonOrgLink`
         true
       );
+
       return {
         data: event,
         status: SUCCESS_STATUS,

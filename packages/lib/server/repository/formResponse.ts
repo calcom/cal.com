@@ -1,4 +1,4 @@
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
 interface RecordFormResponseInput {
@@ -8,7 +8,9 @@ interface RecordFormResponseInput {
 }
 
 export class RoutingFormResponseRepository {
-  private static generateCreateFormResponseData(
+  constructor(private prismaClient: PrismaClient) {}
+
+  private generateCreateFormResponseData(
     input: RecordFormResponseInput & { queuedFormResponseId?: string | null }
   ) {
     return {
@@ -27,24 +29,24 @@ export class RoutingFormResponseRepository {
     };
   }
 
-  static async recordFormResponse(
+  async recordFormResponse(
     input: RecordFormResponseInput & {
       queuedFormResponseId?: string | null;
     }
   ) {
-    return await prisma.app_RoutingForms_FormResponse.create({
+    return await this.prismaClient.app_RoutingForms_FormResponse.create({
       data: this.generateCreateFormResponseData(input),
     });
   }
 
-  static async recordQueuedFormResponse(input: RecordFormResponseInput) {
-    return await prisma.app_RoutingForms_QueuedFormResponse.create({
+  async recordQueuedFormResponse(input: RecordFormResponseInput) {
+    return await this.prismaClient.app_RoutingForms_QueuedFormResponse.create({
       data: this.generateCreateFormResponseData(input),
     });
   }
 
-  static async findFormResponseIncludeForm({ routingFormResponseId }: { routingFormResponseId: number }) {
-    return await prisma.app_RoutingForms_FormResponse.findUnique({
+  async findFormResponseIncludeForm({ routingFormResponseId }: { routingFormResponseId: number }) {
+    return await this.prismaClient.app_RoutingForms_FormResponse.findUnique({
       where: {
         id: routingFormResponseId,
       },
@@ -61,8 +63,8 @@ export class RoutingFormResponseRepository {
     });
   }
 
-  static async findQueuedFormResponseIncludeForm({ queuedFormResponseId }: { queuedFormResponseId: string }) {
-    return await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
+  async findQueuedFormResponseIncludeForm({ queuedFormResponseId }: { queuedFormResponseId: string }) {
+    return await this.prismaClient.app_RoutingForms_QueuedFormResponse.findUnique({
       where: {
         id: queuedFormResponseId,
       },
@@ -79,8 +81,8 @@ export class RoutingFormResponseRepository {
     });
   }
 
-  static async getQueuedFormResponseFromId(id: string) {
-    return await prisma.app_RoutingForms_QueuedFormResponse.findUnique({
+  async getQueuedFormResponseFromId(id: string) {
+    return await this.prismaClient.app_RoutingForms_QueuedFormResponse.findUnique({
       where: {
         id,
       },
@@ -103,6 +105,8 @@ export class RoutingFormResponseRepository {
               select: {
                 id: true,
                 email: true,
+                timeFormat: true,
+                locale: true,
               },
             },
             id: true,
@@ -120,6 +124,38 @@ export class RoutingFormResponseRepository {
             settings: true,
           },
         },
+      },
+    });
+  }
+
+  async findAllResponsesWithBooking({
+    formId,
+    responseId,
+    createdAfter,
+    createdBefore,
+  }: {
+    formId: string;
+    responseId: number;
+    createdAfter: Date;
+    createdBefore: Date;
+  }) {
+    return await this.prismaClient.app_RoutingForms_FormResponse.findMany({
+      where: {
+        formId,
+        createdAt: {
+          gte: createdAfter,
+          lt: createdBefore,
+        },
+        routedToBookingUid: {
+          not: null,
+        },
+        NOT: {
+          id: responseId,
+        },
+      },
+      select: {
+        id: true,
+        response: true,
       },
     });
   }

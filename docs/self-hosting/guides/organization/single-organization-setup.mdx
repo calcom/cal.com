@@ -1,0 +1,37 @@
+---
+title: "Single Organization Setup"
+icon: "building"
+---
+
+This guide will walk you through setting up your cal.com instance to work with an organization using the same domain. 
+
+Note that an organization's booking pages are by default accessible at `http://{orgSlug}.yourcalinstance.example/{CAL_LINK}` but with this setup, you won't need another domain, if you want to use just one organization.
+
+## Step 1: Identify what slug you want to use for your organization
+
+For a company with domain `yourdomain.com`, a good slug would be `yourdomain`.
+
+## Step 2: Setup and create an organization
+
+Follow the [Organization Setup](./organization-setup) guide to enable organizations feature. 
+
+<Info>
+Make sure to use the slug you decided in Step 1.
+</Info>
+
+## Step 3: Add Environment Variable
+
+Set the following environment variable in your `.env` file:
+
+```bash
+# yourdomain is the slug you decided in Step 1
+NEXT_PUBLIC_SINGLE_ORG_SLUG=yourdomain
+```
+
+## Step 4: Restart Development Server
+
+After making the configuration changes, restart your development server:
+
+```bash
+yarn dev
+```

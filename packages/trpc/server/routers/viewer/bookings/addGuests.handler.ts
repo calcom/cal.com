@@ -1,11 +1,15 @@
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
+import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -43,15 +47,21 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
 
-  const isTeamAdminOrOwner =
-    (await isTeamAdmin(user.id, booking.eventType?.teamId ?? 0)) ||
-    (await isTeamOwner(user.id, booking.eventType?.teamId ?? 0));
-
   const isOrganizer = booking.userId === user.id;
-
   const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
-  if (!isTeamAdminOrOwner && !isOrganizer && !isAttendee) {
+  let hasBookingUpdatePermission = false;
+  if (booking.eventType?.teamId) {
+    const permissionCheckService = new PermissionCheckService();
+    hasBookingUpdatePermission = await permissionCheckService.checkPermission({
+      userId: user.id,
+      teamId: booking.eventType.teamId,
+      permission: "booking.update",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+  }
+
+  if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
     throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
   }
 
@@ -71,11 +81,36 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
     : [];
 
-  const uniqueGuests = guests.filter(
-    (guest) =>
-      !booking.attendees.some((attendee) => guest === attendee.email) &&
-      !blacklistedGuestEmails.includes(guest)
-  );
+  const seenBaseEmails = new Set<string>();
+  const deduplicatedGuests = guests.filter((guest) => {
+    const baseEmail = extractBaseEmail(guest).toLowerCase();
+    if (seenBaseEmails.has(baseEmail)) {
+      return false;
+    }
+    seenBaseEmails.add(baseEmail);
+    return true;
+  });
+
+  const guestEmails = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
+  const userRepo = new UserRepository(prisma);
+  const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
+
+  const emailToRequiresVerification = new Map<string, boolean>();
+  for (const user of guestUsers) {
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
+  }
+
+  const uniqueGuests = deduplicatedGuests.filter((guest) => {
+    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    return (
+      !booking.attendees.some(
+        (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
+      ) &&
+      !blacklistedGuestEmails.includes(baseGuestEmail) &&
+      !emailToRequiresVerification.get(baseGuestEmail)
+    );
+  });
 
   if (uniqueGuests.length === 0)
     throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
@@ -89,6 +124,8 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     };
   });
 
+  const bookingResponses = booking.responses as BookingResponses;
+
   const bookingAttendees = await prisma.booking.update({
     where: {
       id: bookingId,
@@ -101,6 +138,10 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
         createMany: {
           data: guestsFullDetails,
         },
+      },
+      responses: {
+        ...bookingResponses,
+        guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
       },
     },
   });
@@ -136,6 +177,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     attendees: attendeesList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
     location: booking.location,
     destinationCalendar: booking?.destinationCalendar
@@ -167,9 +209,9 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   await eventManager.updateCalendarAttendees(evt, booking);
 
   try {
-    await sendAddGuestsEmails(evt, guests);
+    await sendAddGuestsEmails(evt, uniqueGuests);
   } catch (err) {
-    console.log("Error sending AddGuestsEmails");
+    console.error("Error sending AddGuestsEmails", err);
   }
 
   return { message: "Guests added" };

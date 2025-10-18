@@ -4,6 +4,8 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
+import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { AttendeeInBookingInfo, BookingInfo } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -40,10 +42,18 @@ export const getSMSMessageWithVariables = async (
   attendeeToBeUsedInSMS: AttendeeInBookingInfo,
   action: WorkflowActions
 ) => {
+  const recipientEmail = getWorkflowRecipientEmail({
+    action,
+    attendeeEmail: attendeeToBeUsedInSMS.email,
+  });
   const urls = {
     meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
-    cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true`,
-    rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
+    cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true${
+      recipientEmail ? `&cancelledBy=${recipientEmail}` : ""
+    }`,
+    rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}${
+      recipientEmail ? `?rescheduledBy=${recipientEmail}` : ""
+    }`,
   };
 
   const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
@@ -106,11 +116,7 @@ export const getAttendeeToBeUsedInSMS = (
 };
 
 export const shouldUseTwilio = (trigger: WorkflowTriggerEvents, scheduledDate: dayjs.Dayjs | null) => {
-  if (
-    trigger === WorkflowTriggerEvents.NEW_EVENT ||
-    trigger === WorkflowTriggerEvents.EVENT_CANCELLED ||
-    trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT
-  ) {
+  if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(trigger)) {
     return true;
   }
 

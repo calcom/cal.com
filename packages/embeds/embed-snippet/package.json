@@ -25,7 +25,8 @@
   ],
   "types": "./dist/index.d.ts",
   "devDependencies": {
-    "typescript": "^5.8.3",
+    "@calcom/eslint-config": "workspace:*",
+    "typescript": "^5.9.0-beta",
     "vite": "^4.1.2"
   },
   "dependencies": {

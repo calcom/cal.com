@@ -1,7 +1,8 @@
 import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
 
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
 export const isSAMLLoginEnabled = samlDatabaseUrl.length > 0;
@@ -28,7 +29,7 @@ export const isSAMLAdmin = (email: string) => {
   return false;
 };
 
-export const canAccess = async (user: { id: number; email: string }, teamId: number | null) => {
+export const canAccessOrganization = async (user: { id: number; email: string }, teamId: number | null) => {
   const { id: userId, email } = user;
 
   if (!isSAMLLoginEnabled) {
@@ -40,7 +41,22 @@ export const canAccess = async (user: { id: number; email: string }, teamId: num
 
   // Hosted
   if (HOSTED_CAL_FEATURES) {
-    if (teamId === null || !(await isTeamAdmin(userId, teamId))) {
+    if (teamId === null) {
+      return {
+        message: "dont_have_permission",
+        access: false,
+      };
+    }
+
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId,
+      teamId,
+      permission: "organization.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+
+    if (!hasPermission) {
       return {
         message: "dont_have_permission",
         access: false,

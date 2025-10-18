@@ -20,14 +20,13 @@ enum CurrentEventTypeOptions {
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];
-  isAdminOrOwner: boolean;
 }
 
 interface FormValues {
   currentEventTypeOptions: CurrentEventTypeOptions;
 }
 
-export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
+export const LockEventTypeSwitch = ({ currentOrg }: GeneralViewProps) => {
   const [lockEventTypeCreationForUsers, setLockEventTypeCreationForUsers] = useState(
     !!currentOrg.organizationSettings.lockEventTypeCreationForUsers
   );
@@ -50,8 +49,6 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
     },
   });
 
-  if (!isAdminOrOwner) return null;
-
   const currentLockedOption = formMethods.watch("currentEventTypeOptions");
 
   const { reset, getValues } = formMethods;
@@ -69,7 +66,7 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("lock_org_users_eventtypes")}
-        disabled={mutation?.isPending || !isAdminOrOwner}
+        disabled={mutation?.isPending}
         description={t("lock_org_users_eventtypes_description")}
         checked={lockEventTypeCreationForUsers}
         onCheckedChange={(checked) => {
@@ -124,9 +121,7 @@ export const LockEventTypeSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewP
 
                   <DialogFooter>
                     <DialogClose />
-                    <Button disabled={!isAdminOrOwner} type="submit">
-                      {t("submit")}
-                    </Button>
+                    <Button type="submit">{t("submit")}</Button>
                   </DialogFooter>
                 </div>
               </div>

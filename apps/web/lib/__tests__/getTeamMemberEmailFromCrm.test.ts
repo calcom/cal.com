@@ -5,9 +5,12 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
 import bookingFormHandlers from "@calcom/app-store/routing-forms/appBookingFormHandler";
-import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
+import {
+  ROUTING_FORM_RESPONSE_ID_QUERY_STRING,
+  ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING,
+} from "@calcom/app-store/routing-forms/lib/constants";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
+import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 vi.mock("@calcom/app-store/routing-forms/appBookingFormHandler", () => ({
@@ -29,9 +32,9 @@ function mockGetCRMContactOwnerForRRLeadSkip({
 }) {
   vi.mocked(getCRMContactOwnerForRRLeadSkip).mockImplementation((_bookerEmail, _eventMetadata) => {
     if (_bookerEmail === bookerEmail) {
-      return Promise.resolve({ email: teamMemberEmail, recordType: null, crmAppSlug: null });
+      return Promise.resolve({ email: teamMemberEmail, recordType: null, crmAppSlug: null, recordId: null });
     }
-    return Promise.resolve({ email: null, recordType: null, crmAppSlug: null });
+    return Promise.resolve({ email: null, recordType: null, crmAppSlug: null, recordId: null });
   });
 }
 
@@ -45,31 +48,29 @@ function mockBookingFormHandler({
   vi.mocked(bookingFormHandlers.salesforce).mockImplementation(
     (_bookerEmail, _attributeRoutingConfig, _eventTypeId) => {
       if (_bookerEmail === bookerEmail) {
-        return Promise.resolve({ email: teamMemberEmail, recordType: null });
+        return Promise.resolve({ email: teamMemberEmail, recordType: null, recordId: null });
       }
-      return Promise.resolve({ email: null, recordType: null });
+      return Promise.resolve({ email: null, recordType: null, recordId: null });
     }
   );
 }
 
-async function createRoutingFormWithResponse({
-  formData,
-}: {
-  formData: {
-    routes: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      queryValue?: any;
-      action: {
-        eventTypeId: number;
-        type: RouteActionType;
-        value: string;
-      };
-      attributeRoutingConfig: {
-        skipContactOwner: boolean;
-      };
-    }[];
-  };
-}) {
+type RoutingFormData = {
+  routes: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    queryValue?: any;
+    action: {
+      eventTypeId: number;
+      type: RouteActionType;
+      value: string;
+    };
+    attributeRoutingConfig: {
+      skipContactOwner: boolean;
+    };
+  }[];
+};
+
+async function _createRoutingFormBase({ formData }: { formData: RoutingFormData }) {
   const user = await prismock.user.create({
     data: {
       name: "Routing Form User",
@@ -100,6 +101,12 @@ async function createRoutingFormWithResponse({
     },
   });
 
+  return { form, routeId };
+}
+
+async function createRoutingFormWithResponse({ formData }: { formData: RoutingFormData }) {
+  const { form, routeId } = await _createRoutingFormBase({ formData });
+
   const responseRecord = await prismock.app_RoutingForms_FormResponse.create({
     data: {
       chosenRouteId: routeId,
@@ -113,6 +120,26 @@ async function createRoutingFormWithResponse({
   });
 
   return { form, responseRecord };
+}
+
+async function createRoutingFormWithQueuedResponse({ formData }: { formData: RoutingFormData }) {
+  const { form, routeId } = await _createRoutingFormBase({ formData });
+
+  const queuedResponseId = v4();
+  const queuedResponseRecord = await prismock.app_RoutingForms_QueuedFormResponse.create({
+    data: {
+      id: queuedResponseId,
+      chosenRouteId: routeId,
+      response: {},
+      form: {
+        connect: {
+          id: form.id,
+        },
+      },
+    },
+  });
+
+  return { form, queuedResponseRecord };
 }
 
 async function createHostForEvent({
@@ -254,166 +281,250 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
   });
 
   describe("Booking form handler", () => {
-    it("should return teamMember email through booking form handler when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided", async () => {
-      const bookerEmail = "booker@example.com";
-      const teamMemberEmail = "owner@example.com";
-      mockBookingFormHandler({ bookerEmail, teamMemberEmail });
-      await createHostForEvent({
-        eventTypeData: {
-          id: mockEventData.id,
-        },
-        userData: {
-          email: teamMemberEmail,
-        },
-      });
+    describe("when responseId is provided", () => {
+      it("should return teamMember email through booking form handler when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided", async () => {
+        const bookerEmail = "booker@example.com";
+        const teamMemberEmail = "owner@example.com";
+        mockBookingFormHandler({ bookerEmail, teamMemberEmail });
+        await createHostForEvent({
+          eventTypeData: {
+            id: mockEventData.id,
+          },
+          userData: {
+            email: teamMemberEmail,
+          },
+        });
 
-      const { responseRecord } = await createRoutingFormWithResponse({
-        formData: {
-          routes: [
-            {
-              action: {
-                eventTypeId: 1,
-                type: RouteActionType.EventTypeRedirectUrl,
-                value: "/team/sales",
+        const { responseRecord } = await createRoutingFormWithResponse({
+          formData: {
+            routes: [
+              {
+                action: {
+                  eventTypeId: 1,
+                  type: RouteActionType.EventTypeRedirectUrl,
+                  value: "/team/sales",
+                },
+                attributeRoutingConfig: { skipContactOwner: false },
               },
-              attributeRoutingConfig: { skipContactOwner: false },
-            },
-          ],
-        },
+            ],
+          },
+        });
+
+        const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+          query: {
+            email: bookerEmail,
+            [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: responseRecord.id.toString(),
+            "cal.salesforce.xxx": "true",
+          },
+          eventData: mockEventData,
+        });
+
+        expect(result.email).toBe(teamMemberEmail);
       });
 
-      const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-        query: {
-          email: bookerEmail,
-          [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: responseRecord.id.toString(),
-          "cal.salesforce.xxx": "true",
-        },
-        eventData: mockEventData,
+      it("should return null when skipContactOwner is true even when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided", async () => {
+        const bookerEmail = "booker@example.com";
+        const teamMemberEmail = "owner@example.com";
+        mockBookingFormHandler({ bookerEmail, teamMemberEmail });
+        await createHostForEvent({
+          eventTypeData: {
+            id: mockEventData.id,
+          },
+          userData: {
+            email: teamMemberEmail,
+          },
+        });
+
+        const { responseRecord } = await createRoutingFormWithResponse({
+          formData: {
+            routes: [
+              {
+                action: {
+                  eventTypeId: 1,
+                  type: RouteActionType.EventTypeRedirectUrl,
+                  value: "/team/sales",
+                },
+                attributeRoutingConfig: { skipContactOwner: true },
+              },
+            ],
+          },
+        });
+
+        const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+          query: {
+            email: bookerEmail,
+            [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: responseRecord.id.toString(),
+            "cal.salesforce.xxx": "true",
+          },
+          eventData: mockEventData,
+        });
+
+        // Because skipContactOwner is true, the booking form handler should return null
+        expect(result.email).toBe(null);
       });
 
-      expect(result.email).toBe(teamMemberEmail);
+      it("should return null when when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided but the returned email isn't an event member", async () => {
+        const bookerEmail = "booker@example.com";
+        const teamMemberEmail = "ownerNotInEventType@example.com";
+        mockBookingFormHandler({ bookerEmail, teamMemberEmail });
+        const SOME_OTHER_EVENT_ID = 200;
+        await createHostForEvent({
+          eventTypeData: {
+            id: SOME_OTHER_EVENT_ID,
+          },
+          userData: {
+            email: teamMemberEmail,
+          },
+        });
+
+        const { responseRecord } = await createRoutingFormWithResponse({
+          formData: {
+            routes: [
+              {
+                action: {
+                  eventTypeId: 1,
+                  type: RouteActionType.EventTypeRedirectUrl,
+                  value: "/team/sales",
+                },
+                attributeRoutingConfig: { skipContactOwner: false },
+              },
+            ],
+          },
+        });
+
+        const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+          query: {
+            email: bookerEmail,
+            [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: responseRecord.id.toString(),
+            "cal.salesforce.xxx": "true",
+          },
+          eventData: mockEventData,
+        });
+
+        expect(result.email).toBe(null);
+      });
+
+      it("should return null when cal.routingFormResponseId is provided but cal.salesforce.xxxx is not", async () => {
+        const bookerEmail = "booker@example.com";
+        const teamMemberEmail = "owner@example.com";
+        mockBookingFormHandler({ bookerEmail, teamMemberEmail });
+        await createHostForEvent({
+          eventTypeData: {
+            id: mockEventData.id,
+          },
+          userData: {
+            email: teamMemberEmail,
+          },
+        });
+
+        const { responseRecord } = await createRoutingFormWithResponse({
+          formData: {
+            routes: [
+              {
+                action: {
+                  eventTypeId: 1,
+                  type: RouteActionType.EventTypeRedirectUrl,
+                  value: "/team/sales",
+                },
+                attributeRoutingConfig: { skipContactOwner: false },
+              },
+            ],
+          },
+        });
+
+        const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+          query: {
+            email: bookerEmail,
+            [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: responseRecord.id.toString(),
+            "cal.somethingelse.xxx": "true",
+          },
+          eventData: mockEventData,
+        });
+
+        expect(result.email).toBe(null);
+      });
     });
+    describe("when queuedFormResponseId is provided", () => {
+      it("should return teamMember email through booking form handler when cal.queuedFormResponseId and cal.salesforce.xxxx=true is provided", async () => {
+        const bookerEmail = "booker@example.com";
+        const teamMemberEmail = "owner@example.com";
+        mockBookingFormHandler({ bookerEmail, teamMemberEmail });
+        await createHostForEvent({
+          eventTypeData: {
+            id: mockEventData.id,
+          },
+          userData: {
+            email: teamMemberEmail,
+          },
+        });
 
-    it("should return null when skipContactOwner is true even when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided", async () => {
-      const bookerEmail = "booker@example.com";
-      const teamMemberEmail = "owner@example.com";
-      mockBookingFormHandler({ bookerEmail, teamMemberEmail });
-      await createHostForEvent({
-        eventTypeData: {
-          id: mockEventData.id,
-        },
-        userData: {
-          email: teamMemberEmail,
-        },
-      });
-
-      const { responseRecord } = await createRoutingFormWithResponse({
-        formData: {
-          routes: [
-            {
-              action: {
-                eventTypeId: 1,
-                type: RouteActionType.EventTypeRedirectUrl,
-                value: "/team/sales",
+        const { queuedResponseRecord } = await createRoutingFormWithQueuedResponse({
+          formData: {
+            routes: [
+              {
+                action: {
+                  eventTypeId: 1,
+                  type: RouteActionType.EventTypeRedirectUrl,
+                  value: "/team/sales",
+                },
+                attributeRoutingConfig: { skipContactOwner: false },
               },
-              attributeRoutingConfig: { skipContactOwner: true },
-            },
-          ],
-        },
+            ],
+          },
+        });
+
+        const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+          query: {
+            email: bookerEmail,
+            [ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING]: queuedResponseRecord.id,
+            "cal.salesforce.xxx": "true",
+          },
+          eventData: mockEventData,
+        });
+
+        expect(result.email).toBe(teamMemberEmail);
       });
 
-      const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-        query: {
-          email: bookerEmail,
-          [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: responseRecord.id.toString(),
-          "cal.salesforce.xxx": "true",
-        },
-        eventData: mockEventData,
-      });
+      it("should return null when skipContactOwner is true even when cal.queuedFormResponseId and cal.salesforce.xxxx=true is provided", async () => {
+        const bookerEmail = "booker@example.com";
+        const teamMemberEmail = "owner@example.com";
+        mockBookingFormHandler({ bookerEmail, teamMemberEmail });
+        await createHostForEvent({
+          eventTypeData: {
+            id: mockEventData.id,
+          },
+          userData: {
+            email: teamMemberEmail,
+          },
+        });
 
-      // Because skipContactOwner is true, the booking form handler should return null
-      expect(result.email).toBe(null);
-    });
-
-    it("should return null when when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided but the returned email isn't an event member", async () => {
-      const bookerEmail = "booker@example.com";
-      const teamMemberEmail = "ownerNotInEventType@example.com";
-      mockBookingFormHandler({ bookerEmail, teamMemberEmail });
-      const SOME_OTHER_EVENT_ID = 200;
-      await createHostForEvent({
-        eventTypeData: {
-          id: SOME_OTHER_EVENT_ID,
-        },
-        userData: {
-          email: teamMemberEmail,
-        },
-      });
-
-      const { responseRecord } = await createRoutingFormWithResponse({
-        formData: {
-          routes: [
-            {
-              action: {
-                eventTypeId: 1,
-                type: RouteActionType.EventTypeRedirectUrl,
-                value: "/team/sales",
+        const { queuedResponseRecord } = await createRoutingFormWithQueuedResponse({
+          formData: {
+            routes: [
+              {
+                action: {
+                  eventTypeId: 1,
+                  type: RouteActionType.EventTypeRedirectUrl,
+                  value: "/team/sales",
+                },
+                attributeRoutingConfig: { skipContactOwner: true },
               },
-              attributeRoutingConfig: { skipContactOwner: false },
-            },
-          ],
-        },
+            ],
+          },
+        });
+
+        const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+          query: {
+            email: bookerEmail,
+            [ROUTING_FORM_QUEUED_RESPONSE_ID_QUERY_STRING]: queuedResponseRecord.id,
+            "cal.salesforce.xxx": "true",
+          },
+          eventData: mockEventData,
+        });
+
+        // Because skipContactOwner is true, the booking form handler should return null
+        expect(result.email).toBe(null);
       });
-
-      const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-        query: {
-          email: bookerEmail,
-          [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: responseRecord.id.toString(),
-          "cal.salesforce.xxx": "true",
-        },
-        eventData: mockEventData,
-      });
-
-      expect(result.email).toBe(null);
-    });
-
-    it("should return null when cal.routingFormResponseId is provided but cal.salesforce.xxxx is not", async () => {
-      const bookerEmail = "booker@example.com";
-      const teamMemberEmail = "owner@example.com";
-      mockBookingFormHandler({ bookerEmail, teamMemberEmail });
-      await createHostForEvent({
-        eventTypeData: {
-          id: mockEventData.id,
-        },
-        userData: {
-          email: teamMemberEmail,
-        },
-      });
-
-      const { responseRecord } = await createRoutingFormWithResponse({
-        formData: {
-          routes: [
-            {
-              action: {
-                eventTypeId: 1,
-                type: RouteActionType.EventTypeRedirectUrl,
-                value: "/team/sales",
-              },
-              attributeRoutingConfig: { skipContactOwner: false },
-            },
-          ],
-        },
-      });
-
-      const result = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-        query: {
-          email: bookerEmail,
-          [ROUTING_FORM_RESPONSE_ID_QUERY_STRING]: responseRecord.id.toString(),
-          "cal.somethingelse.xxx": "true",
-        },
-        eventData: mockEventData,
-      });
-
-      expect(result.email).toBe(null);
     });
   });
 });

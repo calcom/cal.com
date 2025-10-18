@@ -1,33 +1,17 @@
 import { z } from "zod";
 
 import { logP } from "@calcom/lib/perf";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
-import { ZDuplicateInputSchema } from "./duplicate.schema";
+import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
-import { ZGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
+import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
+import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
 import { get } from "./procedures/get";
-import { ZUpdateInputSchema } from "./update.schema";
-import { eventOwnerProcedure } from "./util";
-
-type BookingsRouterHandlerCache = {
-  getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
-  getUserEventGroups?: typeof import("./getUserEventGroups.handler").getUserEventGroups;
-  getEventTypesFromGroup?: typeof import("./getEventTypesFromGroup.handler").getEventTypesFromGroup;
-  getTeamAndEventTypeOptions?: typeof import("./getTeamAndEventTypeOptions.handler").getTeamAndEventTypeOptions;
-  list?: typeof import("./list.handler").listHandler;
-  listWithTeam?: typeof import("./listWithTeam.handler").listWithTeamHandler;
-  create?: typeof import("./create.handler").createHandler;
-  get?: typeof import("./get.handler").getHandler;
-  update?: typeof import("./update.handler").updateHandler;
-  delete?: typeof import("./delete.handler").deleteHandler;
-  duplicate?: typeof import("./duplicate.handler").duplicateHandler;
-  bulkEventFetch?: typeof import("./bulkEventFetch.handler").bulkEventFetchHandler;
-  bulkUpdateToDefaultLocation?: typeof import("./bulkUpdateToDefaultLocation.handler").bulkUpdateToDefaultLocationHandler;
-};
+import { createEventPbacProcedure } from "./util";
 
 export const eventTypesRouter = router({
   // REVIEW: What should we name this procedure?
@@ -77,22 +61,20 @@ export const eventTypesRouter = router({
       return result;
     }),
 
-  getTeamAndEventTypeOptions: authedProcedure
-    .input(ZGetTeamAndEventTypeOptionsSchema)
-    .query(async ({ ctx, input }) => {
-      const { getTeamAndEventTypeOptions } = await import("./getTeamAndEventTypeOptions.handler");
+  getActiveOnOptions: authedProcedure.input(ZGetActiveOnOptionsSchema).query(async ({ ctx, input }) => {
+    const { getActiveOnOptions } = await import("./getActiveOnOptions.handler");
 
-      const timer = logP(`getTeamAndEventTypeOptions(${ctx.user.id})`);
+    const timer = logP(`getActiveOnOptions(${ctx.user.id})`);
 
-      const result = await getTeamAndEventTypeOptions({
-        ctx,
-        input,
-      });
+    const result = await getActiveOnOptions({
+      ctx,
+      input,
+    });
 
-      timer();
+    timer();
 
-      return result;
-    }),
+    return result;
+  }),
 
   list: authedProcedure.query(async ({ ctx }) => {
     const { listHandler } = await import("./list.handler");
@@ -110,43 +92,18 @@ export const eventTypesRouter = router({
     });
   }),
 
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
-    const { createHandler } = await import("./create.handler");
-
-    return createHandler({
-      ctx,
-      input,
-    });
-  }),
-
   get,
 
-  update: eventOwnerProcedure.input(ZUpdateInputSchema).mutation(async ({ ctx, input }) => {
-    const { updateHandler } = await import("./update.handler");
+  delete: createEventPbacProcedure("eventType.delete", [MembershipRole.ADMIN, MembershipRole.OWNER])
+    .input(ZDeleteInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { deleteHandler } = await import("./delete.handler");
 
-    return updateHandler({
-      ctx,
-      input,
-    });
-  }),
-
-  delete: eventOwnerProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
-    const { deleteHandler } = await import("./delete.handler");
-
-    return deleteHandler({
-      ctx,
-      input,
-    });
-  }),
-
-  duplicate: eventOwnerProcedure.input(ZDuplicateInputSchema).mutation(async ({ ctx, input }) => {
-    const { duplicateHandler } = await import("./duplicate.handler");
-
-    return duplicateHandler({
-      ctx,
-      input,
-    });
-  }),
+      return deleteHandler({
+        ctx,
+        input,
+      });
+    }),
 
   bulkEventFetch: authedProcedure.query(async ({ ctx }) => {
     const { bulkEventFetchHandler } = await import("./bulkEventFetch.handler");
@@ -170,4 +127,22 @@ export const eventTypesRouter = router({
         input,
       });
     }),
+
+  getHashedLink: authedProcedure.input(ZGetHashedLinkInputSchema).query(async ({ ctx, input }) => {
+    const { getHashedLinkHandler } = await import("./getHashedLink.handler");
+
+    return getHashedLinkHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  getHashedLinks: authedProcedure.input(ZGetHashedLinksInputSchema).query(async ({ ctx, input }) => {
+    const { getHashedLinksHandler } = await import("./getHashedLinks.handler");
+
+    return getHashedLinksHandler({
+      ctx,
+      input,
+    });
+  }),
 });

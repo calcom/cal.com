@@ -82,6 +82,15 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/lib",
           setupFiles: ["setupVitest.ts"],
         },
+        resolve: {
+          alias: {
+            "@lib": new URL("./apps/web/lib", import.meta.url).pathname,
+            "@server": new URL("./apps/web/server", import.meta.url).pathname,
+            "@components": new URL("./apps/web/components", import.meta.url).pathname,
+            "@pages": new URL("./apps/web/pages", import.meta.url).pathname,
+            "~": new URL("./apps/web/modules", import.meta.url).pathname,
+          },
+        },
       },
       {
         test: {
@@ -127,8 +136,18 @@ const workspaces = packagedEmbedTestsOnly
           globals: true,
           name: "@calcom/app-store-core",
           include: ["packages/app-store/*.{test,spec}.[jt]s?(x)"],
+          exclude: ["packages/app-store/delegationCredential.test.ts"],
           environment: "jsdom",
           setupFiles: ["packages/ui/components/test-setup.tsx"],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          name: "@calcom/app-store-delegation-credential",
+          include: ["packages/app-store/delegationCredential.test.ts"],
+          environment: "node",
+          setupFiles: ["setupVitest.ts"],
         },
       },
       {

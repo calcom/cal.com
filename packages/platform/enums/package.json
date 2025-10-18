@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "main": "./dist/index.ts",
   "types": "./dist/index.ts",
+  "private": true,
   "exports": {
     ".": {
       "require": "./dist/index.js",
@@ -21,6 +22,6 @@
     "post-install": "yarn build"
   },
   "dependencies": {
-    "@calcom/platform-constants": "*"
+    "@calcom/platform-constants": "workspace:*"
   }
 }

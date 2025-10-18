@@ -78,9 +78,11 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
       teams: teamsToCreateFromStore.length ? teamsToCreateFromStore : [{ name: "" }],
       moveTeams: teams.map((team) => {
         const teamToMigrateInStore = teamsToMigrateFromStore.find((t) => t.id === team.id);
+        const slugConflictsWithOrg = team.slug === orgSlug;
         return {
           id: team.id,
-          shouldMove: !!teamToMigrateInStore,
+          // The team with conflicting slug must be moved
+          shouldMove: slugConflictsWithOrg || !!teamToMigrateInStore,
           newSlug: teamToMigrateInStore?.slug || getSuggestedSlug({ teamSlug: team.slug, orgSlug }),
           name: team.name,
         };
@@ -160,6 +162,9 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
             </label>
             <ul className="mb-8 space-y-4">
               {moveTeams.map((team, index) => {
+                const currentTeam = teams.find((t) => t.id === team.id);
+                // If the team slug conflicts with the org slug, this team must be moved
+                const slugConflictsWithOrg = currentTeam?.slug === orgSlug;
                 return (
                   <li key={team.id}>
                     <Controller
@@ -167,9 +172,11 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
                       render={({ field: { value, onChange } }) => (
                         <CheckboxField
                           defaultValue={value}
-                          checked={value}
+                          checked={value || slugConflictsWithOrg}
                           onChange={onChange}
-                          description={teams.find((t) => t.id === team.id)?.name ?? ""}
+                          description={currentTeam?.name ?? ""}
+                          // Must not allow toggling off if the slug conflicts with the org slug
+                          disabled={slugConflictsWithOrg}
                         />
                       )}
                     />
@@ -198,6 +205,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
             <TextField
               key={field.id}
               {...register(`teams.${index}.name`)}
+              data-testid={`team.${index}.name`}
               label=""
               addOnClassname="bg-transparent p-0 border-l-0"
               className={index > 0 ? "mb-2" : ""}

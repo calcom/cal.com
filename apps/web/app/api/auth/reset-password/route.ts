@@ -1,15 +1,17 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
+import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 const passwordResetRequestSchema = z.object({
+  csrfToken: z.string(),
   password: z.string().refine(validPassword, () => ({
     message: "Password does not meet the requirements",
   })),
@@ -18,8 +20,22 @@ const passwordResetRequestSchema = z.object({
 
 async function handler(req: NextRequest) {
   const body = await parseRequestData(req);
+  const {
+    password: rawPassword,
+    requestId: rawRequestId,
+    csrfToken: submittedToken,
+  } = passwordResetRequestSchema.parse(body);
+  const cookieStore = await cookies();
 
-  const { password: rawPassword, requestId: rawRequestId } = passwordResetRequestSchema.parse(body);
+  const cookieToken = cookieStore.get("calcom.csrf_token")?.value;
+
+  if (submittedToken !== cookieToken) {
+    return NextResponse.json({ error: "Invalid CSRF token" }, { status: 403 });
+  }
+
+  // token verified, delete the cookie / a resubmit on failure requires a new csrf token.
+  cookieStore.delete("calcom.csrf_token");
+
   // rate-limited there is a low, very low chance that a password request stays valid long enough
   // to brute force 3.8126967e+40 options.
   const maybeRequest = await prisma.resetPasswordRequest.findFirstOrThrow({

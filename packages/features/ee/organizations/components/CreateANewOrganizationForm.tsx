@@ -7,11 +7,10 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
+import { MINIMUM_NUMBER_OF_ORG_SEATS, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { CreationSource } from "@calcom/prisma/enums";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { BillingPeriod, CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
@@ -37,7 +36,7 @@ function extractDomainFromEmail(email: string) {
 export const CreateANewOrganizationForm = () => {
   const session = useSession();
 
-  const { isLoadingOrgOnboarding } = useOnboarding({ step: "start" });
+  const { isLoadingOrgOnboarding } = useOnboarding();
   if (!session.data || isLoadingOrgOnboarding) {
     return null;
   }
@@ -45,18 +44,14 @@ export const CreateANewOrganizationForm = () => {
   return <CreateANewOrganizationFormChild session={session} />;
 };
 
-enum BillingPeriod {
-  MONTHLY = "MONTHLY",
-  ANNUALLY = "ANNUALLY",
-}
-
 const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
   const router = useRouter();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const defaultOrgOwnerEmail = session.data.user.email ?? "";
-  const { useOnboardingStore } = useOnboarding({ step: "start" });
+  // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
+  const defaultOrgOwnerEmail = (!isAdmin || IS_SELF_HOSTED ? session.data.user.email : null) ?? "";
+  const { useOnboardingStore, isBillingEnabled } = useOnboarding();
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
     useOnboardingStore();
 
@@ -71,7 +66,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     defaultValues: {
       billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
       slug: slug ?? (!isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined),
-      orgOwnerEmail: orgOwnerEmail || (!isAdmin ? defaultOrgOwnerEmail : undefined),
+      orgOwnerEmail: orgOwnerEmail || defaultOrgOwnerEmail,
       name: name ?? (!isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined),
       seats: seats ?? null,
       pricePerSeat: pricePerSeat ?? null,
@@ -80,8 +75,6 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
 
   const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
-      // TODO: To be moved to _invoice.paid.org.ts
-      // telemetry.event(telemetryEventTypes.org_created);
       reset({
         onboardingId: data.organizationOnboardingId,
         billingPeriod: data.billingPeriod,
@@ -92,9 +85,17 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         slug: data.slug,
       });
 
-      if (isAdmin) {
+      // Small delay to ensure Zustand persist middleware has time to write to localStorage
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      if (data.handoverUrl) {
+        // Admin handover flow - redirect to handover page
         router.push("/settings/organizations/new/handover");
+      } else if (data.organizationId) {
+        // Self-hosted flow - org already created, redirect to organizations list
+        router.push("/settings/organizations");
       } else {
+        // Regular flow - continue to next step
         router.push("/settings/organizations/new/about");
       }
     },
@@ -121,10 +122,30 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         id="createOrg"
         handleSubmit={async (v) => {
           if (!needToCreateOnboarding) {
+            // Resuming existing onboarding - just navigate to next step
             router.push("/settings/organizations/new/about");
-          } else if (!intentToCreateOrgMutation.isPending) {
-            setServerErrorMessage(null);
-            intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
+          } else {
+            // Check if this is admin handover flow based on the submitted form value
+            const isAdminHandoverFlow = isAdmin && v.orgOwnerEmail !== session.data.user.email;
+
+            if (isAdminHandoverFlow) {
+              // Admin creating for someone else - submit immediately with just Step 1 data
+              if (!intentToCreateOrgMutation.isPending) {
+                setServerErrorMessage(null);
+                intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
+              }
+            } else {
+              // Regular user or admin creating for self - store locally and continue
+              reset({
+                billingPeriod: v.billingPeriod,
+                pricePerSeat: v.pricePerSeat,
+                seats: v.seats,
+                orgOwnerEmail: v.orgOwnerEmail,
+                name: v.name,
+                slug: v.slug,
+              });
+              router.push("/settings/organizations/new/about");
+            }
           }
         }}>
         <div>
@@ -133,7 +154,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
               <Alert severity="error" message={serverErrorMessage} />
             </div>
           )}
-          {isAdmin && (
+          {isBillingEnabled && isAdmin && (
             <div className="mb-5">
               <Controller
                 name="billingPeriod"
@@ -251,7 +272,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
           />
         </div>
 
-        {isAdmin && (
+        {isBillingEnabled && isAdmin && (
           <>
             <section className="grid grid-cols-2 gap-2">
               <div className="w-full">
@@ -305,7 +326,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
         )}
 
         {/* This radio group does nothing - its just for visual purposes */}
-        {!isAdmin && (
+        {isBillingEnabled && !isAdmin && (
           <>
             <div className="bg-subtle space-y-5  rounded-lg p-5">
               <h3 className="font-cal text-default text-lg font-semibold leading-4">

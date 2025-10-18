@@ -19,7 +19,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { EventType, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
@@ -30,17 +29,17 @@ import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.rep
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OOORepositoryFixture } from "test/fixtures/repository/ooo.repository.fixture";
-import { SelectedSlotsRepositoryFixture } from "test/fixtures/repository/selected-slots.repository.fixture";
+import { SelectedSlotRepositoryFixture } from "test/fixtures/repository/selected-slot.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
-import {
+import type {
   CreateScheduleInput_2024_06_11,
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { EventType, User, Team } from "@calcom/prisma/client";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("User event type slots", () => {
@@ -49,7 +48,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_06_11;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-    let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
+    let selectedSlotRepositoryFixture: SelectedSlotRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let bookingSeatsRepositoryFixture: BookingSeatRepositoryFixture;
     let attendeesRepositoryFixture: AttendeeRepositoryFixture;
@@ -77,7 +76,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
     const seatedEventTypeSlug = `slots-2024-09-04-seated-event-type-${randomString()}`;
     let seatedEventType: EventType;
 
-    const variableLengthEventTypeSlug = `slots-2024-09-04-variable-length-event-type-${randomString()}`;
     let variableLengthEventType: EventType;
 
     let reservedSlot: ReserveSlotOutputData_2024_09_04;
@@ -104,7 +102,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
+      selectedSlotRepositoryFixture = new SelectedSlotRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       bookingSeatsRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
       attendeesRepositoryFixture = new AttendeeRepositoryFixture(moduleRef);
@@ -483,7 +481,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
       if (dbSlot) {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
@@ -502,7 +500,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       const reserveResponseBody: GetReservedSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      const { reservationDuration, ...rest } = reservedSlot;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { reservationDuration: _1, ...rest } = reservedSlot;
       expect(reserveResponseBody.data).toEqual(rest);
     });
 
@@ -617,7 +616,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
       if (dbSlot) {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
@@ -719,14 +718,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
       if (dbSlot) {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
         const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
       }
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
+      await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       clear();
     });
 
@@ -775,14 +774,14 @@ describe("Slots 2024-09-04 Endpoints", () => {
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      const dbSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
       if (dbSlot) {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
         const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
       }
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
+      await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       clear();
     });
 
@@ -1397,7 +1396,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         );
         expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-        const dbSlot = await selectedSlotsRepositoryFixture.getByUid(
+        const dbSlot = await selectedSlotRepositoryFixture.getByUid(
           responseReservedVariableSlot.reservationUid
         );
         expect(dbSlot).toBeDefined();
@@ -1674,7 +1673,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
           );
           expect(responseReservedSlot.reservationDuration).toEqual(5);
           await bookingsRepositoryFixture.deleteById(booking.id);
-          await selectedSlotsRepositoryFixture.deleteByUId(responseReservedSlot.reservationUid);
+          await selectedSlotRepositoryFixture.deleteByUId(responseReservedSlot.reservationUid);
         });
 
         it("should be able to reserve a slot if booking is rejected during that time", async () => {
@@ -1872,7 +1871,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
           expect(reserveResponse.body.data.reservationUid).toBeDefined();
 
-          await selectedSlotsRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
+          await selectedSlotRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
           await bookingsRepositoryFixture.deleteById(existingBooking.id);
         });
 
@@ -1888,7 +1887,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
           expect(reserveResponse.body.data.reservationUid).toBeDefined();
 
-          await selectedSlotsRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
+          await selectedSlotRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
           await bookingsRepositoryFixture.deleteById(existingBooking.id);
         });
 
@@ -1903,7 +1902,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             .expect(201);
 
           expect(reserveResponse.body.data.reservationUid).toBeDefined();
-          await selectedSlotsRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
+          await selectedSlotRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
           await bookingsRepositoryFixture.deleteById(existingBooking.id);
         });
 
@@ -1918,7 +1917,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
             .expect(201);
 
           expect(reserveResponse.body.data.reservationUid).toBeDefined();
-          await selectedSlotsRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
+          await selectedSlotRepositoryFixture.deleteByUId(reserveResponse.body.data.reservationUid);
           await bookingsRepositoryFixture.deleteById(existingBooking.id);
         });
       });
@@ -1928,7 +1927,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await userRepositoryFixture.deleteByEmail(oooTestUserEmail);
       await userRepositoryFixture.deleteByEmail(unrelatedUser.email);
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
+      await selectedSlotRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
       await teamRepositoryFixture.delete(team.id);
       clear();

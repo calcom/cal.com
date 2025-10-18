@@ -22,6 +22,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           timeFormat: true,
           name: true,
           destinationCalendar: true,
+          locale: true,
         },
       },
       location: true,
@@ -46,6 +47,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
               hideBranding: true,
             },
           },
+          teamId: true,
           team: {
             select: {
               id: true,
@@ -100,6 +102,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       responses: true,
       iCalUID: true,
       iCalSequence: true,
+      status: true,
     },
   });
 }

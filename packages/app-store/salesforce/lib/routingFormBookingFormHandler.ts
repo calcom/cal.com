@@ -1,8 +1,9 @@
-import { CredentialRepository } from "../../../lib/server/repository/credential";
-import { EventTypeService } from "../../../lib/server/service/eventType";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+
 import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
 import SalesforceCRMService from "./CrmService";
 import { SalesforceRecordEnum, RoutingReasons } from "./enums";
+import { EventTypeService } from "./eventTypeService";
 
 const routingFormBookingFormHandler = async (
   attendeeEmail: string,
@@ -16,7 +17,7 @@ const routingFormBookingFormHandler = async (
     !salesforceSettings.rrSkipToAccountLookupField ||
     !salesforceSettings.rrSKipToAccountLookupFieldName
   )
-    return { email: null, recordType: null };
+    return { email: null, recordType: null, recordId: null };
 
   const appData = await EventTypeService.getEventTypeAppDataFromId(eventTypeId, "salesforce");
 
@@ -24,7 +25,7 @@ const routingFormBookingFormHandler = async (
 
   const credential = await CredentialRepository.findFirstByIdWithKeyAndUser({ id: credentialId });
 
-  if (!credential) return { email: null, recordType: null };
+  if (!credential) return { email: null, recordType: null, recordId: null };
 
   const crm = new SalesforceCRMService(credential, {});
 
@@ -34,7 +35,11 @@ const routingFormBookingFormHandler = async (
     SalesforceRecordEnum.ACCOUNT
   );
 
-  return { email: userLookupEmail?.email ?? null, recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD as string };
+  return {
+    email: userLookupEmail?.email ?? null,
+    recordType: RoutingReasons.ACCOUNT_LOOKUP_FIELD as string,
+    recordId: null,
+  };
 };
 
 export default routingFormBookingFormHandler;

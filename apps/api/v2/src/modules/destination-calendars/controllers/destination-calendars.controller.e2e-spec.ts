@@ -10,7 +10,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Credential } from "@prisma/client";
 import * as request from "supertest";
 import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -21,6 +20,7 @@ import { randomString } from "test/utils/randomString";
 
 import { APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { PlatformOAuthClient, Team, User, Credential } from "@calcom/prisma/client";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 
@@ -92,6 +92,8 @@ describe("Platform Destination Calendar Endpoints", () => {
               publisher: "",
               url: "",
               email: "",
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
             },
             // calendars: {
             //   externalId:
@@ -118,6 +120,8 @@ describe("Platform Destination Calendar Endpoints", () => {
           id: 0,
           delegationCredentialId: null,
           domainWideDelegationCredentialId: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       })
     );

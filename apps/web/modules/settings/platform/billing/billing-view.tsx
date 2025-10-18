@@ -20,10 +20,9 @@ import { CtaRow } from "~/settings/billing/billing-view";
 
 declare global {
   interface Window {
-    Plain?: {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      init: (config: any) => void;
+    Support?: {
       open: () => void;
+      shouldShowTriggerButton: (showTrigger: boolean) => void;
     };
   }
 }
@@ -31,16 +30,18 @@ declare global {
 export default function PlatformBillingUpgrade() {
   const pathname = usePathname();
   const { t } = useLocale();
-  const returnTo = pathname;
-  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
-
-  const onContactSupportClick = async () => {
-    if (window.Plain) {
-      window.Plain.open();
-    }
-  };
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
     useGetUserAttributes();
+
+  const returnTo = pathname;
+  const teamId = `teamId=${userOrgId}`;
+  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}&${teamId}`;
+
+  const onContactSupportClick = async () => {
+    if (window.Support) {
+      window.Support.open();
+    }
+  };
 
   const { mutateAsync: removeTeamSubscription, isPending: isRemoveTeamSubscriptionLoading } =
     useUnsubscribeTeamToStripe({

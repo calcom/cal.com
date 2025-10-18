@@ -1,6 +1,5 @@
-import type { PrismaClient as PrismaClientWithoutExtensions } from "@prisma/client";
-
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
+import type { PrismaClient as PrismaClientWithoutExtensions } from "@calcom/prisma/client";
 
 import type { IDeploymentRepository } from "./deployment.interface";
 
@@ -14,5 +13,13 @@ export class DeploymentRepository implements IDeploymentRepository {
       select: { licenseKey: true },
     });
     return deployment?.licenseKey || null;
+  }
+
+  async getSignatureToken(id: number): Promise<string | null> {
+    const deployment = await (this.prisma as PrismaClientWithoutExtensions).deployment.findUnique({
+      where: { id },
+      select: { signatureTokenEncrypted: true },
+    });
+    return deployment?.signatureTokenEncrypted || null;
   }
 }

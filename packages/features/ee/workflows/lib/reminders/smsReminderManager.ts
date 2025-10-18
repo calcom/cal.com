@@ -18,6 +18,7 @@ import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
@@ -75,7 +76,8 @@ export type ScheduleTextReminderAction = Extract<
   WorkflowActions,
   "SMS_ATTENDEE" | "SMS_NUMBER" | "WHATSAPP_ATTENDEE" | "WHATSAPP_NUMBER"
 >;
-export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
+
+export type ScheduleTextReminderArgs = ScheduleReminderArgs & {
   reminderPhone: string | null;
   message: string;
   action: ScheduleTextReminderAction;
@@ -84,9 +86,8 @@ export interface ScheduleTextReminderArgs extends ScheduleReminderArgs {
   isVerificationPending?: boolean;
   prisma?: PrismaClient;
   verifiedAt: Date | null;
-}
-
-export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
+};
+export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     reminderPhone,
@@ -176,6 +177,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       }
 
       if (smsMessage.length > 0) {
+        const smsMessageWithoutOptOut = smsMessage;
+
         if (process.env.TWILIO_OPT_OUT_ENABLED === "true") {
           smsMessage = await WorkflowOptOutService.addOptOutMessage(
             smsMessage,
@@ -185,17 +188,14 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         // Allows debugging generated email content without waiting for sendgrid to send emails
         log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 
-        if (
-          triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-          triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-          triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
-        ) {
+        if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
           try {
             await sendSmsOrFallbackEmail({
               twilioData: {
                 phoneNumber: reminderPhone,
                 body: smsMessage,
                 sender: senderID,
+                bodyWithoutOptOut: smsMessageWithoutOptOut,
                 bookingUid: evt.uid,
                 userId,
                 teamId,

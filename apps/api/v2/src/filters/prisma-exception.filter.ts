@@ -1,13 +1,7 @@
+import { extractUserContext } from "@/lib/extract-user-context";
 import { filterReqHeaders } from "@/lib/filterReqHeaders";
 import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
 import { Catch, HttpStatus, Logger } from "@nestjs/common";
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-  PrismaClientValidationError,
-} from "@prisma/client/runtime/library";
 import { Request } from "express";
 
 import {
@@ -17,21 +11,22 @@ import {
   INTERNAL_SERVER_ERROR,
   NOT_FOUND,
 } from "@calcom/platform-constants";
-import { Response } from "@calcom/platform-types";
+import type { Response } from "@calcom/platform-types";
+import { Prisma } from "@calcom/prisma/client";
 
 type PrismaError =
-  | PrismaClientInitializationError
-  | PrismaClientKnownRequestError
-  | PrismaClientRustPanicError
-  | PrismaClientUnknownRequestError
-  | PrismaClientValidationError;
+  | Prisma.PrismaClientInitializationError
+  | Prisma.PrismaClientKnownRequestError
+  | Prisma.PrismaClientRustPanicError
+  | Prisma.PrismaClientUnknownRequestError
+  | Prisma.PrismaClientValidationError;
 
 @Catch(
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-  PrismaClientValidationError
+  Prisma.PrismaClientInitializationError,
+  Prisma.PrismaClientKnownRequestError,
+  Prisma.PrismaClientRustPanicError,
+  Prisma.PrismaClientUnknownRequestError,
+  Prisma.PrismaClientValidationError
 )
 export class PrismaExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger("PrismaExceptionFilter");
@@ -43,6 +38,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
     response.setHeader("X-Request-Id", requestId.toString());
 
+    const userContext = extractUserContext(request);
     this.logger.error(`PrismaError: ${error.message}`, {
       error,
       body: request.body,
@@ -50,12 +46,13 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       url: request.url,
       method: request.method,
       requestId,
+      ...userContext,
     });
 
     let message = "There was an error, please try again later.";
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorCode = INTERNAL_SERVER_ERROR;
-    if (error instanceof PrismaClientKnownRequestError) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
       switch (error.code) {
         case "P2002": // Unique constraint failed
           errorCode = CONFLICT;

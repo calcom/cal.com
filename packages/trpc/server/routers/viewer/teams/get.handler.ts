@@ -1,5 +1,5 @@
-import { getTeamWithoutMembers } from "@calcom/lib/server/queries/teams";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,7 +14,7 @@ type GetDataOptions = {
 };
 
 export const get = async ({ ctx, input }: GetDataOptions) => {
-  const teamMembership = await MembershipRepository.findFirstByUserIdAndTeamId({
+  const teamMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
     userId: ctx.user.id,
     teamId: input.teamId,
   });

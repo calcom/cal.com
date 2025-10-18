@@ -16,6 +16,8 @@ export type CreateOrganizationOnboardingInput = {
   slug: string;
   logo?: string | null;
   bio?: string | null;
+  brandColor?: string | null;
+  bannerUrl?: string | null;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   stripeSubscriptionItemId?: string;
@@ -23,6 +25,7 @@ export type CreateOrganizationOnboardingInput = {
   teams?: { id: number; name: string; isBeingMigrated: boolean; slug: string | null }[];
   error?: string | null;
   isDomainConfigured?: boolean;
+  isComplete?: boolean;
 };
 
 export class OrganizationOnboardingRepository {
@@ -40,6 +43,8 @@ export class OrganizationOnboardingRepository {
         slug: data.slug,
         logo: data.logo,
         bio: data.bio,
+        brandColor: data.brandColor,
+        bannerUrl: data.bannerUrl,
         stripeCustomerId: data.stripeCustomerId,
         stripeSubscriptionId: data.stripeSubscriptionId,
         invitedMembers: data.invitedMembers || [],
@@ -95,13 +100,16 @@ export class OrganizationOnboardingRepository {
 
   static async update(id: OnboardingId, data: Partial<CreateOrganizationOnboardingInput>) {
     logger.debug("Updating organization onboarding", safeStringify({ id, data }));
+    // We don't want to update the createdById field in update
+    const { organizationId, createdById: _, ...rest } = data;
 
     return await prisma.organizationOnboarding.update({
       where: {
         id,
       },
       data: {
-        ...data,
+        ...rest,
+        ...(organizationId ? { organization: { connect: { id: organizationId } } } : {}),
         updatedAt: new Date(),
       },
     });

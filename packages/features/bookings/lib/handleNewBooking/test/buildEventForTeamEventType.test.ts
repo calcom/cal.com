@@ -9,6 +9,13 @@ vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue("translated"),
 }));
 
+vi.mock("@calcom/prisma", () => {
+  return {
+    default: vi.fn(),
+    prisma: {},
+  };
+});
+
 const withTeamSpy = vi.fn().mockReturnThis();
 const withDestinationCalendarSpy = vi.fn().mockReturnThis();
 
@@ -139,7 +146,7 @@ describe("buildEventForTeamEventType", () => {
 
     expect(memberEmails).toContain("fixed@example.com");
     expect(memberEmails).toContain("nonfixed1@example.com");
-    expect(memberEmails).not.toContain("nonfixed2@example.com");
+    expect(memberEmails).toContain("nonfixed2@example.com");
   });
 
   it("builds a team with fallback name and id", async () => {

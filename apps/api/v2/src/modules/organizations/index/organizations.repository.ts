@@ -69,7 +69,7 @@ export class OrganizationsRepository {
     return id;
   }
 
-  async findTeamIdFromClientId(clientId: string) {
+  async findTeamIdAndSlugFromClientId(clientId: string) {
     return this.dbRead.prisma.team.findFirstOrThrow({
       where: {
         platformOAuthClient: {
@@ -80,6 +80,7 @@ export class OrganizationsRepository {
       },
       select: {
         id: true,
+        slug: true,
       },
     });
   }
@@ -170,6 +171,16 @@ export class OrganizationsRepository {
         slug,
         parentId: null,
         isOrganization: true,
+      },
+    });
+  }
+
+  async findTeamByPlatformBillingId(billingId: number) {
+    return this.dbRead.prisma.team.findFirst({
+      where: {
+        platformBilling: {
+          id: billingId,
+        },
       },
     });
   }

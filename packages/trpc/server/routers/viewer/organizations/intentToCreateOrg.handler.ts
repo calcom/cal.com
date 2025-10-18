@@ -1,11 +1,15 @@
-import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
+import { OrganizationOnboardingFactory } from "@calcom/ee/organizations/lib/service/onboarding/OrganizationOnboardingFactory";
 import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -23,11 +27,24 @@ type CreateOptions = {
 };
 
 export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, seats, pricePerSeat, billingPeriod, isPlatform } = input;
+  const { slug, name, orgOwnerEmail, isPlatform } = input;
   log.debug(
     "Starting organization creation intent",
     safeStringify({ slug, name, orgOwnerEmail, isPlatform })
   );
+
+  if (IS_SELF_HOSTED) {
+    const deploymentRepo = new DeploymentRepository(prisma);
+    const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+    const hasValidLicense = await licenseKeyService.checkLicense();
+
+    if (!hasValidLicense) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "License is not valid",
+      });
+    }
+  }
 
   const loggedInUser = ctx.user;
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
@@ -57,9 +74,24 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   }
   log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
 
-  let organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
+  const organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
+
+  // If onboarding exists and is incomplete, this is a resume flow (e.g., admin handover)
+  // Allow proceeding with the existing onboarding record
   if (organizationOnboarding) {
-    throw new Error("organization_onboarding_already_exists");
+    if (organizationOnboarding.isComplete) {
+      // Organization already created - shouldn't create another one
+      throw new Error("organization_onboarding_already_exists");
+    }
+
+    // Incomplete onboarding exists - this is expected for resume/handover flows
+    log.debug(
+      "Found incomplete onboarding record - proceeding with resume flow",
+      safeStringify({ onboardingId: organizationOnboarding.id, slug })
+    );
+
+    // Use existing onboarding ID for the resume flow
+    input.onboardingId = organizationOnboarding.id;
   }
 
   await assertCanCreateOrg({
@@ -69,24 +101,16 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     restrictBasedOnMinimumPublishedTeams: !IS_USER_ADMIN,
   });
 
-  const paymentService = new OrganizationPaymentService(ctx.user);
-  organizationOnboarding = await paymentService.createOrganizationOnboarding({
-    ...input,
-    createdByUserId: loggedInUser.id,
+  const onboardingService = OrganizationOnboardingFactory.create({
+    id: ctx.user.id,
+    email: ctx.user.email,
+    role: ctx.user.role,
   });
+  const result = await onboardingService.createOnboardingIntent(input);
 
   log.debug("Organization creation intent successful", safeStringify({ slug, orgOwnerId: orgOwner.id }));
-  return {
-    userId: orgOwner.id,
-    orgOwnerEmail,
-    name,
-    slug,
-    seats,
-    pricePerSeat,
-    billingPeriod,
-    isPlatform,
-    organizationOnboardingId: organizationOnboarding.id,
-  };
+
+  return result;
 };
 
 export default intentToCreateOrgHandler;

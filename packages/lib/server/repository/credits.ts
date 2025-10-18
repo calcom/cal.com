@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import { CreditType } from "@calcom/prisma/enums";
+import { Prisma } from "@calcom/prisma/client";
+import type { CreditType } from "@calcom/prisma/enums";
 
 export class CreditsRepository {
   static async findCreditBalance(
@@ -32,6 +32,20 @@ export class CreditsRepository {
         select,
       });
     }
+  }
+
+  static async findCreditExpenseLogByExternalRef(externalRef: string, tx?: PrismaTransaction) {
+    const prismaClient = tx ?? prisma;
+    return await prismaClient.creditExpenseLog.findUnique({
+      where: { externalRef },
+      select: {
+        id: true,
+        credits: true,
+        creditType: true,
+        date: true,
+        bookingUid: true,
+      },
+    });
   }
 
   static async findCreditBalanceWithTeamOrUser(
@@ -95,26 +109,49 @@ export class CreditsRepository {
     }
   }
 
-  static async findCreditBalanceWithExpenseLogs({ teamId }: { teamId: number }, tx?: PrismaTransaction) {
+  static async findCreditBalanceWithExpenseLogs(
+    {
+      teamId,
+      userId,
+      startDate = dayjs().startOf("month").toDate(),
+      endDate = new Date(),
+      creditType,
+    }: { teamId?: number; userId?: number; startDate?: Date; endDate?: Date; creditType?: CreditType },
+    tx?: PrismaTransaction
+  ) {
+    if (!teamId && !userId) return null;
+
     const prismaClient = tx ?? prisma;
 
     return await prismaClient.creditBalance.findUnique({
       where: {
         teamId,
+        ...(!teamId ? { userId } : {}),
       },
       select: {
         additionalCredits: true,
         expenseLogs: {
           where: {
             date: {
-              gte: dayjs().startOf("month").toDate(),
-              lte: new Date(),
+              gte: startDate,
+              lte: endDate,
             },
-            creditType: CreditType.MONTHLY,
+            ...(creditType ? { creditType } : {}),
+          },
+          orderBy: {
+            date: "desc",
           },
           select: {
             date: true,
             credits: true,
+            creditType: true,
+            bookingUid: true,
+            smsSid: true,
+            smsSegments: true,
+            phoneNumber: true,
+            email: true,
+            callDuration: true,
+            externalRef: true,
           },
         },
       },
@@ -161,8 +198,17 @@ export class CreditsRepository {
   }
 
   static async createCreditBalance(data: Prisma.CreditBalanceUncheckedCreateInput, tx?: PrismaTransaction) {
+    const { teamId, userId } = data;
+
+    if (!teamId && !userId) {
+      throw new Error("Team or user ID is required");
+    }
+
     return (tx ?? prisma).creditBalance.create({
-      data,
+      data: {
+        ...data,
+        ...(!teamId ? { userId } : {}),
+      },
     });
   }
 
@@ -170,9 +216,17 @@ export class CreditsRepository {
     data: Prisma.CreditExpenseLogUncheckedCreateInput,
     tx?: PrismaTransaction
   ) {
-    return (tx ?? prisma).creditExpenseLog.create({
-      data,
-    });
+    const prismaClient = tx ?? prisma;
+    try {
+      return await prismaClient.creditExpenseLog.create({
+        data,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        throw new Error(`Duplicate external reference - already processed: ${data?.externalRef}`);
+      }
+      throw error;
+    }
   }
 
   static async createCreditPurchaseLog(data: { credits: number; creditBalanceId: string }) {

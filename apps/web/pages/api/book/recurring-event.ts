@@ -1,10 +1,11 @@
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
+import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 
@@ -37,20 +38,23 @@ async function handler(req: NextApiRequest & RequestMeta) {
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: userIp,
+    identifier: piiHasher.hash(userIp),
   });
   const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
 
-  const createdBookings: BookingResponse[] = await handleNewRecurringBooking({
+  const recurringBookingService = getRecurringBookingService();
+  const createdBookings: BookingResponse[] = await recurringBookingService.createBooking({
     bookingData: req.body,
-    userId: session?.user?.id || -1,
-    platformClientId: req.platformClientId,
-    platformCancelUrl: req.platformCancelUrl,
-    platformBookingUrl: req.platformBookingUrl,
-    platformRescheduleUrl: req.platformRescheduleUrl,
-    platformBookingLocation: req.platformBookingLocation,
-    noEmail: req.noEmail,
+    bookingMeta: {
+      userId: session?.user?.id || -1,
+      platformClientId: req.platformClientId,
+      platformCancelUrl: req.platformCancelUrl,
+      platformBookingUrl: req.platformBookingUrl,
+      platformRescheduleUrl: req.platformRescheduleUrl,
+      platformBookingLocation: req.platformBookingLocation,
+      noEmail: req.noEmail,
+    },
   });
 
   return createdBookings;

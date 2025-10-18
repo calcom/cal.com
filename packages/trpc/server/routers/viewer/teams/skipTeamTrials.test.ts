@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { InternalTeamBilling } from "@calcom/ee/billing/teams/internal-team-billing";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
 
 import { skipTeamTrialsHandler } from "./skipTeamTrials.handler";
@@ -31,9 +32,6 @@ vi.mock("@calcom/prisma", () => ({
     user: {
       update: vi.fn().mockResolvedValue({}),
     },
-    team: {
-      findMany: vi.fn(),
-    },
   },
 }));
 
@@ -43,6 +41,12 @@ vi.mock("@calcom/lib/logger", () => ({
       info: vi.fn(),
       error: vi.fn(),
     }),
+  },
+}));
+
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
+  MembershipRepository: {
+    findAllAcceptedTeamMemberships: vi.fn(),
   },
 }));
 
@@ -69,7 +73,7 @@ describe("skipTeamTrialsHandler", () => {
   });
 
   it("should set user's trialEndsAt to null", async () => {
-    vi.mocked(prisma.team.findMany).mockResolvedValueOnce([]);
+    vi.mocked(MembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce([]);
 
     // @ts-expect-error - simplified context for testing
     await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });
@@ -89,9 +93,9 @@ describe("skipTeamTrialsHandler", () => {
     const mockTeams = [
       { id: 101, name: "Team 1" },
       { id: 102, name: "Team 2" },
-    ];
+    ] as any;
 
-    vi.mocked(prisma.team.findMany).mockResolvedValueOnce(mockTeams);
+    vi.mocked(MembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce(mockTeams);
 
     mockGetSubscriptionStatus
       .mockResolvedValueOnce("trialing") // First team is in trial
@@ -102,16 +106,8 @@ describe("skipTeamTrialsHandler", () => {
 
     expect(prisma.user.update).toHaveBeenCalled();
 
-    expect(prisma.team.findMany).toHaveBeenCalledWith({
-      where: {
-        members: {
-          some: {
-            userId: mockCtx.user.id,
-            accepted: true,
-            role: "OWNER",
-          },
-        },
-      },
+    expect(MembershipRepository.findAllAcceptedTeamMemberships).toHaveBeenCalledWith(mockCtx.user.id, {
+      role: "OWNER",
     });
 
     expect(InternalTeamBilling).toHaveBeenCalledTimes(2);
@@ -119,7 +115,6 @@ describe("skipTeamTrialsHandler", () => {
     expect(InternalTeamBilling).toHaveBeenNthCalledWith(2, mockTeams[1]);
 
     expect(mockGetSubscriptionStatus).toHaveBeenCalledTimes(2);
-
     expect(mockEndTrial).toHaveBeenCalledTimes(1);
   });
 

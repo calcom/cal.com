@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { calendar_v3 } from "@googleapis/calendar";
-import type { Prisma } from "@prisma/client";
 import { OAuth2Client, JWT } from "googleapis-common";
 
 import {
@@ -15,6 +14,7 @@ import {
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import type { Prisma } from "@calcom/prisma/client";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import { invalidateCredential } from "../../_utils/invalidateCredential";
@@ -29,7 +29,14 @@ const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/Calenda
 
 class MyGoogleOAuth2Client extends OAuth2Client {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
-    super(client_id, client_secret, redirect_uri);
+    super({
+      clientId: client_id,
+      clientSecret: client_secret,
+      redirectUri: redirect_uri,
+      // default: 5 * 60 * 1000, 5 minutes
+      // tho, fn will never run in excess of 60 seconds
+      eagerRefreshThresholdMillis: 60000,
+    });
   }
 
   isTokenExpiring() {

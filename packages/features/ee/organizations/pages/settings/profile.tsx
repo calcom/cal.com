@@ -1,13 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { Prisma } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
@@ -17,6 +15,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import turndown from "@calcom/lib/turndownService";
+import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
@@ -76,7 +75,15 @@ const SkeletonLoader = () => {
   );
 };
 
-const OrgProfileView = () => {
+const OrgProfileView = ({
+  permissions,
+}: {
+  permissions?: {
+    canRead: boolean;
+    canEdit: boolean;
+    canDelete: boolean;
+  };
+}) => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -105,8 +112,6 @@ const OrgProfileView = () => {
     return <SkeletonLoader />;
   }
 
-  const isOrgAdminOrOwner = checkAdminOrOwner(currentOrganisation.user.role);
-
   const isBioEmpty =
     !currentOrganisation ||
     !currentOrganisation.bio ||
@@ -128,7 +133,7 @@ const OrgProfileView = () => {
   return (
     <LicenseRequired>
       <>
-        {isOrgAdminOrOwner ? (
+        {permissions?.canEdit ? (
           <>
             <OrgProfileForm defaultValues={defaultValues} />
             <OrgAppearanceViewWrapper />
@@ -183,6 +188,11 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onError: (err) => {
+      // Handle JSON parsing errors from body size limit exceeded
+      if (err.message.includes("Unexpected token") && err.message.includes("Body excee")) {
+        showToast(t("converted_image_size_limit_exceed"), "error");
+        return;
+      }
       showToast(err.message, "error");
     },
     onSuccess: async (res) => {

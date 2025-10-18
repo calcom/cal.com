@@ -34,8 +34,8 @@ import { SkipTakePagination } from "@calcom/platform-types";
 export class UserVerifiedResourcesController {
   constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
   @ApiOperation({
-    summary: "Request Email Verification Code",
-    description: `Sends a verification code to the email.`,
+    summary: "Request email verification code",
+    description: `Sends a verification code to the email`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/emails/verification-code/request")
@@ -57,8 +57,8 @@ export class UserVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Request Phone Number Verification Code",
-    description: `Sends a verification code to the phone number.`,
+    summary: "Request phone number verification code",
+    description: `Sends a verification code to the phone number`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/phones/verification-code/request")
@@ -77,7 +77,7 @@ export class UserVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Verify an email.",
+    summary: "Verify an email",
     description: `Use code to verify an email`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -96,7 +96,7 @@ export class UserVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Verify a phone number.",
+    summary: "Verify a phone number",
     description: `Use code to verify a phone number`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
@@ -114,7 +114,7 @@ export class UserVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Get list of verified emails.",
+    summary: "Get list of verified emails",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/emails")
@@ -135,7 +135,7 @@ export class UserVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Get list of verified phone numbers.",
+    summary: "Get list of verified phone numbers",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/phones")
@@ -158,7 +158,7 @@ export class UserVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Get verified email by id.",
+    summary: "Get verified email by id",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/emails/:id")
@@ -175,7 +175,7 @@ export class UserVerifiedResourcesController {
   }
 
   @ApiOperation({
-    summary: "Get verified phone number by id.",
+    summary: "Get verified phone number by id",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/phones/:id")

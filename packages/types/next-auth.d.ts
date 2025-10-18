@@ -1,6 +1,6 @@
-import type { User as PrismaUser, UserPermissionRole } from "@prisma/client";
 import type { DefaultUser } from "next-auth";
 
+import type { User as PrismaUser, UserPermissionRole } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { UserProfile } from "./UserProfile";
@@ -20,6 +20,7 @@ declare module "next-auth" {
     id: PrismaUser["id"];
     emailVerified?: PrismaUser["emailVerified"];
     email_verified?: boolean;
+    completedOnboarding?: boolean;
     impersonatedBy?: {
       id: number;
       role: PrismaUser["role"];

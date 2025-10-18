@@ -17,6 +17,13 @@ export type GetSlotsInput_2024_09_04 =
   | ByTeamSlugAndEventTypeSlug_2024_09_04
   | ByUsernames_2024_09_04;
 
+export type GetSlotsInputWithRouting_2024_09_04 = GetSlotsInput_2024_09_04 & {
+  teamMemberEmail?: string;
+  routingFormResponseId?: number;
+  routedTeamMemberIds?: number[];
+  skipContactOwner?: boolean;
+};
+
 @Injectable()
 export class GetSlotsInputPipe implements PipeTransform {
   // note(Lauris): we need empty constructor otherwise v2 can't be started due to error:

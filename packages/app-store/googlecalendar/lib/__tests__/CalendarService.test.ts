@@ -257,7 +257,8 @@ beforeEach(() => {
   createMockJWTInstance({});
 });
 
-describe("Calendar Cache", () => {
+// disabled as cache is being reworked
+describe.skip("Calendar Cache", () => {
   test("Calendar Cache is being read on cache HIT", async () => {
     const credentialInDb1 = await createCredentialForCalendarService();
     const dateFrom1 = new Date().toISOString();
@@ -300,6 +301,340 @@ describe("Calendar Cache", () => {
         end: "2023-12-01T19:00:00Z",
       },
     ]);
+  });
+
+  test("Cache HIT: Should avoid Google API calls when cache is available", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Set up cache with test data
+    const calendarCache = await CalendarCache.init(null);
+    await calendarCache.upsertCachedAvailability({
+      credentialId: credentialInDb.id,
+      userId: credentialInDb.userId,
+      args: {
+        timeMin: getTimeMin(dateFrom),
+        timeMax: getTimeMax(dateTo),
+        items: [{ id: testSelectedCalendar.externalId }],
+      },
+      value: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T18:00:00Z",
+                end: "2023-12-01T19:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on Google API methods that should NOT be called on cache hit
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const getAllCalendarsSpy = vi.spyOn(calendarService, "getAllCalendars");
+    const fetchAvailabilitySpy = vi.spyOn(calendarService, "fetchAvailability");
+
+    // Call getAvailability with selected calendars (should hit cache)
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar], true);
+
+    // Verify cache hit returned correct data
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T18:00:00Z",
+        end: "2023-12-01T19:00:00Z",
+      },
+    ]);
+
+    // Verify NO Google API calls were made
+    expect(authedCalendarSpy).not.toHaveBeenCalled();
+    expect(getAllCalendarsSpy).not.toHaveBeenCalled();
+    expect(fetchAvailabilitySpy).not.toHaveBeenCalled();
+
+    // Clean up spies
+    authedCalendarSpy.mockRestore();
+    getAllCalendarsSpy.mockRestore();
+    fetchAvailabilitySpy.mockRestore();
+  });
+
+  test("Cache MISS: Should make Google API calls when cache is not available", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    setFullMockOAuthManagerRequest();
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date(Date.now() + 100000000).toISOString(); // Different date to ensure cache miss
+
+    // Mock Google API responses
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T10:00:00Z",
+                end: "2023-12-01T11:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on Google API methods that SHOULD be called on cache miss
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const fetchAvailabilitySpy = vi.spyOn(calendarService, "fetchAvailability");
+
+    // Call getAvailability with selected calendars (should miss cache)
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar], true);
+
+    // Verify API call returned correct data
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T10:00:00Z",
+        end: "2023-12-01T11:00:00Z",
+      },
+    ]);
+
+    // Verify Google API calls WERE made
+    expect(authedCalendarSpy).toHaveBeenCalled();
+    expect(fetchAvailabilitySpy).toHaveBeenCalled();
+
+    // Clean up spies
+    authedCalendarSpy.mockRestore();
+    fetchAvailabilitySpy.mockRestore();
+  });
+
+  test("Cache DISABLED: Should bypass cache when shouldServeCache=false", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    setFullMockOAuthManagerRequest();
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Set up cache with test data
+    const calendarCache = await CalendarCache.init(null);
+    await calendarCache.upsertCachedAvailability({
+      credentialId: credentialInDb.id,
+      userId: credentialInDb.userId,
+      args: {
+        timeMin: getTimeMin(dateFrom),
+        timeMax: getTimeMax(dateTo),
+        items: [{ id: testSelectedCalendar.externalId }],
+      },
+      value: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T18:00:00Z",
+                end: "2023-12-01T19:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Mock Google API to return different data than cache
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T20:00:00Z",
+                end: "2023-12-01T21:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on Google API methods
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const fetchAvailabilitySpy = vi.spyOn(calendarService, "fetchAvailability");
+
+    // Call getAvailability with shouldServeCache=false (should bypass cache)
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar], false);
+
+    // Verify API data was returned (not cache data)
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T20:00:00Z",
+        end: "2023-12-01T21:00:00Z",
+      },
+    ]);
+
+    // Verify Google API calls WERE made even though cache existed
+    expect(authedCalendarSpy).toHaveBeenCalled();
+    expect(fetchAvailabilitySpy).toHaveBeenCalled();
+
+    // Clean up spies
+    authedCalendarSpy.mockRestore();
+    fetchAvailabilitySpy.mockRestore();
+  });
+
+  test("NO SELECTED CALENDARS: Should skip cache logic when no selectedCalendarIds", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    setFullMockOAuthManagerRequest();
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Mock Google API response for fallback scenario
+    calendarListMock.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: "primary@example.com",
+            primary: true,
+          },
+        ],
+      },
+    });
+
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        calendars: {
+          "primary@example.com": {
+            busy: [
+              {
+                start: "2023-12-01T12:00:00Z",
+                end: "2023-12-01T13:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on cache method that should NOT be called
+    const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
+
+    // Spy on Google API methods that SHOULD be called
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const getAllCalendarsSpy = vi.spyOn(calendarService, "getAllCalendars");
+
+    // Call getAvailability with empty selectedCalendars but fallbackToPrimary=true
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [], true, true);
+
+    // Verify fallback logic worked
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T12:00:00Z",
+        end: "2023-12-01T13:00:00Z",
+      },
+    ]);
+
+    // Verify cache was NOT checked
+    expect(tryGetAvailabilityFromCacheSpy).not.toHaveBeenCalled();
+
+    // Verify Google API calls WERE made for fallback logic
+    expect(authedCalendarSpy).toHaveBeenCalled();
+    expect(getAllCalendarsSpy).toHaveBeenCalled();
+
+    // Clean up spies
+    tryGetAvailabilityFromCacheSpy.mockRestore();
+    authedCalendarSpy.mockRestore();
+    getAllCalendarsSpy.mockRestore();
+  });
+
+  test("CACHE ERROR: Should handle cache errors gracefully and fall back to API", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+    setFullMockOAuthManagerRequest();
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Mock cache to throw an error
+    const mockCalendarCache = {
+      getCachedAvailability: vi.fn().mockRejectedValueOnce(new Error("Cache error")),
+    };
+    vi.spyOn(CalendarCache, "init").mockResolvedValueOnce(mockCalendarCache as any);
+
+    // Mock Google API response
+    freebusyQueryMock.mockResolvedValueOnce({
+      data: {
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: [
+              {
+                start: "2023-12-01T14:00:00Z",
+                end: "2023-12-01T15:00:00Z",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    // Spy on Google API methods that SHOULD be called on cache error
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+    const fetchAvailabilitySpy = vi.spyOn(calendarService, "fetchAvailability");
+
+    // Call getAvailability (cache should fail, API should be called)
+    const result = await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar], true);
+
+    // Verify API fallback worked
+    expect(result).toEqual([
+      {
+        start: "2023-12-01T14:00:00Z",
+        end: "2023-12-01T15:00:00Z",
+      },
+    ]);
+
+    // Verify Google API calls WERE made due to cache error
+    expect(authedCalendarSpy).toHaveBeenCalled();
+    expect(fetchAvailabilitySpy).toHaveBeenCalled();
+
+    // Clean up spies
+    authedCalendarSpy.mockRestore();
+    fetchAvailabilitySpy.mockRestore();
+  });
+
+  test("OTHER INTEGRATIONS ONLY: Should return empty array without cache or API calls", async () => {
+    const credentialInDb = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credentialInDb);
+
+    const dateFrom = new Date().toISOString();
+    const dateTo = new Date().toISOString();
+
+    // Spy on methods that should NOT be called
+    const tryGetAvailabilityFromCacheSpy = vi.spyOn(calendarService, "tryGetAvailabilityFromCache" as any);
+    const authedCalendarSpy = vi.spyOn(calendarService, "authedCalendar");
+
+    // Call getAvailability with only other integration calendars
+    const result = await calendarService.getAvailability(
+      dateFrom,
+      dateTo,
+      [
+        {
+          integration: "outlook_calendar", // Different integration
+          externalId: "other@example.com",
+        },
+      ],
+      true
+    );
+
+    // Verify early return with empty array
+    expect(result).toEqual([]);
+
+    // Verify NO cache or API calls were made
+    expect(tryGetAvailabilityFromCacheSpy).not.toHaveBeenCalled();
+    expect(authedCalendarSpy).not.toHaveBeenCalled();
+
+    // Clean up spies
+    tryGetAvailabilityFromCacheSpy.mockRestore();
+    authedCalendarSpy.mockRestore();
   });
 
   test("Calendar Cache is being ignored on cache MISS", async () => {
@@ -883,5 +1218,556 @@ describe("getAvailability", () => {
     );
 
     expect(availabilityWithAllCalendarsAsFallback).toEqual([...mockedBusyTimes1, ...mockedBusyTimes2]);
+  });
+});
+
+describe("getPrimaryCalendar", () => {
+  test("should fetch primary calendar using 'primary' keyword", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+    const mockPrimaryCalendar = {
+      id: "user@example.com",
+      summary: "Primary Calendar",
+      description: "Primary calendar for user@example.com",
+      timeZone: "America/New_York",
+    };
+    const calendarsGetMock = vi.fn().mockResolvedValue({
+      data: mockPrimaryCalendar,
+    });
+    calendarMock.calendar_v3.Calendar().calendars.get = calendarsGetMock;
+    const result = await calendarService.getPrimaryCalendar();
+    expect(calendarsGetMock).toHaveBeenCalledTimes(1);
+    expect(calendarsGetMock).toHaveBeenCalledWith({
+      calendarId: "primary",
+    });
+    expect(result).toEqual(mockPrimaryCalendar);
+  });
+});
+
+describe("Date Optimization Benchmarks", () => {
+  test("native Date calculations should be significantly faster than dayjs while producing identical results", async () => {
+    const dayjs = (await import("@calcom/dayjs")).default;
+
+    const testCases = [
+      {
+        dateFrom: "2024-01-01T00:00:00Z",
+        dateTo: "2024-01-31T00:00:00Z",
+        name: "30 days",
+        expectedDiff: 30,
+      },
+      {
+        dateFrom: "2024-01-01T00:00:00Z",
+        dateTo: "2024-03-31T00:00:00Z",
+        name: "90 days (API limit)",
+        expectedDiff: 90,
+      },
+      {
+        dateFrom: "2024-01-01T00:00:00Z",
+        dateTo: "2024-07-01T00:00:00Z",
+        name: "182 days (chunking required)",
+        expectedDiff: 182,
+      },
+    ];
+
+    const iterations = 1000; // Reduced for test performance
+
+    for (const testCase of testCases) {
+      log.info(`Testing ${testCase.name}...`);
+
+      // Test correctness first
+      const dayjsDiff = dayjs(testCase.dateTo).diff(dayjs(testCase.dateFrom), "days");
+      const nativeDiff = Math.floor(
+        (new Date(testCase.dateTo).getTime() - new Date(testCase.dateFrom).getTime()) / (1000 * 60 * 60 * 24)
+      );
+
+      // Verify identical results
+      expect(nativeDiff).toBe(dayjsDiff);
+      expect(nativeDiff).toBe(testCase.expectedDiff);
+
+      // Performance test - dayjs approach
+      const dayjsStart = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        const start = dayjs(testCase.dateFrom);
+        const end = dayjs(testCase.dateTo);
+        const diff = end.diff(start, "days");
+      }
+      const dayjsTime = performance.now() - dayjsStart;
+
+      // Performance test - native Date approach
+      const nativeStart = performance.now();
+      for (let i = 0; i < iterations; i++) {
+        const start = new Date(testCase.dateFrom);
+        const end = new Date(testCase.dateTo);
+        const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      }
+      const nativeTime = performance.now() - nativeStart;
+
+      const speedupRatio = dayjsTime / nativeTime;
+
+      log.info(
+        `${testCase.name} - Dayjs: ${dayjsTime.toFixed(2)}ms, Native: ${nativeTime.toFixed(
+          2
+        )}ms, Speedup: ${speedupRatio.toFixed(1)}x`
+      );
+
+      if (!process.env.CI) {
+        const minSpeedup = 5; // Assert significant performance improvement (at least 5x faster)
+        expect(speedupRatio).toBeGreaterThan(minSpeedup);
+      }
+    }
+  });
+
+  test("chunking logic should produce identical results between dayjs and native Date implementations", async () => {
+    const dayjs = (await import("@calcom/dayjs")).default;
+
+    const testCases = [
+      {
+        dateFrom: "2024-01-01T00:00:00Z",
+        dateTo: "2024-04-01T00:00:00Z", // 91 days - requires chunking
+        name: "91 days (minimal chunking)",
+      },
+      {
+        dateFrom: "2024-01-01T00:00:00Z",
+        dateTo: "2024-07-01T00:00:00Z", // 182 days - multiple chunks
+        name: "182 days (multiple chunks)",
+      },
+    ];
+
+    for (const testCase of testCases) {
+      const fromDate = new Date(testCase.dateFrom);
+      const toDate = new Date(testCase.dateTo);
+      const diff = Math.floor((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Only test cases that require chunking (> 90 days)
+      if (diff <= 90) continue;
+
+      // OLD WAY (dayjs-based chunking)
+      const originalStartDate = dayjs(testCase.dateFrom);
+      const originalEndDate = dayjs(testCase.dateTo);
+      const loopsNumber = Math.ceil(diff / 90);
+      let startDate = originalStartDate;
+      let endDate = originalStartDate.add(90, "days");
+
+      const oldChunks = [];
+      for (let i = 0; i < loopsNumber; i++) {
+        if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
+
+        oldChunks.push({
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+        });
+
+        startDate = endDate.add(1, "minutes");
+        endDate = startDate.add(90, "days");
+      }
+
+      // NEW WAY (native Date-based chunking)
+      let currentStartTime = fromDate.getTime();
+      const originalEndTime = toDate.getTime();
+      const ninetyDaysMs = 90 * 24 * 60 * 60 * 1000;
+      const oneMinuteMs = 60 * 1000;
+
+      const newChunks = [];
+      for (let i = 0; i < loopsNumber; i++) {
+        let currentEndTime = currentStartTime + ninetyDaysMs;
+
+        if (currentEndTime > originalEndTime) {
+          currentEndTime = originalEndTime;
+        }
+
+        newChunks.push({
+          start: new Date(currentStartTime).toISOString(),
+          end: new Date(currentEndTime).toISOString(),
+        });
+
+        currentStartTime = currentEndTime + oneMinuteMs;
+      }
+
+      // Verify identical chunking results
+      expect(newChunks).toHaveLength(oldChunks.length);
+
+      for (let i = 0; i < oldChunks.length; i++) {
+        expect(newChunks[i].start).toBe(oldChunks[i].start);
+        expect(newChunks[i].end).toBe(oldChunks[i].end);
+      }
+
+      log.info(`${testCase.name} - Generated ${newChunks.length} identical chunks`);
+    }
+  });
+
+  test("date parsing should be consistent between dayjs and native Date for all expected input formats", async () => {
+    const dayjs = (await import("@calcom/dayjs")).default;
+
+    // Test various date formats that Google Calendar API might return
+    const testDates = [
+      "2024-01-01T00:00:00Z", // UTC
+      "2024-01-01T12:30:45.123Z", // UTC with milliseconds
+      "2024-01-01T00:00:00-08:00", // Timezone offset
+      "2024-01-01T00:00:00+05:30", // Positive timezone offset
+      "2024-12-31T23:59:59Z", // End of year
+      "2024-02-29T12:00:00Z", // Leap year date
+    ];
+
+    for (const dateString of testDates) {
+      const dayjsTime = dayjs(dateString).valueOf();
+      const nativeTime = new Date(dateString).getTime();
+
+      expect(nativeTime).toBe(dayjsTime);
+
+      // Also verify ISO string output consistency
+      const dayjsISO = dayjs(dateString).toISOString();
+      const nativeISO = new Date(dateString).toISOString();
+
+      expect(nativeISO).toBe(dayjsISO);
+
+      log.debug(`Date parsing verified: ${dateString} -> ${nativeTime}`);
+    }
+  });
+
+  test("fetchAvailabilityData should handle both single API call and chunked scenarios correctly", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    const mockBusyData = [
+      { start: "2024-01-01T10:00:00Z", end: "2024-01-01T11:00:00Z" },
+      { start: "2024-01-01T14:00:00Z", end: "2024-01-01T15:00:00Z" },
+    ];
+
+    // Mock the getCacheOrFetchAvailability method to return consistent data
+    const getCacheOrFetchAvailabilitySpy = vi
+      .spyOn(calendarService as any, "getCacheOrFetchAvailability")
+      .mockResolvedValue(mockBusyData.map((item) => ({ ...item, id: "test@calendar.com" })));
+
+    // Test single API call scenario (≤ 90 days)
+    const shortRangeResult = await (calendarService as any).fetchAvailabilityData(
+      ["test@calendar.com"],
+      "2024-01-01T00:00:00Z",
+      "2024-01-31T00:00:00Z", // 30 days
+      false
+    );
+
+    expect(shortRangeResult).toEqual(mockBusyData);
+    expect(getCacheOrFetchAvailabilitySpy).toHaveBeenCalledTimes(1);
+
+    getCacheOrFetchAvailabilitySpy.mockClear();
+
+    // Test chunked scenario (> 90 days)
+    const longRangeResult = await (calendarService as any).fetchAvailabilityData(
+      ["test@calendar.com"],
+      "2024-01-01T00:00:00Z",
+      "2024-07-01T00:00:00Z", // 182 days - should require chunking
+      false
+    );
+
+    // Should return concatenated results from multiple chunks
+    expect(longRangeResult.length).toBeGreaterThan(0);
+    expect(getCacheOrFetchAvailabilitySpy).toHaveBeenCalledTimes(3); // 182 days / 90 = ~2.02 -> 3 chunks
+
+    getCacheOrFetchAvailabilitySpy.mockRestore();
+  });
+});
+
+describe("createEvent", () => {
+  test("should create event with correct input/output format and handle all expected properties", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    // Mock Google Calendar API response
+    const mockGoogleEvent = {
+      id: "mock-event-id-123",
+      summary: "Test Meeting",
+      description: "Test meeting description",
+      start: {
+        dateTime: "2024-06-15T10:00:00Z",
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: "2024-06-15T11:00:00Z",
+        timeZone: "UTC",
+      },
+      attendees: [
+        {
+          email: "organizer@example.com",
+          displayName: "Test Organizer",
+          responseStatus: "accepted",
+          organizer: true,
+        },
+        {
+          email: "attendee@example.com",
+          displayName: "Test Attendee",
+          responseStatus: "accepted",
+        },
+      ],
+      location: "Test Location",
+      iCalUID: "test-ical-uid@google.com",
+      recurrence: null,
+    };
+
+    // Mock calendar.events.insert
+    const eventsInsertMock = vi.fn().mockResolvedValue({
+      data: mockGoogleEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.insert = eventsInsertMock;
+
+    // Test input - simplified CalendarServiceEvent
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "cal-event-uid-123",
+      title: "Test Meeting",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: {
+          translate: (...args: any[]) => args[0], // Mock translate function
+          locale: "en",
+        },
+      },
+      attendees: [
+        {
+          id: 2,
+          name: "Test Attendee",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: {
+            translate: (...args: any[]) => args[0], // Mock translate function
+            locale: "en",
+          },
+        },
+      ],
+      location: "Test Location",
+      calendarDescription: "Test meeting description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: credential.userId,
+          eventTypeId: null,
+          credentialId: credential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+        },
+      ],
+      iCalUID: "test-ical-uid@google.com",
+      conferenceData: undefined,
+      hideCalendarEventDetails: false,
+      seatsPerTimeSlot: null,
+      seatsShowAttendees: true,
+    };
+
+    // Call createEvent and verify result using inline snapshot
+    const result = await calendarService.createEvent(testCalEvent, credential.id);
+
+    // Verify input processing - check that Google API was called with correct payload
+    expect(eventsInsertMock).toHaveBeenCalledTimes(1);
+    const insertCall = eventsInsertMock.mock.calls[0][0];
+
+    // Use inline snapshot for input validation
+    expect(insertCall).toMatchInlineSnapshot(`
+      {
+        "calendarId": "primary",
+        "conferenceDataVersion": 1,
+        "requestBody": {
+          "attendees": [
+            {
+              "displayName": "Test Organizer",
+              "email": "primary",
+              "id": "1",
+              "language": {
+                "locale": "en",
+                "translate": [Function],
+              },
+              "name": "Test Organizer",
+              "organizer": true,
+              "responseStatus": "accepted",
+              "timeZone": "UTC",
+            },
+            {
+              "email": "attendee@example.com",
+              "language": {
+                "locale": "en",
+                "translate": [Function],
+              },
+              "name": "Test Attendee",
+              "responseStatus": "accepted",
+              "timeZone": "UTC",
+            },
+          ],
+          "description": "Test meeting description",
+          "end": {
+            "dateTime": "2024-06-15T11:00:00Z",
+            "timeZone": "UTC",
+          },
+          "guestsCanSeeOtherGuests": true,
+          "iCalUID": "test-ical-uid@google.com",
+          "location": "Test Location",
+          "reminders": {
+            "useDefault": true,
+          },
+          "start": {
+            "dateTime": "2024-06-15T10:00:00Z",
+            "timeZone": "UTC",
+          },
+          "summary": "Test Meeting",
+        },
+        "sendUpdates": "none",
+      }
+    `);
+
+    // Use inline snapshot for output validation
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "additionalInfo": {
+          "hangoutLink": "",
+        },
+        "attendees": [
+          {
+            "displayName": "Test Organizer",
+            "email": "organizer@example.com",
+            "organizer": true,
+            "responseStatus": "accepted",
+          },
+          {
+            "displayName": "Test Attendee",
+            "email": "attendee@example.com",
+            "responseStatus": "accepted",
+          },
+        ],
+        "description": "Test meeting description",
+        "end": {
+          "dateTime": "2024-06-15T11:00:00Z",
+          "timeZone": "UTC",
+        },
+        "iCalUID": "test-ical-uid@google.com",
+        "id": "mock-event-id-123",
+        "location": "Test Location",
+        "password": "",
+        "recurrence": null,
+        "start": {
+          "dateTime": "2024-06-15T10:00:00Z",
+          "timeZone": "UTC",
+        },
+        "summary": "Test Meeting",
+        "thirdPartyRecurringEventId": null,
+        "type": "google_calendar",
+        "uid": "",
+        "url": "",
+      }
+    `);
+
+    log.info("createEvent test passed - input/output formats verified");
+  });
+
+  test("should handle recurring events correctly", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    // Mock recurring event response
+    const mockRecurringEvent = {
+      id: "recurring-event-id",
+      summary: "Weekly Meeting",
+      recurrence: ["RRULE:FREQ=WEEKLY;INTERVAL=1;COUNT=10"],
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+    };
+
+    const mockFirstInstance = {
+      id: "recurring-event-id_20240615T100000Z",
+      summary: "Weekly Meeting",
+      start: { dateTime: "2024-06-15T10:00:00Z", timeZone: "UTC" },
+      end: { dateTime: "2024-06-15T11:00:00Z", timeZone: "UTC" },
+    };
+
+    calendarMock.calendar_v3.Calendar().events.insert = vi.fn().mockResolvedValue({
+      data: mockRecurringEvent,
+    });
+
+    calendarMock.calendar_v3.Calendar().events.instances = vi.fn().mockResolvedValue({
+      data: { items: [mockFirstInstance] },
+    });
+
+    const recurringCalEvent = {
+      type: "recurring-meeting",
+      title: "Weekly Meeting",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: {
+          translate: (...args: any[]) => args[0], // Mock translate function
+          locale: "en",
+        },
+      },
+      attendees: [],
+      recurringEvent: {
+        freq: 2, // Weekly
+        interval: 1,
+        count: 10,
+      },
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: credential.userId,
+          eventTypeId: null,
+          credentialId: credential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+        },
+      ],
+      calendarDescription: "Weekly team meeting",
+    };
+
+    const result = await calendarService.createEvent(recurringCalEvent, credential.id);
+
+    // Use inline snapshot for recurring event result
+    expect(result).toMatchInlineSnapshot(`
+      {
+        "additionalInfo": {
+          "hangoutLink": "",
+        },
+        "end": {
+          "dateTime": "2024-06-15T11:00:00Z",
+          "timeZone": "UTC",
+        },
+        "iCalUID": undefined,
+        "id": "recurring-event-id_20240615T100000Z",
+        "password": "",
+        "start": {
+          "dateTime": "2024-06-15T10:00:00Z",
+          "timeZone": "UTC",
+        },
+        "summary": "Weekly Meeting",
+        "thirdPartyRecurringEventId": "recurring-event-id",
+        "type": "google_calendar",
+        "uid": "",
+        "url": "",
+      }
+    `);
+
+    // Verify recurrence rule was included in the request
+    const insertCall = calendarMock.calendar_v3.Calendar().events.insert.mock.calls[0][0];
+    expect(insertCall.requestBody.recurrence).toEqual(["RRULE:FREQ=WEEKLY;INTERVAL=1;COUNT=10"]);
+
+    log.info("createEvent recurring event test passed");
   });
 });

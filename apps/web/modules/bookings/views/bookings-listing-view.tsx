@@ -1,9 +1,9 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
+import { useSearchParams, usePathname } from "next/navigation";
 import { useMemo, useRef } from "react";
 
-import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
 import {
   useDataTable,
@@ -16,6 +16,7 @@ import {
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
+  type SystemFilterSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -27,6 +28,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
@@ -44,34 +46,6 @@ type RecurringInfo = {
   bookings: { [key: string]: Date[] };
 };
 
-const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
-  {
-    name: "upcoming",
-    href: "/bookings/upcoming",
-    "data-testid": "upcoming",
-  },
-  {
-    name: "unconfirmed",
-    href: "/bookings/unconfirmed",
-    "data-testid": "unconfirmed",
-  },
-  {
-    name: "recurring",
-    href: "/bookings/recurring",
-    "data-testid": "recurring",
-  },
-  {
-    name: "past",
-    href: "/bookings/past",
-    "data-testid": "past",
-  },
-  {
-    name: "cancelled",
-    href: "/bookings/cancelled",
-    "data-testid": "cancelled",
-  },
-];
-
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
@@ -82,11 +56,48 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
 
 type BookingsProps = {
   status: (typeof validStatuses)[number];
+  userId?: number;
+  permissions: {
+    canReadOthersBookings: boolean;
+  };
 };
 
+function useSystemSegments(userId?: number) {
+  const { t } = useLocale();
+
+  const systemSegments: SystemFilterSegment[] = useMemo(() => {
+    if (!userId) return [];
+
+    return [
+      {
+        id: "my_bookings",
+        name: t("my_bookings"),
+        type: "system",
+        activeFilters: [
+          {
+            f: "userId",
+            v: {
+              type: ColumnFilterType.MULTI_SELECT,
+              data: [userId],
+            },
+          },
+        ],
+        perPage: 10,
+      },
+    ];
+  }, [userId, t]);
+
+  return systemSegments;
+}
+
 export default function Bookings(props: BookingsProps) {
+  const pathname = usePathname();
+  const systemSegments = useSystemSegments(props.userId);
   return (
-    <DataTableProvider useSegments={useSegments}>
+    <DataTableProvider
+      useSegments={useSegments}
+      systemSegments={systemSegments}
+      tableIdentifier={pathname || undefined}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );
@@ -103,10 +114,50 @@ type RowData =
       type: "today" | "next";
     };
 
-function BookingsContent({ status }: BookingsProps) {
+function BookingsContent({ status, permissions }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+
+  // Generate dynamic tabs that preserve query parameters
+  const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
+    const queryString = searchParams?.toString() || "";
+
+    const baseTabConfigs = [
+      {
+        name: "upcoming",
+        path: "/bookings/upcoming",
+        "data-testid": "upcoming",
+      },
+      {
+        name: "unconfirmed",
+        path: "/bookings/unconfirmed",
+        "data-testid": "unconfirmed",
+      },
+      {
+        name: "recurring",
+        path: "/bookings/recurring",
+        "data-testid": "recurring",
+      },
+      {
+        name: "past",
+        path: "/bookings/past",
+        "data-testid": "past",
+      },
+      {
+        name: "cancelled",
+        path: "/bookings/cancelled",
+        "data-testid": "cancelled",
+      },
+    ];
+
+    return baseTabConfigs.map((tabConfig) => ({
+      name: tabConfig.name,
+      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
+      "data-testid": tabConfig["data-testid"],
+    }));
+  }, [searchParams]);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -167,7 +218,7 @@ function BookingsContent({ status }: BookingsProps) {
       columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
         id: "userId",
         header: t("member"),
-        enableColumnFilter: true,
+        enableColumnFilter: permissions.canReadOthersBookings,
         enableSorting: false,
         cell: () => null,
         meta: {
@@ -266,7 +317,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status, t]);
+  }, [user, status, t, permissions.canReadOthersBookings]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
@@ -304,7 +355,7 @@ function BookingsContent({ status }: BookingsProps) {
         isToday: false,
       })) || []
     );
-  }, [query.data]);
+  }, [query.data, status, user?.timeZone]);
 
   const bookingsToday = useMemo<RowData[]>(() => {
     return (
@@ -323,7 +374,7 @@ function BookingsContent({ status }: BookingsProps) {
           isToday: true,
         })) ?? []
     );
-  }, [query.data]);
+  }, [query.data, user?.timeZone]);
 
   const finalData = useMemo<RowData[]>(() => {
     if (status !== "upcoming") {

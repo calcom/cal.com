@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-export const bookingMinimalSelect = Prisma.validator<Prisma.BookingSelect>()({
+export const bookingMinimalSelect = {
   id: true,
   title: true,
   userPrimaryEmail: true,
@@ -10,4 +10,4 @@ export const bookingMinimalSelect = Prisma.validator<Prisma.BookingSelect>()({
   endTime: true,
   attendees: true,
   metadata: true,
-});
+} satisfies Prisma.BookingSelect;

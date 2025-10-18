@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
 import Stripe from "stripe";
 
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 export async function getStripeCustomerIdFromUserId(userId: number) {
   // Get user
@@ -24,14 +24,12 @@ export async function getStripeCustomerIdFromUserId(userId: number) {
   return customerId;
 }
 
-const userType = Prisma.validator<Prisma.UserArgs>()({
-  select: {
-    email: true,
-    metadata: true,
-  },
-});
+const userType = {
+  email: true,
+  metadata: true,
+} satisfies Prisma.UserSelect;
 
-export type UserType = Prisma.UserGetPayload<typeof userType>;
+export type UserType = Prisma.UserGetPayload<{ select: typeof userType }>;
 /** This will retrieve the customer ID from Stripe or create it if it doesn't exists yet. */
 export async function getStripeCustomerId(user: UserType): Promise<string> {
   let customerId: string | null = null;

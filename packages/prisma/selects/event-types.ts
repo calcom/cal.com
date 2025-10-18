@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
-export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+export const baseEventTypeSelect = {
   id: true,
   title: true,
   description: true,
@@ -12,12 +12,14 @@ export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   price: true,
   currency: true,
   lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   canSendCalVideoTranscriptionEmails: true,
-});
+  seatsPerTimeSlot: true,
+} satisfies Prisma.EventTypeSelect;
 
-export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+export const bookEventTypeSelect = {
   id: true,
   title: true,
   slug: true,
@@ -31,6 +33,7 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   periodEndDate: true,
   recurringEvent: true,
   lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
   requiresConfirmation: true,
   canSendCalVideoTranscriptionEmails: true,
   requiresBookerEmailVerification: true,
@@ -74,9 +77,9 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       },
     },
   },
-});
+} satisfies Prisma.EventTypeSelect;
 
-export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+export const availiblityPageEventTypeSelect = {
   id: true,
   title: true,
   availability: true,
@@ -131,4 +134,4 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
       },
     },
   },
-});
+} satisfies Prisma.EventTypeSelect;
