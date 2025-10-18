@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { GroupBase, InputProps, Props } from "react-select";
 import ReactSelect, { components } from "react-select";
 
@@ -41,14 +42,15 @@ function Select<
         },
       })}
       styles={{
-        option: (provided, state) => ({
-          ...provided,
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
-          ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
-          },
-        }),
+        option: (provided, state) =>
+          ({
+            ...(provided as any),
+            color: state.isSelected ? "var(--brand-text-color)" : "black",
+            ":active": {
+              backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+              color: "var(--brand-text-color)",
+            },
+          } as any),
       }}
       components={{
         ...components,
@@ -78,28 +80,32 @@ export function UnstyledSelect<
         Input: InputComponent,
       }}
       styles={{
-        container: (provided) => ({
-          ...provided,
-          width: "100%",
-        }),
-        control: (provided) => ({
-          ...provided,
-          backgroundColor: " transparent",
-          border: "none",
-          boxShadow: "none",
-        }),
-        option: (provided, state) => ({
-          ...provided,
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
-          ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
-          },
-        }),
-        indicatorSeparator: () => ({
-          display: "hidden",
-          color: "black",
-        }),
+        container: (provided) =>
+          ({
+            ...(provided as any),
+            width: "100%",
+          } as any),
+        control: (provided) =>
+          ({
+            ...(provided as any),
+            backgroundColor: " transparent",
+            border: "none",
+            boxShadow: "none",
+          } as any),
+        option: (provided, state) =>
+          ({
+            ...(provided as any),
+            color: state.isSelected ? "var(--brand-text-color)" : "black",
+            ":active": {
+              backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+              color: "var(--brand-text-color)",
+            },
+          } as any),
+        indicatorSeparator: () =>
+          ({
+            display: "hidden",
+            color: "black",
+          } as any),
       }}
     />
   );

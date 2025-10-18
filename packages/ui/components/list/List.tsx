@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { createElement } from "react";
 
@@ -35,12 +37,10 @@ export type ListItemProps = { expanded?: boolean; rounded?: boolean } & ({
 } & JSX.IntrinsicElements["li"]);
 
 export function ListItem(props: ListItemProps) {
-  const { href, expanded, rounded = true, ...passThroughProps } = props;
+  const { expanded, rounded = true, ...passThroughProps } = props;
 
-  const elementType = href ? "a" : "li";
-
-  const element = createElement(
-    elementType,
+  return createElement(
+    "li",
     {
       ...passThroughProps,
       className: classNames(
@@ -49,19 +49,11 @@ export function ListItem(props: ListItemProps) {
         // Pass rounded false to not round the corners -> Useful when used in list we can use roundedContainer to create the right design
         rounded ? "rounded-md" : "rounded-none",
         props.className,
-        (props.onClick || href) && "hover:bg-muted"
+        props.onClick && "hover:bg-muted"
       ),
       "data-testid": "list-item",
     },
     props.children
-  );
-
-  return href ? (
-    <Link passHref href={href} legacyBehavior>
-      {element}
-    </Link>
-  ) : (
-    element
   );
 }
 
@@ -98,7 +90,6 @@ export function ListLinkItem(props: ListLinkItemProps) {
         disabled ? "hover:bg-muted" : ""
       )}>
       <Link
-        passHref
         href={href}
         className={classNames(
           "text-default flex-grow truncate text-sm",
@@ -112,7 +103,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
             </Badge>
           )}
         </div>
-        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none text-neutral-600">
+        <h2 className="mt-2 min-h-4 text-sm font-normal leading-none text-neutral-600">
           {subHeading.substring(0, 100)}
           {subHeading.length > 100 && "..."}
         </h2>

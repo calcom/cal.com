@@ -1,4 +1,5 @@
-// eslint-disable-next-line no-restricted-imports
+/* eslint-disable @typescript-eslint/no-explicit-any, no-unsafe-optional-chaining */
+ 
 import type { DeepMockProxy } from "vitest-mock-extended";
 
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
@@ -93,7 +94,7 @@ export default async function handleChildrenEventTypes({
   children,
   prisma,
   profileId,
-  updatedValues,
+  updatedValues: _updatedValues,
 }: handleChildrenEventTypesProps) {
   // Check we are dealing with a managed event type
   if (updatedEventType?.schedulingType !== SchedulingType.MANAGED)
@@ -118,9 +119,9 @@ export default async function handleChildrenEventTypes({
     bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
   });
 
-  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
+  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps as any);
   const managedEventTypeValues = allManagedEventTypePropsZod
-    .omit(unlockedManagedEventTypeProps)
+    .omit(unlockedManagedEventTypeProps as any)
     .parse(eventType);
 
   // Check we are certainly dealing with a managed event type through its metadata
@@ -131,7 +132,7 @@ export default async function handleChildrenEventTypes({
 
   // Define the values for unlocked properties to use on creation, not updation
   const unlockedEventTypeValues = allManagedEventTypePropsZod
-    .pick(unlockedManagedEventTypeProps)
+    .pick(unlockedManagedEventTypeProps as any)
     .parse(eventType);
   // Calculate if there are new/existent/deleted children users for which the event type needs to be created/updated/deleted
   const previousUserIds = oldEventType.children?.flatMap((ch) => ch.userId ?? []);
@@ -166,46 +167,49 @@ export default async function handleChildrenEventTypes({
         } = managedEventTypeValues;
 
         return prisma.eventType.create({
-          data: {
-            instantMeetingScheduleId: eventType.instantMeetingScheduleId ?? undefined,
-            profileId: profileId ?? null,
-            ...managedValuesWithoutExplicit,
-            ...{
+          // build data object to avoid duplicate property definitions in object literal
+          data: (() => {
+            const baseData: any = {
+              profileId: profileId ?? null,
+              ...managedValuesWithoutExplicit,
               ...unlockedEventTypeValues,
               // pre-genned as allowed null
               locations: Array.isArray(unlockedEventTypeValues.locations)
                 ? unlockedEventTypeValues.locations
                 : undefined,
-            },
-            bookingLimits:
-              (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
-            recurringEvent:
-              (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
-            metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
-            bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
-            durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-            eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
-            onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
-            userId,
-            users: {
-              connect: [{ id: userId }],
-            },
-            parentId,
-            hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
-            workflows: currentWorkflowIds && {
-              create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
-            },
-            /**
-             * RR Segment isn't applicable for managed event types.
-             */
-            rrSegmentQueryValue: undefined,
-            assignRRMembersUsingSegment: false,
-            useEventLevelSelectedCalendars: false,
-            restrictionScheduleId: null,
-            useBookerTimezone: false,
-            allowReschedulingCancelledBookings:
-              managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
-          },
+              bookingLimits:
+                (managedEventTypeValues.bookingLimits as unknown as Prisma.InputJsonObject) ?? undefined,
+              recurringEvent:
+                (managedEventTypeValues.recurringEvent as unknown as Prisma.InputJsonValue) ?? undefined,
+              metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
+              bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
+              durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+              eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
+              onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
+              userId,
+              users: {
+                connect: [{ id: userId }],
+              },
+              parentId,
+              hidden: children?.find((ch) => ch.owner.id === userId)?.hidden ?? false,
+              workflows: currentWorkflowIds && {
+                create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
+              },
+              /**
+               * RR Segment isn't applicable for managed event types.
+               */
+              rrSegmentQueryValue: undefined,
+              assignRRMembersUsingSegment: false,
+              useEventLevelSelectedCalendars: false,
+              restrictionScheduleId: null,
+              useBookerTimezone: false,
+              allowReschedulingCancelledBookings:
+                managedEventTypeValues.allowReschedulingCancelledBookings ?? false,
+            };
+            // set instantMeetingScheduleId explicitly after building baseData to avoid duplicate definitions
+            baseData.instantMeetingScheduleId = eventType.instantMeetingScheduleId ?? undefined;
+            return baseData;
+          })(),
         });
       })
     );

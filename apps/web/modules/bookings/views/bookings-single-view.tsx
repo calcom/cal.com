@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable */
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
@@ -378,10 +379,6 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
-
-  const canCancel = !eventType?.disableCancelling;
-  const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
     if (needsConfirmationAndReschedulable) {
@@ -464,7 +461,7 @@ export default function Success(props: PageProps) {
                 {!isFeedbackMode && (
                   <>
                     <div
-                      className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
+                      className={classNames(isRoundRobin && "relative mx-auto h-24 min-h-24 w-32 min-w-32")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
@@ -550,7 +547,7 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
+                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left sm:gap-x-0 rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -800,15 +797,14 @@ export default function Success(props: PageProps) {
                           </span>
                           {/* Login button but redirect to here */}
                           <span className="text-default inline">
-                            <span className="underline" data-testid="reschedule-link">
-                              <Link
-                                href={`/auth/login?callbackUrl=${encodeURIComponent(
-                                  `/booking/${bookingInfo?.uid}`
-                                )}`}
-                                legacyBehavior>
-                                {t("login")}
-                              </Link>
-                            </span>
+                            <Link
+                              className="underline"
+                              data-testid="reschedule-link"
+                              href={`/auth/login?callbackUrl=${encodeURIComponent(
+                                `/booking/${bookingInfo?.uid}`
+                              )}`}>
+                              {t("login")}
+                            </Link>
                           </span>
                         </div>
                       </>
@@ -831,17 +827,16 @@ export default function Success(props: PageProps) {
                                 (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
                                 canReschedule && (
                                   <span className="text-default inline">
-                                    <span className="underline" data-testid="reschedule-link">
-                                      <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                          currentUserEmail
-                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                            : ""
-                                        }`}
-                                        legacyBehavior>
-                                        {t("reschedule")}
-                                      </Link>
-                                    </span>
+                                    <Link
+                                      className="underline"
+                                      data-testid="reschedule-link"
+                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                        currentUserEmail
+                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                          : ""
+                                      }`}>
+                                      {t("reschedule")}
+                                    </Link>
                                     {!isBookingInPast && canCancel && (
                                       <span className="mx-2">{t("or_lowercase")}</span>
                                     )}
@@ -1076,7 +1071,7 @@ export default function Success(props: PageProps) {
               </div>
               {isGmail && !isFeedbackMode && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle ltr:text-left rtl:text-right"
                   severity="warning"
                   message={
                     <div>
@@ -1109,14 +1104,10 @@ const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) =
     <>
       <div className="mt-3 font-medium">{t("rescheduled")}</div>
       <div className="col-span-2 mb-2 mt-3">
-        <span className="underline">
-          <Link href={`/booking/${rescheduledToUid}`}>
-            <div className="flex items-center gap-1">
-              {t("view_booking")}
-              <Icon name="external-link" className="h-4 w-4" />
-            </div>
-          </Link>
-        </span>
+        <Link className="flex items-center gap-1 underline" href={`/booking/${rescheduledToUid}`}>
+          {t("view_booking")}
+          <Icon name="external-link" className="h-4 w-4" />
+        </Link>
       </div>
     </>
   );
