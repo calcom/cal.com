@@ -93,7 +93,6 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {
@@ -132,7 +131,6 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {
@@ -191,7 +189,6 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {
@@ -253,7 +250,6 @@ describe("listMembersHandler", () => {
     mockCheckPermission.mockResolvedValue(true);
 
     // Mock private organization
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prisma.team.findUnique.mockResolvedValue({ isPrivate: true } as any);
 
     const privateOrgUser = {
@@ -266,7 +262,6 @@ describe("listMembersHandler", () => {
 
     await listMembersHandler({
       ctx: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: privateOrgUser as any,
       },
       input: {
@@ -291,12 +286,10 @@ describe("listMembersHandler", () => {
     mockCheckPermission.mockResolvedValue(true);
 
     // Mock public organization (default)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     prisma.team.findUnique.mockResolvedValue({ isPrivate: false } as any);
 
     await listMembersHandler({
       ctx: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         user: mockUser as any,
       },
       input: {

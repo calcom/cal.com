@@ -108,13 +108,13 @@ export function useInitialFormValues({
         email:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].email
-            : !!parsedQuery["email"]
+            : parsedQuery["email"]
             ? parsedQuery["email"]
             : email ?? "",
         name:
           rescheduleUid && bookingData && bookingData.attendees.length > 0
             ? bookingData?.attendees[0].name
-            : !!parsedQuery["name"]
+            : parsedQuery["name"]
             ? parsedQuery["name"]
             : name ?? username ?? "",
       };

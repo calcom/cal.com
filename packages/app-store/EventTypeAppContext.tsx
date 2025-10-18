@@ -13,7 +13,6 @@ type AppContext = {
   disabled?: Disabled;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
 const EventTypeAppContext = React.createContext<AppContext>({
   getAppData: () => ({}),
   setAppData: () => ({}),

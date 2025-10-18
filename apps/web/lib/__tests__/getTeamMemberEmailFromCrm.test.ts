@@ -57,7 +57,6 @@ function mockBookingFormHandler({
 
 type RoutingFormData = {
   routes: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     queryValue?: any;
     action: {
       eventTypeId: number;

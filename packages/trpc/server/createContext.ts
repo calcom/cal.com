@@ -87,7 +87,7 @@ export const createContext = async (
   // This type may not be accurate if this request is coming from SSG init but they both should satisfy the requirements of getIP.
   // TODO: @sean - figure out a way to make getIP be happy with trpc req. params
   const sourceIp = getIP(req as NextApiRequest);
-  const session = !!sessionGetter ? await sessionGetter({ req, res }) : null;
+  const session = sessionGetter ? await sessionGetter({ req, res }) : null;
   const contextInner = await createContextInner({ locale, session, sourceIp });
   return {
     ...contextInner,

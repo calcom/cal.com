@@ -1,4 +1,3 @@
-/* eslint-disable playwright/missing-playwright-await */
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import type { Props as SelectProps } from "react-timezone-select";
 import { vi } from "vitest";
@@ -29,7 +28,7 @@ const runtimeMock = async (isPending: boolean) => {
       },
     },
   };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const mockedLib = (await import("@calcom/trpc/react")) as any;
   mockedLib.trpc = updatedTrcp;
 };

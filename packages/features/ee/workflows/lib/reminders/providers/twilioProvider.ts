@@ -265,7 +265,7 @@ async function isLockedForSMSSending(userId?: number | null, teamId?: number | n
       (membership) => membership.team.smsLockState === SMSLockState.LOCKED
     );
 
-    if (!!memberOfLockedTeam) {
+    if (memberOfLockedTeam) {
       return true;
     }
 

@@ -133,7 +133,6 @@ export default class CloseComCRMService implements CRM {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateEvent(uid: string, event: CalendarEvent): Promise<CrmEvent> {
     const updatedEvent = await this.closeComUpdateCustomActivity(uid, event);
     return {

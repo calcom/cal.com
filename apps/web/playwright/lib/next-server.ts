@@ -4,7 +4,6 @@ import { createServer } from "http";
 import next from "next";
 import { parse } from "url";
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
 declare let process: {
   env: {
     E2E_DEV_SERVER: string;

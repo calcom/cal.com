@@ -63,7 +63,7 @@ export default class ZohoCrmCrmService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
     const contacts = contactsToCreate.map((contactToCreate) => {
-      const [firstname, lastname] = !!contactToCreate.name
+      const [firstname, lastname] = contactToCreate.name
         ? contactToCreate.name.split(" ")
         : [contactToCreate.email, "-"];
       return {

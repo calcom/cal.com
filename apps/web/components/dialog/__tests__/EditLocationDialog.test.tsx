@@ -156,7 +156,6 @@ describe("EditLocationDialog", () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     LocationSelect.mockImplementation(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ({ options, defaultValue, onChange }: { options: any; defaultValue: any; onChange: any }) => {
         return (
           <select
@@ -164,16 +163,12 @@ describe("EditLocationDialog", () => {
             defaultValue={defaultValue}
             onChange={(e) => {
               const selectedOption = options
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .flatMap((opt: any) => opt.options || [opt])
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .find((opt: any) => opt.value === e.target.value);
               onChange(selectedOption);
             }}>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             {options.map((group: any) => (
               <optgroup key={group.value} label={group.label}>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                 {(group.options || [group]).map((option: any) => (
                   <option key={option.value} value={option.value}>
                     {option.label}

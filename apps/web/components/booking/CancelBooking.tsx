@@ -171,7 +171,6 @@ export default function CancelBooking(props: Props) {
       node.scrollIntoView({ behavior: "smooth" });
       node.focus();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

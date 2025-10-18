@@ -1,4 +1,3 @@
-/* eslint-disable playwright/missing-playwright-await */
 import { fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
 

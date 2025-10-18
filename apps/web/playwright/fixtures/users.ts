@@ -6,9 +6,9 @@ import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
 import type Prisma from "@calcom/prisma/client";
 import type { Team } from "@calcom/prisma/client";
@@ -471,7 +471,7 @@ export const createUsersFixture = (
                 },
                 data: {
                   orgProfiles: _user.profiles.length
-                  ? {
+                    ? {
                         connect: _user.profiles.map((profile) => ({ id: profile.id })),
                       }
                     : {
@@ -654,7 +654,6 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
 
   // self is a reflective method that return the Prisma object that references this fixture.
   const self = async () =>
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     (await prisma.user.findUnique({
       where: { id: store.user.id },
       include: { eventTypes: true },
@@ -997,7 +996,7 @@ export async function login(
   await page.waitForSelector("text=Welcome back");
 
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   await passwordLocator.fill(user.password ?? user.username!);
 
   // waiting for specific login request to resolve

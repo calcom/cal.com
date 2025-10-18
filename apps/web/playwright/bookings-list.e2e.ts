@@ -58,11 +58,9 @@ test.describe("Bookings", () => {
       const firstUpcomingBooking = upcomingBookings.locator('[data-testid="booking-item"]').nth(0);
       const secondUpcomingBooking = upcomingBookings.locator('[data-testid="booking-item"]').nth(1);
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         firstUpcomingBooking.locator(`text=${bookingWhereFirstUserIsAttendee!.title}`)
       ).toBeVisible();
       await expect(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         secondUpcomingBooking.locator(`text=${bookingWhereFirstUserIsOrganizer!.title}`)
       ).toBeVisible();
     });
@@ -374,22 +372,15 @@ test.describe("Bookings", () => {
 
     //verify with the booking titles
     const firstUpcomingBooking = bookingListItems.nth(0);
-    await expect(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      firstUpcomingBooking.locator(`text=${thirdUserOrganizerBooking!.title}`)
-    ).toBeVisible();
+    await expect(firstUpcomingBooking.locator(`text=${thirdUserOrganizerBooking!.title}`)).toBeVisible();
 
     const secondUpcomingBooking = bookingListItems.nth(1);
     await expect(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       secondUpcomingBooking.locator(`text=${thirdUserAttendeeIndividualBooking!.title}`)
     ).toBeVisible();
 
     const thirdUpcomingBooking = bookingListItems.nth(2);
-    await expect(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      thirdUpcomingBooking.locator(`text=${thirdUserAttendeeTeamEvent!.title}`)
-    ).toBeVisible();
+    await expect(thirdUpcomingBooking.locator(`text=${thirdUserAttendeeTeamEvent!.title}`)).toBeVisible();
   });
 
   test("Does not show booking from another user from collective event type when a member is filtered", async ({

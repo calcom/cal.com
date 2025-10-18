@@ -19,13 +19,16 @@ export const nextJsConfig = [
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
   {
-    ...pluginReact.configs.flat.recommended,
-    languageOptions: {
-      ...pluginReact.configs.flat.recommended.languageOptions,
-      globals: {
-        ...globals.serviceworker,
-      },
+    files: ["**/*.{jsx,tsx}"],
+    plugins: { react: pluginReact },
+    rules: {
+      ...pluginReact.configs.recommended.rules,
     },
+    languageOptions: {
+      parserOptions: { ecmaFeatures: { jsx: true } },
+      globals: { ...globals.browser, ...globals.serviceworker },
+    },
+    settings: { react: { version: "detect" } },
   },
   {
     plugins: {

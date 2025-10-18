@@ -1,9 +1,7 @@
 "use client";
 
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
-// eslint-disable-next-line no-restricted-imports
 import isEqual from "lodash/isEqual";
 import { usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";

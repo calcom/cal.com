@@ -178,10 +178,9 @@ type ConferenceResult = {
 
 const mockEventManagerReschedule = async (config?: MockEventManagerConfig) => {
   const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const spy = vi.spyOn(EventManager.prototype as any, "reschedule");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   spy.mockImplementation(async (event: any) => {
     const location = event.location;
     const results: ConferenceResult[] = [];
@@ -370,7 +369,7 @@ describe("roundRobinManualReassignment test", () => {
     // Verify that EventManager.reschedule was called with an event containing conferenceCredentialId
     expect(eventManagerRescheduleSpy).toHaveBeenCalledTimes(1);
     const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     expect((calledEvent as any).conferenceCredentialId).toBe(conferenceCredentialId);
   });
 
@@ -453,7 +452,6 @@ describe("roundRobinManualReassignment test", () => {
       userId: fixedHost.id,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const bookingRepo = new BookingRepository(prismaMock as any);
     const attendees = await bookingRepo.getBookingAttendees(123);
 
@@ -578,7 +576,6 @@ describe("roundRobinManualReassignment - Location Changes", () => {
               type: "integrations:google:meet",
             },
           },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       if (slug === "zoom" && config?.zoom !== false) {
@@ -588,7 +585,6 @@ describe("roundRobinManualReassignment - Location Changes", () => {
               type: "integrations:zoom",
             },
           },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       if (slug === "custom-video" && config?.customVideo !== false) {
@@ -598,7 +594,6 @@ describe("roundRobinManualReassignment - Location Changes", () => {
               type: "integrations:custom-video",
             },
           },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       }
       return undefined;
@@ -718,7 +713,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       expect((calledEvent as any).location).toBe("integrations:first-available");
     });
 
@@ -769,7 +764,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       expect((calledEvent as any).location).toBe("https://custom-video.com/room123");
     });
 
@@ -819,7 +814,7 @@ describe("roundRobinManualReassignment - Location Changes", () => {
       });
 
       const calledEvent = eventManagerRescheduleSpy.mock.calls[0][0];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       expect((calledEvent as any).location).toBe("integrations:google:meet");
 
       await expectBookingToBeInDatabase({

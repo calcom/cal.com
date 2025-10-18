@@ -15,10 +15,9 @@ const renderComponent = ({
   formDefaultValues,
 }: {
   props: Parameters<typeof FormBuilderField>[0];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   formDefaultValues?: any;
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let formMethods: UseFormReturn<any> | undefined;
   const Wrapper = ({ children }: { children: React.ReactNode }) => {
     const form = useForm({
@@ -28,7 +27,7 @@ const renderComponent = ({
     return <FormProvider {...form}>{children}</FormProvider>;
   };
   render(<FormBuilderField {...props} />, { wrapper: Wrapper });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   return { formMethods: formMethods! };
 };
 
@@ -75,7 +74,7 @@ const expectScenario = {
     identifier: string;
     label: string;
     value: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     formMethods: UseFormReturn<any>;
   }) => {
     expect(component.getFieldInput({ label }).value).toEqual(value);

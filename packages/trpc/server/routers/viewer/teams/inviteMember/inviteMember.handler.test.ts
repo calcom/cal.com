@@ -372,7 +372,6 @@ describe("inviteMemberHandler", () => {
       try {
         await inviteMemberHandler({ ctx, input });
         throw new Error("Expected an error to be thrown");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         expect(e).toBeInstanceOf(TRPCError);
         expect(e.code).toEqual("BAD_REQUEST");
@@ -555,7 +554,6 @@ describe("inviteMemberHandler", () => {
     try {
       await inviteMemberHandler({ ctx, input });
       throw new Error("Expected an error to be thrown");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       expect(e).toBeInstanceOf(Error);
       expect(e.message).toEqual(errorMessageForRateLimit);
