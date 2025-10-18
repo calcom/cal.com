@@ -2,8 +2,13 @@
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import path from "path";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // https://vitejs.dev/guide/build.html#library-mode
 export default defineConfig({
@@ -28,6 +33,7 @@ export default defineConfig({
         repositories: resolve(__dirname, "./repositories.ts"),
         bookings: resolve(__dirname, "./bookings.ts"),
         "private-links": resolve(__dirname, "./private-links.ts"),
+        pbac: resolve(__dirname, "./pbac.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",
@@ -201,7 +207,6 @@ export default defineConfig({
       "@calcom/prisma/client": resolve("../../../node_modules/@calcom/prisma/client/index.js"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
-      // eslint-disable-next-line prettier/prettier
       tslog: path.resolve(__dirname, "../../../apps/api/v2/src/lib/logger.bridge.ts"),
     },
   },
