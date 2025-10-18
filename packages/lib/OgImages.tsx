@@ -20,6 +20,7 @@ export interface AppImageProps {
   name: string;
   description: string;
   slug: string;
+  logoUrl: string;
 }
 
 export interface GenericImageProps {
@@ -48,6 +49,70 @@ const joinMultipleNames = (names: string[] = []) => {
 
 const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CAL_URL}${url}`);
 
+const OG_ASSETS = {
+  // From Wrapper component - background images based on variant
+  backgrounds: {
+    light: "social-bg-light-lines.jpg", // Used by App and Generic
+    dark: "social-bg-dark-lines.jpg", // Used by Meeting
+  },
+  // From various components - logo references
+  logos: {
+    main: LOGO, // "/calcom-logo-white-word.svg" - used by Meeting and App
+    generic: "cal-logo-word-black.svg", // Used by Generic component
+  },
+  // From font loading in the API route - these should match route.tsx
+  fonts: ["cal.ttf", "Inter-Regular.ttf", "Inter-Medium.ttf"],
+  // Layout-specific styling that affects the image output
+  styles: {
+    meeting: {
+      layout: "meeting-v3", // Update when Meeting component structure changes
+      logoWidth: "350px", // From Meeting component
+      avatarSize: "160px", // From Meeting component
+      titleFont: "cal-54px",
+      descFont: "inter-54px",
+      variant: "dark" as const,
+    },
+    app: {
+      layout: "app-v3", // Update when App component structure changes
+      logoWidth: "150px", // From App component
+      iconSize: "172px", // From App component
+      titleFont: "cal-64px-600",
+      descFont: "inter-36px",
+      variant: "light" as const,
+      blurEffect: "enabled",
+    },
+    generic: {
+      layout: "generic-v3", // Update when Generic component structure changes
+      logoWidth: "350px", // From Generic component
+      titleFont: "cal-54px",
+      descFont: "inter-54px",
+      variant: "light" as const,
+    },
+  },
+};
+
+const getOgImageVersion = async (type: "meeting" | "app" | "generic") => {
+  const style = OG_ASSETS.styles[type];
+  const versionInputs = {
+    layout: style.layout,
+    fonts: OG_ASSETS.fonts,
+    background: OG_ASSETS.backgrounds[style.variant],
+    logo: type === "generic" ? OG_ASSETS.logos.generic : OG_ASSETS.logos.main,
+    styling: style,
+  };
+
+  const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
+
+  // Use Web Crypto API instead of Node.js crypto for Edge Runtime compatibility
+  const encoder = new TextEncoder();
+  const data = encoder.encode(content);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  return hashHex.substring(0, 8);
+};
+
 /**
  * Test urls:
  * 1. 1 user http://localhost:3000/api/social/og/image?type=meeting&title=super%20long%20event%20title%20for%20testing%20purposes&meetingProfileName=Pro%20Example&meetingImage=http://localhost:3000/pro/avatar.png&names=Pro%20Example&usernames=pro
@@ -56,7 +121,11 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
  * 4. Team event (round robin) http://localhost:3000/api/social/og/image?type=meeting&title=Round%20Robin%20Seeded%20Team%20Event&meetingProfileName=Seeded%20Team
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
-export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
+export const constructMeetingImage = async ({
+  title,
+  users = [],
+  profile,
+}: MeetingImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "meeting",
     title,
@@ -72,6 +141,9 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
     params.append("usernames", user.username);
   });
 
+  // Use content-based versioning instead of environment variable
+  params.set("v", await getOgImageVersion("meeting"));
+
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
@@ -79,22 +151,36 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
  * Test url:
  * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
  */
-export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
+export const constructAppImage = async ({
+  name,
+  slug,
+  logoUrl,
+  description,
+}: AppImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "app",
     name,
     slug,
     description,
+    logoUrl,
   });
+
+  // Use content-based versioning instead of environment variable
+  params.set("v", await getOgImageVersion("app"));
+
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
-export const constructGenericImage = ({ title, description }: GenericImageProps) => {
+export const constructGenericImage = async ({ title, description }: GenericImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "generic",
     title,
     description,
   });
+
+  // Use content-based versioning instead of environment variable
+  params.set("v", await getOgImageVersion("generic"));
+
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
@@ -178,10 +264,10 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   );
 };
 
-const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
+const VisualBlur = ({ logoUrl }: { logoUrl: string }) => {
   // Making a blur of a dark logo is very ugly. We use the filename to indicate,
   // when we don't want to render these blurry blob backgrounds.
-  if (visualSlug.indexOf("dark") > -1) return null;
+  if (logoUrl.indexOf("dark") > -1) return null;
 
   return (
     <div tw="flex relative">
@@ -191,7 +277,7 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
         style={{
           filter: "blur(98px)",
           backgroundColor: "rgba(255, 255, 255, 0.7)",
-          backgroundImage: `url(${WEBAPP_URL}${visualSlug})`,
+          backgroundImage: `url(${WEBAPP_URL}${logoUrl})`,
           backgroundSize: "400px 400px",
         }}
       />
@@ -202,7 +288,7 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
         style={{
           filter: "blur(150px)",
           backgroundColor: "rgba(255, 255, 255, 0.7)",
-          backgroundImage: `url(${WEBAPP_URL}${visualSlug})`,
+          backgroundImage: `url(${WEBAPP_URL}${logoUrl})`,
           backgroundSize: "630px 630px",
         }}
       />
@@ -210,15 +296,15 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
   );
 };
 
-export const App = ({ name, description, slug }: AppImageProps) => (
+export const App = ({ name, description, logoUrl }: AppImageProps) => (
   <Wrapper>
     <img src={`${WEBAPP_URL}/${LOGO}`} width="150" alt="Logo" tw="absolute right-[48px] top-[48px]" />
 
-    <VisualBlur visualSlug={slug} />
+    <VisualBlur logoUrl={logoUrl} />
 
     <div tw="flex items-center w-full">
       <div tw="flex">
-        <img src={`${WEBAPP_URL}${slug}`} alt="App icon" width="172" height="172" />
+        <img src={`${WEBAPP_URL}${logoUrl}`} alt="App icon" width="172" height="172" />
       </div>
     </div>
     <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">

@@ -20,8 +20,12 @@ vi.mock("@calcom/lib/OgImages", () => ({
   Generic: vi.fn(() => null),
 }));
 
-vi.mock("@calcom/lib/constants", () => ({
-  WEBAPP_URL: "http://localhost:3000",
+vi.mock(import("@calcom/lib/constants"), async (importOriginal) => {
+  return await importOriginal();
+});
+
+vi.mock("@calcom/web/public/app-store/svg-hashes.json", () => ({
+  default: {},
 }));
 
 global.fetch = vi.fn();
