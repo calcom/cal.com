@@ -3,9 +3,9 @@
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
+import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 
 import BillingCredits from "~/settings/billing/components/BillingCredits";

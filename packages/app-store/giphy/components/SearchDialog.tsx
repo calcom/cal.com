@@ -2,8 +2,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";

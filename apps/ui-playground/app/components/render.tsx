@@ -2,7 +2,7 @@
 
 import { type PropsWithChildren, useState } from "react";
 
-import className from "@calcom/ui/classNames";
+import className from "@calcom/lib/classNames";
 import { Button } from "@calcom/ui/components/button";
 
 type Props = {

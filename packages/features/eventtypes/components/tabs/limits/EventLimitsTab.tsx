@@ -11,6 +11,7 @@ import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefine
 import type { FormValues, EventTypeSetupProps, InputClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { SelectClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
+import classNames from "@calcom/lib/classNames";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
 import type { DurationType } from "@calcom/lib/convertToNewDurationType";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
@@ -19,7 +20,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType } from "@calcom/prisma/enums";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
   InputField,
@@ -29,10 +29,10 @@ import {
   Select,
   SettingsToggle,
 } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Icon } from "@calcom/ui/components/icon";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
 
@@ -251,36 +251,37 @@ function RollingLimitRadioItem({
         </div>
         <div className="-ml-6 flex flex-col py-2">
           <div className="flex items-center">
-          <CheckboxField
-            checked={!!rollingExcludeUnavailableDays}
-            disabled={isDisabled}
-            description={t("always_show_x_days", {
-              x: periodDaysWatch,
-            })}
-            onChange={(e) => {
-              const isChecked = e.target.checked;
-              formMethods.setValue(
-                "periodDays",
-                Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
-              );
-              formMethods.setValue(
-                "periodType",
-                getPeriodTypeFromUiValue({
-                  value: PeriodType.ROLLING,
-                  rollingExcludeUnavailableDays: isChecked,
-                }),
-                { shouldDirty: true }
-              );
-            }}
-          />
-          <Tooltip content={t("always_show_x_days_description", {
-              x: periodDaysWatch,
-            })}>
-            <Icon
-              name="info"
-              className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+            <CheckboxField
+              checked={!!rollingExcludeUnavailableDays}
+              disabled={isDisabled}
+              description={t("always_show_x_days", {
+                x: periodDaysWatch,
+              })}
+              onChange={(e) => {
+                const isChecked = e.target.checked;
+                formMethods.setValue(
+                  "periodDays",
+                  Math.min(periodDaysWatch, ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK)
+                );
+                formMethods.setValue(
+                  "periodType",
+                  getPeriodTypeFromUiValue({
+                    value: PeriodType.ROLLING,
+                    rollingExcludeUnavailableDays: isChecked,
+                  }),
+                  { shouldDirty: true }
+                );
+              }}
             />
-          </Tooltip>
+            <Tooltip
+              content={t("always_show_x_days_description", {
+                x: periodDaysWatch,
+              })}>
+              <Icon
+                name="info"
+                className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+              />
+            </Tooltip>
           </div>
         </div>
       </div>

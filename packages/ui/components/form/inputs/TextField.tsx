@@ -3,8 +3,8 @@
 import { cva } from "class-variance-authority";
 import React, { forwardRef, useId, useState } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 
 import { Icon } from "../../icon";
 import { HintsOrErrors } from "./HintOrErrors";
@@ -125,7 +125,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     readOnly,
     showAsteriskIndicator,
     onClickAddon,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     t: __t,
     dataTestid,
     size,

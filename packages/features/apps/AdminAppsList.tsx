@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { noop } from "lodash";
 import type { FC } from "react";
 import { useReducer, useState } from "react";
@@ -12,12 +12,12 @@ import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavi
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import cs from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import cs from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
   DialogContent,

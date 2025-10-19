@@ -3,7 +3,7 @@
 import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
 import * as React from "react";
 
-import classNames from "@calcom/ui/classNames";
+import classNames from "@calcom/lib/classNames";
 
 const HoverCard = HoverCardPrimitive.Root;
 

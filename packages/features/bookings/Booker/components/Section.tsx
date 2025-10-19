@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { forwardRef } from "react";
 
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import classNames from "@calcom/ui/classNames";
+import classNames from "@calcom/lib/classNames";
 
 import type { BookerAreas, BookerLayout } from "../types";
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ComponentProps } from "react";
 import { forwardRef } from "react";
 
-import classNames from "@calcom/ui/classNames";
+import classNames from "@calcom/lib/classNames";
 
 import type { ButtonColor } from "../button";
 import { Icon } from "../icon";

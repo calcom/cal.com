@@ -4,8 +4,8 @@ import { useId } from "@radix-ui/react-id";
 import { Root as ToggleGroupPrimitive, Item as ToggleGroupItemPrimitive } from "@radix-ui/react-toggle-group";
 import { useState } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 
 import { Label } from "../../../components/form/inputs/Label";
 
@@ -34,7 +34,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
   defaultValue = true,
   value,
   disabled = false,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   onValueChange = () => {},
   variant = "default",
   ...passThrough

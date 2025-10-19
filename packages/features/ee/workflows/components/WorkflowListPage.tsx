@@ -3,12 +3,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 import type { Membership, Workflow } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -229,7 +229,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                     <div>
                       <div className="hidden md:block">
                         {workflow.team?.name && (
-                          <Badge className="mr-4 mt-1 mb-2 p-[1px] px-2" variant="gray">
+                          <Badge className="mb-2 mr-4 mt-1 p-[1px] px-2" variant="gray">
                             <Avatar
                               alt={workflow.team?.name || ""}
                               href={

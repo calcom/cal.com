@@ -4,7 +4,7 @@ import type { LinkProps } from "next/link";
 import Link from "next/link";
 import React, { forwardRef } from "react";
 
-import classNames from "@calcom/ui/classNames";
+import classNames from "@calcom/lib/classNames";
 
 import { Icon } from "../icon/Icon";
 import type { IconName } from "../icon/Icon";

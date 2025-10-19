@@ -6,8 +6,8 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useShouldShowArrows } from "@calcom/features/apps/components/AllApps";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */

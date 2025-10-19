@@ -16,10 +16,10 @@ import type {
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
+import classNames from "@calcom/lib/classNames";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
@@ -159,7 +159,7 @@ const Locations: React.FC<LocationsProps> = ({
   );
 
   useEffect(() => {
-    if (!!prefillLocation) {
+    if (prefillLocation) {
       const newLocationType = prefillLocation.value;
 
       const canAppendLocation = !validLocations.find((location) => location.type === newLocationType);

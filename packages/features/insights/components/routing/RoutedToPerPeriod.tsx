@@ -5,12 +5,12 @@ import { useQueryState } from "nuqs";
 import { type ReactNode, useMemo, useRef, useState } from "react";
 
 import { DataTableSkeleton } from "@calcom/features/data-table";
+import classNames from "@calcom/lib/classNames";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";

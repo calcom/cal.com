@@ -2,7 +2,7 @@
 
 import { Fragment, useMemo, type ReactNode } from "react";
 
-import classNames from "@calcom/ui/classNames";
+import classNames from "@calcom/lib/classNames";
 import { PanelCard } from "@calcom/ui/components/card";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 

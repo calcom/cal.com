@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 
 import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import classNames from "@calcom/lib/classNames";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
@@ -41,7 +41,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
       description={t("add_webhook_description", { appName: APP_NAME })}
       CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton /> : null}
       borderInShellHeader={false}>
-      {!!webhookGroups.length ? (
+      {webhookGroups.length ? (
         <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (
             <div key={group.teamId}>

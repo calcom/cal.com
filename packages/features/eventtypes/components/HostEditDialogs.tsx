@@ -11,9 +11,9 @@ import type {
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { groupHostsByGroupId, getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
+import classNames from "@calcom/lib/classNames";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { Label } from "@calcom/ui/components/form";
@@ -54,7 +54,7 @@ export const PriorityDialog = (
 
   const [newPriority, setNewPriority] = useState<{ label: string; value: number }>();
   const setPriority = () => {
-    if (!!newPriority) {
+    if (newPriority) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");
@@ -162,7 +162,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
   const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
-    if (!!newWeight) {
+    if (newWeight) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");

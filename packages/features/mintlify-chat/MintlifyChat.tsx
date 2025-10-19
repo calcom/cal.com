@@ -2,9 +2,9 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
 

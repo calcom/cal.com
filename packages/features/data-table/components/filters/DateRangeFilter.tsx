@@ -3,9 +3,9 @@ import type { Dayjs } from "dayjs";
 import { useState, useEffect, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
-import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button, buttonClasses } from "@calcom/ui/components/button";
 import {

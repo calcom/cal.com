@@ -4,12 +4,12 @@ import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
 import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
-// eslint-disable-next-line no-restricted-imports
+ 
 import kebabCase from "lodash/kebabCase";
 import { useEffect, useState, memo, useMemo } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Command, CommandList, CommandItem } from "@calcom/ui/components/command";
 import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";

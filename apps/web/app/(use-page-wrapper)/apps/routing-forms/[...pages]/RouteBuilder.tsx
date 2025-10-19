@@ -43,13 +43,13 @@ import type { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
+import classNames from "@calcom/lib/classNames";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { FormCard } from "@calcom/ui/components/card";
@@ -308,7 +308,7 @@ const WeightedAttributesSelector = ({
           />
         </div>
         <div className="bg-muted mt-1 rounded-xl p-2">
-          {!!attributeIdForWeights ? (
+          {attributeIdForWeights ? (
             <SelectField
               size="sm"
               containerClassName="data-testid-select-router"

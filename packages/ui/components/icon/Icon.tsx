@@ -1,6 +1,6 @@
 import { type SVGProps } from "react";
 
-import cn from "@calcom/ui/classNames";
+import cn from "@calcom/lib/classNames";
 
 import type { IconName } from "./icon-names";
 

@@ -1,4 +1,4 @@
-import classNames from "@calcom/ui/classNames";
+import classNames from "@calcom/lib/classNames";
 
 import { Badge } from "../badge/Badge";
 import { Button } from "../button/Button";

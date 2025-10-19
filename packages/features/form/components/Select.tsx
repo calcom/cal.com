@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import type { GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
 import ReactSelect, { components } from "react-select";
 
+import classNames from "@calcom/lib/classNames";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
-import classNames from "@calcom/ui/classNames";
 
 export type SelectProps<
   Option,
@@ -179,7 +179,7 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}

@@ -3635,6 +3635,7 @@ __metadata:
     rrule: ^2.7.1
     sharp: 0.33.5
     sonner: ^1.7.4
+    tailwind-merge: ^3.3.1
     tsdav: 2.0.3
     tslog: ^4.9.2
     typescript: ^5.9.0-beta
@@ -45433,6 +45434,13 @@ __metadata:
   version: 2.6.0
   resolution: "tailwind-merge@npm:2.6.0"
   checksum: 18976c4096920bc6125f1dc837479805de996d86bcc636f98436f65c297003bde89ffe51dfd325b7c97fc71b1dbba8505459dd96010e7b181badd29aea996440
+  languageName: node
+  linkType: hard
+
+"tailwind-merge@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "tailwind-merge@npm:3.3.1"
+  checksum: ace3675227d86f1def95b25b7f6793268a6ab2f340b43ef64ad25646588d2b1d87714cd60db6947bfdb5bb85be3bb6ce1802021620c541ef7a9c3faa05915f2b
   languageName: node
   linkType: hard
 

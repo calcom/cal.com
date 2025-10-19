@@ -22,10 +22,10 @@ import type {
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
+import classNames from "@calcom/lib/classNames";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label } from "@calcom/ui/components/form";
 import { Select } from "@calcom/ui/components/form";
@@ -720,7 +720,7 @@ const Hosts = ({
           ),
           MANAGED: <></>,
         };
-        return !!schedulingType ? schedulingTypeRender[schedulingType] : <></>;
+        return schedulingType ? schedulingTypeRender[schedulingType] : <></>;
       }}
     />
   );
@@ -886,10 +886,8 @@ export const EventTeamAssignmentTab = ({
                       hostGroups?.length > 1 ? (
                         <Tooltip
                           content={
-                            !!(
-                              eventType.team?.rrTimestampBasis &&
+                            eventType.team?.rrTimestampBasis &&
                               eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
-                            )
                               ? t("rr_load_balancing_disabled")
                               : t("rr_load_balancing_disabled_with_groups")
                           }>

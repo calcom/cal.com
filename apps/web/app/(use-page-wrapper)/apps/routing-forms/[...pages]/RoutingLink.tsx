@@ -15,6 +15,7 @@ import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/li
 import type { NonRouterRoute, FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { getUrlSearchParamsToForward } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
+import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,7 +23,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { useCalcomTheme } from "@calcom/ui/styles";

@@ -17,6 +17,7 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import classNames from "@calcom/lib/classNames";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import {
   APP_NAME,
@@ -39,7 +40,6 @@ import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetr
 import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { PasswordField, CheckboxField, TextField, Form } from "@calcom/ui/components/form";
@@ -274,7 +274,7 @@ export default function Signup({
         };
 
         const constructCallBackIfUrlNotPresent = () => {
-          if (!!isPlatformUser) {
+          if (isPlatformUser) {
             return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
           }
 
@@ -284,7 +284,7 @@ export default function Signup({
         const constructCallBackUrl = () => {
           const callbackUrlSearchParams = searchParams?.get("callbackUrl");
 
-          return !!callbackUrlSearchParams
+          return callbackUrlSearchParams
             ? constructCallBackIfUrlPresent()
             : constructCallBackIfUrlNotPresent();
         };

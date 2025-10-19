@@ -1,11 +1,11 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { forwardRef, useState } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { type ButtonProps, Button, buttonClasses } from "@calcom/ui/components/button";
 import {
   Command,
@@ -82,7 +82,7 @@ function ColumnVisibilityButtonComponent<TData>(
               }}
               className={classNames(
                 buttonClasses({ color: "secondary" }),
-                "w-full justify-center text-center cursor-pointer mt-0"
+                "mt-0 w-full cursor-pointer justify-center text-center"
               )}>
               {t("show_all_columns")}
             </CommandItem>

@@ -2,10 +2,10 @@
 
 import type { ReactNode } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { CredentialOwner } from "@calcom/types/CredentialOwner";
-import classNames from "@calcom/ui/classNames";
 
 import { Avatar } from "../avatar/Avatar";
 import { Badge } from "../badge/Badge";

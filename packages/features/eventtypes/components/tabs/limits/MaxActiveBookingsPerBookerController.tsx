@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { SettingsToggle } from "@calcom/ui/components/form";
 import { TextField, CheckboxField } from "@calcom/ui/components/form";
 

@@ -3,10 +3,10 @@ import { createContext, useContext, useState, useMemo, type PropsWithChildren } 
 import type { Dispatch, SetStateAction } from "react";
 
 import { DataTableSelectionBar, type ColumnFilter } from "@calcom/features/data-table";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc";
-import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import {

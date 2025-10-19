@@ -8,8 +8,8 @@ import {
   CrudAction,
   getPermissionsForScope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Checkbox, Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";

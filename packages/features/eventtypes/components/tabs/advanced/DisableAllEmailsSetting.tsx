@@ -3,8 +3,8 @@ import { useState } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { InputClassNames, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
+import classNames from "@calcom/lib/classNames";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { InputField } from "@calcom/ui/components/form";

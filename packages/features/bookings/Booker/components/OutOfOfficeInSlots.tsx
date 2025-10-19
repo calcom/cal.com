@@ -1,10 +1,10 @@
 import { useRouter } from "next/navigation";
 
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
+import classNames from "@calcom/lib/classNames";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 
 interface IOutOfOfficeInSlotsProps {

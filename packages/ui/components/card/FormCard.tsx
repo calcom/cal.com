@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import classNames from "@calcom/ui/classNames";
+import classNames from "@calcom/lib/classNames";
 
 import type { BadgeProps } from "../badge";
 import { Badge } from "../badge";

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import React from "react";
 
-import classNames from "@calcom/ui/classNames";
+import classNames from "@calcom/lib/classNames";
 
 import { Button } from "../button";
 import type { IconName } from "../icon";

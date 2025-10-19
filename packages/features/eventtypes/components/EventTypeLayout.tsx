@@ -6,9 +6,9 @@ import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/emb
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import WebShell from "@calcom/features/shell/Shell";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { VerticalDivider } from "@calcom/ui/components/divider";
@@ -276,11 +276,12 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense fallback={
-        <div className="flex h-64 items-center justify-center">
-          <Icon name="loader" className="h-5 w-5 animate-spin" />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="flex h-64 items-center justify-center">
+            <Icon name="loader" className="h-5 w-5 animate-spin" />
+          </div>
+        }>
         <div className="flex flex-col xl:flex-row xl:space-x-6">
           <div className="hidden xl:block">
             <VerticalTabs

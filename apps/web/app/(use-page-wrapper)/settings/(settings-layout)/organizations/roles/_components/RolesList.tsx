@@ -1,8 +1,8 @@
 "use client";
 
 import type { Scope } from "@calcom/features/pbac/domain/types/permission-registry";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {

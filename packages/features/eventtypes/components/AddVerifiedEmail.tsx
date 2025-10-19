@@ -2,8 +2,8 @@ import { useState } from "react";
 
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
 import { isValidEmail } from "@calcom/features/isValidEmail";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField, Label } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";

@@ -5,8 +5,8 @@ import { forwardRef, useEffect } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { useState, type Ref, type ChangeEvent } from "react";
 
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
 import { Button, type ButtonProps } from "@calcom/ui/components/button";
 import { Input } from "@calcom/ui/components/form";
 
