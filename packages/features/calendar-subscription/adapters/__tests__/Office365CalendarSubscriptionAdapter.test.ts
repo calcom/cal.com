@@ -138,6 +138,8 @@ describe("Office365CalendarSubscriptionAdapter", () => {
   describe("subscribe", () => {
     test("throws error if webhook config is missing", async () => {
       vi.stubEnv("MICROSOFT_WEBHOOK_URL", "");
+      vi.stubEnv("NEXT_PUBLIC_WEBAPP_URL", "");
+      vi.stubEnv("MICROSOFT_WEBHOOK_TOKEN", "");
       const adapter = new Office365CalendarSubscriptionAdapter();
       await expect(adapter.subscribe(_mockSelectedCalendar, _mockCredential)).rejects.toThrow(
         /Webhook config missing/
@@ -209,7 +211,7 @@ describe("Office365CalendarSubscriptionAdapter", () => {
 
       const res = await adapter.fetchEvents({ ..._mockSelectedCalendar, syncToken: null }, _mockCredential);
       expect(res.items.length).toBe(2);
-      expect(res.syncToken).toBe("done");
+      expect(res.syncToken).toBe("/me/calendars/test@example.com/events/delta");
     });
   });
 
@@ -265,6 +267,135 @@ describe("Office365CalendarSubscriptionAdapter", () => {
       const parsed = adapter["parseEvents"](events);
       expect(parsed[0].summary).toBe("Meeting");
       expect(parsed[0].busy).toBe(true);
+    });
+
+    test("handles events with different showAs values", () => {
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      const events: MicrosoftGraphEvent[] = [
+        { id: "1", showAs: "free" },
+        { id: "2", showAs: "tentative" },
+        { id: "3", showAs: "oof" },
+        { id: "4", showAs: "workingElsewhere" },
+      ];
+      const parsed = adapter["parseEvents"](events);
+      expect(parsed[0].busy).toBe(false);
+      expect(parsed[1].busy).toBe(true);
+      expect(parsed[2].busy).toBe(true);
+      expect(parsed[3].busy).toBe(false);
+    });
+
+    test("handles cancelled events", () => {
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      const events: MicrosoftGraphEvent[] = [
+        { id: "1", isCancelled: true },
+        { id: "2", isCancelled: false },
+      ];
+      const parsed = adapter["parseEvents"](events);
+      expect(parsed[0].status).toBe("cancelled");
+      expect(parsed[1].status).toBe("confirmed");
+    });
+
+    test("handles all-day events", () => {
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      const events: MicrosoftGraphEvent[] = [
+        { id: "1", isAllDay: true, start: { date: "2025-10-18" }, end: { date: "2025-10-19" } },
+      ];
+      const parsed = adapter["parseEvents"](events);
+      expect(parsed[0].isAllDay).toBe(true);
+    });
+
+    test("filters out events without id", () => {
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      const events: MicrosoftGraphEvent[] = [{ id: "" }, { id: "valid" }];
+      const parsed = adapter["parseEvents"](events);
+      expect(parsed.length).toBe(1);
+      expect(parsed[0].id).toBe("valid");
+    });
+  });
+
+  describe("getGraphClient - token refresh", () => {
+    test("uses cached token when available and not expired", async () => {
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      const credential = { ..._mockCredential, id: 999 };
+
+      await adapter["getGraphClient"](credential);
+
+      const client = await adapter["getGraphClient"](credential);
+      expect(client.accessToken).toBe("test-token");
+    });
+
+    test("refreshes token when expired", async () => {
+      vi.stubEnv("MS_GRAPH_CLIENT_ID", "test-client-id");
+      vi.stubEnv("MS_GRAPH_CLIENT_SECRET", "test-client-secret");
+
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      const expiredCred = {
+        ..._mockCredential,
+        key: {
+          access_token: "old-token",
+          refresh_token: "refresh-token",
+          expiry_date: Date.now() - 1000, // Expired
+        },
+      };
+
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          access_token: "new-token",
+          expires_in: 3600,
+          refresh_token: "new-refresh-token",
+        }),
+      });
+
+      const client = await adapter["getGraphClient"](expiredCred);
+      expect(client.accessToken).toBe("new-token");
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("login.microsoftonline.com"),
+        expect.any(Object)
+      );
+    });
+
+    test("uses delegated credential service account key", async () => {
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      const delegatedCred = {
+        ..._mockCredential,
+        delegatedTo: {
+          serviceAccountKey: {
+            private_key: "service-account-key",
+          },
+        },
+      };
+
+      const client = await adapter["getGraphClient"](delegatedCred);
+      expect(client.accessToken).toBe("service-account-key");
+    });
+  });
+
+  describe("refreshAccessToken", () => {
+    test("throws error when MS_GRAPH_CLIENT_ID is missing", async () => {
+      vi.stubEnv("MS_GRAPH_CLIENT_ID", "");
+      vi.stubEnv("MS_GRAPH_CLIENT_SECRET", "test-secret");
+
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      await expect(adapter["refreshAccessToken"]("refresh-token")).rejects.toThrow(
+        /Missing MS_GRAPH_CLIENT_ID/
+      );
+    });
+
+    test("throws error when refresh fails", async () => {
+      vi.stubEnv("MS_GRAPH_CLIENT_ID", "test-client-id");
+      vi.stubEnv("MS_GRAPH_CLIENT_SECRET", "test-client-secret");
+
+      const adapter = new Office365CalendarSubscriptionAdapter();
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: async () => "invalid_grant",
+      });
+
+      await expect(adapter["refreshAccessToken"]("invalid-token")).rejects.toThrow(
+        /Failed to refresh Microsoft access token/
+      );
     });
   });
 });

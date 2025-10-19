@@ -1,5 +1,3 @@
-import { CalendarCacheEventService } from "calendar-subscription/lib/cache/CalendarCacheEventService";
-
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
@@ -11,6 +9,7 @@ import {
   CalendarCredential,
   CalendarSubscriptionEventItem,
 } from "../lib/CalendarSubscriptionPort.interface";
+import { CalendarCacheEventService } from "../lib/cache/CalendarCacheEventService";
 
 const log = logger.getSubLogger({ prefix: ["MicrosoftCalendarSubscriptionAdapter"] });
 
