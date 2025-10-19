@@ -3,9 +3,8 @@ import type { NextRequest } from "next/server";
 import type { SatoriOptions } from "satori";
 import { z, ZodError } from "zod";
 
-import { Meeting, App, Generic } from "@calcom/lib/OgImages";
+import { Meeting, App, Generic, getOgImageVersion } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import SVG_HASHES from "@calcom/web/public/app-store/svg-hashes.json";
 
 export const runtime = "edge";
 
@@ -87,12 +86,15 @@ async function handler(req: NextRequest) {
             ogConfig
           );
 
+          const etag = await getOgImageVersion("meeting");
+
           return new Response(img.body, {
             status: 200,
             headers: {
               "Content-Type": "image/png",
               "Cache-Control":
                 "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
+              ETag: etag,
             },
           });
         } catch (error) {
@@ -122,26 +124,21 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
-          const svgHash = SVG_HASHES[slug] ?? null;
-
           const img = new ImageResponse(
             <App name={name} description={description} slug={slug} logoUrl={logoUrl} />,
             ogConfig
           );
 
-          const headers: Record<string, string> = {
-            "Content-Type": "image/png",
-            "Cache-Control":
-              "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
-          };
-
-          if (svgHash) {
-            headers["ETag"] = svgHash;
-          }
+          const etag = await getOgImageVersion("app");
 
           return new Response(img.body, {
             status: 200,
-            headers,
+            headers: {
+              "Content-Type": "image/png",
+              "Cache-Control":
+                "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
+              ETag: etag,
+            },
           });
         } catch (error) {
           if (error instanceof ZodError) {
@@ -170,12 +167,15 @@ async function handler(req: NextRequest) {
 
           const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
 
+          const etag = await getOgImageVersion("generic");
+
           return new Response(img.body, {
             status: 200,
             headers: {
               "Content-Type": "image/png",
               "Cache-Control":
                 "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
+              ETag: etag,
             },
           });
         } catch (error) {
@@ -198,7 +198,7 @@ async function handler(req: NextRequest) {
       default:
         return new Response("What you're looking for is not here..", { status: 404 });
     }
-  } catch (error) {
+  } catch {
     return new Response("Internal server error", { status: 500 });
   }
 }
