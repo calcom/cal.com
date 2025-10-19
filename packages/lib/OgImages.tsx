@@ -50,60 +50,33 @@ const joinMultipleNames = (names: string[] = []) => {
 const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CAL_URL}${url}`);
 
 const OG_ASSETS = {
-  // From Wrapper component - background images based on variant
-  backgrounds: {
-    light: "social-bg-light-lines.jpg", // Used by App and Generic
-    dark: "social-bg-dark-lines.jpg", // Used by Meeting
+  meeting: {
+    id: "meeting-og-image-v1", // Bump version when changing Meeting component structure/styling
+    logo: LOGO,
+    logoWidth: "350px",
+    avatarSize: "160px",
+    variant: "dark" as const,
   },
-  // From various components - logo references
-  logos: {
-    main: LOGO, // "/calcom-logo-white-word.svg" - used by Meeting and App
-    generic: "cal-logo-word-black.svg", // Used by Generic component
+  app: {
+    id: "app-og-image-v1", // Bump version when changing App component structure/styling
+    logo: LOGO,
+    logoWidth: "150px",
+    iconSize: "172px",
+    variant: "light" as const,
   },
-  // From font loading in the API route - these should match route.tsx
-  fonts: ["cal.ttf", "Inter-Regular.ttf", "Inter-Medium.ttf"],
-  // Layout-specific styling that affects the image output
-  styles: {
-    meeting: {
-      layout: "meeting-v3", // Update when Meeting component structure changes
-      logoWidth: "350px", // From Meeting component
-      avatarSize: "160px", // From Meeting component
-      titleFont: "cal-54px",
-      descFont: "inter-54px",
-      variant: "dark" as const,
-    },
-    app: {
-      layout: "app-v3", // Update when App component structure changes
-      logoWidth: "150px", // From App component
-      iconSize: "172px", // From App component
-      titleFont: "cal-64px-600",
-      descFont: "inter-36px",
-      variant: "light" as const,
-      blurEffect: "enabled",
-    },
-    generic: {
-      layout: "generic-v3", // Update when Generic component structure changes
-      logoWidth: "350px", // From Generic component
-      titleFont: "cal-54px",
-      descFont: "inter-54px",
-      variant: "light" as const,
-    },
+  generic: {
+    id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
+    logo: "cal-logo-word-black.svg",
+    logoWidth: "350px",
+    variant: "light" as const,
   },
 };
 
-const getOgImageVersion = async (type: "meeting" | "app" | "generic") => {
-  const style = OG_ASSETS.styles[type];
-  const versionInputs = {
-    layout: style.layout,
-    fonts: OG_ASSETS.fonts,
-    background: OG_ASSETS.backgrounds[style.variant],
-    logo: type === "generic" ? OG_ASSETS.logos.generic : OG_ASSETS.logos.main,
-    styling: style,
-  };
-
+export const getOgImageVersion = async (type: "meeting" | "app" | "generic") => {
+  const versionInputs = OG_ASSETS[type];
   const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
 
-  // Use Web Crypto API instead of Node.js crypto for Edge Runtime compatibility
+  // Use Web Crypto API instead of Node.js crypto for Edge Runtime compatibility (`/api/social/og/image` is an Edge Runtime route)
   const encoder = new TextEncoder();
   const data = encoder.encode(content);
   const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -198,7 +171,16 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
   </div>
 );
 
+/**
+ * Meeting OG Image Component
+ *
+ * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
+ * remember to bump the version in OG_ASSETS.meeting.id (e.g., "meeting-og-image-v1" → "meeting-og-image-v2")
+ * to ensure proper cache invalidation.
+ */
 export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
+  const config = OG_ASSETS.meeting;
+
   // We filter attendees here based on whether they have an image and filter duplicates.
   // Users ALWAYS have an image (albeit a gray empty person avatar), so this mainly filters out
   // any non existing images for dynamic collectives, while at the same time removing them from
@@ -220,10 +202,10 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   const names = attendees.length > 0 ? attendees.map((user) => user.name) : [profile.name];
 
   return (
-    <Wrapper variant="dark">
+    <Wrapper variant={config.variant}>
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-          <img src={`${WEBAPP_URL}/${LOGO}`} width="350" alt="Logo" />
+          <img src={`${WEBAPP_URL}/${config.logo}`} width={config.logoWidth} alt="Logo" />
           {avatars.length > 0 && (
             <div style={{ color: "#111827" }} tw="font-bold text-[92px] mx-8 bottom-2">
               /
@@ -236,12 +218,13 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
                 key={avatar}
                 src={avatar}
                 alt="Profile picture"
-                width="160"
-                height="160"
+                width={config.avatarSize}
+                height={config.avatarSize}
               />
             ))}
             {avatars.length > 3 && (
-              <div tw="flex items-center justify-center w-[160px] h-[160px] rounded-full bg-black text-inverted text-[54px] font-bold">
+              <div
+                tw={`flex items-center justify-center w-[${config.avatarSize}] h-[${config.avatarSize}] rounded-full bg-black text-inverted text-[54px] font-bold`}>
                 <span tw="flex top-[-5px] left-[-5px]">+{avatars.length - 3}</span>
               </div>
             )}
@@ -296,60 +279,75 @@ const VisualBlur = ({ logoUrl }: { logoUrl: string }) => {
   );
 };
 
-export const App = ({ name, description, logoUrl }: AppImageProps) => (
-  <Wrapper>
-    <img src={`${WEBAPP_URL}/${LOGO}`} width="150" alt="Logo" tw="absolute right-[48px] top-[48px]" />
+/**
+ * App OG Image Component
+ *
+ * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
+ * remember to bump the version in OG_ASSETS.app.id (e.g., "app-og-image-v1" → "app-og-image-v2")
+ * to ensure proper cache invalidation.
+ */
+export const App = ({ name, description, logoUrl }: AppImageProps) => {
+  const config = OG_ASSETS.app;
 
-    <VisualBlur logoUrl={logoUrl} />
+  return (
+    <Wrapper variant={config.variant}>
+      <img
+        src={`${WEBAPP_URL}/${config.logo}`}
+        width={config.logoWidth}
+        alt="Logo"
+        tw="absolute right-[48px] top-[48px]"
+      />
 
-    <div tw="flex items-center w-full">
-      <div tw="flex">
-        <img src={`${WEBAPP_URL}${logoUrl}`} alt="App icon" width="172" height="172" />
-      </div>
-    </div>
-    <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">
-      <div tw="flex text-[64px] mb-7" style={{ fontFamily: "cal", fontWeight: 600 }}>
-        {name}
-      </div>
-      <div tw="flex text-[36px]" style={{ fontFamily: "inter" }}>
-        {description}
-      </div>
-    </div>
-  </Wrapper>
-);
+      <VisualBlur logoUrl={logoUrl} />
 
-export const Generic = ({ title, description }: GenericImageProps) => (
-  <Wrapper>
-    <div tw="h-full flex flex-col justify-start">
-      <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-        <img src={`${WEBAPP_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
-      </div>
-
-      <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
-        <div tw="flex w-[1040px]" style={{ fontFamily: "cal" }}>
-          {title}
+      <div tw="flex items-center w-full">
+        <div tw="flex">
+          <img
+            src={`${WEBAPP_URL}${logoUrl}`}
+            alt="App icon"
+            width={config.iconSize}
+            height={config.iconSize}
+          />
         </div>
-        <div tw="flex mt-3 w-[1040px]" style={{ fontFamily: "inter" }}>
+      </div>
+      <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">
+        <div tw="flex text-[64px] mb-7" style={{ fontFamily: "cal", fontWeight: 600 }}>
+          {name}
+        </div>
+        <div tw="flex text-[36px]" style={{ fontFamily: "inter" }}>
           {description}
         </div>
       </div>
-    </div>
-  </Wrapper>
-);
+    </Wrapper>
+  );
+};
 
-export const ScreenShot = ({ image, fallbackImage }: ScreenshotImageProps) => (
-  <Wrapper rotateBackground>
-    <div tw="relative h-full w-full flex flex-col justify-center items-center">
-      <div tw="relative mt-[140px] flex rounded-2xl" style={{ boxShadow: "0 0 45px -3px rgba(0,0,0,.3)" }}>
-        <img
-          src={fallbackImage}
-          tw="absolute inset-0 rounded-2xl"
-          width="1024"
-          height="576"
-          alt="screenshot"
-        />
-        <img src={image} width="1024" height="576" tw="rounded-2xl" alt="screenshot" />
+/**
+ * Generic OG Image Component
+ *
+ * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
+ * remember to bump the version in OG_ASSETS.generic.id (e.g., "generic-og-image-v1" → "generic-og-image-v2")
+ * to ensure proper cache invalidation.
+ */
+export const Generic = ({ title, description }: GenericImageProps) => {
+  const config = OG_ASSETS.generic;
+
+  return (
+    <Wrapper variant={config.variant}>
+      <div tw="h-full flex flex-col justify-start">
+        <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
+          <img src={`${WEBAPP_URL}/${config.logo}`} width={config.logoWidth} alt="Logo" />
+        </div>
+
+        <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
+          <div tw="flex w-[1040px]" style={{ fontFamily: "cal" }}>
+            {title}
+          </div>
+          <div tw="flex mt-3 w-[1040px]" style={{ fontFamily: "inter" }}>
+            {description}
+          </div>
+        </div>
       </div>
-    </div>
-  </Wrapper>
-);
+    </Wrapper>
+  );
+};
