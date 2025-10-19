@@ -1,3 +1,6 @@
+import { CalendarCacheEventService } from "calendar-subscription/lib/cache/CalendarCacheEventService";
+
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
@@ -143,8 +146,17 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
       items.push(...response.value);
       deltaLink = response["@odata.deltaLink"] ?? deltaLink;
     } else {
-      let next: string | null = `/me/calendars/${selectedCalendar.externalId}/events/delta`;
-      log.info("Starting fresh delta sync", { url: next });
+      const now = dayjs().startOf("day");
+      const monthsAhead = now.add(CalendarCacheEventService.MONTHS_AHEAD, "month").endOf("day");
+
+      const start = now.toISOString();
+      const end = monthsAhead.toISOString();
+
+      let next:
+        | string
+        | null = `/me/calendars/${selectedCalendar.externalId}/events?$filter=start/dateTime ge '${start}' and start/dateTime le '${end}'&$orderby=start/dateTime asc`;
+
+      log.info("Initial fetch", { url: next });
 
       while (next) {
         const response: MicrosoftGraphEventsResponse = await this.request<MicrosoftGraphEventsResponse>(
@@ -153,9 +165,10 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
           next
         );
         items.push(...response.value);
-        deltaLink = response["@odata.deltaLink"] ?? deltaLink;
         next = response["@odata.nextLink"] ?? null;
       }
+
+      deltaLink = `/me/calendars/${selectedCalendar.externalId}/events/delta`;
     }
 
     return {
