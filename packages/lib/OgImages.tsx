@@ -172,8 +172,6 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
 );
 
 /**
- * Meeting OG Image Component
- *
  * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
  * remember to bump the version in OG_ASSETS.meeting.id (e.g., "meeting-og-image-v1" → "meeting-og-image-v2")
  * to ensure proper cache invalidation.
@@ -280,8 +278,6 @@ const VisualBlur = ({ logoUrl }: { logoUrl: string }) => {
 };
 
 /**
- * App OG Image Component
- *
  * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
  * remember to bump the version in OG_ASSETS.app.id (e.g., "app-og-image-v1" → "app-og-image-v2")
  * to ensure proper cache invalidation.
@@ -323,8 +319,6 @@ export const App = ({ name, description, logoUrl }: AppImageProps) => {
 };
 
 /**
- * Generic OG Image Component
- *
  * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
  * remember to bump the version in OG_ASSETS.generic.id (e.g., "generic-og-image-v1" → "generic-og-image-v2")
  * to ensure proper cache invalidation.
