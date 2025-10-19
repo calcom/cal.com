@@ -1,7 +1,7 @@
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
-import type {
+import {
   CalendarSubscriptionEvent,
   ICalendarSubscriptionPort,
   CalendarSubscriptionResult,
@@ -14,108 +14,79 @@ const log = logger.getSubLogger({ prefix: ["MicrosoftCalendarSubscriptionAdapter
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 type GraphClient = { accessToken: string };
 
-interface MicrosoftGraphEvent {
+export type MicrosoftGraphEvent = {
   id: string;
   iCalUId?: string;
   subject?: string;
   bodyPreview?: string;
   location?: { displayName?: string };
-  start?: { dateTime: string; timeZone: string };
-  end?: { dateTime: string; timeZone: string };
+  start?: { dateTime?: string; date?: string; timeZone?: string };
+  end?: { dateTime?: string; date?: string; timeZone?: string };
   showAs?: "free" | "tentative" | "busy" | "oof" | "workingElsewhere" | "unknown";
   isAllDay?: boolean;
   isCancelled?: boolean;
   type?: string;
-}
+  recurringEventId?: string;
+  "@odata.etag"?: string;
+  createdDateTime?: string;
+  lastModifiedDateTime?: string;
+};
 
-interface MicrosoftGraphEventsResponse {
+type MicrosoftGraphEventsResponse = {
   "@odata.nextLink"?: string;
   "@odata.deltaLink"?: string;
   value: MicrosoftGraphEvent[];
-}
-
-interface MicrosoftGraphSubscriptionReq {
-  resource: string;
-  changeType: string;
-  notificationUrl: string;
-  expirationDateTime: string;
-  clientState?: string;
-}
-
-interface MicrosoftGraphSubscriptionRes {
-  id: string;
-  resource: string;
-  expirationDateTime: string;
-}
-
-type AdapterConfig = {
-  baseUrl?: string;
-  webhookToken?: string | null;
-  webhookUrl?: string | null;
-  subscriptionTtlMs?: number;
 };
 
-/**
- * Office365 Calendar Subscription Adapter
- *
- * This adapter uses the Microsoft Graph API to create and manage calendar subscriptions
- * @see https://docs.microsoft.com/en-us/graph/api/resources/subscription
- */
-export class Office365CalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
-  private readonly baseUrl: string;
-  private readonly webhookToken?: string | null;
-  private readonly webhookUrl?: string | null;
-  private readonly subscriptionTtlMs: number;
+const BASE_URL = "https://graph.microsoft.com/v1.0";
+const SUBSCRIPTION_TTL_MS = 6 * 24 * 60 * 60 * 1000; // 7 days (max allowed for MS Graph)
+const BUSY_STATES = ["busy", "tentative", "oof"];
 
-  constructor(cfg: AdapterConfig = {}) {
-    this.baseUrl = cfg.baseUrl ?? "https://graph.microsoft.com/v1.0";
-    this.webhookToken = cfg.webhookToken ?? process.env.MICROSOFT_WEBHOOK_TOKEN ?? null;
-    this.webhookUrl = `${
-      process.env.MICROSOFT_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL
-    }/api/webhooks/calendar-subscription/office365_calendar`;
-    this.subscriptionTtlMs = cfg.subscriptionTtlMs ?? 3 * 24 * 60 * 60 * 1000;
-  }
+export class Office365CalendarSubscriptionAdapter implements ICalendarSubscriptionPort {
+  private readonly baseUrl = BASE_URL;
+  private readonly subscriptionTtlMs = SUBSCRIPTION_TTL_MS;
+  private readonly webhookToken = process.env.MICROSOFT_WEBHOOK_TOKEN ?? null;
+
+  private readonly webhookUrl = `${
+    process.env.MICROSOFT_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL
+  }/api/webhooks/calendar-subscription/office365_calendar`;
+  private tokenCache = new Map<string, { token: string; expiresAt: number }>();
 
   async validate(request: Request): Promise<boolean> {
-    // validate handshake
-    let validationToken: string | null = null;
-    if (request?.url) {
-      try {
-        const urlObj = new URL(request.url);
-        validationToken = urlObj.searchParams.get("validationToken");
-      } catch {
-        log.warn("Invalid request URL", { url: request.url });
-      }
-    }
-    if (validationToken) return true;
+    try {
+      const body = await request
+        .clone()
+        .json()
+        .catch(() => ({}));
+      const clientState =
+        request.headers.get("clientState") ?? body?.value?.[0]?.clientState ?? body?.clientState;
 
-    // validate notifications
-    const clientState =
-      request?.headers?.get("clientState") ??
-      (typeof request?.body === "object" && request.body !== null && "clientState" in request.body
-        ? (request.body as { clientState?: string }).clientState
-        : undefined);
-    if (!this.webhookToken) {
-      log.warn("MICROSOFT_WEBHOOK_TOKEN missing");
+      if (!this.webhookToken) {
+        log.warn("MICROSOFT_WEBHOOK_TOKEN missing");
+        return false;
+      }
+
+      if (clientState !== this.webhookToken) {
+        log.warn("Invalid clientState", { received: clientState, expected: this.webhookToken });
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      log.error("Error validating Microsoft webhook", err);
       return false;
     }
-    if (clientState !== this.webhookToken) {
-      log.warn("Invalid clientState");
-      return false;
-    }
-    return true;
   }
 
   async extractChannelId(request: Request): Promise<string | null> {
-    let id: string | null = null;
-    if (request?.body && typeof request.body === "object" && "subscriptionId" in request.body) {
-      id = (request.body as { subscriptionId?: string }).subscriptionId ?? null;
-    } else if (request?.headers?.get("subscriptionId")) {
-      id = request.headers.get("subscriptionId");
-    }
-    if (!id) {
-      log.warn("subscriptionId missing in webhook");
-    }
+    const body = await request
+      .clone()
+      .json()
+      .catch(() => ({}));
+    const id =
+      body?.value?.[0]?.subscriptionId ?? body?.subscriptionId ?? request.headers.get("subscriptionId");
+
+    if (!id) log.warn("subscriptionId missing in webhook");
     return id;
   }
 
@@ -127,18 +98,19 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
       throw new Error("Webhook config missing (MICROSOFT_WEBHOOK_URL/TOKEN)");
     }
 
-    const expirationDateTime = new Date(Date.now() + this.subscriptionTtlMs).toISOString();
-
-    const body: MicrosoftGraphSubscriptionReq = {
-      resource: `me/calendars/${selectedCalendar.externalId}/events`,
-      changeType: "created,updated,deleted",
-      notificationUrl: this.webhookUrl,
-      expirationDateTime,
-      clientState: this.webhookToken,
-    };
-
     const client = await this.getGraphClient(credential);
-    const res = await this.request<MicrosoftGraphSubscriptionRes>(client, "POST", "/subscriptions", body);
+    const res = await this.request<{ id: string; resource: string; expirationDateTime: string }>(
+      client,
+      "POST",
+      "/subscriptions",
+      {
+        resource: `me/calendars/${selectedCalendar.externalId}/events`,
+        changeType: "created,updated,deleted",
+        notificationUrl: this.webhookUrl,
+        expirationDateTime: new Date(Date.now() + this.subscriptionTtlMs).toISOString(),
+        clientState: this.webhookToken,
+      }
+    );
 
     return {
       provider: "office365_calendar",
@@ -162,26 +134,27 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
     credential: CalendarCredential
   ): Promise<CalendarSubscriptionEvent> {
     const client = await this.getGraphClient(credential);
-
-    let deltaLink = selectedCalendar.syncToken ?? null;
     const items: MicrosoftGraphEvent[] = [];
+    let deltaLink = selectedCalendar.syncToken ?? null;
 
     if (deltaLink) {
-      const path = this.stripBase(deltaLink);
-      const r = await this.request<MicrosoftGraphEventsResponse>(client, "GET", path);
-      items.push(...r.value);
-      deltaLink = r["@odata.deltaLink"] ?? deltaLink;
+      log.info("Fetching with deltaLink", { url: deltaLink });
+      const response = await this.request<MicrosoftGraphEventsResponse>(client, "GET", deltaLink);
+      items.push(...response.value);
+      deltaLink = response["@odata.deltaLink"] ?? deltaLink;
     } else {
       let next: string | null = `/me/calendars/${selectedCalendar.externalId}/events/delta`;
+      log.info("Starting fresh delta sync", { url: next });
+
       while (next) {
-        const r: MicrosoftGraphEventsResponse = await this.request<MicrosoftGraphEventsResponse>(
+        const response: MicrosoftGraphEventsResponse = await this.request<MicrosoftGraphEventsResponse>(
           client,
           "GET",
           next
         );
-        items.push(...r.value);
-        deltaLink = r["@odata.deltaLink"] ?? deltaLink;
-        next = r["@odata.nextLink"] ? this.stripBase(r["@odata.nextLink"]) : null;
+        items.push(...response.value);
+        deltaLink = response["@odata.deltaLink"] ?? deltaLink;
+        next = response["@odata.nextLink"] ?? null;
       }
     }
 
@@ -194,42 +167,92 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
 
   private parseEvents(events: MicrosoftGraphEvent[]): CalendarSubscriptionEventItem[] {
     return events
-      .map((e) => {
-        const busy = e.showAs === "busy" || e.showAs === "tentative" || e.showAs === "oof";
-        const start = e.start?.dateTime ? new Date(e.start.dateTime) : new Date();
-        const end = e.end?.dateTime ? new Date(e.end.dateTime) : new Date();
-
-        return {
-          id: e.id,
-          iCalUID: e.iCalUId ?? null,
-          start,
-          end,
-          busy,
-          etag: null,
-          summary: e.subject ?? null,
-          description: e.bodyPreview ?? null,
-          location: e.location?.displayName ?? null,
-          kind: e.type ?? "microsoftgraph#event",
-          status: e.isCancelled ? "cancelled" : "confirmed",
-          isAllDay: e.isAllDay ?? false,
-          timeZone: e.start?.timeZone ?? null,
-          recurringEventId: null,
-          originalStartDate: null,
-          createdAt: null,
-          updatedAt: null,
-        };
-      })
-      .filter(({ id }) => !!id);
+      .filter((e) => e.id)
+      .map((e) => ({
+        id: e.id,
+        iCalUID: e.iCalUId ?? null,
+        start: new Date(e.start?.dateTime ?? e.start?.date ?? Date.now()),
+        end: new Date(e.end?.dateTime ?? e.end?.date ?? Date.now()),
+        busy: e.showAs ? BUSY_STATES.includes(e.showAs) : true,
+        etag: e["@odata.etag"] ?? null,
+        summary: e.subject ?? null,
+        description: e.bodyPreview ?? null,
+        location: e.location?.displayName ?? null,
+        kind: e.type ?? "microsoft.graph.event",
+        status: e.isCancelled ? "cancelled" : "confirmed",
+        isAllDay: !!e.isAllDay,
+        timeZone: e.start?.timeZone ?? e.end?.timeZone ?? "UTC",
+        recurringEventId: e.recurringEventId ?? null,
+        originalStartDate: null,
+        createdAt: new Date(e.createdDateTime ?? Date.now()),
+        updatedAt: new Date(e.lastModifiedDateTime ?? Date.now()),
+      }));
   }
 
   private async getGraphClient(credential: CalendarCredential): Promise<GraphClient> {
-    const accessToken = credential.delegatedTo?.serviceAccountKey?.private_key ?? (credential.key as string);
-    if (!accessToken) throw new Error("Missing Microsoft access token");
-    return { accessToken };
+    const key = credential.key as {
+      access_token?: string;
+      refresh_token?: string;
+      expiry_date?: number;
+    };
+
+    if (credential.delegatedTo?.serviceAccountKey?.private_key) {
+      return { accessToken: credential.delegatedTo.serviceAccountKey.private_key };
+    }
+
+    const credentialId = String(credential.id);
+    const cached = this.tokenCache.get(credentialId);
+    if (cached && Date.now() < cached.expiresAt) {
+      return { accessToken: cached.token };
+    }
+
+    const isExpired = key.expiry_date ? Date.now() >= key.expiry_date - 5 * 60 * 1000 : false;
+
+    if (isExpired && key.refresh_token) {
+      log.info("Access token expired, refreshing...", { credentialId });
+      const newToken = await this.refreshAccessToken(key.refresh_token);
+
+      this.tokenCache.set(credentialId, {
+        token: newToken.access_token,
+        expiresAt: Date.now() + 55 * 60 * 1000,
+      });
+
+      return { accessToken: newToken.access_token };
+    }
+
+    if (!key.access_token) throw new Error("Missing Microsoft access token");
+    return { accessToken: key.access_token };
   }
 
-  private stripBase(urlOrPath: string): string {
-    return urlOrPath.startsWith("http") ? urlOrPath.replace(this.baseUrl, "") : urlOrPath;
+  private async refreshAccessToken(refreshToken: string): Promise<{
+    access_token: string;
+    expires_in: number;
+    refresh_token: string;
+  }> {
+    const clientId = process.env.MS_GRAPH_CLIENT_ID;
+    const clientSecret = process.env.MS_GRAPH_CLIENT_SECRET;
+    if (!clientId || !clientSecret) throw new Error("Missing MS_GRAPH_CLIENT_ID or MS_GRAPH_CLIENT_SECRET");
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    });
+
+    const response = await fetch("https://login.microsoftonline.com/common/oauth2/v2.0/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      log.error("Failed to refresh token", { status: response.status, error });
+      throw new Error("Failed to refresh Microsoft access token");
+    }
+
+    return await response.json();
   }
 
   private async request<T = unknown>(
@@ -239,13 +262,15 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
     data?: unknown
   ): Promise<T> {
     const url = endpoint.startsWith("http") ? endpoint : `${this.baseUrl}${endpoint}`;
-    const headers: Record<string, string> = {
-      Authorization: `Bearer ${client.accessToken}`,
-      "Content-Type": "application/json",
+    const init: RequestInit = {
+      method,
+      headers: {
+        Authorization: `Bearer ${client.accessToken}`,
+        "Content-Type": "application/json",
+      },
     };
 
-    const init: RequestInit = { method, headers };
-    if (data && (method === "POST" || method === "PUT" || method === "PATCH")) {
+    if (data && ["POST", "PUT", "PATCH"].includes(method)) {
       init.body = JSON.stringify(data);
     }
 
@@ -253,12 +278,10 @@ export class Office365CalendarSubscriptionAdapter implements ICalendarSubscripti
 
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      log.error("Graph API error", { method, endpoint: this.stripBase(url), status: res.status, text });
-      throw new Error(`Graph ${res.status} ${res.statusText}`);
+      log.error("Graph API error", { method, url, status: res.status, text });
+      throw new Error(`Graph ${res.status} ${res.statusText}: ${text}`);
     }
 
-    if (method === "DELETE" || res.status === 204) return {} as T;
-
-    return (await res.json()) as T;
+    return method === "DELETE" || res.status === 204 ? ({} as T) : await res.json();
   }
 }
