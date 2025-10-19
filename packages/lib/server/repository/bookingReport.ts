@@ -40,4 +40,46 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     });
     return reports;
   }
+
+  async findReportsForOrganization(params: {
+    organizationId: number;
+    limit: number;
+    offset: number;
+    searchTerm?: string;
+  }) {
+    const where = {
+      organizationId: params.organizationId,
+      watchlistId: null,
+      ...(params.searchTerm && {
+        bookerEmail: { contains: params.searchTerm, mode: "insensitive" as const },
+      }),
+    };
+
+    const [rows, totalRowCount] = await Promise.all([
+      this.prismaClient.bookingReport.findMany({
+        where,
+        take: params.limit,
+        skip: params.offset,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          bookerEmail: true,
+          reason: true,
+          createdAt: true,
+          booking: { select: { title: true, startTime: true } },
+          reportedBy: { select: { id: true, name: true, email: true } },
+        },
+      }),
+      this.prismaClient.bookingReport.count({ where }),
+    ]);
+
+    return { rows, meta: { totalRowCount } };
+  }
+
+  async markReportAsHandled(reportId: string): Promise<void> {
+    await this.prismaClient.bookingReport.update({
+      where: { id: reportId },
+      data: { updatedAt: new Date() },
+    });
+  }
 }

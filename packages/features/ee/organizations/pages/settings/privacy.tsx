@@ -8,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import { BlocklistTable } from "~/settings/organizations/privacy/blocklist-table";
+import { ReportedBookingsTable } from "~/settings/organizations/privacy/reported-bookings-table";
 
 const PrivacyView = ({
   permissions,
@@ -47,6 +48,20 @@ const PrivacyView = ({
             <div className="mt-2">
               <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
                 <BlocklistTable permissions={watchlistPermissions} />
+              </DataTableProvider>
+            </div>
+          </div>
+        )}
+
+        {watchlistPermissions?.canRead && (
+          <div>
+            <div>
+              <h2 className="text-emphasis text-base font-semibold">{t("reported_bookings")}</h2>
+              <p className="text-muted text-sm">{t("review_and_manage_reported_bookings")}</p>
+            </div>
+            <div className="mt-2">
+              <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+                <ReportedBookingsTable permissions={watchlistPermissions} />
               </DataTableProvider>
             </div>
           </div>
