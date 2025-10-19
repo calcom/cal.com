@@ -113,12 +113,10 @@ export function calculatePeriodLimits({
       // We use organizer's timezone here(in contrast with ROLLING/ROLLING_WINDOW where number of days is available and not the specific date objects).
       // This is because in case of range the start and end date objects are determined by the organizer, so we should consider the range in organizer/event's timezone.
 
-      // Period start/end can be stored in two ways in tests/DB:
-      // 1) As UTC midnight for a calendar date (e.g. "2024-01-31T00:00:00.000Z") — this should be
-      //    interpreted as that calendar date in the event timezone.
-      // 2) As the UTC equivalent of midnight in the event timezone (e.g. IST midnight -> "2024-05-31T18:30:00.000Z").
-      // We detect which case we have and handle both.
-
+      // Dates can be stored in two different formats:
+      // 1) UTC midnight timestamps that represent a calendar date
+      // 2) Timestamps that already encode the event timezone's midnight as a UTC instant
+      // We need to handle both cases correctly
       const startTs = dayjs(periodStartDate);
       const endTs = dayjs(periodEndDate);
 
@@ -131,7 +129,7 @@ export function calculatePeriodLimits({
       let endOfRangeEndDayInEventTz: dayjs.Dayjs;
 
       if (isMidnightUtc(startTs)) {
-        // Case 1: stored as UTC midnight representing the calendar date — extract date and reinterpret
+        // If it's UTC midnight, treat it as a calendar date in the event's timezone
         const startCalendarDate = startTs.utc().format("YYYY-MM-DD");
         startOfRangeStartDayInEventTz = dayjs
           .utc(startCalendarDate)
@@ -139,7 +137,7 @@ export function calculatePeriodLimits({
           .utcOffset(eventUtcOffset)
           .startOf("day");
       } else {
-        // Case 2: timestamp already represents midnight in event tz (expressed in UTC) — convert to event tz
+        // Otherwise it already represents the correct moment for that timezone
         startOfRangeStartDayInEventTz = startTs.utcOffset(eventUtcOffset).startOf("day");
       }
 
