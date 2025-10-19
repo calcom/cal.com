@@ -1,7 +1,6 @@
 "use client";
 
 import type { Row, VisibilityState } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect, useRef } from "react";
 

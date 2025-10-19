@@ -97,7 +97,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
     invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
     expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
     updateTokenObject: (tokenObject) => {
-      if (!Boolean(credential.delegatedTo)) {
+      if (!credential.delegatedTo) {
         return oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id });
       }
       return Promise.resolve();

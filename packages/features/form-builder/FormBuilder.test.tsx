@@ -134,8 +134,6 @@ describe("FormBuilder", () => {
               },
             },
           },
-          // @typescript-eslint/no-explicit-any
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           shouldConsiderRequired: (field: any) => {
             return field.name === "location" ? true : false;
           },

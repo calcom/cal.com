@@ -1,5 +1,4 @@
 import { createColumnHelper } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 import { useMemo } from "react";
 import { z } from "zod";

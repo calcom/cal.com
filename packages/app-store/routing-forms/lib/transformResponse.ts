@@ -31,7 +31,7 @@ function transformSelectValue({
     } else {
       // If shouldUseLabelAsValue is false, then we must use id as value
       // Because shouldUseLabelAsValue is false, id must be set already
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       return foundOptionById.id!;
     }
   } else {
@@ -44,7 +44,7 @@ function transformSelectValue({
       if (!shouldUseLabelAsValue) {
         // If shouldUseLabelAsValue is false, then we must use id as value
         // Because shouldUseLabelAsValue is false, id must be set already
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
         return foundOptionByLabel.id!;
       }
     }

@@ -23,9 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     });
     if (localUser?.refreshToken) {
       const response = await fetch(
-        // eslint-disable-next-line turbo/no-undeclared-env-vars
         `${process.env.NEXT_PUBLIC_CALCOM_API_URL ?? ""}/oauth/${
-          // eslint-disable-next-line turbo/no-undeclared-env-vars
           process.env.NEXT_PUBLIC_X_CAL_ID ?? ""
         }/refresh`,
         {

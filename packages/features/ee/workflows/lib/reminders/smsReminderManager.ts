@@ -135,7 +135,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs & { evt
         phoneNumber: reminderPhone || "",
       },
     });
-    if (!!verifiedNumber) return true;
+    if (verifiedNumber) return true;
     return isVerificationPending;
   }
   const isNumberVerified = await getIsNumberVerified();

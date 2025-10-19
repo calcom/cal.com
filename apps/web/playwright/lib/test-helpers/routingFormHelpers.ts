@@ -153,7 +153,6 @@ export async function createRoutingForm(config: CreateRoutingFormConfig) {
       throw new Error("Attributes not found");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const skillAttribute = attributes.find((attr) => attr.name === "Skills")!;
 
     const javascriptEventRoute = {

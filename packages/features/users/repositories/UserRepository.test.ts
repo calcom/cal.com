@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, test, vi, expect, beforeEach } from "vitest";

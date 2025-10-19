@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { sortBy } from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";

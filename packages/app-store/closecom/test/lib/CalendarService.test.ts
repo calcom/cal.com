@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect, vi, afterEach, test } from "vitest";
 
 import CloseCom from "@calcom/lib/CloseCom";

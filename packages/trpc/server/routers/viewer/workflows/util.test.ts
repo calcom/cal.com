@@ -23,7 +23,6 @@ describe("isAuthorized", () => {
       () =>
         ({
           checkPermission: mockCheckPermission,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any)
     );
   });
@@ -358,7 +357,7 @@ describe("isAuthorized", () => {
     it("should handle workflow with undefined teamId as personal workflow", async () => {
       const workflow = {
         id: 1,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
         teamId: undefined as any,
         userId: 123,
       };

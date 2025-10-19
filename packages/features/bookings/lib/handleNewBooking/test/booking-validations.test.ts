@@ -36,7 +36,7 @@ const { mockFindManyByEmailsWithEmailVerificationSettings, mockFindByEmailWithEm
 
 vi.mock("@calcom/features/users/repositories/UserRepository", async (importOriginal) => {
   const actual = await importOriginal();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const OriginalUserRepository = (actual as any).UserRepository;
 
   return {

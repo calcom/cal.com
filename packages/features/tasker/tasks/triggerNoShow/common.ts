@@ -77,7 +77,7 @@ export function sendWebhookPayload(
       attendees: booking.attendees,
       endTime: booking.endTime,
       participants,
-      ...(!!hostEmail ? { hostEmail } : {}),
+      ...(hostEmail ? { hostEmail } : {}),
       ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,

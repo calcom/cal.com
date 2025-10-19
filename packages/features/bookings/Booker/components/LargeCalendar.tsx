@@ -43,7 +43,7 @@ export const LargeCalendar = ({
 
   // HACK: force rerender when overlay events change
   // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   useEffect(() => {}, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
