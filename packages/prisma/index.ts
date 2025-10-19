@@ -10,13 +10,14 @@ import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
-const pool = process.env.USE_POOL
-  ? new Pool({
-      connectionString: connectionString,
-      max: 3,
-      idleTimeoutMillis: 300000,
-    })
-  : undefined;
+const pool =
+  process.env.USE_POOL === "true" || process.env.USE_POOL === "1"
+    ? new Pool({
+        connectionString: connectionString,
+        max: 3,
+        idleTimeoutMillis: 300000,
+      })
+    : undefined;
 
 if (pool) {
   let openedConnections = 0;
