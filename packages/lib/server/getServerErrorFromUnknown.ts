@@ -21,6 +21,50 @@ function isPrismaError(cause: unknown): cause is Prisma.PrismaClientKnownRequest
   return cause instanceof Prisma.PrismaClientKnownRequestError;
 }
 
+function isTRPCError(cause: unknown): cause is { code: string; message: string } {
+  return (
+    !!cause &&
+    typeof cause === "object" &&
+    "code" in cause &&
+    typeof cause.code === "string" &&
+    "message" in cause
+  );
+}
+
+function getTRPCErrorStatusCode(code: string): number {
+  switch (code) {
+    case "PARSE_ERROR":
+    case "BAD_REQUEST":
+    case "UNPROCESSABLE_CONTENT":
+      return 400;
+    case "UNAUTHORIZED":
+      return 401;
+    case "FORBIDDEN":
+      return 403;
+    case "NOT_FOUND":
+      return 404;
+    case "METHOD_NOT_SUPPORTED":
+      return 405;
+    case "TIMEOUT":
+      return 408;
+    case "CONFLICT":
+      return 409;
+    case "PRECONDITION_FAILED":
+      return 412;
+    case "PAYLOAD_TOO_LARGE":
+      return 413;
+    case "UNSUPPORTED_MEDIA_TYPE":
+      return 415;
+    case "TOO_MANY_REQUESTS":
+      return 429;
+    case "CLIENT_CLOSED_REQUEST":
+      return 499;
+    case "INTERNAL_SERVER_ERROR":
+    default:
+      return 500;
+  }
+}
+
 function parseZodErrorIssues(issues: ZodIssue[]): string {
   return issues
     .map((i) =>
@@ -34,6 +78,10 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 }
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
+  if (isTRPCError(cause)) {
+    const statusCode = getTRPCErrorStatusCode(cause.code);
+    return new HttpError({ statusCode, message: cause.message });
+  }
   if (isZodError(cause)) {
     return new HttpError({
       statusCode: 400,
