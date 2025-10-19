@@ -383,22 +383,36 @@ export class InsightsRoutingBaseService {
       totalWithoutBookingQuery
     );
 
-    // Get reassigned bookings count, average time to book, and seats data in a single query
+    // Get reassigned bookings count, average time to book, and seats data
     const statsQuery = Prisma.sql`
       SELECT 
         COUNT(DISTINCT CASE WHEN b."reassignById" IS NOT NULL THEN b.id END)::integer as reassigned_count,
         AVG(EXTRACT(EPOCH FROM (rfrd."bookingCreatedAt" - rfrd."createdAt")))::integer as avg_seconds,
         COUNT(DISTINCT b.id)::integer as total_bookings,
-        COUNT(DISTINCT CASE WHEN EXISTS (SELECT 1 FROM "BookingSeat" bs WHERE bs."bookingId" = b.id) THEN b.id END)::integer as total_seats_bookings,
-        COUNT(DISTINCT CASE 
-          WHEN et."seatsPerTimeSlot" IS NOT NULL 
-          AND (SELECT COUNT(*) FROM "BookingSeat" bs WHERE bs."bookingId" = b.id) >= et."seatsPerTimeSlot"
-          THEN b.id 
-        END)::integer as fully_booked_events
+        COUNT(DISTINCT CASE WHEN EXISTS (SELECT 1 FROM "BookingSeat" bs WHERE bs."bookingId" = b.id) THEN b.id END)::integer as total_seats_bookings
       FROM "RoutingFormResponseDenormalized" rfrd
       INNER JOIN "Booking" b ON b.uid = rfrd."bookingUid"
-      LEFT JOIN "EventType" et ON et.id = b."eventTypeId"
       WHERE ${baseConditions}
+    `;
+
+    // Calculate fully booked events by grouping by time slot
+    const fullyBookedQuery = Prisma.sql`
+      SELECT COUNT(*)::integer as fully_booked_count
+      FROM (
+        SELECT 
+          b."eventTypeId",
+          b."startTime",
+          et."seatsPerTimeSlot",
+          COUNT(DISTINCT bs.id) as seats_filled
+        FROM "RoutingFormResponseDenormalized" rfrd
+        INNER JOIN "Booking" b ON b.uid = rfrd."bookingUid"
+        INNER JOIN "EventType" et ON et.id = b."eventTypeId"
+        INNER JOIN "BookingSeat" bs ON bs."bookingId" = b.id
+        WHERE ${baseConditions}
+          AND et."seatsPerTimeSlot" IS NOT NULL
+        GROUP BY b."eventTypeId", b."startTime", et."seatsPerTimeSlot"
+        HAVING COUNT(DISTINCT bs.id) >= et."seatsPerTimeSlot"
+      ) as fully_booked_slots
     `;
 
     const statsResult = await this.prisma.$queryRaw<
@@ -407,13 +421,19 @@ export class InsightsRoutingBaseService {
         avg_seconds: number | null;
         total_bookings: number;
         total_seats_bookings: number;
-        fully_booked_events: number;
       }>
     >(statsQuery);
+
+    const fullyBookedResult = await this.prisma.$queryRaw<
+      Array<{
+        fully_booked_count: number;
+      }>
+    >(fullyBookedQuery);
 
     const total = Number(totalResult[0]?.count || 0);
     const totalWithoutBooking = Number(totalWithoutBookingResult[0]?.count || 0);
     const stats = statsResult[0];
+    const fullyBooked = fullyBookedResult[0]?.fully_booked_count || 0;
 
     return {
       total,
@@ -426,7 +446,7 @@ export class InsightsRoutingBaseService {
           ? {
               totalBookings: stats.total_bookings,
               totalSeatsBookings: stats.total_seats_bookings,
-              fullyBookedEvents: stats.fully_booked_events,
+              fullyBookedEvents: fullyBooked,
             }
           : null,
     };
@@ -1139,7 +1159,7 @@ export class InsightsRoutingBaseService {
       LEFT JOIN LATERAL unnest(f."valueStringArray") as arr(value) ON f."valueStringArray" != '{}'
       WHERE ${baseConditions}
         AND COALESCE(arr.value, f."valueString", f."valueNumber"::text) IS NOT NULL
-      GROUP BY f."fieldId", COALESCE(arr.value, f."valueString", f."valueNumber"::text)
+      GROUP BY rfrd."formId", f."fieldId", COALESCE(arr.value, f."valueString", f."valueNumber"::text)
       ORDER BY count DESC
       LIMIT 20
     `;

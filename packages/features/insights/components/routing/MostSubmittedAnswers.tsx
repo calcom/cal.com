@@ -18,7 +18,7 @@ const CustomTooltip = ({
     dataKey: string;
     name: string;
     color: string;
-    payload: { answer: string; count: number };
+    payload: { answer: string; fullAnswer: string; count: number };
   }>;
 }) => {
   const { t } = useLocale();
@@ -28,7 +28,7 @@ const CustomTooltip = ({
 
   return (
     <div className="bg-default border-subtle rounded-lg border p-3 shadow-lg">
-      <p className="text-default font-medium">{payload[0].payload.answer}</p>
+      <p className="text-default font-medium">{payload[0].payload.fullAnswer}</p>
       <p>
         {t("response_count")}: {payload[0].value}
       </p>

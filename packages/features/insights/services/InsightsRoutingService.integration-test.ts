@@ -1663,11 +1663,30 @@ describe("InsightsRoutingService Integration Tests", () => {
         },
       });
 
+      // Create attendees
+      const attendee1 = await prisma.attendee.create({
+        data: {
+          email: `attendee1-${randomUUID()}@example.com`,
+          name: "Attendee 1",
+          timeZone: "UTC",
+          bookingId: seatsBooking.id,
+        },
+      });
+
+      const attendee2 = await prisma.attendee.create({
+        data: {
+          email: `attendee2-${randomUUID()}@example.com`,
+          name: "Attendee 2",
+          timeZone: "UTC",
+          bookingId: seatsBooking.id,
+        },
+      });
+
       // Create booking seats
       await prisma.bookingSeat.createMany({
         data: [
-          { bookingId: seatsBooking.id, attendeeId: 1, referenceUid: `ref-${randomUUID()}` },
-          { bookingId: seatsBooking.id, attendeeId: 2, referenceUid: `ref-${randomUUID()}` },
+          { bookingId: seatsBooking.id, attendeeId: attendee1.id, referenceUid: `ref-${randomUUID()}` },
+          { bookingId: seatsBooking.id, attendeeId: attendee2.id, referenceUid: `ref-${randomUUID()}` },
         ],
       });
 
