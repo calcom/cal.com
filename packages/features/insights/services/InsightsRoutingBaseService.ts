@@ -383,13 +383,52 @@ export class InsightsRoutingBaseService {
       totalWithoutBookingQuery
     );
 
+    // Get reassigned bookings count, average time to book, and seats data in a single query
+    const statsQuery = Prisma.sql`
+      SELECT 
+        COUNT(DISTINCT CASE WHEN b."reassignById" IS NOT NULL THEN b.id END)::integer as reassigned_count,
+        AVG(EXTRACT(EPOCH FROM (rfrd."bookingCreatedAt" - rfrd."createdAt")))::integer as avg_seconds,
+        COUNT(DISTINCT b.id)::integer as total_bookings,
+        COUNT(DISTINCT CASE WHEN EXISTS (SELECT 1 FROM "BookingSeat" bs WHERE bs."bookingId" = b.id) THEN b.id END)::integer as total_seats_bookings,
+        COUNT(DISTINCT CASE 
+          WHEN et."seatsPerTimeSlot" IS NOT NULL 
+          AND (SELECT COUNT(*) FROM "BookingSeat" bs WHERE bs."bookingId" = b.id) >= et."seatsPerTimeSlot"
+          THEN b.id 
+        END)::integer as fully_booked_events
+      FROM "RoutingFormResponseDenormalized" rfrd
+      INNER JOIN "Booking" b ON b.uid = rfrd."bookingUid"
+      LEFT JOIN "EventType" et ON et.id = b."eventTypeId"
+      WHERE ${baseConditions}
+    `;
+
+    const statsResult = await this.prisma.$queryRaw<
+      Array<{
+        reassigned_count: number;
+        avg_seconds: number | null;
+        total_bookings: number;
+        total_seats_bookings: number;
+        fully_booked_events: number;
+      }>
+    >(statsQuery);
+
     const total = Number(totalResult[0]?.count || 0);
     const totalWithoutBooking = Number(totalWithoutBookingResult[0]?.count || 0);
+    const stats = statsResult[0];
 
     return {
       total,
       totalWithoutBooking,
       totalWithBooking: total - totalWithoutBooking,
+      totalReassigned: stats?.reassigned_count || 0,
+      avgTimeToBook: stats?.avg_seconds || 0,
+      seatsData:
+        stats && stats.total_bookings > 0
+          ? {
+              totalBookings: stats.total_bookings,
+              totalSeatsBookings: stats.total_seats_bookings,
+              fullyBookedEvents: stats.fully_booked_events,
+            }
+          : null,
     };
   }
 
@@ -1069,4 +1108,52 @@ export class InsightsRoutingBaseService {
 
     return sortedGroupedByFormAndField;
   }
+
+  async getMostSubmittedAnswers(): Promise<
+    Array<{
+      fieldId: string;
+      fieldLabel: string;
+      answer: string;
+      count: number;
+    }>
+  > {
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT 
+      f."fieldId" as "fieldId",
+      COALESCE(
+        (SELECT field->>'label' 
+        FROM "App_RoutingForms_Form" form,
+        LATERAL jsonb_array_elements(form.fields) as field
+        WHERE form.id = rfrd."formId" 
+        AND field->>'id' = f."fieldId"
+        LIMIT 1
+        ),
+        f."fieldId"
+      ) as "fieldLabel",
+      COALESCE(arr.value, f."valueString", f."valueNumber"::text) as answer,
+      COUNT(DISTINCT rfrd.id)::integer as count
+      FROM "RoutingFormResponseDenormalized" rfrd
+      JOIN "RoutingFormResponseField" f ON rfrd.id = f."responseId"
+      LEFT JOIN LATERAL unnest(f."valueStringArray") as arr(value) ON f."valueStringArray" != '{}'
+      WHERE ${baseConditions}
+        AND COALESCE(arr.value, f."valueString", f."valueNumber"::text) IS NOT NULL
+      GROUP BY f."fieldId", COALESCE(arr.value, f."valueString", f."valueNumber"::text)
+      ORDER BY count DESC
+      LIMIT 20
+    `;
+
+    const result = await this.prisma.$queryRaw<
+      Array<{
+        fieldId: string;
+        fieldLabel: string;
+        answer: string;
+        count: number;
+      }>
+    >(query);
+
+    return result;
+  }
+
 }

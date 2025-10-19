@@ -5,6 +5,7 @@ import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
   RoutingFormResponsesTable,
   FailedBookingsByField,
+  MostSubmittedAnswers,
   RoutedToPerPeriod,
   RoutingFunnel,
 } from "@calcom/features/insights/components/routing";
@@ -21,6 +22,8 @@ export default function InsightsRoutingFormResponsesPage() {
           <RoutingFormResponsesTable />
 
           <RoutingFunnel />
+
+          <MostSubmittedAnswers />
 
           <div className="flex flex-col gap-4 md:flex-row">
             <RoutedToPerPeriod />
