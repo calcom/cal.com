@@ -1,0 +1,25 @@
+{
+  "name": "Waitlistbot",
+  "slug": "waitlistbot",
+  "type": "waitlistbot_other",
+  "logo": "/api/app-store/waitlistbot/icon.svg",
+  "url": "https://waitlistbot.com",
+  "variant": "other",
+  "categories": ["automation"],
+  "publisher": "Waitlistbot",
+  "email": "support@waitlistbot.com",
+  "description": "Automatically fill cancelled appointment slots with waitlist members. Get instant notifications via email and SMS when appointments become available.",
+  "extendsFeature": "Event Types",
+  "isGlobal": false,
+  "dirName": "waitlistbot",
+  "// OAuth Configuration": "These URLs point to your Waitlistbot OAuth flow",
+  "oauth": {
+    "authUrl": "https://waitlistbot.com/oauth/calcom/start",
+    "tokenUrl": "https://hryysgnesechtoymyodl.supabase.co/functions/v1/calcom-marketplace-callback"
+  },
+  "// Webhook Configuration": "Cal.com will send events to this endpoint",
+  "webhook": {
+    "subscriberUrl": "https://hryysgnesechtoymyodl.supabase.co/functions/v1/calcom-webhook",
+    "eventTriggers": ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"]
+  }
+}
