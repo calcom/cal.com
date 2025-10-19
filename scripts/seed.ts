@@ -1366,9 +1366,15 @@ async function main() {
   });
 }
 
-main()
-  .then(() => mainAppStore())
-  .then(() => mainHugeEventTypesSeed())
+async function runSeed() {
+  await prisma.$connect();
+  
+  await main();
+  await mainAppStore();
+  await mainHugeEventTypesSeed();
+}
+
+runSeed()
   .catch((e) => {
     console.error(e);
     process.exit(1);
