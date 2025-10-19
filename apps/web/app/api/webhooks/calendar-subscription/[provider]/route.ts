@@ -68,7 +68,7 @@ async function postHandler(request: NextRequest, ctx: { params: Promise<Params> 
     const url = new URL(request.url);
     const validationToken = url.searchParams.get("validationToken");
     if (validationToken) {
-      return NextResponse.json({ validationToken }, { status: 200 });
+      return new NextResponse(validationToken, { status: 200, headers: { "Content-Type": "text/plain" } });
     }
 
     // are features globally enabled
