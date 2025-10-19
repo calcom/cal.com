@@ -121,10 +121,10 @@ export function ReportedBookingsTable({ permissions: _permissions }: ReportedBoo
         cell: ({ row }) => (
           <Badge variant="orange">
             {row.original.reason === "SPAM"
-              ? "Spam"
+              ? t("reason_spam")
               : row.original.reason === "DONT_KNOW_PERSON"
-              ? "Don't Know Person"
-              : "Other"}
+              ? t("reason_dont_know_person")
+              : t("reason_other")}
           </Badge>
         ),
       },
@@ -237,11 +237,11 @@ export function ReportedBookingsTable({ permissions: _permissions }: ReportedBoo
       <Dialog open={showActionDialog} onOpenChange={setShowActionDialog}>
         <ConfirmationDialogContent
           variety={pendingAction === "ignore" ? "warning" : "danger"}
-          title={`Confirm ${pendingAction?.replace("_", " ")}`}
-          confirmBtnText="Confirm"
+          title={t("confirm")}
+          confirmBtnText={t("confirm")}
           onConfirm={confirmAction}
           isPending={handleBookingReport.isPending}>
-          Are you sure you want to {getActionText()} for {selectedReport?.bookerEmail}?
+          {t("confirm_action", { action: getActionText(), email: selectedReport?.bookerEmail })}
         </ConfirmationDialogContent>
       </Dialog>
     </>
