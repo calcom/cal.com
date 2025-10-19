@@ -30,8 +30,6 @@ export class CalendarCacheEventService {
     const toUpsert: Partial<CalendarCacheEvent>[] = [];
     const toDelete: Pick<CalendarCacheEvent, "externalId" | "selectedCalendarId">[] = [];
 
-    console.log("AMAZING", calendarSubscriptionEvents);
-
     for (const event of calendarSubscriptionEvents) {
       // not storing free or cancelled events
       if (event.busy && event.status !== "cancelled") {
