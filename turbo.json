@@ -289,7 +289,8 @@
     "MICROSOFT_WEBHOOK_URL",
     "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
     "ENTERPRISE_SLUGS",
-    "PLATFORM_ENTERPRISE_SLUGS"
+    "PLATFORM_ENTERPRISE_SLUGS",
+    "USE_POOL"
   ],
   "tasks": {
     "@calcom/web#copy-app-store-static": {
@@ -382,7 +383,8 @@
         "DATABASE_READ_URL",
         "DATABASE_WRITE_URL",
         "LOG_LEVEL",
-        "NEXTAUTH_SECRET"
+        "NEXTAUTH_SECRET",
+        "USE_POOL"
       ]
     },
     "@calcom/ai#build": {

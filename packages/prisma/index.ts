@@ -9,10 +9,8 @@ import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-pa
 import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
-declare const __USE_POOL__: boolean;
-
 const connectionString = process.env.DATABASE_URL || "";
-const pool = __USE_POOL__
+const pool = process.env.USE_POOL
   ? new Pool({
       connectionString: connectionString,
       max: 3,
