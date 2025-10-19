@@ -46,7 +46,15 @@ export const BorderRadiusTable: React.FC<BorderRadiusTableProps> = () => {
           <div
             key={token.name}
             onClick={() => handleCopy(token.className)}
-            className="border-subtle bg-default hover:bg-subtle group relative cursor-pointer overflow-hidden rounded-lg border p-4">
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleCopy(token.className);
+              }
+            }}
+            className="border-subtle bg-default hover:bg-subtle group relative cursor-pointer overflow-hidden rounded-lg border p-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div>
