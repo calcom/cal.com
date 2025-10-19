@@ -113,21 +113,46 @@ export function calculatePeriodLimits({
       // We use organizer's timezone here(in contrast with ROLLING/ROLLING_WINDOW where number of days is available and not the specific date objects).
       // This is because in case of range the start and end date objects are determined by the organizer, so we should consider the range in organizer/event's timezone.
 
-      // Dates are stored as midnight UTC but represent calendar dates in the event timezone
-      // Extract the date and reinterpret it as midnight in the event timezone
-      const startCalendarDate = dayjs.utc(periodStartDate).format("YYYY-MM-DD");
-      const endCalendarDate = dayjs.utc(periodEndDate).format("YYYY-MM-DD");
+      // Period start/end can be stored in two ways in tests/DB:
+      // 1) As UTC midnight for a calendar date (e.g. "2024-01-31T00:00:00.000Z") — this should be
+      //    interpreted as that calendar date in the event timezone.
+      // 2) As the UTC equivalent of midnight in the event timezone (e.g. IST midnight -> "2024-05-31T18:30:00.000Z").
+      // We detect which case we have and handle both.
 
-      const startOfRangeStartDayInEventTz = dayjs
-        .utc(startCalendarDate)
-        .add(-eventUtcOffset, "minutes")
-        .utcOffset(eventUtcOffset)
-        .startOf("day");
-      const endOfRangeEndDayInEventTz = dayjs
-        .utc(endCalendarDate)
-        .add(-eventUtcOffset, "minutes")
-        .utcOffset(eventUtcOffset)
-        .endOf("day");
+      const startTs = dayjs(periodStartDate);
+      const endTs = dayjs(periodEndDate);
+
+      const isMidnightUtc = (ts: dayjs.Dayjs) => {
+        const u = ts.utc();
+        return u.hour() === 0 && u.minute() === 0 && u.second() === 0 && u.millisecond() === 0;
+      };
+
+      let startOfRangeStartDayInEventTz: dayjs.Dayjs;
+      let endOfRangeEndDayInEventTz: dayjs.Dayjs;
+
+      if (isMidnightUtc(startTs)) {
+        // Case 1: stored as UTC midnight representing the calendar date — extract date and reinterpret
+        const startCalendarDate = startTs.utc().format("YYYY-MM-DD");
+        startOfRangeStartDayInEventTz = dayjs
+          .utc(startCalendarDate)
+          .add(-eventUtcOffset, "minutes")
+          .utcOffset(eventUtcOffset)
+          .startOf("day");
+      } else {
+        // Case 2: timestamp already represents midnight in event tz (expressed in UTC) — convert to event tz
+        startOfRangeStartDayInEventTz = startTs.utcOffset(eventUtcOffset).startOf("day");
+      }
+
+      if (isMidnightUtc(endTs)) {
+        const endCalendarDate = endTs.utc().format("YYYY-MM-DD");
+        endOfRangeEndDayInEventTz = dayjs
+          .utc(endCalendarDate)
+          .add(-eventUtcOffset, "minutes")
+          .utcOffset(eventUtcOffset)
+          .endOf("day");
+      } else {
+        endOfRangeEndDayInEventTz = endTs.utcOffset(eventUtcOffset).endOf("day");
+      }
 
       return {
         endOfRollingPeriodEndDayInBookerTz: null,
