@@ -3,7 +3,7 @@ import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
-import { mergeOverlappingRanges } from "@calcom/lib/date-ranges";
+import { mergeOverlappingRanges } from "@calcom/features/schedules/lib/date-ranges";
 import logger from "@calcom/lib/logger";
 import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
