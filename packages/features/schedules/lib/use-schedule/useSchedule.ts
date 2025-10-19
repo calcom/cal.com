@@ -3,10 +3,11 @@ import { useSearchParams } from "next/navigation";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
@@ -100,6 +101,26 @@ export const useSchedule = ({
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
+    // Pass busy details request when overlay is enabled and calendars selected
+    ...(function () {
+      try {
+        const paramsStr = searchParams?.toString() ?? "";
+        const params = new URLSearchParams(paramsStr);
+        const overlayEnabled =
+          params.get("overlayCalendar") === "true" ||
+          localStorage?.getItem("overlayCalendarSwitchDefault") === "true";
+        const toggled = localStorage?.getItem("toggledConnectedCalendars");
+        const parsed: Array<{ credentialId: number; externalId: string }> = toggled
+          ? JSON.parse(toggled)
+          : [];
+        if (overlayEnabled && Array.isArray(parsed) && parsed.length > 0) {
+          return { includeBusyDetails: true, overlayCalendars: parsed };
+        }
+      } catch {
+        // no-op: overlay parameters parsing failed
+      }
+      return {};
+    })(),
   };
 
   const options = {
