@@ -22,13 +22,27 @@ function isPrismaError(cause: unknown): cause is Prisma.PrismaClientKnownRequest
 }
 
 function isTRPCError(cause: unknown): cause is { code: string; message: string } {
-  return (
-    !!cause &&
-    typeof cause === "object" &&
-    "code" in cause &&
-    typeof cause.code === "string" &&
-    "message" in cause
-  );
+  if (!cause || typeof cause !== "object" || !("code" in cause) || typeof cause.code !== "string") {
+    return false;
+  }
+  const trpcErrorCodes = [
+    "PARSE_ERROR",
+    "BAD_REQUEST",
+    "UNPROCESSABLE_CONTENT",
+    "UNAUTHORIZED",
+    "FORBIDDEN",
+    "NOT_FOUND",
+    "METHOD_NOT_SUPPORTED",
+    "TIMEOUT",
+    "CONFLICT",
+    "PRECONDITION_FAILED",
+    "PAYLOAD_TOO_LARGE",
+    "UNSUPPORTED_MEDIA_TYPE",
+    "TOO_MANY_REQUESTS",
+    "CLIENT_CLOSED_REQUEST",
+    "INTERNAL_SERVER_ERROR",
+  ];
+  return trpcErrorCodes.includes(cause.code);
 }
 
 function getTRPCErrorStatusCode(code: string): number {
