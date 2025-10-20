@@ -38,7 +38,7 @@ export function WeekCalendarView({ bookings }: WeekCalendarViewProps) {
       .filter((booking) => {
         const bookingStart = dayjs(booking.startTime);
         return (
-          bookingStart.isSameOrAfter(currentWeekStart) &&
+          (bookingStart.isAfter(currentWeekStart) || bookingStart.isSame(currentWeekStart)) &&
           bookingStart.isBefore(currentWeekStart.add(7, "day"))
         );
       })
