@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
@@ -16,6 +17,7 @@ type WeekCalendarViewProps = {
 };
 
 export function WeekCalendarView({ bookings }: WeekCalendarViewProps) {
+  const { timezone } = useTimePreferences();
   const [currentWeekStart, setCurrentWeekStart] = useState(() => dayjs().startOf("week"));
 
   const goToPreviousWeek = () => {
@@ -89,8 +91,9 @@ export function WeekCalendarView({ bookings }: WeekCalendarViewProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden [--calendar-dates-sticky-offset:0px]">
+      <div className="flex-1 overflow-hidden">
         <Calendar
+          timezone={timezone}
           sortEvents
           startHour={0}
           endHour={23}
