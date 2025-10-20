@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -11,7 +12,6 @@ import type { BookingStatus } from "@calcom/prisma/enums";
 import { useBookings } from "../../platform/atoms/hooks/bookings/useBookings";
 import type { useScheduleForEventReturnType } from "../bookings/Booker/utils/event";
 import { getQueryParam } from "../bookings/Booker/utils/query-param";
-import { useTimePreferences } from "../bookings/lib/timePreferences";
 
 export const LargeCalendar = ({
   extraDays,
@@ -30,7 +30,7 @@ export const LargeCalendar = ({
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
-  const { timezone } = useTimePreferences();
+  const { timezone } = useBookerTime();
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 

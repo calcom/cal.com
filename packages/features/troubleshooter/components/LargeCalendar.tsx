@@ -3,6 +3,7 @@ import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
@@ -13,6 +14,7 @@ import { useTroubleshooterStore } from "../store";
 
 export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const { timezone } = useTimePreferences();
+  const { timezone: bookerTimezone } = useBookerTime();
   const selectedDate = useTroubleshooterStore((state) => state.selectedDate);
   const event = useTroubleshooterStore((state) => state.event);
   const calendarToColorMap = useTroubleshooterStore((state) => state.calendarToColorMap);
@@ -122,7 +124,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         gridCellsPerHour={60 / (event?.duration || 15)}
         hoverEventDuration={30}
         hideHeader
-        timezone={timezone}
+        timezone={bookerTimezone}
       />
     </div>
   );

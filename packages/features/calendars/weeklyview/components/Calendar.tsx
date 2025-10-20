@@ -30,7 +30,7 @@ export function Calendar(props: CalendarComponentProps) {
   const usersCellsStopsPerHour = useCalendarStore((state) => state.gridCellsPerHour || 4);
   const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
   const hideHeader = useCalendarStore((state) => state.hideHeader);
-  const timezone = useCalendarStore((state) => state.timezone);
+  const timezone = props.timezone;
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
