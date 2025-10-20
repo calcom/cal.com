@@ -524,7 +524,12 @@ async function createPerformanceData() {
   }
 }
 
-createPerformanceData()
+async function runSeed() {
+  await prisma.$connect();
+  await createPerformanceData();
+}
+
+runSeed()
   .then(async () => {
     await prisma.$disconnect();
   })
