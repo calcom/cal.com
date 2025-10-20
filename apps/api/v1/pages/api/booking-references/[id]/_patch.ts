@@ -67,12 +67,12 @@ export async function patchHandler(req: NextApiRequest) {
   if (data.bookingId) {
     const args: Prisma.BookingFindFirstOrThrowArgs = isSystemWideAdmin
       ? /* If admin, we only check that the booking exists */
-        { where: { id: data.bookingId } }
+        { where: { id: data.bookingId, references: { some: { id, deleted: null } } } }
       : /* For non-admins we make sure the booking belongs to the user */
-        { where: { id: data.bookingId, userId } };
+        { where: { id: data.bookingId, userId, references: { some: { id, deleted: null } } } };
     await prisma.booking.findFirstOrThrow(args);
   }
-  const booking_reference = await prisma.bookingReference.update({ where: { id, deleted: null }, data });
+  const booking_reference = await prisma.bookingReference.update({ where: { id }, data });
   return { booking_reference: schemaBookingReferenceReadPublic.parse(booking_reference) };
 }
 
