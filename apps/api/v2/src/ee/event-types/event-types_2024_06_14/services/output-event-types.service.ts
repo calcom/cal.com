@@ -98,11 +98,11 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  getResponseEventType(
+  async getResponseEventType(
     ownerId: number,
     databaseEventType: Input,
     isOrgTeamEvent: boolean
-  ): EventTypeOutput_2024_06_14 {
+  ): Promise<EventTypeOutput_2024_06_14> {
     const {
       id,
       length,
@@ -136,7 +136,7 @@ export class OutputEventTypesService_2024_06_14 {
       bookingRequiresAuthentication,
     } = databaseEventType;
 
-    const locations = this.transformLocations(databaseEventType.locations);
+    const locations = await this.transformLocations(databaseEventType.locations);
     const customName = databaseEventType?.eventName ?? undefined;
     const bookingFields = databaseEventType.bookingFields
       ? this.transformBookingFields(databaseEventType.bookingFields)
@@ -236,7 +236,7 @@ export class OutputEventTypesService_2024_06_14 {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transformLocations(locationDb: any) {
+  async transformLocations(locationDb: any) {
     if (!locationDb) return [];
 
     const knownLocations: InternalLocation[] = [];
@@ -251,7 +251,8 @@ export class OutputEventTypesService_2024_06_14 {
       }
     }
 
-    return [...transformLocationsInternalToApi(knownLocations), ...unknownLocations];
+    const transformedLocations = await transformLocationsInternalToApi(knownLocations);
+    return [...transformedLocations, ...unknownLocations];
   }
 
   transformDestinationCalendar(destinationCalendar?: DestinationCalendar | null) {

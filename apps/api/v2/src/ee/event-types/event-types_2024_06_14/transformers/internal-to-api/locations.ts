@@ -11,45 +11,80 @@ import type {
   OutputUnknownLocation_2024_06_14,
   OutputLocation_2024_06_14,
 } from "@calcom/platform-types";
+import { prisma } from "@calcom/prisma";
 
 import type { InternalLocation } from "../internal/locations";
 
-const internalToApiIntegrationsMapping: Record<string, OutputIntegration_2024_06_14> = {
-  "integrations:daily": "cal-video",
-  "integrations:google:meet": "google-meet",
-  "integrations:zoom": "zoom",
-  "integrations:whereby_video": "whereby-video",
-  "integrations:whatsapp_video": "whatsapp-video",
-  "integrations:webex_video": "webex-video",
-  "integrations:telegram_video": "telegram-video",
-  "integrations:tandem": "tandem",
-  "integrations:sylaps_video": "sylaps-video",
-  "integrations:skype_video": "skype-video",
-  "integrations:sirius_video_video": "sirius-video",
-  "integrations:signal_video": "signal-video",
-  "integrations:shimmer_video": "shimmer-video",
-  "integrations:salesroom_video": "salesroom-video",
-  "integrations:roam_video": "roam-video",
-  "integrations:riverside_video": "riverside-video",
-  "integrations:ping_video": "ping-video",
-  "integrations:office365_video": "office365-video",
-  "integrations:mirotalk_video": "mirotalk-video",
-  "integrations:jitsi": "jitsi",
-  "integrations:jelly_video": "jelly-video",
-  "integrations:jelly_conferencing": "jelly-conferencing",
-  "integrations:huddle01": "huddle",
-  "integrations:facetime_video": "facetime-video",
-  "integrations:element-call_video": "element-call-video",
-  "integrations:eightxeight_video": "eightxeight-video",
-  "integrations:discord_video": "discord-video",
-  "integrations:demodesk_video": "demodesk-video",
-  "integrations:campfire_video": "campfire-video",
-};
+// Cache for integration mappings to avoid repeated database queries
+let integrationsMappingCache: Record<string, OutputIntegration_2024_06_14> | null = null;
+let cacheTimestamp: number | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-export function transformLocationsInternalToApi(internalLocations: InternalLocation[] | undefined) {
+/**
+ * Fetches integration mappings from the database.
+ * Maps internal integration format (e.g., "integrations:daily") to API format (e.g., "cal-video").
+ * Results are cached for 5 minutes to improve performance.
+ */
+async function getIntegrationsMappingFromDB(): Promise<Record<string, OutputIntegration_2024_06_14>> {
+  const now = Date.now();
+
+  // Return cached mapping if still valid
+  if (integrationsMappingCache && cacheTimestamp && now - cacheTimestamp < CACHE_TTL) {
+    return integrationsMappingCache;
+  }
+
+  try {
+    // Fetch all apps with video/conferencing categories from database
+    const apps = await prisma.app.findMany({
+      where: {
+        enabled: true,
+        categories: {
+          hasSome: ["conferencing", "video"],
+        },
+      },
+      select: {
+        slug: true,
+        dirName: true,
+      },
+    });
+
+    // Build mapping from dirName (internal format) to slug (API format)
+    const mapping: Record<string, OutputIntegration_2024_06_14> = {};
+
+    for (const app of apps) {
+      // Internal format is "integrations:{dirName}"
+      const internalKey = `integrations:${app.dirName}`;
+      mapping[internalKey] = app.slug as OutputIntegration_2024_06_14;
+    }
+
+    // Update cache
+    integrationsMappingCache = mapping;
+    cacheTimestamp = now;
+
+    return mapping;
+  } catch (error) {
+    console.error("Failed to fetch integration mappings from database:", error);
+
+    // Fallback to cached mapping if database query fails
+    if (integrationsMappingCache) {
+      return integrationsMappingCache;
+    }
+
+    // If no cache available, return empty mapping
+    // The transformer will mark these as "unknown" locations
+    return {};
+  }
+}
+
+export async function transformLocationsInternalToApi(
+  internalLocations: InternalLocation[] | undefined
+): Promise<OutputLocation_2024_06_14[]> {
   if (!internalLocations) {
     return [];
   }
+
+  // Fetch integration mappings from database (cached)
+  const internalToApiIntegrationsMapping = await getIntegrationsMappingFromDB();
 
   const apiLocations: OutputLocation_2024_06_14[] = [];
 
