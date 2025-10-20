@@ -9,16 +9,14 @@ import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { PrismaClient, type Prisma } from "./generated/prisma/client";
 
 const connectionString = process.env.DATABASE_URL || "";
-const pool =
-  process.env.USE_POOL === "true" || process.env.USE_POOL === "1"
-    ? new Pool({
-        connectionString: connectionString,
-        max: 5,
-        idleTimeoutMillis: 300000,
-      })
-    : undefined;
+const pool = new Pool({
+  connectionString: connectionString,
+  max: 10,
+  idleTimeoutMillis: 300000,
+  connectionTimeoutMillis: 10000,
+});
 
-const adapter = pool ? new PrismaPg(pool) : new PrismaPg({ connectionString });
+const adapter = new PrismaPg(pool);
 const prismaOptions: Prisma.PrismaClientOptions = {
   adapter,
 };
