@@ -8,6 +8,7 @@ import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { localStorage } from "@calcom/lib/webstorage";
 
+import { useTimePreferences } from "../../../lib/timePreferences";
 import type { useScheduleForEventReturnType } from "../utils/event";
 import { getQueryParam } from "../utils/query-param";
 import { useOverlayCalendarStore } from "./OverlayCalendar/store";
@@ -31,6 +32,7 @@ export const LargeCalendar = ({
   const overlayEvents = useOverlayCalendarStore((state) => state.overlayBusyDates);
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
+  const { timezone } = useTimePreferences();
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
@@ -43,7 +45,7 @@ export const LargeCalendar = ({
 
   // HACK: force rerender when overlay events change
   // Sine we dont use react router here we need to force rerender (ATOM SUPPORT)
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   useEffect(() => {}, [displayOverlay]);
 
   const overlayEventsForDate = useMemo(() => {
@@ -75,6 +77,7 @@ export const LargeCalendar = ({
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}
         hideHeader
+        timezone={timezone}
       />
     </div>
   );

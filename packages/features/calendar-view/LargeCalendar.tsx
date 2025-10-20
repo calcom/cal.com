@@ -11,6 +11,7 @@ import type { BookingStatus } from "@calcom/prisma/enums";
 import { useBookings } from "../../platform/atoms/hooks/bookings/useBookings";
 import type { useScheduleForEventReturnType } from "../bookings/Booker/utils/event";
 import { getQueryParam } from "../bookings/Booker/utils/query-param";
+import { useTimePreferences } from "../bookings/lib/timePreferences";
 
 export const LargeCalendar = ({
   extraDays,
@@ -29,6 +30,7 @@ export const LargeCalendar = ({
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
+  const { timezone } = useTimePreferences();
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
@@ -85,6 +87,7 @@ export const LargeCalendar = ({
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}
         hideHeader
+        timezone={timezone}
       />
     </div>
   );
