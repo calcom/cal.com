@@ -3,10 +3,10 @@ import { useSearchParams } from "next/navigation";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
@@ -126,21 +126,30 @@ export const useSchedule = ({
 
   const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
 
+  const { duration: inputDuration, ...passThroughInput } = input;
+  const durationAsNumber = inputDuration ? Number(inputDuration) : undefined;
+
   // API V2 query for team events
   const teamScheduleV2 = useApiV2AvailableSlots({
-    ...input,
+    ...passThroughInput,
     enabled: isCallingApiV2Slots,
-    duration: input.duration ? Number(input.duration) : undefined,
+    ...(durationAsNumber ? { duration: durationAsNumber } : {}),
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
   });
 
-  const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
-    ...options,
-    // Only enable if we're not using API V2
-    enabled: options.enabled && !isCallingApiV2Slots,
-  });
+  const schedule = trpc.viewer.slots.getSchedule.useQuery(
+    {
+      ...passThroughInput,
+      ...(durationAsNumber ? { duration: durationAsNumber } : {}),
+    },
+    {
+      ...options,
+      // Only enable if we're not using API V2
+      enabled: options.enabled && !isCallingApiV2Slots,
+    }
+  );
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
