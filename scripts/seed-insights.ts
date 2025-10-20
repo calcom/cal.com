@@ -365,7 +365,13 @@ async function main() {
 
   await seedBookingAssignments();
 }
-main()
+
+async function runMain() {
+  await prisma.$connect();
+  await main();
+}
+
+runMain()
   .then(async () => {
     await prisma.$disconnect();
   })
