@@ -10,9 +10,9 @@ import {
   isNumberFilterValue,
   isSingleSelectFilterValue,
 } from "@calcom/features/data-table/lib/utils";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -80,6 +80,12 @@ export type InsightsRoutingTableItem = {
   utm_campaign: string | null;
   utm_term: string | null;
   utm_content: string | null;
+  assignmentReasons: string | null;
+  fromReschedule: string | null;
+  reroutedFromBookingUid: string | null;
+  isRerouted: boolean;
+  isOriginalBooking: boolean;
+  reroutedToBookingUid: string | null;
   bookingAttendees: Array<{
     name: string;
     timeZone: string;
@@ -265,80 +271,222 @@ export class InsightsRoutingBaseService {
     // Build ORDER BY clause
     const orderByClause = this.buildOrderByClause(sorting);
 
-    // Get total count
+    // Get total count (including both original and rerouted rows)
     const totalCountQuery = Prisma.sql`
-      SELECT COUNT(*) as count
-      FROM "RoutingFormResponseDenormalized" rfrd
-      WHERE ${baseConditions}
+      WITH base_responses AS (
+        SELECT rfrd."id", rfrd."bookingUid"
+        FROM "RoutingFormResponseDenormalized" rfrd
+        WHERE ${baseConditions}
+      )
+      SELECT (
+        COUNT(*) + 
+        COUNT(*) FILTER (WHERE b."fromReschedule" IS NOT NULL)
+      ) as count
+      FROM base_responses br
+      LEFT JOIN "Booking" b ON b."uid" = br."bookingUid"
     `;
 
     const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(totalCountQuery);
 
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
-    // Get paginated data with JSON aggregation for attendees and fields
+    // Get paginated data - show BOTH original and rerouted bookings
     const dataQuery = Prisma.sql`
+      WITH base_responses AS (
+        SELECT
+          rfrd."id",
+          rfrd."uuid",
+          rfrd."formId",
+          rfrd."formName",
+          rfrd."formTeamId",
+          rfrd."formUserId",
+          rfrd."bookingUid",
+          rfrd."bookingId",
+          rfrd."bookingStatus",
+          rfrd."bookingStatusOrder",
+          rfrd."bookingCreatedAt",
+          rfrd."bookingUserId",
+          rfrd."bookingUserName",
+          rfrd."bookingUserEmail",
+          rfrd."bookingUserAvatarUrl",
+          rfrd."bookingAssignmentReason",
+          rfrd."bookingStartTime",
+          rfrd."bookingEndTime",
+          rfrd."eventTypeId",
+          rfrd."eventTypeParentId",
+          rfrd."eventTypeSchedulingType",
+          rfrd."createdAt",
+          rfrd."utm_source",
+          rfrd."utm_medium",
+          rfrd."utm_campaign",
+          rfrd."utm_term",
+          rfrd."utm_content"
+        FROM "RoutingFormResponseDenormalized" rfrd
+        WHERE ${baseConditions}
+      ),
+      expanded_responses AS (
+        -- Original booking row (for bookings that were rerouted FROM)
+        SELECT
+          br."id",
+          br."uuid",
+          br."formId",
+          br."formName",
+          br."formTeamId",
+          br."formUserId",
+          orig_booking."uid" as "bookingUid",
+          orig_booking."id" as "bookingId",
+          UPPER(orig_booking."status"::text) as "bookingStatus",
+          CASE orig_booking."status"
+            WHEN 'accepted' THEN 1
+            WHEN 'pending' THEN 2
+            WHEN 'awaiting_host' THEN 3
+            WHEN 'cancelled' THEN 4
+            WHEN 'rejected' THEN 5
+          END as "bookingStatusOrder",
+          orig_booking."createdAt" as "bookingCreatedAt",
+          orig_booking."userId" as "bookingUserId",
+          orig_user."name" as "bookingUserName",
+          orig_user."email" as "bookingUserEmail",
+          orig_user."avatarUrl" as "bookingUserAvatarUrl",
+          (
+            SELECT ar."reasonString"
+            FROM "AssignmentReason" ar
+            WHERE ar."bookingId" = orig_booking."id"
+            ORDER BY ar."createdAt" DESC
+            LIMIT 1
+          ) as "bookingAssignmentReason",
+          orig_booking."startTime" as "bookingStartTime",
+          orig_booking."endTime" as "bookingEndTime",
+          orig_booking."eventTypeId" as "eventTypeId",
+          NULL::int as "eventTypeParentId",
+          NULL::text as "eventTypeSchedulingType",
+          br."createdAt",
+          br."utm_source",
+          br."utm_medium",
+          br."utm_campaign",
+          br."utm_term",
+          br."utm_content",
+          NULL::text as "fromReschedule",
+          NULL::text as "reroutedFromBookingUid",
+          false as "isRerouted",
+          true as "isOriginalBooking",
+          b."uid" as "reroutedToBookingUid",
+          (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'name', a."name",
+                  'timeZone', a."timeZone",
+                  'email', a."email",
+                  'phoneNumber', a."phoneNumber"
+                )
+              ) FILTER (WHERE a."id" IS NOT NULL),
+              '[]'::json
+            )
+            FROM "Attendee" a
+            WHERE a."bookingId" = orig_booking."id"
+          ) as "bookingAttendees",
+          (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'fieldId', f."fieldId",
+                  'valueString', f."valueString",
+                  'valueNumber', f."valueNumber",
+                  'valueStringArray', f."valueStringArray"
+                )
+              ) FILTER (WHERE f."fieldId" IS NOT NULL),
+              '[]'::json
+            )
+            FROM "RoutingFormResponseField" f
+            WHERE f."responseId" = br."id"
+          ) as "fields"
+        FROM base_responses br
+        INNER JOIN "Booking" b ON b."uid" = br."bookingUid"
+        INNER JOIN "Booking" orig_booking ON orig_booking."uid" = b."fromReschedule"
+        LEFT JOIN "User" orig_user ON orig_user."id" = orig_booking."userId"
+        WHERE b."fromReschedule" IS NOT NULL
+        
+        UNION ALL
+        
+        -- Current booking row (all bookings including rerouted ones)
+        SELECT
+          br."id",
+          br."uuid",
+          br."formId",
+          br."formName",
+          br."formTeamId",
+          br."formUserId",
+          br."bookingUid",
+          br."bookingId",
+          UPPER(br."bookingStatus"::text) as "bookingStatus",
+          br."bookingStatusOrder",
+          br."bookingCreatedAt",
+          br."bookingUserId",
+          br."bookingUserName",
+          br."bookingUserEmail",
+          br."bookingUserAvatarUrl",
+          br."bookingAssignmentReason",
+          br."bookingStartTime",
+          br."bookingEndTime",
+          br."eventTypeId",
+          br."eventTypeParentId",
+          br."eventTypeSchedulingType",
+          br."createdAt",
+          br."utm_source",
+          br."utm_medium",
+          br."utm_campaign",
+          br."utm_term",
+          br."utm_content",
+          b."fromReschedule",
+          b."fromReschedule" as "reroutedFromBookingUid",
+          (b."fromReschedule" IS NOT NULL) as "isRerouted",
+          false as "isOriginalBooking",
+          NULL::text as "reroutedToBookingUid",
+          (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'name', a."name",
+                  'timeZone', a."timeZone",
+                  'email', a."email",
+                  'phoneNumber', a."phoneNumber"
+                )
+              ) FILTER (WHERE a."id" IS NOT NULL),
+              '[]'::json
+            )
+            FROM "Attendee" a
+            WHERE a."bookingId" = br."bookingId"
+          ) as "bookingAttendees",
+          (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'fieldId', f."fieldId",
+                  'valueString', f."valueString",
+                  'valueNumber', f."valueNumber",
+                  'valueStringArray', f."valueStringArray"
+                )
+              ) FILTER (WHERE f."fieldId" IS NOT NULL),
+              '[]'::json
+            )
+            FROM "RoutingFormResponseField" f
+            WHERE f."responseId" = br."id"
+          ) as "fields"
+        FROM base_responses br
+        LEFT JOIN "Booking" b ON b."uid" = br."bookingUid"
+      )
       SELECT
-        rfrd."id",
-        rfrd."uuid",
-        rfrd."formId",
-        rfrd."formName",
-        rfrd."formTeamId",
-        rfrd."formUserId",
-        rfrd."bookingUid",
-        rfrd."bookingId",
-        UPPER(rfrd."bookingStatus"::text) as "bookingStatus",
-        rfrd."bookingStatusOrder",
-        rfrd."bookingCreatedAt",
-        rfrd."bookingUserId",
-        rfrd."bookingUserName",
-        rfrd."bookingUserEmail",
-        rfrd."bookingUserAvatarUrl",
-        rfrd."bookingAssignmentReason",
-        rfrd."bookingStartTime",
-        rfrd."bookingEndTime",
-        rfrd."eventTypeId",
-        rfrd."eventTypeParentId",
-        rfrd."eventTypeSchedulingType",
-        rfrd."createdAt",
-        rfrd."utm_source",
-        rfrd."utm_medium",
-        rfrd."utm_campaign",
-        rfrd."utm_term",
-        rfrd."utm_content",
-        (
-          SELECT COALESCE(
-            json_agg(
-              json_build_object(
-                'name', a."name",
-                'timeZone', a."timeZone",
-                'email', a."email",
-                'phoneNumber', a."phoneNumber"
-              )
-            ) FILTER (WHERE a."id" IS NOT NULL),
-            '[]'::json
-          )
-          FROM "Booking" b2
-          LEFT JOIN "Attendee" a ON a."bookingId" = b2."id"
-          WHERE b2."uid" = rfrd."bookingUid"
-        ) as "bookingAttendees",
-        (
-          SELECT COALESCE(
-            json_agg(
-              json_build_object(
-                'fieldId', f."fieldId",
-                'valueString', f."valueString",
-                'valueNumber', f."valueNumber",
-                'valueStringArray', f."valueStringArray"
-              )
-            ) FILTER (WHERE f."fieldId" IS NOT NULL),
-            '[]'::json
-          )
-          FROM "RoutingFormResponseField" f
-          WHERE f."responseId" = rfrd."id"
-        ) as "fields"
-      FROM "RoutingFormResponseDenormalized" rfrd
-      WHERE ${baseConditions}
+        id, uuid, "formId", "formName", "formTeamId", "formUserId",
+        "bookingUid", "bookingId", "bookingStatus", "bookingStatusOrder",
+        "bookingCreatedAt", "bookingUserId", "bookingUserName", "bookingUserEmail",
+        "bookingUserAvatarUrl", "bookingAssignmentReason", "bookingStartTime", "bookingEndTime",
+        "eventTypeId", "eventTypeParentId", "eventTypeSchedulingType", "createdAt",
+        "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+        NULL::text as "assignmentReasons",
+        "fromReschedule", "reroutedFromBookingUid", "isRerouted", "isOriginalBooking",
+        "reroutedToBookingUid", "bookingAttendees", fields
+      FROM expanded_responses
       ${orderByClause}
       LIMIT ${limit}
       OFFSET ${offset}
@@ -773,6 +921,31 @@ export class InsightsRoutingBaseService {
       const formIdCondition = makeSqlCondition(formId.value);
       if (formIdCondition) {
         conditions.push(Prisma.sql`rfrd."formId" ${formIdCondition}`);
+      }
+    }
+
+    // Extract rerouting status filter
+    const reroutingStatus = filtersMap["reroutingStatus"];
+    if (reroutingStatus && isSingleSelectFilterValue(reroutingStatus.value)) {
+      const status = reroutingStatus.value.data;
+      if (status === "original") {
+        conditions.push(Prisma.sql`EXISTS (
+          SELECT 1 FROM "Booking" b2
+          WHERE b2."fromReschedule" = rfrd."bookingUid"
+        )`);
+      } else if (status === "rerouted") {
+        conditions.push(Prisma.sql`EXISTS (
+          SELECT 1 FROM "Booking" b
+          WHERE b."uid" = rfrd."bookingUid" AND b."fromReschedule" IS NOT NULL
+        )`);
+      } else if (status === "none") {
+        conditions.push(Prisma.sql`NOT EXISTS (
+          SELECT 1 FROM "Booking" b
+          WHERE b."uid" = rfrd."bookingUid" AND b."fromReschedule" IS NOT NULL
+        ) AND NOT EXISTS (
+          SELECT 1 FROM "Booking" b2
+          WHERE b2."fromReschedule" = rfrd."bookingUid"
+        )`);
       }
     }
 

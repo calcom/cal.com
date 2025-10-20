@@ -1,5 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import startCase from "lodash/startCase";
 import { useMemo } from "react";
 import { z } from "zod";
@@ -246,6 +246,42 @@ export const useInsightsColumns = ({
           </div>
         ),
       }),
+      columnHelper.accessor("isRerouted", {
+        id: "reroutingStatus",
+        header: "Rerouting Status",
+        size: 140,
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.SINGLE_SELECT,
+          },
+        },
+        cell: (info) => {
+          const row = info.row.original;
+          if (row.isOriginalBooking) {
+            return (
+              <Badge variant="blue" className="flex items-center gap-1">
+                <Icon name="arrow-right" className="h-3 w-3" />
+                <span>Original</span>
+              </Badge>
+            );
+          }
+          if (row.isRerouted) {
+            return (
+              <Badge variant="orange" className="flex items-center gap-1">
+                <Icon name="refresh-cw" className="h-3 w-3" />
+                <span>Rerouted</span>
+              </Badge>
+            );
+          }
+          return (
+            <Badge variant="gray">
+              <span>Standard</span>
+            </Badge>
+          );
+        },
+      }),
       columnHelper.accessor("bookingAssignmentReason", {
         id: "bookingAssignmentReason",
         header: t("routing_form_insights_assignment_reason"),
@@ -255,8 +291,20 @@ export const useInsightsColumns = ({
           filter: { type: ColumnFilterType.TEXT },
         },
         cell: (info) => {
+          const row = info.row.original;
           const assignmentReason = info.getValue();
-          return <div className="max-w-[250px]">{assignmentReason}</div>;
+
+          return (
+            <div className="max-w-[250px] space-y-1">
+              <div className="truncate">{assignmentReason || "-"}</div>
+              {row.reroutedFromBookingUid && (
+                <div className="text-muted text-xs">← From: {row.reroutedFromBookingUid.slice(-8)}</div>
+              )}
+              {row.reroutedToBookingUid && (
+                <div className="text-muted text-xs">→ To: {row.reroutedToBookingUid.slice(-8)}</div>
+              )}
+            </div>
+          );
         },
       }),
       columnHelper.accessor("utm_source", {

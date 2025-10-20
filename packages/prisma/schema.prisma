@@ -1767,30 +1767,33 @@ view BookingTimeStatus {
 }
 
 model BookingDenormalized {
-  id             Int           @id @unique
-  uid            String
-  eventTypeId    Int?
-  title          String
-  description    String?
-  startTime      DateTime
-  endTime        DateTime
-  createdAt      DateTime
-  updatedAt      DateTime?
-  location       String?
-  paid           Boolean
-  status         BookingStatus
-  rescheduled    Boolean?
-  userId         Int?
-  teamId         Int?
-  eventLength    Int?
-  eventParentId  Int?
-  userEmail      String?
-  userName       String?
-  userUsername   String?
-  ratingFeedback String?
-  rating         Int?
-  noShowHost     Boolean?
-  isTeamBooking  Boolean
+  id                     Int           @id @unique
+  uid                    String
+  eventTypeId            Int?
+  title                  String
+  description            String?
+  startTime              DateTime
+  endTime                DateTime
+  createdAt              DateTime
+  updatedAt              DateTime?
+  location               String?
+  paid                   Boolean
+  status                 BookingStatus
+  rescheduled            Boolean?
+  userId                 Int?
+  teamId                 Int?
+  eventLength            Int?
+  eventParentId          Int?
+  userEmail              String?
+  userName               String?
+  userUsername           String?
+  ratingFeedback         String?
+  rating                 Int?
+  noShowHost             Boolean?
+  isTeamBooking          Boolean
+  assignmentReasons      String?
+  fromReschedule         String?
+  reroutedFromBookingUid String?
 
   @@index([userId])
   @@index([createdAt])
@@ -1803,34 +1806,39 @@ model BookingDenormalized {
   @@index([teamId, isTeamBooking])
   @@index([userId, isTeamBooking])
   @@index([startTime, endTime])
+  @@index([fromReschedule])
+  @@index([reroutedFromBookingUid])
 }
 
 view BookingTimeStatusDenormalized {
-  id             Int           @unique
-  uid            String
-  eventTypeId    Int?
-  title          String
-  description    String?
-  startTime      DateTime
-  endTime        DateTime
-  createdAt      DateTime
-  updatedAt      DateTime?
-  location       String?
-  paid           Boolean
-  status         BookingStatus
-  rescheduled    Boolean?
-  userId         Int?
-  teamId         Int?
-  eventLength    Int?
-  eventParentId  Int?
-  userEmail      String?
-  userName       String?
-  userUsername   String?
-  ratingFeedback String?
-  rating         Int?
-  noShowHost     Boolean?
-  isTeamBooking  Boolean
-  timeStatus     String? // this is the addition on top of BookingDenormalized
+  id                     Int           @unique
+  uid                    String
+  eventTypeId            Int?
+  title                  String
+  description            String?
+  startTime              DateTime
+  endTime                DateTime
+  createdAt              DateTime
+  updatedAt              DateTime?
+  location               String?
+  paid                   Boolean
+  status                 BookingStatus
+  rescheduled            Boolean?
+  userId                 Int?
+  teamId                 Int?
+  eventLength            Int?
+  eventParentId          Int?
+  userEmail              String?
+  userName               String?
+  userUsername           String?
+  ratingFeedback         String?
+  rating                 Int?
+  noShowHost             Boolean?
+  isTeamBooking          Boolean
+  assignmentReasons      String?
+  fromReschedule         String?
+  reroutedFromBookingUid String?
+  timeStatus             String? // this is the addition on top of BookingDenormalized
 }
 
 model CalendarCache {

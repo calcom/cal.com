@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -84,6 +84,7 @@ export function RoutingFormResponsesTable() {
         attendeeName: false,
         attendeeEmail: false,
         attendeePhone: false,
+        reroutingStatus: true,
         utm_source: false,
         utm_medium: false,
         utm_campaign: false,
@@ -113,7 +114,11 @@ export function RoutingFormResponsesTable() {
         <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
-          rowClassName="min-h-14"
+          rowClassName={(row) => {
+            if (row.original.isRerouted) return "min-h-14 bg-orange-50 border-l-2 border-l-orange-400";
+            if (row.original.isOriginalBooking) return "min-h-14 bg-blue-50 border-l-2 border-l-blue-400";
+            return "min-h-14";
+          }}
           paginationMode="standard"
           totalRowCount={data?.total}
           LoaderView={<DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />}

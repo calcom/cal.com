@@ -106,6 +106,12 @@ export const useInsightsRoutingFacetedUniqueValues = ({
               label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
             })) ?? []
           );
+        } else if (columnId === "reroutingStatus") {
+          return convertFacetedValuesToMap([
+            { value: "none", label: "Standard" },
+            { value: "original", label: "Original" },
+            { value: "rerouted", label: "Rerouted" },
+          ]);
         }
         return new Map<FacetedValue, number>();
       },
