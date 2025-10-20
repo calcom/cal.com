@@ -8,7 +8,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
