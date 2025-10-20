@@ -49,8 +49,9 @@ function getTRPCErrorStatusCode(code: string): number {
   switch (code) {
     case "PARSE_ERROR":
     case "BAD_REQUEST":
-    case "UNPROCESSABLE_CONTENT":
       return 400;
+    case "UNPROCESSABLE_CONTENT":
+      return 422;
     case "UNAUTHORIZED":
       return 401;
     case "FORBIDDEN":
@@ -142,8 +143,10 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return getHttpError({ statusCode, cause });
   }
   if (typeof cause === "string") {
-    // @ts-expect-error https://github.com/tc39/proposal-error-cause
-    return new Error(cause, { cause });
+    return new HttpError({
+      statusCode: 500,
+      message: cause,
+    });
   }
 
   return new HttpError({

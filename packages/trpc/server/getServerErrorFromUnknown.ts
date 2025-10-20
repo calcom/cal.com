@@ -90,8 +90,10 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return getHttpError({ statusCode, cause });
   }
   if (typeof cause === "string") {
-    // @ts-expect-error https://github.com/tc39/proposal-error-cause
-    return new Error(cause, { cause });
+    return new HttpError({
+      statusCode: 500,
+      message: cause,
+    });
   }
 
   return new HttpError({
