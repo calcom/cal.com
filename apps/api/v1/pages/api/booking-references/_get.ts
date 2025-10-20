@@ -29,7 +29,7 @@ import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-refe
  *       404:
  *         description: No booking references were found
  */
-async function getHandler(req: NextApiRequest) {
+export async function handler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const args: Prisma.BookingReferenceFindManyArgs = isSystemWideAdmin
     ? { where: { deleted: null } }
@@ -38,4 +38,4 @@ async function getHandler(req: NextApiRequest) {
   return { booking_references: data.map((br) => schemaBookingReferenceReadPublic.parse(br)) };
 }
 
-export default defaultResponder(getHandler);
+export default defaultResponder(handler);

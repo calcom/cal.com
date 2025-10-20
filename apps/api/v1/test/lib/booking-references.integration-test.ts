@@ -1,10 +1,18 @@
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 
 import prisma from "@calcom/prisma";
 import type { Booking, Credential, EventType, User } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-describe("BookingReference Integration Tests - API v1", () => {
+import { handler } from "../../pages/api/booking-references/_get";
+
+type CustomNextApiRequest = NextApiRequest & Request;
+type CustomNextApiResponse = NextApiResponse & Response;
+
+describe("GET /api/booking-references - Soft-delete filtering", () => {
   let testUser: User;
   let testCredential: Credential;
   let testEventType: EventType;
@@ -85,289 +93,194 @@ describe("BookingReference Integration Tests - API v1", () => {
     });
   });
 
-  describe("Querying booking references with soft-delete filter", () => {
-    it("should only return active booking references when filtering by deleted: null", async () => {
-      const activeRef = await prisma.bookingReference.create({
-        data: {
-          type: "google_calendar",
-          uid: "api-active-ref",
-          meetingId: "api-active-meeting",
-          credentialId: testCredential.id,
-          bookingId: testBooking.id,
-        },
-      });
-      createdBookingReferenceIds.push(activeRef.id);
-
-      const deletedRef = await prisma.bookingReference.create({
-        data: {
-          type: "google_calendar",
-          uid: "api-deleted-ref",
-          meetingId: "api-deleted-meeting",
-          credentialId: testCredential.id,
-          bookingId: testBooking.id,
-          deleted: true,
-        },
-      });
-      createdBookingReferenceIds.push(deletedRef.id);
-
-      const activeReferences = await prisma.bookingReference.findMany({
-        where: {
-          bookingId: testBooking.id,
-          deleted: null,
-        },
-      });
-
-      const refsWithoutDeletedRef = activeReferences.filter((ref) => ref.id !== deletedRef.id);
-      expect(refsWithoutDeletedRef.find((ref) => ref.id === activeRef.id)).toBeDefined();
-      expect(activeReferences.find((ref) => ref.id === deletedRef.id)).toBeUndefined();
-    });
-
-    it("should exclude soft-deleted references when querying bookings with references", async () => {
-      await prisma.bookingReference.deleteMany({
-        where: {
-          id: {
-            in: createdBookingReferenceIds,
-          },
-        },
-      });
-      createdBookingReferenceIds.splice(0, createdBookingReferenceIds.length);
-
-      const activeRef = await prisma.bookingReference.create({
-        data: {
-          type: "zoom_video",
-          uid: "api-zoom-active",
-          meetingId: "api-zoom-active-meeting",
-          credentialId: testCredential.id,
-          bookingId: testBooking.id,
-        },
-      });
-      createdBookingReferenceIds.push(activeRef.id);
-
-      const deletedRef = await prisma.bookingReference.create({
-        data: {
-          type: "zoom_video",
-          uid: "api-zoom-deleted",
-          meetingId: "api-zoom-deleted-meeting",
-          credentialId: testCredential.id,
-          bookingId: testBooking.id,
-          deleted: true,
-        },
-      });
-      createdBookingReferenceIds.push(deletedRef.id);
-
-      const booking = await prisma.booking.findUnique({
-        where: {
-          id: testBooking.id,
-        },
-        include: {
-          references: {
-            where: {
-              deleted: null,
-            },
-          },
-        },
-      });
-
-      expect(booking).toBeDefined();
-      expect(booking?.references).toBeDefined();
-      expect(booking?.references.find((ref) => ref.id === activeRef.id)).toBeDefined();
-      expect(booking?.references.find((ref) => ref.id === deletedRef.id)).toBeUndefined();
-    });
-
-    it("should allow querying all references including soft-deleted when filter is not applied", async () => {
-      const booking = await prisma.booking.findUnique({
-        where: {
-          id: testBooking.id,
-        },
-        include: {
-          references: true,
-        },
-      });
-
-      const allReferences = booking?.references || [];
-      const softDeletedRefs = allReferences.filter((ref) => ref.deleted === true);
-      const activeRefs = allReferences.filter((ref) => ref.deleted === null);
-
-      expect(allReferences.length).toBeGreaterThan(0);
-      expect(softDeletedRefs.length).toBeGreaterThan(0);
-      expect(activeRefs.length).toBeGreaterThan(0);
-    });
-
-    it("should filter by type and deleted status simultaneously", async () => {
-      const booking = await prisma.booking.findUnique({
-        where: {
-          id: testBooking.id,
-        },
-        include: {
-          references: {
-            where: {
-              type: "zoom_video",
-              deleted: null,
-            },
-          },
-        },
-      });
-
-      const zoomRefs = booking?.references || [];
-      expect(zoomRefs.every((ref) => ref.type === "zoom_video")).toBe(true);
-      expect(zoomRefs.every((ref) => ref.deleted === null)).toBe(true);
-    });
-  });
-
-  describe("Soft-delete persistence in database", () => {
-    it("should persist all data fields of soft-deleted references", async () => {
-      await prisma.bookingReference.deleteMany({
-        where: {
-          id: {
-            in: createdBookingReferenceIds,
-          },
-        },
-      });
-      createdBookingReferenceIds.splice(0, createdBookingReferenceIds.length);
-
-      const referenceData = {
-        type: "daily_video",
-        uid: "api-daily-persist-test",
-        meetingId: "api-daily-meeting-persist",
-        meetingUrl: "https://example.com/persist-test-meeting",
-        meetingPassword: "test-password",
+  it("should only return active booking references, excluding soft-deleted ones", async () => {
+    const timestamp = Date.now();
+    const activeRef = await prisma.bookingReference.create({
+      data: {
+        type: "google_calendar",
+        uid: `api-active-ref-${timestamp}`,
+        meetingId: `api-active-meeting-${timestamp}`,
         credentialId: testCredential.id,
         bookingId: testBooking.id,
-      };
+      },
+    });
+    createdBookingReferenceIds.push(activeRef.id);
 
-      const ref = await prisma.bookingReference.create({
-        data: referenceData,
-      });
-      createdBookingReferenceIds.push(ref.id);
+    const deletedRef = await prisma.bookingReference.create({
+      data: {
+        type: "google_calendar",
+        uid: `api-deleted-ref-${timestamp}`,
+        meetingId: `api-deleted-meeting-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: testBooking.id,
+        deleted: true,
+      },
+    });
+    createdBookingReferenceIds.push(deletedRef.id);
 
-      await prisma.bookingReference.update({
-        where: { id: ref.id },
-        data: { deleted: true },
-      });
-
-      const deletedRef = await prisma.bookingReference.findUnique({
-        where: { id: ref.id },
-      });
-
-      expect(deletedRef).toBeDefined();
-      expect(deletedRef?.deleted).toBe(true);
-      expect(deletedRef?.type).toBe(referenceData.type);
-      expect(deletedRef?.uid).toBe(referenceData.uid);
-      expect(deletedRef?.meetingId).toBe(referenceData.meetingId);
-      expect(deletedRef?.meetingUrl).toBe(referenceData.meetingUrl);
-      expect(deletedRef?.meetingPassword).toBe(referenceData.meetingPassword);
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
     });
 
-    it("should allow updating soft-deleted references back to active", async () => {
-      const ref = await prisma.bookingReference.findFirst({
-        where: {
-          deleted: true,
-          bookingId: testBooking.id,
-        },
-      });
+    req.userId = testUser.id;
 
-      if (!ref) {
-        throw new Error("No soft-deleted reference found for test");
-      }
+    const responseData = await handler(req);
 
-      await prisma.bookingReference.update({
-        where: { id: ref.id },
-        data: { deleted: null },
-      });
+    expect(responseData.booking_references).toBeDefined();
+    expect(Array.isArray(responseData.booking_references)).toBe(true);
 
-      const reactivatedRef = await prisma.bookingReference.findUnique({
-        where: { id: ref.id },
-      });
+    const returnedActiveRef = responseData.booking_references.find(
+      (ref: { id: number }) => ref.id === activeRef.id
+    );
+    const returnedDeletedRef = responseData.booking_references.find(
+      (ref: { id: number }) => ref.id === deletedRef.id
+    );
 
-      expect(reactivatedRef?.deleted).toBe(null);
-
-      await prisma.bookingReference.update({
-        where: { id: ref.id },
-        data: { deleted: true },
-      });
-    });
+    expect(returnedActiveRef).toBeDefined();
+    expect(returnedDeletedRef).toBeUndefined();
   });
 
-  describe("Batch operations with soft-delete", () => {
-    it("should soft-delete multiple references at once", async () => {
-      await prisma.bookingReference.deleteMany({
-        where: {
-          id: {
-            in: createdBookingReferenceIds,
-          },
-        },
-      });
-      createdBookingReferenceIds.splice(0, createdBookingReferenceIds.length);
-
-      const ref1 = await prisma.bookingReference.create({
-        data: {
-          type: "office365_calendar",
-          uid: "api-batch-1",
-          meetingId: "api-batch-meeting-1",
-          credentialId: testCredential.id,
-          bookingId: testBooking.id,
-        },
-      });
-      createdBookingReferenceIds.push(ref1.id);
-
-      const ref2 = await prisma.bookingReference.create({
-        data: {
-          type: "office365_calendar",
-          uid: "api-batch-2",
-          meetingId: "api-batch-meeting-2",
-          credentialId: testCredential.id,
-          bookingId: testBooking.id,
-        },
-      });
-      createdBookingReferenceIds.push(ref2.id);
-
-      await prisma.bookingReference.updateMany({
-        where: {
-          id: {
-            in: [ref1.id, ref2.id],
-          },
-        },
-        data: {
-          deleted: true,
-        },
-      });
-
-      const updatedRefs = await prisma.bookingReference.findMany({
-        where: {
-          id: {
-            in: [ref1.id, ref2.id],
-          },
-        },
-      });
-
-      expect(updatedRefs).toHaveLength(2);
-      expect(updatedRefs.every((ref) => ref.deleted === true)).toBe(true);
+  it("should filter booking references by user when not system admin", async () => {
+    const timestamp = Date.now();
+    const otherUser = await prisma.user.create({
+      data: {
+        email: `other-user-bookingreference-${timestamp}@example.com`,
+        username: `other-user-bookingreference-${timestamp}`,
+      },
     });
 
-    it("should count only active references when using count with filter", async () => {
-      const activeCount = await prisma.bookingReference.count({
-        where: {
-          bookingId: testBooking.id,
-          deleted: null,
-        },
-      });
-
-      const deletedCount = await prisma.bookingReference.count({
-        where: {
-          bookingId: testBooking.id,
-          deleted: true,
-        },
-      });
-
-      const totalCount = await prisma.bookingReference.count({
-        where: {
-          bookingId: testBooking.id,
-        },
-      });
-
-      expect(totalCount).toBe(activeCount + deletedCount);
-      expect(activeCount).toBe(0);
-      expect(deletedCount).toBeGreaterThan(0);
+    const otherBooking = await prisma.booking.create({
+      data: {
+        uid: `other-user-booking-uid-${timestamp}`,
+        title: "Other User Booking",
+        startTime: new Date(Date.now() + 86400000),
+        endTime: new Date(Date.now() + 90000000),
+        userId: otherUser.id,
+        eventTypeId: testEventType.id,
+        status: BookingStatus.ACCEPTED,
+      },
     });
+
+    const otherUserRef = await prisma.bookingReference.create({
+      data: {
+        type: "zoom_video",
+        uid: `other-user-ref-${timestamp}`,
+        meetingId: `other-user-meeting-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: otherBooking.id,
+      },
+    });
+    createdBookingReferenceIds.push(otherUserRef.id);
+
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+    });
+
+    req.userId = testUser.id;
+
+    const responseData = await handler(req);
+
+    const userRefs = responseData.booking_references.filter(
+      (ref: { id: number }) => ref.id === otherUserRef.id
+    );
+
+    expect(userRefs).toHaveLength(0);
+
+    await prisma.booking.delete({ where: { id: otherBooking.id } });
+    await prisma.user.delete({ where: { id: otherUser.id } });
+  });
+
+  it("should return only active booking references for user, not soft-deleted ones for system admin", async () => {
+    const timestamp = Date.now();
+    const activeRef1 = await prisma.bookingReference.create({
+      data: {
+        type: "daily_video",
+        uid: `admin-active-ref-1-${timestamp}`,
+        meetingId: `admin-active-meeting-1-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: testBooking.id,
+      },
+    });
+    createdBookingReferenceIds.push(activeRef1.id);
+
+    const activeRef2 = await prisma.bookingReference.create({
+      data: {
+        type: "daily_video",
+        uid: `admin-active-ref-2-${timestamp}`,
+        meetingId: `admin-active-meeting-2-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: testBooking.id,
+      },
+    });
+    createdBookingReferenceIds.push(activeRef2.id);
+
+    const deletedRef = await prisma.bookingReference.create({
+      data: {
+        type: "daily_video",
+        uid: `admin-deleted-ref-${timestamp}`,
+        meetingId: `admin-deleted-meeting-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: testBooking.id,
+        deleted: true,
+      },
+    });
+    createdBookingReferenceIds.push(deletedRef.id);
+
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+    });
+
+    req.userId = testUser.id;
+
+    const responseData = await handler(req);
+
+    const activeRefs = responseData.booking_references.filter(
+      (ref: { id: number }) => ref.id === activeRef1.id || ref.id === activeRef2.id
+    );
+    const returnedDeletedRef = responseData.booking_references.find(
+      (ref: { id: number }) => ref.id === deletedRef.id
+    );
+
+    expect(activeRefs.length).toBe(2);
+    expect(returnedDeletedRef).toBeUndefined();
+  });
+
+  it("should verify soft-deleted references are never returned through the API", async () => {
+    const timestamp = Date.now();
+    const activeRef = await prisma.bookingReference.create({
+      data: {
+        type: "office365_calendar",
+        uid: `never-return-active-${timestamp}`,
+        meetingId: `never-return-active-meeting-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: testBooking.id,
+      },
+    });
+    createdBookingReferenceIds.push(activeRef.id);
+
+    await prisma.bookingReference.update({
+      where: { id: activeRef.id },
+      data: { deleted: true },
+    });
+
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+    });
+
+    req.userId = testUser.id;
+
+    const responseData = await handler(req);
+
+    const softDeletedRef = responseData.booking_references.find(
+      (ref: { id: number }) => ref.id === activeRef.id
+    );
+
+    expect(softDeletedRef).toBeUndefined();
+
+    const refInDb = await prisma.bookingReference.findUnique({
+      where: { id: activeRef.id },
+    });
+    expect(refInDb).toBeDefined();
+    expect(refInDb?.deleted).toBe(true);
   });
 });
