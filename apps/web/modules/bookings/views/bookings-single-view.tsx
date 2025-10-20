@@ -24,9 +24,13 @@ import {
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
+import {
+  SMS_REMINDER_NUMBER_FIELD,
+  SystemField,
+  TITLE_FIELD,
+} from "@calcom/lib/bookings/SystemField";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE_FIELD } from "@calcom/lib/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
@@ -694,7 +698,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="break-words">{bookingInfo.description}</p>
+                              <p className="whitespace-pre-line break-words">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -767,7 +771,7 @@ export default function Success(props: PageProps) {
                             <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
-                                // eslint-disable-next-line react/no-danger
+                                 
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
@@ -1080,7 +1084,7 @@ export default function Success(props: PageProps) {
                       <span className="underline">
                         <a
                           target="_blank"
-                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations" rel="noreferrer">
                           {t("resolve")}
                         </a>
                       </span>
