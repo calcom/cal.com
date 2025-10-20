@@ -19,7 +19,15 @@ export const useSubmitOnboarding = () => {
     setError(null);
 
     try {
-      const { selectedPlan, organizationDetails, organizationBrand, teams, invites, inviteRole } = store;
+      const {
+        selectedPlan,
+        organizationDetails,
+        organizationBrand,
+        teams,
+        invites,
+        inviteRole,
+        resetOnboarding,
+      } = store;
 
       if (selectedPlan !== "organization") {
         throw new Error("Only organization plan is currently supported");
@@ -71,7 +79,8 @@ export const useSubmitOnboarding = () => {
       // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
       // TODO: after this redirect we need to hard refresh the page to see org
-      router.push("/settings/organizations");
+      resetOnboarding();
+      router.push("/getting-started");
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create organization";
       setError(errorMessage);

@@ -37,10 +37,11 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
 
   const store = useOnboardingStore();
   const usersEmailDomain = userEmail.split("@")[1];
-  const { invites: storedInvites, inviteRole, setInvites, setInviteRole, resetOnboarding } = store;
+  const { invites: storedInvites, inviteRole, setInvites, setInviteRole } = store;
   const { submitOnboarding, isSubmitting } = useSubmitOnboarding();
 
   const form = useForm<FormValues>({
+    // @ts-expect-error ts seems to struggle with the type comparision here
     resolver: zodResolver(formSchema),
     defaultValues: {
       invites: storedInvites.length > 0 ? storedInvites : [{ email: "", team: "", role: inviteRole }],
@@ -260,7 +261,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                   className="rounded-[10px]"
                   disabled={(isEmailMode && !hasValidInvites) || isSubmitting}
                   loading={isSubmitting}
-                  onClick={isEmailMode ? form.handleSubmit(handleContinue) : handleContinue}>
+                  onClick={form.handleSubmit(handleContinue)}>
                   Continue
                 </Button>
               </div>
