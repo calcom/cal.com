@@ -42,7 +42,7 @@ const CustomTooltip = ({
       <p className="text-default font-medium">{payload[0].payload.formattedDateFull}</p>
       {payload.map((entry, index: number) => (
         <p key={index} style={{ color: entry.color }}>
-          {t("no_show_hosts")}: {valueFormatter ? valueFormatter(entry.value) : entry.value}
+          {t("no_show_hosts")}: {valueFormatter(entry.value)}
         </p>
       ))}
     </div>
