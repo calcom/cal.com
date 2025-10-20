@@ -1,5 +1,5 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { OrganizationOnboardingFactory } from "@calcom/features/ee/organizations/lib/onboarding";
+import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
 import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
@@ -27,7 +27,7 @@ type CreateOptions = {
 };
 
 export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, isPlatform } = input;
+  const { slug, name, orgOwnerEmail, seats, pricePerSeat, billingPeriod, isPlatform } = input;
   log.debug(
     "Starting organization creation intent",
     safeStringify({ slug, name, orgOwnerEmail, isPlatform })
@@ -41,6 +41,7 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     if (!hasValidLicense) {
       throw new TRPCError({
         code: "BAD_REQUEST",
+        // TODO: We need to send translation keys from here and frontend should translate it
         message: "License is not valid",
       });
     }
@@ -74,7 +75,7 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   }
   log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
 
-  const organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
+  let organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
   if (organizationOnboarding) {
     throw new Error("organization_onboarding_already_exists");
   }
@@ -86,16 +87,24 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     restrictBasedOnMinimumPublishedTeams: !IS_USER_ADMIN,
   });
 
-  const onboardingService = OrganizationOnboardingFactory.create({
-    id: ctx.user.id,
-    email: ctx.user.email,
-    role: ctx.user.role,
+  const paymentService = new OrganizationPaymentService(ctx.user);
+  organizationOnboarding = await paymentService.createOrganizationOnboarding({
+    ...input,
+    createdByUserId: loggedInUser.id,
   });
-  const result = await onboardingService.createOnboardingIntent(input);
 
   log.debug("Organization creation intent successful", safeStringify({ slug, orgOwnerId: orgOwner.id }));
-
-  return result;
+  return {
+    userId: orgOwner.id,
+    orgOwnerEmail,
+    name,
+    slug,
+    seats,
+    pricePerSeat,
+    billingPeriod,
+    isPlatform,
+    organizationOnboardingId: organizationOnboarding.id,
+  };
 };
 
 export default intentToCreateOrgHandler;

@@ -16,8 +16,6 @@ export type CreateOrganizationOnboardingInput = {
   slug: string;
   logo?: string | null;
   bio?: string | null;
-  brandColor?: string | null;
-  bannerUrl?: string | null;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   stripeSubscriptionItemId?: string;
@@ -43,8 +41,6 @@ export class OrganizationOnboardingRepository {
         slug: data.slug,
         logo: data.logo,
         bio: data.bio,
-        brandColor: data.brandColor,
-        bannerUrl: data.bannerUrl,
         stripeCustomerId: data.stripeCustomerId,
         stripeSubscriptionId: data.stripeSubscriptionId,
         invitedMembers: data.invitedMembers || [],
