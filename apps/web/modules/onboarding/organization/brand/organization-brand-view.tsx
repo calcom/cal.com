@@ -235,7 +235,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       </div>
 
                       {/* Right side - Preview */}
-                      <div className="bg-muted border-muted flex h-[328px] w-full grow overflow-hidden rounded-[10px] border p-5">
+                      <div className="bg-muted border-muted flex hidden h-[328px] w-full grow overflow-hidden rounded-[10px] border p-5 md:block">
                         <div className="flex flex-col gap-2.5">
                           <p className="text-subtle text-sm font-medium leading-4">Preview</p>
                           <div className="border-subtle bg-default relative flex w-[110%] flex-col gap-2.5 rounded-md border px-5 pb-5 pt-[74px]">

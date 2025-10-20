@@ -160,7 +160,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
 
                       {/* Role selector */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
+                        <div className="hidden items-center gap-2 md:flex">
                           <span className="text-emphasis text-sm">Invite all as</span>
                           <ToggleGroup
                             value={inviteRole}
@@ -186,14 +186,14 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                           </div>
 
                           {fields.map((field, index) => (
-                            <div key={field.id} className="flex items-start gap-0.5">
-                              <div className="grid flex-1 grid-cols-2 items-start gap-2">
+                            <div key={field.id} className="flex items-start gap-0.5 pt-2 md:pt-0">
+                              <div className="grid flex-1 items-start gap-2 md:grid-cols-2 ">
                                 <TextField
                                   labelSrOnly
                                   {...form.register(`invites.${index}.email`)}
                                   placeholder={`dave@${usersEmailDomain}`}
                                   type="email"
-                                  className="h-7 rounded-[10px] text-sm"
+                                  size="sm"
                                 />
                                 <Select
                                   size="sm"
@@ -234,7 +234,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
 
                         {/* Role selector */}
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
+                          <div className="hidden items-center gap-2 md:flex">
                             <span className="text-emphasis text-sm">Invite all as</span>
                             <ToggleGroup
                               value={inviteRole}
