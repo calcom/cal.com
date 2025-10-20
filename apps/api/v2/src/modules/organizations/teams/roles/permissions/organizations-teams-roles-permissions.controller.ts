@@ -13,6 +13,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { CreateTeamRolePermissionsInput } from "@/modules/organizations/teams/roles/permissions/inputs/create-team-role-permissions.input";
 import { DeleteTeamRolePermissionsQuery } from "@/modules/organizations/teams/roles/permissions/inputs/delete-team-role-permissions.query";
 import { GetTeamRolePermissionsOutput } from "@/modules/organizations/teams/roles/permissions/outputs/get-team-role-permissions.output";
@@ -40,7 +41,15 @@ import type { PermissionString } from "@calcom/platform-libraries/pbac";
   path: "/v2/organizations/:orgId/teams/:teamId/roles/:roleId/permissions",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(
+  ApiAuthGuard,
+  IsOrgGuard,
+  PbacGuard,
+  RolesGuard,
+  IsTeamInOrg,
+  PlatformPlanGuard,
+  IsAdminAPIEnabledGuard
+)
 @DocsTags("Orgs / Teams / Roles / Permissions")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)

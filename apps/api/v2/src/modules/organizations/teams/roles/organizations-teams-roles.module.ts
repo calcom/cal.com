@@ -1,5 +1,6 @@
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { OrganizationsTeamsRolesPermissionsController } from "@/modules/organizations/teams/roles/permissions/organizations-teams-roles-permissions.controller";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -11,7 +12,7 @@ import { OrganizationsTeamsRolesController } from "./organizations-teams-roles.c
 
 @Module({
   imports: [StripeModule, PrismaModule, RedisModule, MembershipsModule, RolesModule],
-  providers: [OrganizationsRepository],
+  providers: [OrganizationsRepository, OrganizationsTeamsRepository],
   controllers: [OrganizationsTeamsRolesController, OrganizationsTeamsRolesPermissionsController],
 })
 export class OrganizationsTeamsRolesModule {}
