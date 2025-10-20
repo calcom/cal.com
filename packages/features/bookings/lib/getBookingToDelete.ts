@@ -98,7 +98,11 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       destinationCalendar: true,
       smsReminderNumber: true,
       workflowReminders: true,
-      seatsReferences: true,
+      seatsReferences: {
+        orderBy: {
+          id: "asc",
+        },
+      },
       responses: true,
       iCalUID: true,
       iCalSequence: true,
