@@ -27,6 +27,7 @@ type CommonPropsMockRequestData = {
   rescheduledBy?: string;
   cancelledBy?: string;
   schedulingType?: SchedulingType;
+  guests?: string[];
   responses: {
     email: string;
     name: string;

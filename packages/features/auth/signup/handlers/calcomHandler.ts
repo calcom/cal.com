@@ -2,20 +2,20 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromRequest";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
-import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -47,10 +47,14 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
   const billingService = new StripeBillingService();
   const featuresRepository = new FeaturesRepository(prisma);
 
-  const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
   const isEmailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
     "email-verification"
   );
+  const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
+    email: _email,
+    organizationId: null,
+    span: sentrySpan,
+  });
 
   log.debug("handler", { email: _email, isEmailVerificationEnabled });
 

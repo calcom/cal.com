@@ -9,7 +9,7 @@ import isRouterLinkedField from "@calcom/app-store/routing-forms/lib/isRouterLin
 import type { SerializableForm } from "@calcom/app-store/routing-forms/types/types";
 import { zodFields, zodRouterRoute, zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils.server";
+import { entityPrismaWhereClause, canEditEntity } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
