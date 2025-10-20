@@ -66,12 +66,7 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
       parent: { connect: { id: pbacEnabledOrganization.id } },
     });
 
-    // Enable PBAC feature
-    try {
-      await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
-    } catch (error) {
-      console.log(error);
-    }
+    await featuresRepositoryFixture.create({ slug: "pbac", enabled: true });
     await featuresRepositoryFixture.enableFeatureForTeam(pbacEnabledTeam.id, "pbac");
 
     // Create user + membership in org

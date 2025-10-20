@@ -13,8 +13,12 @@ export class FeaturesRepositoryFixture {
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
   async create(data: Prisma.FeatureCreateInput) {
-    return await this.prismaWriteClient.feature.create({
-      data,
+    // note(Lauris): upserting because this create function is called in multiple tests in parallel and otherwise would lead to unique
+    // key constraint violation.
+    return await this.prismaWriteClient.feature.upsert({
+      where: { slug: data.slug },
+      create: data,
+      update: {},
     });
   }
 
