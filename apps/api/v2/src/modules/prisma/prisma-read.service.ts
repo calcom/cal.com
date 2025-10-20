@@ -3,7 +3,6 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
-import { uuid } from "short-uuid";
 
 import { PrismaClient } from "@calcom/prisma/client";
 
@@ -22,9 +21,6 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
 
   public prisma!: PrismaClient;
   private pool!: Pool;
-  private openedConnections = 0;
-  private activeConnections = 0;
-  private id = uuid();
   private options!: PrismaServiceOptions;
 
   constructor(private configService?: ConfigService) {
@@ -55,32 +51,6 @@ export class PrismaReadService implements OnModuleInit, OnModuleDestroy {
       connectionString: dbUrl,
       max: isE2E ? 1 : options.maxReadConnections ?? DB_MAX_POOL_CONNECTION,
       idleTimeoutMillis: 300000,
-    });
-
-    this.pool.on("connect", () => {
-      this.openedConnections++;
-      this.logger.log(
-        `Connection Opened | Opened connections: ${this.openedConnections} on Prisma Read ${this.id}`
-      );
-    });
-    this.pool.on("acquire", () => {
-      this.activeConnections++;
-      this.logger.log(
-        `Connection acquired | Active connections: ${this.activeConnections} on ${this.options.type} Prisma Read ${this.id}`
-      );
-    });
-    this.pool.on("release", () => {
-      this.activeConnections--;
-      this.logger.log(
-        `Connection released | Active connections: ${this.activeConnections} on ${this.options.type} Prisma Read ${this.id}`
-      );
-    });
-
-    this.pool.on("remove", () => {
-      this.openedConnections--;
-      this.logger.log(
-        `Connection closed | Opened connections: ${this.openedConnections} on ${this.options.type} Prisma Read ${this.id}`
-      );
     });
 
     const adapter = new PrismaPg(this.pool);

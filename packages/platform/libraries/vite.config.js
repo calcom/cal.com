@@ -8,6 +8,9 @@ import dts from "vite-plugin-dts";
 
 // https://vitejs.dev/guide/build.html#library-mode
 export default defineConfig({
+  define: {
+    "process.env.USE_POOL": "true",
+  },
   esbuild: {
     target: "node18",
     platform: "node",
