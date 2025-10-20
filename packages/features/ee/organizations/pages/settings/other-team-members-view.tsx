@@ -38,7 +38,7 @@ function MembersList(props: MembersListProps) {
   return (
     <div className="flex flex-col gap-y-3">
       {members?.length && team ? (
-        <ul className="divide-subtle border-subtle divide-y rounded-md border ">
+        <ul className="divide-subtle border-subtle divide-y rounded-md border">
           {members.map((member) => {
             return <MemberListItem key={member.id} member={member} />;
           })}
@@ -95,7 +95,6 @@ const MembersView = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
-  const session = useSession();
   const utils = trpc.useUtils();
   // const [query, setQuery] = useState<string | undefined>("");
   // const [queryToFetch, setQueryToFetch] = useState<string | undefined>("");
@@ -193,7 +192,7 @@ const MembersView = () => {
 
             {team && (
               <>
-                <hr className="border-subtle my-8" />
+                <hr className="border-subtle my-8 mt-6" />
                 <MakeTeamPrivateSwitch
                   teamId={team.id}
                   isPrivate={team.isPrivate}

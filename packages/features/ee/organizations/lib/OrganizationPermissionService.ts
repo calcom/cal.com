@@ -2,12 +2,13 @@ import { UserPermissionRole } from "@calcom/kysely/types";
 import { ORGANIZATION_SELF_SERVE_MIN_SEATS, ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
+
+import type { OnboardingUser } from "./service/onboarding/types";
 
 const log = logger.getSubLogger({ prefix: ["ee", "organizations", "OrganizationPermissionService"] });
 type SeatsPrice = {
@@ -28,7 +29,7 @@ export interface validatePermissionsIOrganizationPermissionService {
 }
 
 export class OrganizationPermissionService {
-  constructor(private readonly user: NonNullable<TrpcSessionUser>) {}
+  constructor(private readonly user: OnboardingUser) {}
 
   async hasPermissionToCreateForEmail(targetEmail: string): Promise<boolean> {
     return this.user.email === targetEmail || this.user.role === "ADMIN";
