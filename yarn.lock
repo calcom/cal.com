@@ -4125,7 +4125,7 @@ __metadata:
     "@trpc/next": 11.0.0-next-beta.222
     "@trpc/react-query": 11.0.0-next-beta.222
     "@trpc/server": 11.0.0-next-beta.222
-    superjson: 1.9.1
+    devalue: ^5.4.1
     typescript: ^5.9.0-beta
     zod: ^3.22.4
   languageName: unknown
@@ -4406,7 +4406,6 @@ __metadata:
     short-uuid: ^4.2.0
     sonner: ^1.7.4
     stripe: ^9.16.0
-    superjson: 1.9.1
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
     tailwindcss-radix: ^2.6.0
@@ -23725,15 +23724,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"copy-anything@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "copy-anything@npm:3.0.2"
-  dependencies:
-    is-what: ^4.1.6
-  checksum: 394491d62ab0c77c81616668bce51b91cf4e7b539bd530bb5b22c226151b0bc6122c01de21ffe46d5ec273f504fb34f6569f349ffb823fa814dddb8b27a4750c
-  languageName: node
-  linkType: hard
-
 "copy-to-clipboard@npm:^3.3.1":
   version: 3.3.3
   resolution: "copy-to-clipboard@npm:3.3.3"
@@ -24912,6 +24902,13 @@ __metadata:
     detect: ./bin/detect-port
     detect-port: ./bin/detect-port
   checksum: 93c40febe714f56711d1fedc2b7a9cc4cbaa0fcddec0509876c46b9dd6099ed6bfd6662a4f35e5fa0301660f48ed516829253ab0fc90b9e79b823dd77786b379
+  languageName: node
+  linkType: hard
+
+"devalue@npm:^5.4.1":
+  version: 5.4.1
+  resolution: "devalue@npm:5.4.1"
+  checksum: 2be081e79c80e122831a6c01d59d426b106761a49cc2cf43bf46117e2bfd12d55c5c333431b3341fe93cfc3e534102c3d66b5ed2dc51fd37c4071e67d0649785
   languageName: node
   linkType: hard
 
@@ -32126,13 +32123,6 @@ __metadata:
     call-bind: ^1.0.7
     get-intrinsic: ^1.2.4
   checksum: 8b6a20ee9f844613ff8f10962cfee49d981d584525f2357fee0a04dfbcde9fd607ed60cb6dab626dbcc470018ae6392e1ff74c0c1aced2d487271411ad9d85ae
-  languageName: node
-  linkType: hard
-
-"is-what@npm:^4.1.6":
-  version: 4.1.7
-  resolution: "is-what@npm:4.1.7"
-  checksum: aade39dcc45a209d6cb2f2d5dbcf0e63ed894aadbae37bd5693c64e9876a27632431b43fc9d9332ebf0795eddd2abc11a2d0f3c6fa41c36330616a645660530e
   languageName: node
   linkType: hard
 
@@ -45208,15 +45198,6 @@ __metadata:
     qs: ^6.11.0
     semver: ^7.3.8
   checksum: f3601c5ccae34d5ba684a03703394b5d25931f4ae2e1e31a1de809f88a9400e997ece037f9accf148a21c408f950dc829db1e4e23576a7f9fe0efa79fd5c9d2f
-  languageName: node
-  linkType: hard
-
-"superjson@npm:1.9.1":
-  version: 1.9.1
-  resolution: "superjson@npm:1.9.1"
-  dependencies:
-    copy-anything: ^3.0.2
-  checksum: b575fe4d18b7263b3d6a617dea7857a0f31ae30e80f8cc0c6fe18dc2e6b8bbd7b3374007ca67fa487e0159fff18cce03cbe0654a0df97f337bec6a8835c0eee3
   languageName: node
   linkType: hard
 

@@ -1,5 +1,4 @@
 import type { NextPageContext } from "next/types";
-import superjson from "superjson";
 
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
 import type { CreateTRPCNext } from "@trpc/next";
@@ -10,6 +9,7 @@ import type { TRPCClientErrorLike } from "@trpc/react-query";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
 import type { AppRouter } from "../server/routers/_app";
+import { transformer } from "../utils/transformer";
 import { ENDPOINTS } from "./shared";
 
 type Maybe<T> = T | null | undefined;
@@ -37,7 +37,7 @@ const resolveEndpoint = (links: any) => {
       endpoint = parts[0] as keyof typeof links;
       path = parts[1];
     } else if (parts.length >= 3 && parts[2] === "heavy") {
-      endpoint = parts[1] + "/heavy" as keyof typeof links;
+      endpoint = (parts[1] + "/heavy") as keyof typeof links;
       path = parts[3];
     } else {
       endpoint = parts[1] as keyof typeof links;
@@ -128,7 +128,7 @@ export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPC
       /**
        * @link https://trpc.io/docs/data-transformers
        */
-      transformer: superjson,
+      transformer,
     };
   },
   /**
@@ -136,8 +136,6 @@ export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPC
    */
   ssr: false,
 });
-
-export const transformer = superjson;
 
 export type RouterInputs = inferRouterInputs<AppRouter>;
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
