@@ -88,7 +88,7 @@ export const useSchedule = ({
     // if `prefetchNextMonth` is true, two months are fetched at once.
     endTime,
     timeZone: timezone!,
-    duration: duration ? `${duration}` : undefined,
+    ...(duration ? { duration } : {}),
     rescheduleUid,
     orgSlug,
     teamMemberEmail,
@@ -126,30 +126,20 @@ export const useSchedule = ({
 
   const isCallingApiV2Slots = useApiV2 && Boolean(isTeamEvent) && options.enabled;
 
-  const { duration: inputDuration, ...passThroughInput } = input;
-  const durationAsNumber = inputDuration ? Number(inputDuration) : undefined;
-
   // API V2 query for team events
   const teamScheduleV2 = useApiV2AvailableSlots({
-    ...passThroughInput,
+    ...input,
     enabled: isCallingApiV2Slots,
-    ...(durationAsNumber ? { duration: durationAsNumber } : {}),
     routedTeamMemberIds: input.routedTeamMemberIds ?? undefined,
     teamMemberEmail: input.teamMemberEmail ?? undefined,
     eventTypeId: eventId ?? undefined,
   });
 
-  const schedule = trpc.viewer.slots.getSchedule.useQuery(
-    {
-      ...passThroughInput,
-      ...(durationAsNumber ? { duration: durationAsNumber } : {}),
-    },
-    {
-      ...options,
-      // Only enable if we're not using API V2
-      enabled: options.enabled && !isCallingApiV2Slots,
-    }
-  );
+  const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
+    ...options,
+    // Only enable if we're not using API V2
+    enabled: options.enabled && !isCallingApiV2Slots,
+  });
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({
