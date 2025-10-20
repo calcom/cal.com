@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
 
@@ -14,7 +15,15 @@ type OrganizationBrandViewProps = {
   userEmail: string;
 };
 
-const BrandColorPicker = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => {
+const BrandColorPicker = ({
+  value,
+  onChange,
+  t,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  t: (key: string) => string;
+}) => {
   return (
     <div className="border-default bg-default flex h-7 w-32 items-center gap-2 rounded-lg border px-2 py-1.5">
       <Popover.Root>
@@ -22,7 +31,7 @@ const BrandColorPicker = ({ value, onChange }: { value: string; onChange: (value
           <button
             className="h-4 w-4 shrink-0 rounded-full border border-gray-200"
             style={{ backgroundColor: value }}
-            aria-label="Pick color"
+            aria-label={t("onboarding_pick_color_aria")}
           />
         </Popover.Trigger>
         <Popover.Portal>
@@ -47,6 +56,7 @@ const BrandColorPicker = ({ value, onChange }: { value: string; onChange: (value
 
 export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps) => {
   const router = useRouter();
+  const { t } = useLocale();
   const { organizationBrand, setOrganizationBrand, organizationDetails } = useOnboardingStore();
 
   const [brandColor, setBrandColor] = useState("#000000");
@@ -133,9 +143,9 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               {/* Card Header */}
               <div className="flex w-full gap-1.5 px-5 py-4">
                 <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">Add your Organization's brand</h1>
+                  <h1 className="font-cal text-xl font-semibold leading-6">{t("onboarding_org_brand_title")}</h1>
                   <p className="text-subtle text-sm font-medium leading-tight">
-                    Customize your booking pages with your logo and a custom banner
+                    {t("onboarding_org_brand_subtitle")}
                   </p>
                 </div>
               </div>
@@ -149,10 +159,10 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       <div className="flex w-full flex-col gap-6">
                         {/* Brand Color */}
                         <div className="flex w-full flex-col gap-6">
-                          <p className="text-emphasis text-sm font-medium leading-4">Brand color</p>
+                          <p className="text-emphasis text-sm font-medium leading-4">{t("brand_color")}</p>
                           <div className="flex w-full items-center gap-2">
                             <p className="text-subtle w-[98px] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-4">
-                              Primary color
+                              {t("onboarding_primary_color_label")}
                             </p>
                             <BrandColorPicker
                               value={brandColor}
@@ -160,19 +170,20 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                                 setBrandColor(value);
                                 setOrganizationBrand({ color: value });
                               }}
+                              t={t}
                             />
                           </div>
                         </div>
 
                         {/* Logo Upload */}
                         <div className="flex w-full flex-col gap-2">
-                          <p className="text-emphasis text-sm font-medium leading-4">Logo</p>
+                          <p className="text-emphasis text-sm font-medium leading-4">{t("logo")}</p>
                           <div className="flex items-center gap-2">
                             <div className="bg-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
                               {logoPreview && (
                                 <img
                                   src={logoPreview}
-                                  alt="Logo preview"
+                                  alt={t("onboarding_logo_preview_alt")}
                                   className="h-full w-full object-cover"
                                 />
                               )}
@@ -182,7 +193,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                                 color="secondary"
                                 size="sm"
                                 onClick={() => document.getElementById("logo-upload")?.click()}>
-                                Upload
+                                {t("upload")}
                               </Button>
                               <input
                                 id="logo-upload"
@@ -194,19 +205,19 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                             </div>
                           </div>
                           <p className="text-subtle text-xs font-normal leading-3">
-                            Recommended size 64x64px (max 10mb)
+                            {t("onboarding_logo_size_hint")}
                           </p>
                         </div>
 
                         {/* Banner Upload */}
                         <div className="flex w-full flex-col gap-2">
-                          <p className="text-emphasis text-sm font-medium leading-4">Banner</p>
+                          <p className="text-emphasis text-sm font-medium leading-4">{t("onboarding_banner_label")}</p>
                           <div className="flex w-full flex-col gap-2">
                             <div className="bg-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
                               {bannerPreview && (
                                 <img
                                   src={bannerPreview}
-                                  alt="Banner preview"
+                                  alt={t("onboarding_banner_preview_alt")}
                                   className="h-full w-full object-cover"
                                 />
                               )}
@@ -217,7 +228,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                                 size="sm"
                                 className="w-fit"
                                 onClick={() => document.getElementById("banner-upload")?.click()}>
-                                Upload
+                                {t("upload")}
                               </Button>
                               <input
                                 id="banner-upload"
@@ -229,7 +240,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                             </div>
                           </div>
                           <p className="text-subtle text-xs font-normal leading-3">
-                            Recommended size 1500x150px (max 10mb)
+                            {t("onboarding_banner_size_hint")}
                           </p>
                         </div>
                       </div>
@@ -237,14 +248,14 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                       {/* Right side - Preview */}
                       <div className="bg-muted border-muted flex hidden h-[328px] w-full grow overflow-hidden rounded-[10px] border p-5 md:block">
                         <div className="flex flex-col gap-2.5">
-                          <p className="text-subtle text-sm font-medium leading-4">Preview</p>
+                          <p className="text-subtle text-sm font-medium leading-4">{t("preview")}</p>
                           <div className="border-subtle bg-default relative flex w-[110%] flex-col gap-2.5 rounded-md border px-5 pb-5 pt-[74px]">
                             {/* Banner preview */}
                             <div className="bg-muted border-muted absolute left-1 top-1 h-[92px] w-[272px] overflow-hidden rounded-[4px] border">
                               {bannerPreview && (
                                 <img
                                   src={bannerPreview}
-                                  alt="Banner preview"
+                                  alt={t("onboarding_banner_preview_alt")}
                                   className="h-full w-full object-cover"
                                 />
                               )}
@@ -259,22 +270,22 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                                     {logoPreview && (
                                       <img
                                         src={logoPreview}
-                                        alt="Logo preview"
+                                        alt={t("onboarding_logo_preview_alt")}
                                         className="h-full w-full object-cover"
                                       />
                                     )}
                                   </div>
                                   <p className="text-subtle text-sm font-medium capitalize leading-4 ">
-                                    {organizationDetails.name || "Nameless"}
+                                    {organizationDetails.name || t("onboarding_preview_nameless")}
                                   </p>
                                 </div>
                                 <div className="flex flex-col gap-3">
                                   <div className="flex flex-col gap-3">
                                     <p className="font-cal text-xl leading-5 tracking-[0.2px]">
-                                      Enterprise sales
+                                      {t("onboarding_preview_example_title")}
                                     </p>
                                     <p className="text-subtle text-sm font-medium leading-5">
-                                      Jump on a call with one of our sales reps to learn more
+                                      {t("onboarding_preview_example_description")}
                                     </p>
                                   </div>
                                 </div>
@@ -302,10 +313,10 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
               {/* Footer */}
               <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
                 <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
-                  I'll do this later
+                  {t("ill_do_this_later")}
                 </Button>
                 <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-                  Continue
+                  {t("continue")}
                 </Button>
               </div>
             </div>

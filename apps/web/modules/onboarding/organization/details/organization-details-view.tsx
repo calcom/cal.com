@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 import { Logo } from "@calcom/ui/components/logo";
@@ -27,6 +28,7 @@ const slugify = (text: string): string => {
 
 export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewProps) => {
   const router = useRouter();
+  const { t } = useLocale();
   const { organizationDetails, setOrganizationDetails } = useOnboardingStore();
 
   const [organizationName, setOrganizationName] = useState("");
@@ -102,10 +104,10 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
               <div className="flex w-full gap-1.5 px-5 py-4">
                 <div className="flex w-full flex-col gap-1">
                   <h1 className="font-cal text-xl font-semibold leading-6">
-                    Add your Organization's details
+                    {t("onboarding_org_details_title")}
                   </h1>
                   <p className="text-subtle text-sm font-medium leading-tight">
-                    Customize your booking pages with your Organization's name and bio
+                    {t("onboarding_org_details_subtitle")}
                   </p>
                 </div>
               </div>
@@ -119,12 +121,12 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                         {/* Organization Name */}
                         <div className="flex w-full flex-col gap-1.5">
                           <Label className="text-emphasis text-sm font-medium leading-4">
-                            Organization name
+                            {t("organization_name")}
                           </Label>
                           <TextField
                             value={organizationName}
                             onChange={(e) => setOrganizationName(e.target.value)}
-                            placeholder="Acme"
+                            placeholder={t("organization_name")}
                             className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
                           />
                         </div>
@@ -139,12 +141,12 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                         {/* Organization Bio */}
                         <div className="flex w-full flex-col gap-1.5">
                           <Label className="text-emphasis text-sm font-medium leading-4">
-                            Organization bio
+                            {t("onboarding_org_bio_label")}
                           </Label>
                           <TextArea
                             value={organizationBio}
                             onChange={(e) => setOrganizationBio(e.target.value)}
-                            placeholder="Acme helps thousands of companies expand globally with unmatched speed and flexibility."
+                            placeholder={t("onboarding_org_bio_placeholder")}
                             rows={4}
                             className="border-default rounded-lg border px-2 py-2 text-sm leading-tight"
                           />
@@ -162,7 +164,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                   className="rounded-[10px]"
                   onClick={handleContinue}
                   disabled={!isSlugValid || !organizationName || !organizationLink}>
-                  Continue
+                  {t("continue")}
                 </Button>
               </div>
             </div>

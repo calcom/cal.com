@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -16,19 +17,22 @@ type OrganizationTeamsViewProps = {
   userEmail: string;
 };
 
-const formSchema = z.object({
-  teams: z.array(
-    z.object({
-      name: z.string().min(1, "Team name is required"),
-    })
-  ),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  teams: { name: string }[];
+};
 
 export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps) => {
   const router = useRouter();
+  const { t } = useLocale();
   const { teams: storedTeams, setTeams } = useOnboardingStore();
+
+  const formSchema = z.object({
+    teams: z.array(
+      z.object({
+        name: z.string().min(1, t("team_name_required")),
+      })
+    ),
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -86,9 +90,9 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
               {/* Card Header */}
               <div className="flex w-full gap-1.5 px-5 py-4">
                 <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">Add your Organization's teams</h1>
+                  <h1 className="font-cal text-xl font-semibold leading-6">{t("onboarding_org_teams_title")}</h1>
                   <p className="text-subtle text-sm font-medium leading-tight">
-                    Start scheduling together by adding your teams/
+                    {t("onboarding_org_teams_subtitle")}
                   </p>
                 </div>
               </div>
@@ -99,7 +103,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                   <div className="flex w-full flex-col gap-8 px-5 py-5">
                     <div className="flex w-full flex-col gap-2">
                       <div className="flex flex-col gap-1">
-                        <p className="text-emphasis text-sm font-medium leading-4">Teams</p>
+                        <p className="text-emphasis text-sm font-medium leading-4">{t("team")}</p>
                       </div>
 
                       {/* Team fields */}
@@ -110,7 +114,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                               <TextField
                                 labelSrOnly
                                 {...form.register(`teams.${index}.name`)}
-                                placeholder="Content"
+                                placeholder={t("team")}
                                 className="h-7 w-full rounded-[10px] text-sm"
                               />
                             </div>
@@ -136,7 +140,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                         StartIcon="plus"
                         className="w-fit"
                         onClick={() => append({ name: "" })}>
-                        Add
+                        {t("add")}
                       </Button>
                     </div>
                   </div>
@@ -149,10 +153,10 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
                     color="minimal"
                     className="absolute left-[368px] rounded-[10px]"
                     onClick={handleSkip}>
-                    Skip for now
+                    {t("onboarding_skip_for_now")}
                   </Button>
                   <Button type="submit" color="primary" className="rounded-[10px]" disabled={!hasValidTeams}>
-                    Continue
+                    {t("continue")}
                   </Button>
                 </div>
               </Form>

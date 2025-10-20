@@ -6,6 +6,7 @@ import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Label, TextField, Select, ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
@@ -18,20 +19,17 @@ type OrganizationInviteViewProps = {
   userEmail: string;
 };
 
-const formSchema = z.object({
-  invites: z.array(
-    z.object({
-      email: z.string().email("Invalid email address"),
-      team: z.string().min(1, "Team is required"),
-      role: z.enum(["MEMBER", "ADMIN"]),
-    })
-  ),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = {
+  invites: {
+    email: string;
+    team: string;
+    role: "MEMBER" | "ADMIN";
+  }[];
+};
 
 export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProps) => {
   const router = useRouter();
+  const { t } = useLocale();
   // We are using email mode for now until we implement the other invite methods, csv, workspace - invite link
   const isEmailMode = true;
 
@@ -39,6 +37,16 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const usersEmailDomain = userEmail.split("@")[1];
   const { invites: storedInvites, inviteRole, setInvites, setInviteRole } = store;
   const { submitOnboarding, isSubmitting } = useSubmitOnboarding();
+
+  const formSchema = z.object({
+    invites: z.array(
+      z.object({
+        email: z.string().email(t("invalid_email_address")),
+        team: z.string().min(1, t("onboarding_team_required")),
+        role: z.enum(["MEMBER", "ADMIN"]),
+      })
+    ),
+  });
 
   const form = useForm<FormValues>({
     // @ts-expect-error ts seems to struggle with the type comparision here
@@ -117,11 +125,11 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
               {/* Card Header */}
               <div className="flex w-full gap-1.5 px-5 py-4">
                 <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">Invite your teammates</h1>
+                  <h1 className="font-cal text-xl font-semibold leading-6">{t("onboarding_org_invite_title")}</h1>
                   <p className="text-subtle text-sm font-medium leading-tight">
                     {isEmailMode
-                      ? "Enter your teammates email address and set their team to add them to your Organization."
-                      : "Connect your Google Workspace, invite via email, upload a CSV file or copy the invite link and share it with your teammates to add them to your Organization."}
+                      ? t("onboarding_org_invite_subtitle_email")
+                      : t("onboarding_org_invite_subtitle_full")}
                   </p>
                 </div>
               </div>
@@ -134,12 +142,12 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                     // Initial invite options view
                     <div className="flex w-full flex-col gap-4">
                       <Button color="secondary" className="w-full justify-center" StartIcon="mail">
-                        Connect Google Workspace
+                        {t("onboarding_connect_google_workspace")}
                       </Button>
 
                       <div className="flex items-center gap-2">
                         <div className="bg-subtle h-px flex-1" />
-                        <span className="text-subtle text-xs">or</span>
+                        <span className="text-subtle text-xs">{t("onboarding_or_divider")}</span>
                         <div className="bg-subtle h-px flex-1" />
                       </div>
 
@@ -148,30 +156,30 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                           color="secondary"
                           className="flex-1 justify-center"
                           onClick={handleInviteViaEmail}>
-                          Invite via email
+                          {t("onboarding_org_invite_subtitle_email")}
                         </Button>
                         <Button color="secondary" className="flex-1 justify-center" StartIcon="upload">
-                          Upload CSV file
+                          {t("onboarding_upload_csv")}
                         </Button>
                         <Button color="secondary" className="flex-1 justify-center" StartIcon="link">
-                          Copy invite link
+                          {t("onboarding_copy_invite_link")}
                         </Button>
                       </div>
 
                       {/* Role selector */}
                       <div className="flex items-center justify-between">
                         <div className="hidden items-center gap-2 md:flex">
-                          <span className="text-emphasis text-sm">Invite all as</span>
+                          <span className="text-emphasis text-sm">{t("onboarding_invite_all_as")}</span>
                           <ToggleGroup
                             value={inviteRole}
                             onValueChange={(value) => value && setInviteRole(value as "MEMBER" | "ADMIN")}
                             options={[
-                              { value: "ADMIN", label: "Admins" },
-                              { value: "MEMBER", label: "Members" },
+                              { value: "ADMIN", label: t("onboarding_admins") },
+                              { value: "MEMBER", label: t("members") },
                             ]}
                           />
                         </div>
-                        <span className="text-subtle text-sm">You can modify roles later</span>
+                        <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>
                       </div>
                     </div>
                   ) : (
@@ -181,8 +189,8 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                         {/* Email and Team inputs */}
                         <div className="flex flex-col gap-2">
                           <div className="grid grid-cols-2 gap-2">
-                            <Label className="text-emphasis text-sm font-medium">Email</Label>
-                            <Label className="text-emphasis text-sm font-medium">Team</Label>
+                            <Label className="text-emphasis text-sm font-medium">{t("email")}</Label>
+                            <Label className="text-emphasis text-sm font-medium">{t("team")}</Label>
                           </div>
 
                           {fields.map((field, index) => (
@@ -204,7 +212,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                                       form.setValue(`invites.${index}.team`, option.value);
                                     }
                                   }}
-                                  placeholder="Select team"
+                                  placeholder={t("select_team")}
                                 />
                               </div>
                               <Button
@@ -228,24 +236,24 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                             StartIcon="plus"
                             className="w-fit"
                             onClick={() => append({ email: "", team: "", role: "MEMBER" })}>
-                            Add
+                            {t("add")}
                           </Button>
                         </div>
 
                         {/* Role selector */}
                         <div className="flex items-center justify-between">
                           <div className="hidden items-center gap-2 md:flex">
-                            <span className="text-emphasis text-sm">Invite all as</span>
+                            <span className="text-emphasis text-sm">{t("onboarding_invite_all_as")}</span>
                             <ToggleGroup
                               value={inviteRole}
                               onValueChange={(value) => value && setInviteRole(value as "MEMBER" | "ADMIN")}
                               options={[
-                                { value: "MEMBER", label: "Members" },
-                                { value: "ADMIN", label: "Admins" },
+                                { value: "MEMBER", label: t("members") },
+                                { value: "ADMIN", label: t("onboarding_admins") },
                               ]}
                             />
                           </div>
-                          <span className="text-subtle text-sm">You can modify roles later</span>
+                          <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>
                         </div>
                       </div>
                     </Form>
@@ -262,7 +270,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                   disabled={(isEmailMode && !hasValidInvites) || isSubmitting}
                   loading={isSubmitting}
                   onClick={form.handleSubmit(handleContinue)}>
-                  Continue
+                  {t("continue")}
                 </Button>
               </div>
             </div>
@@ -273,7 +281,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
             <button
               onClick={handleSkip}
               className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4">
-              I'll do this later
+              {t("ill_do_this_later")}
             </button>
           </div>
         </div>
