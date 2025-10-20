@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { JSONObject } from "superjson/dist/types";
 
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET" && req.session && req.session.user.id) {
@@ -16,12 +16,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       });
 
-      if (user && user.metadata && (user.metadata as JSONObject)?.vitalSettings) {
-        res.status(200).json((user.metadata as JSONObject).vitalSettings);
+      if (user && user.metadata && (user.metadata as Prisma.JsonObject)?.vitalSettings) {
+        res.status(200).json((user.metadata as Prisma.JsonObject).vitalSettings);
       } else {
         res.status(404);
       }
-    } catch (error) {
+    } catch {
       res.status(500);
     }
   } else {
