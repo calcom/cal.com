@@ -12,7 +12,9 @@
   "dependencies": {
     "connect": "^3.7.0",
     "http": "^0.0.1-security",
-    "http-proxy-middleware": "^2.0.6"
+    "http-proxy-middleware": "^2.0.6",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*"
