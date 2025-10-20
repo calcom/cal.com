@@ -15,6 +15,16 @@ type OrganizationDetailsViewProps = {
   userEmail: string;
 };
 
+// Helper function to slugify organization name
+const slugify = (text: string): string => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "") // Remove special characters
+    .replace(/[\s_-]+/g, "-") // Replace spaces, underscores with single dash
+    .replace(/^-+|-+$/g, ""); // Remove leading/trailing dashes
+};
+
 export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewProps) => {
   const router = useRouter();
   const { organizationDetails, setOrganizationDetails } = useOnboardingStore();
@@ -23,13 +33,31 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   const [organizationLink, setOrganizationLink] = useState("");
   const [organizationBio, setOrganizationBio] = useState("");
   const [isSlugValid, setIsSlugValid] = useState(false);
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
   // Load from store on mount
   useEffect(() => {
     setOrganizationName(organizationDetails.name);
     setOrganizationLink(organizationDetails.link);
     setOrganizationBio(organizationDetails.bio);
+    // If there's a pre-existing link, consider it manually set
+    if (organizationDetails.link) {
+      setIsSlugManuallyEdited(true);
+    }
   }, [organizationDetails]);
+
+  // Auto-populate slug from organization name (unless manually edited)
+  useEffect(() => {
+    if (!isSlugManuallyEdited && organizationName) {
+      const slugifiedName = slugify(organizationName);
+      setOrganizationLink(slugifiedName);
+    }
+  }, [organizationName, isSlugManuallyEdited]);
+
+  const handleSlugChange = (value: string) => {
+    setOrganizationLink(value);
+    setIsSlugManuallyEdited(true);
+  };
 
   const handleContinue = () => {
     if (!isSlugValid) {
@@ -104,7 +132,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                         {/* Organization Link */}
                         <ValidatedOrganizationSlug
                           value={organizationLink}
-                          onChange={setOrganizationLink}
+                          onChange={handleSlugChange}
                           onValidationChange={setIsSlugValid}
                         />
 
