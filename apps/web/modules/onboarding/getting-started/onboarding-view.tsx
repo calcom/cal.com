@@ -108,10 +108,13 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                     <div className="flex w-full flex-col gap-2">
                       <div className="flex items-start gap-2">
                         <p className="text-emphasis text-base font-semibold leading-4">{plan.title}</p>
-                        <Badge variant="gray" size="md" className="h-4 rounded-md px-1 py-1">
+                        <Badge variant="gray" size="md" className="hidden h-4 rounded-md px-1 py-1 md:block">
                           <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
                         </Badge>
                       </div>
+                      <Badge variant="gray" size="md" className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
+                        <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
+                      </Badge>
                       <p className="text-subtle max-w-full text-sm font-normal leading-tight">
                         {plan.description}
                       </p>
