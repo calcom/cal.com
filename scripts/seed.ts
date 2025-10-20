@@ -556,6 +556,12 @@ async function createOrganizationAndAddMembersAndTeams({
     );
 
     const ownerForEvent = orgMembersInDBWithProfileId[0];
+    if (!ownerForEvent) {
+      console.log(
+        `Warning: No organization members with profiles found for creating team event, skipping event creation for team ${team.teamData.slug}`
+      );
+      continue;
+    }
     // Create event for each team
     await prisma.eventType.create({
       data: {
