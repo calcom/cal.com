@@ -7,7 +7,7 @@ import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
-import { ChartCard, ChartCardItem } from "../ChartCard";
+import { ChartCardItem } from "../ChartCard";
 import { LoadingInsight } from "../LoadingInsights";
 
 export const RecentNoShowGuestsChart = () => {
@@ -37,10 +37,8 @@ export const RecentNoShowGuestsChart = () => {
   };
 
   return (
-    <ChartCard
-      title={t("recent_no_show_guests")}
-      titleTooltip={t("recent_no_show_guests_tooltip")}
-      className="h-full">
+    <div className="h-full">
+      <h3 className="text-emphasis mb-4 text-lg font-semibold">{t("recent_no_show_guests")}</h3>
       <div className="sm:max-h-[30.6rem] sm:overflow-y-auto">
         {data.map((item) => (
           <ChartCardItem key={item.bookingId}>
@@ -77,6 +75,6 @@ export const RecentNoShowGuestsChart = () => {
           <p className="m-auto text-sm font-light">{t("insights_no_data_found_for_filter")}</p>
         </div>
       )}
-    </ChartCard>
+    </div>
   );
 };

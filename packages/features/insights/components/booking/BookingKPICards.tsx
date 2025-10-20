@@ -2,11 +2,9 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
-import { ChartCard } from "../ChartCard";
 import { KPICard } from "../KPICard";
 
 export const BookingKPICards = () => {
@@ -77,8 +75,9 @@ export const BookingKPICards = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <div className="space-y-4">
-      <ChartCard title={t("events")}>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-emphasis mb-4 text-xl font-semibold">{t("events")}</h2>
         <StatContainer>
           {eventCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -90,9 +89,10 @@ export const BookingKPICards = () => {
             </StatItem>
           ))}
         </StatContainer>
-      </ChartCard>
+      </div>
 
-      <ChartCard title={t("performance")}>
+      <div>
+        <h2 className="text-emphasis mb-4 text-xl font-semibold">{t("performance")}</h2>
         <StatContainer>
           {performanceCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -104,7 +104,7 @@ export const BookingKPICards = () => {
             </StatItem>
           ))}
         </StatContainer>
-      </ChartCard>
+      </div>
     </div>
   );
 };
@@ -117,8 +117,9 @@ const LoadingKPICards = (props: {
   const { t } = useLocale();
 
   return (
-    <div className="space-y-4">
-      <ChartCard title={t("events")}>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-emphasis mb-4 text-xl font-semibold">{t("events")}</h2>
         <StatContainer>
           {eventCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -134,9 +135,10 @@ const LoadingKPICards = (props: {
             </StatItem>
           ))}
         </StatContainer>
-      </ChartCard>
+      </div>
 
-      <ChartCard title={t("performance")}>
+      <div>
+        <h2 className="text-emphasis mb-4 text-xl font-semibold">{t("performance")}</h2>
         <StatContainer>
           {performanceCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -152,27 +154,17 @@ const LoadingKPICards = (props: {
             </StatItem>
           ))}
         </StatContainer>
-      </ChartCard>
+      </div>
     </div>
   );
 };
 
-// StatContainer: wraps the grid
+// StatContainer: wraps the grid with gap for separated cards
 function StatContainer({ children }: { children: React.ReactNode }) {
-  return <div className="group grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">{children}</div>;
+  return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">{children}</div>;
 }
 
-// StatItem: handles border logic
-function StatItem({ index, children }: { index: number; children: React.ReactNode }) {
-  return (
-    <div
-      className={classNames(
-        "border-muted flex-1 p-4",
-        index === 0 && "border-b sm:border-r md:border-b-0 md:border-r",
-        index === 1 && "border-b sm:border-r-0 md:border-b-0 md:border-r",
-        index === 2 && "border-b sm:border-b-0 sm:border-r md:border-b-0"
-      )}>
-      {children}
-    </div>
-  );
+// StatItem: individual card with curved edges and elevation
+function StatItem({ index: _index, children }: { index: number; children: React.ReactNode }) {
+  return <div className="bg-default border-subtle rounded-2xl border p-6 shadow-sm">{children}</div>;
 }
