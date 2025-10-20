@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 
 import { CalendarAuth } from "@calcom/app-store/googlecalendar/lib/CalendarAuth";
 import dayjs from "@calcom/dayjs";
+import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 
@@ -117,12 +118,12 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
     };
 
     if (!syncToken) {
-      const now = dayjs();
+      const now = dayjs().startOf("day");
       // first sync or unsync (3 months)
-      const threeMonths = now.add(3, "month");
+      const monthsAhead = now.add(CalendarCacheEventService.MONTHS_AHEAD, "month").endOf("day");
 
       const timeMinISO = now.toISOString();
-      const timeMaxISO = threeMonths.toISOString();
+      const timeMaxISO = monthsAhead.toISOString();
       params.timeMin = timeMinISO;
       params.timeMax = timeMaxISO;
     } else {
@@ -151,8 +152,21 @@ export class GoogleCalendarSubscriptionAdapter implements ICalendarSubscriptionP
   }
 
   private parseEvents(events: calendar_v3.Schema$Event[]): CalendarSubscriptionEventItem[] {
+    const now = dayjs().startOf("day");
+    const monthsAhead = now.add(CalendarCacheEventService.MONTHS_AHEAD, "month").endOf("day");
+
+    function filterEventsWithoutId(event: calendar_v3.Schema$Event) {
+      return typeof event.id === "string" && !!event.id;
+    }
+
+    function filterEventsByDateRange(event: calendar_v3.Schema$Event) {
+      const start = dayjs(event.start?.dateTime || event.start?.date);
+      return !start.isBefore(now) && !start.isAfter(monthsAhead);
+    }
+
     return events
-      .filter((event) => typeof event.id === "string" && !!event.id)
+      .filter(filterEventsWithoutId)
+      .filter(filterEventsByDateRange)
       .map((event) => {
         // empty or opaque is busy
         const busy = !event.transparency || event.transparency === "opaque";
