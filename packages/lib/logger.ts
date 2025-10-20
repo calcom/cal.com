@@ -1,3 +1,4 @@
+import fs from "fs";
 import { Logger } from "tslog";
 
 import { IS_PRODUCTION } from "./constants";
@@ -15,6 +16,22 @@ const logger = new Logger({
     dateIsoStr: "blue",
   },
   type: IS_PRODUCTION ? "json" : "pretty",
+});
+
+export const criticalLogger = logger.getSubLogger({
+  name: "critical",
+  overwrite: {
+    transportJSON: (logObj) => {
+      const logString = JSON.stringify(logObj);
+      const buffer = Buffer.from(logString + "\n");
+
+      try {
+        fs.writeSync(process.stdout.fd, buffer);
+      } catch {
+        console.log(logString);
+      }
+    },
+  },
 });
 
 export default logger;

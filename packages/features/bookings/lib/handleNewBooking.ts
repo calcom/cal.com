@@ -1,6 +1,6 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -38,11 +38,14 @@ import type { CacheService } from "@calcom/features/calendar-cache/lib/getShould
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -63,15 +66,13 @@ import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
+import logger, { criticalLogger } from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
 import type { HostRepository } from "@calcom/lib/server/repository/host";
 import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
-import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
@@ -1729,7 +1730,7 @@ async function handler(
         await usersRepository.updateLastActiveAt(booking.userId);
         const organizerUserAvailability = availableUsers.find((user) => user.id === booking?.userId);
 
-        logger.info(`Booking created`, {
+        criticalLogger.info(`Booking created`, {
           bookingUid: booking.uid,
           selectedCalendarIds: organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
           availabilitySnapshot: organizerUserAvailability?.availabilityData
