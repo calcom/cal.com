@@ -1,11 +1,12 @@
 "use client";
 
 import type { Table as ReactTable } from "@tanstack/react-table";
+import { useMemo } from "react";
 
 import { DataTableFilters, DataTableSegment } from "@calcom/features/data-table";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import type { RowData, BookingListingStatus } from "../types";
+import { WeekCalendarView } from "./WeekCalendarView";
 
 type BookingsCalendarViewProps = {
   status: BookingListingStatus;
@@ -13,6 +14,15 @@ type BookingsCalendarViewProps = {
 };
 
 export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
+  const { rows } = table.getRowModel();
+
+  const bookings = useMemo(() => {
+    return rows
+      .filter((row) => row.original.type === "data")
+      .map((row) => (row.original.type === "data" ? row.original.booking : null))
+      .filter((booking): booking is NonNullable<typeof booking> => booking !== null);
+  }, [rows]);
+
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
@@ -26,9 +36,7 @@ export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
           <DataTableSegment.Select />
         </div>
       </div>
-      <div className="flex items-center justify-center pt-2 xl:pt-0">
-        <EmptyScreen Icon="calendar" headline="Calendar view" description="Calendar view is coming soon." />
-      </div>
+      <WeekCalendarView bookings={bookings} />
     </>
   );
 }
