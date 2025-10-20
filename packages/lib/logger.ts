@@ -18,6 +18,10 @@ const logger = new Logger({
   type: IS_PRODUCTION ? "json" : "pretty",
 });
 
+/** This should be used if we want to ensure a log statement is always executed.
+ *
+ * This should only be used server side
+ */
 export const criticalLogger = logger.getSubLogger({
   name: "critical",
   overwrite: {
