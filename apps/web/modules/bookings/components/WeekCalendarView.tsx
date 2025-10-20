@@ -6,8 +6,8 @@ import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
-import { Button } from "@calcom/ui";
-import { Icon } from "@calcom/ui/components/icon/Icon";
+import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 
 import type { BookingOutput } from "../types";
 
