@@ -55,7 +55,6 @@ export const DI_TOKENS = {
   HOST_REPOSITORY_MODULE: Symbol("HostRepositoryModule"),
   ATTRIBUTE_REPOSITORY: Symbol("AttributeRepository"),
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
-  // Booking service tokens
   ...BOOKING_DI_TOKENS,
   // Watchlist service tokens
   ...WATCHLIST_DI_TOKENS,
