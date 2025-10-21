@@ -9,12 +9,15 @@ export type TeamInvite = {
   teamName: string;
   joinLink: string;
   isCalcomMember: boolean;
+  /**
+   * We ideally should have a separate email for auto-join(when a user is automatically accepted into a team/org), but we don't have one yet.
+   */
   isAutoJoin: boolean;
   isOrg: boolean;
   parentTeamName: string | undefined;
-  isExistingUserMovedToOrg?: boolean;
-  prevLink?: string | null;
-  newLink?: string | null;
+  isExistingUserMovedToOrg: boolean;
+  prevLink: string | null;
+  newLink: string | null;
 };
 
 export function getTypeOfInvite(teamInviteEvent: TeamInvite) {
