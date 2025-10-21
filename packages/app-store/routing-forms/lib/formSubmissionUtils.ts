@@ -229,7 +229,6 @@ export async function _onFormSubmission(
         responseId,
         responses: fieldResponsesByIdentifier,
         routedEventTypeId,
-        responseId,
         form: {
           ...form,
           fields: form.fields.map((field) => ({
