@@ -295,6 +295,8 @@ function BookingsContent({ status, permissions }: BookingsProps) {
                   userTimeZone: user?.timeZone,
                   userTimeFormat: user?.timeFormat,
                   userEmail: user?.email,
+                  teamsWhereUserIsAdminOrOwner: user?.teamsWhereUserIsAdminOrOwner,
+                  userIsOrgAdminOrOwner: user?.organization?.isOrgAdmin,
                 }}
                 listingStatus={status}
                 recurringInfo={recurringInfo}
