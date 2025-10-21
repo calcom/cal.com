@@ -3153,6 +3153,8 @@
   "routing_form_insights_booking_at": "Booking At",
   "routing_form_insights_submitted_at": "Submitted At",
   "routing_form_insights_reassignment_status": "Reassignment Status",
+  "routing_form_insights_reassigned_from": "From",
+  "routing_form_insights_reassigned_to": "To",
   "routing_status_standard": "Standard",
   "routing_status_reassigned": "Reassigned",
   "routing_status_rerouted": "Rerouted",

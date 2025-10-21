@@ -1793,7 +1793,6 @@ model BookingDenormalized {
   isTeamBooking          Boolean
   assignmentReasons      String?
   fromReschedule         String?
-  reroutedFromBookingUid String?
 
   @@index([userId])
   @@index([createdAt])
@@ -1807,7 +1806,6 @@ model BookingDenormalized {
   @@index([userId, isTeamBooking])
   @@index([startTime, endTime])
   @@index([fromReschedule])
-  @@index([reroutedFromBookingUid])
 }
 
 view BookingTimeStatusDenormalized {

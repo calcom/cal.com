@@ -331,10 +331,10 @@ export const useInsightsColumns = ({
             <div className="max-w-[250px] space-y-1">
               <div className="truncate">{assignmentReason || "-"}</div>
               {row.reroutedFromBookingUid && (
-                <div className="text-muted text-xs">← From: {row.reroutedFromBookingUid.slice(-8)}</div>
+                <div className="text-muted text-xs">← {t("routing_form_insights_reassigned_from")}: {row.reroutedFromBookingUid.slice(-8)}</div>
               )}
               {row.reroutedToBookingUid && (
-                <div className="text-muted text-xs">→ To: {row.reroutedToBookingUid.slice(-8)}</div>
+                <div className="text-muted text-xs">→ {t("routing_form_insights_reassigned_to")}: {row.reroutedToBookingUid.slice(-8)}</div>
               )}
             </div>
           );

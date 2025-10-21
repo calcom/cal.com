@@ -115,11 +115,7 @@ export function RoutingFormResponsesTable() {
         <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
-          rowClassName={(row: Row<RoutingFormTableRow>) => {
-            if (row.original.isRerouted === 'rerouted') return "min-h-14 bg-orange-50 border-l-2 border-l-orange-400";
-            if (row.original.isOriginalBooking) return "min-h-14 bg-blue-50 border-l-2 border-l-blue-400";
-            return "min-h-14";
-          }}
+          rowClassName="min-h-14"
           paginationMode="standard"
           totalRowCount={data?.total}
           LoaderView={<DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />}
