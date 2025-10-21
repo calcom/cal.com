@@ -254,13 +254,12 @@
   --cal-brand-text: hsla(0, 0%, 0%, 1); /* black */
 }
 
-/* TODO: Restore after v4 migration - custom border-default utility
 @layer base {
   * {
-    /* @apply border-default; */
+    @apply border-default;
   }
 }
-*/
+
 
 ::-moz-selection {
   color: var(--cal-brand-text);
@@ -272,7 +271,7 @@
   background: var(--cal-brand);
 }
 
-body  {
+body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -378,11 +377,12 @@ select:focus {
   border-color: var(--brand-color);
 }
 
-@layer components {
+/* TODO: need to check if this is needed */
+/* @layer components {
   .scroll-bar {
-    /* @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent; */
+    @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
   }
-}
+} */
 
 /* TODO: avoid global specific css */
 /* button[role="switch"][data-state="checked"] span {
@@ -392,23 +392,23 @@ select:focus {
 @layer components {
   /* slider */
   .slider {
-    /* @apply relative flex h-4 w-40 select-none items-center; */
+    @apply relative flex h-4 w-40 select-none items-center;
   }
 
   .slider > .slider-track {
-    /* @apply relative h-1 flex-grow rounded-md bg-gray-400; */
+    @apply relative h-1 flex-grow rounded-md bg-gray-400;
   }
 
   .slider .slider-range {
-    /* @apply absolute h-full rounded-full bg-gray-700; */
+    @apply absolute h-full rounded-full bg-gray-700;
   }
 
   .slider .slider-thumb {
-    /* @apply block h-3 w-3 cursor-pointer rounded-full bg-gray-700 transition-all; */
+    @apply block h-3 w-3 cursor-pointer rounded-full bg-gray-700 transition-all;
   }
 
   .slider .slider-thumb:hover {
-    /* @apply bg-gray-600; */
+    @apply bg-gray-600;
   }
 
   .slider .slider-thumb:focus {
@@ -449,7 +449,7 @@ select:focus {
   font-size: inherit !important;
   font-weight: inherit !important;
   color: #000;
-  padding: 11px ​11px 9px !important;
+  padding: 11px 11px 9px !important;
   line-height: 16px !important;
 }
 
@@ -457,7 +457,7 @@ select:focus {
   border: 2px solid #000 !important;
   border-radius: 2px !important;
   box-shadow: none !important;
-  padding: 10px ​10px 9px !important;
+  padding: 10px 10px 9px !important;
 }
 
 .DateRangePickerInput_arrow {
@@ -630,16 +630,16 @@ select:focus {
 
 .react-tel-input .country-list .country:hover,
 .react-tel-input .country-list .country.highlight {
-  /* @apply !bg-emphasis; */
+  @apply !bg-emphasis;
 }
 
 .react-tel-input .flag-dropdown .selected-flag,
 .react-tel-input .flag-dropdown.open .selected-flag {
-  /* @apply !bg-default; */
+  @apply !bg-default;
 }
 
 .react-tel-input .flag-dropdown {
-  /* @apply !border-r-default left-0.5 !border-y-0 !border-l-0; */
+  @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
 
 [data-radix-popper-content-wrapper] {
