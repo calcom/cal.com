@@ -6,7 +6,9 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
 
 import type { BookingOutput } from "../types";
@@ -17,6 +19,7 @@ type WeekCalendarViewProps = {
 };
 
 export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewProps) {
+  const { t } = useLocale();
   const { timezone } = useTimePreferences();
   const [currentWeekStart, _setCurrentWeekStart] = useState(() => dayjs().startOf("week"));
 
@@ -76,26 +79,47 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
       });
   }, [bookings, currentWeekStart]);
 
-  const weekRange = `${currentWeekStart.format("MMM D")} - ${currentWeekStart
-    .add(6, "day")
-    .format("MMM D, YYYY")}`;
+  const weekStart = currentWeekStart;
+  const weekEnd = currentWeekStart.add(6, "day");
+  const startMonth = weekStart.format("MMM");
+  const endMonth = weekEnd.format("MMM");
+  const year = weekEnd.format("YYYY");
+
+  const weekRange =
+    startMonth === endMonth ? (
+      <>
+        <span className="text-emphasis">{`${startMonth} ${weekStart.format("D")} - ${weekEnd.format(
+          "D"
+        )}`}</span>
+        <span className="text-muted">, {year}</span>
+      </>
+    ) : (
+      <>
+        <span className="text-emphasis">{`${weekStart.format("MMM D")} - ${weekEnd.format("MMM D")}`}</span>
+        <span className="text-muted">, {year}</span>
+      </>
+    );
 
   return (
-    <div className="border-subtle flex h-[calc(100vh-280px)] min-h-[600px] flex-col rounded-2xl border">
-      <div className="m-4 flex items-center justify-between">
+    <div className="border-subtle flex h-[calc(100vh-260px)] min-h-[600px] flex-col rounded-2xl border">
+      <div className="mx-4 mt-4 flex items-center justify-between py-1.5">
         <div className="flex items-center gap-2">
-          <h2 className="text-emphasis text-lg font-semibold">{weekRange}</h2>
+          <h2 className="font-semibold">{weekRange}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <Button color="secondary" onClick={goToToday}>
-            Today
+          <Button color="secondary" onClick={goToToday} className="capitalize leading-4">
+            {t("today")}
           </Button>
-          <Button color="secondary" variant="icon" onClick={goToPreviousWeek}>
-            <Icon name="chevron-left" className="h-4 w-4" />
-          </Button>
-          <Button color="secondary" variant="icon" onClick={goToNextWeek}>
-            <Icon name="chevron-right" className="h-4 w-4" />
-          </Button>
+          <ButtonGroup combined>
+            <Button color="secondary" onClick={goToPreviousWeek}>
+              <span className="sr-only">{t("view_previous_week")}</span>
+              <Icon name="chevron-left" className="h-4 w-4" />
+            </Button>
+            <Button color="secondary" onClick={goToNextWeek}>
+              <span className="sr-only">{t("view_next_week")}</span>
+              <Icon name="chevron-right" className="h-4 w-4" />
+            </Button>
+          </ButtonGroup>
         </div>
       </div>
 

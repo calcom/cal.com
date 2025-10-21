@@ -3845,5 +3845,7 @@
   "reason_for_adding_to_blocklist": "Reason for adding to blocklist",
   "what_would_you_like_to_block": "What would you like to block?",
   "domain_name": "Domain Name",
+  "view_previous_week": "View previous week",
+  "view_next_week": "View next week",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
