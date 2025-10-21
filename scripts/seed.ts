@@ -1375,8 +1375,8 @@ async function main() {
 async function runSeed() {
   await prisma.$connect();
   
-  await main();
   await mainAppStore();
+  await main();
   await mainHugeEventTypesSeed();
 }
 
