@@ -1,6 +1,6 @@
 import type Stripe from "stripe";
 
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
