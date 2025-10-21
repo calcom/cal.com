@@ -102,7 +102,7 @@ export type CalendarEventType = {
     isNegative: boolean;
   };
   organizer: string;
-  attendees: object[][];
+  attendees: unknown[][];
   recurrenceId: Time;
   timezone: string | object;
 };
