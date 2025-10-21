@@ -536,6 +536,7 @@ async function handler(
     routingFormResponseId,
     _isDryRun: isDryRun = false,
     _shouldServeCache,
+    reservedSlotUid,
     ...reqBody
   } = bookingData;
 
@@ -1722,6 +1723,7 @@ async function handler(
         originalRescheduledBooking,
         creationSource: input.bookingData.creationSource,
         tracking: reqBody.tracking,
+        reservedSlotUid,
       });
 
       if (booking?.userId) {
