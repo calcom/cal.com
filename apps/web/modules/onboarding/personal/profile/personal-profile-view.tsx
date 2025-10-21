@@ -139,7 +139,9 @@ export const PersonalProfileView = ({ userEmail }: PersonalProfileViewProps) => 
                       <div className="flex w-full flex-col gap-6 rounded-xl">
                         {/* Avatar */}
                         <div className="flex w-full flex-col gap-2">
-                          <Label className="text-emphasis text-sm font-medium leading-4">{t("profile_photo")}</Label>
+                          <Label className="text-emphasis text-sm font-medium leading-4">
+                            {t("profile_photo")}
+                          </Label>
                           <div className="flex flex-row items-center justify-start gap-4 rtl:justify-end">
                             {user && <UserAvatar size="lg" user={user} previewSrc={imageSrc} />}
                             <input
@@ -173,13 +175,14 @@ export const PersonalProfileView = ({ userEmail }: PersonalProfileViewProps) => 
 
                         {/* Username */}
                         <div className="flex w-full flex-col gap-1.5">
-                          <Label className="text-emphasis text-sm font-medium leading-4">{t("username")}</Label>
                           <UsernameAvailabilityField />
                         </div>
 
                         {/* Bio */}
                         <div className="flex w-full flex-col gap-1.5">
-                          <Label className="text-emphasis text-sm font-medium leading-4">{t("about")}</Label>
+                          <Label className="text-emphasis mb-1 text-sm font-medium leading-4">
+                            {t("about")}
+                          </Label>
                           <Editor
                             getText={() => md.render(getValues("bio") || user?.bio || "")}
                             setText={(value: string) => setValue("bio", turndown(value))}
