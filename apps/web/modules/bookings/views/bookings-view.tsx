@@ -2,57 +2,38 @@
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams, usePathname } from "next/navigation";
-import { useMemo, useRef } from "react";
+import { createParser, useQueryState } from "nuqs";
+import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
-  useDataTable,
   DataTableProvider,
-  DataTableWrapper,
-  DataTableFilters,
-  DataTableSegment,
+  type SystemFilterSegment,
+  useDataTable,
   ColumnFilterType,
   useFilterValue,
   ZMultiSelectFilterValue,
   ZDateRangeFilterValue,
   ZTextFilterValue,
-  type SystemFilterSegment,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import BookingListItem from "@components/booking/BookingListItem";
-import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
-type BookingListingStatus = (typeof validStatuses)[number];
-type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
-
-type RecurringInfo = {
-  recurringEventId: string | null;
-  count: number;
-  firstDate: Date | null;
-  bookings: { [key: string]: Date[] };
-};
-
-const descriptionByStatus: Record<BookingListingStatus, string> = {
-  upcoming: "upcoming_bookings",
-  recurring: "recurring_bookings",
-  past: "past_bookings",
-  cancelled: "cancelled_bookings",
-  unconfirmed: "unconfirmed_bookings",
-};
+import { BookingsCalendar } from "../components/BookingsCalendar";
+import { BookingsList } from "../components/BookingsList";
+import type { RowData, BookingOutput } from "../types";
 
 type BookingsProps = {
   status: (typeof validStatuses)[number];
@@ -103,21 +84,18 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-type RowData =
-  | {
-      type: "data";
-      booking: BookingOutput;
-      isToday: boolean;
-      recurringInfo?: RecurringInfo;
-    }
-  | {
-      type: "today" | "next";
-    };
+const viewParser = createParser({
+  parse: (value: string) => {
+    if (value === "calendar") return "calendar";
+    return "list";
+  },
+  serialize: (value: "list" | "calendar") => value,
+});
 
 function BookingsContent({ status, permissions }: BookingsProps) {
+  const [view] = useQueryState("view", viewParser.withDefault("list"));
   const { t } = useLocale();
   const user = useMeQuery().data;
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
 
   // Generate dynamic tabs that preserve query parameters
@@ -411,6 +389,9 @@ function BookingsContent({ status, permissions }: BookingsProps) {
     getFacetedUniqueValues,
   });
 
+  const isPending = query.isPending;
+  const totalRowCount = query.data?.totalCount;
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
@@ -431,43 +412,16 @@ function BookingsContent({ status, permissions }: BookingsProps) {
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
-              <DataTableWrapper
-                className="mb-6"
-                tableContainerRef={tableContainerRef}
-                table={table}
-                testId={`${status}-bookings`}
-                bodyTestId="bookings"
-                headerClassName="hidden"
-                isPending={query.isPending}
-                totalRowCount={query.data?.totalCount}
-                variant="compact"
-                paginationMode="standard"
-                ToolbarLeft={
-                  <>
-                    <DataTableFilters.FilterBar table={table} />
-                  </>
-                }
-                ToolbarRight={
-                  <>
-                    <DataTableFilters.ClearFiltersButton />
-                    <DataTableSegment.SaveButton />
-                    <DataTableSegment.Select />
-                  </>
-                }
-                LoaderView={<SkeletonLoader />}
-                EmptyView={
-                  <div className="flex items-center justify-center pt-2 xl:pt-0">
-                    <EmptyScreen
-                      Icon="calendar"
-                      headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
-                      description={t("no_status_bookings_yet_description", {
-                        status: t(status).toLowerCase(),
-                        description: t(descriptionByStatus[status]),
-                      })}
-                    />
-                  </div>
-                }
-              />
+              {view === "list" ? (
+                <BookingsList
+                  status={status}
+                  table={table}
+                  isPending={isPending}
+                  totalRowCount={totalRowCount}
+                />
+              ) : (
+                <BookingsCalendar status={status} table={table} />
+              )}
             </>
           )}
         </div>
