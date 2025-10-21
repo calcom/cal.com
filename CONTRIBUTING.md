@@ -188,9 +188,9 @@ If `npx playwright install` fails on your Linux distribution (e.g., Arch Linux, 
 
 2. Set Playwright to headless mode in your `.env` file:
 
-```sh
-PLAYWRIGHT_HEADLESS=1
-```
+   ```sh
+   PLAYWRIGHT_HEADLESS=1
+   ```
 
 ## Linting
 
