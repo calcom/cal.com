@@ -31,6 +31,7 @@ export function Calendar(props: CalendarComponentProps) {
   const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
   const hideHeader = useCalendarStore((state) => state.hideHeader);
   const timezone = useCalendarStore((state) => state.timezone);
+  const showBackgroundPattern = useCalendarStore((state) => state.showBackgroundPattern);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -70,11 +71,15 @@ export function Calendar(props: CalendarComponentProps) {
               <div className="bg-default dark:bg-muted ring-muted border-default sticky left-0 z-10 w-14 flex-none border-l border-r ring-1" />
               <div
                 className="grid flex-auto grid-cols-1 grid-rows-1 [--disabled-gradient-background:#F8F9FB] [--disabled-gradient-foreground:#E6E7EB] dark:[--disabled-gradient-background:#262626] dark:[--disabled-gradient-foreground:#393939]"
-                style={{
-                  backgroundColor: "var(--disabled-gradient-background)",
-                  background:
-                    "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
-                }}>
+                style={
+                  showBackgroundPattern === false
+                    ? undefined
+                    : {
+                        backgroundColor: "var(--disabled-gradient-background)",
+                        background:
+                          "repeating-linear-gradient(-45deg, var(--disabled-gradient-background), var(--disabled-gradient-background) 2.5px, var(--disabled-gradient-foreground) 2.5px, var(--disabled-gradient-foreground) 5px)",
+                      }
+                }>
                 <HorizontalLines
                   hours={hours}
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}

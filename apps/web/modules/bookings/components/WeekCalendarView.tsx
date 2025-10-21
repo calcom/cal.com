@@ -110,6 +110,10 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
           endDate={endDate}
           gridCellsPerHour={4}
           hoverEventDuration={0}
+          showBackgroundPattern={false}
+          onEventClick={(event) => {
+            console.log("Event clicked:", event);
+          }}
           hideHeader
         />
       </div>

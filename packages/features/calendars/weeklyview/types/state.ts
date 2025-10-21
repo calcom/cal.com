@@ -131,6 +131,11 @@ export type CalendarState = {
    * Timezone to use for displaying times in the calendar
    */
   timezone: string;
+  /**
+   * Show the background pattern for unavailable areas
+   * @default true
+   */
+  showBackgroundPattern?: boolean;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };
