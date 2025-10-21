@@ -38,6 +38,7 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
+      // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
@@ -58,10 +59,11 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
+      // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 2);
       const user = await createAndLoginUserWithEventTypes({ users, page });
 
-
+      // const webhookReceiver = await addWebhook(user);
 
       await test.step("Go to EventType Advanced Page ", async () => {
         const $eventTypes = page.locator("[data-testid=event-types] > li a");
@@ -89,175 +91,11 @@ test.describe("Manage Booking Questions", () => {
 
           await expect(userFieldLocator.locator('[name="agree-to-terms"]')).toBeVisible();
           expect(await getLabelText(userFieldLocator)).toBe("Agree to terms");
+          // Verify that markdown is working
           expect(await getLabelLocator(userFieldLocator).locator("a").getAttribute("href")).toBe(
             "https://example.com/terms"
           );
           await expect(userFieldLocator.locator("input")).toBeVisible();
-        });
-      });
-    });
-
-    test("Do a booking with a Date type question and verify a few thing in b/w", async ({
-      page,
-      users,
-      context,
-    }, testInfo) => {
-      test.setTimeout(testInfo.timeout * 2);
-      const user = await createAndLoginUserWithEventTypes({ users, page });
-
-      const webhookReceiver = await addWebhook(user);
-
-      await test.step("Go to EventType Advanced Page ", async () => {
-        const $eventTypes = page.locator("[data-testid=event-types] > li a");
-        const firstEventTypeElement = $eventTypes.first();
-
-        await firstEventTypeElement.click();
-        await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
-        await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
-      });
-
-      await test.step("Add Date Question and verify all properties", async () => {
-        await addQuestionAndSave({
-          page,
-          question: {
-            name: "appointment-date",
-            type: "Date",
-            label: "Preferred Appointment Date",
-            placeholder: "Select your preferred date",
-            required: true,
-          },
-        });
-
-        await doOnFreshPreview(page, context, async (page) => {
-          await expectSystemFieldsToBeThereOnBookingPage({ page });
-          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
-
-          await expect(dateFieldLocator).toBeVisible();
-          expect(await getLabelText(dateFieldLocator)).toBe("Preferred Appointment Date");
-
-          const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
-          await expect(datePickerButton).toBeVisible();
-          await expect(datePickerButton).toContainText("Pick a date");
-          await expect(datePickerButton).toHaveAttribute("data-testid", "pick-date");
-
-          await expect(datePickerButton.locator('svg[aria-hidden]')).toBeVisible();
-        });
-      });
-
-      await test.step("Test Date picker interaction and validation", async () => {
-        await doOnFreshPreview(page, context, async (page) => {
-          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
-          const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
-
-          await datePickerButton.click();
-          await expect(page.locator('[role="dialog"]')).toBeVisible();
-
-          await expect(page.locator('[role="grid"]')).toBeVisible();
-          const gridCells = page.locator('[role="gridcell"]');
-          const cellCount = await gridCells.count();
-          expect([35, 42]).toContain(cellCount);
-
-          await page.keyboard.press('Escape');
-          await expect(page.locator('[role="dialog"]')).toBeHidden();
-
-          await expect(datePickerButton).toContainText("Pick a date");
-        });
-      });
-
-      await test.step("Test required field validation", async () => {
-        await doOnFreshPreview(page, context, async (page) => {
-
-          await bookTimeSlot({ page, name: "Booker", email: "booker@example.com", autoSelectDate: false });
-          await expectErrorToBeThereFor({ page, name: "appointment-date" });
-        });
-      });
-
-      await test.step("Test date selection and format", async () => {
-        await doOnFreshPreview(page, context, async (page) => {
-          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
-          const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
-
-          // Wait for the page to be fully loaded and interactive
-          await page.waitForLoadState('networkidle');
-          await datePickerButton.waitFor({ state: 'visible' });
-          await datePickerButton.click();
-          const initialDateClicked = await pickAnyAvailableDateInCurrentGrid(page);
-          expect(initialDateClicked).toBe(true);
-
-          await expect(datePickerButton).not.toContainText("Pick a date");
-          const buttonText = await datePickerButton.textContent();
-          expect(buttonText).toMatch(/^[A-Z][a-z]{2} \d{1,2}, \d{4}$/);
-        });
-      });
-
-      await test.step("Complete booking and verify date format in webhook", async () => {
-        await doOnFreshPreview(page, context, async (page) => {
-          // Date will be auto-selected by bookTimeSlot
-          await bookTimeSlot({ page, name: "Booker", email: "booker@example.com" });
-          await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-
-          const dateResponse = page.locator('[data-testid="field-response"][data-fob-field="appointment-date"]');
-          await expect(dateResponse).toBeVisible();
-
-          await webhookReceiver.waitForRequestCount(1);
-          const [request] = webhookReceiver.requestList;
-          // @ts-expect-error body is unknown
-          const payload = request.body.payload;
-
-          expect(payload.responses).toMatchObject({
-            "appointment-date": {
-              label: "Preferred Appointment Date",
-              value: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-            },
-          });
-
-          expect(payload.userFieldsResponses).toMatchObject({
-            "appointment-date": {
-              label: "Preferred Appointment Date",
-              value: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-            },
-          });
-
-          const dateValue = payload.responses["appointment-date"].value;
-          const parsedDate = new Date(dateValue);
-          expect(parsedDate.toISOString().split('T')[0]).toBe(dateValue);
-        });
-      });
-
-      await test.step("Test date field prefill functionality", async () => {
-        const futureDate = new Date();
-        futureDate.setMonth(futureDate.getMonth() + 2);
-        futureDate.setDate(15);
-
-        const prefillDate = futureDate.toISOString().split('T')[0];
-        const expectedDisplayDate = new Date(prefillDate).toLocaleDateString('en-US', {
-          month: 'short', day: 'numeric', year: 'numeric'
-        });
-
-        const searchParams = new URLSearchParams();
-        searchParams.append("appointment-date", prefillDate);
-
-        await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
-          await selectFirstAvailableTimeSlotNextMonth(page);
-
-          const dateFieldLocator = page.locator('[data-fob-field-name="appointment-date"]');
-          const datePickerButton = dateFieldLocator.locator('[data-testid="pick-date"]');
-
-          await expect(datePickerButton).toContainText(expectedDisplayDate);
-          await expect(datePickerButton).not.toContainText("Pick a date");
-        });
-      });
-
-      await test.step("Test optional date field behavior", async () => {
-        await toggleQuestionRequireStatusAndSave({
-          required: false,
-          name: "appointment-date",
-          page,
-        });
-
-        await doOnFreshPreview(page, context, async (page) => {
-          await bookTimeSlot({ page, name: "Booker Optional", email: "booker.optional@example.com" });
-          await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         });
       });
     });
@@ -267,6 +105,7 @@ test.describe("Manage Booking Questions", () => {
       users,
       context,
     }, testInfo) => {
+      // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
       const user = await createAndLoginUserWithEventTypes({ page, users });
       const webhookReceiver = await addWebhook(user);
@@ -446,7 +285,8 @@ async function runTestStepsCommonForTeamAndUserEventType(
     await page.locator("[data-testid=field-notes]").isVisible();
     await page.locator("[data-testid=field-guests]").isVisible();
     await page.locator("[data-testid=field-rescheduleReason]").isVisible();
-
+    // It is conditional
+    // await page.locator("data-testid=field-location").isVisible();
   });
 
   await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
@@ -569,67 +409,6 @@ async function runTestStepsCommonForTeamAndUserEventType(
   });
 }
 
-async function pickAnyAvailableDateInCurrentGrid(page: Page): Promise<boolean> {
-  await expect(page.locator('[role="dialog"]').first()).toBeVisible();
-  await expect(page.locator('[role="grid"]').first()).toBeVisible();
-  
-  // Wait for the grid to stabilize
-  await page.waitForTimeout(500);
-  
-  const grid = page.locator('[role="grid"]').first();
-  const cells = await grid.locator('[role="gridcell"]').all();
-  
-  // Prefer mid-month dates to avoid edge cases
-  const preferredDays = [15, 16, 14, 17, 13, 18, 12, 19, 11, 20, 10];
-  
-  // First try preferred days
-  for (const preferredDay of preferredDays) {
-    for (const cell of cells) {
-      try {
-        const isDisabled = await cell.getAttribute('aria-disabled');
-        const outside = await cell.getAttribute('data-outside');
-        const hidden = await cell.getAttribute('data-hidden');
-        const unavailable = await cell.getAttribute('data-unavailable');
-        if (isDisabled === 'true' || outside === 'true' || hidden === 'true' || unavailable === 'true') continue;
-        
-        const txt = (await cell.textContent())?.trim() || "";
-        const num = txt ? parseInt(txt) : NaN;
-        if (num === preferredDay) {
-          await cell.click({ timeout: 5000 });
-          // Wait for the picker to close
-          await page.waitForTimeout(200);
-          return true;
-        }
-      } catch {
-        // keep trying others
-      }
-    }
-  }
-  
-  // Fallback: try any available date
-  for (const cell of cells) {
-    try {
-      const isDisabled = await cell.getAttribute('aria-disabled');
-      const outside = await cell.getAttribute('data-outside');
-      const hidden = await cell.getAttribute('data-hidden');
-      const unavailable = await cell.getAttribute('data-unavailable');
-      if (isDisabled === 'true' || outside === 'true' || hidden === 'true' || unavailable === 'true') continue;
-      
-      const txt = (await cell.textContent())?.trim() || "";
-      const num = txt ? parseInt(txt) : NaN;
-      if (!isNaN(num) && num > 0) {
-        await cell.click({ timeout: 5000 });
-        // Wait for the picker to close
-        await page.waitForTimeout(200);
-        return true;
-      }
-    } catch {
-      // keep trying others
-    }
-  }
-  return false;
-}
-
 async function expectSystemFieldsToBeThereOnBookingPage({
   page,
   isFirstAndLastNameVariant,
@@ -650,7 +429,8 @@ async function expectSystemFieldsToBeThereOnBookingPage({
 }) {
   const nameLocator = page.locator('[data-fob-field-name="name"]');
   const emailLocator = page.locator('[data-fob-field-name="email"]');
-
+  // Location isn't rendered unless explicitly set which isn't the case here
+  // const locationLocator = allFieldsLocator.nth(2);
   const additionalNotes = page.locator('[data-fob-field-name="notes"]');
   const guestsLocator = page.locator('[data-fob-field-name="guests"]');
 
@@ -703,13 +483,11 @@ async function bookTimeSlot({
   name,
   email,
   skipSubmission = false,
-  autoSelectDate = true,
 }: {
   page: Page;
   name?: string | { firstName: string; lastName?: string };
   email?: string;
   skipSubmission?: boolean;
-  autoSelectDate?: boolean;
 }) {
   if (name) {
     if (typeof name === "string") {
@@ -723,69 +501,6 @@ async function bookTimeSlot({
   }
   if (email) {
     await page.fill('[name="email"]', email);
-  }
-
-  if (autoSelectDate) {
-    // Auto-select a date for any Date question(s) present if not already selected
-    const datePickers = page.locator('[data-testid="pick-date"]');
-    const datePickersCount = await datePickers.count();
-    for (let i = 0; i < datePickersCount; i++) {
-      const btn = datePickers.nth(i);
-      const text = (await btn.textContent()) || "";
-      const hasPickText = text.toLowerCase().includes("pick a date");
-      if (hasPickText) {
-        // Wait for page to be interactive
-        await page.waitForLoadState('networkidle');
-        await btn.waitFor({ state: 'visible' });
-        await btn.click();
-        
-        // Ensure calendar is visible
-        await expect(page.locator('[role="dialog"]').first()).toBeVisible();
-        await expect(page.locator('[role="grid"]').first()).toBeVisible();
-        
-        // Wait for grid to stabilize
-        await page.waitForTimeout(300);
-        
-        const grid = page.locator('[role="grid"]').first();
-        const gridCells = await grid.locator('[role="gridcell"]').all();
-        let selected = false;
-        const preferredDays = [15, 16, 14, 13, 17, 12, 18, 11, 19, 10];
-        const tryClickDay = async (preferred?: number) => {
-          for (const cell of gridCells) {
-            try {
-              const isDisabled = await cell.getAttribute('aria-disabled');
-              if (isDisabled === 'true') continue;
-              const hidden = await cell.getAttribute('data-hidden');
-              if (hidden === 'true') continue;
-              const outside = await cell.getAttribute('data-outside');
-              if (outside === 'true') continue;
-              const unavailable = await cell.getAttribute('data-unavailable');
-              if (unavailable === 'true') continue;
-              const txt = (await cell.textContent())?.trim() || "";
-              const dayNum = txt ? parseInt(txt) : NaN;
-              if (!isNaN(dayNum) && dayNum > 0 && (!preferred || dayNum === preferred)) {
-                await cell.click({ timeout: 5000 });
-                selected = true;
-                // Wait for picker to close after selection
-                await page.waitForTimeout(200);
-                break;
-              }
-            } catch {
-              // continue
-            }
-          }
-        };
-        for (const d of preferredDays) {
-          if (selected) break;
-          await tryClickDay(d);
-        }
-        if (!selected) {
-          await tryClickDay();
-        }
-        // Verify selection applied (button text should no longer contain the placeholder)
-        await expect(btn).not.toContainText("Pick a date", { timeout: 5000 });
-      }
-    }
   }
   if (!skipSubmission) {
     await page.press('[name="email"]', "Enter");
@@ -849,37 +564,11 @@ async function addQuestionAndSave({
   }
 
   if (question.placeholder !== undefined) {
-    // Wait for placeholder field to be available (some field types may not have it)
-    const placeholderField = page.locator('[name="placeholder"]');
-    try {
-      await placeholderField.waitFor({ state: 'visible', timeout: 5000 });
-      await placeholderField.fill(question.placeholder);
-    } catch (error) {
-      console.warn(`Placeholder field not available for ${question.type} field type, skipping...`);
-    }
+    await page.fill('[name="placeholder"]', question.placeholder);
   }
 
   if (question.required !== undefined) {
-    const requiredCheckbox = page.locator('[data-testid="field-required"]').first();
-    await requiredCheckbox.waitFor({ state: 'visible' });
-
-    const getState = async () => {
-      const aria = (await requiredCheckbox.getAttribute('aria-checked')) ?? '';
-      const dataState = (await requiredCheckbox.getAttribute('data-state')) ?? '';
-      const checked = (await requiredCheckbox.getAttribute('checked')) ?? '';
-      const isChecked = await requiredCheckbox.isChecked();
-
-      return aria === 'true' ||
-        dataState === 'checked' ||
-        checked !== null ||
-        isChecked;
-    };
-
-    const currentState = await getState();
-    if (currentState !== question.required) {
-      await requiredCheckbox.click();
-      await page.waitForTimeout(100);
-    }
+    // await page.fill('[name="name"]', question.required);
   }
 
   await page.click('[data-testid="field-add-save"]');
@@ -887,55 +576,7 @@ async function addQuestionAndSave({
 }
 
 async function expectErrorToBeThereFor({ page, name }: { page: Page; name: string }) {
-
-  await page.waitForTimeout(1000);
-
-  const fieldLocator = page.locator(`[data-fob-field-name="${name}"]`);
-  const fieldExists = await fieldLocator.count() > 0;
-
-  if (!fieldExists) {
-    console.log(`Field '${name}' does not exist on this form, skipping validation test`);
-    return;
-  }
-
-  if (name === "rescheduleReason") {
-    const submitButton = page.locator('[data-testid="confirm-reschedule-button"]');
-    if (await submitButton.count() > 0) {
-      await submitButton.click();
-      await page.waitForTimeout(2000);
-    }
-  }
-
-  const errorLocator = page.locator(`[data-testid=error-message-${name}]`);
-
-  try {
-    await expect(errorLocator).toHaveCount(1, { timeout: 10000 });
-  } catch (error) {
-    const allErrors = await page.locator('[data-testid^="error-message-"]').all();
-    const errorIds = await Promise.all(allErrors.map(async (el) => {
-      const testId = await el.getAttribute('data-testid');
-      return testId;
-    }));
-    console.log(`Expected error for '${name}' but found errors:`, errorIds);
-
-    const allFields = await page.locator('[data-fob-field-name]').all();
-    const fieldNames = await Promise.all(allFields.map(async (el) => {
-      return await el.getAttribute('data-fob-field-name');
-    }));
-    console.log(`All fields present:`, fieldNames);
-
-    const anyErrors = await page.locator('[data-testid^="error-message-"]').count();
-    console.log(`Total error messages found:`, anyErrors);
-
-    if (anyErrors === 0) {
-      console.log(`No validation errors found. This might be expected if ${name} is not required or validation is not triggered.`);
-
-      return;
-    }
-
-    throw error;
-  }
-
+  await expect(page.locator(`[data-testid=error-message-${name}]`)).toHaveCount(1);
   // TODO: We should either verify the error message or error code in the test so we know that the correct error is shown
   // Checking for the error message isn't well maintainable as translation can change and we might want to verify in non english language as well.
 }
@@ -966,8 +607,6 @@ async function doOnFreshPreviewWithSearchParams(
 ) {
   const previewUrl = (await page.locator('[data-testid="preview-button"]').getAttribute("href")) || "";
   const previewUrlObj = new URL(previewUrl);
-  // Ensure overlay calendar is disabled to prevent UI overlays from blocking interactions
-  previewUrlObj.searchParams.set("overlayCalendar", "false");
   searchParams.forEach((value, key) => {
     previewUrlObj.searchParams.append(key, value);
   });
@@ -994,89 +633,14 @@ async function toggleQuestionRequireStatusAndSave({
   name: string;
   page: Page;
 }) {
-  const openDialog = async () => {
-    await page
-      .locator(`[data-testid="field-${name}"]`)
-      .locator('[data-testid="edit-field-action"]').click();
-    await page.locator('[data-testid="edit-field-dialog"]').waitFor({ state: 'visible' });
-  };
-  const closeAndSave = async () => {
-    await page.locator('[data-testid="field-add-save"]').click();
-    await saveEventType(page);
-  };
-
-  await openDialog();
-  const dialog = page.locator('[data-testid="edit-field-dialog"]');
-
-  // Try multiple selectors to find the required toggle reliably across components
-  let toggle = dialog.locator('[data-testid="field-required"]').first();
-  if ((await toggle.count()) === 0) {
-    // Try an accessible checkbox labeled Required
-    const labeled = dialog.getByRole('checkbox', { name: /required/i });
-    if ((await labeled.count()) > 0) toggle = labeled.first();
-  }
-  if ((await toggle.count()) === 0) {
-    // Fallback: look for any explicit required-related test id
-    const anyRequiredTestId = dialog.locator('[data-testid*="required"]').first();
-    if ((await anyRequiredTestId.count()) > 0) toggle = anyRequiredTestId;
-  }
-
-  await toggle.waitFor({ state: 'visible' });
-
-  const isOn = async () => {
-    const aria = (await toggle.getAttribute('aria-checked')) ?? '';
-    const dataState = (await toggle.getAttribute('data-state')) ?? '';
-    // For native checkbox
-    let checked = false;
-    try {
-      checked = await toggle.isChecked();
-    } catch {
-      checked = false;
-    }
-    return aria === 'true' || dataState === 'checked' || checked;
-  };
-
-  let before = await isOn();
-  if (before !== required) {
-    await toggle.click();
-    await page.waitForTimeout(150);
-  }
-
-  await closeAndSave();
-
-  // Re-open and verify persisted state; retry once if mismatched.
-  await openDialog();
-  const toggle2 = await (async () => {
-    let t = dialog.locator('[data-testid="field-required"]').first();
-    if ((await t.count()) === 0) {
-      const labeled = dialog.getByRole('checkbox', { name: /required/i });
-      if ((await labeled.count()) > 0) t = labeled.first();
-    }
-    if ((await t.count()) === 0) {
-      const anyRequiredTestId = dialog.locator('[data-testid*="required"]').first();
-      if ((await anyRequiredTestId.count()) > 0) t = anyRequiredTestId;
-    }
-    return t;
-  })();
-  const current = await (async () => {
-    const aria = (await toggle2.getAttribute('aria-checked')) ?? '';
-    const dataState = (await toggle2.getAttribute('data-state')) ?? '';
-    let checked = false;
-    try {
-      checked = await toggle2.isChecked();
-    } catch {
-      checked = false;
-    }
-    return aria === 'true' || dataState === 'checked' || checked;
-  })();
-
-  if (current !== required) {
-    await toggle2.click();
-    await page.waitForTimeout(150);
-    await closeAndSave();
-  } else {
-    await closeAndSave();
-  }
+  await page.locator(`[data-testid="field-${name}"]`).locator('[data-testid="edit-field-action"]').click();
+  await page
+    .locator('[data-testid="edit-field-dialog"]')
+    .locator('[data-testid="field-required"]')
+    .first()
+    .click();
+  await page.locator('[data-testid="field-add-save"]').click();
+  await saveEventType(page);
 }
 
 async function createAndLoginUserWithEventTypes({
@@ -1100,18 +664,13 @@ async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
   await page.locator('[data-testid="reschedule-link"]').click();
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
-
+  await page.locator('[data-testid="confirm-reschedule-button"]').click();
 }
 
 async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {
-  // Prefer opening the preview URL explicitly and disable overlay calendar to avoid UI overlays
-  const href = (await page.locator('[data-testid="preview-button"]').getAttribute("href")) || "";
-  const base = await page.url();
-  const targetUrl = new URL(href, base);
-  targetUrl.searchParams.set("overlayCalendar", "false");
-
-  const previewTabPage = await context.newPage();
-  await previewTabPage.goto(targetUrl.toString());
+  const previewTabPromise = context.waitForEvent("page");
+  await page.locator('[data-testid="preview-button"]').click();
+  const previewTabPage = await previewTabPromise;
   await previewTabPage.waitForLoadState();
   await previewTabPage.waitForURL((url) => {
     return url.searchParams.get("overlayCalendar") === "true";
