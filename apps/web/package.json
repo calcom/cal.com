@@ -13,6 +13,7 @@
     "dev-https": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev --experimental-https",
     "dx": "yarn dev",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
+    "e2e:docker-setup": "docker compose up -d || docker-compose up -d",
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "sentry:release": "NODE_OPTIONS='--max-old-space-size=6144' node scripts/create-sentry-release.js",
