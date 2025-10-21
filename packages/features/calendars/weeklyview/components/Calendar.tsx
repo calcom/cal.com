@@ -32,7 +32,7 @@ export function Calendar(props: CalendarComponentProps) {
   const hideHeader = useCalendarStore((state) => state.hideHeader);
   const timezone = useCalendarStore((state) => state.timezone);
   const showBackgroundPattern = useCalendarStore((state) => state.showBackgroundPattern);
-  const showBorder = useCalendarStore((state) => state.showBorder);
+  const showBorder = useCalendarStore((state) => state.showBorder || true);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
