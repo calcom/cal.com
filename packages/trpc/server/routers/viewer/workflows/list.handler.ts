@@ -1,9 +1,9 @@
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { WorkflowType } from "@calcom/features/ee/workflows/components/WorkflowListPage";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 // import dayjs from "@calcom/dayjs";
 // import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
+import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";

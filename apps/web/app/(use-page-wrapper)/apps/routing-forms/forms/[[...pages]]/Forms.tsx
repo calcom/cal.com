@@ -6,6 +6,7 @@ import { useFormContext } from "react-hook-form";
 
 import { isFallbackRoute } from "@calcom/app-store/routing-forms/lib/isFallbackRoute";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { CreateButtonWithTeamsList } from "@calcom/features/ee/teams/components/createButton/CreateButtonWithTeamsList";
@@ -15,7 +16,6 @@ import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsF
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { MembershipRole } from "@calcom/prisma/enums";

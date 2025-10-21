@@ -1,4 +1,3 @@
- 
 import { noop } from "lodash";
 import { useEffect } from "react";
 import type { IntercomBootProps, IntercomProps } from "react-use-intercom";
@@ -6,25 +5,22 @@ import { useIntercom as useIntercomLib } from "react-use-intercom";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { useHasTeamPlan, useHasPaidPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
-import { useHasTeamPlan, useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
- 
 export const isInterComEnabled = z.string().min(1).safeParse(process.env.NEXT_PUBLIC_INTERCOM_APP_ID).success;
 
 const useIntercomHook = isInterComEnabled
   ? useIntercomLib
   : () => {
       return {
-        // eslint-disable-next-line
         boot: (_props: IntercomBootProps) => {},
         show: noop,
         shutdown: noop,
-        // eslint-disable-next-line
         update: (_props: Partial<IntercomProps>) => {},
       };
     };
