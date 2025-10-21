@@ -58,10 +58,15 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
           bookingStart.isBefore(currentWeekStart.add(7, "day"))
         );
       })
+      .sort((a, b) => {
+        const startDiff = new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+        if (startDiff !== 0) return startDiff;
+        return new Date(a.endTime).getTime() - new Date(b.endTime).getTime();
+      })
       .map((booking, idx) => {
         return {
           id: idx,
-          title: booking.title || "Booking",
+          title: booking.title,
           start: new Date(booking.startTime),
           end: new Date(booking.endTime),
           options: {
