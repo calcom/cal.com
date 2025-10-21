@@ -13,8 +13,10 @@ const pool =
   process.env.USE_POOL === "true" || process.env.USE_POOL === "1"
     ? new Pool({
         connectionString: connectionString,
-        max: 5,
+        max: 10,
         idleTimeoutMillis: 300000,
+        connectionTimeoutMillis: 30000,
+        statement_timeout: 60000,
       })
     : undefined;
 
