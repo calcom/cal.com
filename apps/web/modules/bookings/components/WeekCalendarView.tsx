@@ -99,7 +99,7 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="border-subtle flex-1 overflow-y-auto overflow-x-hidden rounded-2xl border">
         <Calendar
           timezone={timezone}
           sortEvents
@@ -111,6 +111,7 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
           gridCellsPerHour={4}
           hoverEventDuration={0}
           showBackgroundPattern={false}
+          showBorder={false}
           onEventClick={(event) => {
             console.log("Event clicked:", event);
           }}

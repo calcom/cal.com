@@ -21,6 +21,7 @@ const defaultState: CalendarComponentProps = {
   gridCellsPerHour: 4,
   timezone: CURRENT_TIMEZONE,
   showBackgroundPattern: true,
+  showBorder: true,
 };
 
 export const useCalendarStore = create<CalendarStoreProps>((set) => ({
