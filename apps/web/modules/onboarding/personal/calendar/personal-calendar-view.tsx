@@ -20,6 +20,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
     variant: "calendar",
     onlyInstalled: false,
     sortByMostPopular: true,
+    sortByInstalledFirst: true,
   });
 
   const handleContinue = () => {
@@ -66,33 +67,37 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
               </div>
 
               {/* Content */}
-              <div className="bg-default border-subtle w-full rounded-md border">
-                <div className="flex w-full flex-col gap-4 px-5 py-5">
-                  {queryIntegrations.isPending ? (
-                    <div className="flex flex-col gap-2">
-                      <SkeletonText className="h-12 w-full" />
-                      <SkeletonText className="h-12 w-full" />
-                      <SkeletonText className="h-12 w-full" />
-                    </div>
-                  ) : (
-                    <div className="scroll-bar flex max-h-[45vh] flex-col gap-2 overflow-y-scroll">
-                      {queryIntegrations.data?.items.map((app) => (
-                        <a
-                          key={app.slug}
+              <div className="flex w-full flex-col gap-4 px-5 py-5">
+                {queryIntegrations.isPending ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <SkeletonText className="h-40 w-full" />
+                    <SkeletonText className="h-40 w-full" />
+                  </div>
+                ) : (
+                  <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
+                    {queryIntegrations.data?.items.map((app) => (
+                      <div
+                        key={app.slug}
+                        className="border-subtle bg-default flex flex-col items-start gap-4 rounded-xl border p-5">
+                        {app.logo && <img src={app.logo} alt={app.name} className="h-9 w-9 rounded-md" />}
+                        <p
+                          className="text-default line-clamp-1 max-w- break-words text-left text-sm font-medium leading-none"
+                          title={app.name}>
+                          {app.name}
+                        </p>
+                        <p className="text-subtle line-clamp-2 text-left text-xs leading-tight">
+                          {app.description}
+                        </p>
+                        <Button
+                          color="secondary"
                           href={`/apps/${app.slug}`}
-                          className="border-subtle hover:border-emphasis flex items-center gap-3 rounded-lg border p-4 transition-colors">
-                          {app.logo && (
-                            <img src={app.logo} alt={app.name} className="h-10 w-10 rounded-md" />
-                          )}
-                          <div className="flex flex-col">
-                            <p className="text-emphasis text-sm font-medium">{app.name}</p>
-                            <p className="text-subtle text-xs">{app.description}</p>
-                          </div>
-                        </a>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                          className="mt-auto w-full items-center justify-center rounded-[10px]">
+                          {t("connect")}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Footer */}
