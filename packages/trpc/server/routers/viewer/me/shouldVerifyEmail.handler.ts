@@ -1,13 +1,8 @@
-import type { IdentityProvider } from "@calcom/prisma/client";
+import type { User } from "@calcom/prisma/client";
 
 type ShouldVerifyEmailType = {
   ctx: {
-    user: {
-      emailVerified: boolean;
-      identityProvider: IdentityProvider;
-      id: number;
-      email: string;
-    };
+    user: Pick<User, "id" | "email" | "emailVerified" | "identityProvider">;
   };
 };
 
