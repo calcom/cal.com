@@ -1,10 +1,10 @@
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
-import type { OrganizationCreation } from "../lib/utils/email-types";
+import type { OrganizationCreation } from "../lib/types/email-types";
 import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
-export type { OrganizationCreation } from "../lib/utils/email-types";
+export type { OrganizationCreation } from "../lib/types/email-types";
 
 export default class OrganizationCreationEmail extends BaseEmail {
   organizationCreationEvent: OrganizationCreation;

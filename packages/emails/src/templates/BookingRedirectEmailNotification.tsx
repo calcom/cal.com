@@ -1,4 +1,4 @@
-import type { IBookingRedirect } from "../../lib/utils/booking-redirect-types";
+import type { IBookingRedirect } from "../../lib/types/booking-redirect-types";
 import { BaseEmailHtml } from "../components";
 
 export const BookingRedirectEmailNotification = (

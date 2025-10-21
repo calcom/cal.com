@@ -1,10 +1,10 @@
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
-import type { IBookingRedirect } from "../lib/utils/booking-redirect-types";
+import type { IBookingRedirect } from "../lib/types/booking-redirect-types";
 import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
-export type { IBookingRedirect } from "../lib/utils/booking-redirect-types";
+export type { IBookingRedirect } from "../lib/types/booking-redirect-types";
 
 export default class BookingRedirectNotification extends BaseEmail {
   bookingRedirect: IBookingRedirect;
