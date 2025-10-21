@@ -391,26 +391,6 @@ export class TeamRepository {
     });
   }
 
-  async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
-    return await this.prismaClient.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      select: {
-        id: true,
-        metadata: true,
-        members: {
-          where: {
-            userId,
-            role: {
-              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
-            },
-          },
-        },
-      },
-    });
-  }
-
   async findTeamWithParentHideBranding({ teamId }: { teamId: number }) {
     return await this.prismaClient.team.findUnique({
       where: { id: teamId },
@@ -479,6 +459,7 @@ export class TeamRepository {
       select: {
         id: true,
         name: true,
+        isOrganization: true,
         members: {
           where: {
             role: {
