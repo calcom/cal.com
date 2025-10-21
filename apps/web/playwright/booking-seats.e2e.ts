@@ -542,7 +542,7 @@ test.describe("Reschedule for booking with seats", () => {
 
     const references = await prisma.bookingSeat.findMany({
       where: { bookingId: booking.id },
-      orderBy: { attendeeId: "asc" },
+      orderBy: { id: "asc" },
     });
 
     const secondUser = await users.create({
