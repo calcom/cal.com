@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import {
@@ -16,17 +15,20 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 
-import type { inferRouterOutputs } from "@trpc/server";
-
-type RouterOutput = inferRouterOutputs<AppRouter>;
-type Credentials = RouterOutput["viewer"]["apps"]["appCredentialsByType"]["credentials"];
-
+type Credentials = {
+  id: number;
+  teamId: number | null;
+  team?: {
+    name: string;
+  };
+  user: { email: string } | { name: string | null } | null;
+}[];
 interface Props {
   credentials: Credentials;
   onSuccess?: () => void;
 }
 
-export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
+export function MultiDisconnectIntegration({ credentials, onSuccess = () => {} }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [credentialToDelete, setCredentialToDelete] = useState<{
@@ -39,7 +41,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
   const mutation = trpc.viewer.credentials.delete.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
-      onSuccess && onSuccess();
+      onSuccess();
       setConfirmationDialogOpen(false);
     },
     onError: () => {
@@ -52,7 +54,7 @@ export function MultiDisconnectIntegration({ credentials, onSuccess }: Props) {
     },
   });
 
-  const getUserDisplayName = (user: (typeof credentials)[number]["user"]) => {
+  const getUserDisplayName = (user: Credentials[number]["user"]) => {
     if (!user) return null;
     // Check if 'name' property exists on user
     if ("name" in user) return user.name;
