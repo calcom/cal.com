@@ -88,7 +88,6 @@ test.describe("Forgot password", async () => {
       },
     });
 
-     
     const updatedPassword = updatedUser.password!.hash;
     expect(await verifyPassword(newPassword, updatedPassword)).toBeTruthy();
 
