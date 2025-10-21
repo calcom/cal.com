@@ -23,12 +23,12 @@ export async function getStripeCustomerIdFromUserId(userId: number) {
 
   return customerId;
 }
-const userType = {
+const _userType = {
   email: true,
   metadata: true,
 } satisfies Prisma.UserSelect;
 
-type UserType = Prisma.UserGetPayload<{ select: typeof userType }>;
+type UserType = Prisma.UserGetPayload<{ select: typeof _userType }>;
 
 /** This will retrieve the customer ID from Stripe or create it if it doesn't exists yet. */
 export async function getStripeCustomerId(user: UserType): Promise<string> {
@@ -105,5 +105,16 @@ export async function retrieveOrCreateStripeCustomerByEmail(
       }
     );
     return newCustomer;
+  }
+}
+
+export async function disconnectStripeConnectAccount(stripeUserId: string): Promise<void> {
+  try {
+    await stripe.oauth.deauthorize({
+      client_id: process.env.STRIPE_CLIENT_ID || "",
+      stripe_user_id: stripeUserId,
+    });
+  } catch (error) {
+    console.warn(`Failed to disconnect Stripe Connect account ${stripeUserId}:`, error);
   }
 }
