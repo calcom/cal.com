@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
-import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { Button } from "@calcom/ui/components/button";
 import { Icon } from "@calcom/ui/components/icon";
 
@@ -14,26 +13,37 @@ import type { BookingOutput } from "../types";
 
 type WeekCalendarViewProps = {
   bookings: BookingOutput[];
+  onWeekChange?: (startDate: Date, endDate: Date) => void;
 };
 
-export function WeekCalendarView({ bookings }: WeekCalendarViewProps) {
+export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewProps) {
   const { timezone } = useTimePreferences();
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => dayjs().startOf("week"));
+  const [currentWeekStart, _setCurrentWeekStart] = useState(() => dayjs().startOf("week"));
+
+  const setCurrentWeekStart = useCallback(
+    (newWeekStart: dayjs.Dayjs) => {
+      _setCurrentWeekStart(newWeekStart);
+      const newStartDate = newWeekStart.toDate();
+      const newEndDate = newWeekStart.add(6, "day").toDate();
+      onWeekChange?.(newStartDate, newEndDate);
+    },
+    [onWeekChange]
+  );
 
   const goToPreviousWeek = () => {
-    setCurrentWeekStart((prev) => prev.subtract(1, "week"));
+    setCurrentWeekStart(currentWeekStart.subtract(1, "week"));
   };
 
   const goToNextWeek = () => {
-    setCurrentWeekStart((prev) => prev.add(1, "week"));
+    setCurrentWeekStart(currentWeekStart.add(1, "week"));
   };
 
   const goToToday = () => {
     setCurrentWeekStart(dayjs().startOf("week"));
   };
 
-  const startDate = currentWeekStart.toDate();
-  const endDate = currentWeekStart.add(6, "day").toDate();
+  const startDate = useMemo(() => currentWeekStart.toDate(), [currentWeekStart]);
+  const endDate = useMemo(() => currentWeekStart.add(6, "day").toDate(), [currentWeekStart]);
 
   const events = useMemo<CalendarEvent[]>(() => {
     return bookings
@@ -45,16 +55,6 @@ export function WeekCalendarView({ bookings }: WeekCalendarViewProps) {
         );
       })
       .map((booking, idx) => {
-        const eventTypeColor = booking.eventType?.eventTypeColor;
-        let borderColor = "#3b82f6";
-
-        if (eventTypeColor) {
-          const parsedColor = parseEventTypeColor(eventTypeColor);
-          if (parsedColor) {
-            borderColor = parsedColor.lightThemeHex;
-          }
-        }
-
         return {
           id: idx,
           title: booking.title || "Booking",
@@ -62,7 +62,6 @@ export function WeekCalendarView({ bookings }: WeekCalendarViewProps) {
           end: new Date(booking.endTime),
           options: {
             status: booking.status,
-            borderColor,
           },
         };
       });

@@ -1,9 +1,17 @@
 "use client";
 
 import type { Table as ReactTable } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 
-import { DataTableFilters, DataTableSegment } from "@calcom/features/data-table";
+import {
+  DataTableFilters,
+  DataTableSegment,
+  useDataTable,
+  useFilterValue,
+  ZDateRangeFilterValue,
+  ColumnFilterType,
+} from "@calcom/features/data-table";
+import { CUSTOM_PRESET } from "@calcom/features/data-table/lib/dateRange";
 
 import type { RowData, BookingListingStatus } from "../types";
 import { WeekCalendarView } from "./WeekCalendarView";
@@ -15,6 +23,8 @@ type BookingsCalendarViewProps = {
 
 export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
   const { rows } = table.getRowModel();
+  const { updateFilter } = useDataTable();
+  const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
 
   const bookings = useMemo(() => {
     return rows
@@ -22,6 +32,37 @@ export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
       .map((row) => (row.original.type === "data" ? row.original.booking : null))
       .filter((booking): booking is NonNullable<typeof booking> => booking !== null);
   }, [rows]);
+
+  const handleWeekChange = useCallback(
+    (startDate: Date, endDate: Date) => {
+      if (!dateRange) {
+        return;
+      }
+
+      const rangeStart = dateRange.startDate ? new Date(dateRange.startDate) : null;
+      const rangeEnd = dateRange.endDate ? new Date(dateRange.endDate) : null;
+
+      const needsStartUpdate = !rangeStart || startDate < rangeStart;
+      const needsEndUpdate = !rangeEnd || endDate > rangeEnd;
+
+      if (!needsStartUpdate && !needsEndUpdate) {
+        return;
+      }
+
+      const newStartDate = needsStartUpdate ? startDate : rangeStart;
+      const newEndDate = needsEndUpdate ? endDate : rangeEnd;
+
+      updateFilter("dateRange", {
+        type: ColumnFilterType.DATE_RANGE,
+        data: {
+          startDate: newStartDate.toISOString(),
+          endDate: newEndDate.toISOString(),
+          preset: CUSTOM_PRESET.value,
+        },
+      });
+    },
+    [dateRange, updateFilter]
+  );
 
   return (
     <>
@@ -36,7 +77,7 @@ export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
           <DataTableSegment.Select />
         </div>
       </div>
-      <WeekCalendarView bookings={bookings} />
+      <WeekCalendarView bookings={bookings} onWeekChange={handleWeekChange} />
     </>
   );
 }
