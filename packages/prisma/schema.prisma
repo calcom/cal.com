@@ -247,7 +247,6 @@ model EventType {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
-
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -403,7 +402,9 @@ model User {
   allowSEOIndexing Boolean? @default(true)
 
   // receive monthly digest email for teams or not
-  receiveMonthlyDigestEmail Boolean? @default(true)
+  receiveMonthlyDigestEmail       Boolean? @default(true)
+  // require email verification when someone books using your email
+  requiresBookerEmailVerification Boolean? @default(false)
 
   /// @zod.import(["import { userMetadata } from '../../zod-utils'"]).custom.use(userMetadata)
   metadata             Json?
@@ -452,6 +453,7 @@ model User {
   updatedAttributeToUsers        AttributeToUser[]             @relation("updatedBy")
   createdTranslations            EventTypeTranslation[]        @relation("CreatedEventTypeTranslations")
   updatedTranslations            EventTypeTranslation[]        @relation("UpdatedEventTypeTranslations")
+  reportedBookings               BookingReport[]               @relation("ReportedBy")
   BookingInternalNote            BookingInternalNote[]
   creationSource                 CreationSource?
   createdOrganizationOnboardings OrganizationOnboarding[]      @relation("CreatedOrganizationOnboardings")
@@ -573,6 +575,7 @@ model Team {
   roles                  Role[] // Added for Role relation
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
+  bookingReports         BookingReport[]
 
   features TeamFeatures[]
 
@@ -849,6 +852,7 @@ model Booking {
   tracking                     Tracking?
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
+  report                       BookingReport?
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1243,6 +1247,7 @@ model App_RoutingForms_Form {
   /// @zod.import(["import { RoutingFormSettings } from '../../zod-utils'"]).custom.use(RoutingFormSettings)
   settings                 Json?
   incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
+  workflows                WorkflowsOnRoutingForms[]
 
   @@index([userId])
   @@index([disabled])
@@ -1390,6 +1395,8 @@ enum WorkflowTriggerEvents {
   RESCHEDULE_EVENT
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  FORM_SUBMITTED
+  FORM_SUBMITTED_NO_EVENT
   BOOKING_REJECTED
   BOOKING_REQUESTED
   BOOKING_PAYMENT_INITIATED
@@ -1406,6 +1413,11 @@ enum WorkflowActions {
   WHATSAPP_ATTENDEE
   WHATSAPP_NUMBER
   CAL_AI_PHONE_CALL
+}
+
+enum WorkflowType {
+  EVENT_TYPE
+  ROUTING_FORM
 }
 
 model WorkflowStep {
@@ -1427,27 +1439,29 @@ model WorkflowStep {
   agentId                   String?            @unique
   agent                     Agent?             @relation(fields: [agentId], references: [id], onDelete: SetNull)
 
-  inboundAgentId            String?            @unique
-  inboundAgent              Agent?             @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
+  inboundAgentId String? @unique
+  inboundAgent   Agent?  @relation("WorkflowStepInboundAgent", fields: [inboundAgentId], references: [id], onDelete: SetNull)
 
   @@index([workflowId])
 }
 
 model Workflow {
-  id            Int                     @id @default(autoincrement())
-  position      Int                     @default(0)
-  name          String
-  userId        Int?
-  user          User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team          Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId        Int?
-  activeOn      WorkflowsOnEventTypes[]
-  activeOnTeams WorkflowsOnTeams[]
-  isActiveOnAll Boolean                 @default(false)
-  trigger       WorkflowTriggerEvents
-  time          Int?
-  timeUnit      TimeUnit?
-  steps         WorkflowStep[]
+  id                   Int                       @id @default(autoincrement())
+  position             Int                       @default(0)
+  name                 String
+  userId               Int?
+  user                 User?                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team                 Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId               Int?
+  activeOn             WorkflowsOnEventTypes[]
+  activeOnTeams        WorkflowsOnTeams[]
+  activeOnRoutingForms WorkflowsOnRoutingForms[]
+  isActiveOnAll        Boolean                   @default(false)
+  trigger              WorkflowTriggerEvents
+  time                 Int?
+  timeUnit             TimeUnit?
+  steps                WorkflowStep[]
+  type                 WorkflowType              @default(EVENT_TYPE)
 
   @@index([userId])
   @@index([teamId])
@@ -1483,6 +1497,18 @@ model WorkflowsOnEventTypes {
   @@unique([workflowId, eventTypeId])
   @@index([workflowId])
   @@index([eventTypeId])
+}
+
+model WorkflowsOnRoutingForms {
+  id            Int                   @id @default(autoincrement())
+  workflow      Workflow              @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId    Int
+  routingForm   App_RoutingForms_Form @relation(fields: [routingFormId], references: [id], onDelete: Cascade)
+  routingFormId String
+
+  @@unique([workflowId, routingFormId])
+  @@index([workflowId])
+  @@index([routingFormId])
 }
 
 model WorkflowsOnTeams {
@@ -2296,6 +2322,9 @@ model Watchlist {
   source         WatchlistSource @default(MANUAL)
   lastUpdatedAt  DateTime        @default(now())
 
+  bookingReports BookingReport[]
+  audits         WatchlistAudit[]
+
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
 }
@@ -2311,7 +2340,8 @@ model WatchlistAudit {
   changedAt       DateTime @default(now())
   changedByUserId Int?
 
-  watchlistId String @db.Uuid
+  watchlistId String     @db.Uuid
+  watchlist   Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
 
   @@index([watchlistId, changedAt])
 }
@@ -2322,6 +2352,38 @@ model WatchlistEventAudit {
   eventTypeId Int
   actionTaken WatchlistAction
   timestamp   DateTime        @default(now())
+}
+
+enum BookingReportReason {
+  SPAM
+  DONT_KNOW_PERSON @map("dont_know_person")
+  OTHER
+}
+
+model BookingReport {
+  id             String              @id @default(uuid()) @db.Uuid
+  bookingUid     String              @unique
+  booking        Booking             @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
+  bookerEmail    String
+  reportedById   Int?
+  organizationId Int?
+  reason         BookingReportReason
+  description    String?
+  cancelled      Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  watchlistId String? @db.Uuid
+
+  reportedBy   User?      @relation("ReportedBy", fields: [reportedById], references: [id], onDelete: SetNull)
+  organization Team?      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  watchlist    Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: SetNull)
+
+  @@index([bookerEmail])
+  @@index([reportedById])
+  @@index([organizationId])
+  @@index([watchlistId])
+  @@index([createdAt])
 }
 
 enum BillingPeriod {
@@ -2362,6 +2424,8 @@ model OrganizationOnboarding {
   slug               String
   logo               String?
   bio                String?
+  brandColor         String?
+  bannerUrl          String?
   isDomainConfigured Boolean @default(false)
 
   // Set when payment intent is there.
@@ -2542,7 +2606,6 @@ enum PhoneNumberSubscriptionStatus {
   UNPAID
 }
 
-
 // Cal AI Voice Agent
 model Agent {
   id   String @id @default(uuid())
@@ -2567,7 +2630,7 @@ model Agent {
   inboundPhoneNumbers  CalAiPhoneNumber[] @relation("InboundAgent")
   outboundPhoneNumbers CalAiPhoneNumber[] @relation("OutboundAgent")
   workflowStep         WorkflowStep?
-  inboundWorkflowStep  WorkflowStep?     @relation("WorkflowStepInboundAgent")
+  inboundWorkflowStep  WorkflowStep?      @relation("WorkflowStepInboundAgent")
 
   @@index([userId])
   @@index([teamId])
@@ -2613,11 +2676,14 @@ model TeamBilling {
   teamId Int    @unique
   team   Team?  @relation("TeamBilling", fields: [teamId], references: [id], onDelete: Cascade)
 
-  subscriptionId     String @unique
-  subscriptionItemId String
-  customerId         String
-  status             String
-  planName           String
+  subscriptionId       String    @unique
+  subscriptionItemId   String
+  customerId           String
+  status               String
+  planName             String
+  subscriptionStart    DateTime?
+  subscriptionTrialEnd DateTime?
+  subscriptionEnd      DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2628,11 +2694,14 @@ model OrganizationBilling {
   teamId Int    @unique
   team   Team   @relation("OrganizationBilling", fields: [teamId], references: [id], onDelete: Cascade)
 
-  subscriptionId     String @unique
-  subscriptionItemId String
-  customerId         String
-  status             String
-  planName           String
+  subscriptionId       String    @unique
+  subscriptionItemId   String
+  customerId           String
+  status               String
+  planName             String
+  subscriptionStart    DateTime?
+  subscriptionTrialEnd DateTime?
+  subscriptionEnd      DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
