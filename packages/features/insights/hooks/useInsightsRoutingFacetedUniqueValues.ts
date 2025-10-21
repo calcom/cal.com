@@ -109,8 +109,9 @@ export const useInsightsRoutingFacetedUniqueValues = ({
         } else if (columnId === "reroutingStatus") {
           return convertFacetedValuesToMap([
             { value: "none", label: "Standard" },
-            { value: "original", label: "Original" },
+            { value: "reassigned", label: "Reassigned" },
             { value: "rerouted", label: "Rerouted" },
+            { value: "original", label: "Routed (Original)" },
           ]);
         }
         return new Map<FacetedValue, number>();

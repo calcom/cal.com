@@ -83,7 +83,7 @@ export type InsightsRoutingTableItem = {
   assignmentReasons: string | null;
   fromReschedule: string | null;
   reroutedFromBookingUid: string | null;
-  isRerouted: boolean;
+  isRerouted: string;
   isOriginalBooking: boolean;
   reroutedToBookingUid: string | null;
   bookingAttendees: Array<{
@@ -268,6 +268,15 @@ export class InsightsRoutingBaseService {
   }) {
     const baseConditions = await this.getBaseConditions();
 
+    // Check for rerouting status filter
+    const reroutingStatusFilter = this.filters.columnFilters?.find(
+      (filter) => filter.id === "reroutingStatus"
+    );
+    const reroutingStatus =
+      reroutingStatusFilter && isSingleSelectFilterValue(reroutingStatusFilter.value)
+        ? reroutingStatusFilter.value.data
+        : null;
+
     // Build ORDER BY clause
     const orderByClause = this.buildOrderByClause(sorting);
 
@@ -279,10 +288,9 @@ export class InsightsRoutingBaseService {
     `;
 
     const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(totalCountQuery);
-
     const totalCount = Number(totalCountResult[0]?.count || 0);
 
-    // Get paginated data with rerouting info
+    // Get paginated data
     const dataQuery = Prisma.sql`
       SELECT
         rfrd."id",
@@ -312,18 +320,32 @@ export class InsightsRoutingBaseService {
         rfrd."utm_campaign",
         rfrd."utm_term",
         rfrd."utm_content",
-        NULL::text as "assignmentReasons",
-        b."fromReschedule",
-        b."fromReschedule" as "reroutedFromBookingUid",
-        COALESCE(b."fromReschedule" IS NOT NULL, false) as "isRerouted",
-        COALESCE(EXISTS (
-          SELECT 1 FROM "Booking" b2
-          WHERE b2."fromReschedule" = rfrd."bookingUid"
-        ), false) as "isOriginalBooking",
         (
-          SELECT b2."uid"
-          FROM "Booking" b2
-          WHERE b2."fromReschedule" = rfrd."bookingUid"
+          SELECT string_agg(ar."reasonString", ', ' ORDER BY ar."createdAt")
+          FROM "AssignmentReason" ar
+          WHERE ar."bookingId" = rfrd."bookingId"
+        ) as "assignmentReasons",
+        b_orig."fromReschedule" as "fromReschedule",
+        b_orig."fromReschedule" as "reroutedFromBookingUid",
+        CASE 
+          WHEN EXISTS (
+            SELECT 1 FROM "AssignmentReason" ar
+            WHERE ar."bookingId" = rfrd."bookingId"
+            AND ar."reasonEnum" IN ('REASSIGNED', 'RR_REASSIGNED')
+          ) THEN 'reassigned'
+          WHEN b_orig."fromReschedule" IS NOT NULL THEN 'rerouted'
+          ELSE 'none'
+        END as "isRerouted",
+        CASE 
+          WHEN EXISTS (
+            SELECT 1 FROM "Booking" b2 
+            WHERE b2."fromReschedule" = rfrd."bookingUid"
+          ) THEN true
+          ELSE false
+        END as "isOriginalBooking",
+        (
+          SELECT b3."uid" FROM "Booking" b3
+          WHERE b3."fromReschedule" = rfrd."bookingUid" 
           LIMIT 1
         ) as "reroutedToBookingUid",
         (
@@ -357,23 +379,370 @@ export class InsightsRoutingBaseService {
           WHERE f."responseId" = rfrd."id"
         ) as "fields"
       FROM "RoutingFormResponseDenormalized" rfrd
-      LEFT JOIN "Booking" b ON b."uid" = rfrd."bookingUid"
+      LEFT JOIN "Booking" b_orig ON b_orig."id" = rfrd."bookingId"
       WHERE ${baseConditions}
+      ${
+        reroutingStatus === "reassigned"
+          ? Prisma.sql`AND EXISTS (
+              SELECT 1 FROM "AssignmentReason" ar
+              WHERE ar."bookingId" = rfrd."bookingId"
+              AND ar."reasonEnum" IN ('REASSIGNED', 'RR_REASSIGNED')
+            )`
+          : reroutingStatus === "rerouted"
+          ? Prisma.sql`AND b_orig."fromReschedule" IS NOT NULL`
+          : reroutingStatus === "original"
+          ? Prisma.sql`AND 1=0`
+          : reroutingStatus === "none"
+          ? Prisma.sql`AND NOT EXISTS (
+              SELECT 1 FROM "AssignmentReason" ar
+              WHERE ar."bookingId" = rfrd."bookingId"
+              AND ar."reasonEnum" IN ('REASSIGNED', 'RR_REASSIGNED', 'REROUTED')
+            ) AND b_orig."fromReschedule" IS NULL AND NOT EXISTS (
+              SELECT 1 FROM "Booking" b2 
+              WHERE b2."fromReschedule" = rfrd."bookingUid"
+            )`
+          : Prisma.empty
+      }
       ${orderByClause}
       LIMIT ${limit}
       OFFSET ${offset}
     `;
 
-    const data = await this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>(dataQuery);
-
-    // Debug logging
-    if (data.length > 0) {
-      console.log('Sample row:', {
-        bookingUid: data[0].bookingUid,
-        fromReschedule: data[0].fromReschedule,
-        isRerouted: data[0].isRerouted,
-        isOriginalBooking: data[0].isOriginalBooking,
-      });
+    let data: Array<InsightsRoutingTableItem>;
+    
+    console.log('[DEBUG] reroutingStatus:', reroutingStatus);
+    
+    if (reroutingStatus === null) {
+      // When no filter is applied, show BOTH current and original bookings using UNION
+      console.log('[DEBUG] Fetching ALL bookings (current + original)...');
+      
+      const unionQuery = Prisma.sql`
+        -- Current bookings from the view
+        SELECT * FROM (
+          ${dataQuery}
+        ) current_bookings
+        
+        UNION ALL
+        
+        -- Original bookings from recursive CTE
+        SELECT * FROM (
+          WITH RECURSIVE booking_chain AS (
+            SELECT 
+              b."uid",
+              b."id",
+              b."fromReschedule",
+              b."uid" as "finalBookingUid",
+              afr."id" as "formResponseId"
+            FROM "Booking" b
+            INNER JOIN "App_RoutingForms_FormResponse" afr ON afr."routedToBookingUid" = b."uid"
+            INNER JOIN "RoutingFormResponseDenormalized" rfrd ON rfrd."id" = afr."id"
+            WHERE ${baseConditions}
+            
+            UNION ALL
+            
+            SELECT 
+              b."uid",
+              b."id",
+              b."fromReschedule",
+              bc."finalBookingUid",
+              bc."formResponseId"
+            FROM "Booking" b
+            INNER JOIN booking_chain bc ON bc."fromReschedule" = b."uid"
+          )
+          SELECT
+            rfrd."id",
+            rfrd."uuid",
+            rfrd."formId",
+            rfrd."formName",
+            rfrd."formTeamId",
+            rfrd."formUserId",
+            b."uid" as "bookingUid",
+            b."id" as "bookingId",
+            UPPER(b."status"::text) as "bookingStatus",
+            CASE b."status"
+              WHEN 'accepted' THEN 1
+              WHEN 'pending' THEN 2
+              WHEN 'awaiting_host' THEN 3
+              WHEN 'cancelled' THEN 4
+              WHEN 'rejected' THEN 5
+              ELSE 999
+            END as "bookingStatusOrder",
+            b."createdAt" as "bookingCreatedAt",
+            b."userId" as "bookingUserId",
+            u."name" as "bookingUserName",
+            u."email" as "bookingUserEmail",
+            u."avatarUrl" as "bookingUserAvatarUrl",
+            (
+              SELECT string_agg(ar."reasonString", ', ' ORDER BY ar."createdAt")
+              FROM "AssignmentReason" ar
+              WHERE ar."bookingId" = b."id"
+            ) as "bookingAssignmentReason",
+            b."startTime" as "bookingStartTime",
+            b."endTime" as "bookingEndTime",
+            b."eventTypeId" as "eventTypeId",
+            et."parentId" as "eventTypeParentId",
+            et."schedulingType"::text as "eventTypeSchedulingType",
+            rfrd."createdAt",
+            t."utm_source",
+            t."utm_medium",
+            t."utm_campaign",
+            t."utm_term",
+            t."utm_content",
+            (
+              SELECT string_agg(ar."reasonString", ', ' ORDER BY ar."createdAt")
+              FROM "AssignmentReason" ar
+              WHERE ar."bookingId" = b."id"
+            ) as "assignmentReasons",
+            b."fromReschedule",
+            b."fromReschedule" as "reroutedFromBookingUid",
+            'original' as "isRerouted",
+            true as "isOriginalBooking",
+            bc."finalBookingUid" as "reroutedToBookingUid",
+            (
+              SELECT COALESCE(
+                json_agg(
+                  json_build_object(
+                    'name', a."name",
+                    'timeZone', a."timeZone",
+                    'email', a."email",
+                    'phoneNumber', a."phoneNumber"
+                  )
+                ) FILTER (WHERE a."id" IS NOT NULL),
+                '[]'::json
+              )
+              FROM "Attendee" a
+              WHERE a."bookingId" = b."id"
+            ) as "bookingAttendees",
+            (
+              SELECT COALESCE(
+                json_agg(
+                  json_build_object(
+                    'fieldId', f."fieldId",
+                    'valueString', f."valueString",
+                    'valueNumber', f."valueNumber",
+                    'valueStringArray', f."valueStringArray"
+                  )
+                ) FILTER (WHERE f."fieldId" IS NOT NULL),
+                '[]'::json
+              )
+              FROM "RoutingFormResponseField" f
+              WHERE f."responseId" = rfrd."id"
+            ) as "fields"
+          FROM booking_chain bc
+          INNER JOIN "Booking" b ON b."id" = bc."id"
+          INNER JOIN "RoutingFormResponseDenormalized" rfrd ON rfrd."id" = bc."formResponseId"
+          LEFT JOIN "users" u ON u."id" = b."userId"
+          LEFT JOIN "EventType" et ON et."id" = b."eventTypeId"
+          LEFT JOIN "Tracking" t ON t."bookingId" = b."id"
+          WHERE b."uid" != bc."finalBookingUid"
+        ) original_bookings
+        ${orderByClause}
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+      
+      data = await this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>(unionQuery);
+      console.log('[DEBUG] ALL bookings found:', data.length);
+      
+      // Count total (current + original)
+      const unionCountQuery = Prisma.sql`
+        SELECT (
+          (SELECT COUNT(*) FROM "RoutingFormResponseDenormalized" rfrd WHERE ${baseConditions})
+          +
+          (
+            WITH RECURSIVE booking_chain AS (
+              SELECT 
+                b."uid",
+                b."id",
+                b."fromReschedule",
+                b."uid" as "finalBookingUid"
+              FROM "Booking" b
+              INNER JOIN "App_RoutingForms_FormResponse" afr ON afr."routedToBookingUid" = b."uid"
+              INNER JOIN "RoutingFormResponseDenormalized" rfrd ON rfrd."id" = afr."id"
+              WHERE ${baseConditions}
+              
+              UNION ALL
+              
+              SELECT 
+                b."uid",
+                b."id",
+                b."fromReschedule",
+                bc."finalBookingUid"
+              FROM "Booking" b
+              INNER JOIN booking_chain bc ON bc."fromReschedule" = b."uid"
+            )
+            SELECT COUNT(DISTINCT bc."id")
+            FROM booking_chain bc
+            WHERE bc."uid" != bc."finalBookingUid"
+          )
+        ) as count
+      `;
+      
+      const unionCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(unionCountQuery);
+      const unionCount = Number(unionCountResult[0]?.count || 0);
+      console.log('[DEBUG] Total count (current + original):', unionCount);
+      
+      return {
+        total: unionCount,
+        data,
+      };
+    } else if (reroutingStatus === "original") {
+      console.log('[DEBUG] Fetching ONLY original bookings...');
+      const originalQuery = Prisma.sql`
+        WITH RECURSIVE booking_chain AS (
+          SELECT 
+            b."uid",
+            b."id",
+            b."fromReschedule",
+            b."uid" as "finalBookingUid",
+            afr."id" as "formResponseId"
+          FROM "Booking" b
+          INNER JOIN "App_RoutingForms_FormResponse" afr ON afr."routedToBookingUid" = b."uid"
+          INNER JOIN "RoutingFormResponseDenormalized" rfrd ON rfrd."id" = afr."id"
+          WHERE ${baseConditions}
+          
+          UNION ALL
+          
+          SELECT 
+            b."uid",
+            b."id",
+            b."fromReschedule",
+            bc."finalBookingUid",
+            bc."formResponseId"
+          FROM "Booking" b
+          INNER JOIN booking_chain bc ON bc."fromReschedule" = b."uid"
+        )
+        SELECT
+          rfrd."id",
+          rfrd."uuid",
+          rfrd."formId",
+          rfrd."formName",
+          rfrd."formTeamId",
+          rfrd."formUserId",
+          b."uid" as "bookingUid",
+          b."id" as "bookingId",
+          UPPER(b."status"::text) as "bookingStatus",
+          CASE b."status"
+              WHEN 'accepted' THEN 1
+            WHEN 'pending' THEN 2
+            WHEN 'awaiting_host' THEN 3
+            WHEN 'cancelled' THEN 4
+            WHEN 'rejected' THEN 5
+            ELSE 999
+          END as "bookingStatusOrder",
+          b."createdAt" as "bookingCreatedAt",
+          b."userId" as "bookingUserId",
+          u."name" as "bookingUserName",
+          u."email" as "bookingUserEmail",
+          u."avatarUrl" as "bookingUserAvatarUrl",
+          (
+            SELECT string_agg(ar."reasonString", ', ' ORDER BY ar."createdAt")
+            FROM "AssignmentReason" ar
+            WHERE ar."bookingId" = b."id"
+          ) as "bookingAssignmentReason",
+          b."startTime" as "bookingStartTime",
+          b."endTime" as "bookingEndTime",
+          b."eventTypeId" as "eventTypeId",
+          et."parentId" as "eventTypeParentId",
+          et."schedulingType"::text as "eventTypeSchedulingType",
+          rfrd."createdAt",
+          t."utm_source",
+          t."utm_medium",
+          t."utm_campaign",
+          t."utm_term",
+          t."utm_content",
+          (
+            SELECT string_agg(ar."reasonString", ', ' ORDER BY ar."createdAt")
+            FROM "AssignmentReason" ar
+            WHERE ar."bookingId" = b."id"
+          ) as "assignmentReasons",
+          b."fromReschedule",
+          b."fromReschedule" as "reroutedFromBookingUid",
+          'original' as "isRerouted",
+          true as "isOriginalBooking",
+          bc."finalBookingUid" as "reroutedToBookingUid",
+          (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'name', a."name",
+                  'timeZone', a."timeZone",
+                  'email', a."email",
+                  'phoneNumber', a."phoneNumber"
+                )
+              ) FILTER (WHERE a."id" IS NOT NULL),
+              '[]'::json
+            )
+            FROM "Attendee" a
+            WHERE a."bookingId" = b."id"
+          ) as "bookingAttendees",
+          (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'fieldId', f."fieldId",
+                  'valueString', f."valueString",
+                  'valueNumber', f."valueNumber",
+                  'valueStringArray', f."valueStringArray"
+                )
+              ) FILTER (WHERE f."fieldId" IS NOT NULL),
+              '[]'::json
+            )
+            FROM "RoutingFormResponseField" f
+            WHERE f."responseId" = rfrd."id"
+          ) as "fields"
+        FROM booking_chain bc
+        INNER JOIN "Booking" b ON b."id" = bc."id"
+        INNER JOIN "RoutingFormResponseDenormalized" rfrd ON rfrd."id" = bc."formResponseId"
+        LEFT JOIN "users" u ON u."id" = b."userId"
+        LEFT JOIN "EventType" et ON et."id" = b."eventTypeId"
+        LEFT JOIN "Tracking" t ON t."bookingId" = b."id"
+        WHERE b."uid" != bc."finalBookingUid"
+        ${orderByClause}
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+      data = await this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>(originalQuery);
+      console.log('[DEBUG] Original bookings found:', data.length);
+      
+      const originalCountQuery = Prisma.sql`
+        WITH RECURSIVE booking_chain AS (
+          SELECT 
+            b."uid",
+            b."id",
+            b."fromReschedule",
+            b."uid" as "finalBookingUid"
+          FROM "Booking" b
+          INNER JOIN "App_RoutingForms_FormResponse" afr ON afr."routedToBookingUid" = b."uid"
+          INNER JOIN "RoutingFormResponseDenormalized" rfrd ON rfrd."id" = afr."id"
+          WHERE ${baseConditions}
+          
+          UNION ALL
+          
+          SELECT 
+            b."uid",
+            b."id",
+            b."fromReschedule",
+            bc."finalBookingUid"
+          FROM "Booking" b
+          INNER JOIN booking_chain bc ON bc."fromReschedule" = b."uid"
+        )
+        SELECT COUNT(DISTINCT bc."id") as count
+        FROM booking_chain bc
+        WHERE bc."uid" != bc."finalBookingUid"
+      `;
+      const originalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(originalCountQuery);
+      const originalCount = Number(originalCountResult[0]?.count || 0);
+      console.log('[DEBUG] Original count:', originalCount);
+      
+      return {
+        total: originalCount,
+        data,
+      };
+    } else {
+      console.log('[DEBUG] Fetching current bookings...');
+      data = await this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>(dataQuery);
+      console.log('[DEBUG] Current bookings found:', data.length);
     }
 
     return {
@@ -806,30 +1175,8 @@ export class InsightsRoutingBaseService {
       }
     }
 
-    // Extract rerouting status filter
-    const reroutingStatus = filtersMap["reroutingStatus"];
-    if (reroutingStatus && isSingleSelectFilterValue(reroutingStatus.value)) {
-      const status = reroutingStatus.value.data;
-      if (status === "original") {
-        conditions.push(Prisma.sql`EXISTS (
-          SELECT 1 FROM "Booking" b2
-          WHERE b2."fromReschedule" = rfrd."bookingUid"
-        )`);
-      } else if (status === "rerouted") {
-        conditions.push(Prisma.sql`EXISTS (
-          SELECT 1 FROM "Booking" b
-          WHERE b."uid" = rfrd."bookingUid" AND b."fromReschedule" IS NOT NULL
-        )`);
-      } else if (status === "none") {
-        conditions.push(Prisma.sql`NOT EXISTS (
-          SELECT 1 FROM "Booking" b
-          WHERE b."uid" = rfrd."bookingUid" AND b."fromReschedule" IS NOT NULL
-        ) AND NOT EXISTS (
-          SELECT 1 FROM "Booking" b2
-          WHERE b2."fromReschedule" = rfrd."bookingUid"
-        )`);
-      }
-    }
+    // Extract rerouting status filter - handled in getTableData UNION query
+    // This filter is intentionally not applied here as it needs special handling in the UNION query
 
     const fieldIdSchema = z.string().uuid();
     const fieldFilters = (columnFilters || []).filter((filter) => fieldIdSchema.safeParse(filter.id).success);

@@ -115,7 +115,7 @@ export function RoutingFormResponsesTable() {
           table={table}
           isPending={isPending}
           rowClassName={(row) => {
-            if (row.original.isRerouted) return "min-h-14 bg-orange-50 border-l-2 border-l-orange-400";
+            if (row.original.isRerouted === 'rerouted') return "min-h-14 bg-orange-50 border-l-2 border-l-orange-400";
             if (row.original.isOriginalBooking) return "min-h-14 bg-blue-50 border-l-2 border-l-blue-400";
             return "min-h-14";
           }}

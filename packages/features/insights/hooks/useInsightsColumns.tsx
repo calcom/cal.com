@@ -248,7 +248,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("isRerouted", {
         id: "reroutingStatus",
-        header: "Rerouting Status",
+        header: "Reassignment Status",
         size: 140,
         enableColumnFilter: true,
         enableSorting: false,
@@ -259,22 +259,55 @@ export const useInsightsColumns = ({
         },
         cell: (info) => {
           const row = info.row.original;
-          if (row.isOriginalBooking) {
+          const status = row.isRerouted;
+          const isOriginal = status === 'original';
+          
+          // Check actual data fields instead of relying only on status
+          const hasFromReschedule = row.fromReschedule !== null && row.fromReschedule !== undefined;
+          const hasReassignmentReason = row.bookingAssignmentReason && row.bookingAssignmentReason.trim() !== '';
+          
+          // Original bookings (cancelled and replaced) - show as "Routed"
+          if (isOriginal) {
             return (
-              <Badge variant="blue" className="flex items-center gap-1">
-                <Icon name="arrow-right" className="h-3 w-3" />
-                <span>Original</span>
+              <Badge variant="purple" className="flex items-center gap-1">
+                <span>Routed</span>
               </Badge>
             );
           }
-          if (row.isRerouted) {
+          
+          // Show both badges if booking is both rerouted and reassigned
+          if (hasFromReschedule && hasReassignmentReason) {
             return (
-              <Badge variant="orange" className="flex items-center gap-1">
-                <Icon name="refresh-cw" className="h-3 w-3" />
+              <div className="flex flex-wrap gap-1">
+                <Badge variant="blue" className="flex items-center gap-1">
+                  <span>Rerouted</span>
+                </Badge>
+                <Badge variant="orange" className="flex items-center gap-1">
+                  <span>Reassigned</span>
+                </Badge>
+              </div>
+            );
+          }
+          
+          // Current bookings that are rerouted (have fromReschedule)
+          if (hasFromReschedule) {
+            return (
+              <Badge variant="blue" className="flex items-center gap-1">
                 <span>Rerouted</span>
               </Badge>
             );
           }
+          
+          // Reassigned bookings
+          if (hasReassignmentReason) {
+            return (
+              <Badge variant="orange" className="flex items-center gap-1">
+                <span>Reassigned</span>
+              </Badge>
+            );
+          }
+          
+          // Standard bookings (not reassigned, not rerouted, not original)
           return (
             <Badge variant="gray">
               <span>Standard</span>
