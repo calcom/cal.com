@@ -41,7 +41,9 @@ export const RecentNoShowGuestsChart = () => {
     <div className="h-full">
       <div className="flex items-center">
         <h3 className="text-emphasis mb-4 text-lg font-semibold">{t("recent_no_show_guests")}</h3>
-        <InfoBadge className="mb-4 ml-2" content={t("recent_no_show_guests_tooltip")} />
+        <span className="mb-4 ml-2">
+          <InfoBadge content={t("recent_no_show_guests_tooltip")} />
+        </span>
       </div>
       <div className="sm:max-h-[30.6rem] sm:overflow-y-auto">
         {data.map((item) => (
