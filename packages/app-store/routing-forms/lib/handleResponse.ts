@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
@@ -15,6 +15,47 @@ import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwner
 import { onSubmissionOfFormResponse, type TargetRoutingFormForResponse } from "./formSubmissionUtils";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
+
+/**
+ * Recursively extract field IDs from a query value object
+ */
+function extractFieldIdsFromQuery(queryValue: unknown): string[] {
+  const fieldIds: Set<string> = new Set();
+
+  function traverse(obj: unknown): void {
+    if (!obj || typeof obj !== "object") return;
+
+    if (Array.isArray(obj)) {
+      obj.forEach(traverse);
+      return;
+    }
+
+    const record = obj as Record<string, unknown>;
+
+    // If this is a rule with a field property, add it
+    if (typeof record.properties === "object" && record.properties !== null) {
+      const props = record.properties as Record<string, unknown>;
+      if (typeof props.field === "string") {
+        fieldIds.add(props.field);
+      }
+    }
+
+    // Traverse children
+    if (record.children1 && typeof record.children1 === "object") {
+      traverse(record.children1);
+    }
+
+    // Traverse other properties
+    for (const value of Object.values(record)) {
+      if (value && typeof value === "object") {
+        traverse(value);
+      }
+    }
+  }
+
+  traverse(queryValue);
+  return Array.from(fieldIds);
+}
 
 const _handleResponse = async ({
   response,
@@ -46,7 +87,7 @@ const _handleResponse = async ({
   try {
     if (!form.fields) {
       // There is no point in submitting a form that doesn't have fields defined
-      throw new HttpError({ statusCode: 400 });
+      throw new HttpError({ statusCode: 400, message: "Form has no fields defined" });
     }
 
     const formTeamId = form.teamId;
@@ -55,6 +96,25 @@ const _handleResponse = async ({
       ...form,
       fields: form.fields,
     };
+
+    // Check if form fields are defined for all required fields in routes
+    // This must be done before checking for missing required fields to provide a better error message
+    const fieldIds = serializableFormWithFields.fields.map((f) => f.id);
+    const routesWithMissingFields =
+      serializableFormWithFields.routes?.filter((route) => {
+        // queryValue might not exist on router routes
+        if (!("queryValue" in route) || !route.queryValue) return false;
+        // Check if the route references any fields that don't exist in the form
+        const referencedFieldIds = extractFieldIdsFromQuery(route.queryValue);
+        return referencedFieldIds.some((fieldId: string) => !fieldIds.includes(fieldId));
+      }) || [];
+
+    if (routesWithMissingFields.length > 0) {
+      throw new HttpError({
+        statusCode: 400,
+        message: `Router is configured with fields that are not present in the form. Please check the form configuration.`,
+      });
+    }
 
     const missingFields = serializableFormWithFields.fields
       .filter((field) => !(field.required ? response[field.id]?.value : true))
