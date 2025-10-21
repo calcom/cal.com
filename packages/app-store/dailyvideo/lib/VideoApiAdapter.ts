@@ -185,7 +185,6 @@ export const updateMeetingTokenIfExpired = async ({
     await prisma.bookingReference.update({
       where: {
         id: bookingReferenceId,
-        deleted: null,
       },
       data: {
         meetingPassword: organizerMeetingToken.token,
@@ -245,7 +244,6 @@ export const setEnableRecordingUIAndUserIdForOrganizer = async (
   await prisma.bookingReference.update({
     where: {
       id: bookingReferenceId,
-      deleted: null,
     },
     data: {
       meetingPassword: organizerMeetingToken.token,
