@@ -413,12 +413,3 @@ export default async function main() {
 
   await seedAppData();
 }
-
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
