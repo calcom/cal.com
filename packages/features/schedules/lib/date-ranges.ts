@@ -126,7 +126,7 @@ export function processWorkingHours(
     }
 
     if (results[startResult.valueOf()]) {
-      // if a result already exists, we merge the end time
+      // Merge the ranges
       const oldKey = startResult.valueOf();
       const newKey = endResult.valueOf();
 
@@ -151,7 +151,7 @@ export function processWorkingHours(
         endTimeToKeyMap.get(endTimeKey)!.push(newKey);
       }
 
-      delete results[oldKey]; // delete the previous end time
+      delete results[oldKey];
       continue;
     }
     // otherwise we create a new result
