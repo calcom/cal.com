@@ -26,10 +26,19 @@ async function handler(req: NextRequest) {
   cookieStore.delete("calcom.csrf_token");
 
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+
   const result = await handleCancelBooking({
     bookingData,
     userId: session?.user?.id || -1,
   });
+
+  // const bookingCancelService = getBookingCancelService();
+  // const result = await bookingCancelService.cancelBooking({
+  //   bookingData: bookingData,
+  //   bookingMeta: {
+  //     userId: session?.user?.id || -1,
+  //   },
+  // });
 
   const statusCode = result.success ? 200 : 400;
 
