@@ -79,7 +79,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
   });
 
   return (
-    <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">
+    <div className="bg-default flex min-h-screen w-full flex-col items-start rounded-xl">
       <OnboardingContinuationPrompt />
       {/* Header */}
       <div className="flex w-full items-center justify-between px-6 py-4">
@@ -103,7 +103,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
         <div className="flex w-full max-w-[600px] flex-col gap-6">
           {/* Card */}
           <div className="bg-muted border-muted relative rounded-xl border p-1">
-            <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
+            <div className="ounded-inherit flex w-full flex-col items-start ">
               {/* Card Header */}
               <div className="flex w-full gap-1.5 px-5 py-4">
                 <div className="flex w-full flex-col gap-1">
@@ -116,14 +116,14 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
 
               {/* Form */}
               <div className="bg-default border-muted w-full rounded-[10px] border">
-                <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
+                <div className="rounded-inherit flex w-full flex-col items-start">
                   <div className="flex w-full flex-col items-start">
                     <div className="flex w-full gap-6 px-5 py-5">
                       <div className="flex w-full flex-col gap-4 rounded-xl">
                         {/* Name */}
                         <div className="flex w-full flex-col gap-1.5">
-                          <Label className="text-emphasis text-sm font-medium leading-4">{t("full_name")}</Label>
                           <TextField
+                            label={t("full_name")}
                             {...form.register("name")}
                             value={name}
                             onChange={(e) => {
@@ -140,14 +140,17 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
 
                         {/* Timezone */}
                         <div className="flex w-full flex-col gap-1.5">
-                          <Label className="text-emphasis text-sm font-medium leading-4">{t("timezone")}</Label>
+                          <Label className="text-emphasis mb-0 text-sm font-medium leading-4">
+                            {t("timezone")}
+                          </Label>
                           <TimezoneSelect
                             value={selectedTimeZone}
                             onChange={({ value }) => setSelectedTimeZone(value)}
                             className="rounded-[10px] text-sm"
                           />
                           <p className="text-subtle text-xs font-normal leading-3">
-                            {t("current_time")} {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
+                            {t("current_time")}{" "}
+                            {dayjs().tz(selectedTimeZone).format("LT").toString().toLowerCase()}
                           </p>
                         </div>
                       </div>
