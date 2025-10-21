@@ -2,9 +2,9 @@ import { v4 as uuidv4 } from "uuid";
 
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import dayjs from "@calcom/dayjs";
-import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/SystemField";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import tasker from "@calcom/features/tasker";
+import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/SystemField";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -92,6 +92,7 @@ type ScheduleAIPhoneCallArgs = {
   teamId: number | null;
   seatReferenceUid?: string;
   verifiedAt: Date | null;
+  routedEventTypeId: number | null;
 } & WorkflowContextData;
 
 export type ScheduleAIPhoneCallArgsWithRequiredFields = Omit<ScheduleAIPhoneCallArgs, "workflowStepId"> & {
@@ -240,6 +241,7 @@ const scheduleAIPhoneCallForEvt = async (
         providerAgentId: agent.providerAgentId,
         referenceUid: workflowReminder.uuid || uuidv4(),
         formResponses: null,
+        routedEventTypeId: null,
       });
 
       logger.info(`AI phone call scheduled for workflow step ${workflowStepId} at ${scheduledDate}`);
@@ -270,6 +272,7 @@ const scheduleAIPhoneCallForEvt = async (
         providerAgentId: agent.providerAgentId,
         referenceUid: workflowReminder.uuid || uuidv4(),
         formResponses: null,
+        routedEventTypeId: null,
       });
 
       logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
@@ -294,6 +297,7 @@ const scheduleAIPhoneCallForForm = async (
     reminderPhone,
     agent,
     activePhoneNumber,
+    routedEventTypeId,
   } = args;
 
   try {
@@ -317,6 +321,7 @@ const scheduleAIPhoneCallForForm = async (
       bookingUid: null,
       providerAgentId: agent.providerAgentId,
       referenceUid: workflowReminder.uuid || uuidv4(),
+      routedEventTypeId: routedEventTypeId ?? null,
     });
     logger.info(`AI phone call scheduled for immediate execution for workflow step ${workflowStepId}`);
   } catch (error) {
@@ -336,6 +341,7 @@ interface ScheduleAIPhoneCallTaskArgs {
   providerAgentId: string;
   referenceUid: string;
   formResponses: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
+  routedEventTypeId: number | null;
 }
 
 const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
@@ -351,6 +357,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
     providerAgentId,
     referenceUid,
     formResponses,
+    routedEventTypeId,
   } = args;
 
   if (!formResponses && !bookingUid) {
@@ -385,6 +392,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
         teamId,
         providerAgentId,
         responses: formResponses,
+        routedEventTypeId,
       },
       {
         scheduledAt: scheduledDate || undefined,

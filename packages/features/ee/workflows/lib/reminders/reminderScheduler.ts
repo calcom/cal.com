@@ -29,6 +29,7 @@ import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 export type FormSubmissionData = {
   responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
+  routedEventTypeId: number | null;
   user: {
     email: string;
     timeFormat: number | null;
@@ -55,7 +56,13 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
   bookerUrl: string;
 };
 
-type ProcessWorkflowStepParams = WorkflowContextData & {
+type ProcessWorkflowStepParams = (
+  | { calendarEvent: ExtendedCalendarEvent; formData?: never }
+  | {
+      calendarEvent?: never;
+      formData: FormSubmissionData;
+    }
+) & {
   smsReminderNumber: string | null;
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
@@ -220,6 +227,7 @@ const processWorkflowStep = async (
       seatReferenceUid,
       reminderPhone: smsReminderNumber,
       verifiedAt: step.verifiedAt,
+      routedEventTypeId: formData ? formData.routedEventTypeId : null,
       ...contextData,
     });
   }
