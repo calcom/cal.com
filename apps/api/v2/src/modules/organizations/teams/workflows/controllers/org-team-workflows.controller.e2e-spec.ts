@@ -404,7 +404,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       invalidWorkflow.steps = [
         {
           stepNumber: 1,
-          action: "sms_number",
+          action: "cal_ai_phone_call",
           recipient: PHONE_NUMBER,
           template: REMINDER,
           verifiedPhoneId: verifiedPhoneId,
