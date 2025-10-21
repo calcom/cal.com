@@ -248,7 +248,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("isRerouted", {
         id: "reroutingStatus",
-        header: "Reassignment Status",
+        header: t("routing_form_insights_reassignment_status"),
         size: 140,
         enableColumnFilter: true,
         enableSorting: false,
@@ -270,7 +270,7 @@ export const useInsightsColumns = ({
           if (isOriginal) {
             return (
               <Badge variant="purple" className="flex items-center gap-1">
-                <span>Routed</span>
+                <span>{t("routing_status_routed")}</span>
               </Badge>
             );
           }
@@ -280,10 +280,10 @@ export const useInsightsColumns = ({
             return (
               <div className="flex flex-wrap gap-1">
                 <Badge variant="blue" className="flex items-center gap-1">
-                  <span>Rerouted</span>
+                  <span>{t("routing_status_rerouted")}</span>
                 </Badge>
                 <Badge variant="orange" className="flex items-center gap-1">
-                  <span>Reassigned</span>
+                  <span>{t("routing_status_reassigned")}</span>
                 </Badge>
               </div>
             );
@@ -293,7 +293,7 @@ export const useInsightsColumns = ({
           if (hasFromReschedule) {
             return (
               <Badge variant="blue" className="flex items-center gap-1">
-                <span>Rerouted</span>
+                <span>{t("routing_status_rerouted")}</span>
               </Badge>
             );
           }
@@ -302,7 +302,7 @@ export const useInsightsColumns = ({
           if (hasReassignmentReason) {
             return (
               <Badge variant="orange" className="flex items-center gap-1">
-                <span>Reassigned</span>
+                <span>{t("routing_status_reassigned")}</span>
               </Badge>
             );
           }
@@ -310,7 +310,7 @@ export const useInsightsColumns = ({
           // Standard bookings (not reassigned, not rerouted, not original)
           return (
             <Badge variant="gray">
-              <span>Standard</span>
+              <span>{t("routing_status_standard")}</span>
             </Badge>
           );
         },

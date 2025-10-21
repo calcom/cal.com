@@ -2,6 +2,7 @@ import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
 import { convertFacetedValuesToMap, type FacetedValue } from "@calcom/features/data-table";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
@@ -59,6 +60,8 @@ export const useInsightsRoutingFacetedUniqueValues = ({
     }
   );
 
+  const { t } = useLocale();
+
   return useCallback(
     <TData>(_: Table<TData>, columnId: string) =>
       (): Map<FacetedValue, number> => {
@@ -108,14 +111,14 @@ export const useInsightsRoutingFacetedUniqueValues = ({
           );
         } else if (columnId === "reroutingStatus") {
           return convertFacetedValuesToMap([
-            { value: "none", label: "Standard" },
-            { value: "reassigned", label: "Reassigned" },
-            { value: "rerouted", label: "Rerouted" },
-            { value: "original", label: "Routed (Original)" },
+            { value: "none", label: t("routing_status_standard") },
+            { value: "reassigned", label: t("routing_status_reassigned") },
+            { value: "rerouted", label: t("routing_status_rerouted") },
+            { value: "original", label: t("routing_status_routed_original") },
           ]);
         }
         return new Map<FacetedValue, number>();
       },
-    [headers, forms, users, eventTypes]
+    [headers, forms, users, eventTypes, t]
   );
 };
