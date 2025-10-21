@@ -28,18 +28,12 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Cache directories
-.cache
-**/.cache
 
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Misc
-*.md
-.editorconfig
 
 # Examples and docs
 docs
