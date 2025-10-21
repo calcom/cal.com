@@ -7,6 +7,7 @@ import prisma from "@calcom/prisma";
 import type { Booking, Credential, EventType, User } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+import { patchHandler } from "../../pages/api/booking-references/[id]/_patch";
 import { handler } from "../../pages/api/booking-references/_get";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -281,6 +282,197 @@ describe("GET /api/booking-references - Soft-delete filtering", () => {
       where: { id: activeRef.id },
     });
     expect(refInDb).toBeDefined();
+    expect(refInDb?.deleted).toBe(true);
+  });
+});
+
+describe("PATCH /api/booking-references/[id] - Soft-delete filtering", () => {
+  let testUser: User;
+  let testCredential: Credential;
+  let testEventType: EventType;
+  let testBooking: Booking;
+  const createdBookingReferenceIds: number[] = [];
+
+  beforeAll(async () => {
+    testUser = await prisma.user.create({
+      data: {
+        email: "api-bookingreference-patch-test@example.com",
+        username: "api-bookingreference-patch-test",
+      },
+    });
+
+    testCredential = await prisma.credential.create({
+      data: {
+        type: "google_calendar",
+        key: {},
+        userId: testUser.id,
+      },
+    });
+
+    testEventType = await prisma.eventType.create({
+      data: {
+        title: "Test Event Type",
+        slug: "api-patch-test-event-type",
+        length: 30,
+        userId: testUser.id,
+      },
+    });
+
+    testBooking = await prisma.booking.create({
+      data: {
+        uid: "api-patch-test-booking-uid",
+        title: "API Patch Test Booking",
+        startTime: new Date(Date.now() + 86400000),
+        endTime: new Date(Date.now() + 90000000),
+        userId: testUser.id,
+        eventTypeId: testEventType.id,
+        status: BookingStatus.ACCEPTED,
+      },
+    });
+  });
+
+  afterAll(async () => {
+    if (createdBookingReferenceIds.length > 0) {
+      await prisma.bookingReference.deleteMany({
+        where: {
+          id: {
+            in: createdBookingReferenceIds,
+          },
+        },
+      });
+    }
+
+    await prisma.booking.delete({
+      where: {
+        id: testBooking.id,
+      },
+    });
+
+    await prisma.eventType.delete({
+      where: {
+        id: testEventType.id,
+      },
+    });
+
+    await prisma.credential.delete({
+      where: {
+        id: testCredential.id,
+      },
+    });
+
+    await prisma.user.delete({
+      where: {
+        id: testUser.id,
+      },
+    });
+  });
+
+  it("should successfully update an active booking reference", async () => {
+    const timestamp = Date.now();
+    const activeRef = await prisma.bookingReference.create({
+      data: {
+        type: "google_calendar",
+        uid: `patch-active-ref-${timestamp}`,
+        meetingId: `patch-active-meeting-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: testBooking.id,
+      },
+    });
+    createdBookingReferenceIds.push(activeRef.id);
+
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "PATCH",
+      query: { id: activeRef.id.toString() },
+      body: {
+        meetingPassword: "new-password-123",
+      },
+    });
+
+    req.userId = testUser.id;
+    req.isSystemWideAdmin = false;
+
+    const responseData = await patchHandler(req);
+
+    expect(responseData.booking_reference).toBeDefined();
+    expect(responseData.booking_reference.id).toBe(activeRef.id);
+    expect(responseData.booking_reference.meetingPassword).toBe("new-password-123");
+
+    const updatedRef = await prisma.bookingReference.findUnique({
+      where: { id: activeRef.id },
+    });
+    expect(updatedRef?.meetingPassword).toBe("new-password-123");
+  });
+
+  it("should fail to update a soft-deleted booking reference", async () => {
+    const timestamp = Date.now();
+    const deletedRef = await prisma.bookingReference.create({
+      data: {
+        type: "google_calendar",
+        uid: `patch-deleted-ref-${timestamp}`,
+        meetingId: `patch-deleted-meeting-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: testBooking.id,
+        deleted: true,
+      },
+    });
+    createdBookingReferenceIds.push(deletedRef.id);
+
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "PATCH",
+      query: { id: deletedRef.id.toString() },
+      body: {
+        meetingPassword: "should-not-update",
+      },
+    });
+
+    req.userId = testUser.id;
+    req.isSystemWideAdmin = false;
+
+    await expect(patchHandler(req)).rejects.toThrow();
+
+    const unchangedRef = await prisma.bookingReference.findUnique({
+      where: { id: deletedRef.id },
+    });
+    expect(unchangedRef?.meetingPassword).not.toBe("should-not-update");
+    expect(unchangedRef?.deleted).toBe(true);
+  });
+
+  it("should verify that only active booking references can be updated", async () => {
+    const timestamp = Date.now();
+    const activeRef = await prisma.bookingReference.create({
+      data: {
+        type: "zoom_video",
+        uid: `patch-verify-active-${timestamp}`,
+        meetingId: `patch-verify-active-meeting-${timestamp}`,
+        credentialId: testCredential.id,
+        bookingId: testBooking.id,
+        meetingPassword: "original-password",
+      },
+    });
+    createdBookingReferenceIds.push(activeRef.id);
+
+    await prisma.bookingReference.update({
+      where: { id: activeRef.id },
+      data: { deleted: true },
+    });
+
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "PATCH",
+      query: { id: activeRef.id.toString() },
+      body: {
+        meetingPassword: "updated-password",
+      },
+    });
+
+    req.userId = testUser.id;
+    req.isSystemWideAdmin = false;
+
+    await expect(patchHandler(req)).rejects.toThrow();
+
+    const refInDb = await prisma.bookingReference.findUnique({
+      where: { id: activeRef.id },
+    });
+    expect(refInDb?.meetingPassword).toBe("original-password");
     expect(refInDb?.deleted).toBe(true);
   });
 });
