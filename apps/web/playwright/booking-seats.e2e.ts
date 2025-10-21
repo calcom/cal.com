@@ -43,6 +43,9 @@ test.describe("Booking with Seats", () => {
         name: true,
         email: true,
       },
+      orderBy: {
+        id: "asc",
+      },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -136,6 +139,9 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: {
+        id: "asc",
+      },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -203,6 +209,9 @@ test.describe("Reschedule for booking with seats", () => {
         id: true,
         name: true,
         email: true,
+      },
+      orderBy: {
+        id: "asc",
       },
     });
 
@@ -282,6 +291,9 @@ test.describe("Reschedule for booking with seats", () => {
         id: true,
         name: true,
         email: true,
+      },
+      orderBy: {
+        id: "asc",
       },
     });
 
@@ -476,6 +488,9 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: {
+        id: "asc",
+      },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -511,7 +526,7 @@ test.describe("Reschedule for booking with seats", () => {
     users,
     bookings,
   }) => {
-    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+    const { user: _user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
@@ -522,6 +537,9 @@ test.describe("Reschedule for booking with seats", () => {
         id: true,
         name: true,
         email: true,
+      },
+      orderBy: {
+        id: "asc",
       },
     });
 
@@ -541,7 +559,7 @@ test.describe("Reschedule for booking with seats", () => {
       data: bookingSeats,
     });
 
-    const secondAttendeeId = bookingAttendees.find((attendee)=> attendee.email === "second+seats@cal.com");
+    const secondAttendeeId = bookingAttendees.find((attendee) => attendee.email === "second+seats@cal.com");
 
     const references = await prisma.bookingSeat.findFirst({
       where: { bookingId: booking.id, attendeeId: secondAttendeeId?.id },
@@ -560,7 +578,7 @@ test.describe("Reschedule for booking with seats", () => {
     const href = await page.locator('[data-testid="reschedule"]').getAttribute("href");
     expect(href).toBeTruthy();
     const url = new URL(href!, page.url());
-    const seatReferenceUid = url.searchParams.get('seatReferenceUid');
+    const seatReferenceUid = url.searchParams.get("seatReferenceUid");
     expect(seatReferenceUid).toBeTruthy();
     expect(seatReferenceUid).toBe(references?.referenceUid);
     await page.locator('[data-testid="reschedule"]').click();
