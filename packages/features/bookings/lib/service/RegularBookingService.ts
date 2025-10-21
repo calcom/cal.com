@@ -41,7 +41,6 @@ import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignment
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -53,10 +52,13 @@ import {
   cancelNoShowTasksForBooking,
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
+import type { BookingRepository } from "../../repositories/BookingRepository";
+
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -67,9 +69,6 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import type { PrismaAttributeRepository as AttributeRepository } from "@calcom/lib/server/repository/PrismaAttributeRepository";
-import type { HostRepository } from "@calcom/lib/server/repository/host";
-import type { PrismaOOORepository as OooRepository } from "@calcom/lib/server/repository/ooo";
 import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -94,38 +93,36 @@ import type {
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import type { BookingRepository } from "../repositories/BookingRepository";
-import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
-import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
-import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
-import getBookingDataSchema from "./getBookingDataSchema";
-import { LuckyUserService } from "./getLuckyUser";
-import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
-import { checkActiveBookingsLimitForBooker } from "./handleNewBooking/checkActiveBookingsLimitForBooker";
-import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
-import type { Booking } from "./handleNewBooking/createBooking";
-import { createBooking } from "./handleNewBooking/createBooking";
-import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
-import { getBookingData } from "./handleNewBooking/getBookingData";
-import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
-import { getEventType } from "./handleNewBooking/getEventType";
-import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
-import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
-import { getSeatedBooking } from "./handleNewBooking/getSeatedBooking";
-import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
-import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
-import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
-import { createLoggerWithEventDetails } from "./handleNewBooking/logger";
-import type { BookingType } from "./handleNewBooking/originalRescheduledBookingUtils";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/originalRescheduledBookingUtils";
-import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "./handleNewBooking/types";
-import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
-import { validateEventLength } from "./handleNewBooking/validateEventLength";
-import handleSeats from "./handleSeats/handleSeats";
-import type { IBookingService } from "./interfaces/IBookingService";
+import { BookingActionMap, BookingEmailSmsHandler } from "../BookingEmailSmsHandler";
+import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
+import getBookingDataSchema from "../getBookingDataSchema";
+import { LuckyUserService } from "../getLuckyUser";
+import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
+import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
+import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
+import { createBooking } from "../handleNewBooking/createBooking";
+import type { Booking } from "../handleNewBooking/createBooking";
+import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
+import { getBookingData } from "../handleNewBooking/getBookingData";
+import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
+import { getEventType } from "../handleNewBooking/getEventType";
+import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
+import { getLocationValuesForDb } from "../handleNewBooking/getLocationValuesForDb";
+import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresConfirmationFlags";
+import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
+import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
+import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
+import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
+import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
+import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
+import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
+import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
+import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
+import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
+import { validateEventLength } from "../handleNewBooking/validateEventLength";
+import handleSeats from "../handleSeats/handleSeats";
+import type { IBookingService } from "../interfaces/IBookingService";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -418,13 +415,8 @@ export interface IBookingServiceDependencies {
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
   prismaClient: PrismaClient;
   bookingRepository: BookingRepository;
-  featuresRepository: FeaturesRepository;
-  checkBookingLimitsService: CheckBookingLimitsService;
   luckyUserService: LuckyUserService;
-  hostRepository: HostRepository;
-  oooRepository: OooRepository;
   userRepository: UserRepository;
-  attributeRepository: AttributeRepository;
 }
 
 /**
@@ -488,6 +480,10 @@ async function handler(
   } = input;
 
   const {
+    /**
+     * TODO: In a followup PR, we aim to remove prisma dependency and instead inject the repositories as dependencies.
+     * This would require moving multiple queries to appropriate repositories.
+     */
     prismaClient: prisma,
     bookingRepository,
     userRepository,
@@ -1259,9 +1255,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-        conferenceCredentialId: undefined,
-      }
+      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+      conferenceCredentialId: undefined,
+    }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   log.info("locationBodyString", locationBodyString);
@@ -1307,8 +1303,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-    ? [organizerUser.destinationCalendar]
-    : null;
+      ? [organizerUser.destinationCalendar]
+      : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1650,8 +1646,7 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
-      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
@@ -1927,14 +1922,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-          evt,
-          originalRescheduledBooking.uid,
-          undefined,
-          changedOrganizer,
-          previousHostDestinationCalendar,
-          isBookingRequestedReschedule,
-          skipDeleteEventsAndMeetings
-        )
+        evt,
+        originalRescheduledBooking.uid,
+        undefined,
+        changedOrganizer,
+        previousHostDestinationCalendar,
+        isBookingRequestedReschedule,
+        skipDeleteEventsAndMeetings
+      )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2232,8 +2227,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-      }
+      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+    }
     : undefined;
 
   const webhookData: EventPayloadType = {
@@ -2295,9 +2290,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-              ...eventType.metadata,
-              apps: eventType.metadata?.apps as Prisma.JsonValue,
-            }
+            ...eventType.metadata,
+            apps: eventType.metadata?.apps as Prisma.JsonValue,
+          }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2611,7 +2606,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) {}
+  constructor(private readonly deps: IBookingServiceDependencies) { }
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);

@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
-import { useBookerTime } from "../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../state/store";
 import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
@@ -23,7 +22,6 @@ export function Calendar(props: CalendarComponentProps) {
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const schedulerGrid = useRef<HTMLOListElement | null>(null);
   const initialState = useCalendarStore((state) => state.initState);
-  const { timezone } = useBookerTime();
 
   const startDate = useCalendarStore((state) => state.startDate);
   const endDate = useCalendarStore((state) => state.endDate);
@@ -32,6 +30,7 @@ export function Calendar(props: CalendarComponentProps) {
   const usersCellsStopsPerHour = useCalendarStore((state) => state.gridCellsPerHour || 4);
   const availableTimeslots = useCalendarStore((state) => state.availableTimeslots);
   const hideHeader = useCalendarStore((state) => state.hideHeader);
+  const timezone = useCalendarStore((state) => state.timezone);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 

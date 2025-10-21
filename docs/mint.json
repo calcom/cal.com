@@ -140,6 +140,7 @@
         "self-hosting/deployments/azure",
         "self-hosting/deployments/elestio",
         "self-hosting/deployments/gcp",
+        "self-hosting/deployments/northflank",
         "self-hosting/deployments/railway",
         "self-hosting/deployments/render",
         "self-hosting/deployments/vercel"

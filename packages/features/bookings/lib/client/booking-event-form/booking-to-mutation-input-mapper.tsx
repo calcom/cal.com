@@ -6,8 +6,8 @@ import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/get
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 
-import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
-import type { Tracking } from "../handleNewBooking/types";
+import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../../types";
+import type { Tracking } from "../../handleNewBooking/types";
 
 export type BookingOptions = {
   values: Record<string, unknown>;
