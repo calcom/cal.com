@@ -7,9 +7,8 @@ import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBo
 import type { SchedulingType } from "@calcom/prisma/enums";
 
 import type { ExtendedBookingCreateBody } from "../bookingCreateBodySchema";
-import type { RegularBookingService } from "../handleNewBooking";
+import type { RegularBookingService } from "../service/RegularBookingService";
 
-export type { BookingCreateBody } from "../bookingCreateBodySchema";
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
 
 export type CreateRegularBookingData = ExtendedBookingCreateBody;
@@ -44,14 +43,14 @@ export type BookingHandlerInput = {
   bookingData: CreateRegularBookingData;
 } & CreateBookingMeta;
 
+// TODO: In a followup PR, we working on defining the type here itself instead of inferring it.
+export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
+
 export type InstantBookingCreateResult = {
-  message: string;
+  message: "Success";
   meetingTokenId: number;
   bookingId: number;
   bookingUid: string;
   expires: Date;
   userId: number | null;
 };
-
-// TODO: In a followup PR, we working on defining the type here itself instead of inferring it.
-export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
