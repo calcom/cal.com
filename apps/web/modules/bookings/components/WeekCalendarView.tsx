@@ -81,8 +81,8 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
     .format("MMM D, YYYY")}`;
 
   return (
-    <div className="flex h-[calc(100vh-280px)] min-h-[600px] flex-col">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="border-subtle flex h-[calc(100vh-280px)] min-h-[600px] flex-col rounded-2xl border">
+      <div className="m-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-emphasis text-lg font-semibold">{weekRange}</h2>
         </div>
@@ -99,7 +99,7 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
         </div>
       </div>
 
-      <div className="border-subtle flex-1 overflow-y-auto overflow-x-hidden rounded-2xl border">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden rounded-2xl">
         <Calendar
           timezone={timezone}
           sortEvents
