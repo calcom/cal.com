@@ -42,9 +42,6 @@ Thumbs.db
 !README.md
 LICENSE
 .editorconfig
-.prettierrc*
-.eslintrc*
 
 # Examples and docs
-example-apps
 docs
