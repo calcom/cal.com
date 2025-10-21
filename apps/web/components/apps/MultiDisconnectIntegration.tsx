@@ -20,7 +20,7 @@ type Credentials = {
   teamId: number | null;
   team?: {
     name: string;
-  };
+  } | null;
   user: { email: string } | { name: string | null } | null;
 }[];
 interface Props {
