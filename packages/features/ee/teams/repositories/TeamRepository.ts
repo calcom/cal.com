@@ -462,6 +462,7 @@ export class TeamRepository {
         isOrganization: true,
         members: {
           where: {
+            accepted: true,
             role: {
               in: [MembershipRole.ADMIN, MembershipRole.OWNER],
             },
