@@ -28,17 +28,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Environment files (will be passed via ENV)
-.env
-.env.*
-.env.local
-.env.*.local
-
 # Cache directories
 .cache
 **/.cache
-.yarn/cache
-.yarn/install-state.gz
 
 
 # OS
