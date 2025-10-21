@@ -178,6 +178,20 @@ Run `npx playwright install` to download test browsers and resolve the error bel
 Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1048/chrome-mac/Chromium.app/Contents/MacOS/Chromium
 ```
 
+If `npx playwright install` fails on your Linux distribution (e.g., Arch Linux, NixOS), use [Docker setup](https://playwright.dev/docs/docker) instead:
+
+1. Start the Playwright container:
+
+   ```sh
+   yarn workspace @calcom/web e2e:docker-setup
+   ```
+
+2. Set Playwright to headless mode in your `.env` file:
+
+```sh
+PLAYWRIGHT_HEADLESS=1
+```
+
 ## Linting
 
 To check the formatting of your code:
