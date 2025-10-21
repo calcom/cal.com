@@ -2,6 +2,7 @@ import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsController } from "@/ee/calendars/controllers/calendars.controller";
+import { CossCalendarController } from "@/ee/calendars/controllers/coss-calendar.controller";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
@@ -33,7 +34,7 @@ import { Module } from "@nestjs/common";
     BookingsRepository_2024_08_13,
     BookingReferencesRepository_2024_08_13,
   ],
-  controllers: [CalendarsController],
+  controllers: [CalendarsController, CossCalendarController],
   exports: [CalendarsService, GoogleCalendarService],
 })
 export class CalendarsModule {}

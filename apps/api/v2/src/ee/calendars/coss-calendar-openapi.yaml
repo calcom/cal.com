@@ -1,0 +1,362 @@
+openapi: 3.0.3
+info:
+  title: COSS Calendar API
+  version: 1.0.0
+  description: REST API for COSS Calendar service
+servers:
+  - url: https://api.coss.com/v1
+    description: Production
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+paths:
+  /calendar/calendars:
+    get:
+      summary: Get all calendars
+      operationId: getCossCalendars
+      tags: [Calendars]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarsResponse'
+
+  /calendar/events:
+    get:
+      summary: List events
+      operationId: getCossEvents
+      tags: [Events]
+      parameters:
+        - name: calendarId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: startTime
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+    post:
+      summary: Create event
+      operationId: createCossEvent
+      tags: [Events]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+
+  /calendar/events/{eventId}:
+    get:
+      summary: Get event
+      operationId: getCossEvent
+      tags: [Events]
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+    patch:
+      summary: Update event
+      operationId: updateCossEvent
+      tags: [Events]
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventRequest'
+      responses:
+        '200':
+          description: Success
+    delete:
+      summary: Delete event
+      operationId: deleteCossEvent
+      tags: [Events]
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+
+  /calendar/availability:
+    get:
+      summary: Check availability
+      operationId: getCossAvailability
+      tags: [Availability]
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: startTime
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: endTime
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: timeZone
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityResponse'
+
+  /calendar/busy-times:
+    get:
+      summary: Get busy times
+      operationId: getCossBusyTimes
+      tags: [Availability]
+      parameters:
+        - name: loggedInUsersTz
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: dateTo
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusyTimesResponse'
+
+  /calendar/conflicts:
+    post:
+      summary: Detect conflicts
+      operationId: checkCossConflicts
+      tags: [Conflicts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConflictCheckRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConflictResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+    BearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    CalendarsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: array
+          items:
+            type: object
+
+    EventsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: array
+          items:
+            type: object
+
+    EventResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: object
+
+    CreateEventRequest:
+      type: object
+      required:
+        - calendarId
+        - title
+        - startTime
+        - endTime
+      properties:
+        calendarId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+
+    UpdateEventRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+
+    AvailabilityResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              start:
+                type: string
+                format: date-time
+              end:
+                type: string
+                format: date-time
+
+    BusyTimesResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              start:
+                type: string
+                format: date-time
+              end:
+                type: string
+                format: date-time
+              source:
+                type: string
+
+    ConflictCheckRequest:
+      type: object
+      required:
+        - userId
+        - startTime
+        - endTime
+      properties:
+        userId:
+          type: integer
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        calendarIds:
+          type: array
+          items:
+            type: integer
+
+    ConflictResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+        data:
+          type: object
+          properties:
+            hasConflict:
+              type: boolean
+            conflicts:
+              type: array
+              items:
+                type: object
