@@ -17,7 +17,7 @@ export const seededForm = {
   name: "Seeded Form - Pro",
 };
 
-async function seedAppData() {
+export async function seedAppData() {
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: seededForm.id,
@@ -410,12 +410,13 @@ export default async function main() {
       app.isTemplate
     );
   }
-
-  await seedAppData();
 }
 
 if (require.main === module) {
-  main()
+  (async () => {
+    await main();
+    await seedAppData();
+  })()
     .catch((e) => {
       console.error(e);
       process.exit(1);

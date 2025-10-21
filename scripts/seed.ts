@@ -15,7 +15,7 @@ import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@ca
 import type { Ensure } from "@calcom/types/utils";
 
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
-import mainAppStore from "./seed-app-store";
+import mainAppStore, { seedAppData } from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
 
@@ -1370,6 +1370,8 @@ async function main() {
       },
     ],
   });
+
+  await seedAppData();
 }
 
 async function runSeed() {
