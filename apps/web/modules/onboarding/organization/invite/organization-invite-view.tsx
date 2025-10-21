@@ -49,7 +49,6 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   });
 
   const form = useForm<FormValues>({
-    // @ts-expect-error ts seems to struggle with the type comparision here
     resolver: zodResolver(formSchema),
     defaultValues: {
       invites: storedInvites.length > 0 ? storedInvites : [{ email: "", team: "", role: inviteRole }],

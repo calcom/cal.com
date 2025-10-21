@@ -1,10 +1,10 @@
 "use client";
 
-import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 
 import { useOnboardingStore } from "../store/onboarding-store";
 
@@ -39,7 +39,7 @@ export const OnboardingContinuationPrompt = () => {
         <button
           onClick={() => setIsVisible(false)}
           className="text-muted hover:text-emphasis absolute right-2 top-2 rounded-md p-1 transition-colors">
-          <X className="h-4 w-4" />
+          <Icon name="x" className="h-4 w-4" />
         </button>
 
         <div className="mb-3 pr-6">
