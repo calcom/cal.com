@@ -452,7 +452,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                       name={t("profile")}
                       href={`/settings/teams/${team.id}/profile`}
                       textClassNames="px-3 text-emphasis font-medium text-sm"
-                      className="me-5 h-7 w-auto !px-2"
+                      className="me-5 h-7 w-auto px-2!"
                       disableChevron
                     />
                   )}
@@ -460,7 +460,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
-                    className="me-5 h-7 w-auto !px-2"
+                    className="me-5 h-7 w-auto px-2!"
                     disableChevron
                   />
                   {/* Show roles only for sub-teams with PBAC-enabled parent */}
@@ -481,7 +481,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("appearance")}
                         href={`/settings/teams/${team.id}/appearance`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
+                        className="me-5 h-7 w-auto px-2!"
                         disableChevron
                       />
                       {/* Hide if there is a parent ID */}
@@ -491,7 +491,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                             name={t("billing")}
                             href={`/settings/teams/${team.id}/billing`}
                             textClassNames="px-3 text-emphasis font-medium text-sm"
-                            className="me-5 h-7 w-auto !px-2"
+                            className="me-5 h-7 w-auto px-2!"
                             disableChevron
                           />
                         </>
@@ -500,7 +500,7 @@ const TeamListCollapsible = ({ teamFeatures }: { teamFeatures?: Record<number, T
                         name={t("settings")}
                         href={`/settings/teams/${team.id}/settings`}
                         textClassNames="px-3 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
+                        className="me-5 h-7 w-auto px-2!"
                         disableChevron
                       />
                     </>
@@ -592,7 +592,7 @@ const SettingsSidebarContainer = ({
             <React.Fragment key={tab.href}>
               {!["teams", "other_teams"].includes(tab.name) && (
                 <React.Fragment key={tab.href}>
-                  <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
+                  <div className={`${!tab.children?.length ? "mb-3!" : ""}`}>
                     <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
                       {tab && tab.icon && (
                         <Icon
@@ -624,8 +624,8 @@ const SettingsSidebarContainer = ({
                           isExternalLink={child.isExternalLink}
                           href={child.href || "/"}
                           textClassNames="text-emphasis font-medium text-sm"
-                          className={`h-7 w-fit !px-2 ${
-                            tab.children && index === tab.children?.length - 1 && "!mb-3"
+                          className={`h-7 w-fit px-2! ${
+                            tab.children && index === tab.children?.length - 1 && "mb-3!"
                           }`}
                           disableChevron
                         />
@@ -666,7 +666,7 @@ const SettingsSidebarContainer = ({
                         name={t("add_a_team")}
                         href={`${WEBAPP_URL}/settings/teams/new`}
                         textClassNames="px-3 items-center mt-2 text-emphasis font-medium text-sm"
-                        className="me-5 h-7 w-auto !px-2"
+                        className="me-5 h-7 w-auto px-2!"
                         icon="plus"
                         disableChevron
                       />
@@ -768,14 +768,14 @@ const SettingsSidebarContainer = ({
                                   name={t("profile")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/profile`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 h-7 w-auto !px-2"
+                                  className="me-5 h-7 w-auto px-2!"
                                   disableChevron
                                 />
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/organizations/teams/other/${otherTeam.id}/members`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  className="me-5 h-7 w-auto !px-2"
+                                  className="me-5 h-7 w-auto px-2!"
                                   disableChevron
                                 />
                                 <>
@@ -879,7 +879,7 @@ export default function SettingsLayoutAppDirClient({
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
-      <div className="flex flex-1 [&>*]:flex-1">
+      <div className="flex flex-1 *:flex-1">
         <div
           className={classNames("mx-auto max-w-full justify-center lg:max-w-3xl", rest.containerClassName)}>
           <ErrorBoundary>{children}</ErrorBoundary>

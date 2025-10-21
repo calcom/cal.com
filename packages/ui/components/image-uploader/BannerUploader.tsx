@@ -43,7 +43,7 @@ function CropContainer({
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="relative h-52 w-[40rem]">
+      <div className="relative h-52 w-160">
         <Cropper
           image={imageSrc}
           crop={crop}
@@ -150,7 +150,7 @@ export default function BannerUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:w-[45rem] sm:max-w-[45rem]" title={t("upload_target", { target })}>
+      <DialogContent className="sm:w-180 sm:max-w-180" title={t("upload_target", { target })}>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (

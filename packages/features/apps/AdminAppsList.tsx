@@ -348,7 +348,7 @@ export default AdminAppsList;
 
 const SkeletonLoader = () => {
   return (
-    <SkeletonContainer className="w-[30rem] pr-10">
+    <SkeletonContainer className="w-120 pr-10">
       <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />

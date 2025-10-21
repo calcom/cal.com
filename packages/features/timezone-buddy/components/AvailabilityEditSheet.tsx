@@ -213,7 +213,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             <div className="mt-4">
               <Label className="text-emphasis">{t("members_default_schedule")}</Label>
               {/* Remove padding from schedule without touching the component */}
-              <div className="[&>*:first-child]:!p-0">
+              <div className="[&>*:first-child]:p-0!">
                 <Schedule
                   control={form.control}
                   name="schedule"

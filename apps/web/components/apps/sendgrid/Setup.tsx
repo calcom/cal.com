@@ -108,8 +108,8 @@ export default function SendgridSetup() {
                     className={
                       testPassed !== undefined
                         ? testPassed
-                          ? " !bg-success hover:bg-success !text-green-700"
-                          : "bg-error hover:bg-error !border-red-700 !text-red-700"
+                          ? " !bg-success hover:bg-success text-green-700!"
+                          : "bg-error hover:bg-error border-red-700! text-red-700!"
                         : "secondary"
                     }
                     color={testPassed === true ? "minimal" : "secondary"}

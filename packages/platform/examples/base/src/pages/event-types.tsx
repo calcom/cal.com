@@ -122,7 +122,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
           <div data-testid="event-type-settings-atom">
             <EventTypeSettings
               customClassNames={{
-                atomsWrapper: "!w-[50vw] !m-auto",
+                atomsWrapper: "w-[50vw]! m-auto!",
 
                 eventAdvancedTab: {
                   destinationCalendar: {

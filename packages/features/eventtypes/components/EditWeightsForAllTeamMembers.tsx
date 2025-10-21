@@ -48,7 +48,7 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
   return (
     <div className="border-subtle flex h-12 items-center border-b px-3 py-1 last:border-b-0">
       <Avatar size="sm" imageSrc={member.avatar} alt={member.label} className="min-w-10" />
-      <span className="text-emphasis ml-3 flex-grow text-sm">{member.label}</span>
+      <span className="text-emphasis ml-3 grow text-sm">{member.label}</span>
       <div className="ml-auto flex h-full items-center">
         {isEditing ? (
           <div className="flex h-full items-center">

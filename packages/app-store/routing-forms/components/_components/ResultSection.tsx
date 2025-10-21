@@ -211,7 +211,7 @@ export const ResultsView = ({
             <ResultsSection title="Matching" icon="atom">
               <div className="relative flex flex-col gap-3">
                 {/* Seperator */}
-                <div className="absolute bottom-3 left-[0.75rem] top-3 w-[1px] bg-gray-200" />
+                <div className="absolute bottom-3 left-3 top-3 w-px bg-gray-200" />
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">

@@ -258,7 +258,7 @@ export const KBarContent = () => {
   return (
     <KBarPortal>
       <KBarPositioner className="overflow-scroll">
-        <KBarAnimator className="bg-default z-10 w-full max-w-screen-sm overflow-hidden rounded-md shadow-lg">
+        <KBarAnimator className="bg-default z-10 w-full max-w-(--breakpoint-sm) overflow-hidden rounded-md shadow-lg">
           <div className="border-subtle flex items-center justify-center border-b">
             <Icon name="search" className="text-default mx-3 h-4 w-4" />
             <KBarSearch
@@ -300,7 +300,7 @@ export const KBarTrigger = () => {
           color="minimal"
           onClick={query.toggle}
           className="text-default hover:bg-subtle todesktop:hover:!bg-transparent lg:hover:bg-emphasis lg:hover:text-emphasis group flex rounded-md px-3 py-2 text-sm font-medium transition lg:px-2">
-          <Icon name="search" className="h-4 w-4 flex-shrink-0 text-inherit" />
+          <Icon name="search" className="h-4 w-4 shrink-0 text-inherit" />
         </button>
       </Tooltip>
     </>

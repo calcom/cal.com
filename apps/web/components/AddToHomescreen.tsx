@@ -34,7 +34,7 @@ export default function AddToHomescreen() {
               </p>
             </div>
 
-            <div className="order-2 flex-shrink-0 sm:order-3">
+            <div className="order-2 shrink-0 sm:order-3">
               <button
                 onClick={() => setCloseBanner(true)}
                 type="button"

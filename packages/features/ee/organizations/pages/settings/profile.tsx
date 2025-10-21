@@ -140,7 +140,7 @@ const OrgProfileView = ({
           </>
         ) : (
           <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
-            <div className="flex-grow">
+            <div className="grow">
               <div>
                 <Label className="text-emphasis">{t("organization_name")}</Label>
                 <p className="text-default text-sm">{currentOrganisation?.name}</p>
@@ -149,7 +149,7 @@ const OrgProfileView = ({
                 <>
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
                   <div
-                    className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                    className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                     // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
                       __html: markdownToSafeHTML(currentOrganisation.bio || ""),

@@ -98,7 +98,7 @@ export function UserPage(props: PageProps) {
             {!isBioEmpty && (
               <>
                 <div
-                  className="text-default break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />

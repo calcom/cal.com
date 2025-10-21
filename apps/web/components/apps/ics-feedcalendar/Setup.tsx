@@ -104,7 +104,7 @@ export default function ICSFeedSetup() {
                           href={errorActionUrl}
                           color="secondary"
                           target="_blank"
-                          className="ml-5 w-32 !p-5">
+                          className="ml-5 w-32 p-5!">
                           Go to Admin
                         </Button>
                       ) : undefined

@@ -30,7 +30,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
           onClick={() => setIsExpanded(!isExpanded)}
           className={classNames(
             "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-            "[&[aria-current='page']]:!bg-transparent",
+            "aria-[aria-current='page']:bg-transparent!",
             "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
           )}>
           <span className="hidden w-full justify-between truncate text-ellipsis lg:flex">
@@ -49,7 +49,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                 return (
                   <SettingsToggle
                     title={t("disable_recording_for_guests")}
-                    labelClassName="text-sm leading-6 whitespace-normal break-words"
+                    labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                     checked={value}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
@@ -65,7 +65,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                 return (
                   <SettingsToggle
                     title={t("disable_recording_for_organizer")}
-                    labelClassName="text-sm leading-6 whitespace-normal break-words"
+                    labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                     checked={value}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
@@ -99,7 +99,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                 return (
                   <SettingsToggle
                     title={t("enable_automatic_transcription")}
-                    labelClassName="text-sm leading-6 whitespace-normal break-words"
+                    labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                     checked={value}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
@@ -116,7 +116,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                   return (
                     <SettingsToggle
                       title={t("disable_transcription_for_guests")}
-                      labelClassName="text-sm leading-6 whitespace-normal break-words"
+                      labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                       checked={value}
                       onCheckedChange={onChange}
                       Badge={<UpgradeTeamsBadge checkForActiveStatus />}
@@ -133,7 +133,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                   return (
                     <SettingsToggle
                       title={t("disable_transcription_for_organizer")}
-                      labelClassName="text-sm leading-6 whitespace-normal break-words"
+                      labelClassName="text-sm leading-6 whitespace-normal wrap-break-word"
                       checked={value}
                       onCheckedChange={onChange}
                       Badge={<UpgradeTeamsBadge checkForActiveStatus />}

@@ -557,7 +557,7 @@ export default function Success(props: PageProps) {
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{cancellationReason}</p>
+                              <p className="wrap-break-word">{cancellationReason}</p>
                             </div>
                           </>
                         )}
@@ -565,7 +565,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("cancelled_by")}</div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                              <p className="wrap-break-word">{bookingInfo?.cancelledBy}</p>
                             </div>
                           </>
                         )}
@@ -573,7 +573,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{previousBooking?.rescheduledBy}</p>
+                              <p className="wrap-break-word">{previousBooking?.rescheduledBy}</p>
                               <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
                                 {t("original_booking")}
                               </Link>
@@ -698,7 +698,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="whitespace-pre-line break-words">{bookingInfo.description}</p>
+                              <p className="whitespace-pre-line wrap-break-word">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -777,7 +777,7 @@ export default function Success(props: PageProps) {
                                 }}
                               />
                               <p
-                                className="text-default break-words"
+                                className="text-default wrap-break-word"
                                 data-testid="field-response"
                                 data-fob-field={field.name}>
                                 {field.type === "boolean"

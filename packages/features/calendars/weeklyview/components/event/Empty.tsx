@@ -179,7 +179,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
             // multiple events are stacked next to each other. We might need to add this back later.
             width: "calc(100% - 2px)",
           }}>
-          <div className="overflow-ellipsis leading-[0]">{timeSlot.format(timeFormat)}</div>
+          <div className="text-ellipsis leading-0">{timeSlot.format(timeFormat)}</div>
         </div>
       )}
     </div>
@@ -195,7 +195,7 @@ function CustomCell({
   return (
     <div
       className={classNames(
-        "bg-default dark:bg-muted group absolute z-[65] flex w-[calc(100%-1px)] items-center justify-center"
+        "bg-default dark:bg-muted group absolute z-65 flex w-[calc(100%-1px)] items-center justify-center"
       )}
       data-slot={timeSlot.toISOString()}
       style={{

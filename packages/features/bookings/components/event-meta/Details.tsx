@@ -96,20 +96,20 @@ export const EventMetaBlock = ({
           alt=""
           // @TODO: Use SVG's instead of images, so we can get rid of the filter.
           className={classNames(
-            "mr-2 mt-[2px] h-4 w-4 flex-shrink-0",
-            isDark === undefined && "[filter:invert(0.5)_brightness(0.5)]",
-            (isDark === undefined || isDark) && "dark:[filter:invert(0.65)_brightness(0.9)]"
+            "mr-2 mt-[2px] h-4 w-4 shrink-0",
+            isDark === undefined && "filter-[invert(0.5)_brightness(0.5)]",
+            (isDark === undefined || isDark) && "dark:filter-[invert(0.65)_brightness(0.9)]"
           )}
         />
       ) : (
         <>
           {customIcon ||
             (!!icon && (
-              <Icon name={icon} className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0 rtl:ml-2" />
+              <Icon name={icon} className="relative z-20 mr-2 mt-[2px] h-4 w-4 shrink-0 rtl:ml-2" />
             ))}
         </>
       )}
-      <div className={classNames("relative z-10 max-w-full break-words", contentClassName)}>{children}</div>
+      <div className={classNames("relative z-10 max-w-full wrap-break-word", contentClassName)}>{children}</div>
     </div>
   );
 };
@@ -183,7 +183,7 @@ export const EventDetails = ({ event, blocks = defaultEventDetailsBlocks }: Even
                 key={block}
                 customIcon={
                   <PriceIcon
-                    className="relative z-20 mr-2 mt-[2px] h-4 w-4 flex-shrink-0 rtl:ml-2"
+                    className="relative z-20 mr-2 mt-[2px] h-4 w-4 shrink-0 rtl:ml-2"
                     currency={event.currency}
                   />
                 }>

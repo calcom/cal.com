@@ -37,7 +37,7 @@ export default function OIDCConnection({
           </p>
         </div>
         {!connection && (
-          <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
+          <div className="shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
             <Button data-testid="sso-oidc-configure" color="secondary" onClick={() => setOpenModal(true)}>
               {t("configure")}
             </Button>

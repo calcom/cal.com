@@ -3,7 +3,7 @@ import classNames from "@calcom/ui/classNames";
 export const Spinner = ({ className }: { className?: string }) => (
   <div
     className={classNames(
-      "fixed left-[calc(50%+calc(var(--booker-meta-width,0px)/2))] top-1/2 z-[80] h-10 w-10 -translate-x-1/2 -translate-y-1/2",
+      "fixed left-[calc(50%+calc(var(--booker-meta-width,0px)/2))] top-1/2 z-80 h-10 w-10 -translate-x-1/2 -translate-y-1/2",
       className
     )}>
     <svg className="h-10 w-10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

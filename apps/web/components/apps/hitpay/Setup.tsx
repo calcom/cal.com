@@ -211,7 +211,7 @@ function HitPaySetupPage(props: IHitPaySetupProps) {
 
             <form className="w-full space-y-4" onSubmit={onSubmit}>
               <div className="bg-default border-subtle overflow-auto rounded border">
-                <div className="border-subtle flex items-center justify-between border-b-[1px] p-4 md:p-5">
+                <div className="border-subtle flex items-center justify-between border-b p-4 md:p-5">
                   <h2 className="text-2xl font-semibold">Account Information</h2>
                   <div className="ml-auto flex items-center">
                     <Switch

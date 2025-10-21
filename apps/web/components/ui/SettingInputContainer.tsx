@@ -18,7 +18,7 @@ export default function SettingInputContainer({
             {label}
           </label>
         </div>
-        <div className="w-full flex-grow">{Input}</div>
+        <div className="w-full grow">{Input}</div>
       </div>
     </div>
   );

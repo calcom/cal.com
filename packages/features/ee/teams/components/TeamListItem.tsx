@@ -140,7 +140,7 @@ export default function TeamListItem(props: Props) {
             <Link
               data-testid="team-list-item-link"
               href={`/settings/teams/${team.id}/profile`}
-              className="flex-grow cursor-pointer truncate text-sm"
+              className="grow cursor-pointer truncate text-sm"
               title={`${team.name}`}>
               {teamInfo}
             </Link>
@@ -367,7 +367,7 @@ const TeamPublishSection = ({ children, teamId }: { children: React.ReactNode; t
 
   return (
     <button
-      className="block flex-grow cursor-pointer truncate text-left text-sm"
+      className="block grow cursor-pointer truncate text-left text-sm"
       type="button"
       onClick={() => {
         publishTeamMutation.mutate({ teamId });

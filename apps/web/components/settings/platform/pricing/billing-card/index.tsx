@@ -24,7 +24,7 @@ export const PlatformBillingCard = ({
   return (
     <div className="border-subtle max-w-[450px] rounded-2xl border p-5 md:mx-4">
       <div className="pb-5">
-        <h1 className="border-b-[1px] pb-2 pt-1 text-center text-2xl font-bold">
+        <h1 className="border-b pb-2 pt-1 text-center text-2xl font-bold">
           {plan}
           {currentPlan && (
             <>
@@ -51,7 +51,7 @@ export const PlatformBillingCard = ({
           <Button
             loading={isLoading}
             onClick={handleSubscribe}
-            className="flex w-[100%] items-center justify-center">
+            className="flex w-full items-center justify-center">
             {pricing !== undefined ? t("subscribe") : t("schedule_a_time")}
           </Button>
         </div>

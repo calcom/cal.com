@@ -34,11 +34,11 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
         <UserAvatar noOrganizationIndicator size="md" user={member} />
         <section className="mt-2 line-clamp-4 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>
-          <div className="text-subtle line-clamp-3 overflow-ellipsis text-sm font-normal">
+          <div className="text-subtle line-clamp-3 text-ellipsis text-sm font-normal">
             {!isBioEmpty ? (
               <>
                 <div
-                  className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                   // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(member.bio) }}
                 />

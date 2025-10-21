@@ -99,7 +99,7 @@ export function OverlayCalendarSettingsModal({
                                   />
                                 )
                               }
-                              <div className="flex-grow truncate pl-2">
+                              <div className="grow truncate pl-2">
                                 <ListItemTitle component="h3" className="space-x-2 rtl:space-x-reverse">
                                   <Link href={`/apps/${item.integration.slug}`}>
                                     {item.integration.name || item.integration.title}

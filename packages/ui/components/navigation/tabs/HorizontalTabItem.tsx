@@ -52,7 +52,7 @@ const HorizontalTabItem = function ({
       className={classNames(
         isCurrent ? "bg-subtle text-emphasis" : "hover:bg-muted hover:text-default text-subtle",
         "inline-flex h-fit items-center justify-center whitespace-nowrap rounded-md p-2 text-sm font-medium leading-none transition md:mb-0",
-        props.disabled && "pointer-events-none !opacity-30",
+        props.disabled && "pointer-events-none opacity-30!",
         props.className
       )}
       target={props.target ? props.target : undefined}

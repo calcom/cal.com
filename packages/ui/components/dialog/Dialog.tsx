@@ -18,10 +18,10 @@ const dialogClasses = cva(
   {
     variants: {
       size: {
-        xl: "px-8 pt-8 sm:max-w-[90rem]",
-        lg: "px-8 pt-8 sm:max-w-[70rem]",
-        md: "px-8 pt-8 sm:max-w-[48rem]",
-        default: "px-8 pt-8 sm:max-w-[35rem]",
+        xl: "px-8 pt-8 sm:max-w-360",
+        lg: "px-8 pt-8 sm:max-w-280",
+        md: "px-8 pt-8 sm:max-w-3xl",
+        default: "px-8 pt-8 sm:max-w-140",
       },
     },
     defaultVariants: {
@@ -99,11 +99,11 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           {type === "confirmation" && (
             <div className="flex">
               {icon && (
-                <div className="bg-emphasis flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                <div className="bg-emphasis flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
                   <Icon name={icon} className="text-emphasis h-4 w-4" />
                 </div>
               )}
-              <div className="ml-4 flex-grow">
+              <div className="ml-4 grow">
                 <DialogHeader title={title} subtitle={props.description} />
                 <div data-testid="dialog-confirmation">{children}</div>
               </div>

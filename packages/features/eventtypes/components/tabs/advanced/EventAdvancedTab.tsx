@@ -221,7 +221,7 @@ const destinationCalendarComponents = {
                   color="minimal"
                   size="sm"
                   aria-label="edit custom name"
-                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                  className="hover:stroke-3 hover:text-emphasis min-w-fit py-0! px-0 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
                   <Icon name="pencil" className="h-4 w-4" />
                 </Button>
@@ -637,7 +637,7 @@ export const EventAdvancedTab = ({
           <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
             {t("booking_questions_title")}
           </div>
-          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
             {t("booking_questions_description")}
           </p>
         </div>

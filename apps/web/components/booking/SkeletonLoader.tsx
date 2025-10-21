@@ -17,7 +17,7 @@ export default SkeletonLoader;
 function SkeletonItem() {
   return (
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
-      <div className="flex-grow truncate text-sm">
+      <div className="grow truncate text-sm">
         <div className="flex">
           <div className="flex flex-col space-y-2">
             <SkeletonText className="h-5 w-16" />
@@ -25,7 +25,7 @@ function SkeletonItem() {
           </div>
         </div>
       </div>
-      <div className="mt-4 hidden flex-shrink-0 sm:ml-5 sm:mt-0 lg:flex">
+      <div className="mt-4 hidden shrink-0 sm:ml-5 sm:mt-0 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-6 w-16" />
           <SkeletonText className="h-6 w-32" />

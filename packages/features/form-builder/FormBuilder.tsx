@@ -151,7 +151,7 @@ export const FormBuilder = function FormBuilder({
           {LockedIcon}
         </div>
         <div className="flex items-start justify-between">
-          <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">{description}</p>
+          <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">{description}</p>
           {showPhoneAndEmailToggle && (
             <ToggleGroup
               value={(() => {
@@ -209,7 +209,7 @@ export const FormBuilder = function FormBuilder({
         <p className="text-default mt-5 text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
           {t("questions")}
         </p>
-        <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
+        <p className="text-subtle mt-1 max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
           {t("all_info_your_booker_provide")}
         </p>
         <ul ref={parent} className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
@@ -312,7 +312,7 @@ export const FormBuilder = function FormBuilder({
                       ))}
                     </div>
                   </div>
-                  <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
+                  <p className="text-subtle max-w-[280px] wrap-break-word pt-1 text-sm sm:max-w-[500px]">
                     {fieldType.label}
                   </p>
                 </div>
@@ -464,7 +464,7 @@ function Options({
           {value?.map((option, index) => (
             <li key={index}>
               <div className="flex items-center gap-2">
-                <div className="relative flex-grow">
+                <div className="relative grow">
                   <Input
                     required
                     value={option.label}
@@ -485,7 +485,7 @@ function Options({
                   {value.length > 2 && !readOnly && (
                     <Button
                       type="button"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-transparent! focus:bg-transparent! focus:outline-none! focus:ring-0!"
                       size="sm"
                       color="minimal"
                       StartIcon="x"

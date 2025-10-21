@@ -121,7 +121,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  "text-subtle ml-1 mr-5 w-40 shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Event type title}`}
@@ -141,7 +141,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  "text-subtle ml-1 mr-5 w-40 shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Event duration}`}
@@ -161,7 +161,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  "text-subtle ml-1 mr-5 w-40 shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Organiser}`}
@@ -181,7 +181,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  "text-subtle ml-1 mr-5 w-40 shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Organiser first name}`}
@@ -201,7 +201,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  "text-subtle ml-1 mr-5 w-40 shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Scheduler}`}
@@ -221,7 +221,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  "text-subtle ml-1 mr-5 w-40 shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Scheduler first name}`}
@@ -242,7 +242,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
                 )}>
                 <p
                   className={classNames(
-                    "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                    "text-subtle ml-1 mr-5 w-40 shrink-0",
                     customClassNames?.availableVariables?.variableItem?.variableName
                   )}>
                   {`{Scheduler last name}`}
@@ -263,7 +263,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               )}>
               <p
                 className={classNames(
-                  "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                  "text-subtle ml-1 mr-5 w-40 shrink-0",
                   customClassNames?.availableVariables?.variableItem?.variableName
                 )}>
                 {`{Location}`}
@@ -296,7 +296,7 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
                   )}>
                   <p
                     className={classNames(
-                      "text-subtle ml-1 mr-5 w-40 flex-shrink-0",
+                      "text-subtle ml-1 mr-5 w-40 shrink-0",
                       customClassNames?.availableVariables?.bookingFieldItem?.fieldName
                     )}>
                     {`{${bookingfield}}`}

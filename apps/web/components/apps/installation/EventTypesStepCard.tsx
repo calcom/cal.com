@@ -63,7 +63,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
           </div>
           {Boolean(description) && (
             <div
-              className="text-subtle line-clamp-4 break-words text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+              className="text-subtle line-clamp-4 wrap-break-word text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
               // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{
                 __html: markdownToSafeHTML(description),
@@ -105,7 +105,7 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
 
       <div className="sm:border-subtle bg-default  border dark:bg-black sm:rounded-md">
         <ScrollableArea className="rounded-md">
-          <ul className="border-subtle max-h-97 !static w-full divide-y">
+          <ul className="border-subtle max-h-97 static! w-full divide-y">
             {fields.length > 0 ? (
               fields.map((field, index) => (
                 <EventTypeCard

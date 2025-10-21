@@ -220,7 +220,7 @@ const ChooseEmbedTypesDialogContent = ({
                 });
               }
             }}>
-            <div className="bg-default order-none box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
+            <div className="bg-default order-0 box-border flex-none rounded-md border border-solid transition dark:bg-transparent dark:invert">
               {embed.illustration}
             </div>
             <div className="text-emphasis mt-4 font-semibold">{embed.title}</div>
@@ -921,7 +921,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     <DialogContent
       enableOverflow
       ref={dialogContentRef}
-      className="rounded-lg p-0.5 sm:max-w-[80rem]"
+      className="rounded-lg p-0.5 sm:max-w-7xl"
       type="creation">
       <div className="flex">
         <div className="bg-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
@@ -956,7 +956,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       <div>
                         {/*TODO: Add Auto/Fixed toggle from Figma */}
                         <div className="text-default mb-[9px] text-sm">Window sizing</div>
-                        <div className="justify-left mb-6 flex items-center !font-normal ">
+                        <div className="justify-left mb-6 flex items-center font-normal! ">
                           <div className="mr-[9px]">
                             <TextField
                               labelProps={{ className: "hidden" }}
@@ -1300,8 +1300,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
 
                 return (
-                  <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
-                    <div className="flex h-[55vh] flex-grow flex-col">
+                  <div key={tab.href} className={classNames("flex grow flex-col")}>
+                    <div className="flex h-[55vh] grow flex-col">
                       <EmailEmbedPreview
                         selectedDuration={selectedDuration}
                         calLink={calLink}

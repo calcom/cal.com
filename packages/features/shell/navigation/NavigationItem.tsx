@@ -144,7 +144,7 @@ export const NavigationItem: React.FC<{
             }}
             className={classNames(
               "todesktop:py-[7px] text-default group flex w-full items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
-              "[&[aria-current='page']]:!bg-transparent",
+              "aria-[aria-current='page']:bg-transparent!",
               "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
               isLocaleReady
                 ? "hover:bg-subtle todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
@@ -154,7 +154,7 @@ export const NavigationItem: React.FC<{
               <Icon
                 name={item.isLoading ? "rotate-cw" : item.icon}
                 className={classNames(
-                  "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+                  "todesktop:!text-blue-500 mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
                   item.isLoading && "animate-spin"
                 )}
                 aria-hidden="true"
@@ -183,7 +183,7 @@ export const NavigationItem: React.FC<{
             className={classNames(
               "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
               item.child
-                ? `[&[aria-current='page']]:!bg-transparent`
+                ? `aria-[aria-current='page']:bg-transparent!`
                 : `[&[aria-current='page']]:bg-emphasis`,
               isChild
                 ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
@@ -199,7 +199,7 @@ export const NavigationItem: React.FC<{
               <Icon
                 name={item.isLoading ? "rotate-cw" : item.icon}
                 className={classNames(
-                  "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
+                  "todesktop:!text-blue-500 mr-2 h-4 w-4 shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 aria-[aria-current='page']:text-inherit",
                   item.isLoading && "animate-spin"
                 )}
                 aria-hidden="true"
@@ -248,13 +248,13 @@ export const MobileNavigationItem: React.FC<{
       key={item.name}
       href={item.href}
       target={item.target}
-      className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
+      className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted relative my-2 min-w-0 flex-1 overflow-hidden rounded-md bg-transparent! p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
         <Icon
           name={item.icon}
-          className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit"
+          className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 shrink-0 text-center text-inherit"
           aria-hidden="true"
           aria-current={current ? "page" : undefined}
         />
@@ -288,7 +288,7 @@ export const MobileNavigationMoreItem: React.FC<{
               {item.icon && (
                 <Icon
                   name={item.icon}
-                  className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                  className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3"
                   aria-hidden="true"
                 />
               )}
@@ -316,7 +316,7 @@ export const MobileNavigationMoreItem: React.FC<{
         <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
           <span className="text-default flex items-center font-semibold ">
             {item.icon && (
-              <Icon name={item.icon} className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+              <Icon name={item.icon} className="h-5 w-5 shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
             )}
             {isLocaleReady ? t(item.name) : <SkeletonText />}
           </span>

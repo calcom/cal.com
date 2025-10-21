@@ -131,7 +131,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                               type="text"
                               {...field}
                               placeholder={t("internal_booking_note")}
-                              className="!mb-0"
+                              className="mb-0!"
                             />
                           )}
                         />
@@ -154,7 +154,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                               type="text"
                               {...field}
                               placeholder={t("internal_note_cancellation_reason")}
-                              className="!mb-0"
+                              className="mb-0!"
                             />
                           )}
                         />

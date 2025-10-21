@@ -22165,6 +22165,7 @@ __metadata:
     prettier: ^2.8.6
     prismock: 1.35.3
     resize-observer-polyfill: ^1.5.1
+    tailwindcss: latest
     tsc-absolute: ^1.0.0
     turbo: ^2.5.5
     typescript: 5.9.0-beta
@@ -45557,6 +45558,13 @@ __metadata:
     tailwind: lib/cli.js
     tailwindcss: lib/cli.js
   checksum: bda962f30e9a2f0567e2ee936ec863d5178958078e577ced13da60b3af779062a53a7e95f2f32b5c558f12a7477dea3ce071441a7362c6d7bf50bc9e166728a4
+  languageName: node
+  linkType: hard
+
+"tailwindcss@npm:latest":
+  version: 4.1.15
+  resolution: "tailwindcss@npm:4.1.15"
+  checksum: 988fef55192d8c07224ce338b4d4d748406b8681175620fbdade9dae6ee3dfc5145e738fdaa937c610f73e488deb480c893a1f3e34110f23384db5f0f5b664e7
   languageName: node
   linkType: hard
 

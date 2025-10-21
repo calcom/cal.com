@@ -609,7 +609,7 @@ const EventTypeSchedule = ({
       ) : (
         isManagedEventType &&
         fieldName === "schedule" && (
-          <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
+          <p className="mt-2! ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
         )
       )}
     </div>
@@ -730,7 +730,7 @@ const TeamAvailability = ({
           </Label>
           <p
             className={classNames(
-              "text-subtle max-w-full break-words text-sm leading-tight",
+              "text-subtle max-w-full wrap-break-word text-sm leading-tight",
               customClassNames?.chooseHostSchedulesLabelDescription
             )}>
             {t("hosts_schedule_description")}
@@ -759,7 +759,7 @@ const TeamAvailability = ({
               ))}
             </ul>
           ) : (
-            <p className="text-subtle max-w-full break-words text-sm leading-tight">
+            <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
               {t("no_hosts_description")}
             </p>
           )}

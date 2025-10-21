@@ -216,7 +216,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "border-l-1 my-0 rounded-md font-sans text-sm leading-4 focus:!ring-0 sm:rounded-l-none",
+              "border-l my-0 rounded-md font-sans text-sm leading-4 focus:ring-0! sm:rounded-l-none",
               isInputUsernamePremium
                 ? "border border-orange-400 focus:border focus:border-orange-400"
                 : "border focus:border",

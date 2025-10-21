@@ -173,9 +173,9 @@ export function DataTable<TData>({
                           onTouchStart={header.getResizeHandler()}
                           className={classNames(
                             "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
-                            header.column.getIsResizing() && "!opacity-75"
+                            header.column.getIsResizing() && "opacity-75!"
                           )}>
-                          <div className="bg-inverted mx-auto h-full w-[1px]" />
+                          <div className="bg-inverted mx-auto h-full w-px" />
                         </div>
                       )}
                     </TableHead>

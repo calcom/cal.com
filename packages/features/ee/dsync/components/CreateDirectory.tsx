@@ -38,7 +38,7 @@ const CreateDirectory = ({ orgId }: { orgId: number | null }) => {
             {t("directory_sync_title")}
           </p>
         </div>
-        <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
+        <div className="shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
           <Button color="primary" onClick={() => setOpenModal(true)}>
             {t("configure")}
           </Button>

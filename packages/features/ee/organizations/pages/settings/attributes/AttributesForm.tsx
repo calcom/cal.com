@@ -211,7 +211,7 @@ const GroupOption = ({
     <div key={option.id}>
       <div className="mb-2 flex items-center gap-2" key={option.id}>
         <div className="flex w-full items-center justify-between gap-2">
-          <Input {...form.register(`options.${index}.value`)} className="!mb-0 w-36" />
+          <Input {...form.register(`options.${index}.value`)} className="mb-0! w-36" />
           <SelectField
             isMulti
             placeholder={t("choose_an_option")}

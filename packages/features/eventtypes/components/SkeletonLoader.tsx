@@ -81,7 +81,7 @@ export function EventTypesSkeletonLoader() {
 function SkeletonItem() {
   return (
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
-      <div className="flex-grow truncate text-sm">
+      <div className="grow truncate text-sm">
         <div>
           <SkeletonText className="h-5 w-32" />
         </div>

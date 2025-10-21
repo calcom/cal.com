@@ -14,7 +14,7 @@ export const SkeletonLoader = () => {
           <SkeletonText className="h-8 w-1/3" />
         </div>
         <div className="border-subtle space-y-6 border-x px-4 py-6 sm:px-6">
-          <div className="[&>*]:bg-emphasis flex w-full items-center justify-center gap-x-2 [&>*]:animate-pulse">
+          <div className="[&>*]:bg-emphasis flex w-full items-center justify-center gap-x-2 *:animate-pulse">
             <div className="h-32 flex-1 rounded-md p-5" />
             <div className="h-32 flex-1 rounded-md p-5" />
             <div className="h-32 flex-1 rounded-md p-5" />

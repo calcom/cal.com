@@ -214,7 +214,7 @@ export const AvailableTimeSlots = ({
       <div
         ref={containerRef}
         className={classNames(
-          limitHeight && "scroll-bar flex-grow overflow-auto md:h-[400px]",
+          limitHeight && "scroll-bar grow overflow-auto md:h-[400px]",
           !limitHeight && "flex h-full w-full flex-row gap-4",
           `${customClassNames?.availableTimeSlotsContainer}`
         )}>

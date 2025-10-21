@@ -49,7 +49,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
           {t("edit")}
         </Button> */}
       </div>
-      <div className="border-subtle h-[1px] w-full border-b" />
+      <div className="border-subtle h-px w-full border-b" />
       <div>
         <ul className="p-4">
           {calendars?.map((calendar, i) => (

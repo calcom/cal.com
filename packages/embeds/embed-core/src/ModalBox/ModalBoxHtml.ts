@@ -86,7 +86,7 @@ ${getStyle()}
   </div>
   <div class="modal-box">
     <div class="body" id="skeleton-container" style="${skeletonContainerStyle}">
-      <div id="wrapper" class="z-[999999999999] absolute flex w-full items-center">
+      <div id="wrapper" class="z-999999999999 absolute flex w-full items-center">
         <div class="loader modal-loader border-brand-default dark:border-darkmodebrand">
           <span class="loader-inner bg-brand dark:bg-darkmodebrand"></span>
         </div>

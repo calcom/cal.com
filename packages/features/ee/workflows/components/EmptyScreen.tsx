@@ -40,7 +40,7 @@ function WorkflowExample(props: WorkflowExampleType) {
             )}
           </div>
         </div>
-        <div className="m-auto w-full flex-grow items-center justify-center ">
+        <div className="m-auto w-full grow items-center justify-center ">
           <div className="text-semibold text-emphasis line-clamp-2 w-full text-sm font-semibold">{title}</div>
           <div className="text-default text-sm font-normal leading-none">{description}</div>
         </div>

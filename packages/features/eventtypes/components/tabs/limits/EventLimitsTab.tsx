@@ -242,7 +242,7 @@ function RollingLimitRadioItem({
             value={getSelectedOption()}
             defaultValue={getSelectedOption()}
             className={classNames(
-              "!mt-0 ml-2 w-28 shrink sm:w-36",
+              "mt-0! ml-2 w-28 shrink sm:w-36",
               customClassNames?.periodTypeSelect?.select
             )}
             innerClassNames={customClassNames?.periodTypeSelect?.innerClassNames}

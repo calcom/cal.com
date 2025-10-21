@@ -94,7 +94,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
               }}
               data-testid="event-type-link"
               className="flex justify-between">
-              <div className="flex-shrink">
+              <div className="shrink">
                 <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
                   <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
                 </div>
@@ -103,7 +103,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
               <div className="mt-1 self-center">
                 <UserAvatarGroup
                   truncateAfter={4}
-                  className="flex flex-shrink-0"
+                  className="flex shrink-0"
                   size="sm"
                   users={type.users}
                 />
@@ -117,7 +117,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
 
   const SubTeams = () =>
     team.children.length ? (
-      <ul className="divide-subtle border-subtle bg-default !static w-full divide-y rounded-md border">
+      <ul className="divide-subtle border-subtle bg-default static! w-full divide-y rounded-md border">
         {team.children.map((ch, i) => {
           const memberCount = team.members.filter(
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
@@ -173,7 +173,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
           {!isBioEmpty && (
             <>
               <div
-                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />

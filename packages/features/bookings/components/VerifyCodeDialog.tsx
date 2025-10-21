@@ -81,7 +81,7 @@ export const VerifyCodeDialog = ({
 
   useEffect(() => setValue(""), [isOpenDialog]);
 
-  const digitClassName = "h-12 w-12 !text-xl text-center";
+  const digitClassName = "h-12 w-12 text-xl! text-center";
 
   return (
     <Dialog

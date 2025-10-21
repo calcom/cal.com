@@ -216,9 +216,9 @@ module.exports = {
         error: "var(--cal-text-error, #752522)",
         brand: "var(--cal-brand-text)",
       },
-      screens: {
-        pwa: { raw: "(display-mode: standalone)" },
-      },
+      // screens: {
+      //   pwa: { raw: "(display-mode: standalone)" },
+      // },
       keyframes: {
         "fade-in-up": {
           from: { opacity: 0, transform: "translateY(10px)" },

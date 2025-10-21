@@ -252,7 +252,7 @@ function BTCPaySetupPage(props: IBTCPaySetupProps) {
           <div className="flex w-full w-full max-w-[43em] flex-col items-center justify-center space-y-4 p-4 lg:space-y-5">
             <form className="w-full space-y-4" onSubmit={onSubmit}>
               <div className="bg-default border-subtle overflow-auto rounded border">
-                <div className="border-subtle flex items-center justify-between border-b-[1px] p-4 md:p-5">
+                <div className="border-subtle flex items-center justify-between border-b p-4 md:p-5">
                   <h2 className="text-2xl font-semibold">BTCPay Server Information</h2>
                 </div>
                 <div className="w-full space-y-4 p-4 md:p-5">

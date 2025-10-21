@@ -96,7 +96,7 @@ function Field({
               data-testid={`${hookFieldNamespace}.label`}
               disabled={!!router}
               label="Label"
-              className="flex-grow"
+              className="grow"
               placeholder={t("this_is_what_your_users_would_see")}
               defaultValue={label || routerField?.label || "Field"}
               required

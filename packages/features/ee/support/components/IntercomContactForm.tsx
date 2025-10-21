@@ -110,11 +110,11 @@ export const IntercomContactForm = () => {
   };
 
   return (
-    <div className="fixed bottom-[1rem] right-[1rem] z-50 [&_[data-radix-popper-content-wrapper]]:!bottom-[1rem]">
+    <div className="fixed bottom-4 right-4 z-50 **:data-radix-popper-content-wrapper:bottom-4!">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
           asChild
-          className={classNames("enabled:hover:bg-subtle bg-subtle shadow-none", !showTrigger && "!hidden")}>
+          className={classNames("enabled:hover:bg-subtle bg-subtle shadow-none", !showTrigger && "hidden!")}>
           <Button
             onClick={() => setIsOpen(true)}
             className="bg-subtle text-emphasis flex h-12 w-12 items-center justify-center rounded-full border-none">

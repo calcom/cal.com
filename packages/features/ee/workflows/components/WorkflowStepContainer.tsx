@@ -1308,7 +1308,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {t("email_subject")}
                     </Label>
                     {!props.readOnly && !isFormTrigger(trigger) && (
-                      <div className="flex-grow text-right">
+                      <div className="grow text-right">
                         <AddVariablesDropdown
                           addVariable={addVariableEmailSubject}
                           variables={DYNAMIC_TEXT_VARIABLES}
@@ -1520,7 +1520,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <div className="col-span-7 test-sm text-emphasis">{t("company_size")}</div>
                     <div className="col-span-5 w-full test-sm text-default">{t("variable")}</div>
 
-                    <div className="col-span-7 break-words test-sm text-emphasis">
+                    <div className="col-span-7 wrap-break-word test-sm text-emphasis">
                       {" "}
                       {`{${t("company_size")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -1538,7 +1538,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     </div>
                     <div className="col-span-7 test-sm text-emphasis">{t("what_help_needed")}</div>
                     <div className="col-span-5 test-sm text-default">{t("variable")}</div>
-                    <div className="col-span-7 break-words test-sm text-emphasis">
+                    <div className="col-span-7 wrap-break-word test-sm text-emphasis">
                       {" "}
                       {`{${t("what_help_needed")
                         .replace(/[^a-zA-Z0-9 ]/g, "")

@@ -212,7 +212,7 @@ const FixedHosts = ({
             </Label>
             <p
               className={classNames(
-                "text-subtle max-w-full break-words text-sm leading-tight",
+                "text-subtle max-w-full wrap-break-word text-sm leading-tight",
                 customClassNames?.description
               )}>
               <FixedHostHelper t={t} />
@@ -474,7 +474,7 @@ const RoundRobinHosts = ({
             </Label>
             <p
               className={classNames(
-                "text-subtle max-w-full break-words text-sm leading-tight",
+                "text-subtle max-w-full wrap-break-word text-sm leading-tight",
                 customClassNames?.description
               )}>
               {hostGroups?.length > 0 ? t("round_robin_groups_helper") : t("round_robin_helper")}
@@ -825,7 +825,7 @@ export const EventTeamAssignmentTab = ({
               </Label>
               <p
                 className={classNames(
-                  "text-subtle max-w-full break-words text-sm leading-tight",
+                  "text-subtle max-w-full wrap-break-word text-sm leading-tight",
                   customClassNames?.assignmentType?.description
                 )}>
                 {t("assignment_description")}
@@ -860,7 +860,7 @@ export const EventTeamAssignmentTab = ({
             <div className="border-subtle mt-4 flex flex-col rounded-md">
               <div className="border-subtle rounded-t-md border p-6 pb-5">
                 <Label className="mb-1 text-sm font-semibold">{t("rr_distribution_method")}</Label>
-                <p className="text-subtle max-w-full break-words text-sm leading-tight">
+                <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
                   {t("rr_distribution_method_description")}
                 </p>
               </div>

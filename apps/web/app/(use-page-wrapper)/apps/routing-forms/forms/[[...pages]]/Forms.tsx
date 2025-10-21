@@ -279,7 +279,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                                       action="edit"
                                       routingForm={form}
                                       color="minimal"
-                                      className="!flex"
+                                      className="flex!"
                                       StartIcon="pencil">
                                       {t("edit")}
                                     </FormAction>

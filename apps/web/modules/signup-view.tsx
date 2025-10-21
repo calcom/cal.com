@@ -576,11 +576,11 @@ export default function Signup({
                 {isGoogleLoginEnabled && (
                   <div className="mt-6">
                     <div className="relative flex items-center">
-                      <div className="border-subtle flex-grow border-t" />
-                      <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
+                      <div className="border-subtle grow border-t" />
+                      <span className="text-subtle mx-2 shrink text-sm font-normal leading-none">
                         {t("or").toLocaleLowerCase()}
                       </span>
-                      <div className="border-subtle flex-grow border-t" />
+                      <div className="border-subtle grow border-t" />
                     </div>
                   </div>
                 )}
@@ -700,7 +700,7 @@ export default function Signup({
                 </div>
               </>
             )}
-            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
+            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/3 dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
               <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
               <img
                 className="hidden dark:block"

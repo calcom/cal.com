@@ -233,7 +233,7 @@ export default function FileUploader({
           {files.map((fileData) => (
             <div key={fileData.id} className="flex items-center justify-between rounded-md border">
               <div className="flex min-w-0 items-center gap-2 pl-2">
-                <Icon name={getFileIcon(fileData.file.type)} className="h-5 w-5 flex-shrink-0" />
+                <Icon name={getFileIcon(fileData.file.type)} className="h-5 w-5 shrink-0" />
                 <div className="min-w-0 border-l py-2 pl-3">
                   <p className="text-emphasis truncate text-sm font-medium">{fileData.file.name}</p>
                   <p className="text-xs">{formatFileSize(fileData.file.size)}</p>
@@ -245,7 +245,7 @@ export default function FileUploader({
                 size="sm"
                 StartIcon="x"
                 onClick={() => handleFileRemove(fileData.id)}
-                className="mx-2 h-6 w-6 flex-shrink-0"
+                className="mx-2 h-6 w-6 shrink-0"
               />
             </div>
           ))}

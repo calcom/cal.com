@@ -101,7 +101,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
         passHref
         href={href}
         className={classNames(
-          "text-default flex-grow truncate text-sm",
+          "text-default grow truncate text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
         <div className="flex items-center">
