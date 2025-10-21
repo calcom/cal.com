@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -44,6 +44,10 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
 
   const startDate = useMemo(() => currentWeekStart.toDate(), [currentWeekStart]);
   const endDate = useMemo(() => currentWeekStart.add(6, "day").toDate(), [currentWeekStart]);
+
+  useEffect(() => {
+    onWeekChange?.(startDate, endDate);
+  }, []);
 
   const events = useMemo<CalendarEvent[]>(() => {
     return bookings
