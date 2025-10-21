@@ -35,6 +35,10 @@ async function handler(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const imageType = searchParams.get("type");
 
+  if (!imageType || !["app", "meeting", "generic"].includes(imageType)) {
+    return new Response("Wrong image type", { status: 404 });
+  }
+
   try {
     const fontResults = await Promise.allSettled([
       fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
@@ -63,6 +67,7 @@ async function handler(req: NextRequest) {
       fonts,
     };
 
+    const etag = await getOgImageVersion(imageType as "app" | "meeting" | "generic");
     switch (imageType) {
       case "meeting": {
         try {
@@ -85,8 +90,6 @@ async function handler(req: NextRequest) {
             ),
             ogConfig
           );
-
-          const etag = await getOgImageVersion("meeting");
 
           return new Response(img.body, {
             status: 200,
@@ -129,8 +132,6 @@ async function handler(req: NextRequest) {
             ogConfig
           );
 
-          const etag = await getOgImageVersion("app");
-
           return new Response(img.body, {
             status: 200,
             headers: {
@@ -167,8 +168,6 @@ async function handler(req: NextRequest) {
 
           const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
 
-          const etag = await getOgImageVersion("generic");
-
           return new Response(img.body, {
             status: 200,
             headers: {
@@ -196,7 +195,7 @@ async function handler(req: NextRequest) {
       }
 
       default:
-        return new Response("What you're looking for is not here..", { status: 404 });
+        return new Response("Wrong image type", { status: 404 });
     }
   } catch {
     return new Response("Internal server error", { status: 500 });
