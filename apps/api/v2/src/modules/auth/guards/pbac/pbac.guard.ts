@@ -16,6 +16,13 @@ import { Request } from "express";
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 import { PermissionCheckService, FeaturesRepository } from "@calcom/platform-libraries/pbac";
 
+export const REDIS_PBAC_CACHE_KEY = (teamId: number) => `apiv2:team:${teamId}:has:pbac:guard:pbac`;
+export const REDIS_REQUIRED_PERMISSIONS_CACHE_KEY = (
+  userId: number,
+  teamId: number,
+  requiredPermissions: PermissionString[]
+) => `apiv2:user:${userId}:team:${teamId}:requiredPermissions:${requiredPermissions.join(",")}:guard:pbac`;
+
 @Injectable()
 export class PbacGuard implements CanActivate {
   constructor(
@@ -68,8 +75,7 @@ export class PbacGuard implements CanActivate {
   }
 
   async hasPbacEnabled(teamId: number) {
-    const REDIS_CACHE_KEY = `apiv2:team:${teamId ?? "none"}:has:pbac:guard:pbac`;
-    const cachedHasPbacEnabled = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
+    const cachedHasPbacEnabled = await this.getCachePbacEnabled(teamId);
 
     if (cachedHasPbacEnabled) {
       return cachedHasPbacEnabled;
@@ -80,7 +86,7 @@ export class PbacGuard implements CanActivate {
     const hasPbacEnabled = await featuresRepository.checkIfTeamHasFeature(teamId, pbacFeatureFlag);
 
     if (hasPbacEnabled) {
-      await this.redisService.redis.set(REDIS_CACHE_KEY, String(hasPbacEnabled), "EX", 300);
+      await this.setCachePbacEnabled(teamId, hasPbacEnabled);
     }
 
     return hasPbacEnabled;
@@ -91,10 +97,7 @@ export class PbacGuard implements CanActivate {
     teamId: number,
     requiredPermissions: PermissionString[]
   ) {
-    const REDIS_CACHE_KEY = `apiv2:user:${userId ?? "none"}:team:${
-      teamId ?? "none"
-    }:requiredPermissions:${requiredPermissions.join(",")}:guard:pbac`;
-    const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
+    const cachedAccess = await this.getCacheRequiredPermissions(userId, teamId, requiredPermissions);
 
     if (cachedAccess) {
       return cachedAccess;
@@ -109,10 +112,44 @@ export class PbacGuard implements CanActivate {
     });
 
     if (hasRequiredPermissions) {
-      await this.redisService.redis.set(REDIS_CACHE_KEY, String(hasRequiredPermissions), "EX", 300);
+      await this.setCacheRequiredPermissions(userId, teamId, requiredPermissions, hasRequiredPermissions);
     }
 
     return hasRequiredPermissions;
+  }
+
+  private async getCacheRequiredPermissions(
+    userId: number,
+    teamId: number,
+    requiredPermissions: PermissionString[]
+  ): Promise<boolean | null> {
+    return this.redisService.get<boolean>(
+      REDIS_REQUIRED_PERMISSIONS_CACHE_KEY(userId, teamId, requiredPermissions)
+    );
+  }
+
+  private async setCacheRequiredPermissions(
+    userId: number,
+    teamId: number,
+    requiredPermissions: PermissionString[],
+    hasRequired: boolean
+  ): Promise<void> {
+    await this.redisService.set<boolean>(
+      REDIS_REQUIRED_PERMISSIONS_CACHE_KEY(userId, teamId, requiredPermissions),
+      hasRequired,
+      { ttl: 300_000 }
+    );
+  }
+
+  private async getCachePbacEnabled(teamId: number) {
+    const cachedResult = await this.redisService.get<boolean>(REDIS_PBAC_CACHE_KEY(teamId));
+    return cachedResult;
+  }
+
+  private async setCachePbacEnabled(teamId: number, pbacEnabled: boolean) {
+    await this.redisService.set<boolean>(REDIS_PBAC_CACHE_KEY(teamId), pbacEnabled, {
+      ttl: 300_000,
+    });
   }
 
   throwForbiddenError(
