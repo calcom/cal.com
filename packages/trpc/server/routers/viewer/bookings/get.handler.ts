@@ -251,7 +251,7 @@ export async function getBookings({
     // 4. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees
-    if (userEmailsWhereUserIsAdminOrOwner?.length) {
+    userEmailsWhereUserIsAdminOrOwner?.length &&
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -264,11 +264,10 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee"],
       });
-    }
     // 5. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN so we get bookings where organization members are attendees via seatsReference
     // - If Current user is TEAM_OWNER/ADMIN so we get bookings where team members are attendees via seatsReference
-    if (userEmailsWhereUserIsAdminOrOwner?.length) {
+    userEmailsWhereUserIsAdminOrOwner?.length &&
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -282,12 +281,11 @@ export async function getBookings({
           .where("Attendee.email", "in", userEmailsWhereUserIsAdminOrOwner),
         tables: ["Booking", "Attendee", "BookingSeat"],
       });
-    }
 
     // 6. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get booking created for an event type within the organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created for an event type within the team
-    if (eventTypeIdsWhereUserIsAdminOrOwner?.length) {
+    eventTypeIdsWhereUserIsAdminOrOwner?.length &&
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -300,12 +298,11 @@ export async function getBookings({
           .where("Booking.eventTypeId", "in", eventTypeIdsWhereUserIsAdminOrOwner),
         tables: ["Booking", "EventType"],
       });
-    }
 
     // 7. Scope depends on `user.orgId`:
     // - If Current user is ORG_OWNER/ADMIN, get bookings created by users within the same organization
     // - If Current user is TEAM_OWNER/ADMIN, get bookings created by users within the same organization
-    if (userIdsWhereUserIsAdminOrOwner?.length) {
+    userIdsWhereUserIsAdminOrOwner?.length &&
       bookingQueries.push({
         query: kysely
           .selectFrom("Booking")
@@ -317,7 +314,6 @@ export async function getBookings({
           .where("Booking.userId", "in", userIdsWhereUserIsAdminOrOwner),
         tables: ["Booking"],
       });
-    }
   }
 
   const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
@@ -577,7 +573,6 @@ export async function getBookings({
               .selectFrom("BookingSeat")
               .select((eb) => [
                 "BookingSeat.referenceUid",
-                "BookingSeat.attendeeId",
                 jsonObjectFrom(
                   eb
                     .selectFrom("Attendee")
@@ -586,7 +581,6 @@ export async function getBookings({
                 ).as("attendee"),
               ])
               .whereRef("BookingSeat.bookingId", "=", "Booking.id")
-              .orderBy("BookingSeat.attendeeId", "asc")
           ).as("seatsReferences"),
           jsonArrayFrom(
             eb
