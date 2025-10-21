@@ -21,6 +21,8 @@ type BookingsCalendarViewProps = {
   table: ReactTable<RowData>;
 };
 
+const COLUMN_IDS_TO_HIDE = ["dateRange"];
+
 export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
   const { rows } = table.getRowModel();
   const { updateFilter } = useDataTable();
@@ -68,7 +70,7 @@ export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
     <>
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <DataTableFilters.FilterBar table={table} />
+          <DataTableFilters.FilterBar table={table} columnIdsToHide={COLUMN_IDS_TO_HIDE} />
         </div>
 
         <div className="flex items-center gap-2">
