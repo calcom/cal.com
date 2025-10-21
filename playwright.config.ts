@@ -101,7 +101,7 @@ const config: PlaywrightTestConfig = {
     baseURL: process.env.NEXT_PUBLIC_WEBAPP_URL,
     locale: "en-US",
     trace: "retain-on-failure",
-    headless,
+    headless: !!process.env.PLAYWRIGHT_HEADLESS,
   },
   projects: [
     {

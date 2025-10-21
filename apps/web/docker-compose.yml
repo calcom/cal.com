@@ -1,0 +1,14 @@
+services:
+  playwright:
+    # NOTE: Always ensure this image version matches `@playwright/test` version in package.json.
+    image: mcr.microsoft.com/playwright:v1.45.3-jammy
+    restart: always
+    container_name: "playwright"
+    init: true
+    ipc: host
+    command: ["/bin/sh", "-c", "cd /home/pwuser/apps/web/ && npm exec -- playwright run-server --port 4580"]
+    volumes:
+      - ../../:/home/pwuser
+    network_mode: host
+    extra_hosts:
+      - "localhost:host-gateway"
