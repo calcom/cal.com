@@ -856,7 +856,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
 
     const result = getSlots({
       inviteeDate: nextDay,
-      frequency: 180,
+      frequency: 60,
       minimumBookingNotice: 0,
       dateRanges: dateRanges,
       eventLength: 180,
@@ -888,7 +888,7 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
 
     const result = getSlots({
       inviteeDate: today,
-      frequency: 180,
+      frequency: 60,
       minimumBookingNotice: 1440,
       dateRanges: dateRanges,
       eventLength: 180,
