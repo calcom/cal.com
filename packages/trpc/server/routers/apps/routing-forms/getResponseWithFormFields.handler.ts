@@ -10,7 +10,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
-import type { ZFormByResponseIdInputSchema } from "./_router";
+import type { ZFormByResponseIdInputSchema } from "./getResponseWithFormFields.schema";
 
 type GetResponseWithFormFieldsOptions = {
   ctx: {

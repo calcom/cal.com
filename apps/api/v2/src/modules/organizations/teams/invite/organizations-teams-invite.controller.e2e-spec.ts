@@ -122,7 +122,6 @@ describe("Organizations Teams Invite Endpoints", () => {
         .expect(404);
     });
 
-
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await organizationsRepositoryFixture.delete(org.id);
@@ -131,5 +130,3 @@ describe("Organizations Teams Invite Endpoints", () => {
     });
   });
 });
-
-
