@@ -1,14 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports
+ 
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 
 import { handleNoShowFee } from "./handleNoShowFee";
 
@@ -30,20 +30,20 @@ vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
-vi.mock("@calcom/lib/server/repository/credential", () => ({
+vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => ({
   CredentialRepository: {
     findPaymentCredentialByAppIdAndUserIdOrTeamId: vi.fn(),
     findPaymentCredentialByAppIdAndTeamId: vi.fn(),
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/membership", () => ({
+vi.mock("@calcom/features/membership/repositories/MembershipRepository", () => ({
   MembershipRepository: {
     findUniqueByUserIdAndTeamId: vi.fn(),
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/team", () => ({
+vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
   TeamRepository: vi.fn().mockImplementation(() => ({
     findParentOrganizationByTeamId: vi.fn(),
   })),
