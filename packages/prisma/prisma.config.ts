@@ -11,6 +11,6 @@ dotenv.config({
 
 export default {
   migrations: {
-    seed: `ts-node --transpile-only ${path.join(rootDir, "scripts/seed.ts")}`,
+    seed: `ts-node --transpile-only "${path.join(rootDir, "scripts/seed.ts")}"`,
   },
 } satisfies PrismaConfig;
