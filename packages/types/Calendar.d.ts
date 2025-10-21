@@ -6,7 +6,6 @@ import type { Frequency } from "rrule";
 import type z from "zod";
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
-import type { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type {
   BookingSeat,
@@ -66,7 +65,6 @@ export type EventBusyDetails = EventBusyDate & {
   userId?: number | null;
 };
 
-export type CalendarServiceType = typeof Calendar;
 export type AdditionalInfo = Record<string, unknown> & { calWarnings?: string[] };
 
 export type NewCalendarEventType = {
@@ -104,9 +102,9 @@ export type CalendarEventType = {
     isNegative: boolean;
   };
   organizer: string;
-  attendees: any[][];
+  attendees: unknown[][];
   recurrenceId: Time;
-  timezone: any;
+  timezone: string | object;
 };
 
 export type BatchResponse = {
@@ -314,7 +312,7 @@ export interface Calendar {
 /**
  * @see [How to inference class type that implements an interface](https://stackoverflow.com/a/64765554/6297100)
  */
-type Class<I, Args extends any[] = any[]> = new (...args: Args) => I;
+type Class<I, Args extends unknown[] = unknown[]> = new (...args: Args) => I;
 
 export type CalendarClass = Class<Calendar, [CredentialForCalendarService]>;
 

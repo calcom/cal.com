@@ -127,6 +127,10 @@ export type CalendarState = {
    * Optional boolean to  hide the main header. Default the header will be visible.
    */
   hideHeader?: boolean;
+  /**
+   * Timezone to use for displaying times in the calendar
+   */
+  timezone: string;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };
