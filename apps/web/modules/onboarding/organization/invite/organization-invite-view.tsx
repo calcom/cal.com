@@ -124,7 +124,9 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
               {/* Card Header */}
               <div className="flex w-full gap-1.5 px-5 py-4">
                 <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">{t("onboarding_org_invite_title")}</h1>
+                  <h1 className="font-cal text-xl font-semibold leading-6">
+                    {t("onboarding_org_invite_title")}
+                  </h1>
                   <p className="text-subtle text-sm font-medium leading-tight">
                     {isEmailMode
                       ? t("onboarding_org_invite_subtitle_email")
@@ -155,7 +157,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                           color="secondary"
                           className="flex-1 justify-center"
                           onClick={handleInviteViaEmail}>
-                          {t("onboarding_org_invite_subtitle_email")}
+                          {t("invite_via_email")}
                         </Button>
                         <Button color="secondary" className="flex-1 justify-center" StartIcon="upload">
                           {t("onboarding_upload_csv")}
