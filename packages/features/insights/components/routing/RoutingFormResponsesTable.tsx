@@ -26,6 +26,7 @@ import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 import { useInsightsRoutingFacetedUniqueValues } from "../../hooks/useInsightsRoutingFacetedUniqueValues";
 import type { RoutingFormTableRow } from "../../lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
+import type { Row } from "@tanstack/react-table";
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
@@ -114,7 +115,7 @@ export function RoutingFormResponsesTable() {
         <DataTableWrapper<RoutingFormTableRow>
           table={table}
           isPending={isPending}
-          rowClassName={(row) => {
+          rowClassName={(row: Row<RoutingFormTableRow>) => {
             if (row.original.isRerouted === 'rerouted') return "min-h-14 bg-orange-50 border-l-2 border-l-orange-400";
             if (row.original.isOriginalBooking) return "min-h-14 bg-blue-50 border-l-2 border-l-blue-400";
             return "min-h-14";
