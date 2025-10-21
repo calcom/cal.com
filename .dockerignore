@@ -39,8 +39,6 @@ Thumbs.db
 
 # Misc
 *.md
-!README.md
-LICENSE
 .editorconfig
 
 # Examples and docs
