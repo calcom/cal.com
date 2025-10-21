@@ -191,11 +191,10 @@ test.describe("Reschedule for booking with seats", () => {
     users,
     bookings,
   }) => {
-    const { user, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
+    const { booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
       { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
     ]);
-    await user.apiLogin();
 
     const bookingAttendees = await prisma.attendee.findMany({
       where: { bookingId: booking.id },
