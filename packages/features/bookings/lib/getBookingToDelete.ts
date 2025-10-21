@@ -100,7 +100,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       workflowReminders: true,
       seatsReferences: {
         orderBy: {
-          id: "asc",
+          attendeeId: "asc",
         },
       },
       responses: true,
