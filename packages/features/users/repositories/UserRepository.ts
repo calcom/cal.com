@@ -784,7 +784,7 @@ export class UserRepository {
   }) {
     const { email, username, hashedPassword, emailVerified, identityProvider } = data;
 
-    logger.info("upsert user", { email, username });
+    logger.info("upsert user");
 
     const user = await this.prismaClient.user.upsert({
       where: { email },
