@@ -1,5 +1,5 @@
 import { getAllDelegationCredentialsForUserByAppType } from "@calcom/app-store/delegationCredential";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";

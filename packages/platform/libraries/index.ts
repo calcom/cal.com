@@ -1,8 +1,8 @@
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm";
 import {
@@ -11,9 +11,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
-import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import { getRoutedUrl } from "@calcom/features/routing-forms/lib/getRoutedUrl";
-import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { Prisma } from "@calcom/prisma/client";
@@ -41,15 +39,8 @@ export {
 
 export { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 
-const handleNewBooking = newBookingMethods.default;
-export { handleNewBooking };
-const handleInstantMeeting = instantMeetingMethods.default;
-export { handleInstantMeeting };
-
 export { handleMarkNoShow };
 export { handleCreatePhoneCall };
-
-export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
 export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 
@@ -136,5 +127,5 @@ export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEma
 
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 
-export { TeamService } from "@calcom/lib/server/service/teamService";
+export { TeamService } from "@calcom/features/ee/teams/services/teamService";
 export { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
