@@ -260,7 +260,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       let newStep;
 
       if (foundStep) {
-        const { senderName: _, ..._rest } = {
+        newStep = {
           ...foundStep,
           numberVerificationPending: false,
           sender: getSender({
