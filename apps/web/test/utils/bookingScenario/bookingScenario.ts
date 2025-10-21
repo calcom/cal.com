@@ -9,12 +9,12 @@ import type { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { BookingReference, Attendee, Booking, Membership } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/client";
@@ -240,6 +240,8 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       end: string;
     }[];
   };
+  requiresBookerEmailVerification?: boolean;
+  secondaryEmails?: { email: string; emailVerified: Date | null }[];
 };
 
 export type InputEventType = {
@@ -834,6 +836,21 @@ export async function addUsersToDb(users: InputUser[]) {
     }
   }
 
+  for (const user of users) {
+    if (user.secondaryEmails) {
+      log.debug("Creating SecondaryEmail entries for user", user.id);
+      for (const secondaryEmail of user.secondaryEmails) {
+        await prismock.secondaryEmail.create({
+          data: {
+            email: secondaryEmail.email,
+            emailVerified: secondaryEmail.emailVerified,
+            userId: user.id,
+          },
+        });
+      }
+    }
+  }
+
   const allUsers = await prismock.user.findMany({
     include: {
       credentials: true,
@@ -845,6 +862,7 @@ export async function addUsersToDb(users: InputUser[]) {
         },
       },
       destinationCalendar: true,
+      secondaryEmails: true,
     },
   });
 
@@ -1554,6 +1572,8 @@ export function getOrganizer({
   username,
   locked,
   emailVerified,
+  requiresBookerEmailVerification,
+  secondaryEmails,
 }: {
   name: string;
   email: string;
@@ -1572,6 +1592,8 @@ export function getOrganizer({
   username?: string;
   locked?: boolean;
   emailVerified?: Date | null;
+  requiresBookerEmailVerification?: boolean;
+  secondaryEmails?: { email: string; emailVerified: Date | null }[];
 }) {
   username = username ?? TestData.users.example.username;
   return {
@@ -1594,6 +1616,8 @@ export function getOrganizer({
     completedOnboarding,
     locked,
     emailVerified,
+    requiresBookerEmailVerification,
+    secondaryEmails,
   };
 }
 

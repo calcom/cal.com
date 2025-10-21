@@ -402,7 +402,9 @@ model User {
   allowSEOIndexing Boolean? @default(true)
 
   // receive monthly digest email for teams or not
-  receiveMonthlyDigestEmail Boolean? @default(true)
+  receiveMonthlyDigestEmail       Boolean? @default(true)
+  // require email verification when someone books using your email
+  requiresBookerEmailVerification Boolean? @default(false)
 
   /// @zod.import(["import { userMetadata } from '../../zod-utils'"]).custom.use(userMetadata)
   metadata             Json?
@@ -2321,6 +2323,7 @@ model Watchlist {
   lastUpdatedAt  DateTime        @default(now())
 
   bookingReports BookingReport[]
+  audits         WatchlistAudit[]
 
   @@unique([type, value, organizationId])
   @@index([type, value, organizationId, action])
@@ -2337,7 +2340,8 @@ model WatchlistAudit {
   changedAt       DateTime @default(now())
   changedByUserId Int?
 
-  watchlistId String @db.Uuid
+  watchlistId String     @db.Uuid
+  watchlist   Watchlist? @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
 
   @@index([watchlistId, changedAt])
 }
@@ -2420,6 +2424,8 @@ model OrganizationOnboarding {
   slug               String
   logo               String?
   bio                String?
+  brandColor         String?
+  bannerUrl          String?
   isDomainConfigured Boolean @default(false)
 
   // Set when payment intent is there.
@@ -2670,11 +2676,14 @@ model TeamBilling {
   teamId Int    @unique
   team   Team?  @relation("TeamBilling", fields: [teamId], references: [id], onDelete: Cascade)
 
-  subscriptionId     String @unique
-  subscriptionItemId String
-  customerId         String
-  status             String
-  planName           String
+  subscriptionId       String    @unique
+  subscriptionItemId   String
+  customerId           String
+  status               String
+  planName             String
+  subscriptionStart    DateTime?
+  subscriptionTrialEnd DateTime?
+  subscriptionEnd      DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2685,11 +2694,14 @@ model OrganizationBilling {
   teamId Int    @unique
   team   Team   @relation("OrganizationBilling", fields: [teamId], references: [id], onDelete: Cascade)
 
-  subscriptionId     String @unique
-  subscriptionItemId String
-  customerId         String
-  status             String
-  planName           String
+  subscriptionId       String    @unique
+  subscriptionItemId   String
+  customerId           String
+  status               String
+  planName             String
+  subscriptionStart    DateTime?
+  subscriptionTrialEnd DateTime?
+  subscriptionEnd      DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
