@@ -718,20 +718,6 @@ export class UserRepository {
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
-    /* 
-          data: {
-            username,
-            email,
-            locked: shouldLockByDefault,
-            password: { create: { hash: hashedPassword } },
-            metadata: {
-              stripeCustomerId: customer.stripeCustomerId,
-              checkoutSessionId,
-            },
-            creationSource: CreationSource.WEBAPP,
-          },
-    */
-
     const user = await this.prismaClient.user.create({
       data: {
         username,
@@ -790,8 +776,8 @@ export class UserRepository {
       where: { email },
       update: {
         username,
-        emailVerified: emailVerified ?? new Date(Date.now()),
-        identityProvider: identityProvider ?? IdentityProvider.CAL,
+        ...(emailVerified !== undefined && { emailVerified }),
+        ...(identityProvider !== undefined && { identityProvider }),
         password: {
           upsert: {
             create: { hash: hashedPassword },
