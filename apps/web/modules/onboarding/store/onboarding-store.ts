@@ -36,6 +36,14 @@ export interface TeamBrand {
   logo: string | null; // base64 or URL
 }
 
+export interface PersonalDetails {
+  name: string;
+  username: string;
+  timezone: string;
+  bio: string;
+  avatar: string | null;
+}
+
 export interface OnboardingState {
   selectedPlan: PlanType | null;
 
@@ -53,6 +61,9 @@ export interface OnboardingState {
   teamBrand: TeamBrand;
   teamInvites: Invite[];
 
+  // Personal user state
+  personalDetails: PersonalDetails;
+
   // Actions
   setSelectedPlan: (plan: PlanType) => void;
   setOrganizationDetails: (details: Partial<OrganizationDetails>) => void;
@@ -65,6 +76,9 @@ export interface OnboardingState {
   setTeamDetails: (details: Partial<TeamDetails>) => void;
   setTeamBrand: (brand: Partial<TeamBrand>) => void;
   setTeamInvites: (invites: Invite[]) => void;
+
+  // Personal actions
+  setPersonalDetails: (details: Partial<PersonalDetails>) => void;
 
   // Reset
   resetOnboarding: () => void;
@@ -94,6 +108,13 @@ const initialState = {
     logo: null,
   },
   teamInvites: [],
+  personalDetails: {
+    name: "",
+    username: "",
+    timezone: "",
+    bio: "",
+    avatar: null,
+  },
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -131,6 +152,11 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       setTeamInvites: (invites) => set({ teamInvites: invites }),
 
+      setPersonalDetails: (details) =>
+        set((state) => ({
+          personalDetails: { ...state.personalDetails, ...details },
+        })),
+
       resetOnboarding: () => set(initialState),
     }),
     {
@@ -146,6 +172,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         teamDetails: state.teamDetails,
         teamBrand: state.teamBrand,
         teamInvites: state.teamInvites,
+        personalDetails: state.personalDetails,
       }),
     }
   )
