@@ -1,7 +1,7 @@
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 
-import type { OrganizationCreation } from "../../templates/organization-creation-email";
+import type { OrganizationCreation } from "../../lib/types/email-types";
 import { V2BaseEmailHtml } from "../components";
 
 export const OrganizationCreationEmail = (
