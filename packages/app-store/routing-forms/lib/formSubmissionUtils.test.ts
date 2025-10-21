@@ -8,7 +8,6 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { GetWebhooksReturnType } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
-import type { User } from "@calcom/prisma/client";
 import {
   WebhookTriggerEvents,
   WorkflowTriggerEvents,
@@ -17,7 +16,7 @@ import {
   TimeUnit,
 } from "@calcom/prisma/enums";
 
-import type { FormResponse, SerializableForm } from "../types/types";
+import type { FormResponse, Field } from "../types/types";
 import { _onFormSubmission } from "./formSubmissionUtils";
 
 vi.mock("@calcom/prisma", () => ({
@@ -61,31 +60,18 @@ vi.mock("../emails/templates/response-email", () => ({
 }));
 
 describe("_onFormSubmission", () => {
-  const mockForm: SerializableForm<{
-    id: string;
-    name: string;
-    teamId: number | null;
-    userId: number;
-    disabled: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    position: number;
-    settings: unknown;
-    routes: unknown;
-    fields: unknown;
-  }> & {
-    user: Pick<User, "id" | "email" | "timeFormat" | "locale">;
-    userWithEmails?: string[];
-  } = {
+  const mockForm = {
     id: "form-1",
     name: "Test Form",
     disabled: false,
     userId: 1,
     position: 0,
+    description: null,
+    updatedById: null,
     fields: [
       { id: "field-1", identifier: "email", label: "Email", type: "email", required: false },
       { id: "field-2", identifier: "name", label: "Name", type: "text", required: false },
-    ],
+    ] as Field[],
     user: { id: 1, email: "test@example.com", timeFormat: 12, locale: "en" },
     teamId: null,
     settings: { emailOwnerOnSubmission: true },
@@ -309,7 +295,7 @@ describe("_onFormSubmission", () => {
 
   describe("Response Email", () => {
     it("should send response email to team members for a team form", async () => {
-      const teamForm: typeof mockForm = {
+      const teamForm = {
         ...mockForm,
         teamId: 1,
         userWithEmails: ["team-member1@example.com", "team-member2@example.com"],
@@ -327,7 +313,7 @@ describe("_onFormSubmission", () => {
     });
 
     it("should send response email to owner when enabled", async () => {
-      const ownerForm: typeof mockForm = {
+      const ownerForm = {
         ...mockForm,
         settings: { emailOwnerOnSubmission: true },
       };
@@ -343,7 +329,7 @@ describe("_onFormSubmission", () => {
     });
 
     it("should not send response email to owner when disabled", async () => {
-      const ownerForm: typeof mockForm = {
+      const ownerForm = {
         ...mockForm,
         settings: { emailOwnerOnSubmission: false },
       };
