@@ -13,7 +13,7 @@ async function handler(req: NextRequest) {
   let appDirRequestBody;
   try {
     appDirRequestBody = await req.json();
-  } catch (error) {
+  } catch {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
   const bookingData = bookingCancelWithCsrfSchema.parse(appDirRequestBody);
