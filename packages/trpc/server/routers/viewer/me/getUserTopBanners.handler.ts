@@ -15,12 +15,7 @@ export const getUserTopBannersHandler = async ({ ctx }: Props) => {
   const upgradeableTeamMemberships = getUpgradeableHandler({ userId: ctx.user.id });
   const upgradeableOrgMemberships = checkIfOrgNeedsUpgradeHandler({ ctx });
   const shouldEmailVerify = shouldVerifyEmailHandler({
-    ctx: {
-      user: {
-        ...ctx.user,
-        emailVerified: !!ctx.user.emailVerified,
-      },
-    },
+    ctx,
   });
   // const isInvalidCalendarCredential = checkInvalidGoogleCalendarCredentials({ ctx });
   const appsWithInvalidCredentials = checkInvalidAppCredentials({ ctx });
