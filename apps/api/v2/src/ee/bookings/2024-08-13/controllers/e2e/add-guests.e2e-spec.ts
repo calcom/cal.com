@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-guests.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -11,26 +12,23 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
-import { CAL_API_VERSION_HEADER, ERROR_STATUS, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
-  AttendeeAddGuestsEmail,
-  OrganizerAddGuestsEmail,
-  // AttendeeScheduledEmail,
-  // OrganizerScheduledEmail,
-} from "@calcom/platform-libraries/emails";
-import type {
-  BookingOutput_2024_08_13,
-  CreateBookingInput_2024_08_13,
-} from "@calcom/platform-types";
+  CAL_API_VERSION_HEADER,
+  ERROR_STATUS,
+  SUCCESS_STATUS,
+  VERSION_2024_08_13,
+} from "@calcom/platform-constants";
+import { AttendeeAddGuestsEmail, OrganizerAddGuestsEmail } from "@calcom/platform-libraries/emails";
+import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { User, Team } from "@calcom/prisma/client";
-import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
-import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-guests.output";
 
 jest
   .spyOn(AttendeeAddGuestsEmail.prototype, "getHtml")
@@ -40,10 +38,18 @@ jest
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 
 // Type definitions for test setup data
-type EmailSetup = {
+type TestUser = {
   user: User;
+  accessToken: string;
+  refreshToken: string;
+};
+
+type TestSetup = {
+  organizer: TestUser;
+  unrelatedUser: TestUser;
+  attendee: TestUser;
   eventTypeId: number;
-  createdBookingUid: string;
+  bookingUid: string;
 };
 
 describe("Bookings Endpoints 2024-08-13 add guests", () => {
@@ -56,9 +62,9 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
+  let tokensRepositoryFixture: TokensRepositoryFixture;
 
-  let emailsEnabledSetup: EmailSetup;
-  let emailsDisabledSetup: EmailSetup;
+  let testSetup: TestSetup;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -68,10 +74,6 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       .useValue({
         canActivate: () => true,
       })
-      // .overrideGuard(ApiAuthGuard)
-      // .useValue({
-      //   canActivate: () => true,
-      // })
       .compile();
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
@@ -80,13 +82,13 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+    tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
 
     organization = await teamRepositoryFixture.create({
       name: `user-emails-2024-08-13-organization-${randomString()}`,
     });
 
-    await setupEnabledEmails();
-    await setupDisabledEmails();
+    await setupTestData();
 
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
@@ -94,73 +96,75 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     await app.init();
   });
 
-  async function setupEnabledEmails() {
-    const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
+  async function setupTestData() {
+    const oAuthClient = await createOAuthClient(organization.id, true);
 
-    const user = await userRepositoryFixture.create({
-      email: `user-emails-2024-08-13-user-${randomString()}@api.com`,
+    // Create organizer user (booking host)
+    const organizerUser = await userRepositoryFixture.create({
+      email: `user-emails-2024-08-13-organizer-${randomString()}@api.com`,
       platformOAuthClients: {
-        connect: {
-          id: oAuthClientEmailsEnabled.id,
-        },
+        connect: { id: oAuthClient.id },
       },
     });
 
-    const userSchedule: CreateScheduleInput_2024_04_15 = {
+    // Create unrelated user (for permission tests)
+    const unrelatedUserData = await userRepositoryFixture.create({
+      email: `user-emails-2024-08-13-unrelated-${randomString()}@api.com`,
+      platformOAuthClients: {
+        connect: { id: oAuthClient.id },
+      },
+    });
+
+    // Create attendee user (will be added as guest)
+    const attendeeUser = await userRepositoryFixture.create({
+      email: `user-emails-2024-08-13-attendee-${randomString()}@api.com`,
+      platformOAuthClients: {
+        connect: { id: oAuthClient.id },
+      },
+    });
+
+    // Create tokens for all users
+    const organizerTokens = await tokensRepositoryFixture.createTokens(organizerUser.id, oAuthClient.id);
+    const unrelatedUserTokens = await tokensRepositoryFixture.createTokens(
+      unrelatedUserData.id,
+      oAuthClient.id
+    );
+    const attendeeTokens = await tokensRepositoryFixture.createTokens(attendeeUser.id, oAuthClient.id);
+
+    const schedule: CreateScheduleInput_2024_04_15 = {
       name: `user-add-guests-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
-    await schedulesService.createUserSchedule(user.id, userSchedule);
+    await schedulesService.createUserSchedule(organizerUser.id, schedule);
 
-    const event = await eventTypesRepositoryFixture.create(
+    const eventType = await eventTypesRepositoryFixture.create(
       {
         title: `user-add-guests-2024-08-13-event-type-${randomString()}`,
         slug: `user-add-guests-2024-08-13-event-type-${randomString()}`,
         length: 60,
       },
-      user.id
+      organizerUser.id
     );
 
-
-    emailsEnabledSetup = {
-      user,
-      eventTypeId: event.id,
-      createdBookingUid: "",
-    };
-  }
-
-  async function setupDisabledEmails() {
-    const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
-
-    const user = await userRepositoryFixture.create({
-      email: `user-emails-2024-08-13-user-${randomString()}@api.com`,
-      platformOAuthClients: {
-        connect: {
-          id: oAuthClientEmailsDisabled.id,
-        },
+    testSetup = {
+      organizer: {
+        user: organizerUser,
+        accessToken: organizerTokens.accessToken,
+        refreshToken: organizerTokens.refreshToken,
       },
-    });
-    const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `user-add-guests-2024-08-13-schedule-${randomString()}`,
-      timeZone: "Europe/Rome",
-      isDefault: true,
-    };
-    await schedulesService.createUserSchedule(user.id, userSchedule);
-    const event = await eventTypesRepositoryFixture.create(
-      {
-        title: `user-add-guests-2024-08-13-event-type-${randomString()}`,
-        slug: `user-add-guests-2024-08-13-event-type-${randomString()}`,
-        length: 60,
+      unrelatedUser: {
+        user: unrelatedUserData,
+        accessToken: unrelatedUserTokens.accessToken,
+        refreshToken: unrelatedUserTokens.refreshToken,
       },
-      user.id
-    );
-
-
-    emailsDisabledSetup = {
-      user,
-      eventTypeId: event.id,
-      createdBookingUid: "",
+      attendee: {
+        user: attendeeUser,
+        accessToken: attendeeTokens.accessToken,
+        refreshToken: attendeeTokens.refreshToken,
+      },
+      eventTypeId: eventType.id,
+      bookingUid: "",
     };
   }
 
@@ -182,24 +186,24 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     jest.clearAllMocks();
   });
 
-  describe("Authentication", () => {
-    it.only("should fail when unauthenticated user tries to add guests - UNAUTHORIZED", async () => {
-      // Create a booking first to have a valid booking UID
+  describe("POST /v2/bookings/:bookingUid/guests", () => {
+    beforeAll(async () => {
+      // Create a booking to be used across all tests
       const createBookingBody: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 7, 10, 0, 0)).toISOString(),
-        eventTypeId: emailsDisabledSetup.eventTypeId,
+        start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
+        eventTypeId: testSetup.eventTypeId,
         attendee: {
-          name: "Test User",
-          email: "test.user@example.com",
+          name: "Mr Proper",
+          email: "mr_proper@gmail.com",
           timeZone: "Europe/Rome",
           language: "it",
         },
-        location: "https://meet.google.com/test-meeting",
+        location: "https://meet.google.com/abc-def-ghi",
         bookingFieldsResponses: {
-          customField: "testValue",
+          customField: "customValue",
         },
         metadata: {
-          userId: "999",
+          userId: "100",
         },
       };
 
@@ -218,450 +222,180 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         );
       }
 
-      const bookingUid = createBookingResponseBody.data.uid;
-
-      // Attempt to add guests without authentication
-      const addGuestsBody = {
-        attendees: ["unauthenticated.guest@example.com"],
-      };
-
-      // Make request WITHOUT authentication headers
-      // This should fail with 401 UNAUTHORIZED
-      const addGuestsResponse = await request(app.getHttpServer())
-        .post(`/v2/bookings/${bookingUid}/guests`)
-        .send(addGuestsBody)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
-        // Note: No Authorization header set
-
-      // Verify the request was rejected
-      // Expected: 401 UNAUTHORIZED status code
-      expect(addGuestsResponse.status).toBe(401);
+      testSetup.bookingUid = createBookingResponseBody.data.uid;
     });
-  });
 
-  describe("OAuth client managed user bookings - emails disabled", () => {
-    describe("Organizer permissions", () => {
-      it.only("should allow the organizer (booking host) to add guests - SUCCESS", async () => {
-        const createBookingBody: CreateBookingInput_2024_08_13 = {
-          start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
-          eventTypeId: emailsDisabledSetup.eventTypeId,
-          attendee: {
-            name: "Mr Proper",
-            email: "mr_proper@gmail.com",
-            timeZone: "Europe/Rome",
-            language: "it",
-          },
-          location: "https://meet.google.com/abc-def-ghi",
-          bookingFieldsResponses: {
-            customField: "customValue",
-          },
-          metadata: {
-            userId: "100",
-          },
-        };
-
-        const createBookingResponse = await request(app.getHttpServer())
-          .post("/v2/bookings")
-          .send(createBookingBody)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(201);
-
-        const createBookingResponseBody: CreateBookingOutput_2024_08_13 = createBookingResponse.body;
-        expect(createBookingResponseBody.status).toEqual(SUCCESS_STATUS);
-
-        if (!responseDataIsBooking(createBookingResponseBody.data)) {
-          throw new Error(
-            "Invalid response data - expected booking but received array of possibly recurring bookings"
-          );
-        }
-
-        const bookingUid = createBookingResponseBody.data.uid;
-        const originalAttendeesCount = createBookingResponseBody.data.attendees.length;
-
+    describe("Authentication", () => {
+      it("should return 401 when adding guests without authentication", async () => {
         const addGuestsBody = {
-          attendees: ["organizer.guest1@example.com", "organizer.guest2@example.com"],
+          attendees: ["unauthenticated.guest@example.com"],
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .send(addGuestsBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
+
+        expect(addGuestsResponse.status).toBe(401);
+      });
+    });
+
+    describe("Authorization - Organizer", () => {
+      it("should allow booking organizer to add multiple guests", async () => {
+        const addGuestsBody = {
+          guests: ["organizer.guest1@example.com", "organizer.guest2@example.com"],
+        };
+
+        const addGuestsResponse = await request(app.getHttpServer())
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .set("Authorization", `Bearer whatever`)
-          .expect(201);
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
 
         const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
 
-        // Step 3: Verify the guests were added successfully
-        expect(addGuestsResponseBody.status).toEqual(SUCCESS_STATUS);
-
-        if (!responseDataIsBooking(addGuestsResponseBody.data)) {
-          throw new Error(
-            "Invalid response data - expected booking but received array of possibly recurring bookings"
-          );
-        }
-
-        const bookingData = addGuestsResponseBody.data;
-
-        // Verify attendees array includes the new guests
-        expect(bookingData.attendees).toBeDefined();
-        expect(bookingData.attendees.length).toBeGreaterThan(originalAttendeesCount);
-
-        const guestEmails = bookingData.attendees.map((attendee) => attendee.email);
-        expect(guestEmails).toContain("organizer.guest1@example.com");
-        expect(guestEmails).toContain("organizer.guest2@example.com");
-
-        // Verify guests array contains the guest emails
-        expect(bookingData.guests).toBeDefined();
-        expect(bookingData.guests).toContain("organizer.guest1@example.com");
-        expect(bookingData.guests).toContain("organizer.guest2@example.com");
-
-        // Step 4: Verify emails were NOT sent (emails disabled for this OAuth client)
-        expect(AttendeeAddGuestsEmail.prototype.getHtml).not.toHaveBeenCalled();
-        expect(OrganizerAddGuestsEmail.prototype.getHtml).not.toHaveBeenCalled();
-
-        // Store booking UID for cleanup and next tests
-        emailsDisabledSetup.createdBookingUid = bookingData.uid;
+        verifyAddGuestsResponse(
+          addGuestsResponseBody,
+          ["organizer.guest1@example.com", "organizer.guest2@example.com"],
+          true
+        );
       });
 
-      it("should fail when a non-organizer, non-attendee tries to add guests - FORBIDDEN", async () => {
-        // Reuse the booking from the previous test
-        const bookingUid = emailsDisabledSetup.createdBookingUid;
+      it("should return 403 when unrelated user tries to add guests", async () => {
+        const addGuestsBody = {
+          guests: ["non-organizer.guest1@example.com", "non-organizer.guest2@example.com"],
+        };
 
-        if (!bookingUid) {
-          throw new Error("No booking UID available from previous test");
-        }
-
-        // Step 1: Verify the booking exists and has the expected structure
-        // Note: In a real scenario with proper multi-user auth, this would be authenticated as a different user
-        // and would throw: TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" })
-        const getBookingResponse = await request(app.getHttpServer())
-          .get(`/v2/bookings/${bookingUid}`)
+        await request(app.getHttpServer())
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200);
-
-        const getBookingResponseBody: AddGuestsOutput_2024_08_13 = getBookingResponse.body;
-        expect(getBookingResponseBody.status).toEqual(SUCCESS_STATUS);
-
-        if (!responseDataIsBooking(getBookingResponseBody.data)) {
-          throw new Error(
-            "Invalid response data - expected booking but received array of possibly recurring bookings"
-          );
-        }
-
-        // Verify the booking belongs to a specific organizer
-        expect(getBookingResponseBody.data.uid).toEqual(bookingUid);
-        
-        // Note: To properly test FORBIDDEN case, we would need to:
-        // 1. Create a second user with different credentials
-        // 2. Authenticate as that user
-        // 3. Attempt to add guests to this booking
-        // 4. Expect 403 response
+          .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
+          .expect(403);
       });
     });
 
-    describe("Attendee permissions", () => {
-      it("should allow an existing attendee to add guests to a booking - SUCCESS", async () => {
-        // Reuse the booking created in the organizer test
-        const bookingUid = emailsDisabledSetup.createdBookingUid;
+    describe("Authorization - Attendee", () => {
+      it("should allow organizer to add a user as attendee, then attendee can add more guests", async () => {
+        // Step 1: Organizer adds attendee user as a guest
+        const addAttendeeBody = {
+          guests: [testSetup.attendee.user.email],
+        };
 
-        if (!bookingUid) {
-          throw new Error("No booking UID available from previous test");
-        }
-
-        // Step 1: Get the current booking state
-        const getBookingResponse = await request(app.getHttpServer())
-          .get(`/v2/bookings/${bookingUid}`)
+        const addAttendeeResponse = await request(app.getHttpServer())
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .send(addAttendeeBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const getBookingResponseBody: AddGuestsOutput_2024_08_13 = getBookingResponse.body;
-        expect(getBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        const addAttendeeResponseBody: AddGuestsOutput_2024_08_13 = addAttendeeResponse.body;
 
-        if (!responseDataIsBooking(getBookingResponseBody.data)) {
-          throw new Error(
-            "Invalid response data - expected booking but received array of possibly recurring bookings"
-          );
-        }
+        verifyAddGuestsResponse(addAttendeeResponseBody, [testSetup.attendee.user.email], true);
 
-        const originalAttendeesCount = getBookingResponseBody.data.attendees.length;
-
-        // Step 2: Attendee adds guests to the booking
-        // Note: The authenticated user's email should match one of the attendees
-        // The handler checks: booking.attendees.find((attendee) => attendee.email === user.email)
+        // Step 2: Now the attendee can add their own guests
         const addGuestsBody = {
-          attendees: ["attendee.guest1@example.com", "attendee.guest2@example.com"],
+          guests: ["attendee.guest1@example.com"],
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .set("Authorization", `Bearer whatever`)
-          .expect(201);
+          .set("Authorization", `Bearer ${testSetup.attendee.accessToken}`)
+          .expect(200);
 
         const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
 
-        // Step 3: Verify the guests were added successfully
-        expect(addGuestsResponseBody.status).toEqual(SUCCESS_STATUS);
-
-        if (!responseDataIsBooking(addGuestsResponseBody.data)) {
-          throw new Error(
-            "Invalid response data - expected booking but received array of possibly recurring bookings"
-          );
-        }
-
-        const bookingData = addGuestsResponseBody.data;
-
-        // Verify attendees array includes the new guests
-        expect(bookingData.attendees).toBeDefined();
-        expect(bookingData.attendees.length).toBeGreaterThan(originalAttendeesCount);
-
-        const allAttendeeEmails = bookingData.attendees.map((attendee) => attendee.email);
-        expect(allAttendeeEmails).toContain("attendee.guest1@example.com");
-        expect(allAttendeeEmails).toContain("attendee.guest2@example.com");
-
-        // Verify guests array contains the guest emails
-        expect(bookingData.guests).toBeDefined();
-        expect(bookingData.guests).toContain("attendee.guest1@example.com");
-        expect(bookingData.guests).toContain("attendee.guest2@example.com");
-
-        // Step 4: Verify emails were NOT sent (emails disabled for this OAuth client)
-        expect(AttendeeAddGuestsEmail.prototype.getHtml).not.toHaveBeenCalled();
-        expect(OrganizerAddGuestsEmail.prototype.getHtml).not.toHaveBeenCalled();
+        verifyAddGuestsResponse(addGuestsResponseBody, ["attendee.guest1@example.com"], true);
       });
 
-      it("should fail when user is neither host nor attendee - FORBIDDEN", async () => {
-        // Reuse the booking from previous tests
-        const bookingUid = emailsDisabledSetup.createdBookingUid;
-
-        if (!bookingUid) {
-          throw new Error("No booking UID available from previous test");
-        }
-
-        // Step 1: Verify the booking exists and get current state
-        const getBookingResponse = await request(app.getHttpServer())
-          .get(`/v2/bookings/${bookingUid}`)
-          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .expect(200);
-
-        const getBookingResponseBody: AddGuestsOutput_2024_08_13 = getBookingResponse.body;
-        expect(getBookingResponseBody.status).toEqual(SUCCESS_STATUS);
-
-        if (!responseDataIsBooking(getBookingResponseBody.data)) {
-          throw new Error(
-            "Invalid response data - expected booking but received array of possibly recurring bookings"
-          );
-        }
-
-        const bookingData = getBookingResponseBody.data;
-
-        // Verify the booking has a host and attendees
-        expect(bookingData.attendees).toBeDefined();
-        expect(bookingData.attendees.length).toBeGreaterThan(0);
-
-        // Step 2: Document the expected behavior
-        // In the handler, the permission check is:
-        // const isOrganizer = booking.userId === user.id;
-        // const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
-        // if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
-        //   throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
-        // }
-
-        // Note: To properly test this FORBIDDEN case, we would need to:
-        // 1. Create a third user who is neither the host nor in the attendees list
-        // 2. Authenticate the request as that third user
-        // 3. Attempt to add guests to this booking
-        // 4. Expect a 403 FORBIDDEN response with message "you_do_not_have_permission"
-
-        // Since the current test setup uses a single authenticated context,
-        // we document the expected behavior and verify the booking structure
-        // that would trigger the permission check.
-
-        // Verify current authenticated user is the organizer (would pass permission check)
-        expect(bookingData.uid).toEqual(bookingUid);
-
-        // In a proper multi-user test environment, the following would fail with 403:
-        // const addGuestsBody = {
-        //   attendees: ["unauthorized.guest@example.com"],
-        // };
-        // 
-        // await request(app.getHttpServer())
-        //   .post(`/v2/bookings/${bookingUid}/guests`)
-        //   .send(addGuestsBody)
-        //   .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        //   .set("Authorization", "Bearer <different-user-token>")
-        //   .expect(403);
-      });
-
-      it("should fail to add duplicate guests - BAD_REQUEST", async () => {
-        // Reuse the booking from previous tests
-        const bookingUid = emailsDisabledSetup.createdBookingUid;
-
-        if (!bookingUid) {
-          throw new Error("No booking UID available from previous test");
-        }
-
-        // Step 1: Attempt to add guests that already exist in the booking
+      it("should return 403 when non-attendee user tries to add guests", async () => {
         const addGuestsBody = {
-          attendees: ["attendee.guest1@example.com"],
+          guests: ["non-attendee.guest1@example.com", "non-attendee.guest2@example.com"],
         };
 
-        // This should fail with 400 BAD_REQUEST
-        // The handler checks for duplicate emails and throws:
-        // TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" })
-        const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${bookingUid}/guests`)
+        await request(app.getHttpServer())
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .set("Authorization", `Bearer whatever`);
-
-        // Verify the response indicates failure
-        // Note: The actual status code may vary based on error handling implementation
-        // Expected: 400 with error message "emails_must_be_unique_valid"
-        if (addGuestsResponse.status === 400) {
-          expect(addGuestsResponse.body.status).toEqual(ERROR_STATUS);
-        } else {
-          // If it returns 201, verify no new guests were actually added
-          const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
-          
-          if (responseDataIsBooking(addGuestsResponseBody.data)) {
-            const bookingData = addGuestsResponseBody.data;
-            const guestCount = bookingData.guests?.length || 0;
-            
-            // Verify the guest count didn't increase (duplicate was filtered out)
-            expect(guestCount).toBeGreaterThan(0);
-          }
-        }
+          .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
+          .expect(403);
       });
     });
-  });
 
-  describe("OAuth client managed user bookings - emails enabled", () => {
-    it("should send an email when creating a booking", async () => {
-      const body: CreateBookingInput_2024_08_13 = {
-        start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
-        eventTypeId: emailsEnabledSetup.eventTypeId,
-        attendee: {
-          name: "Mr Proper",
-          email: "mr_proper@gmail.com",
-          timeZone: "Europe/Rome",
-          language: "it",
-        },
-        location: "https://meet.google.com/abc-def-ghi",
-        bookingFieldsResponses: {
-          customField: "customValue",
-        },
-        metadata: {
-          userId: "100",
-        },
-      };
+    describe("Validation", () => {
+      it("should return 400 when attempting to add duplicate guest email", async () => {
+        const addGuestsBody = {
+          guests: ["organizer.guest1@example.com"],
+        };
 
-      return request(app.getHttpServer())
-        .post("/v2/bookings")
-        .send(body)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(201)
-        .then(async (response) => {
-          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          if (responseDataIsBooking(responseBody.data)) {
-            const data: BookingOutput_2024_08_13 = responseBody.data;
-            // expect(AttendeeScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-            // expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
-            emailsEnabledSetup.createdBookingUid = data.uid;
-          } else {
-            throw new Error(
-              "Invalid response data - expected booking but received array of possibly recurring bookings"
-            );
-          }
-        });
-    });
+        const addGuestsResponse = await request(app.getHttpServer())
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .send(addGuestsBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`);
 
-    it("should send emails when adding guests to a booking - emails enabled", async () => {
-      // Reuse the booking created in the previous test
-      const bookingUid = emailsEnabledSetup.createdBookingUid;
-
-      if (!bookingUid) {
-        throw new Error("No booking UID available from previous test");
-      }
-
-      // Step 1: Get the current booking state
-      const getBookingResponse = await request(app.getHttpServer())
-        .get(`/v2/bookings/${bookingUid}`)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .expect(200);
-
-      const getBookingResponseBody: AddGuestsOutput_2024_08_13 = getBookingResponse.body;
-      expect(getBookingResponseBody.status).toEqual(SUCCESS_STATUS);
-
-      if (!responseDataIsBooking(getBookingResponseBody.data)) {
-        throw new Error(
-          "Invalid response data - expected booking but received array of possibly recurring bookings"
-        );
-      }
-
-      const originalAttendeesCount = getBookingResponseBody.data.attendees.length;
-
-      // Step 2: Add guests to the booking
-      const addGuestsBody = {
-        attendees: ["enabled.guest1@example.com", "enabled.guest2@example.com"],
-      };
-
-      const addGuestsResponse = await request(app.getHttpServer())
-        .post(`/v2/bookings/${bookingUid}/guests`)
-        .send(addGuestsBody)
-        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-        .set("Authorization", `Bearer whatever`)
-        .expect(201);
-
-      const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
-
-      // Step 3: Verify the guests were added successfully
-      expect(addGuestsResponseBody.status).toEqual(SUCCESS_STATUS);
-
-      if (!responseDataIsBooking(addGuestsResponseBody.data)) {
-        throw new Error(
-          "Invalid response data - expected booking but received array of possibly recurring bookings"
-        );
-      }
-
-      const bookingData = addGuestsResponseBody.data;
-
-      // Verify attendees array includes the new guests
-      expect(bookingData.attendees).toBeDefined();
-      expect(bookingData.attendees.length).toBeGreaterThan(originalAttendeesCount);
-
-      const guestEmails = bookingData.attendees.map((attendee) => attendee.email);
-      expect(guestEmails).toContain("enabled.guest1@example.com");
-      expect(guestEmails).toContain("enabled.guest2@example.com");
-
-      // Verify guests array contains the guest emails
-      expect(bookingData.guests).toBeDefined();
-      expect(bookingData.guests).toContain("enabled.guest1@example.com");
-      expect(bookingData.guests).toContain("enabled.guest2@example.com");
-
-      // Step 4: Verify emails WERE sent (emails enabled for this OAuth client)
-      expect(AttendeeAddGuestsEmail.prototype.getHtml).toHaveBeenCalled();
-      expect(OrganizerAddGuestsEmail.prototype.getHtml).toHaveBeenCalled();
+        expect(addGuestsResponse.status).toEqual(400);
+        expect(addGuestsResponse.body.status).toEqual(ERROR_STATUS);
+      });
     });
   });
 
   afterAll(async () => {
     await teamRepositoryFixture.delete(organization.id);
-    await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.user.email);
-    await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.user.email);
+
+    // Delete all users created in the test
+    await userRepositoryFixture.deleteByEmail(testSetup.organizer.user.email);
+    await userRepositoryFixture.deleteByEmail(testSetup.unrelatedUser.user.email);
+    await userRepositoryFixture.deleteByEmail(testSetup.attendee.user.email);
+
+    // Delete all bookings for the organizer
     await bookingsRepositoryFixture.deleteAllBookings(
-      emailsEnabledSetup.user.id,
-      emailsEnabledSetup.user.email
+      testSetup.organizer.user.id,
+      testSetup.organizer.user.email
     );
-    await bookingsRepositoryFixture.deleteAllBookings(
-      emailsDisabledSetup.user.id,
-      emailsDisabledSetup.user.email
-    );
+
     await app.close();
   });
 
-  function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
-    return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+  function responseDataIsBooking(data: unknown): data is BookingOutput_2024_08_13 {
+    return !Array.isArray(data) && typeof data === "object" && data !== null && "id" in data;
+  }
+
+  function verifyAddGuestsResponse(
+    responseBody: AddGuestsOutput_2024_08_13,
+    expectedGuestEmails: string[],
+    shouldEmailsBeSent: boolean
+  ): BookingOutput_2024_08_13 {
+    expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+    if (!responseDataIsBooking(responseBody.data)) {
+      throw new Error(
+        "Invalid response data - expected booking but received array of possibly recurring bookings"
+      );
+    }
+
+    const bookingData = responseBody.data;
+
+    expect(bookingData.attendees).toBeDefined();
+    const guestEmails = bookingData.attendees.map((attendee) => attendee.email);
+
+    expectedGuestEmails.forEach((email) => {
+      expect(guestEmails).toContain(email);
+    });
+
+    expect(bookingData.guests).toBeDefined();
+    expectedGuestEmails.forEach((email) => {
+      expect(bookingData.guests).toContain(email);
+    });
+
+    if (shouldEmailsBeSent) {
+      expect(AttendeeAddGuestsEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(OrganizerAddGuestsEmail.prototype.getHtml).toHaveBeenCalled();
+    }
+
+    return bookingData;
   }
 });
