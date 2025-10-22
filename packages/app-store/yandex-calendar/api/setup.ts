@@ -72,7 +72,7 @@ export const setupYandexCalendar: AppDeclarativeHandler<
     } satisfies Omit<Prisma.CredentialUncheckedCreateInput, "key">;
 
     // Validate the credentials
-    const isValid = validateCredentials({
+    const isValid = await validateCredentials({
       id: -1,
       ...baseData,
       credentials: { username: body.username, password: body.password },

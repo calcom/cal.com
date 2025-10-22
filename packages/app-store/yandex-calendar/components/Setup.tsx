@@ -125,7 +125,7 @@ export default function YandexSetup() {
                 type="text"
                 {...form.register("username")}
                 label="Email"
-                placeholder="eample@yandex.com"
+                placeholder="example@yandex.com"
                 data-testid="yandex-calendar-email"
               />
               <PasswordField
