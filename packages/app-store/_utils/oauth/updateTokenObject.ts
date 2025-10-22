@@ -1,7 +1,7 @@
 import type z from "zod";
 
-import logger from "@calcom/lib/logger";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 

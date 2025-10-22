@@ -115,7 +115,9 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       icon: "clock",
       label: t("reschedule_booking"),
       href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length && isAttendee && seatReferenceUid ? `?seatReferenceUid=${seatReferenceUid}` : ""
+        booking.seatsReferences.length && isAttendee && seatReferenceUid
+          ? `?seatReferenceUid=${seatReferenceUid}`
+          : ""
       }`,
       disabled:
         (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,

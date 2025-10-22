@@ -76,7 +76,6 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
 
   useEffect(() => {
     hookForm.reset({});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const filters = getTeamsFiltersFromQuery(routerQuery);
 

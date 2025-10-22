@@ -524,10 +524,11 @@ async function handler(input: CancelBookingInput) {
 
     await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
-    await prisma.bookingReference.deleteMany({
+    await prisma.bookingReference.updateMany({
       where: {
         bookingId: bookingToDelete.id,
       },
+      data: { deleted: true },
     });
   } catch (error) {
     log.error(`Error deleting integrations`, safeStringify({ error }));

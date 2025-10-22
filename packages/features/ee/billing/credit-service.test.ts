@@ -3,9 +3,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import * as EmailManager from "@calcom/emails/email-manager";
-import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { CreditType } from "@calcom/prisma/enums";
 
 import { CreditService } from "./credit-service";

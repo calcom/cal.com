@@ -42,7 +42,7 @@ export const getAggregatedAvailability = (
   const fixedDateRanges = mergeOverlappingDateRanges(
     intersect(fixedHosts.map((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges)))
   );
-  const dateRangesToIntersect = !!fixedDateRanges.length ? [fixedDateRanges] : [];
+  const dateRangesToIntersect = fixedDateRanges.length ? [fixedDateRanges] : [];
   const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
   if (roundRobinHosts.length) {
     // Group round robin hosts by their groupId

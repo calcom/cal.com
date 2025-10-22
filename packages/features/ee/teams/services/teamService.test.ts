@@ -4,10 +4,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
-import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
+import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import type { Membership, Team, User, VerificationToken, Profile } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
