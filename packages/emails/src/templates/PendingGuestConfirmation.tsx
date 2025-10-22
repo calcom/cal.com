@@ -1,7 +1,7 @@
 import { APP_NAME } from "@calcom/lib/constants";
 
 import type { PendingGuestConfirmation as PendingGuestConfirmationType } from "../../lib/types/email-types";
-import { BaseEmailHtml, Button } from "../components";
+import { BaseEmailHtml, CallToAction } from "../components";
 
 export const PendingGuestConfirmation = (
   props: PendingGuestConfirmationType & { confirmationUrl: string; code: string } & Partial<
@@ -43,7 +43,7 @@ export const PendingGuestConfirmation = (
         </p>
       </div>
       <div style={{ marginTop: "24px" }}>
-        <Button href={props.confirmationUrl}>{props.language("confirm_attendance")}</Button>
+        <CallToAction label={props.language("confirm_attendance")} href={props.confirmationUrl} />
       </div>
       <div style={{ lineHeight: "6px", marginTop: "24px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px", fontSize: "12px", color: "#666" }}>
