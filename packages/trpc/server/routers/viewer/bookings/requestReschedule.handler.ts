@@ -10,6 +10,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
@@ -62,20 +63,25 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   }
 
   const bookingBelongsToTeam = !!bookingToReschedule.eventType?.teamId;
+  const isBookingOrganizer = bookingToReschedule.userId === user.id;
 
-  const userTeams = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: user.id,
-    },
-    select: {
-      teams: true,
-    },
-  });
+  if (!isBookingOrganizer && bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
+    // Allow the organizer (booking owner) to always request reschedule for their own bookings
+    if (!isBookingOrganizer) {
+      const permissionCheckService = new PermissionCheckService();
+      const hasPermission = await permissionCheckService.checkPermission({
+        userId: user.id,
+        teamId: bookingToReschedule.eventType.teamId,
+        permission: "booking.delete",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
 
-  if (bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
-    const userTeamIds = userTeams.teams.map((item) => item.teamId);
-    if (userTeamIds.indexOf(bookingToReschedule.eventType?.teamId) === -1) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "User isn't a member on the team" });
+      if (!hasPermission) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "User does not have permission to request reschedule for this booking",
+        });
+      }
     }
     log.debug(
       "Request reschedule for team booking",
@@ -84,7 +90,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       })
     );
   }
-  if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
+  if (!bookingBelongsToTeam && !isBookingOrganizer) {
     throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
   }
 
