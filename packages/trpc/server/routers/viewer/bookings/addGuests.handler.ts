@@ -23,8 +23,9 @@ type AddGuestsOptions = {
     user: Pick<NonNullable<TrpcSessionUser>, "id" | "email">;
   };
   input: TAddGuestsInputSchema;
+  emailsEnabled?: boolean;
 };
-export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
+export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
 
@@ -220,10 +221,12 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   await eventManager.updateCalendarAttendees(evt, booking);
 
-  try {
-    await sendAddGuestsEmails(evt, uniqueGuests);
-  } catch (err) {
-    console.error("Error sending AddGuestsEmails", err);
+  if (emailsEnabled) {
+    try {
+      await sendAddGuestsEmails(evt, uniqueGuests);
+    } catch (err) {
+      console.error("Error sending AddGuestsEmails", err);
+    }
   }
 
   return { message: "Guests added" };

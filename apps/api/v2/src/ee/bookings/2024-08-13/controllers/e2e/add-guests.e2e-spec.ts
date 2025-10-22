@@ -341,6 +341,132 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     });
   });
 
+  describe("POST /v2/bookings/:bookingUid/guests - Emails Disabled", () => {
+    let emailsDisabledSetup: TestSetup;
+
+    beforeAll(async () => {
+      const oAuthClientDisabled = await createOAuthClient(organization.id, false);
+
+      const organizerUser = await userRepositoryFixture.create({
+        email: `user-no-emails-2024-08-13-organizer-${randomString()}@api.com`,
+        platformOAuthClients: {
+          connect: { id: oAuthClientDisabled.id },
+        },
+      });
+
+      const organizerTokens = await tokensRepositoryFixture.createTokens(
+        organizerUser.id,
+        oAuthClientDisabled.id
+      );
+
+      const schedule: CreateScheduleInput_2024_04_15 = {
+        name: `user-no-emails-2024-08-13-schedule-${randomString()}`,
+        timeZone: "Europe/Rome",
+        isDefault: true,
+      };
+      await schedulesService.createUserSchedule(organizerUser.id, schedule);
+
+      const eventType = await eventTypesRepositoryFixture.create(
+        {
+          title: `user-no-emails-2024-08-13-event-type-${randomString()}`,
+          slug: `user-no-emails-2024-08-13-event-type-${randomString()}`,
+          length: 60,
+        },
+        organizerUser.id
+      );
+
+      const createBookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 9, 14, 0, 0)).toISOString(),
+        eventTypeId: eventType.id,
+        attendee: {
+          name: "No Email User",
+          email: "no.email.user@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/no-emails",
+        bookingFieldsResponses: {
+          customField: "noEmailValue",
+        },
+        metadata: {
+          userId: "200",
+        },
+      };
+
+      const createBookingResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(createBookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const createBookingResponseBody: CreateBookingOutput_2024_08_13 = createBookingResponse.body;
+
+      if (!responseDataIsBooking(createBookingResponseBody.data)) {
+        throw new Error(
+          "Invalid response data - expected booking but received array of possibly recurring bookings"
+        );
+      }
+
+      emailsDisabledSetup = {
+        organizer: {
+          user: organizerUser,
+          accessToken: organizerTokens.accessToken,
+          refreshToken: organizerTokens.refreshToken,
+        },
+        unrelatedUser: testSetup.unrelatedUser, // Reuse from main setup
+        attendee: testSetup.attendee, // Reuse from main setup
+        eventTypeId: eventType.id,
+        bookingUid: createBookingResponseBody.data.uid,
+      };
+    });
+
+    it("should NOT send emails when adding guests (emails disabled)", async () => {
+      attendeeAddGuestsEmailSpy.mockClear();
+      organizerAddGuestsEmailSpy.mockClear();
+
+      const addGuestsBody = {
+        guests: ["no-email.guest1@example.com", "no-email.guest2@example.com"],
+      };
+
+      const addGuestsResponse = await request(app.getHttpServer())
+        .post(`/v2/bookings/${emailsDisabledSetup.bookingUid}/guests`)
+        .send(addGuestsBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${emailsDisabledSetup.organizer.accessToken}`)
+        .expect(200);
+
+      const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
+
+      // Verify guests were added successfully
+      expect(addGuestsResponseBody.status).toEqual(SUCCESS_STATUS);
+
+      if (!responseDataIsBooking(addGuestsResponseBody.data)) {
+        throw new Error(
+          "Invalid response data - expected booking but received array of possibly recurring bookings"
+        );
+      }
+
+      const bookingData = addGuestsResponseBody.data;
+
+      // Verify guests are in the response
+      expect(bookingData.guests).toBeDefined();
+      expect(bookingData.guests).toContain("no-email.guest1@example.com");
+      expect(bookingData.guests).toContain("no-email.guest2@example.com");
+
+      // Verify emails were NOT sent
+      expect(attendeeAddGuestsEmailSpy).not.toHaveBeenCalled();
+      expect(organizerAddGuestsEmailSpy).not.toHaveBeenCalled();
+    });
+
+    afterAll(async () => {
+      await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.organizer.user.email);
+      await bookingsRepositoryFixture.deleteAllBookings(
+        emailsDisabledSetup.organizer.user.id,
+        emailsDisabledSetup.organizer.user.email
+      );
+    });
+  });
+
   afterAll(async () => {
     await teamRepositoryFixture.delete(organization.id);
 
