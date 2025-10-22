@@ -66,22 +66,19 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const isBookingOrganizer = bookingToReschedule.userId === user.id;
 
   if (!isBookingOrganizer && bookingBelongsToTeam && bookingToReschedule.eventType?.teamId) {
-    // Allow the organizer (booking owner) to always request reschedule for their own bookings
-    if (!isBookingOrganizer) {
-      const permissionCheckService = new PermissionCheckService();
-      const hasPermission = await permissionCheckService.checkPermission({
-        userId: user.id,
-        teamId: bookingToReschedule.eventType.teamId,
-        permission: "booking.delete",
-        fallbackRoles: ["ADMIN", "OWNER"],
-      });
+    const permissionCheckService = new PermissionCheckService();
+    const hasPermission = await permissionCheckService.checkPermission({
+      userId: user.id,
+      teamId: bookingToReschedule.eventType.teamId,
+      permission: "booking.delete",
+      fallbackRoles: ["ADMIN", "OWNER"],
+    });
 
-      if (!hasPermission) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "User does not have permission to request reschedule for this booking",
-        });
-      }
+    if (!hasPermission) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User does not have permission to request reschedule for this booking",
+      });
     }
     log.debug(
       "Request reschedule for team booking",
