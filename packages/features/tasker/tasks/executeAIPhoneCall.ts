@@ -278,14 +278,6 @@ export async function executeAIPhoneCall(payload: string) {
       teamId: data.teamId,
     });
 
-    console.log(
-      `create phone call with:  ${JSON.stringify({
-        fromNumber: data.fromNumber,
-        toNumber: numberToCall,
-        dynamicVariables,
-      })}`
-    );
-
     const call = await aiService.createPhoneCall({
       fromNumber: data.fromNumber,
       toNumber: numberToCall,
