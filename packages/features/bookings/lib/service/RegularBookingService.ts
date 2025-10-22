@@ -65,12 +65,10 @@ import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
-import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
@@ -115,7 +113,6 @@ import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
-import { createLoggerWithEventDetails } from "../handleNewBooking/logger";
 import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
@@ -506,6 +503,7 @@ async function handler(
           eventTypeSlug: rawBookingData.eventTypeSlug || "unknown",
         },
       });
+
   const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
   tracingLogger.info("Booking creation started", {
@@ -562,7 +560,7 @@ async function handler(
     eventType,
   });
 
-  const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
+  const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: tracingLogger });
 
   try {
     await checkIfBookerEmailIsBlocked({
@@ -615,7 +613,7 @@ async function handler(
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
-    logger.settings.minLevel = 0;
+    .settings.minLevel = 0;
   }
 
   const fullName = getFullName(bookerName);
@@ -1759,7 +1757,7 @@ async function handler(
         await usersRepository.updateLastActiveAt(booking.userId);
         const organizerUserAvailability = availableUsers.find((user) => user.id === booking?.userId);
 
-        logger.info(`Booking created`, {
+        tracingLogger.info(`Booking created`, {
           bookingUid: booking.uid,
           selectedCalendarIds: organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
           availabilitySnapshot: organizerUserAvailability?.availabilityData

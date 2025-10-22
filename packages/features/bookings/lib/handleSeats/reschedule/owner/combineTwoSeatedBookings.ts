@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
@@ -8,7 +7,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";

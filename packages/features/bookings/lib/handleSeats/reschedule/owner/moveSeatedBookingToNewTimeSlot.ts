@@ -1,11 +1,10 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";

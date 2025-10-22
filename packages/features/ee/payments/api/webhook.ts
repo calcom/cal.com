@@ -239,8 +239,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: `Unhandled Stripe Webhook event type ${event.type}`,
       });
     }
-  } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+  } catch (error) {
+    const err = getErrorFromUnknown(error);
     tracingLogger.error("Webhook Error", {
       message: err.message,
       statusCode: err.statusCode,

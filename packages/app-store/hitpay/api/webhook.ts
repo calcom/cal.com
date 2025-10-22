@@ -122,8 +122,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     return await handlePaymentSuccess(payment.id, payment.bookingId, spanContext);
-  } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+  } catch (error) {
+    const err = getErrorFromUnknown(error);
     tracingLogger.error("HitPay Webhook Error", {
       message: err.message,
       statusCode: err.statusCode,

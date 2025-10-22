@@ -108,8 +108,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await handlePaymentSuccess(payment.id, payment.bookingId, spanContext);
     return res.status(200).json({ success: true });
-  } catch (_err) {
-    const err = getErrorFromUnknown(_err);
+  } catch (error) {
+    const err = getErrorFromUnknown(error);
     const statusCode = err instanceof HttpCode ? err.statusCode : 500;
     tracingLogger.error("BTCPay Webhook Error", {
       message: err.message,

@@ -63,8 +63,8 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
       userId: session?.user?.id || -1,
       hostname: req.headers.host || "",
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+      traceContext,
     },
-    traceContext,
   });
 
   tracingLogger.info("API book event request completed successfully", {
