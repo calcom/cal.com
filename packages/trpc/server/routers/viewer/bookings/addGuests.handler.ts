@@ -136,25 +136,38 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   const bookingResponses = booking.responses as BookingResponses;
 
-  const bookingAttendees = await prisma.booking.update({
-    where: {
-      id: bookingId,
-    },
-    include: {
-      attendees: true,
-    },
-    data: {
-      attendees: {
-        createMany: {
-          data: guestsFullDetails,
+  let bookingAttendees = booking;
+
+  if (uniqueGuests.length > 0) {
+    bookingAttendees = await prisma.booking.update({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        attendees: true,
+        eventType: true,
+        destinationCalendar: true,
+        references: true,
+        user: {
+          include: {
+            destinationCalendar: true,
+            credentials: true,
+          },
         },
       },
-      responses: {
-        ...bookingResponses,
-        guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
+      data: {
+        attendees: {
+          createMany: {
+            data: guestsFullDetails,
+          },
+        },
+        responses: {
+          ...bookingResponses,
+          guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
+        },
       },
-    },
-  });
+    });
+  }
 
   const attendeesListPromises = bookingAttendees.attendees.map(async (attendee) => {
     return {
