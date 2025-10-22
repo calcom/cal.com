@@ -131,7 +131,7 @@ test.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
 
-      const submitPromise = page.waitForResponse("/api/trpc/eventTypes/heavy/duplicate?batch=1");
+      const submitPromise = page.waitForResponse("/api/trpc/eventTypesHeavy/duplicate?batch=1");
       await page.getByTestId("continue").click();
       const response = await submitPromise;
       expect(response.status()).toBe(200);
