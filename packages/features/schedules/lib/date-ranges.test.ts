@@ -468,6 +468,42 @@ describe("buildDateRanges", () => {
       end: dayjs("2023-06-14T16:00:00Z").tz(timeZone),
     });
   });
+  it("should block entire day when marked unavailable despite having continuous working hours", () => {
+    const items = [
+      {
+        days: [0, 1, 2, 3, 4, 5, 6],
+        startTime: new Date(Date.UTC(2023, 9, 1, 0, 0)),
+        endTime: new Date(Date.UTC(2023, 9, 1, 23, 59)),
+      },
+      {
+        date: new Date(Date.UTC(2023, 9, 2)),
+        startTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+        endTime: new Date(Date.UTC(0, 0, 0, 0, 0)),
+      },
+    ];
+    const timeZone = "Asia/Kolkata";
+
+    const dateFrom = dayjs("2023-10-02T00:00:00Z");
+    const dateTo = dayjs("2023-10-04T00:00:00Z");
+
+    const { dateRanges: results } = buildDateRanges({
+      availability: items,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    const oct2Ranges = results.filter((range) => range.start.format("YYYY-MM-DD") === "2023-10-02");
+    const oct3Ranges = results.filter((range) => range.start.format("YYYY-MM-DD") === "2023-10-03");
+
+    expect(oct2Ranges.length).toBe(0);
+    expect(oct3Ranges.length).toBe(1);
+    if (oct3Ranges.length > 0) {
+      expect(oct3Ranges[0].start.format("YYYY-MM-DD HH:mm")).toBe("2023-10-03 00:00");
+      expect(oct3Ranges[0].end.format("YYYY-MM-DD HH:mm")).toBe("2023-10-04 05:30");
+    }
+  });
   it("should return correct date ranges for specific time slot in date override", () => {
     const items = [
       {
@@ -1245,7 +1281,7 @@ describe("intersect function comprehensive tests", () => {
       const result = subtract(dateRanges, formattedBusyTimes);
 
       // What the result SHOULD be (correct behavior): June 2 range is properly excluded due to overlapping busy time
-      const expectedCorrectedOutput = [
+      const _expectedCorrectedOutput = [
         { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
         { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
         { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
