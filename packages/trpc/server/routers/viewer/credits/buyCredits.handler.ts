@@ -1,9 +1,9 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
