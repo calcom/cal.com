@@ -11,8 +11,7 @@ type LearnMoreLinkProps = {
 };
 
 export const LearnMoreLink = ({ t, i18nKey, href }: LearnMoreLinkProps) => {
-  if (IS_CALCOM) {
-    //change it back after testing is done
+  if (!IS_CALCOM) {
     const text = t(i18nKey)
       .replace(/<0>[\s\S]*?<\/0>/g, "")
       .trim();
