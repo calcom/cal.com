@@ -561,7 +561,13 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("cancelled_by")}</div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                              <p className="break-words">
+                                {bookingInfo.eventType?.hideOrganizerEmail &&
+                                bookingInfo.cancelledBy ===
+                                  (bookingInfo?.userPrimaryEmail ?? bookingInfo.user?.email)
+                                  ? bookingInfo.user?.name
+                                  : bookingInfo.cancelledBy}
+                              </p>
                             </div>
                           </>
                         )}
