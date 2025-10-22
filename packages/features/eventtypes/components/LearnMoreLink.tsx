@@ -23,7 +23,12 @@ export const LearnMoreLink = ({ t, i18nKey, href }: LearnMoreLinkProps) => {
       t={t}
       i18nKey={i18nKey}
       components={[
-        <Link key={i18nKey} className="underline underline-offset-2" target="_blank" href={href}>
+        <Link
+          key={i18nKey}
+          className="underline underline-offset-2"
+          target="_blank"
+          rel="noopener noreferrer"
+          href={href}>
           Learn more
         </Link>,
       ]}
