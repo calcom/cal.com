@@ -19,7 +19,7 @@ export function DateValues({ showBorder, days, containerNavRef }: Props) {
     <div
       ref={containerNavRef}
       className={classNames(
-        "bg-default dark:bg-muted border-b-subtle rtl:border-r-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b sm:pr-8",
+        "bg-default dark:bg-default border-b-subtle rtl:border-r-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b sm:pr-8",
         showBorder && "border-r"
       )}>
       <div className="text-subtle flex text-sm leading-6 sm:hidden" data-dayslength={days.length}>

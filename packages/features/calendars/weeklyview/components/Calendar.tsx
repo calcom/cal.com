@@ -71,7 +71,7 @@ export function Calendar(props: CalendarComponentProps) {
               <CurrentTime timezone={timezone} />
               <div
                 className={classNames(
-                  "bg-default dark:bg-muted ring-muted border-default sticky left-0 z-10 w-14 flex-none border-r ring-1",
+                  "bg-default dark:bg-muted ring-muted border-subtle sticky left-0 z-10 w-16 flex-none border-r ring-1",
                   showBorder && "border-l"
                 )}
               />
