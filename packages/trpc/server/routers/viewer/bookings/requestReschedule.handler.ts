@@ -1,8 +1,10 @@
 import type { TFunction } from "i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/delegationCredential";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import {
+  getDelegationCredentialOrRegularCredential,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
+} from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -24,11 +26,13 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
 import { prisma } from "@calcom/prisma";
-import type { BookingReference, EventType } from "@calcom/prisma/client";
+import type { EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -71,7 +75,19 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       },
       location: true,
       attendees: true,
-      references: true,
+      references: {
+        select: {
+          uid: true,
+          type: true,
+          externalCalendarId: true,
+          credentialId: true,
+          delegationCredentialId: true,
+          credential: {
+            select: credentialForCalendarServiceSelect,
+          },
+          delegationCredential: true,
+        },
+      },
       customInputs: true,
       dynamicEventSlugRef: true,
       dynamicGroupSlugRef: true,
@@ -220,7 +236,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const director = new CalendarEventDirector();
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
-  cancellationReason && director.setCancellationReason(cancellationReason);
+  if (cancellationReason) {
+    director.setCancellationReason(cancellationReason);
+  }
   if (Object.keys(event).length) {
     // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
     await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });
@@ -230,42 +248,53 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
-  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
-  const credentialsMap = new Map();
-  credentials.forEach((credential) => {
-    credentialsMap.set(credential.type, credential);
-  });
-  const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
-    credentialsMap.has(ref.type)
-  );
+  const enrichedCredentialsPromises = bookingToReschedule.references.map(async (bookingRef) => {
+    if (!bookingRef.credential) return null;
 
-  // FIXME: error-handling
+    const enriched = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+      user: {
+        id: bookingRef.credential.userId || 0,
+        email: bookingRef.credential.user?.email || "",
+        credentials: [bookingRef.credential as CredentialPayload],
+      },
+    });
+
+    return {
+      bookingRef,
+      enrichedCredentials: enriched.credentials,
+    };
+  });
+
+  const enrichedCredentialsResults = await Promise.all(enrichedCredentialsPromises);
+
   await Promise.allSettled(
-    bookingRefsFiltered.map(async (bookingRef) => {
+    enrichedCredentialsResults.map(async (result) => {
+      if (!result) return;
+
+      const { bookingRef, enrichedCredentials } = result;
       if (!bookingRef.uid) return;
 
-      if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(
-          getDelegationCredentialOrRegularCredential({
-            credentials,
-            id: {
-              credentialId: bookingRef?.credentialId,
-              delegationCredentialId: bookingRef?.delegationCredentialId,
-            },
-          })
+      const credential = getDelegationCredentialOrRegularCredential({
+        credentials: enrichedCredentials,
+        id: {
+          credentialId: bookingRef.credentialId,
+          delegationCredentialId: bookingRef.delegationCredentialId,
+        },
+      });
+
+      if (!credential) {
+        log.warn(
+          `No credential found for booking reference ${bookingRef.uid} of type ${bookingRef.type}`,
+          safeStringify({ bookingRefId: bookingRef.uid, credentialId: bookingRef.credentialId })
         );
+        return;
+      }
+
+      if (bookingRef.type.endsWith("_calendar")) {
+        const calendar = await getCalendar(credential);
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
-        return deleteMeeting(
-          getDelegationCredentialOrRegularCredential({
-            credentials,
-            id: {
-              credentialId: bookingRef?.credentialId,
-              delegationCredentialId: bookingRef?.delegationCredentialId,
-            },
-          }),
-          bookingRef.uid
-        );
+        return deleteMeeting(credential, bookingRef.uid);
       }
     })
   );
