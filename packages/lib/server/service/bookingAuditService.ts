@@ -1,5 +1,7 @@
-import type { BookingAudit, BookingAuditType, BookingAuditAction, Prisma } from "@prisma/client";
+import type { BookingAudit, BookingAuditType, BookingAuditAction, Prisma, ActorType } from "@prisma/client";
 import { z } from "zod";
+
+import { prisma } from "@calcom/prisma";
 
 import type { IBookingAuditRepository } from "../repository/IBookingAuditRepository";
 import { PrismaBookingAuditRepository } from "../repository/PrismaBookingAuditRepository";
@@ -49,8 +51,7 @@ export type BookingAuditData = z.infer<typeof BookingAuditDataSchema>;
 
 export type CreateBookingAuditInput = {
   bookingId: string;
-  actorUserId?: number | null; // For registered Cal.com users
-  actorId?: string | null; // For non-registered users or system
+  actorId: string;
   type: BookingAuditType;
   action?: BookingAuditAction | null;
   data?: BookingAuditData | null;
@@ -72,19 +73,39 @@ export class BookingAuditService {
   }
 
   /**
+   * Creates or finds an Actor record for a registered user
+   * We store user information in Actor table to maintain audit trail even after user deletion
+   */
+  static async getOrCreateUserActor(userId: number): Promise<string> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true },
+    });
+
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+
+    const actor = await prisma.actor.upsert({
+      where: { userId: user.id },
+      update: {},
+      create: {
+        type: "USER" as ActorType,
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    });
+
+    return actor.id;
+  }
+
+  /**
    * Creates a booking audit record with standardized data structure
    */
   async createAuditRecord(input: CreateBookingAuditInput): Promise<BookingAudit> {
-    if (!input.actorUserId && !input.actorId) {
-      throw new Error("Either actorUserId or actorId must be provided");
-    }
-    if (input.actorUserId && input.actorId) {
-      throw new Error("Cannot provide both actorUserId and actorId");
-    }
-
     const auditData: Prisma.BookingAuditCreateInput = {
       bookingId: input.bookingId,
-      actorUserId: input.actorUserId,
       actorId: input.actorId,
       type: input.type,
       action: input.action,
@@ -104,12 +125,13 @@ export class BookingAuditService {
    */
   async onBookingCreated(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_CREATED",
       action: "ACCEPTED",
       data: {
@@ -124,17 +146,17 @@ export class BookingAuditService {
    */
   async onBookingAccepted(
     bookingId: string,
-    actorUserId?: number,
+    userId?: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = userId ? await BookingAuditService.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
-      actorUserId: actorUserId || undefined,
-      actorId: actorUserId ? undefined : SYSTEM_ACTOR_ID,
+      actorId,
       type: "RECORD_UPDATED",
       action: "ACCEPTED",
       data: {
-        actor: { type: actorUserId ? "User" : "System" },
+        actor: { type: userId ? "User" : "System" },
         ...data,
       },
     });
@@ -145,17 +167,17 @@ export class BookingAuditService {
    */
   async onBookingRejected(
     bookingId: string,
-    actorUserId?: number,
+    userId?: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = userId ? await BookingAuditService.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
-      actorUserId: actorUserId || undefined,
-      actorId: actorUserId ? undefined : SYSTEM_ACTOR_ID,
+      actorId,
       type: "RECORD_UPDATED",
       action: "REJECTED",
       data: {
-        actor: { type: actorUserId ? "User" : "System" },
+        actor: { type: userId ? "User" : "System" },
         ...data,
       },
     });
@@ -166,17 +188,17 @@ export class BookingAuditService {
    */
   async onBookingPending(
     bookingId: string,
-    actorUserId?: number,
+    userId?: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = userId ? await BookingAuditService.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
-      actorUserId: actorUserId || undefined,
-      actorId: actorUserId ? undefined : SYSTEM_ACTOR_ID,
+      actorId,
       type: "RECORD_UPDATED",
       action: "PENDING",
       data: {
-        actor: { type: actorUserId ? "User" : "System" },
+        actor: { type: userId ? "User" : "System" },
         ...data,
       },
     });
@@ -187,17 +209,17 @@ export class BookingAuditService {
    */
   async onBookingAwaitingHost(
     bookingId: string,
-    actorUserId?: number,
+    userId?: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = userId ? await BookingAuditService.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
-      actorUserId: actorUserId || undefined,
-      actorId: actorUserId ? undefined : SYSTEM_ACTOR_ID,
+      actorId,
       type: "RECORD_UPDATED",
       action: "AWAITING_HOST",
       data: {
-        actor: { type: actorUserId ? "User" : "System" },
+        actor: { type: userId ? "User" : "System" },
         ...data,
       },
     });
@@ -208,12 +230,13 @@ export class BookingAuditService {
    */
   async onBookingUpdated(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: null,
       data: {
@@ -228,17 +251,17 @@ export class BookingAuditService {
    */
   async onBookingCancelled(
     bookingId: string,
-    actorUserId?: number,
+    userId?: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = userId ? await BookingAuditService.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
-      actorUserId: actorUserId || undefined,
-      actorId: actorUserId ? undefined : SYSTEM_ACTOR_ID,
+      actorId,
       type: "RECORD_UPDATED",
       action: "CANCELLED",
       data: {
-        actor: { type: actorUserId ? "User" : "System" },
+        actor: { type: userId ? "User" : "System" },
         ...data,
       },
     });
@@ -249,12 +272,13 @@ export class BookingAuditService {
    */
   async onBookingRescheduled(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "RESCHEDULED",
       data: {
@@ -269,12 +293,13 @@ export class BookingAuditService {
    */
   async onRescheduleRequested(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "RESCHEDULE_REQUESTED",
       data: {
@@ -289,12 +314,13 @@ export class BookingAuditService {
    */
   async onAttendeeAdded(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "ATTENDEE_ADDED",
       data: {
@@ -309,12 +335,13 @@ export class BookingAuditService {
    */
   async onAttendeeRemoved(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "ATTENDEE_REMOVED",
       data: {
@@ -331,12 +358,13 @@ export class BookingAuditService {
    */
   async onCancellationReasonUpdated(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "CANCELLATION_REASON_UPDATED",
       data: {
@@ -351,12 +379,13 @@ export class BookingAuditService {
    */
   async onRejectionReasonUpdated(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "REJECTION_REASON_UPDATED",
       data: {
@@ -371,12 +400,13 @@ export class BookingAuditService {
    */
   async onAssignmentReasonUpdated(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "ASSIGNMENT_REASON_UPDATED",
       data: {
@@ -391,12 +421,13 @@ export class BookingAuditService {
    */
   async onReassignmentReasonUpdated(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "REASSIGNMENT_REASON_UPDATED",
       data: {
@@ -413,12 +444,13 @@ export class BookingAuditService {
    */
   async onLocationChanged(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "LOCATION_CHANGED",
       data: {
@@ -433,17 +465,17 @@ export class BookingAuditService {
    */
   async onMeetingUrlUpdated(
     bookingId: string,
-    actorUserId?: number,
+    userId?: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = userId ? await BookingAuditService.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
     return this.createAuditRecord({
       bookingId,
-      actorUserId: actorUserId || undefined,
-      actorId: actorUserId ? undefined : SYSTEM_ACTOR_ID,
+      actorId,
       type: "RECORD_UPDATED",
       action: "MEETING_URL_UPDATED",
       data: {
-        actor: { type: actorUserId ? "User" : "System" },
+        actor: { type: userId ? "User" : "System" },
         ...data,
       },
     });
@@ -456,12 +488,13 @@ export class BookingAuditService {
    */
   async onHostNoShowUpdated(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "HOST_NO_SHOW_UPDATED",
       data: {
@@ -476,12 +509,13 @@ export class BookingAuditService {
    */
   async onAttendeeNoShowUpdated(
     bookingId: string,
-    actorUserId: number,
+    userId: number,
     data?: Partial<BookingAuditData>
   ): Promise<BookingAudit> {
+    const actorId = await BookingAuditService.getOrCreateUserActor(userId);
     return this.createAuditRecord({
       bookingId,
-      actorUserId,
+      actorId,
       type: "RECORD_UPDATED",
       action: "ATTENDEE_NO_SHOW_UPDATED",
       data: {

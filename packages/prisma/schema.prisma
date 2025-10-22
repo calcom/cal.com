@@ -462,7 +462,6 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
-  bookingAudits                  BookingAudit[]
 
   @@unique([email])
   @@unique([email, username])
@@ -2566,6 +2565,7 @@ enum BookingAuditAction {
 }
 
 enum ActorType {
+  USER   @map("user") // Registered Cal.com user (stored here for audit retention even after user deletion)
   GUEST  @map("guest") // Non-registered user
   SYSTEM @map("system") // Automated actions
 }
@@ -2573,6 +2573,7 @@ enum ActorType {
 model Actor {
   id        String    @id @default(uuid())
   type      ActorType
+  userId    Int? // Reference to User.id for USER type actors (nullable to allow user deletion)
   email     String?
   phone     String?
   name      String?
@@ -2580,27 +2581,25 @@ model Actor {
 
   bookingAudits BookingAudit[]
 
-  @@unique([email])
+  @@unique([userId]) // One actor per user
   @@index([email])
+  @@index([userId])
 }
 
 model BookingAudit {
   id        String @id @default(uuid()) //TODO: Use uuid7() for time-sortable ID once Prisma updates to 7.
   bookingId String
 
-  // Either actorUserId (registered) OR actorId (non-registered/system)
-  actorUserId Int?
-  actorUser   User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
-
-  actorId String?
-  actor   Actor?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  // Actor who performed the action (USER, GUEST, or SYSTEM)
+  // Stored in Actor table to maintain audit trail even after user deletion
+  actorId String
+  actor   Actor  @relation(fields: [actorId], references: [id], onDelete: Restrict)
 
   type      BookingAuditType
   action    BookingAuditAction?
   timestamp DateTime            @default(now())
   data      Json?
 
-  @@index([actorUserId])
   @@index([actorId])
   @@index([bookingId])
 }
