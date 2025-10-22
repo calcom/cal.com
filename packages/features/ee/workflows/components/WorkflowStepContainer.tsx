@@ -380,6 +380,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
+  const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
+  const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
+
+  const disallowFormTriggers = hasEmailToHostAction || hasWhatsappAction;
+
+  const filteredTriggerOptions = triggerOptions.filter(
+    (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
+  );
+
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
     : { ref: null, name: "" };
@@ -575,7 +584,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     }
                   }}
                   defaultValue={selectedTrigger}
-                  options={triggerOptions}
+                  options={filteredTriggerOptions}
                 />
               );
             }}
