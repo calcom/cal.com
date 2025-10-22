@@ -30,14 +30,13 @@ import { AttendeeAddGuestsEmail, OrganizerAddGuestsEmail } from "@calcom/platfor
 import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { User, Team } from "@calcom/prisma/client";
 
-jest
+const attendeeAddGuestsEmailSpy = jest
   .spyOn(AttendeeAddGuestsEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
-jest
+const organizerAddGuestsEmailSpy = jest
   .spyOn(OrganizerAddGuestsEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 
-// Type definitions for test setup data
 type TestUser = {
   user: User;
   accessToken: string;
@@ -123,7 +122,6 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       },
     });
 
-    // Create tokens for all users
     const organizerTokens = await tokensRepositoryFixture.createTokens(organizerUser.id, oAuthClient.id);
     const unrelatedUserTokens = await tokensRepositoryFixture.createTokens(
       unrelatedUserData.id,
@@ -183,12 +181,12 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
   }
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    attendeeAddGuestsEmailSpy.mockClear();
+    organizerAddGuestsEmailSpy.mockClear();
   });
 
   describe("POST /v2/bookings/:bookingUid/guests", () => {
     beforeAll(async () => {
-      // Create a booking to be used across all tests
       const createBookingBody: CreateBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
         eventTypeId: testSetup.eventTypeId,
@@ -346,12 +344,10 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
   afterAll(async () => {
     await teamRepositoryFixture.delete(organization.id);
 
-    // Delete all users created in the test
     await userRepositoryFixture.deleteByEmail(testSetup.organizer.user.email);
     await userRepositoryFixture.deleteByEmail(testSetup.unrelatedUser.user.email);
     await userRepositoryFixture.deleteByEmail(testSetup.attendee.user.email);
 
-    // Delete all bookings for the organizer
     await bookingsRepositoryFixture.deleteAllBookings(
       testSetup.organizer.user.id,
       testSetup.organizer.user.email
