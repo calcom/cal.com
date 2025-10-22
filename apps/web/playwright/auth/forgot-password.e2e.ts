@@ -160,6 +160,6 @@ test.describe("Forgot password", async () => {
     await expect(page.locator(`text=Whoops`)).toBeVisible();
 
     await page.goto(`/auth/forgot-password/${secondRequest.id}`);
-    await expect(page.locator(`text=Reset Password`)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Reset Password" })).toBeVisible();
   });
 });
