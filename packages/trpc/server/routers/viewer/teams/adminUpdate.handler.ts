@@ -1,3 +1,4 @@
+import { Prisma } from "@calcom/prisma/client";
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../types";
@@ -11,13 +12,16 @@ type AdminUpdateTeamOptions = {
 };
 
 export const adminUpdateTeamHandler = async ({ input }: AdminUpdateTeamOptions) => {
-  const { id, ...data } = input;
+  const { id, metadata, ...data } = input;
 
   return await prisma.team.update({
     where: {
       id,
     },
-    data,
+    data: {
+      ...data,
+      ...(metadata !== undefined && { metadata: metadata === null ? Prisma.JsonNull : metadata }),
+    },
     select: {
       id: true,
       name: true,
