@@ -53,7 +53,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   if (!bookingToReschedule) return;
 
-  if (!bookingToReschedule.userId) {
+  if (!bookingToReschedule.userId || !bookingToReschedule.user) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
   }
 
@@ -178,7 +178,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
-  const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(bookingToReschedule.user);
   const credentialsMap = new Map();
   credentials.forEach((credential) => {
     credentialsMap.set(credential.type, credential);
