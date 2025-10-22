@@ -235,9 +235,7 @@ export async function executeAIPhoneCall(payload: string) {
 
     const numberToCall = data.toNumber;
     if (!numberToCall) {
-      log.warn(`No phone number found in booking ${booking?.uid} or responses`, {
-        responses,
-      });
+      log.warn(`No phone number found in booking ${booking?.uid} or the routing form responses`);
       throw new Error("No phone number found");
     }
 

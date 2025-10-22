@@ -2638,6 +2638,7 @@ model Agent {
   @@index([userId])
   @@index([teamId])
   @@index([inboundEventTypeId])
+  @@index([outboundEventTypeId])
 }
 
 model CalAiPhoneNumber {
