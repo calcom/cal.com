@@ -15,7 +15,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import prisma, { type PrismaTransaction } from "@calcom/prisma";
+import { prisma, type PrismaTransaction } from "@calcom/prisma";
 import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
