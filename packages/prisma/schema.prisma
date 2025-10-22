@@ -2572,6 +2572,7 @@ model BookingAudit {
   action    BookingAuditAction?
   timestamp DateTime            @default(now())
   data      Json?
+}
 
 enum PhoneNumberSubscriptionStatus {
   ACTIVE
@@ -2641,7 +2642,6 @@ model CalAiPhoneNumber {
   @@index([teamId])
   @@index([inboundAgentId])
   @@index([outboundAgentId])
-
 }
 
 enum CalendarCacheEventStatus {

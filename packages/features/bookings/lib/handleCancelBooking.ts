@@ -28,6 +28,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
@@ -461,6 +462,22 @@ async function handler(input: CancelBookingInput) {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    try {
+      const bookingAuditService = BookingAuditService.create();
+      await bookingAuditService.onBookingCancelled(
+        String(updatedBooking.id),
+        userId ? String(userId) : undefined,
+        {
+          cancellationReason: cancellationReason || undefined,
+          booking: {
+            meetingTime: updatedBooking.startTime.toISOString(),
+          },
+        }
+      );
+    } catch (error) {
+      log.error("Failed to create booking audit log for cancellation", error);
+    }
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {
