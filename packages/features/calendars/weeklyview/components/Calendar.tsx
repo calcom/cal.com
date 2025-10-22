@@ -33,6 +33,7 @@ export function Calendar(props: CalendarComponentProps) {
   const timezone = useCalendarStore((state) => state.timezone);
   const showBackgroundPattern = useCalendarStore((state) => state.showBackgroundPattern);
   const showBorder = useCalendarStore((state) => state.showBorder ?? true);
+  const borderColor = useCalendarStore((state) => state.borderColor ?? "default");
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -66,13 +67,20 @@ export function Calendar(props: CalendarComponentProps) {
           <div
             style={{ width: "165%" }}
             className="flex h-full max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
-            <DateValues containerNavRef={containerNav} days={days} showBorder={showBorder} />
+            <DateValues
+              containerNavRef={containerNav}
+              days={days}
+              showBorder={showBorder}
+              borderColor={borderColor}
+            />
             <div className="relative flex flex-auto">
               <CurrentTime timezone={timezone} />
               <div
                 className={classNames(
-                  "bg-default dark:bg-muted ring-muted border-subtle sticky left-0 z-10 w-16 flex-none border-r ring-1",
-                  showBorder && "border-l"
+                  "bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
+                  borderColor === "subtle" ? "border-subtle border-r" : "border-default border-r",
+                  showBorder &&
+                    (borderColor === "subtle" ? "border-subtle border-l" : "border-default border-l")
                 )}
               />
               <div
@@ -90,8 +98,9 @@ export function Calendar(props: CalendarComponentProps) {
                   hours={hours}
                   numberOfGridStopsPerCell={usersCellsStopsPerHour}
                   containerOffsetRef={containerOffset}
+                  borderColor={borderColor}
                 />
-                <VerticalLines days={days} />
+                <VerticalLines days={days} borderColor={borderColor} />
 
                 <SchedulerColumns
                   offsetHeight={containerOffset.current?.offsetHeight}

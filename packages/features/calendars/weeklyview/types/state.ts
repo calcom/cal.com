@@ -137,10 +137,15 @@ export type CalendarState = {
    */
   showBackgroundPattern?: boolean;
   /**
-   * Show borders around calendar cells
+   * Show borders on the leftmost and rightmost sides of the calendar container
    * @default true
    */
   showBorder?: boolean;
+  /**
+   * Border color for calendar cells
+   * @default "default"
+   */
+  borderColor?: "default" | "subtle";
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };

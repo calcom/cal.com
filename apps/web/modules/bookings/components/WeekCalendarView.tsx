@@ -136,6 +136,7 @@ export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewPro
           hoverEventDuration={0}
           showBackgroundPattern={false}
           showBorder={false}
+          borderColor="subtle"
           onEventClick={(event) => {
             console.log("Event clicked:", event);
           }}
