@@ -11,5 +11,3 @@ export function usePlatformMe() {
 
   return meQuery;
 }
-
-export default usePlatformMe;

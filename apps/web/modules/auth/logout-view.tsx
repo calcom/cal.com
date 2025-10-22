@@ -25,8 +25,7 @@ export function Logout(props: PageProps) {
     if (props.query?.survey === "true") {
       router.push(`${WEBSITE_URL}/cancellation`);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.query?.survey]);
+  }, [props.query?.survey, router]);
   const { t } = useLocale();
 
   const message = () => {
@@ -65,5 +64,3 @@ export function Logout(props: PageProps) {
     </AuthContainer>
   );
 }
-
-export default Logout;

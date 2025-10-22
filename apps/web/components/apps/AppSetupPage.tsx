@@ -22,5 +22,3 @@ export const AppSetupMap = {
 export const AppSetupPage = (props: { slug: string }) => {
   return <DynamicComponent<typeof AppSetupMap> componentMap={AppSetupMap} {...props} />;
 };
-
-export default AppSetupPage;

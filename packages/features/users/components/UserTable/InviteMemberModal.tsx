@@ -6,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui/components/toast";
-import usePlatformMe from "@calcom/web/components/settings/platform/hooks/usePlatformMe";
+import { usePlatformMe } from "@calcom/web/components/settings/platform/hooks/usePlatformMe";
 
 import type { UserTableAction } from "./types";
 

@@ -142,5 +142,3 @@ export function Setup(props: PageProps) {
 }
 
 Setup.isThemeSupported = false;
-
-export default Setup;
