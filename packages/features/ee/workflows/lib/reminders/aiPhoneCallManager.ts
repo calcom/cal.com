@@ -53,15 +53,18 @@ interface CreateWorkflowReminderAndExtractPhoneResult {
 
 const createWorkflowReminderAndExtractPhone = async (
   args: CreateWorkflowReminderAndExtractPhoneArgs
-): Promise<CreateWorkflowReminderAndExtractPhoneResult> => {
+): Promise<CreateWorkflowReminderAndExtractPhoneResult | null> => {
   const { evt, workflowStepId, scheduledDate, seatReferenceUid, submittedPhoneNumber } = args;
   // 1) Determine attendee phone first (fail early)
   let attendeePhoneNumber = extractPhoneNumber(evt?.responses) || submittedPhoneNumber;
   if (!attendeePhoneNumber) {
-    if (evt?.attendees?.[0]?.phoneNumber) {
+    if (!evt) {
+      return null;
+    }
+
+    if (evt.attendees?.[0]?.phoneNumber) {
       attendeePhoneNumber = evt.attendees?.[0]?.phoneNumber;
     } else {
-      // do we really want to throw an error here?
       throw new Error(`No attendee phone number found for workflow step ${workflowStepId}`);
     }
   }
@@ -221,12 +224,19 @@ const scheduleAIPhoneCallForEvt = async (
 
   if (!shouldExecuteImmediately) {
     try {
-      const { workflowReminder, attendeePhoneNumber } = await createWorkflowReminderAndExtractPhone({
+      const reminderAndPhone = await createWorkflowReminderAndExtractPhone({
         evt,
         workflowStepId,
         scheduledDate,
         seatReferenceUid,
       });
+
+      if (!reminderAndPhone) {
+        logger.warn(`No phone number found for AI phone call workflow step ${workflowStepId} - skipping`);
+        return;
+      }
+
+      const { workflowReminder, attendeePhoneNumber } = reminderAndPhone;
 
       // Schedule the actual AI phone call
       await scheduleAIPhoneCallTask({
@@ -251,12 +261,19 @@ const scheduleAIPhoneCallForEvt = async (
   } else {
     // Execute immediately
     try {
-      const { workflowReminder, attendeePhoneNumber } = await createWorkflowReminderAndExtractPhone({
+      const reminderAndPhone = await createWorkflowReminderAndExtractPhone({
         evt,
         workflowStepId,
         scheduledDate: currentDate,
         seatReferenceUid,
       });
+
+      if (!reminderAndPhone) {
+        logger.warn(`No phone number found for AI phone call workflow step ${workflowStepId} - skipping`);
+        return;
+      }
+
+      const { workflowReminder, attendeePhoneNumber } = reminderAndPhone;
 
       // Schedule the actual AI phone call immediately
       // Should i execute the task immediately or schedule it for later?
@@ -301,13 +318,20 @@ const scheduleAIPhoneCallForForm = async (
   } = args;
 
   try {
-    const { workflowReminder, attendeePhoneNumber } = await createWorkflowReminderAndExtractPhone({
+    const reminderAndPhone = await createWorkflowReminderAndExtractPhone({
       formData,
       workflowStepId,
       submittedPhoneNumber: reminderPhone,
       scheduledDate: dayjs(),
       seatReferenceUid,
     });
+
+    if (!reminderAndPhone) {
+      logger.warn(`No phone number found for AI phone call workflow step ${workflowStepId} - skipping`);
+      return;
+    }
+
+    const { workflowReminder, attendeePhoneNumber } = reminderAndPhone;
 
     await scheduleAIPhoneCallTask({
       workflowReminderId: workflowReminder.id,
