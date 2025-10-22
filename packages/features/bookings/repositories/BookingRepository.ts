@@ -1230,4 +1230,27 @@ export class BookingRepository {
       },
     });
   }
+
+  async markBookingAsRescheduled({
+    bookingId,
+    cancellationReason,
+    cancelledBy,
+  }: {
+    bookingId: number;
+    cancellationReason?: string;
+    cancelledBy: string;
+  }) {
+    return await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        rescheduled: true,
+        cancellationReason,
+        status: BookingStatus.CANCELLED,
+        updatedAt: new Date().toISOString(),
+        cancelledBy,
+      },
+    });
+  }
 }

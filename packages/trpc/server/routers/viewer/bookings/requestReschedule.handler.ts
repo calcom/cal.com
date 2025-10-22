@@ -28,7 +28,6 @@ import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhook
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
 
@@ -95,17 +94,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   if (bookingToReschedule.eventType) {
     event = bookingToReschedule.eventType;
   }
-  await prisma.booking.update({
-    where: {
-      id: bookingToReschedule.id,
-    },
-    data: {
-      rescheduled: true,
-      cancellationReason,
-      status: BookingStatus.CANCELLED,
-      updatedAt: dayjs().toISOString(),
-      cancelledBy: user.email,
-    },
+  await bookingRepository.markBookingAsRescheduled({
+    bookingId: bookingToReschedule.id,
+    cancellationReason,
+    cancelledBy: user.email,
   });
 
   // delete scheduled jobs of previous booking
