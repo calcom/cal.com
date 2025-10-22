@@ -21,3 +21,19 @@ export type EmailVerifyCode = {
   verificationEmailCode: string;
   isVerifyingEmail?: boolean;
 };
+
+export type PendingGuestConfirmation = {
+  language: TFunction;
+  guest: {
+    email: string;
+    name?: string;
+  };
+  booking: {
+    uid: string;
+    title: string;
+  };
+  organizer: {
+    name: string;
+    email: string;
+  };
+};

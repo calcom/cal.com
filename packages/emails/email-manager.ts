@@ -76,6 +76,8 @@ import OrganizerRequestReminderEmail from "./templates/organizer-request-reminde
 import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
+import type { PendingGuestConfirmation } from "./templates/pending-guest-confirmation-email";
+import PendingGuestConfirmationEmail from "./templates/pending-guest-confirmation-email";
 import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
@@ -886,4 +888,8 @@ export const sendDelegationCredentialDisabledEmail = async ({
         conferencingAppName,
       })
   );
+};
+
+export const sendPendingGuestConfirmationEmail = async (input: PendingGuestConfirmation) => {
+  await sendEmail(() => new PendingGuestConfirmationEmail(input));
 };

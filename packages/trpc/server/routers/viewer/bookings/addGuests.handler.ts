@@ -1,6 +1,6 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
-import { sendAddGuestsEmails } from "@calcom/emails";
+import { sendAddGuestsEmails, sendPendingGuestConfirmationEmail } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -101,18 +101,28 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
   }
 
+  const pendingGuestEmails: string[] = [];
   const uniqueGuests = deduplicatedGuests.filter((guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
-    return (
-      !booking.attendees.some(
-        (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
-      ) &&
-      !blacklistedGuestEmails.includes(baseGuestEmail) &&
-      !emailToRequiresVerification.get(baseGuestEmail)
-    );
+
+    if (
+      booking.attendees.some((attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail)
+    ) {
+      return false;
+    }
+
+    const shouldBePending =
+      blacklistedGuestEmails.includes(baseGuestEmail) || emailToRequiresVerification.get(baseGuestEmail);
+
+    if (shouldBePending) {
+      pendingGuestEmails.push(guest);
+      return false;
+    }
+
+    return true;
   });
 
-  if (uniqueGuests.length === 0)
+  if (uniqueGuests.length === 0 && pendingGuestEmails.length === 0)
     throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
 
   const guestsFullDetails = uniqueGuests.map((guest) => {
@@ -214,5 +224,47 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     console.error("Error sending AddGuestsEmails", err);
   }
 
-  return { message: "Guests added" };
+  if (pendingGuestEmails.length > 0) {
+    await prisma.pendingGuest.createMany({
+      data: pendingGuestEmails.map((email) => ({
+        email,
+        name: "",
+        timeZone: organizer.timeZone,
+        locale: organizer.locale,
+        bookingId: booking.id,
+      })),
+    });
+
+    const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
+    for (const guestEmail of pendingGuestEmails) {
+      try {
+        await sendPendingGuestConfirmationEmail({
+          language: tOrganizer,
+          guest: {
+            email: guestEmail,
+            name: "",
+          },
+          booking: {
+            uid: booking.uid,
+            title: booking.title || "",
+          },
+          organizer: {
+            name: organizer.name || "",
+            email: organizer.email,
+          },
+        });
+      } catch (err) {
+        console.error("Error sending PendingGuestConfirmationEmail", err);
+      }
+    }
+  }
+
+  const message =
+    uniqueGuests.length > 0
+      ? pendingGuestEmails.length > 0
+        ? `${uniqueGuests.length} guests added, ${pendingGuestEmails.length} pending confirmation`
+        : "Guests added"
+      : `${pendingGuestEmails.length} guests pending confirmation`;
+
+  return { message };
 };

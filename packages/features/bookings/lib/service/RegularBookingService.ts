@@ -20,6 +20,7 @@ import {
 } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
+import { sendPendingGuestConfirmationEmail } from "@calcom/emails/email-manager";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
@@ -1216,17 +1217,16 @@ async function handler(
     emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
   }
 
-  const guestsRemoved: string[] = [];
+  const pendingGuestEmails: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
 
-    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
-      guestsRemoved.push(guest);
-      return guestArray;
-    }
+    const shouldBePending =
+      blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail) ||
+      emailToRequiresVerification.get(baseGuestEmail);
 
-    if (emailToRequiresVerification.get(baseGuestEmail)) {
-      guestsRemoved.push(guest);
+    if (shouldBePending) {
+      pendingGuestEmails.push(guest);
       return guestArray;
     }
 
@@ -1245,8 +1245,8 @@ async function handler(
     return guestArray;
   }, [] as Invitee);
 
-  if (guestsRemoved.length > 0) {
-    log.info("Removed guests from the booking", guestsRemoved);
+  if (pendingGuestEmails.length > 0) {
+    log.info("Guests placed in pending state", pendingGuestEmails);
   }
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
@@ -1815,6 +1815,48 @@ async function handler(
           },
         });
         evt.attendeeSeatId = uniqueAttendeeId;
+      }
+
+      if (pendingGuestEmails.length > 0 && booking) {
+        const bookingId = booking.id;
+        const bookingUid = booking.uid;
+
+        await prisma.pendingGuest.createMany({
+          data: pendingGuestEmails.map((email) => ({
+            email,
+            name: "",
+            timeZone: attendeeTimezone,
+            locale: attendeeLanguage ?? "en",
+            bookingId,
+          })),
+        });
+
+        log.info("Created PendingGuest records", {
+          count: pendingGuestEmails.length,
+          bookingId,
+        });
+
+        for (const guestEmail of pendingGuestEmails) {
+          await sendPendingGuestConfirmationEmail({
+            language: tAttendees,
+            guest: {
+              email: guestEmail,
+              name: "",
+            },
+            booking: {
+              uid: bookingUid,
+              title: eventName,
+            },
+            organizer: {
+              name: organizerUser.name || "",
+              email: organizerUser.email,
+            },
+          });
+        }
+
+        log.info("Sent pending guest confirmation emails", {
+          count: pendingGuestEmails.length,
+        });
       }
     } else {
       const { booking: dryRunBooking, troubleshooterData: _troubleshooterData } = buildDryRunBooking({

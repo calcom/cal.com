@@ -3897,5 +3897,15 @@
   "onboarding_plan_team_badge": "$15/user/mo",
   "onboarding_plan_organization_badge": "$37/user/mo",
   "onboarding_plan_organization_description": "Robust scheduling for larger teams looking to have more control, privacy, and security.",
+  "confirm_guest_attendance": "Confirm your attendance to {{eventName}}",
+  "pending_guest_confirmation_body": "{{organizerName}} has invited you to {{eventName}}. Please confirm your attendance by using the code below or clicking the link.",
+  "confirmation_code": "Confirmation code",
+  "or_click_link": "Or click this link",
+  "code_expires_in": "This code expires in {{minutes}} minutes",
+  "confirm_attendance": "Confirm Attendance",
+  "guest_confirmed": "Guest Confirmed",
+  "guest_confirmed_description": "You have been successfully added to the meeting",
+  "guest_confirmation_failed": "Confirmation Failed",
+  "guest_confirmation_failed_description": "Unable to verify your attendance",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

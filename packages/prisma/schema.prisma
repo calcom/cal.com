@@ -850,6 +850,7 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+  pendingGuests                PendingGuest[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -858,6 +859,21 @@ model Booking {
   @@index([uid])
   @@index([status])
   @@index([startTime, endTime, status])
+}
+
+model PendingGuest {
+  id        Int      @id @default(autoincrement())
+  email     String
+  name      String   @default("")
+  timeZone  String
+  locale    String?  @default("en")
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId Int
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([email])
+  @@index([createdAt])
 }
 
 model Tracking {
