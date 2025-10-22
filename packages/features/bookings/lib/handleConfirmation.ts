@@ -18,6 +18,8 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";

@@ -4,6 +4,8 @@ import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/Workf
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
