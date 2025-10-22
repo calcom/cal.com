@@ -1,0 +1,8 @@
+openapi: 3.0.3
+info:
+  title: COSS Calendar API
+  description: |
+    REST API for managing calendars, events, availability, and scheduling in the COSS Calendar service.
+    
+    ## Authentication
+    All endpoints require authentication via Bearer token in the Authorization header:
