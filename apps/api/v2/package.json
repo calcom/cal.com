@@ -86,7 +86,7 @@
     "uuid": "^8.3.2",
     "winston": "^3.13.0",
     "winston-transport": "^4.7.0",
-    "zod": "^3.25.76"
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@calcom/eslint-config": "workspace:*",

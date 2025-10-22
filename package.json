@@ -138,7 +138,7 @@
     "dayjs@^1": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "dayjs@^1.8.29": "patch:dayjs@npm%3A1.11.4#./.yarn/patches/dayjs-npm-1.11.4-97921cd375.patch",
     "import-in-the-middle": "1.13.1",
-    "zod": "^3.25.76"
+    "zod": "3.25.76"
   },
   "engines": {
     "npm": ">=7.0.0",
