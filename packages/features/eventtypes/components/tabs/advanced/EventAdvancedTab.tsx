@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useState, Suspense, useMemo } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -33,12 +34,14 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
   APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
@@ -71,6 +74,46 @@ import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmails
 import { DisableAllEmailsSetting } from "./DisableAllEmailsSetting";
 import type { RequiresConfirmationCustomClassNames } from "./RequiresConfirmationController";
 import RequiresConfirmationController from "./RequiresConfirmationController";
+
+const OptimizedSlotsHelper = ({ t }: { t: (key: string) => string }) => (
+  <ServerTrans
+    t={t}
+    i18nKey="show_optimized_slots_description"
+    components={
+      IS_CALCOM
+        ? [
+            <Link
+              key="optimized_slots_helper"
+              className="underline underline-offset-2"
+              target="_blank"
+              href="https://cal.com/help/event-types/optimized-slots#optimized-slots">
+              Learn more
+            </Link>,
+          ]
+        : []
+    }
+  />
+);
+
+const HideOrganizerEmailHelper = ({ t }: { t: (key: string) => string }) => (
+  <ServerTrans
+    t={t}
+    i18nKey="hide_organizer_email_helper"
+    components={
+      IS_CALCOM
+        ? [
+            <Link
+              key="hide_organizer_email_helper"
+              className="underline underline-offset-2"
+              target="_blank"
+              href="https://cal.com/help/event-types/hideorganizersemail#hide-organizers-email">
+              Learn more
+            </Link>,
+          ]
+        : []
+    }
+  />
+);
 
 export type EventAdvancedTabCustomClassNames = {
   destinationCalendar?: SelectClassNames;
@@ -1131,7 +1174,7 @@ export const EventAdvancedTab = ({
             )}
             title={t("hide_organizer_email")}
             {...hideOrganizerEmailLocked}
-            description={t("hide_organizer_email_description")}
+            description={<HideOrganizerEmailHelper t={t} />}
             descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
@@ -1376,7 +1419,7 @@ export const EventAdvancedTab = ({
               toggleSwitchAtTheEnd={true}
               labelClassName="text-sm"
               title={t("show_optimized_slots")}
-              description={t("show_optimized_slots_description")}
+              description={<OptimizedSlotsHelper t={t} />}
               checked={isChecked}
               {...showOptimizedSlotsLocked}
               onCheckedChange={(active) => {
