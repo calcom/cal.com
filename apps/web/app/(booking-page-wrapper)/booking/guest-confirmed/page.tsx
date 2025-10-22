@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import { Icon } from "@calcom/ui";
+import { Icon } from "@calcom/ui/components/icon";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
