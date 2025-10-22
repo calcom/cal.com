@@ -177,11 +177,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
 
-  const isLoggedInUserTeamMember = !!(
-    userId &&
-    ((eventType.team?.id && (await isTeamMember(userId, eventType.team.id))) ||
-      (eventType.parent?.teamId && (await isTeamMember(userId, eventType.parent.teamId))))
-  );
+  const eventTeamId = eventType.team?.id ?? eventType.parent?.teamId;
+  const isLoggedInUserTeamMember = !!(userId && eventTeamId && (await isTeamMember(userId, eventTeamId)));
 
   const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamMember;
 
