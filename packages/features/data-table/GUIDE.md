@@ -977,7 +977,7 @@ From `packages/features/users/components/UserTable/UserListTable.tsx`:
 
 ### Example 2: Bookings List
 
-From `apps/web/modules/bookings/views/bookings-listing-view.tsx`:
+From `apps/web/modules/bookings/components/BookingsList.tsx`:
 
 ```tsx
 <DataTableWrapper
