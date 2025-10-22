@@ -4,6 +4,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
@@ -19,9 +20,17 @@ interface TestPhoneCallDialogProps {
   agentId: string;
   teamId?: number;
   form: UseFormReturn<FormValues>;
+  outboundEventTypeId?: number | null;
 }
 
-export function TestPhoneCallDialog({ open, onOpenChange, agentId, teamId, form }: TestPhoneCallDialogProps) {
+export function TestPhoneCallDialog({
+  open,
+  onOpenChange,
+  agentId,
+  teamId,
+  form,
+  outboundEventTypeId,
+}: TestPhoneCallDialogProps) {
   const { t } = useLocale();
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
 
@@ -41,9 +50,16 @@ export function TestPhoneCallDialog({ open, onOpenChange, agentId, teamId, form 
       showToast(t("please_enter_phone_number"), "error");
       return;
     }
-    const firstEventTypeId = form.getValues("activeOn")?.[0]?.value;
-    if (!firstEventTypeId) {
-      showToast(t("choose_at_least_one_event_type_test_call"), "error");
+
+    const eventTypeId = outboundEventTypeId ?? form.getValues("activeOn")?.[0]?.value;
+
+    if (!eventTypeId) {
+      const trigger = form.getValues("trigger");
+      if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
+        showToast("choose an event type in the agent set up", "error");
+      } else {
+        showToast(t("choose_at_least_one_event_type_test_call"), "error");
+      }
       return;
     }
 
@@ -52,7 +68,7 @@ export function TestPhoneCallDialog({ open, onOpenChange, agentId, teamId, form 
         agentId: agentId,
         phoneNumber: testPhoneNumber,
         teamId: teamId,
-        eventTypeId: parseInt(firstEventTypeId, 10),
+        eventTypeId: typeof eventTypeId === "string" ? parseInt(eventTypeId, 10) : eventTypeId,
       });
     }
   };

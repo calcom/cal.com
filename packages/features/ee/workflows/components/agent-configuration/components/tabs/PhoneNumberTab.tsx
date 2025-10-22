@@ -237,6 +237,9 @@ export function PhoneNumberTab({
             agentId={agentId}
             teamId={teamId}
             form={form}
+            outboundEventTypeId={
+              form.getValues("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null
+            }
           />
         )}
 
@@ -325,6 +328,7 @@ export function PhoneNumberTab({
           agentId={agentId}
           teamId={teamId}
           form={form}
+          outboundEventTypeId={trigger === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null}
         />
       )}
 
