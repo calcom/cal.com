@@ -23,6 +23,9 @@ export async function seedOrganizations() {
         slug,
         isOrganization: true,
       },
+      select: {
+        id: true,
+      },
     });
 
     if (existingOrg) {
@@ -119,7 +122,7 @@ export async function seedOrganizations() {
   console.log(`   • ~75% DNS Configured`);
   console.log(`   • ~80% Published`);
   console.log(`   • ~85% Admin API Enabled`);
-  console.log("\n🔑 All owner accounts use password: password123");
+  console.log("\n🔑 All owner accounts use the default password");
 }
 
 // Run the seed if this file is executed directly

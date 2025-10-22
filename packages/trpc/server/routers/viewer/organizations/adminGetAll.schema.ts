@@ -8,8 +8,8 @@ const ZAdminGetAllFilter = z.object({
 });
 
 export const ZAdminGetAllInputSchema = z.object({
-  limit: z.number().min(1).max(100),
-  offset: z.number(),
+  limit: z.number().int().min(1).max(100),
+  offset: z.number().int().min(0),
   searchTerm: z.string().optional(),
   filters: z.array(ZAdminGetAllFilter).optional(),
 });

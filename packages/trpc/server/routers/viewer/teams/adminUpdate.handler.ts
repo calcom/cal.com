@@ -18,6 +18,12 @@ export const adminUpdateTeamHandler = async ({ input }: AdminUpdateTeamOptions) 
       id,
     },
     data,
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      metadata: true,
+    },
   });
 };
 

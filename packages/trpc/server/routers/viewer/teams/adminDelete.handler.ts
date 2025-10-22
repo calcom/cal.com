@@ -15,6 +15,9 @@ export const adminDeleteTeamHandler = async ({ input }: AdminDeleteTeamOptions) 
     where: {
       id: input.id,
     },
+    select: {
+      id: true,
+    },
   });
 };
 
