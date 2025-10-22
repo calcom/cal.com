@@ -1,67 +1,73 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { CalendarServiceCredentialPayload } from "@calcom/lib/CalendarService";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
-import config from "../config.json";
 import YandexCalendarService from "../lib/CalendarService";
 
 type UserForSetupYandexCalendar = Prisma.UserGetPayload<{
-  select: typeof userSelect;
+  select: ReturnType<typeof getUserSelect>;
 }>;
 
-const userSelect = {
+const getUserSelect = (type: string) => ({
   id: true,
   email: true,
   credentials: {
     where: {
-      type: "yandex_calendar",
+      type,
     },
     select: {
       id: true,
       key: true,
     },
   },
-};
+});
 
-const Body = z.object({
+export const bodySchema = z.object({
   username: z.string(),
   password: z.string(),
 });
 
-export const setupYandexCalendar = async (req: NextApiRequest, res: NextApiResponse) => {
+export const setupYandexCalendar: AppDeclarativeHandler<
+  z.infer<typeof bodySchema>
+>["createCredential"] = async ({ body, user: providedUser, slug, appType, method, teamId }) => {
   try {
-    const body = Body.safeParse(req.body);
-    if (!body.success) {
-      return res.status(400).json({ message: "Username and password are required" });
+    // When it's GET, the default redirect will be used
+    if (method !== "POST") {
+      return { credential: null };
     }
 
-    const userId = req.session?.user?.id;
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthenticated" });
+    if (!body) {
+      throw new HttpError({ statusCode: 400, message: "Invalid request" });
     }
 
-    const user = await getUserForYandexCalendarSetup(userId);
+    if (!providedUser) {
+      throw new HttpError({ statusCode: 401, message: "Unauthenticated" });
+    }
+
+    const user = await getUserForYandexCalendarSetup(providedUser.id, appType);
     if (!user) {
+      logger.error("[Yandex Calendar] User not found", { userId: providedUser.id });
       // 500 beause this should not happen, if the session has a userId, then the user should be found
-      return res.status(500).json({ message: "Internal server error" });
+      throw new HttpError({ statusCode: 500, message: "Something went wrong" });
     }
 
     // Check if the credentials are installed
-    const foundCredentials = getExistingCredentials(user.credentials, body.data);
+    const foundCredentials = getExistingCredentials(user.credentials, body);
     if (foundCredentials === "exact_match") {
-      return res.status(409).json({ message: "The account is already linked" });
+      throw new HttpError({ statusCode: 409, message: "The account is already linked" });
     }
 
     const baseData = {
-      type: config.type,
+      type: appType,
       userId: user.id,
-      teamId: null,
-      appId: config.slug,
+      teamId,
+      appId: slug,
       invalid: false,
     } satisfies Omit<Prisma.CredentialUncheckedCreateInput, "key">;
 
@@ -69,24 +75,25 @@ export const setupYandexCalendar = async (req: NextApiRequest, res: NextApiRespo
     const isValid = validateCredentials({
       id: -1,
       ...baseData,
-      credentials: { username: body.data.username, password: body.data.password },
+      credentials: { username: body.username, password: body.password },
       delegationCredentialId: null,
       user: { email: user.email },
+      teamId: teamId || null,
     });
     if (!isValid) {
-      return res.status(400).json({ message: "Could not connect to Yandex Calendar" });
+      throw new Error("Could not connect to Yandex Calendar");
     }
 
     // Upsert the credentials
     const data = {
       ...baseData,
       key: symmetricEncrypt(
-        JSON.stringify({ username: body.data.username, password: body.data.password }),
+        JSON.stringify({ username: body.username, password: body.password }),
         process.env.CALENDSO_ENCRYPTION_KEY as string
       ),
     } satisfies Prisma.CredentialUncheckedCreateInput;
 
-    await prisma.credential.upsert({
+    const credential = await prisma.credential.upsert({
       where: {
         id: foundCredentials ? foundCredentials.id : -1,
       },
@@ -94,10 +101,13 @@ export const setupYandexCalendar = async (req: NextApiRequest, res: NextApiRespo
       update: data,
     });
 
-    return res.status(200).json({ url: "/apps/installed/calendar?hl=yandex-calendar" });
+    return {
+      credential,
+      redirect: { url: "/apps/installed/calendar?hl=yandex-calendar" },
+    };
   } catch (e) {
     logger.error("[Yandex Calendar] Error setting up Yandex Calendar", e);
-    return res.status(500).json({ message: "Something went wrong" });
+    throw new Error("Something went wrong");
   }
 };
 
@@ -107,7 +117,7 @@ export const setupYandexCalendar = async (req: NextApiRequest, res: NextApiRespo
  */
 const getExistingCredentials = (
   credentials: UserForSetupYandexCalendar["credentials"],
-  { username, password }: Pick<z.infer<typeof Body>, "username" | "password">
+  { username, password }: Pick<z.infer<typeof bodySchema>, "username" | "password">
 ): false | UserForSetupYandexCalendar["credentials"][number] | "exact_match" => {
   for (const credential of credentials) {
     if (!credential.key) continue;
@@ -132,12 +142,12 @@ const getExistingCredentials = (
   return false;
 };
 
-const getUserForYandexCalendarSetup = async (userId: number) => {
+const getUserForYandexCalendarSetup = async (userId: number, type: string) => {
   const user = await prisma.user.findUnique({
     where: {
       id: userId,
     },
-    select: userSelect,
+    select: getUserSelect(type),
   });
   return user;
 };
@@ -145,7 +155,10 @@ const getUserForYandexCalendarSetup = async (userId: number) => {
 const validateCredentials = async (credential: CalendarServiceCredentialPayload): Promise<boolean> => {
   try {
     const dav = new YandexCalendarService(credential);
-    await dav.listCalendars();
+    const calendars = await dav.listCalendars();
+    if (!calendars.length) {
+      return false;
+    }
     return true;
   } catch (error) {
     logger.error("[Yandex Calendar] Error validating credentials", error);
