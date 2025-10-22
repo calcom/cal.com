@@ -6,6 +6,7 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -45,51 +46,10 @@ type RequestRescheduleOptions = {
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
 export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
   const { user } = ctx;
-  const { bookingId, rescheduleReason: cancellationReason } = input;
-  log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
-  const bookingToReschedule = await prisma.booking.findUniqueOrThrow({
-    select: {
-      id: true,
-      uid: true,
-      userId: true,
-      title: true,
-      description: true,
-      startTime: true,
-      endTime: true,
-      eventTypeId: true,
-      userPrimaryEmail: true,
-      eventType: {
-        include: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              parentId: true,
-            },
-          },
-        },
-      },
-      location: true,
-      attendees: true,
-      references: true,
-      customInputs: true,
-      dynamicEventSlugRef: true,
-      dynamicGroupSlugRef: true,
-      destinationCalendar: true,
-      smsReminderNumber: true,
-      workflowReminders: true,
-      responses: true,
-      iCalUID: true,
-    },
-    where: {
-      uid: bookingId,
-      NOT: {
-        status: {
-          in: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
-        },
-      },
-    },
-  });
+  const { bookingUid, rescheduleReason: cancellationReason } = input;
+  log.debug("Started", safeStringify({ bookingUid, cancellationReason, user }));
+  const bookingRepository = new BookingRepository(prisma);
+  const bookingToReschedule = await bookingRepository.findBookingForRequestReschedule({ bookingUid });
 
   if (!bookingToReschedule.userId) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });

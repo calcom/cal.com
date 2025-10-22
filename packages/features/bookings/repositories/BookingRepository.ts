@@ -1172,4 +1172,62 @@ export class BookingRepository {
       },
     });
   }
+
+  findBookingForRequestReschedule({ bookingUid }: { bookingUid: string }) {
+    return this.prismaClient.booking.findUniqueOrThrow({
+      where: {
+        uid: bookingUid,
+        NOT: {
+          status: {
+            in: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
+          },
+        },
+      },
+      select: {
+        id: true,
+        uid: true,
+        userId: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        userPrimaryEmail: true,
+        eventType: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        location: true,
+        attendees: true,
+        references: {
+          select: {
+            uid: true,
+            type: true,
+            externalCalendarId: true,
+            credentialId: true,
+            delegationCredentialId: true,
+            credential: {
+              select: credentialForCalendarServiceSelect,
+            },
+            delegationCredential: true,
+          },
+        },
+        customInputs: true,
+        dynamicEventSlugRef: true,
+        dynamicGroupSlugRef: true,
+        destinationCalendar: true,
+        smsReminderNumber: true,
+        workflowReminders: true,
+        responses: true,
+        iCalUID: true,
+      },
+    });
+  }
 }
