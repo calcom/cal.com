@@ -1187,6 +1187,7 @@ export class BookingRepository {
         id: true,
         uid: true,
         userId: true,
+        user: true,
         title: true,
         description: true,
         startTime: true,
@@ -1206,19 +1207,7 @@ export class BookingRepository {
         },
         location: true,
         attendees: true,
-        references: {
-          select: {
-            uid: true,
-            type: true,
-            externalCalendarId: true,
-            credentialId: true,
-            delegationCredentialId: true,
-            credential: {
-              select: credentialForCalendarServiceSelect,
-            },
-            delegationCredential: true,
-          },
-        },
+        references: true,
         customInputs: true,
         dynamicEventSlugRef: true,
         dynamicGroupSlugRef: true,

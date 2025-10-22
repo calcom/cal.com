@@ -69,7 +69,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     const hasPermission = await permissionCheckService.checkPermission({
       userId: user.id,
       teamId: bookingToReschedule.eventType.teamId,
-      permission: "booking.delete",
+      permission: "booking.update",
       fallbackRoles: ["ADMIN", "OWNER"],
     });
 
