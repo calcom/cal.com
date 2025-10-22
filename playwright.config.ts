@@ -20,7 +20,7 @@ const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 // So, it should me much higher than sum of expect and navigation timeouts as there can be many async expects and navigations in a single test
 const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
 
-const headless = process.env.CI ? false : !!process.env.PLAYWRIGHT_HEADLESS;
+const headless = process.env.CI ? true : !!process.env.PLAYWRIGHT_HEADLESS;
 
 const IS_EMBED_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-core"));
 const IS_EMBED_REACT_TEST = process.argv.some((a) => a.startsWith("--project=@calcom/embed-react"));
