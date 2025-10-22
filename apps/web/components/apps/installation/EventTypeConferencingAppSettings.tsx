@@ -72,7 +72,12 @@ const LocationsWrapper = ({
 };
 
 const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEventType; slug: string }) => {
-  const locationsQuery = trpc.viewer.apps.locationOptions.useQuery({});
+  const locationsQuery = trpc.viewer.apps.locationOptions.useQuery(
+    { teamId: eventType.teamId },
+    {
+      retry: false,
+    }
+  );
   const { t } = useLocale();
 
   const SkeletonLoader = () => {
@@ -87,6 +92,12 @@ const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEve
     <QueryCell
       query={locationsQuery}
       customLoader={<SkeletonLoader />}
+      error={() => {
+        const updatedEventType: TEventType & {
+          locationOptions?: TLocationOptions;
+        } = { ...eventType, locationOptions: [] };
+        return <LocationsWrapper eventType={updatedEventType} slug={slug} />;
+      }}
       success={({ data }) => {
         let updatedEventType: TEventType & {
           locationOptions?: TLocationOptions;

@@ -240,10 +240,15 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         CREDENTIAL_SYNC_SECRET: CREDENTIAL_SYNC_SECRET,
         CREDENTIAL_SYNC_SECRET_HEADER_NAME: CREDENTIAL_SYNC_SECRET_HEADER_NAME,
       },
-      resourceOwner: {
-        type: "user",
-        id: credential.userId,
-      },
+      resourceOwner: credential.teamId
+        ? {
+            type: "team",
+            id: credential.teamId,
+          }
+        : {
+            type: "user",
+            id: credential.userId,
+          },
       appSlug: metadata.slug,
       currentTokenObject: tokenResponse,
       fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
@@ -391,7 +396,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           method: "DELETE",
         });
         return Promise.resolve();
-      } catch (err) {
+      } catch {
         return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
