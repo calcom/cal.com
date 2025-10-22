@@ -98,7 +98,7 @@ export function DataTableProvider({
   preferredSegmentId,
   systemSegments,
 }: DataTableProviderProps) {
-  if (!tableIdentifier || tableIdentifier.trim() === "") {
+  if (!tableIdentifier.trim()) {
     throw new Error("tableIdentifier is required and cannot be empty");
   }
 
