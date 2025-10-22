@@ -26,6 +26,10 @@ async function main(): Promise<void> {
     console.info("No DATABASE_DIRECT_URL found, skipping migrations");
     return;
   }
+  if (process.env.CI) {
+    console.info("Running in CI mode, skipping migrations");
+    return;
+  }
   if (!(await isPrismaAvailableCheck())) {
     console.info("Prisma can't be initialized, skipping migrations");
     return;

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { trackFormbricksAction } from "@calcom/lib/formbricks-client";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 

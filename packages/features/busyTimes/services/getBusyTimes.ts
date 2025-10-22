@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import { subtract } from "@calcom/features/schedules/lib/date-ranges";
@@ -9,7 +10,6 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 import type { Booking, EventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";

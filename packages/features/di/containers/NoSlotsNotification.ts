@@ -1,5 +1,5 @@
-import { redisModule } from "@calcom/features/redis/di/redisModule";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { redisModule } from "@calcom/features/redis/di/redisModule";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { NoSlotsNotificationService } from "@calcom/trpc/server/routers/viewer/slots/handleNotificationWhenNoSlots";
 
