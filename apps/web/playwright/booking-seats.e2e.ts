@@ -107,7 +107,7 @@ test.describe("Booking with Seats", () => {
     // confirm cancellation
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    await expect(page.locator("text=This event is canceled")).toBeVisible();
+    await expect(page.locator("text=This event is cancelled")).toBeVisible();
 
     const updatedBooking = await prisma.booking.findFirst({
       where: { id: booking.id },
