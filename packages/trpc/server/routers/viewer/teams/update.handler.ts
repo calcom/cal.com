@@ -1,4 +1,5 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -39,12 +40,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (input.slug) {
-    const userConflict = await prisma.team.findMany({
-      where: {
-        slug: input.slug,
-      },
+    const orgId = ctx.user.organizationId;
+    const teamRepository = new TeamRepository(prisma);
+    const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({
+      slug: input.slug,
+      teamId: input.id,
+      parentId: orgId,
     });
-    if (userConflict.some((t) => t.id !== input.id)) return;
+    if (!isSlugAvailable) {
+      throw new TRPCError({ code: "CONFLICT", message: "Slug already in use." });
+    }
   }
 
   const prevTeam = await prisma.team.findUnique({

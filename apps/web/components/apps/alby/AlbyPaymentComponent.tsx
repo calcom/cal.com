@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import z from "zod";
 
+import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
-import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

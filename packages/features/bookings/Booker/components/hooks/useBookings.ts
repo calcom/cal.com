@@ -3,19 +3,21 @@
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react";
+import { shallow } from "zustand/shallow";
 
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { useHandleBookEvent } from "@calcom/atoms/hooks/bookings/useHandleBookEvent";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
+import { storeDecoyBooking } from "@calcom/features/bookings/lib/client/decoyBookingStore";
+import { createBooking } from "@calcom/features/bookings/lib/create-booking";
+import { createInstantBooking } from "@calcom/features/bookings/lib/create-instant-booking";
+import { createRecurringBooking } from "@calcom/features/bookings/lib/create-recurring-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -24,6 +26,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useBookingSuccessRedirect } from "../../../lib/bookingSuccessRedirect";
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
@@ -165,21 +168,21 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
-export const useBookings = ({
-  event,
-  hashedLink,
-  bookingForm,
-  metadata,
-  isBookingDryRun,
-}: IUseBookings) => {
+export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookingDryRun }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStoreContext((state) => state.eventSlug);
   const eventTypeId = useBookerStoreContext((state) => state.eventId);
   const isInstantMeeting = useBookerStoreContext((state) => state.isInstantMeeting);
 
-  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const [rescheduleUid, setRescheduleUid] = useBookerStoreContext(
+    (state) => [state.rescheduleUid, state.setRescheduleUid],
+    shallow
+  );
   const rescheduledBy = useBookerStoreContext((state) => state.rescheduledBy);
-  const bookingData = useBookerStoreContext((state) => state.bookingData);
+  const [bookingData, setBookingData] = useBookerStoreContext(
+    (state) => [state.bookingData, state.setBookingData],
+    shallow
+  );
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const { t } = useLocale();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
@@ -242,7 +245,7 @@ export const useBookings = ({
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
-      } catch (err) {
+      } catch {
         showToast(t("something_went_wrong_on_our_end"), "error");
       }
     },
@@ -253,12 +256,6 @@ export const useBookings = ({
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
-        const validDuration = event.data?.isDynamic
-          ? duration || event.data?.length
-          : duration && event.data?.metadata?.multipleDuration?.includes(duration)
-          ? duration
-          : event.data?.length;
-
         if (isRescheduling) {
           sdkActionManager?.fire(
             "dryRunRescheduleBookingSuccessfulV2",
@@ -280,6 +277,28 @@ export const useBookings = ({
         router.push("/booking/dry-run-successful");
         return;
       }
+
+      if ("isShortCircuitedBooking" in booking && booking.isShortCircuitedBooking) {
+        if (!booking.uid) {
+          console.error("Decoy booking missing uid");
+          return;
+        }
+
+        const bookingData = {
+          uid: booking.uid,
+          title: booking.title ?? null,
+          startTime: booking.startTime,
+          endTime: booking.endTime,
+          booker: booking.attendees?.[0] ?? null,
+          host: booking.user ?? null,
+          location: booking.location ?? null,
+        };
+
+        storeDecoyBooking(bookingData);
+        router.push(`/booking-successful/${booking.uid}`);
+        return;
+      }
+
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
@@ -374,25 +393,22 @@ export const useBookings = ({
             : event?.data?.forwardParamsSuccessRedirect,
       });
     },
-    onError: (err, _, ctx) => {
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
-      bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+    onError: (err) => {
+      if (bookerFormErrorRef?.current) {
+        bookerFormErrorRef.current.scrollIntoView({ behavior: "smooth" });
+      }
 
       const error = err as Error & {
         data: { rescheduleUid: string; startTime: string; attendees: string[] };
       };
 
       if (error.message === ErrorCode.BookerLimitExceededReschedule && error.data?.rescheduleUid) {
-        useBookerStore.setState({
-          rescheduleUid: error.data?.rescheduleUid,
-        });
-        useBookerStore.setState({
-          bookingData: {
-            uid: error.data?.rescheduleUid,
-            startTime: error.data?.startTime,
-            attendees: error.data?.attendees,
-          } as unknown as GetBookingType,
-        });
+        setRescheduleUid(error.data?.rescheduleUid);
+        setBookingData({
+          uid: error.data?.rescheduleUid,
+          startTime: error.data?.startTime,
+          attendees: error.data?.attendees,
+        } as unknown as GetBookingType);
       }
     },
   });
@@ -412,10 +428,11 @@ export const useBookings = ({
       updateQueryParam("bookingId", responseData.bookingId);
       setExpiryTime(responseData.expires);
     },
-    onError: (err, _, ctx) => {
+    onError: (err) => {
       console.error("Error creating instant booking", err);
-      // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
-      bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
+      if (bookerFormErrorRef?.current) {
+        bookerFormErrorRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     },
   });
 
@@ -511,15 +528,10 @@ export const useBookings = ({
     bookingForm,
     hashedLink,
     metadata,
-    handleInstantBooking: (
-      variables: Parameters<typeof createInstantBookingMutation.mutate>[0]
-    ) => {
+    handleInstantBooking: (variables: Parameters<typeof createInstantBookingMutation.mutate>[0]) => {
       const remaining = getInstantCooldownRemainingMs(eventTypeId);
       if (remaining > 0) {
-        showToast(
-          t("please_try_again_later_or_book_another_slot"),
-          "error"
-        );
+        showToast(t("please_try_again_later_or_book_another_slot"), "error");
         return;
       }
       createInstantBookingMutation.mutate(variables);
