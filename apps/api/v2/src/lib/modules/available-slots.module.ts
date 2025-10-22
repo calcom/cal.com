@@ -16,12 +16,12 @@ import { FilterHostsService } from "@/lib/services/filter-hosts.service";
 import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
 import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { UserAvailabilityService } from "@/lib/services/user-availability.service";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { PrismaWorkerModule } from "@/modules/prisma/prisma-worker.module";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaWorkerModule],
   providers: [
     PrismaOOORepository,
     PrismaScheduleRepository,

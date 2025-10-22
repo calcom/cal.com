@@ -46,3 +46,5 @@ export { CalendarViewPlatformWrapper as CalendarView } from "./calendar-view/ind
 
 export { CreateSchedulePlatformWrapper as CreateSchedule } from "./create-schedule/index";
 export { CreateScheduleForm } from "./create-schedule/CreateScheduleForm";
+
+export { ListSchedulesPlatformWrapper as ListSchedules } from "./list-schedules/index";

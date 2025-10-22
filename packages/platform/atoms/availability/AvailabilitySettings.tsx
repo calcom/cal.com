@@ -125,6 +125,7 @@ type AvailabilitySettingsProps = {
     handleBulkEditDialogToggle: () => void;
   };
   callbacksRef?: React.MutableRefObject<{ onSuccess?: () => void; onError?: (error: Error) => void }>;
+  isDryRun?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -190,6 +191,7 @@ const DateOverride = ({
   overridesModalClassNames,
   classNames,
   handleSubmit,
+  isDryRun = false,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
@@ -203,6 +205,7 @@ const DateOverride = ({
     button?: string;
   };
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
+  isDryRun?: boolean;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -213,7 +216,9 @@ const DateOverride = ({
 
   const handleAvailabilityUpdate = () => {
     const updatedValues = getValues() as AvailabilityFormValues;
-    handleSubmit(updatedValues);
+    if (!isDryRun) {
+      handleSubmit(updatedValues);
+    }
   };
 
   return (
@@ -240,6 +245,7 @@ const DateOverride = ({
           hour12={Boolean(userTimeFormat === 12)}
           travelSchedules={travelSchedules}
           handleAvailabilityUpdate={handleAvailabilityUpdate}
+          isDryRun={isDryRun}
         />
         <DateOverrideInputDialog
           className={overridesModalClassNames}
@@ -251,6 +257,7 @@ const DateOverride = ({
           }}
           userTimeFormat={userTimeFormat}
           weekStart={weekStart}
+          isDryRun={isDryRun}
           Trigger={
             <Button
               className={classNames?.button}
@@ -308,6 +315,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       allowSetToDefault = true,
       allowDelete = true,
       callbacksRef,
+      isDryRun,
     } = props;
     const [openSidebar, setOpenSidebar] = useState(false);
     const { t, i18n } = useLocale();
@@ -675,6 +683,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               {enableOverrides && (
                 <BookerStoreProvider>
                   <DateOverride
+                    isDryRun={isDryRun}
                     workingHours={schedule.workingHours}
                     userTimeFormat={timeFormat}
                     handleSubmit={handleSubmit}

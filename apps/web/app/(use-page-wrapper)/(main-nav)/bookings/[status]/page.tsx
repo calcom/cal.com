@@ -12,7 +12,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
-import BookingsList from "~/bookings/views/bookings-listing-view";
+import BookingsList from "~/bookings/views/bookings-view";
 
 const querySchema = z.object({
   status: z.enum(validStatuses),

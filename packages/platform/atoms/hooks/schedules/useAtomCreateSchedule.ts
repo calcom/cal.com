@@ -6,6 +6,7 @@ import type { CreateScheduleHandlerReturn } from "@calcom/trpc/server/routers/vi
 import { TCreateInputSchema as CreateScheduleSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/create.schema";
 
 import http from "../../lib/http";
+import { QUERY_KEY as SchedulesQueryKey } from "./useAtomGetAllSchedules";
 import { QUERY_KEY as ScheduleQueryKey } from "./useAtomSchedule";
 
 interface useAtomCreateScheduleOptions {
@@ -35,6 +36,7 @@ export const useAtomCreateSchedule = (
       if (data.status === SUCCESS_STATUS) {
         onSuccess?.(data);
         queryClient.invalidateQueries({ queryKey: [ScheduleQueryKey] });
+        queryClient.invalidateQueries({ queryKey: [SchedulesQueryKey] });
       } else {
         onError?.(data);
       }

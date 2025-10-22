@@ -32,14 +32,14 @@ export function normalizeEmail(email: string): string {
  * Rules applied:
  * 1. Convert to lowercase
  * 2. Trim whitespace
- * 3. Ensure proper @ prefix for domain entries
+ * 3. Remove @ prefix if present
  *
- * Note: Domains are stored AS-IS with @ prefix (e.g., @mail.google.com, @example.co.uk)
+ * Note: Domains are stored without @ prefix (e.g., mail.google.com, example.co.uk)
  * No subdomain stripping is performed to avoid multi-level TLD issues.
  * If you want to block subdomains separately, create separate entries.
  *
  * @param domain - Raw domain (with or without @ prefix)
- * @returns Normalized domain with @ prefix
+ * @returns Normalized domain without @ prefix
  */
 export function normalizeDomain(domain: string): string {
   let normalized = domain.trim().toLowerCase();
@@ -54,14 +54,14 @@ export function normalizeDomain(domain: string): string {
     throw new Error(`Invalid domain format: ${domain}`);
   }
 
-  return `@${normalized}`;
+  return normalized;
 }
 
 /**
  * Extracts and normalizes domain from an email address
  *
  * @param email - Email address
- * @returns Normalized domain with @ prefix
+ * @returns Normalized domain without @ prefix
  */
 export function extractDomainFromEmail(email: string): string {
   const normalizedEmail = normalizeEmail(email);

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 
 import type {
   CalendarComponentProps,
@@ -18,6 +19,7 @@ const defaultState: CalendarComponentProps = {
   startHour: 0,
   endHour: 23,
   gridCellsPerHour: 4,
+  timezone: CURRENT_TIMEZONE,
 };
 
 export const useCalendarStore = create<CalendarStoreProps>((set) => ({
@@ -62,7 +64,7 @@ export const useCalendarStore = create<CalendarStoreProps>((set) => ({
         }
 
         // We call this callback if we have it -> Allows you to change your state outside of the component
-        state.onDateChange && state.onDateChange(newStartDate, newEndDate);
+        state.onDateChange?.(newStartDate, newEndDate);
         return {
           startDate: newStartDate,
           endDate: newEndDate,
@@ -70,7 +72,7 @@ export const useCalendarStore = create<CalendarStoreProps>((set) => ({
       }
       const newStartDate = dayjs(startDate).subtract(1, state.view).toDate();
       const newEndDate = dayjs(endDate).subtract(1, state.view).toDate();
-      state.onDateChange && state.onDateChange(newStartDate, newEndDate);
+      state.onDateChange?.(newStartDate, newEndDate);
       return {
         startDate: newStartDate,
         endDate: newEndDate,

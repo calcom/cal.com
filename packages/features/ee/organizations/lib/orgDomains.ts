@@ -15,8 +15,8 @@ const log = logger.getSubLogger({
  */
 export function getOrgSlug(hostname: string, forcedSlug?: string) {
   if (forcedSlug) {
-    if (process.env.NEXT_PUBLIC_IS_E2E) {
-      log.debug("Using provided forcedSlug in E2E", {
+    if (process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE) {
+      log.debug("Using provided forcedSlug in E2E/Integration Test mode", {
         forcedSlug,
       });
       return forcedSlug;

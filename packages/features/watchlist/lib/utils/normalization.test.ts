@@ -18,20 +18,20 @@ describe("normalization", () => {
 
   describe("normalizeDomain", () => {
     test("should normalize basic domain", () => {
-      expect(normalizeDomain("Example.COM")).toBe("@example.com");
-      expect(normalizeDomain("@Domain.ORG")).toBe("@domain.org");
-      expect(normalizeDomain("  sub.domain.net  ")).toBe("@sub.domain.net");
+      expect(normalizeDomain("Example.COM")).toBe("example.com");
+      expect(normalizeDomain("@Domain.ORG")).toBe("domain.org");
+      expect(normalizeDomain("  sub.domain.net  ")).toBe("sub.domain.net");
     });
 
     test("should preserve full domain including subdomains", () => {
-      expect(normalizeDomain("mail.google.com")).toBe("@mail.google.com");
-      expect(normalizeDomain("sub.domain.example.org")).toBe("@sub.domain.example.org");
+      expect(normalizeDomain("mail.google.com")).toBe("mail.google.com");
+      expect(normalizeDomain("sub.domain.example.org")).toBe("sub.domain.example.org");
     });
 
     test("should handle multi-level TLDs correctly", () => {
-      expect(normalizeDomain("example.co.uk")).toBe("@example.co.uk");
-      expect(normalizeDomain("mail.example.co.uk")).toBe("@mail.example.co.uk");
-      expect(normalizeDomain("company.com.au")).toBe("@company.com.au");
+      expect(normalizeDomain("example.co.uk")).toBe("example.co.uk");
+      expect(normalizeDomain("mail.example.co.uk")).toBe("mail.example.co.uk");
+      expect(normalizeDomain("company.com.au")).toBe("company.com.au");
     });
 
     test("should throw on invalid domains", () => {
@@ -43,14 +43,14 @@ describe("normalization", () => {
 
   describe("extractDomainFromEmail", () => {
     test("should extract and normalize domain from email", () => {
-      expect(extractDomainFromEmail("user@Example.COM")).toBe("@example.com");
-      expect(extractDomainFromEmail("test@sub.domain.org")).toBe("@sub.domain.org");
-      expect(extractDomainFromEmail("user@mail.google.com")).toBe("@mail.google.com");
+      expect(extractDomainFromEmail("user@Example.COM")).toBe("example.com");
+      expect(extractDomainFromEmail("test@sub.domain.org")).toBe("sub.domain.org");
+      expect(extractDomainFromEmail("user@mail.google.com")).toBe("mail.google.com");
     });
 
     test("should handle multi-level TLDs", () => {
-      expect(extractDomainFromEmail("user@example.co.uk")).toBe("@example.co.uk");
-      expect(extractDomainFromEmail("admin@mail.company.com.au")).toBe("@mail.company.com.au");
+      expect(extractDomainFromEmail("user@example.co.uk")).toBe("example.co.uk");
+      expect(extractDomainFromEmail("admin@mail.company.com.au")).toBe("mail.company.com.au");
     });
 
     test("should throw on invalid emails", () => {
@@ -78,7 +78,7 @@ describe("normalization", () => {
   describe("Edge cases and consistency", () => {
     test("should handle international domains", () => {
       // Note: In a real implementation, you might want to handle punycode
-      expect(normalizeDomain("münchen.de")).toBe("@münchen.de");
+      expect(normalizeDomain("münchen.de")).toBe("münchen.de");
     });
 
     test("should be consistent across multiple calls", () => {

@@ -28,4 +28,3 @@ export function useDecoyBooking(uid: string) {
 
   return bookingData;
 }
-

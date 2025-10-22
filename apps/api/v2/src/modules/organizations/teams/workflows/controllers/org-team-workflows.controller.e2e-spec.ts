@@ -404,7 +404,7 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
       invalidWorkflow.steps = [
         {
           stepNumber: 1,
-          action: "sms_number",
+          action: "cal_ai_phone_call",
           recipient: PHONE_NUMBER,
           template: REMINDER,
           verifiedPhoneId: verifiedPhoneId,
@@ -439,6 +439,18 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
             html: "<p>Reminder for your event {EVENT_NAME}.</p>",
           },
         },
+        {
+          stepNumber: 2,
+          action: "sms_attendee",
+          recipient: EMAIL,
+          template: REMINDER,
+          phoneRequired: false,
+          sender: "updatedSender",
+          message: {
+            subject: "Update Upcoming: {EVENT_NAME}",
+            text: "Update Reminder for your event {EVENT_NAME}.</p>",
+          },
+        },
       ];
       return request(app.getHttpServer())
         .post(`${basePath}/routing-form`)
@@ -459,11 +471,14 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           }
 
           expect(responseBody.data.trigger.type).toEqual(sampleCreateWorkflowRoutingFormDto.trigger.type);
-          expect(responseBody.data.steps).toHaveLength(sampleCreateWorkflowRoutingFormDto.steps.length);
+          expect(responseBody.data.steps).toHaveLength(validWorkflow.steps.length);
           expect(responseBody.data.steps.find((step) => step.stepNumber === 1)?.id).toBeDefined();
           expect(responseBody.data.steps.find((step) => step.stepNumber === 1)?.sender).toEqual(
             "CalcomE2EStep1"
           );
+
+          expect(responseBody.data.steps.find((step) => step.stepNumber === 2)?.id).toBeDefined();
+          expect(responseBody.data.steps.find((step) => step.action === "sms_attendee")).toBeDefined();
 
           const trigger = sampleCreateWorkflowRoutingFormDto.trigger as OnFormSubmittedTriggerDto;
           expect(responseBody.data.trigger?.type).toEqual(trigger.type);

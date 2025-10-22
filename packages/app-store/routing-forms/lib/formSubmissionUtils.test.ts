@@ -3,9 +3,9 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
 
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import {
   WebhookTriggerEvents,
   WorkflowTriggerEvents,
@@ -37,7 +37,7 @@ vi.mock("@calcom/features/tasker", () => {
 });
 
 // Mock workflow dependencies
-vi.mock("@calcom/lib/server/service/workflows", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService", () => ({
   WorkflowService: {
     getAllWorkflowsFromRoutingForm: vi.fn(() => Promise.resolve([])),
     scheduleFormWorkflows: vi.fn(() => Promise.resolve()),

@@ -122,6 +122,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         gridCellsPerHour={60 / (event?.duration || 15)}
         hoverEventDuration={30}
         hideHeader
+        timezone={timezone}
       />
     </div>
   );

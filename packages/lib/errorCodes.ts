@@ -26,4 +26,8 @@ export enum ErrorCode {
   EventTypeNoHosts = "event_type_no_hosts",
   RequestBodyInvalid = "request_body_invalid_error",
   PrivateLinkExpired = "private_link_expired",
+  BookerEmailBlocked = "booker_email_blocked",
+  BookerEmailRequiresLogin = "booker_email_requires_login",
+  InvalidVerificationCode = "invalid_verification_code",
+  UnableToValidateVerificationCode = "unable_to_validate_verification_code",
 }
