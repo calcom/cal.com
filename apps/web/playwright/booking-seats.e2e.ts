@@ -566,7 +566,7 @@ test.describe("Reschedule for booking with seats", () => {
       await page.waitForTimeout(2000);
     }
     await page.locator('[data-testid="reschedule"]').click();
-    await expect(page.getByText('Seats available')).toBeVisible();
+    await expect(page.getByText("Seats available").first()).toBeVisible();
 
     await page.waitForURL((url) => {
       const rescheduleUid = url.searchParams.get("rescheduleUid");
