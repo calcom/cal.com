@@ -21,7 +21,7 @@ export class BookingEventHandlerService {
 
   async onBookingCreated(payload: BookingCreatedPayload) {
     this.log.debug("onBookingCreated", safeStringify(payload));
-    if (!this.shouldProcess(payload)) {
+    if (payload.config.isDryRun) {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
@@ -29,7 +29,7 @@ export class BookingEventHandlerService {
 
   async onBookingRescheduled(payload: BookingRescheduledPayload) {
     this.log.debug("onBookingRescheduled", safeStringify(payload));
-    if (!this.shouldProcess(payload)) {
+    if (payload.config.isDryRun) {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
@@ -42,7 +42,7 @@ export class BookingEventHandlerService {
   private async onBookingCreatedOrRescheduled(payload: BookingCreatedPayload | BookingRescheduledPayload) {
     const results = await Promise.allSettled([
       // TODO: Migrate other post-booking tasks here, to execute them in parallel, without affecting each other
-      this.updatePrivateLinkUsage(payload),
+      this.updatePrivateLinkUsage(payload.bookingFormData.hashedLink),
     ]);
     results.forEach((result) => {
       if (result.status === "rejected") {
@@ -54,17 +54,13 @@ export class BookingEventHandlerService {
     });
   }
 
-  private async updatePrivateLinkUsage(payload: BookingCreatedPayload | BookingRescheduledPayload) {
+  private async updatePrivateLinkUsage(hashedLink: string | null) {
     try {
-      if (payload.bookingFormData.hashedLink) {
-        await this.deps.hashedLinkService.validateAndIncrementUsage(payload.bookingFormData.hashedLink);
+      if (hashedLink) {
+        await this.deps.hashedLinkService.validateAndIncrementUsage(hashedLink);
       }
     } catch (error) {
       this.log.error("Error while updating hashed link", safeStringify(error));
     }
-  }
-
-  private shouldProcess(payload: BookingCreatedPayload | BookingRescheduledPayload) {
-    return !payload.config.isDryRun;
   }
 }
