@@ -8,6 +8,7 @@ import {
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -29,7 +30,6 @@ import { prisma } from "@calcom/prisma";
 import type { EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -51,60 +51,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const { user } = ctx;
   const { bookingId, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
-  const bookingToReschedule = await prisma.booking.findUniqueOrThrow({
-    select: {
-      id: true,
-      uid: true,
-      userId: true,
-      title: true,
-      description: true,
-      startTime: true,
-      endTime: true,
-      eventTypeId: true,
-      userPrimaryEmail: true,
-      eventType: {
-        include: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              parentId: true,
-            },
-          },
-        },
-      },
-      location: true,
-      attendees: true,
-      references: {
-        select: {
-          uid: true,
-          type: true,
-          externalCalendarId: true,
-          credentialId: true,
-          delegationCredentialId: true,
-          credential: {
-            select: credentialForCalendarServiceSelect,
-          },
-          delegationCredential: true,
-        },
-      },
-      customInputs: true,
-      dynamicEventSlugRef: true,
-      dynamicGroupSlugRef: true,
-      destinationCalendar: true,
-      smsReminderNumber: true,
-      workflowReminders: true,
-      responses: true,
-      iCalUID: true,
-    },
-    where: {
-      uid: bookingId,
-      NOT: {
-        status: {
-          in: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
-        },
-      },
-    },
+
+  const bookingRepository = new BookingRepository(prisma);
+  const bookingToReschedule = await bookingRepository.findBookingForRequestReschedule({
+    bookingUid: bookingId,
   });
 
   if (!bookingToReschedule.userId) {
