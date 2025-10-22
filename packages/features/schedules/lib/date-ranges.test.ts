@@ -494,15 +494,16 @@ describe("buildDateRanges", () => {
       travelSchedules: [],
     });
 
+    expect(results.length).toBe(1);
+
     const oct2Ranges = results.filter((range) => range.start.format("YYYY-MM-DD") === "2023-10-02");
     const oct3Ranges = results.filter((range) => range.start.format("YYYY-MM-DD") === "2023-10-03");
 
     expect(oct2Ranges.length).toBe(0);
+
     expect(oct3Ranges.length).toBe(1);
-    if (oct3Ranges.length > 0) {
-      expect(oct3Ranges[0].start.format("YYYY-MM-DD HH:mm")).toBe("2023-10-03 00:00");
-      expect(oct3Ranges[0].end.format("YYYY-MM-DD HH:mm")).toBe("2023-10-04 05:30");
-    }
+    expect(oct3Ranges[0].start.format("YYYY-MM-DD HH:mm")).toBe("2023-10-03 00:00");
+    expect(oct3Ranges[0].end.format("YYYY-MM-DD HH:mm")).toBe("2023-10-04 05:30");
   });
   it("should return correct date ranges for specific time slot in date override", () => {
     const items = [

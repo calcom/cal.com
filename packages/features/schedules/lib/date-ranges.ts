@@ -309,12 +309,12 @@ export function buildDateRanges({
     )
   );
 
-  // Collect all-day unavailable dates from overrides
-  const allDayUnavailableDates = new Set<string>();
-  Object.entries(groupedDateOverrides).forEach(([dateString, ranges]) => {
+  // Collect all-day unavailable dates from overrides using epoch timestamps for performance
+  const allDayUnavailableDates = new Set<number>();
+  Object.entries(groupedDateOverrides).forEach(([_dateString, ranges]) => {
     ranges.forEach((range) => {
       if (range.start.valueOf() === range.end.valueOf()) {
-        allDayUnavailableDates.add(dateString);
+        allDayUnavailableDates.add(range.start.startOf("day").valueOf());
       }
     });
   });
@@ -332,23 +332,27 @@ export function buildDateRanges({
         const rangeEnd = range.end;
         let hasBlockedDate = false;
 
-        for (
-          let date = range.start.startOf("day");
-          date.isBefore(rangeEnd.startOf("day")) || date.isSame(rangeEnd.startOf("day"));
-          date = date.add(1, "day")
-        ) {
-          const checkDateString = date.format("YYYY-MM-DD");
+        const rangeStartDay = range.start.startOf("day");
+        const rangeEndDay = rangeEnd.startOf("day");
+        const rangeEndDayValue = rangeEndDay.valueOf();
 
-          if (allDayUnavailableDates.has(checkDateString)) {
+        let currentDay = rangeStartDay;
+        let currentDayValue = currentDay.valueOf();
+
+        while (currentDayValue <= rangeEndDayValue) {
+          if (allDayUnavailableDates.has(currentDayValue)) {
             hasBlockedDate = true;
-            if (currentStart.isBefore(date)) {
+            if (currentStart.isBefore(currentDay)) {
               allSplitRanges.push({
                 start: currentStart,
-                end: date,
+                end: currentDay,
               });
             }
-            currentStart = date.add(1, "day");
+            currentStart = currentDay.add(1, "day");
           }
+
+          currentDay = currentDay.add(1, "day");
+          currentDayValue = currentDay.valueOf();
         }
 
         if (currentStart.isBefore(rangeEnd)) {
@@ -356,9 +360,7 @@ export function buildDateRanges({
             start: currentStart,
             end: rangeEnd,
           });
-        }
-
-        if (!hasBlockedDate) {
+        } else if (!hasBlockedDate) {
           allSplitRanges.push(range);
         }
       });
