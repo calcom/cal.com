@@ -31,15 +31,18 @@ import {
   FrequencyInput,
 } from "@calcom/platform-enums";
 import { SchedulingType } from "@calcom/platform-libraries";
-import type {
-  ApiSuccessResponse,
-  CreateEventTypeInput_2024_06_14,
-  EventTypeOutput_2024_06_14,
-  GuestsDefaultFieldOutput_2024_06_14,
-  NameDefaultFieldInput_2024_06_14,
-  NotesDefaultFieldInput_2024_06_14,
-  UpdateEventTypeInput_2024_06_14,
+import {
+  type ApiSuccessResponse,
+  type CreateEventTypeInput_2024_06_14,
+  type EventTypeOutput_2024_06_14,
+  type GuestsDefaultFieldOutput_2024_06_14,
+  type NameDefaultFieldInput_2024_06_14,
+  type NotesDefaultFieldInput_2024_06_14,
+  type SplitNameDefaultFieldOutput_2024_06_14,
+  type UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
+import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
 import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
@@ -1441,29 +1444,200 @@ describe("Event types Endpoints", () => {
         .expect(200);
     });
 
+    describe("bookerActiveBookingsLimit", () => {
+      describe("negative tests", () => {
+        it("should not create an event type with bookerActiveBookingsLimit and recurrence", async () => {
+          const body: CreateEventTypeInput_2024_06_14 = {
+            title: "Coding class with bookerActiveBookingsLimit",
+            slug: "coding-class-booker-active-bookings-limit",
+            description: "Let's learn how to code like a pro.",
+            lengthInMinutes: 60,
+            bookerActiveBookingsLimit: {
+              maximumActiveBookings: 2,
+              offerReschedule: true,
+            },
+            recurrence: {
+              frequency: FrequencyInput.weekly,
+              interval: 2,
+              occurrences: 10,
+            },
+          };
+
+          const response = await request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(400);
+
+          expect(
+            response.body.error.message.includes(FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE)
+          ).toBe(true);
+        });
+
+        it("should not allow creating an event type with bookerActiveBookingsLimit disabled:false", async () => {
+          const body: CreateEventTypeInput_2024_06_14 = {
+            title: "Coding class with bookerActiveBookingsLimit disabled:false",
+            slug: "coding-class-booker-active-bookings-limit-disabled",
+            description: "Let's learn how to code like a pro.",
+            lengthInMinutes: 60,
+            // note(Lauris): disabled false means that it is enabled so it should have maximumActiveBookings and / or offerReschedule provided
+            bookerActiveBookingsLimit: {
+              disabled: false,
+            },
+          };
+
+          const response = await request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(400);
+
+          expect(response.body.error.message.includes(REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR)).toBe(true);
+        });
+      });
+
+      describe("positive tests", () => {
+        let eventTypeWithBookerActiveBookingsLimitId: number;
+
+        it("should create an event type with bookerActiveBookingsLimit", async () => {
+          const body: CreateEventTypeInput_2024_06_14 = {
+            title: "Coding class with bookerActiveBookingsLimit",
+            slug: "coding-class-booker-active-bookings-limit",
+            description: "Let's learn how to code like a pro.",
+            lengthInMinutes: 60,
+            bookerActiveBookingsLimit: {
+              maximumActiveBookings: 2,
+              offerReschedule: true,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+              const createdEventType = responseBody.data;
+              expect(createdEventType).toHaveProperty("id");
+              expect(createdEventType.title).toEqual(body.title);
+              expect(createdEventType.bookerActiveBookingsLimit).toEqual(body.bookerActiveBookingsLimit);
+              eventTypeWithBookerActiveBookingsLimitId = createdEventType.id;
+            });
+        });
+
+        it("should update an event type with bookerActiveBookingsLimit", async () => {
+          const body: UpdateEventTypeInput_2024_06_14 = {
+            bookerActiveBookingsLimit: {
+              disabled: true,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .patch(`/api/v2/event-types/${eventTypeWithBookerActiveBookingsLimitId}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+              const updatedEventType = responseBody.data;
+              expect(updatedEventType.bookerActiveBookingsLimit).toEqual(body.bookerActiveBookingsLimit);
+              eventTypeWithBookerActiveBookingsLimitId = updatedEventType.id;
+            });
+        });
+
+        it("should create an event type with bookerActiveBookingsLimit and recurrence disabled", async () => {
+          const body: CreateEventTypeInput_2024_06_14 = {
+            title: "Coding class with bookerActiveBookingsLimit and recurrence disabled",
+            slug: "coding-class-booker-active-bookings-limit-recurrence-disabled",
+            description: "Let's learn how to code like a pro.",
+            lengthInMinutes: 60,
+            bookerActiveBookingsLimit: {
+              maximumActiveBookings: 2,
+              offerReschedule: true,
+            },
+            recurrence: {
+              disabled: true,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+              const createdEventType = responseBody.data;
+              expect(createdEventType).toHaveProperty("id");
+              expect(createdEventType.title).toEqual(body.title);
+              expect(createdEventType.bookerActiveBookingsLimit).toEqual(body.bookerActiveBookingsLimit);
+              eventTypeWithBookerActiveBookingsLimitId = createdEventType.id;
+            });
+        });
+
+        it("should create an event type with recurrence and bookerActiveBookingsLimit disabled", async () => {
+          const body: CreateEventTypeInput_2024_06_14 = {
+            title: "Coding class with bookerActiveBookingsLimit disabled and recurrence",
+            slug: "coding-class-booker-active-bookings-limit-disabled-and-recurrence",
+            description: "Let's learn how to code like a pro.",
+            lengthInMinutes: 60,
+            bookerActiveBookingsLimit: {
+              disabled: true,
+            },
+            recurrence: {
+              frequency: FrequencyInput.weekly,
+              interval: 2,
+              occurrences: 10,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+              const createdEventType = responseBody.data;
+              expect(createdEventType).toHaveProperty("id");
+              expect(createdEventType.title).toEqual(body.title);
+              expect(createdEventType.bookerActiveBookingsLimit).toEqual(body.bookerActiveBookingsLimit);
+              eventTypeWithBookerActiveBookingsLimitId = createdEventType.id;
+            });
+        });
+      });
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
       try {
         await eventTypesRepositoryFixture.delete(eventType.id);
       } catch (e) {
-        // Event type might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(falseTestUser.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
 
       try {
         await userRepositoryFixture.delete(orgUser.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });
@@ -2187,6 +2361,47 @@ describe("Event types Endpoints", () => {
       });
     });
 
+    describe("split name booking field", () => {
+      it("should create an event type with split name booking field", async () => {
+        const splitNameBookingField: SplitNameDefaultFieldOutput_2024_06_14 = {
+          isDefault: true,
+          type: "splitName",
+          slug: "splitName",
+          firstNameLabel: "First name",
+          firstNamePlaceholder: "",
+          lastNameLabel: "last name",
+          lastNamePlaceholder: "",
+          lastNameRequired: false,
+          disableOnPrefill: false,
+        };
+
+        const body: CreateEventTypeInput_2024_06_14 = {
+          title: "Coding class 9",
+          slug: "coding-class-9",
+          description: "Let's learn how to code like a pro.",
+          lengthInMinutes: 60,
+          bookingFields: [splitNameBookingField],
+        };
+
+        return request(app.getHttpServer())
+          .post("/api/v2/event-types")
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+          .send(body)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+            const createdEventType = responseBody.data;
+
+            const splitNameBookingFieldResponse = createdEventType.bookingFields.find(
+              (field) => field.type === "splitName"
+            ) as SplitNameDefaultFieldOutput_2024_06_14 | undefined;
+            expect(splitNameBookingFieldResponse).toEqual(splitNameBookingField);
+
+            await eventTypesRepositoryFixture.delete(createdEventType.id);
+          });
+      });
+    });
+
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient.id);
       await teamRepositoryFixture.delete(organization.id);
@@ -2194,12 +2409,12 @@ describe("Event types Endpoints", () => {
         await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
         await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
       } catch (e) {
-        // Event type might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });
@@ -2379,7 +2594,7 @@ describe("Event types Endpoints", () => {
 
         const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
         const updatedEventType = responseBody.data;
-        +expect(updatedEventType.hidden).toBe(false);
+        expect(updatedEventType.hidden).toBe(false);
       });
     });
 
@@ -2389,12 +2604,12 @@ describe("Event types Endpoints", () => {
       try {
         await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
       } catch (e) {
-        // Event type might have been deleted by the test
+        console.log(e);
       }
       try {
         await userRepositoryFixture.delete(user.id);
       } catch (e) {
-        // User might have been deleted by the test
+        console.log(e);
       }
       await app.close();
     });

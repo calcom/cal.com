@@ -1,5 +1,6 @@
 import db from "@calcom/prisma";
 import type { PrismaClient as PrismaClientWithExtensions } from "@calcom/prisma";
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../../domain/mappers/PermissionMapper";
 import type { TeamPermissions } from "../../domain/models/Permission";
@@ -12,6 +13,7 @@ import {
 } from "../../domain/types/permission-registry";
 
 export class PermissionRepository implements IPermissionRepository {
+  private readonly PBAC_FEATURE_FLAG = "pbac" as const;
   private client: PrismaClientWithExtensions;
 
   constructor(client: PrismaClientWithExtensions = db) {
@@ -130,35 +132,29 @@ export class PermissionRepository implements IPermissionRepository {
       const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
-    const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
-    const resources = permissionPairs.map((p) => p.resource);
-    const actions = permissionPairs.map((p) => p.action);
 
+    // Convert permission pairs to JSONB for proper serialization
+    const permissionPairsJson = JSON.stringify(permissionPairs);
+
+    // Check if each requested permission is satisfied by at least one role permission
     const matchingPermissions = await this.client.$queryRaw<[{ count: bigint }]>`
-      WITH permission_checks AS (
-        -- Universal permission (*,*)
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "resource" = '*' AND "action" = '*'
-
-        UNION ALL
-
-        -- Wildcard resource with specific actions
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "resource" = '*' AND "action" = ANY(${actions})
-
-        UNION ALL
-
-        -- Specific resources with wildcard action
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "action" = '*' AND "resource" = ANY(${resources})
-
-        UNION ALL
-
-        -- Exact resource-action pairs
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND ("resource", "action") = ANY(${resourceActions})
+      SELECT COUNT(*) as count
+      FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
+      WHERE EXISTS (
+        SELECT 1
+        FROM "RolePermission" rp
+        WHERE rp."roleId" = ${roleId}
+          AND (
+            -- Universal permission (*,*)
+            (rp."resource" = '*' AND rp."action" = '*') OR
+            -- Wildcard resource with specific action
+            (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
+            -- Specific resource with wildcard action
+            (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
+            -- Exact resource-action pair
+            (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
+          )
       )
-      SELECT COUNT(*) as count FROM permission_checks
     `;
 
     return Number(matchingPermissions[0].count) >= permissions.length;
@@ -210,11 +206,27 @@ export class PermissionRepository implements IPermissionRepository {
     return permissions.map((p) => p.action as CrudAction | CustomAction);
   }
 
-  async getTeamIdsWithPermission(userId: number, permission: PermissionString): Promise<number[]> {
-    return this.getTeamIdsWithPermissions(userId, [permission]);
+  async getTeamIdsWithPermission({
+    userId,
+    permission,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permission: PermissionString;
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
+    return this.getTeamIdsWithPermissions({ userId, permissions: [permission], fallbackRoles });
   }
 
-  async getTeamIdsWithPermissions(userId: number, permissions: PermissionString[]): Promise<number[]> {
+  async getTeamIdsWithPermissions({
+    userId,
+    permissions,
+    fallbackRoles,
+  }: {
+    userId: number;
+    permissions: PermissionString[];
+    fallbackRoles: MembershipRole[];
+  }): Promise<number[]> {
     // Validate that permissions array is not empty to prevent privilege escalation
     if (permissions.length === 0) {
       return [];
@@ -225,7 +237,7 @@ export class PermissionRepository implements IPermissionRepository {
       return { resource, action };
     });
 
-    const teamsWithPermission = await this.client.$queryRaw<{ teamId: number }[]>`
+    const teamsWithPermissionPromise = this.client.$queryRaw<{ teamId: number }[]>`
       SELECT DISTINCT m."teamId"
       FROM "Membership" m
       INNER JOIN "Role" r ON m."customRoleId" = r.id
@@ -249,6 +261,26 @@ export class PermissionRepository implements IPermissionRepository {
         ) = ${permissions.length}
     `;
 
-    return teamsWithPermission.map((team) => team.teamId);
+    const teamsWithFallbackRolesPromise = this.client.$queryRaw<{ teamId: number }[]>`
+      SELECT DISTINCT m."teamId"
+      FROM "Membership" m
+      INNER JOIN "Team" t ON m."teamId" = t.id
+      LEFT JOIN "TeamFeatures" f ON t.id = f."teamId" AND f."featureId" = ${this.PBAC_FEATURE_FLAG}
+      WHERE m."userId" = ${userId}
+        AND m."accepted" = true
+        AND m."role"::text = ANY(${fallbackRoles})
+        AND f."teamId" IS NULL
+    `;
+
+    const [teamsWithPermission, teamsWithFallbackRoles] = await Promise.all([
+      teamsWithPermissionPromise,
+      teamsWithFallbackRolesPromise,
+    ]);
+
+    const pbacTeamIds = teamsWithPermission.map((team) => team.teamId);
+    const fallbackTeamIds = teamsWithFallbackRoles.map((team) => team.teamId);
+
+    const allTeamIds = Array.from(new Set([...pbacTeamIds, ...fallbackTeamIds]));
+    return allTeamIds;
   }
 }

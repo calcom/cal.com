@@ -141,6 +141,7 @@ const commons = {
   restrictionScheduleId: null,
   useBookerTimezone: false,
   profileId: null,
+  profile: null,
   requiresConfirmationWillBlockSlot: false,
   canSendCalVideoTranscriptionEmails: false,
   instantMeetingExpiryTimeOffsetInSeconds: 0,
@@ -149,6 +150,8 @@ const commons = {
   eventTypeColor: null,
   hostGroups: [],
   bookingRequiresAuthentication: false,
+  createdAt: null,
+  updatedAt: null,
 };
 
 export const dynamicEvent = {
