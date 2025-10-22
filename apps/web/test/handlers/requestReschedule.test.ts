@@ -116,7 +116,7 @@ describe("Handler: requestReschedule", () => {
         getTrpcHandlerData({
           user: loggedInUser,
           input: {
-            bookingId: bookingUid,
+            bookingUid,
             rescheduleReason: "",
           },
         })
@@ -236,7 +236,7 @@ describe("Handler: requestReschedule", () => {
         getTrpcHandlerData({
           user: loggedInUser,
           input: {
-            bookingId: bookingUid,
+            bookingUid,
             rescheduleReason: "",
           },
         })
