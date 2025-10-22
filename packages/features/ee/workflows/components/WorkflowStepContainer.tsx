@@ -380,37 +380,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-
-    // Skip setting reminderBody for CAL_AI actions since they don't need email templates
-    if (!isCalAIAction(action)) {
-      const template = getTemplateBodyForAction({
-        action,
-        locale: i18n.language,
-        t,
-        template: step.template ?? WorkflowTemplates.REMINDER,
-        timeFormat,
-      });
-      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
-    }
-  }
-
-  if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-    // Skip setting emailSubject for CAL_AI actions since they don't need email subjects
-    if (!isCalAIAction(action)) {
-      const subjectTemplate = emailReminderTemplate({
-        isEditingMode: true,
-        locale: i18n.language,
-        t,
-        action: action,
-        timeFormat,
-      }).emailSubject;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
-    }
-  }
-
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
     ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
     : { ref: null, name: "" };
