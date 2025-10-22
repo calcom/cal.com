@@ -695,6 +695,55 @@ export const sendAddGuestsEmails = async (calEvent: CalendarEvent, newGuests: st
 
   await Promise.all(emailsToSend);
 };
+
+export const sendAddGuestsEmailsAndSMS = async (args: {
+  calEvent: CalendarEvent;
+  newGuests: string[];
+  eventTypeMetadata?: EventTypeMetadata;
+}) => {
+  const { calEvent, newGuests, eventTypeMetadata } = args;
+  const calendarEvent = formatCalEvent(calEvent);
+
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+
+  // Send email to organizer
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsAndSMSToSend.push(sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent })));
+
+    // Send emails to team members if it's a team event
+    if (calendarEvent.team?.members) {
+      for (const teamMember of calendarEvent.team.members) {
+        emailsAndSMSToSend.push(
+          sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
+    }
+  }
+
+  // Send emails and SMS to attendees
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+    const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
+
+    for (const attendee of calendarEvent.attendees) {
+      // Send appropriate email based on whether they're a new guest or existing attendee
+      if (newGuests.includes(attendee.email)) {
+        // New guest gets scheduled email
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeScheduledEmail(calendarEvent, attendee)));
+
+        // Send SMS to new guest if they have a phone number
+        if (attendee.phoneNumber) {
+          emailsAndSMSToSend.push(eventScheduledSMS.sendSMSToAttendee(attendee));
+        }
+      } else {
+        // Existing attendee gets add guests notification email
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeAddGuestsEmail(calendarEvent, attendee)));
+      }
+    }
+  }
+
+  await Promise.all(emailsAndSMSToSend);
+};
+
 export const sendFeedbackEmail = async (feedback: Feedback) => {
   await sendEmail(() => new FeedbackEmail(feedback));
 };
