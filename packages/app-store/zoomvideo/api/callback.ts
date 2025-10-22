@@ -58,8 +58,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
    * when creating a video room we only do findFirst so the if they have more than 1
    * others get ignored
    * */
-  const teamId = state?.teamId;
-
   const existingCredentialZoomVideo = await prisma.credential.findMany({
     select: {
       id: true,
@@ -77,7 +75,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({
       where: {
         id: { in: credentialIdsToDelete },
-        ...(teamId ? { teamId } : { userId }),
       },
     });
   }

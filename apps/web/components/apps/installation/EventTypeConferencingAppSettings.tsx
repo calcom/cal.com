@@ -93,9 +93,29 @@ const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEve
       query={locationsQuery}
       customLoader={<SkeletonLoader />}
       error={() => {
-        const updatedEventType: TEventType & {
+        let updatedEventType: TEventType & {
           locationOptions?: TLocationOptions;
-        } = { ...eventType, locationOptions: [] };
+        } = { ...eventType };
+
+        if (updatedEventType.schedulingType === SchedulingType.MANAGED) {
+          updatedEventType = {
+            ...updatedEventType,
+            locationOptions: [
+              {
+                label: t("default"),
+                options: [
+                  {
+                    label: t("members_default_location"),
+                    value: "",
+                    icon: "/user-check.svg",
+                  },
+                ],
+              },
+            ],
+          };
+        } else {
+          updatedEventType = { ...updatedEventType, locationOptions: [] };
+        }
         return <LocationsWrapper eventType={updatedEventType} slug={slug} />;
       }}
       success={({ data }) => {

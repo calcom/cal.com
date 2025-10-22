@@ -240,15 +240,10 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         CREDENTIAL_SYNC_SECRET: CREDENTIAL_SYNC_SECRET,
         CREDENTIAL_SYNC_SECRET_HEADER_NAME: CREDENTIAL_SYNC_SECRET_HEADER_NAME,
       },
-      resourceOwner: credential.teamId
-        ? {
-            type: "team",
-            id: credential.teamId,
-          }
-        : {
-            type: "user",
-            id: credential.userId,
-          },
+      resourceOwner: {
+        type: "user",
+        id: credential.userId,
+      },
       appSlug: metadata.slug,
       currentTokenObject: tokenResponse,
       fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
