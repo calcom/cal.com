@@ -92,17 +92,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   }
 
   let event: Partial<EventType> = {};
-  if (bookingToReschedule.eventTypeId) {
-    event = await prisma.eventType.findUniqueOrThrow({
-      select: {
-        title: true,
-        schedulingType: true,
-        recurringEvent: true,
-      },
-      where: {
-        id: bookingToReschedule.eventTypeId,
-      },
-    });
+  if (bookingToReschedule.eventType) {
+    event = bookingToReschedule.eventType;
   }
   await prisma.booking.update({
     where: {
