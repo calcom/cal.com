@@ -38,6 +38,9 @@ export default defineConfig(({ mode }) => {
     ],
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
+      "process.env.NEXT_PUBLIC_LOGGER_LEVEL": `"4"`,
+      "process.env.NODE_ENV": `"production"`,
+      "process.env": "{}",
     },
     ssr: {
       noExternal: ["turndown"], // Example if you want to disable SSR for your library
