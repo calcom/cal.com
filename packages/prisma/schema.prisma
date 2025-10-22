@@ -8,17 +8,12 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["views"]
-  output          = "./client"
-  binaryTargets   = ["native", "debian-openssl-1.1.x"]
-}
-
-generator client_for_api_v2 {
-  provider        = "prisma-client-js"
-  previewFeatures = ["views"]
-  output          = "../../apps/api/v2/client"
-  binaryTargets   = ["native", "debian-openssl-1.1.x"]
+  provider            = "prisma-client"
+  previewFeatures     = ["views"]
+  output              = "./generated/prisma"
+  engineType          = "client"
+  moduleFormat        = "cjs"
+  importFileExtension = ""
 }
 
 generator zod {
@@ -29,6 +24,8 @@ generator zod {
   addIncludeType           = false
   addSelectType            = false
   validateWhereUniqueInput = false
+  prismaClientPath         = "../../generated/prisma/client"
+  moduleFormat             = "cjs"
   /// createRelationValuesTypes = true
 }
 
@@ -2424,6 +2421,8 @@ model OrganizationOnboarding {
   slug               String
   logo               String?
   bio                String?
+  brandColor         String?
+  bannerUrl          String?
   isDomainConfigured Boolean @default(false)
 
   // Set when payment intent is there.
