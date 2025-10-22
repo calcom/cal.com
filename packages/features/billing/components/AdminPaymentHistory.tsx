@@ -6,7 +6,7 @@ import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-type BillingData = RouterOutputs["viewer"]["teams"]["adminGetBilling"];
+type BillingData = RouterOutputs["viewer"]["adminTeams"]["getBilling"];
 
 export const AdminPaymentHistory = ({
   billingData,
@@ -20,7 +20,7 @@ export const AdminPaymentHistory = ({
   if (isLoading) {
     return (
       <PanelCard title="Payment History">
-        <div className="p-4 space-y-3">
+        <div className="space-y-3 p-4">
           <SkeletonText className="h-4 w-full" />
           <SkeletonText className="h-4 w-full" />
           <SkeletonText className="h-4 w-full" />
@@ -32,7 +32,7 @@ export const AdminPaymentHistory = ({
   if (!billingData?.invoices || billingData.invoices.length === 0) {
     return (
       <PanelCard title="Payment History">
-        <div className="p-4 text-subtle text-sm">No payment history available for this {entityType}.</div>
+        <div className="text-subtle p-4 text-sm">No payment history available for this {entityType}.</div>
       </PanelCard>
     );
   }
@@ -62,18 +62,16 @@ export const AdminPaymentHistory = ({
 
   return (
     <PanelCard title="Payment History" subtitle={`${billingData.invoices.length} recent invoices`}>
-      <div className="divide-y divide-subtle">
+      <div className="divide-subtle divide-y">
         {billingData.invoices.map((invoice) => (
-          <div key={invoice.id} className="p-4 hover:bg-subtle transition-colors">
+          <div key={invoice.id} className="hover:bg-subtle p-4 transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-sm font-medium text-emphasis">
-                    {invoice.number || invoice.id}
-                  </span>
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-emphasis text-sm font-medium">{invoice.number || invoice.id}</span>
                   <Badge variant={getStatusColor(invoice.status || "draft")}>{invoice.status}</Badge>
                 </div>
-                <div className="text-xs text-subtle">
+                <div className="text-subtle text-xs">
                   {new Date(invoice.created * 1000).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
@@ -83,11 +81,11 @@ export const AdminPaymentHistory = ({
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
-                  <div className="text-sm font-semibold text-emphasis">
+                  <div className="text-emphasis text-sm font-semibold">
                     {formatCurrency(invoice.amountDue, invoice.currency)}
                   </div>
                   {invoice.amountPaid > 0 && invoice.amountPaid !== invoice.amountDue && (
-                    <div className="text-xs text-subtle">
+                    <div className="text-subtle text-xs">
                       Paid: {formatCurrency(invoice.amountPaid, invoice.currency)}
                     </div>
                   )}

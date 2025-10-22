@@ -7,7 +7,7 @@ import { PanelCard } from "@calcom/ui/components/card";
 import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-type BillingData = RouterOutputs["viewer"]["teams"]["adminGetBilling"];
+type BillingData = RouterOutputs["viewer"]["adminTeams"]["getBilling"];
 
 export const AdminBillingInfo = ({
   billingData,
