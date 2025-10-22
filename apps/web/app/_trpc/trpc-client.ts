@@ -15,7 +15,7 @@ const resolveEndpoint = (links: any) => {
   // to the correct API endpoints.
   // - viewer.me - 2 segment paths like this are for logged in requests
   // - viewer.public.i18n - 3 segments paths can be public or authed
-  // - viewer.eventTypes.heavy.create - 4 segments paths for heavy sub-router
+  // - viewer.eventTypesHeavy.create - 3 segment paths for flattened heavy router
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (ctx: any) => {
     const parts = ctx.op.path.split(".");
