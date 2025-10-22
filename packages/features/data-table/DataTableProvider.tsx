@@ -1,9 +1,7 @@
 "use client";
 
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
- 
 import debounce from "lodash/debounce";
- 
 import isEqual from "lodash/isEqual";
 import { useQueryState } from "nuqs";
 import { useState, createContext, useCallback, useEffect, useRef, useMemo } from "react";
@@ -78,7 +76,7 @@ export type DataTableContextType = {
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
 interface DataTableProviderProps {
-  tableIdentifier: string | null;
+  tableIdentifier: string;
   children: React.ReactNode;
   useSegments?: UseSegments;
   ctaContainerClassName?: string;

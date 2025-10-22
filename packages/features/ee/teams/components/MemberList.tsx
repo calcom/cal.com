@@ -168,6 +168,7 @@ interface Props {
 
 export default function MemberList(props: Props) {
   const pathname = usePathname();
+  if (!pathname) return null;
   return (
     <DataTableProvider tableIdentifier={pathname}>
       <MemberListContent {...props} />

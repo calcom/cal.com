@@ -93,11 +93,9 @@ function useSystemSegments(userId?: number) {
 export default function Bookings(props: BookingsProps) {
   const pathname = usePathname();
   const systemSegments = useSystemSegments(props.userId);
+  if (!pathname) return null;
   return (
-    <DataTableProvider
-      tableIdentifier={pathname}
-      useSegments={useSegments}
-      systemSegments={systemSegments}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} systemSegments={systemSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );

@@ -128,6 +128,7 @@ export type UserListTableProps = {
 
 export function UserListTable(props: UserListTableProps) {
   const pathname = usePathname();
+  if (!pathname) return null;
   return (
     <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
       <UserListTableContent {...props} />

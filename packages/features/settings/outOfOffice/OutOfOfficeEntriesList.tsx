@@ -67,6 +67,8 @@ export default function OutOfOfficeEntriesList() {
   const { t } = useLocale();
   const pathname = usePathname();
 
+  if (!pathname) return null;
+
   return (
     <SettingsHeader
       title={t("out_of_office")}

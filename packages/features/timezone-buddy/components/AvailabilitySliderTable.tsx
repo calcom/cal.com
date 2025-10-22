@@ -70,6 +70,7 @@ function UpgradeTeamTip() {
 
 export function AvailabilitySliderTable(props: { isOrg: boolean }) {
   const pathname = usePathname();
+  if (!pathname) return null;
   return (
     <DataTableProvider tableIdentifier={pathname}>
       <AvailabilitySliderTableContent {...props} />

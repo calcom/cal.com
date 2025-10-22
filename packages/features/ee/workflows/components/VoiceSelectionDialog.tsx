@@ -38,6 +38,7 @@ function VoiceSelectionTable({
   onVoiceSelect: (voiceId: string) => void;
 }) {
   const pathname = usePathname();
+  if (!pathname) return null;
   return (
     <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={1000}>
       <VoiceSelectionContent selectedVoiceId={selectedVoiceId} onVoiceSelect={onVoiceSelect} />

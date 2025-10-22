@@ -182,7 +182,7 @@ The context provider that manages all table state including filters, sorting, pa
 
 ```tsx
 interface DataTableProviderProps {
-  tableIdentifier: string | null;           // Unique identifier for the table (throws if null or empty)
+  tableIdentifier: string;           // Unique identifier for the table (throws if empty)
   children: React.ReactNode;
   useSegments?: UseSegments;          // Custom segment hook
   defaultPageSize?: number;           // Default: 10

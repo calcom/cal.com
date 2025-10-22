@@ -41,6 +41,7 @@ import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
   const pathname = usePathname();
+  if (!pathname) return null;
   return (
     <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>

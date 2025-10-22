@@ -20,6 +20,7 @@ interface TeamGroupMapping {
 
 const GroupTeamMappingTable = () => {
   const pathname = usePathname();
+  if (!pathname) return null;
   return (
     <DataTableProvider tableIdentifier={pathname}>
       <GroupTeamMappingTableContent />

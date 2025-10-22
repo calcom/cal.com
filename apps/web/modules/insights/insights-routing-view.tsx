@@ -17,6 +17,8 @@ export default function InsightsRoutingFormResponsesPage() {
   const { t } = useLocale();
   const pathname = usePathname();
 
+  if (!pathname) return null;
+
   return (
     <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
       <InsightsOrgTeamsProvider>

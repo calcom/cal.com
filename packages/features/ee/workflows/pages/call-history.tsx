@@ -66,6 +66,7 @@ function reducer(state: CallDetailsState, action: CallDetailsAction): CallDetail
 
 function CallHistoryTable(props: CallHistoryProps) {
   const pathname = usePathname();
+  if (!pathname) return null;
   return (
     <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
       <CallHistoryContent {...props} />

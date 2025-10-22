@@ -30,6 +30,8 @@ const PrivacyView = ({
 
   if (!currentOrg) return null;
 
+  if (!pathname) return null;
+
   return (
     <LicenseRequired>
       <div className="space-y-8">
