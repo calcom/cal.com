@@ -24,7 +24,7 @@ import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
 
-type Team = RouterOutputs["viewer"]["teams"]["adminGetAll"]["rows"][number];
+type Team = RouterOutputs["viewer"]["adminTeams"]["getAll"]["rows"][number];
 
 export function AdminTeamTable() {
   return (
@@ -41,7 +41,7 @@ function AdminTeamTableContent() {
 
   const { limit, offset, searchTerm } = useDataTable();
 
-  const { data, isPending } = trpc.viewer.teams.adminGetAll.useQuery(
+  const { data, isPending } = trpc.viewer.adminTeams.getAll.useQuery(
     {
       limit,
       offset,
@@ -52,10 +52,10 @@ function AdminTeamTableContent() {
     }
   );
 
-  const deleteMutation = trpc.viewer.teams.adminDelete.useMutation({
+  const deleteMutation = trpc.viewer.adminTeams.delete.useMutation({
     onSuccess: async () => {
       showToast(t("team_deleted_successfully"), "success");
-      await utils.viewer.teams.adminGetAll.invalidate();
+      await utils.viewer.adminTeams.getAll.invalidate();
       setTeamToDelete(null);
     },
     onError: (error) => {

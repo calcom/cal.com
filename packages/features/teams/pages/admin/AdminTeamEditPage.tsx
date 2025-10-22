@@ -45,11 +45,11 @@ export const TeamForm = ({
     },
   });
 
-  const mutation = trpc.viewer.teams.adminUpdate.useMutation({
+  const mutation = trpc.viewer.adminTeams.update.useMutation({
     onSuccess: async () => {
       showToast(t("team_updated_successfully"), "success");
-      await utils.viewer.teams.adminGet.invalidate();
-      await utils.viewer.teams.adminGetAll.invalidate();
+      await utils.viewer.adminTeams.get.invalidate();
+      await utils.viewer.adminTeams.getAll.invalidate();
     },
     onError: (error) => {
       showToast(error.message || t("something_went_wrong"), "error");

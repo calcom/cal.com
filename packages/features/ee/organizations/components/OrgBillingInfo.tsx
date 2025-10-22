@@ -5,8 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 
 export const OrgBillingInfo = ({ orgId }: { orgId: number }) => {
   // Organizations are just teams with isOrganization: true
-  // Use the unified teams.adminGetBilling endpoint
-  const { data: billingData, isLoading } = trpc.viewer.teams.adminGetBilling.useQuery({
+  const { data: billingData, isLoading } = trpc.viewer.adminTeams.getBilling.useQuery({
     id: orgId,
   });
 

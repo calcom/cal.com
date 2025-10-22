@@ -1,12 +1,7 @@
-import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
+import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
 import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
-import { ZAdminDeleteTeamSchema } from "./adminDelete.schema";
-import { ZAdminGetTeamSchema } from "./adminGet.schema";
-import { ZAdminGetAllTeamsInputSchema } from "./adminGetAll.schema";
-import { ZAdminGetTeamBillingSchema } from "./adminGetBilling.schema";
-import { ZAdminUpdateTeamSchema } from "./adminUpdate.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 import { ZCreateInputSchema } from "./create.schema";
@@ -196,27 +191,6 @@ export const viewerTeamsRouter = router({
   }),
   skipTeamTrials: authedProcedure.input(ZSkipTeamTrialsInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./skipTeamTrials.handler");
-    return handler(opts);
-  }),
-  // Admin procedures
-  adminGetAll: authedAdminProcedure.input(ZAdminGetAllTeamsInputSchema).query(async (opts) => {
-    const { default: handler } = await import("./adminGetAll.handler");
-    return handler(opts);
-  }),
-  adminGet: authedAdminProcedure.input(ZAdminGetTeamSchema).query(async (opts) => {
-    const { default: handler } = await import("./adminGet.handler");
-    return handler(opts);
-  }),
-  adminGetBilling: authedAdminProcedure.input(ZAdminGetTeamBillingSchema).query(async (opts) => {
-    const { default: handler } = await import("./adminGetBilling.handler");
-    return handler(opts);
-  }),
-  adminUpdate: authedAdminProcedure.input(ZAdminUpdateTeamSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./adminUpdate.handler");
-    return handler(opts);
-  }),
-  adminDelete: authedAdminProcedure.input(ZAdminDeleteTeamSchema).mutation(async (opts) => {
-    const { default: handler } = await import("./adminDelete.handler");
     return handler(opts);
   }),
 });

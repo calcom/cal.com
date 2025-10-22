@@ -8,6 +8,7 @@ import { loggedInViewerRouter } from "../loggedInViewer/_router";
 import { publicViewerRouter } from "../publicViewer/_router";
 import { timezonesRouter } from "../publicViewer/timezones/_router";
 import { adminRouter } from "./admin/_router";
+import { adminTeamsRouter } from "./adminTeams/_router";
 import { aiVoiceAgentRouter } from "./aiVoiceAgent/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
@@ -83,6 +84,7 @@ export const viewerRouter = router({
   oAuth: oAuthRouter,
   googleWorkspace: googleWorkspaceRouter,
   admin: adminRouter,
+  adminTeams: adminTeamsRouter,
   attributes: attributesRouter,
   routingForms: routingFormsRouter,
   credits: creditsRouter,
