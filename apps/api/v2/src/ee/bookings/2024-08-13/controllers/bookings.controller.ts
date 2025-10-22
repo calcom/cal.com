@@ -66,6 +66,7 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
   GetBookingRecordingsOutput,
   GetBookingTranscriptsOutput,
+  GetBookingVideoSessionsOutput,
 } from "@calcom/platform-types";
 import {
   CreateBookingInputPipe,
@@ -187,7 +188,7 @@ export class BookingsController_2024_08_13 {
       2. uid of one of the recurring booking recurrences
 
       3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).
-      
+
       If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
       you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
 
@@ -211,7 +212,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Get all the recordings for the booking",
     description: `Fetches all the recordings for the booking \`:bookingUid\`
-    
+
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
@@ -229,7 +230,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Get all the transcripts download links for the booking",
     description: `Fetches all the transcripts download links for the booking \`:bookingUid\`
-    
+
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
@@ -277,7 +278,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Reschedule a booking",
     description: `Reschedule a booking or seated booking
-    
+
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
@@ -319,16 +320,16 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Cancel a booking",
     description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
-    
+
     \nCancelling seated bookings:
     It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.
     \n1. As an attendee - provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and seatUid in the request body \`{"seatUid": "123-123-123"}\` . This will remove this particular attendance from the booking.
     \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
-    
+
     \nCancelling recurring seated bookings:
     For recurring seated bookings it is not possible to cancel all of them with 1 call
     like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.
-    
+
     If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
     you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.
 
@@ -369,7 +370,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Mark a booking absence",
     description: `The provided authorization header refers to the owner of the booking.
-    
+
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
@@ -394,7 +395,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Reassign a booking to auto-selected host",
     description: `Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.
-      
+
        <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
@@ -418,7 +419,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Reassign a booking to a specific host",
     description: `Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.
-      
+
       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
@@ -449,7 +450,7 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Confirm a booking",
     description: `The provided authorization header refers to the owner of the booking.
-    
+
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
@@ -473,8 +474,8 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Decline a booking",
     description: `The provided authorization header refers to the owner of the booking.
-    
-    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note> 
+
+    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
   async declineBooking(
@@ -497,8 +498,8 @@ export class BookingsController_2024_08_13 {
   @ApiOperation({
     summary: "Get 'Add to Calendar' links for a booking",
     description: `Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.
-      
-      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note> 
+
+      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
   @HttpCode(HttpStatus.OK)
@@ -535,6 +536,21 @@ export class BookingsController_2024_08_13 {
     return {
       status: SUCCESS_STATUS,
       data: bookingReferences,
+    };
+  }
+
+  @Get("/:bookingUid/sessions")
+  @HttpCode(HttpStatus.OK)
+  @Permissions([BOOKING_READ])
+  @UseGuards(ApiAuthGuard, BookingUidGuard)
+  @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @ApiOperation({ summary: "Get Video Meeting Sessions. Only supported for Cal Video" })
+  async getVideoSessions(@Param("bookingUid") bookingUid: string): Promise<GetBookingVideoSessionsOutput> {
+    const sessions = await this.calVideoService.getVideoSessions(bookingUid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: sessions,
     };
   }
 }
