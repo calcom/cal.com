@@ -6,8 +6,11 @@ import type { z } from "zod";
 
 import type getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import type getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
+import type { SchedulingType } from "@calcom/prisma/enums";
 import type { BookingCreateBody as BaseCreateBookingData } from "@calcom/prisma/zod/custom/booking";
 import type { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+
+import type { Actor } from "../types/actor";
 
 export type ExtendedBookingCreateData = z.input<typeof extendedBookingCreateBody>;
 export type BookingDataSchemaGetter = typeof getBookingDataSchema | typeof getBookingDataSchemaForApi;
@@ -35,6 +38,12 @@ export type CreateBookingMeta = {
   hostname?: string;
   forcedSlug?: string;
   noEmail?: boolean;
+  /**
+   * The actor performing the booking action.
+   * Used for audit logging to track who created/modified the booking.
+   * Optional for backward compatibility - defaults to System actor if not provided.
+   */
+  actor?: Actor;
 } & PlatformParams;
 
 export type BookingHandlerInput = {
