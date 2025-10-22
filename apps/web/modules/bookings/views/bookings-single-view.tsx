@@ -304,7 +304,7 @@ export default function Success(props: PageProps) {
     if (isAwaitingPayment) {
       return t("complete_your_booking_subject", {
         title: eventName,
-        date: formatToLocalizedDate(date, tz, is24h ? 24 : 12),
+        date: formatToLocalizedDate(date, undefined, "long", tz),
       });
     }
     if (needsConfirmation) {
