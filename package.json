@@ -1,6 +1,6 @@
 {
   "name": "calcom-monorepo",
-  "version": "0.0.0",
+  "version": "5.8.2",
   "private": true,
   "workspaces": [
     "apps/*",
