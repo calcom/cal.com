@@ -51,6 +51,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const bookingRepository = new BookingRepository(prisma);
   const bookingToReschedule = await bookingRepository.findBookingForRequestReschedule({ bookingUid });
 
+  if (!bookingToReschedule) return;
+
   if (!bookingToReschedule.userId) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
   }
@@ -85,8 +87,6 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
     throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
   }
-
-  if (!bookingToReschedule) return;
 
   let event: Partial<EventType> = {};
   if (bookingToReschedule.eventTypeId) {
