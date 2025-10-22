@@ -2,9 +2,9 @@ import type { NextApiRequest } from "next";
 import type { Session } from "next-auth";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import {
@@ -54,7 +54,7 @@ describe("Portal API - Service-Based Architecture", () => {
           user: { id: 123 },
           hasValidLicense: true,
           upId: "test-upid",
-          expires: "2024-12-31T23:59:59.999Z"
+          expires: "2024-12-31T23:59:59.999Z",
         } as Session,
       } as RequestWithSession;
 
@@ -77,7 +77,7 @@ describe("Portal API - Service-Based Architecture", () => {
           user: {} as any,
           hasValidLicense: true,
           upId: "test-upid",
-          expires: "2024-12-31T23:59:59.999Z"
+          expires: "2024-12-31T23:59:59.999Z",
         } as Session,
       } as RequestWithSession;
 
