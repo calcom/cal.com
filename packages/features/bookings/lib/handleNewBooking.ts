@@ -1568,7 +1568,7 @@ async function handler(
 
         try {
           const bookingAuditService = BookingAuditService.create();
-          await bookingAuditService.onBookingCreated(String(booking.id), String(userId || booking.userId), {
+          await bookingAuditService.onBookingCreated(String(booking.id), userId || booking.userId, {
             booking: {
               meetingTime: booking.startTime.toISOString(),
             },

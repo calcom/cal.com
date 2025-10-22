@@ -465,16 +465,12 @@ async function handler(input: CancelBookingInput) {
 
     try {
       const bookingAuditService = BookingAuditService.create();
-      await bookingAuditService.onBookingCancelled(
-        String(updatedBooking.id),
-        userId ? String(userId) : undefined,
-        {
-          cancellationReason: cancellationReason || undefined,
-          booking: {
-            meetingTime: updatedBooking.startTime.toISOString(),
-          },
-        }
-      );
+      await bookingAuditService.onBookingCancelled(String(updatedBooking.id), userId || undefined, {
+        cancellationReason: cancellationReason || undefined,
+        booking: {
+          meetingTime: updatedBooking.startTime.toISOString(),
+        },
+      });
     } catch (error) {
       log.error("Failed to create booking audit log for cancellation", error);
     }

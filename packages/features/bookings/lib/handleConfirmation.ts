@@ -318,7 +318,7 @@ export async function handleConfirmation(args: {
 
     try {
       const bookingAuditService = BookingAuditService.create();
-      await bookingAuditService.onBookingAccepted(String(updatedBooking.id), String(booking.userId), {
+      await bookingAuditService.onBookingAccepted(String(updatedBooking.id), booking.userId || undefined, {
         booking: {
           meetingTime: updatedBooking.startTime.toISOString(),
         },

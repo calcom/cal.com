@@ -462,6 +462,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  bookingAudits                  BookingAudit[]
 
   @@unique([email])
   @@unique([email, username])
@@ -2564,14 +2565,44 @@ enum BookingAuditAction {
   RESCHEDULE_REQUESTED @map("reschedule_requested")
 }
 
+enum ActorType {
+  GUEST  @map("guest") // Non-registered user
+  SYSTEM @map("system") // Automated actions
+}
+
+model Actor {
+  id        String    @id @default(uuid())
+  type      ActorType
+  email     String?
+  phone     String?
+  name      String?
+  createdAt DateTime  @default(now())
+
+  bookingAudits BookingAudit[]
+
+  @@unique([email])
+  @@index([email])
+}
+
 model BookingAudit {
-  id        String              @id @default(uuid()) //TODO: Use uuid7() for time-sortable ID once Prisma updates to 7.
+  id        String @id @default(uuid()) //TODO: Use uuid7() for time-sortable ID once Prisma updates to 7.
   bookingId String
-  userId    String?
+
+  // Either actorUserId (registered) OR actorId (non-registered/system)
+  actorUserId Int?
+  actorUser   User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  actorId String?
+  actor   Actor?  @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
   type      BookingAuditType
   action    BookingAuditAction?
   timestamp DateTime            @default(now())
   data      Json?
+
+  @@index([actorUserId])
+  @@index([actorId])
+  @@index([bookingId])
 }
 
 enum PhoneNumberSubscriptionStatus {
