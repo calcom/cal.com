@@ -3,8 +3,8 @@ import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-import type { RegularBookingService } from "./handleNewBooking";
-import type { IBookingService } from "./interfaces/IBookingService";
+import type { IBookingService } from "../interfaces/IBookingService";
+import type { RegularBookingService } from "./RegularBookingService";
 
 export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;

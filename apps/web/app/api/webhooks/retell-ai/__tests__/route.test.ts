@@ -705,7 +705,15 @@ describe("Retell AI Webhook Handler", () => {
   describe("Web Call Tests", () => {
     const mockAgent: Pick<
       Agent,
-      "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt" | "inboundEventTypeId"
+      | "id"
+      | "name"
+      | "providerAgentId"
+      | "enabled"
+      | "userId"
+      | "teamId"
+      | "createdAt"
+      | "updatedAt"
+      | "inboundEventTypeId"
     > = {
       id: "agent-123",
       name: "Test Agent",

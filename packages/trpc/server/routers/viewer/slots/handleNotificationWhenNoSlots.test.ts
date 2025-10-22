@@ -5,8 +5,8 @@ import { vi, describe, it, beforeAll, afterAll, expect, beforeEach, afterEach } 
 
 import dayjs from "@calcom/dayjs";
 import * as CalcomEmails from "@calcom/emails";
-import { RedisService } from "@calcom/features/redis/RedisService";
 import { getNoSlotsNotificationService } from "@calcom/features/di/containers/NoSlotsNotification";
+import { RedisService } from "@calcom/features/redis/RedisService";
 
 vi.mock("@calcom/features/redis/RedisService", () => {
   const mockedRedis = vi.fn();

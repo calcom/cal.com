@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import type { CreditUsageType } from "@calcom/prisma/enums";
 
-import { renderEmail } from "..";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
 export default class CreditBalanceLimitReachedEmail extends BaseEmail {
