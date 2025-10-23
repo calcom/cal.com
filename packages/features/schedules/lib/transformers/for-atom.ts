@@ -52,7 +52,6 @@ export function transformDateOverridesForAtom(
     };
     const dayRangeIndex = acc.findIndex(
       // early return prevents override.date from ever being empty.
-       
       (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date!)
     );
     if (dayRangeIndex === -1) {
