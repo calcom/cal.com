@@ -1,5 +1,6 @@
 import { type TFunction } from "i18next";
 
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
@@ -10,6 +11,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -331,7 +333,13 @@ const handleMarkNoShow = async ({
       if (userId && bookingToUpdate) {
         try {
           const bookingAuditService = BookingAuditService.create();
-          await bookingAuditService.onHostNoShowUpdated(String(bookingToUpdate.id), userId, {
+          const hashedLinkService = new HashedLinkService();
+          const bookingEventHandlerService = new BookingEventHandlerService({
+            log: logger,
+            hashedLinkService,
+            bookingAuditService,
+          });
+          await bookingEventHandlerService.onHostNoShowUpdatedAudit(String(bookingToUpdate.id), userId, {
             changes: [
               {
                 field: "noShowHost",

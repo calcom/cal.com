@@ -90,6 +90,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
 import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -1568,11 +1569,21 @@ async function handler(
 
         try {
           const bookingAuditService = BookingAuditService.create();
-          await bookingAuditService.onBookingCreated(String(booking.id), userId || booking.userId, {
-            booking: {
-              meetingTime: booking.startTime.toISOString(),
-            },
+          const hashedLinkService = new HashedLinkService();
+          const bookingEventHandlerService = new BookingEventHandlerService({
+            log: logger,
+            hashedLinkService,
+            bookingAuditService,
           });
+          await bookingEventHandlerService.onBookingCreatedAudit(
+            String(booking.id),
+            userId || booking.userId,
+            {
+              booking: {
+                meetingTime: booking.startTime.toISOString(),
+              },
+            }
+          );
         } catch (error) {
           logger.error("Failed to create booking audit log", error);
         }

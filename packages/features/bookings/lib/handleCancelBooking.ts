@@ -20,7 +20,6 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -30,6 +29,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
@@ -50,8 +50,9 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
-import type { Actor } from "./types/actor";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
+import { BookingEventHandlerService } from "./onBookingEvents/BookingEventHandlerService";
+import type { Actor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -472,12 +473,22 @@ async function handler(input: CancelBookingInput) {
 
     try {
       const bookingAuditService = BookingAuditService.create();
-      await bookingAuditService.onBookingCancelled(String(updatedBooking.id), userId || undefined, {
-        cancellationReason: cancellationReason || undefined,
-        booking: {
-          meetingTime: updatedBooking.startTime.toISOString(),
-        },
+      const hashedLinkService = new HashedLinkService();
+      const bookingEventHandlerService = new BookingEventHandlerService({
+        log,
+        hashedLinkService,
+        bookingAuditService,
       });
+      await bookingEventHandlerService.onBookingCancelledAudit(
+        String(updatedBooking.id),
+        userId || undefined,
+        {
+          cancellationReason: cancellationReason || undefined,
+          booking: {
+            meetingTime: updatedBooking.startTime.toISOString(),
+          },
+        }
+      );
     } catch (error) {
       log.error("Failed to create booking audit log for cancellation", error);
     }

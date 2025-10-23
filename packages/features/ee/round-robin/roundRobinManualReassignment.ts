@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
@@ -14,6 +13,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -32,6 +32,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -213,7 +214,13 @@ export const roundRobinManualReassignment = async ({
 
     try {
       const bookingAuditService = BookingAuditService.create();
-      await bookingAuditService.onBookingUpdated(String(bookingId), reassignedById, {
+      const hashedLinkService = new HashedLinkService();
+      const bookingEventHandlerService = new BookingEventHandlerService({
+        log: logger,
+        hashedLinkService,
+        bookingAuditService,
+      });
+      await bookingEventHandlerService.onBookingUpdatedAudit(String(bookingId), reassignedById, {
         changes: [
           { field: "userId", oldValue: oldUserId, newValue: newUserId },
           { field: "userPrimaryEmail", oldValue: oldEmail, newValue: newUser.email },
@@ -333,7 +340,7 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
-  if( hasOrganizerChanged ){
+  if (hasOrganizerChanged) {
     // location might changed and will be new created in eventManager.create (organizer default location)
     evt.videoCallData = undefined;
     // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
