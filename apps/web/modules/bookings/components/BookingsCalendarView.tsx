@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
@@ -15,41 +15,35 @@ import type { BookingOutput } from "../types";
 
 type BookingsCalendarViewProps = {
   bookings: BookingOutput[];
-  onWeekChange?: (startDate: Date, endDate: Date) => void;
+  currentWeekStart: dayjs.Dayjs;
+  onWeekStartChange: (weekStart: dayjs.Dayjs) => void;
 };
 
-export function BookingsCalendarView({ bookings, onWeekChange }: BookingsCalendarViewProps) {
+export function BookingsCalendarView({
+  bookings,
+  currentWeekStart,
+  onWeekStartChange,
+}: BookingsCalendarViewProps) {
   const { t } = useLocale();
   const { timezone } = useTimePreferences();
-  const [currentWeekStart, _setCurrentWeekStart] = useState(() => dayjs().startOf("week"));
-
-  const setCurrentWeekStart = useCallback(
-    (newWeekStart: dayjs.Dayjs) => {
-      _setCurrentWeekStart(newWeekStart);
-      const newStartDate = newWeekStart.toDate();
-      const newEndDate = newWeekStart.add(6, "day").toDate();
-      onWeekChange?.(newStartDate, newEndDate);
-    },
-    [onWeekChange]
-  );
 
   const goToPreviousWeek = () => {
-    setCurrentWeekStart(currentWeekStart.subtract(1, "week"));
+    onWeekStartChange(currentWeekStart.subtract(1, "week"));
   };
 
   const goToNextWeek = () => {
-    setCurrentWeekStart(currentWeekStart.add(1, "week"));
+    onWeekStartChange(currentWeekStart.add(1, "week"));
   };
 
   const goToToday = () => {
-    setCurrentWeekStart(dayjs().startOf("week"));
+    onWeekStartChange(dayjs().startOf("week"));
   };
 
   const startDate = useMemo(() => currentWeekStart.toDate(), [currentWeekStart]);
   const endDate = useMemo(() => currentWeekStart.add(6, "day").toDate(), [currentWeekStart]);
 
   useEffect(() => {
-    onWeekChange?.(startDate, endDate);
+    onWeekStartChange(currentWeekStart);
   }, []);
 
   const events = useMemo<CalendarEvent[]>(() => {

@@ -1,8 +1,10 @@
 "use client";
 
 import type { Table as ReactTable } from "@tanstack/react-table";
+import { createParser, useQueryState } from "nuqs";
 import { useMemo, useCallback } from "react";
 
+import dayjs from "@calcom/dayjs";
 import {
   DataTableFilters,
   DataTableSegment,
@@ -23,10 +25,23 @@ type BookingsCalendarViewProps = {
 
 const COLUMN_IDS_TO_HIDE = ["dateRange"];
 
+const weekStartParser = createParser({
+  parse: (value: string) => {
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed.startOf("week") : dayjs().startOf("week");
+  },
+  serialize: (value: dayjs.Dayjs) => value.format("YYYY-MM-DD"),
+});
+
 export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
   const { rows } = table.getRowModel();
   const { updateFilter } = useDataTable();
   const dateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
+
+  const [currentWeekStart, setCurrentWeekStart] = useQueryState(
+    "weekStart",
+    weekStartParser.withDefault(dayjs().startOf("week"))
+  );
 
   const bookings = useMemo(() => {
     return rows
@@ -35,8 +50,13 @@ export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
       .filter((booking): booking is NonNullable<typeof booking> => booking !== null);
   }, [rows]);
 
-  const handleWeekChange = useCallback(
-    (startDate: Date, endDate: Date) => {
+  const handleWeekStartChange = useCallback(
+    (newWeekStart: dayjs.Dayjs) => {
+      setCurrentWeekStart(newWeekStart);
+
+      const startDate = newWeekStart.toDate();
+      const endDate = newWeekStart.add(6, "day").toDate();
+
       if (!dateRange) {
         return;
       }
@@ -63,7 +83,7 @@ export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
         },
       });
     },
-    [dateRange, updateFilter]
+    [dateRange, updateFilter, setCurrentWeekStart]
   );
 
   return (
@@ -79,7 +99,11 @@ export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
           <DataTableSegment.Select />
         </div>
       </div>
-      <BookingsCalendarView bookings={bookings} onWeekChange={handleWeekChange} />
+      <BookingsCalendarView
+        bookings={bookings}
+        currentWeekStart={currentWeekStart}
+        onWeekStartChange={handleWeekStartChange}
+      />
     </>
   );
 }
