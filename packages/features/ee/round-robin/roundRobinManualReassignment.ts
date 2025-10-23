@@ -31,6 +31,7 @@ import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKey
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -188,6 +189,10 @@ export const roundRobinManualReassignment = async ({
       t: newUserT,
     });
 
+    const oldUserId = booking.userId;
+    const oldEmail = booking.userPrimaryEmail;
+    const oldTitle = booking.title;
+
     booking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -205,6 +210,22 @@ export const roundRobinManualReassignment = async ({
       },
       select: bookingSelect,
     });
+
+    try {
+      const bookingAuditService = BookingAuditService.create();
+      await bookingAuditService.onBookingUpdated(String(bookingId), reassignedById, {
+        changes: [
+          { field: "userId", oldValue: oldUserId, newValue: newUserId },
+          { field: "userPrimaryEmail", oldValue: oldEmail, newValue: newUser.email },
+          { field: "title", oldValue: oldTitle, newValue: newBookingTitle },
+        ],
+        booking: {
+          reassignmentReason: reassignReason || "Manual round robin reassignment",
+        },
+      });
+    } catch (error) {
+      logger.error("Failed to create booking audit log for manual round robin reassignment", error);
+    }
 
     await AssignmentReasonRecorder.roundRobinReassignment({
       bookingId,
@@ -385,7 +406,7 @@ export const roundRobinManualReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send emails
   if (emailsEnabled) {

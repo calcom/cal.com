@@ -1,10 +1,6 @@
  
 import { cloneDeep } from "lodash";
 
-import {
-  enrichHostsWithDelegationCredentials,
-  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
-} from "@calcom/app-store/delegationCredential";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
@@ -20,16 +16,21 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import {
+  enrichHostsWithDelegationCredentials,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
+} from "@calcom/lib/delegationCredential/server";
+import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -247,6 +248,10 @@ export const roundRobinReassignment = async ({
 
     newBookingTitle = getEventName(eventNameObject);
 
+    const oldUserId = booking.userId;
+    const oldEmail = booking.userPrimaryEmail;
+    const oldTitle = booking.title;
+
     booking = await prisma.booking.update({
       where: {
         id: bookingId,
@@ -264,6 +269,22 @@ export const roundRobinReassignment = async ({
       },
       select: bookingSelect,
     });
+
+    try {
+      const bookingAuditService = BookingAuditService.create();
+      await bookingAuditService.onBookingUpdated(String(bookingId), reassignedById, {
+        changes: [
+          { field: "userId", oldValue: oldUserId, newValue: reassignedRRHost.id },
+          { field: "userPrimaryEmail", oldValue: oldEmail, newValue: reassignedRRHost.email },
+          { field: "title", oldValue: oldTitle, newValue: newBookingTitle },
+        ],
+        booking: {
+          reassignmentReason: "Round robin reassignment",
+        },
+      });
+    } catch (error) {
+      logger.error("Failed to create booking audit log for round robin reassignment", error);
+    }
   } else {
     const previousRRHostAttendee = booking.attendees.find(
       (attendee) => attendee.email === previousRRHost.email
@@ -341,12 +362,6 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
-  if(hasOrganizerChanged){
-    // location might changed and will be new created in eventManager.create (organizer default location)
-    evt.videoCallData = undefined;
-    // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
-    evt.iCalUID = undefined;
-  }
   const credentials = await prisma.credential.findMany({
     where: {
       userId: organizer.id,
@@ -416,7 +431,7 @@ export const roundRobinReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
   if (emailsEnabled) {

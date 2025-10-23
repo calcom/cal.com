@@ -1,14 +1,10 @@
 import type { TFunction } from "i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/delegationCredential";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { deleteMeeting } from "@calcom/app-store/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
@@ -17,12 +13,17 @@ import {
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
+import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegationCredential/server";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
+import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -154,6 +155,22 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     },
   });
 
+  try {
+    const bookingAuditService = BookingAuditService.create();
+    await bookingAuditService.onRescheduleRequested(String(bookingToReschedule.id), user.id, {
+      changes: [
+        { field: "rescheduled", oldValue: false, newValue: true },
+        { field: "status", oldValue: bookingToReschedule.status, newValue: BookingStatus.CANCELLED },
+        { field: "cancelledBy", oldValue: null, newValue: user.email },
+      ],
+      booking: {
+        cancellationReason,
+      },
+    });
+  } catch (error) {
+    log.error("Failed to create booking audit log for reschedule request", error);
+  }
+
   // delete scheduled jobs of previous booking
   const webhookPromises = [];
   webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
@@ -220,7 +237,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const director = new CalendarEventDirector();
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
-  cancellationReason && director.setCancellationReason(cancellationReason);
+  if (cancellationReason) {
+    director.setCancellationReason(cancellationReason);
+  }
   if (Object.keys(event).length) {
     // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
     await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });

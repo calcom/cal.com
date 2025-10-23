@@ -20,6 +20,7 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -28,6 +29,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
@@ -48,6 +50,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsFo
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
+import type { Actor } from "./types/actor";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -65,6 +68,12 @@ export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 export type CancelBookingInput = {
   userId?: number;
   bookingData: z.infer<typeof bookingCancelInput>;
+  /**
+   * The actor performing the cancellation.
+   * Used for audit logging to track who cancelled the booking.
+   * Optional for backward compatibility - defaults to System actor if not provided.
+   */
+  actor?: Actor;
 } & PlatformParams;
 
 async function handler(input: CancelBookingInput) {
@@ -460,6 +469,18 @@ async function handler(input: CancelBookingInput) {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    try {
+      const bookingAuditService = BookingAuditService.create();
+      await bookingAuditService.onBookingCancelled(String(updatedBooking.id), userId || undefined, {
+        cancellationReason: cancellationReason || undefined,
+        booking: {
+          meetingTime: updatedBooking.startTime.toISOString(),
+        },
+      });
+    } catch (error) {
+      log.error("Failed to create booking audit log for cancellation", error);
+    }
 
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {
