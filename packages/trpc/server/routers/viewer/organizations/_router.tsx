@@ -191,5 +191,4 @@ export const viewerOrganizationsRouter = router({
       const { default: handler } = await import("./getWatchlistEntryDetails.handler");
       return handler(opts);
     }),
-
 });
