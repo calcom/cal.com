@@ -38,14 +38,10 @@ export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptio
 }
 
 export function getSubmitterEmail(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES): string | undefined {
-  const submitterEmail = Object.values(responses).find(
-    (response): response is { value: string; label: string } => {
-      //todo: fix using the correct type
-      const value =
-        typeof response === "object" && response && "value" in response ? response.value : response;
-      return typeof value === "string" && value.includes("@");
-    }
-  )?.value;
+  const submitterEmail = Object.values(responses).find((response) => {
+    const value = typeof response === "object" && response && "value" in response ? response.value : response;
+    return typeof value === "string" && value.includes("@");
+  })?.value;
   if (typeof submitterEmail !== "string") return undefined;
   return submitterEmail;
 }

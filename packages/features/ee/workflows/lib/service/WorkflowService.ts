@@ -159,6 +159,7 @@ export class WorkflowService {
           responses,
           smsReminderNumber,
           hideBranding,
+          routedEventTypeId,
           form: {
             id: form.id,
             userId: form.userId,

@@ -13,6 +13,7 @@ const log = logger.getSubLogger({ prefix: ["[tasker] triggerFormSubmittedNoEvent
 export const ZTriggerFormSubmittedNoEventWorkflowPayloadSchema = z.object({
   responseId: z.number(),
   responses: z.any(),
+  routedEventTypeId: z.number().nullable().optional(),
   form: z.object({
     id: z.string(),
     userId: z.number(),
@@ -31,8 +32,16 @@ export const ZTriggerFormSubmittedNoEventWorkflowPayloadSchema = z.object({
 });
 
 export async function triggerFormSubmittedNoEventWorkflow(payload: string): Promise<void> {
-  const { responseId, form, responses, smsReminderNumber, hideBranding, workflow, submittedAt } =
-    ZTriggerFormSubmittedNoEventWorkflowPayloadSchema.parse(JSON.parse(payload));
+  const {
+    responseId,
+    form,
+    responses,
+    smsReminderNumber,
+    hideBranding,
+    workflow,
+    submittedAt,
+    routedEventTypeId,
+  } = ZTriggerFormSubmittedNoEventWorkflowPayloadSchema.parse(JSON.parse(payload));
 
   const shouldTrigger = await shouldTriggerFormSubmittedNoEvent({
     formId: form.id,
@@ -49,6 +58,7 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
       formData: {
         responses: responses as FORM_SUBMITTED_WEBHOOK_RESPONSES,
         user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
+        routedEventTypeId: routedEventTypeId ?? null,
       },
       hideBranding,
       workflows: [workflow as Workflow],
