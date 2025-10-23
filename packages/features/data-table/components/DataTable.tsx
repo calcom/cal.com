@@ -38,7 +38,7 @@ export type DataTablePropsFromWrapper<TData> = {
   className?: string;
   containerClassName?: string;
   headerClassName?: string;
-  rowClassName?: string;
+  rowClassName?: string | ((row: Row<TData>) => string);
   paginationMode?: "infinite" | "standard";
   hasWrapperContext?: boolean;
   hideSeparatorsOnSort?: boolean;
@@ -428,7 +428,7 @@ const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) 
   if (!canSort && !canHide) {
     if (typeof header.column.columnDef.header === "string") {
       return (
-        <div className="truncate px-2 py-1" title={header.column.columnDef.header}>
+        <div className="truncate" title={header.column.columnDef.header}>
           {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
         </div>
       );

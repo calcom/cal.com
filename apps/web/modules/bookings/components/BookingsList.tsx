@@ -1,6 +1,6 @@
 "use client";
 
-import type { Table as ReactTable } from "@tanstack/react-table";
+import type { Row, Table as ReactTable } from "@tanstack/react-table";
 
 import { DataTableWrapper, DataTableFilters, DataTableSegment } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,9 +23,10 @@ type BookingsListViewProps = {
   table: ReactTable<RowData>;
   isPending: boolean;
   totalRowCount?: number;
+  onRowClick?: (row: Row<RowData>) => void;
 };
 
-export function BookingsList({ status, table, isPending, totalRowCount }: BookingsListViewProps) {
+export function BookingsList({ status, table, isPending, totalRowCount, onRowClick }: BookingsListViewProps) {
   const { t } = useLocale();
 
   return (
@@ -34,11 +35,12 @@ export function BookingsList({ status, table, isPending, totalRowCount }: Bookin
       table={table}
       testId={`${status}-bookings`}
       bodyTestId="bookings"
-      headerClassName="hidden"
       isPending={isPending}
       totalRowCount={totalRowCount}
-      variant="compact"
+      variant="default"
       paginationMode="standard"
+      onRowMouseclick={onRowClick}
+      hideSeparatorsOnSort={true}
       ToolbarLeft={
         <>
           <DataTableFilters.FilterBar table={table} />
