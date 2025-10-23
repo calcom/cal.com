@@ -1,9 +1,8 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { redisModule } from "@calcom/features/redis/di/redisModule";
-import { membershipRepositoryModule } from "@calcom/features/users/di/MembershipRepository.module";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
-
+import { membershipRepositoryModule } from "@calcom/features/users/di/MembershipRepository.module";
 import { createContainer } from "../di";
 import { availableSlotsModule } from "../modules/AvailableSlots";
 import { bookingRepositoryModule } from "../modules/Booking";
