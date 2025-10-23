@@ -145,8 +145,11 @@ function UserTable() {
     // ... other table options
   });
 
+  const pathname = usePathname();
+  const tableIdentifier = "hard-coded idenfidier" // or pathname;
+
   return (
-    <DataTableProvider tableIdentifier="user-table">
+    <DataTableProvider tableIdentifier={tableIdentifier}>
       <DataTableWrapper
         table={table}
         paginationMode="standard"
@@ -179,7 +182,7 @@ The context provider that manages all table state including filters, sorting, pa
 
 ```tsx
 interface DataTableProviderProps {
-  tableIdentifier?: string;           // Unique identifier for the table
+  tableIdentifier: string;           // Unique identifier for the table (throws if empty)
   children: React.ReactNode;
   useSegments?: UseSegments;          // Custom segment hook
   defaultPageSize?: number;           // Default: 10
@@ -530,7 +533,6 @@ Segments allow users to save and share filter configurations. There are two type
 
 ```tsx
 <DataTableProvider
-  tableIdentifier="users"
   useSegments={useSegments} // Required to enable segments
 >
   {/* Your table content */}
@@ -564,7 +566,6 @@ const systemSegments: SystemFilterSegment[] = [
 
 <DataTableProvider 
   systemSegments={systemSegments}
-  tableIdentifier="user-table"
 >
   {/* ... */}
 </DataTableProvider>
@@ -1210,7 +1211,7 @@ function UserTableContainer() {
   const { data, isPending } = useUsers(filters);
   
   return (
-    <DataTableProvider tableIdentifier="users">
+    <DataTableProvider>
       <UserTable data={data} isPending={isPending} />
     </DataTableProvider>
   );
