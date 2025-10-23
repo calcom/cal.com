@@ -1,6 +1,7 @@
 import { type TFunction } from "i18next";
 
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
@@ -339,15 +340,19 @@ const handleMarkNoShow = async ({
             hashedLinkService,
             bookingAuditService,
           });
-          await bookingEventHandlerService.onHostNoShowUpdated(String(bookingToUpdate.id), userId, {
-            changes: [
-              {
-                field: "noShowHost",
-                oldValue: bookingToUpdate.noShowHost,
-                newValue: true,
-              },
-            ],
-          });
+          await bookingEventHandlerService.onHostNoShowUpdated(
+            String(bookingToUpdate.id),
+            createUserActor(userId),
+            {
+              changes: [
+                {
+                  field: "noShowHost",
+                  oldValue: bookingToUpdate.noShowHost,
+                  newValue: true,
+                },
+              ],
+            }
+          );
         } catch (error) {
           logger.error("Failed to create booking audit log for host no-show", error);
         }

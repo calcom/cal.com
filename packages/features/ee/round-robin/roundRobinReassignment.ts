@@ -16,6 +16,7 @@ import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBoo
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -279,7 +280,7 @@ export const roundRobinReassignment = async ({
         hashedLinkService,
         bookingAuditService,
       });
-      await bookingEventHandlerService.onBookingUpdated(String(bookingId), reassignedById, {
+      await bookingEventHandlerService.onBookingUpdated(String(bookingId), createUserActor(reassignedById), {
         changes: [
           { field: "userId", oldValue: oldUserId, newValue: reassignedRRHost.id },
           { field: "userPrimaryEmail", oldValue: oldEmail, newValue: reassignedRRHost.email },

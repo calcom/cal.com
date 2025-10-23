@@ -53,6 +53,7 @@ import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
 import { BookingEventHandlerService } from "./onBookingEvents/BookingEventHandlerService";
 import type { Actor } from "./types/actor";
+import { createUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -479,12 +480,16 @@ async function handler(input: CancelBookingInput) {
         hashedLinkService,
         bookingAuditService,
       });
-      await bookingEventHandlerService.onBookingCancelled(String(updatedBooking.id), userId || undefined, {
-        cancellationReason: cancellationReason || undefined,
-        booking: {
-          meetingTime: updatedBooking.startTime.toISOString(),
-        },
-      });
+      await bookingEventHandlerService.onBookingCancelled(
+        String(updatedBooking.id),
+        createUserActor(userId || 0),
+        {
+          cancellationReason: cancellationReason || undefined,
+          booking: {
+            meetingTime: updatedBooking.startTime.toISOString(),
+          },
+        }
+      );
     } catch (error) {
       log.error("Failed to create booking audit log for cancellation", error);
     }

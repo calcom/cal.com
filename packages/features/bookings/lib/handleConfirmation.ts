@@ -33,6 +33,7 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 import { BookingEventHandlerService } from "./onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -328,7 +329,7 @@ export async function handleConfirmation(args: {
       });
       await bookingEventHandlerService.onBookingAccepted(
         String(updatedBooking.id),
-        booking.userId || undefined,
+        createUserActor(booking.userId || 0),
         {
           booking: {
             meetingTime: updatedBooking.startTime.toISOString(),

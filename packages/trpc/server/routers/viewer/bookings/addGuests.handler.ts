@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -132,7 +133,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       hashedLinkService,
       bookingAuditService,
     });
-    await bookingEventHandlerService.onAttendeeAdded(String(bookingId), user.id, {
+    await bookingEventHandlerService.onAttendeeAdded(String(bookingId), createUserActor(user.id), {
       changes: [{ field: "attendees", oldValue: oldGuestCount, newValue: bookingAttendees.attendees.length }],
       booking: {
         addedGuests: uniqueGuests,

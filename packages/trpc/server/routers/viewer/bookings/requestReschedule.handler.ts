@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
@@ -165,16 +166,20 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       hashedLinkService,
       bookingAuditService,
     });
-    await bookingEventHandlerService.onRescheduleRequested(String(bookingToReschedule.id), user.id, {
-      changes: [
-        { field: "rescheduled", oldValue: false, newValue: true },
-        { field: "status", oldValue: bookingToReschedule.status, newValue: BookingStatus.CANCELLED },
-        { field: "cancelledBy", oldValue: null, newValue: user.email },
-      ],
-      booking: {
-        cancellationReason,
-      },
-    });
+    await bookingEventHandlerService.onRescheduleRequested(
+      String(bookingToReschedule.id),
+      createUserActor(user.id),
+      {
+        changes: [
+          { field: "rescheduled", oldValue: false, newValue: true },
+          { field: "status", oldValue: bookingToReschedule.status, newValue: BookingStatus.CANCELLED },
+          { field: "cancelledBy", oldValue: null, newValue: user.email },
+        ],
+        booking: {
+          cancellationReason,
+        },
+      }
+    );
   } catch (error) {
     log.error("Failed to create booking audit log for reschedule request", error);
   }

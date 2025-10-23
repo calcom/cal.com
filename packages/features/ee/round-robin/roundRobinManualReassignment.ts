@@ -14,6 +14,7 @@ import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingR
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -220,7 +221,7 @@ export const roundRobinManualReassignment = async ({
         hashedLinkService,
         bookingAuditService,
       });
-      await bookingEventHandlerService.onBookingUpdated(String(bookingId), reassignedById, {
+      await bookingEventHandlerService.onBookingUpdated(String(bookingId), createUserActor(reassignedById), {
         changes: [
           { field: "userId", oldValue: oldUserId, newValue: newUserId },
           { field: "userPrimaryEmail", oldValue: oldEmail, newValue: newUser.email },
