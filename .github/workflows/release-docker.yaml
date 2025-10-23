@@ -19,9 +19,7 @@ on: # yamllint disable-line rule:truthy
 jobs:
   release:
     name: "Release"
-
-    runs-on: "ubuntu-latest"
-
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -32,12 +30,9 @@ jobs:
       - name: Log in to the Docker Hub registry
         uses: docker/login-action@v3
         with:
-          # Username used to log against the Docker registry
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          # Password or personal access token used to log against the Docker registry
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          # Log out from the Docker registry at the end of a job
-          logout: true # optional, default is true
+          logout: true
 
       - name: Log in to the Github Container registry
         uses: docker/login-action@v3
@@ -65,10 +60,6 @@ jobs:
           echo "DATABASE_HOST=localhost:5432" >> $GITHUB_ENV
           eval $(sed -e '/^#/d' -e 's/^/export /' -e 's/$/;/' .env) ;
 
-      # Temporarily disable ARM build due to runner performance issues
-      # - name: Set up QEMU
-      #   uses: docker/setup-qemu-action@v2
-
       - name: Start database
         run: |
           docker compose up -d database
@@ -88,9 +79,6 @@ jobs:
             network=container:database
           buildkitd-flags: |
             --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
-      #           config-inline: |
-      #             [worker.oci]
-      #               max-parallelism = 1
 
       - name: Build image
         id: docker_build

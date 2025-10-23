@@ -61,11 +61,11 @@ ENV NODE_ENV=production
 
 COPY package.json .yarnrc.yml turbo.json i18n.json ./
 COPY .yarn ./.yarn
-COPY --from=builder /yarn.lock ./yarn.lock
-COPY --from=builder /node_modules ./node_modules
-COPY --from=builder /packages ./packages
-COPY --from=builder /apps/web ./apps/web
-COPY --from=builder /packages/prisma/schema.prisma ./prisma/schema.prisma
+COPY --from=builder /calcom/yarn.lock ./yarn.lock
+COPY --from=builder /calcom/node_modules ./node_modules
+COPY --from=builder /calcom/packages ./packages
+COPY --from=builder /calcom/apps/web ./apps/web
+COPY --from=builder /calcom/packages/prisma/schema.prisma ./prisma/schema.prisma
 COPY scripts scripts
 
 # Save value used during this build stage. If NEXT_PUBLIC_WEBAPP_URL and BUILT_NEXT_PUBLIC_WEBAPP_URL differ at
@@ -90,4 +90,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
     CMD wget --spider http://localhost:3000 || exit 1
 
-CMD ["/scripts/start.sh"]
+CMD ["/calcom/scripts/start.sh"]
