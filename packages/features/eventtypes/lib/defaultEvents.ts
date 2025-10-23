@@ -141,6 +141,7 @@ const commons = {
   restrictionScheduleId: null,
   useBookerTimezone: false,
   profileId: null,
+  profile: null,
   requiresConfirmationWillBlockSlot: false,
   canSendCalVideoTranscriptionEmails: false,
   instantMeetingExpiryTimeOffsetInSeconds: 0,

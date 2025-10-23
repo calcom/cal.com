@@ -1,5 +1,5 @@
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import getApps from "@calcom/app-store/utils";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -24,7 +24,7 @@ export const appByIdHandler = async ({ ctx, input }: AppByIdOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find app ${appId}` });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   const { credential: _, credentials: _1, ...app } = appFromDb;
   return {
     isInstalled: appFromDb.credentials.length,

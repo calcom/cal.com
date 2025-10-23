@@ -1,6 +1,7 @@
  
 import { cloneDeep } from "lodash";
 
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
@@ -13,6 +14,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -25,8 +27,6 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
@@ -332,6 +332,13 @@ export const roundRobinManualReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
+
+  if( hasOrganizerChanged ){
+    // location might changed and will be new created in eventManager.create (organizer default location)
+    evt.videoCallData = undefined;
+    // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+    evt.iCalUID = undefined;
+  }
 
   const credentials = await prisma.credential.findMany({
     where: { userId: newUser.id },

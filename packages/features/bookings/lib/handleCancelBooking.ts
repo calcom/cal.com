@@ -9,7 +9,9 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -18,7 +20,7 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -27,11 +29,11 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+// TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
-import type { Prisma, WorkflowReminder } from "@calcom/prisma/client";
+import type { Prisma, PrismaClient, WorkflowReminder } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, bookingCancelInput } from "@calcom/prisma/zod-utils";
@@ -39,11 +41,17 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import type {
+  CancelRegularBookingData,
+  CancelBookingMeta,
+  HandleCancelBookingResponse,
+} from "./dto/BookingCancel";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { Actor } from "./types/actor";
+import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -68,14 +76,6 @@ export type CancelBookingInput = {
   actor?: Actor;
 } & PlatformParams;
 
-export type HandleCancelBookingResponse = {
-  success: boolean;
-  message: string;
-  onlyRemovedAttendee: boolean;
-  bookingId: number;
-  bookingUid: string;
-};
-
 async function handler(input: CancelBookingInput) {
   const body = input.bookingData;
   const {
@@ -87,6 +87,7 @@ async function handler(input: CancelBookingInput) {
     cancelledBy,
     cancelSubsequentBookings,
     internalNote,
+    skipCancellationReasonValidation = false,
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -125,7 +126,12 @@ async function handler(input: CancelBookingInput) {
   const isCancellationUserHost =
     bookingToDelete.userId == userId || bookingToDelete.user.email === cancelledBy;
 
-  if (!platformClientId && !cancellationReason?.trim() && isCancellationUserHost) {
+  if (
+    !platformClientId &&
+    !cancellationReason?.trim() &&
+    isCancellationUserHost &&
+    !skipCancellationReasonValidation
+  ) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
@@ -265,6 +271,7 @@ async function handler(input: CancelBookingInput) {
     organizer: {
       id: organizer.id,
       username: organizer.username || undefined,
+      usernameInOrg: ownerProfile?.username || undefined,
       email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
@@ -538,10 +545,11 @@ async function handler(input: CancelBookingInput) {
 
     await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
-    await prisma.bookingReference.deleteMany({
+    await prisma.bookingReference.updateMany({
       where: {
         bookingId: bookingToDelete.id,
       },
+      data: { deleted: true },
     });
   } catch (error) {
     log.error(`Error deleting integrations`, safeStringify({ error }));
@@ -604,6 +612,26 @@ async function handler(input: CancelBookingInput) {
     bookingId: bookingToDelete.id,
     bookingUid: bookingToDelete.uid,
   } satisfies HandleCancelBookingResponse;
+}
+
+type BookingCancelServiceDependencies = {
+  prismaClient: PrismaClient;
+};
+/**
+ * Takes care of cancelling bookings. This includes regular bookings, recurring bookings, seated bookings, etc.
+ * Handles both individual booking cancellations and bulk cancellations for recurring events.
+ */
+export class BookingCancelService implements IBookingCancelService {
+  constructor(private readonly deps: BookingCancelServiceDependencies) {}
+
+  async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
+    const cancelBookingInput: CancelBookingInput = {
+      bookingData: input.bookingData,
+      ...(input.bookingMeta || {}),
+    };
+    // TODO: Deps to be passed to it later when we stop exporting handler
+    return handler(cancelBookingInput);
+  }
 }
 
 export default handler;

@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
@@ -8,10 +7,15 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType, MSTeamsLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
+import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import CrmManager from "@calcom/features/crmManager/crmManager";
+import CRMScheduler from "@calcom/features/crmManager/crmScheduler";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
-import CRMScheduler from "@calcom/lib/crmManager/tasker/crmScheduler";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import {
   getPiiFreeDestinationCalendar,
@@ -20,7 +24,6 @@ import {
   getPiiFreeCalendarEvent,
 } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar, BookingReference } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -33,11 +36,6 @@ import type {
   PartialBooking,
   PartialReference,
 } from "@calcom/types/EventManager";
-
-import { createEvent, updateEvent, deleteEvent } from "@calcom/features/calendars/lib/CalendarManager";
-import CrmManager from "@calcom/lib/crmManager/crmManager";
-import { isDelegationCredential } from "@calcom/lib/delegationCredential/clientAndServer";
-import { createMeeting, updateMeeting, deleteMeeting } from "@calcom/app-store/videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
