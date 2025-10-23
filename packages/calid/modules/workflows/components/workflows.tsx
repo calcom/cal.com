@@ -3,7 +3,7 @@
 import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card";
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,6 +36,7 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
     { enabled: !filteredList }
   );
 
+
   const filteredWorkflows = filteredList ?? data;
   const isPending = filteredList ? false : _isPending;
 
@@ -47,15 +48,37 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
     setWorkflowDeleteDialogOpen(true);
   }, []);
 
+  let teamsAndUserProfiles = [];
+
+  const query = trpc.viewer.loggedInViewerRouter.calid_teamsAndUserProfilesQuery.useQuery();
+
   // Team selection dialog handlers
   const handleOpenTeamSelectionDialog = useCallback(() => {
-    setTeamSelectionDialogOpen(true);
-  }, []);
+    if (query.data) {
+      // Transform the query data to match the Option interface
+      teamsAndUserProfiles = query.data
+        .filter((profile) => !profile.readOnly)
+        .map((profile) => ({
+          teamId: profile.teamId,
+          label: profile.name || profile.slug || "",
+          image: profile.image,
+          slug: profile.slug,
+        }));
+    }
+
+    console.log("teamsAndUserProfiles and query.data", teamsAndUserProfiles, ", ", query);
+
+    if (teamsAndUserProfiles && teamsAndUserProfiles.length > 1) {
+      setTeamSelectionDialogOpen(true);
+    } else {
+      handlers.handleTeamSelect(null);
+    }
+  }, [query.data]);
 
   const handleTeamSelect = useCallback(
     (teamId: string) => {
-      const numericTeamId = teamId ? parseInt(teamId, 10) : undefined;
-      handlers.handleCreateWorkflow(numericTeamId);
+      const numericTeamId = teamId ? parseInt(teamId, 10) : null;
+      handlers.handleTeamSelect(numericTeamId);
       setTeamSelectionDialogOpen(false);
     },
     [handlers]

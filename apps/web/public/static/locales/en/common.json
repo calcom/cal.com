@@ -1,6 +1,7 @@
 {
-  "book_members":"Book Members",
-  "view_schedule":"View Schedule",
+  "use_template": "Use Template",
+  "book_members": "Book Members",
+  "view_schedule": "View Schedule",
   "members_bookings": "Member's bookings",
   "business_type": "Business type",
   "change_icon": "Change icon",

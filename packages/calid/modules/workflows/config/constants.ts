@@ -34,6 +34,12 @@ const WORKFLOW_TEMPLATES = [
 
 const BASIC_WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
 
+const SMS_WORKFLOW_TEMPLATES = [
+  WorkflowTemplates.CUSTOM,
+  WorkflowTemplates.REMINDER,
+  WorkflowTemplates.CANCELLED,
+] as const;
+
 const ATTENDEE_WORKFLOW_TEMPLATES = [
   WorkflowTemplates.CUSTOM,
   WorkflowTemplates.REMINDER,
@@ -96,6 +102,7 @@ export {
   TIME_UNITS,
   WORKFLOW_TEMPLATES,
   BASIC_WORKFLOW_TEMPLATES,
+  SMS_WORKFLOW_TEMPLATES,
   ATTENDEE_WORKFLOW_TEMPLATES,
   WHATSAPP_WORKFLOW_TEMPLATES,
   DYNAMIC_TEXT_VARIABLES,

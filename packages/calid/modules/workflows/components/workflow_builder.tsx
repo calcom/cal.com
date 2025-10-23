@@ -50,6 +50,7 @@ import {
   shouldScheduleEmailReminder,
 } from "../config/utils";
 import { workflowFormSchema as formSchema } from "../config/validation";
+import { WorkflowTemplate } from "../config/workflow_templates";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
@@ -100,9 +101,10 @@ const VariableDropdown: React.FC<{
 
 export interface WorkflowBuilderProps {
   workflowId?: number;
+  builderTemplate?: WorkflowBuilderTemplateFields;
 }
 
-export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) => {
+export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, builderTemplate }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
@@ -471,9 +473,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
         setEmailVerificationStatus(emailStatus);
 
         // Show sections based on existing data
-        setShowEventTypeSection(true);
-        setShowTriggerSection(true);
-        setShowActionsSection(processedSteps.length > 0);
+
+        if (workflowDataInput.name) {
+          setShowEventTypeSection(true);
+        }
+
+        if (activeOn.length > 0) {
+          setShowTriggerSection(true);
+          setShowActionsSection(true);
+        }
 
         setIsAllDataLoaded(true);
         isInitialLoadRef.current = false;
@@ -490,6 +498,26 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
       getEmailVerificationStatus,
     ]
   );
+
+  // Watch the activeOn field
+  const activeOnValue = form.watch("activeOn");
+
+  // Store previous value in useRef
+  const prevActiveOnRef = useRef(activeOnValue);
+
+  useEffect(() => {
+    if (prevActiveOnRef.current !== activeOnValue) {
+      // Values differ, run your logic here
+      console.log("activeOn changed from", prevActiveOnRef.current, "to", activeOnValue);
+
+      if (prevActiveOnRef.current?.length === 0 && activeOnValue?.length > 0) {
+        handleSaveWorkflow();
+      }
+
+      // Update previous value
+      prevActiveOnRef.current = activeOnValue;
+    }
+  }, [activeOnValue]);
 
   // Load initial data only once
   useEffect(() => {
@@ -508,14 +536,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
   useEffect(() => {
     if (selectedOptions.length > 0) {
       setShowTriggerSection(true);
+      setShowActionsSection(true);
     }
   }, [selectedOptions]);
 
-  useEffect(() => {
-    if (trigger && (triggerTiming === "immediately" || (triggerTiming === "custom" && customTime))) {
-      setShowActionsSection(true);
-    }
-  }, [trigger, triggerTiming, customTime]);
+  // useEffect(() => {
+  //   if (trigger && (triggerTiming === "immediately" || (triggerTiming === "custom" && customTime))) {
+  //     setShowActionsSection(true);
+  //   }
+  // }, [trigger, triggerTiming, customTime]);
 
   const getTriggerText = () => {
     const selectedTrigger = triggerOptions.find((t) => t.value === trigger);
@@ -559,44 +588,64 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
     [allEventTypeOptions, form]
   );
 
+  const getNewStep = useCallback(
+    (stepNumber: number, actionType: WorkflowActions, template: WorkflowTemplates): WorkflowStep => {
+      const newStep: WorkflowStep = {
+        id: -Date.now(),
+        stepNumber: stepNumber,
+        action: actionType,
+        workflowId: workflowId!,
+        sendTo: null,
+        reminderBody: null,
+        emailSubject: null,
+        template: template,
+        numberRequired: false,
+        sender: SENDER_ID,
+        senderName: SENDER_NAME,
+        numberVerificationPending: false,
+        includeCalendarEvent: false,
+        verifiedAt: null,
+      };
+
+      // Set default template content
+      const templateBody = getTemplateBodyForAction({
+        action: newStep.action,
+        locale: i18n.language,
+        t,
+        template: newStep.template,
+        timeFormat,
+      });
+      newStep.reminderBody = templateBody;
+
+      if (shouldScheduleEmailReminder(newStep.action)) {
+        newStep.emailSubject = emailReminderTemplate({
+          isEditingMode: true,
+          locale: i18n.language,
+          action: newStep.action,
+          timeFormat,
+        }).emailSubject;
+      }
+    }
+  );
+
+  useEffect(() => {
+    if (builderTemplate) {
+      const newStep = getNewStep(0, builderTemplate.action, builderTemplate.template);
+
+      form.setValue("steps", [...currentSteps, newStep], { shouldDirty: true });
+
+      triggerTemplateUpdate(newStep.id);
+    }
+  }, [builderTemplate]);
+
   const addAction = useCallback(() => {
     const currentSteps = form.getValues("steps") || [];
 
-    const newStep: WorkflowStep = {
-      id: -Date.now(),
-      stepNumber: currentSteps.length + 1,
-      action: WorkflowActions.EMAIL_ATTENDEE,
-      workflowId: workflowId!,
-      sendTo: null,
-      reminderBody: null,
-      emailSubject: null,
-      template: WorkflowTemplates.REMINDER,
-      numberRequired: false,
-      sender: SENDER_ID,
-      senderName: SENDER_NAME,
-      numberVerificationPending: false,
-      includeCalendarEvent: false,
-      verifiedAt: null,
-    };
-
-    // Set default template content
-    const template = getTemplateBodyForAction({
-      action: newStep.action,
-      locale: i18n.language,
-      t,
-      template: WorkflowTemplates.REMINDER,
-      timeFormat,
-    });
-    newStep.reminderBody = template;
-
-    if (shouldScheduleEmailReminder(newStep.action)) {
-      newStep.emailSubject = emailReminderTemplate({
-        isEditingMode: true,
-        locale: i18n.language,
-        action: newStep.action,
-        timeFormat,
-      }).emailSubject;
-    }
+    const newStep = getNewStep(
+      currentSteps.length + 1,
+      WorkflowActions.EMAIL_ATTENDEE,
+      WorkflowTemplates.REMINDER
+    );
 
     form.setValue("steps", [...currentSteps, newStep], { shouldDirty: true });
 
@@ -708,6 +757,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
           if (field === "template") {
             const newTemplate = value as WorkflowTemplates;
             const actionType = updatedStep.action;
+
+            console.log(
+              "Action type: ",
+              actionType,
+              " Template: ",
+              newTemplate,
+              " Body: ",
+              updatedStep.reminderBody
+            );
 
             const freshTemplateBody = getTemplateBodyForAction({
               action: actionType,
@@ -1026,7 +1084,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
 
                     {/* Event Type Selection */}
                     {showEventTypeSection && (
-                      <div className="animate-slide-in-up">
+                      <div className="slideInTop">
                         <div>
                           <Label>
                             {isOrg
@@ -1073,8 +1131,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
 
                 {/* Trigger Section */}
                 {showTriggerSection && (
-                  <div className="animate-slide-in-up">
-                    <Card className="animate-slide-in-up">
+                  <div className="slideInTop">
+                    <Card className="slideInTop">
                       <CardHeader>
                         <CardTitle>When this happens</CardTitle>
                       </CardHeader>
@@ -1186,8 +1244,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
 
                 {/* Actions Section */}
                 {showActionsSection && (
-                  <div className="animate-slide-in-up">
-                    <Card className="animate-slide-in-up">
+                  <div className="slideInTop">
+                    <Card className="slideInTop">
                       <CardHeader>
                         <CardTitle>Do this</CardTitle>
                       </CardHeader>
