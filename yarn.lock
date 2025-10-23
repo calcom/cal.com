@@ -3094,9 +3094,6 @@ __metadata:
   resolution: "@calcom/config@workspace:packages/config"
   dependencies:
     "@calcom/eslint-plugin-eslint": "workspace:*"
-    "@savvywombat/tailwindcss-grid-areas": ^3.0.0
-    "@tailwindcss/forms": ^0.5.2
-    "@tailwindcss/line-clamp": ^0.4.0
     "@tailwindcss/typography": ^0.5.4
     "@todesktop/tailwind-variants": ^1.0.0
     "@trivago/prettier-plugin-sort-imports": 4.1.1
@@ -3109,8 +3106,7 @@ __metadata:
     eslint-plugin-prettier: ^4.2.1
     prettier: ^2.8.6
     prettier-plugin-tailwindcss: ^0.2.5
-    tailwind-scrollbar: ^2.0.1
-    tailwindcss: ^3.3.3
+    tailwind-scrollbar: ^4.0.2
     tailwindcss-radix: ^4.0.2
     tw-animate-css: ^1.4.0
     typescript: ^5.9.0-beta
@@ -15418,17 +15414,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@savvywombat/tailwindcss-grid-areas@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "@savvywombat/tailwindcss-grid-areas@npm:3.0.1"
-  dependencies:
-    lodash: ^4.17.21
-  peerDependencies:
-    tailwindcss: ^3.0.1
-  checksum: 016672a0585b2b1bdd0ae2f8ed821d634d2a5ba7ea26484adbc8cd38499366be80c6e338cd93d8c25cf6e29a8f33293eb7e24ff68184bea3b36ea27b9884dbb1
-  languageName: node
-  linkType: hard
-
 "@scure/base@npm:1.1.1":
   version: 1.1.1
   resolution: "@scure/base@npm:1.1.1"
@@ -17266,26 +17251,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tailwindcss/forms@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@tailwindcss/forms@npm:0.5.2"
-  dependencies:
-    mini-svg-data-uri: ^1.2.3
-  peerDependencies:
-    tailwindcss: ">=3.0.0 || >= 3.0.0-alpha.1"
-  checksum: 3c4df23491d14b37d8cef88d0f3df80f92b684b801d59c23d600773a4ccac11353a555ca36bea68ae4a82134f9c030d1353c05890a5f0085c1c40c649f806640
-  languageName: node
-  linkType: hard
-
-"@tailwindcss/line-clamp@npm:^0.4.0":
-  version: 0.4.0
-  resolution: "@tailwindcss/line-clamp@npm:0.4.0"
-  peerDependencies:
-    tailwindcss: ">=2.0.0 || >=3.0.0 || >=3.0.0-alpha.1"
-  checksum: 71ba25a4a18323496a7af34e55871121b8459530b0e5696c4173fd65a76162675619f1d1158a8a32e1ace2069333949bef6f1061b17f49fef98dc2291a979dcd
-  languageName: node
-  linkType: hard
-
 "@tailwindcss/node@npm:4.1.15":
   version: 4.1.15
   resolution: "@tailwindcss/node@npm:4.1.15"
@@ -18737,6 +18702,13 @@ __metadata:
   version: 1.0.1
   resolution: "@types/pretty-hrtime@npm:1.0.1"
   checksum: a6cdee417eea6f7af914e4fcd13e05822864ce10b5d7646525632e86d69b79123eec55a5d3fff0155ba46b61902775e1644bcb80e1e4dffdac28e7febb089083
+  languageName: node
+  linkType: hard
+
+"@types/prismjs@npm:^1.26.0":
+  version: 1.26.5
+  resolution: "@types/prismjs@npm:1.26.5"
+  checksum: d208b04ee9b6de6b2dc916439a81baa47e64ab3659a66d3d34bc3e42faccba9d4b26f590d76f97f7978d1dfaafa0861f81172b1e3c68696dd7a42d73aaaf5b7b
   languageName: node
   linkType: hard
 
@@ -36560,15 +36532,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mini-svg-data-uri@npm:^1.2.3":
-  version: 1.4.4
-  resolution: "mini-svg-data-uri@npm:1.4.4"
-  bin:
-    mini-svg-data-uri: cli.js
-  checksum: 997f1fbd8d59a70f03761e18626d335197a3479cb9d1ff75678e4b64b864d32a0b8fc18115eabde035e5299b8b4a354a78e57dd6ac10f9d604162a6170898d09
-  languageName: node
-  linkType: hard
-
 "minimalistic-assert@npm:^1.0.0, minimalistic-assert@npm:^1.0.1":
   version: 1.0.1
   resolution: "minimalistic-assert@npm:1.0.1"
@@ -40651,6 +40614,18 @@ __metadata:
   dependencies:
     parse-ms: ^4.0.0
   checksum: 0f66507467f2005040cccdcb36f35b82674d7809f41c4432009235ed6c920787afa17f621c25b7ccb8ccd80b0840c7b71f7f4a3addb8f0eeef3a033ff1e5cf71
+  languageName: node
+  linkType: hard
+
+"prism-react-renderer@npm:^2.4.1":
+  version: 2.4.1
+  resolution: "prism-react-renderer@npm:2.4.1"
+  dependencies:
+    "@types/prismjs": ^1.26.0
+    clsx: ^2.0.0
+  peerDependencies:
+    react: ">=16.0.0"
+  checksum: ddd5490a1335629addde9535db7872f0aee8dbce048818dd6e4c3972c779780af13d669c12d3f2fbb54c5b22d1578e50945099ef1a24dd445f33774e87d85e6e
   languageName: node
   linkType: hard
 
@@ -46051,12 +46026,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwind-scrollbar@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "tailwind-scrollbar@npm:2.0.1"
+"tailwind-scrollbar@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "tailwind-scrollbar@npm:4.0.2"
+  dependencies:
+    prism-react-renderer: ^2.4.1
   peerDependencies:
-    tailwindcss: 3.x
-  checksum: 8f72ad2d19cffdd53b5deec4fd6a6c4fffa9206c472fd89df803db97c7723a1b0a7fc0b4d5345b69b71f2e0fd7a036eaebc2a533feb4d71caec48dc49bb17ca5
+    tailwindcss: 4.x
+  checksum: c3306b6b2fca24c610fc801429a336d3d967b58e33205541dcef6cca3df5d6f6fd159ac3bfa687bd7516ab2a7edeb7bfdb53ebb0639e91a37e86bae7dce9be4d
   languageName: node
   linkType: hard
 
