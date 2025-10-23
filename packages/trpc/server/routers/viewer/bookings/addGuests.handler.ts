@@ -51,12 +51,11 @@ async function validateUserPermissions(booking: Booking, user: TUser): Promise<v
   const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
   let hasBookingUpdatePermission = false;
-  const teamId = user.profile?.organizationId || user.organizationId;
-  if (teamId) {
+  if (booking.eventType?.teamId) {
     const permissionCheckService = new PermissionCheckService();
     hasBookingUpdatePermission = await permissionCheckService.checkPermission({
       userId: user.id,
-      teamId: teamId,
+      teamId: booking.eventType?.teamId,
       permission: "booking.update",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
