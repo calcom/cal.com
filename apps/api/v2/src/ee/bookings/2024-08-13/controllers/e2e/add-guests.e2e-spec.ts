@@ -26,7 +26,11 @@ import {
   SUCCESS_STATUS,
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
-import { AttendeeAddGuestsEmail, OrganizerAddGuestsEmail } from "@calcom/platform-libraries/emails";
+import {
+  AttendeeAddGuestsEmail,
+  AttendeeScheduledEmail,
+  OrganizerAddGuestsEmail,
+} from "@calcom/platform-libraries/emails";
 import type { BookingOutput_2024_08_13, CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { User, Team } from "@calcom/prisma/client";
 
@@ -35,6 +39,9 @@ const attendeeAddGuestsEmailSpy = jest
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 const organizerAddGuestsEmailSpy = jest
   .spyOn(OrganizerAddGuestsEmail.prototype, "getHtml")
+  .mockImplementation(() => Promise.resolve("<p>email</p>"));
+const attendeeScheduledEmailSpy = jest
+  .spyOn(AttendeeScheduledEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 
 type TestUser = {
@@ -183,6 +190,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
   beforeEach(async () => {
     attendeeAddGuestsEmailSpy.mockClear();
     organizerAddGuestsEmailSpy.mockClear();
+    attendeeScheduledEmailSpy.mockClear();
   });
 
   describe("POST /v2/bookings/:bookingUid/guests", () => {
@@ -423,6 +431,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     it("should NOT send emails when adding guests (emails disabled)", async () => {
       attendeeAddGuestsEmailSpy.mockClear();
       organizerAddGuestsEmailSpy.mockClear();
+      attendeeScheduledEmailSpy.mockClear();
 
       const addGuestsBody = {
         guests: ["no-email.guest1@example.com", "no-email.guest2@example.com"],
@@ -456,6 +465,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       // Verify emails were NOT sent
       expect(attendeeAddGuestsEmailSpy).not.toHaveBeenCalled();
       expect(organizerAddGuestsEmailSpy).not.toHaveBeenCalled();
+      expect(attendeeScheduledEmailSpy).not.toHaveBeenCalled();
     });
 
     afterAll(async () => {
@@ -514,8 +524,9 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     });
 
     if (shouldEmailsBeSent) {
-      expect(AttendeeAddGuestsEmail.prototype.getHtml).toHaveBeenCalled();
-      expect(OrganizerAddGuestsEmail.prototype.getHtml).toHaveBeenCalled();
+      expect(attendeeAddGuestsEmailSpy).toHaveBeenCalled();
+      expect(organizerAddGuestsEmailSpy).toHaveBeenCalled();
+      expect(attendeeScheduledEmailSpy).toHaveBeenCalled();
     }
 
     return bookingData;
