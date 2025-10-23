@@ -131,7 +131,7 @@ export default function FormCard({
 
   return (
     <div className={className} {...restProps}>
-      <div className="absolute left-0 top-1/2 -translate-y-1/2">
+      <div className="absolute left-0 top-1/2 hidden -translate-y-1/2 sm:block">
         {moveUp?.check() ? (
           <button
             type="button"
