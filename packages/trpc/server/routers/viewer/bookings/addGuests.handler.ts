@@ -132,7 +132,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       hashedLinkService,
       bookingAuditService,
     });
-    await bookingEventHandlerService.onAttendeeAddedAudit(String(bookingId), user.id, {
+    await bookingEventHandlerService.onAttendeeAdded(String(bookingId), user.id, {
       changes: [{ field: "attendees", oldValue: oldGuestCount, newValue: bookingAttendees.attendees.length }],
       booking: {
         addedGuests: uniqueGuests,

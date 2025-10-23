@@ -479,16 +479,12 @@ async function handler(input: CancelBookingInput) {
         hashedLinkService,
         bookingAuditService,
       });
-      await bookingEventHandlerService.onBookingCancelledAudit(
-        String(updatedBooking.id),
-        userId || undefined,
-        {
-          cancellationReason: cancellationReason || undefined,
-          booking: {
-            meetingTime: updatedBooking.startTime.toISOString(),
-          },
-        }
-      );
+      await bookingEventHandlerService.onBookingCancelled(String(updatedBooking.id), userId || undefined, {
+        cancellationReason: cancellationReason || undefined,
+        booking: {
+          meetingTime: updatedBooking.startTime.toISOString(),
+        },
+      });
     } catch (error) {
       log.error("Failed to create booking audit log for cancellation", error);
     }

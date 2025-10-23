@@ -165,7 +165,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       hashedLinkService,
       bookingAuditService,
     });
-    await bookingEventHandlerService.onRescheduleRequestedAudit(String(bookingToReschedule.id), user.id, {
+    await bookingEventHandlerService.onRescheduleRequested(String(bookingToReschedule.id), user.id, {
       changes: [
         { field: "rescheduled", oldValue: false, newValue: true },
         { field: "status", oldValue: bookingToReschedule.status, newValue: BookingStatus.CANCELLED },

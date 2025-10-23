@@ -326,7 +326,7 @@ export async function handleConfirmation(args: {
         hashedLinkService,
         bookingAuditService,
       });
-      await bookingEventHandlerService.onBookingAcceptedAudit(
+      await bookingEventHandlerService.onBookingAccepted(
         String(updatedBooking.id),
         booking.userId || undefined,
         {

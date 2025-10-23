@@ -279,7 +279,7 @@ export const roundRobinReassignment = async ({
         hashedLinkService,
         bookingAuditService,
       });
-      await bookingEventHandlerService.onBookingUpdatedAudit(String(bookingId), reassignedById, {
+      await bookingEventHandlerService.onBookingUpdated(String(bookingId), reassignedById, {
         changes: [
           { field: "userId", oldValue: oldUserId, newValue: reassignedRRHost.id },
           { field: "userPrimaryEmail", oldValue: oldEmail, newValue: reassignedRRHost.email },

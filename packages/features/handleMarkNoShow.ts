@@ -339,7 +339,7 @@ const handleMarkNoShow = async ({
             hashedLinkService,
             bookingAuditService,
           });
-          await bookingEventHandlerService.onHostNoShowUpdatedAudit(String(bookingToUpdate.id), userId, {
+          await bookingEventHandlerService.onHostNoShowUpdated(String(bookingToUpdate.id), userId, {
             changes: [
               {
                 field: "noShowHost",

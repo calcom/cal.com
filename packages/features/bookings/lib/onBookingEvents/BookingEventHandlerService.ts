@@ -29,6 +29,20 @@ export class BookingEventHandlerService {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
+
+    try {
+      await this.bookingAuditService.onBookingCreated(
+        String(payload.booking.id),
+        payload.booking.userId || payload.booking.user?.id,
+        {
+          booking: {
+            meetingTime: payload.booking.startTime.toISOString(),
+          },
+        }
+      );
+    } catch (error) {
+      this.log.error("Error while creating booking audit", safeStringify(error));
+    }
   }
 
   async onBookingRescheduled(payload: BookingRescheduledPayload) {
@@ -68,15 +82,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingCreatedAudit(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
-    try {
-      await this.bookingAuditService.onBookingCreated(bookingId, userId, data);
-    } catch (error) {
-      this.log.error("Error while creating booking audit", safeStringify(error));
-    }
-  }
-
-  async onBookingAcceptedAudit(bookingId: string, userId?: number, data?: Partial<BookingAuditData>) {
+  async onBookingAccepted(bookingId: string, userId?: number, data?: Partial<BookingAuditData>) {
     try {
       await this.bookingAuditService.onBookingAccepted(bookingId, userId, data);
     } catch (error) {
@@ -84,7 +90,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingCancelledAudit(bookingId: string, userId?: number, data?: Partial<BookingAuditData>) {
+  async onBookingCancelled(bookingId: string, userId?: number, data?: Partial<BookingAuditData>) {
     try {
       await this.bookingAuditService.onBookingCancelled(bookingId, userId, data);
     } catch (error) {
@@ -92,7 +98,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingUpdatedAudit(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+  async onBookingUpdated(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
     try {
       await this.bookingAuditService.onBookingUpdated(bookingId, userId, data);
     } catch (error) {
@@ -100,7 +106,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onRescheduleRequestedAudit(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+  async onRescheduleRequested(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
     try {
       await this.bookingAuditService.onRescheduleRequested(bookingId, userId, data);
     } catch (error) {
@@ -108,7 +114,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onAttendeeAddedAudit(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+  async onAttendeeAdded(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
     try {
       await this.bookingAuditService.onAttendeeAdded(bookingId, userId, data);
     } catch (error) {
@@ -116,7 +122,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onHostNoShowUpdatedAudit(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+  async onHostNoShowUpdated(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
     try {
       await this.bookingAuditService.onHostNoShowUpdated(bookingId, userId, data);
     } catch (error) {

@@ -63,8 +63,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -90,7 +88,6 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
-import { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
 import { BookingActionMap, BookingEmailSmsHandler } from "./BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -1566,27 +1563,6 @@ async function handler(
             ? formatAvailabilitySnapshot(organizerUserAvailability.availabilityData)
             : null,
         });
-
-        try {
-          const bookingAuditService = BookingAuditService.create();
-          const hashedLinkService = new HashedLinkService();
-          const bookingEventHandlerService = new BookingEventHandlerService({
-            log: logger,
-            hashedLinkService,
-            bookingAuditService,
-          });
-          await bookingEventHandlerService.onBookingCreatedAudit(
-            String(booking.id),
-            userId || booking.userId,
-            {
-              booking: {
-                meetingTime: booking.startTime.toISOString(),
-              },
-            }
-          );
-        } catch (error) {
-          logger.error("Failed to create booking audit log", error);
-        }
       }
 
       // If it's a round robin event, record the reason for the host assignment
