@@ -15,7 +15,6 @@ export function getBasicMockRequestDataForBooking() {
     user: "teampro",
     metadata: {},
     hasHashedBookingLink: false,
-    hashedLink: null,
   };
 }
 
@@ -35,6 +34,9 @@ type CommonPropsMockRequestData = {
     attendeePhoneNumber?: string;
     smsReminderNumber?: string;
   };
+  _isDryRun?: boolean;
+  hashedLink?: string;
+  hasHashedBookingLink?: boolean;
 };
 
 export function getMockRequestDataForBooking({

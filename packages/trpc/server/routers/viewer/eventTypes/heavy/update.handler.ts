@@ -8,8 +8,8 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { HashedLinkRepository } from "@calcom/features/hashedLink/repositories/hashedLinkRepository";
-import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
+import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
@@ -523,7 +523,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         trigger: WorkflowTriggerEvents.NEW_EVENT,
       },
       include: {
-        steps: true,
+        steps: {
+          select: {
+            action: true,
+          },
+        },
       },
     });
 
@@ -630,7 +634,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isCalVideoLocationActive = locations
     ? locations.some((location) => location.type === DailyLocationType)
     : parsedEventTypeLocations.success &&
-      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+    parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await CalVideoSettingsRepository.deleteCalVideoSettings(id);

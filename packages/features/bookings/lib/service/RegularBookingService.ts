@@ -27,6 +27,7 @@ import type { CheckBookingAndDurationLimitsService } from "@calcom/features/book
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -35,7 +36,8 @@ import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/W
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
+import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -407,6 +409,7 @@ export interface IBookingServiceDependencies {
   bookingRepository: BookingRepository;
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
+  hashedLinkService: HashedLinkService;
 }
 
 async function handler(
@@ -2109,6 +2112,33 @@ async function handler(
       }
     : undefined;
 
+  const bookingFlowConfig = {
+    isDryRun,
+  };
+
+  const bookingCreatedPayload = {
+    config: bookingFlowConfig,
+    bookingFormData: {
+      // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
+      hashedLink: hashedBookingLinkData?.hasHashedBookingLink ? hashedBookingLinkData.hashedLink ?? null : null,
+    },
+  };
+
+  // Add more fields here when needed
+  const bookingRescheduledPayload = bookingCreatedPayload;
+
+  const bookingEventHandler = new BookingEventHandlerService({
+    log: loggerWithEventDetails,
+    hashedLinkService: deps.hashedLinkService,
+  });
+
+  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
+  if (originalRescheduledBooking) {
+    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+  } else {
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload);
+  }
+
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2347,9 +2377,8 @@ async function handler(
   }
 
   try {
-    const hashedLinkService = new HashedLinkService();
     if (hashedBookingLinkData?.hasHashedBookingLink && hashedBookingLinkData.hashedLink && !isDryRun) {
-      await hashedLinkService.validateAndIncrementUsage(hashedBookingLinkData.hashedLink as string);
+      await deps.hashedLinkService.validateAndIncrementUsage(hashedBookingLinkData.hashedLink as string);
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
@@ -2478,14 +2507,6 @@ async function handler(
   };
 }
 
-export interface IBookingServiceDependencies {
-  cacheService: CacheService;
-  checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
-  prismaClient: PrismaClient;
-  bookingRepository: BookingRepository;
-  luckyUserService: LuckyUserService;
-  userRepository: UserRepository;
-}
 /**
  * Takes care of creating/rescheduling non-recurring, non-instant bookings. Such bookings could be TeamBooking, UserBooking, SeatedUserBooking, SeatedTeamBooking, etc.
  * We can't name it CoreBookingService because non-instant booking also creates a booking but it is entirely different from the regular booking.
