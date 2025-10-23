@@ -7,6 +7,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
+import { stripMarkdown } from "./markdownUtils";
 
 const translator = short();
 
@@ -68,9 +69,10 @@ export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNote
   if (!calEvent.additionalNotes) {
     return "";
   }
-  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
+  // Strip markdown syntax for plain text output
+  const plainText = stripMarkdown(calEvent.additionalNotes);
+  return `${t("additional_notes")}:\n${plainText}`;
 };
-
 export const getUserFieldsResponses = (
   calEvent: Parameters<typeof getLabelValueMapFromResponses>[0],
   t: TFunction
@@ -116,7 +118,8 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
   if (!calEvent.description) {
     return "";
   }
-  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
+  // Strip both HTML tags and markdown syntax for plain text output
+  const plainText = stripMarkdown(calEvent.description);
   return `${t("description")}\n${plainText}`;
 };
 
@@ -223,8 +226,9 @@ export const getPlatformCancelLink = (
   if (calEvent.platformCancelUrl) {
     const platformCancelLink = new URL(`${calEvent.platformCancelUrl}/${bookingUid}`);
     platformCancelLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformCancelLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformCancelLink.searchParams.append("cancel", "true");
     platformCancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
     if (seatUid) platformCancelLink.searchParams.append("seatReferenceUid", seatUid);
@@ -267,8 +271,9 @@ export const getPlatformRescheduleLink = (
       `${calEvent.platformRescheduleUrl}/${seatUid ? seatUid : bookingUid}`
     );
     platformRescheduleLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformRescheduleLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformRescheduleLink.searchParams.append("reschedule", "true");
     if (calEvent?.team) platformRescheduleLink.searchParams.append("teamId", calEvent.team.id.toString());
     return platformRescheduleLink.toString();
