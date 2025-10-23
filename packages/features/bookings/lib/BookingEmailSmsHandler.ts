@@ -340,7 +340,7 @@ export class BookingEmailSmsHandler {
 
     this.log.debug(
       "Action: ADD_GUESTS. Sending add guests emails and SMS.",
-      safeStringify({ calEvent: getPiiFreeCalendarEvent(evt), newGuests })
+      safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
     );
 
     try {
