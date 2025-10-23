@@ -49,6 +49,7 @@ import {
   confirmBookingHandler,
   getCalendarLinks,
 } from "@calcom/platform-libraries";
+import { isLoggedInUserOrgAdminOfBookingUser } from "@calcom/platform-libraries/bookings";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
@@ -64,6 +65,7 @@ import {
   RescheduleBookingInput,
   CancelBookingInput,
 } from "@calcom/platform-types";
+import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
 
@@ -763,10 +765,19 @@ export class BookingsService_2024_08_13 {
   ) {
     try {
       await this.canRescheduleBooking(bookingUid);
+
+      const isIndividualSeatOrOrgAdminRescheduleeee = this.isRescheduleSeatedBody(body);
+      const isIndividualSeatOrOrgAdminReschedulee = await this.shouldRescheduleIndividualSeat(
+        bookingUid,
+        isIndividualSeatOrOrgAdminRescheduleeee,
+        authUser
+      );
+
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
         request,
         bookingUid,
-        body
+        body,
+        isIndividualSeatOrOrgAdminReschedulee
       );
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -840,6 +851,59 @@ export class BookingsService_2024_08_13 {
     return booking;
   }
 
+  async shouldRescheduleIndividualSeat(
+    bookingUid: string,
+    isIndividualSeatReschedule: boolean,
+    authUser: AuthOptionalUser
+  ) {
+    const booking = await this.bookingsRepository.getByUidWithUserIdAndSeatsReferences(bookingUid);
+
+    if (!booking) {
+      throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const hasSeatsPresentOrNot = Boolean(booking?.seatsReferences?.length);
+
+    if (hasSeatsPresentOrNot) {
+      const isIndividualSeatOrOrgAdminReschedulee =
+        await this.validateAndDetermineIfIndividualSeatOrOrgAdminReschedule(
+          isIndividualSeatReschedule,
+          booking.userId,
+          authUser?.id
+        );
+      return isIndividualSeatOrOrgAdminReschedulee;
+    } else {
+      return false;
+    }
+  }
+
+  async validateAndDetermineIfIndividualSeatOrOrgAdminReschedule(
+    isIndividualSeatReschedule: boolean,
+    bookingUserId: number | null,
+    authUserId?: number | null
+  ) {
+    if (isIndividualSeatReschedule) {
+      return true;
+    } else {
+      if (!authUserId) {
+        throw new Error(`No auth user found`);
+      }
+
+      if (!bookingUserId) {
+        throw new Error(`No user found for booking`);
+      }
+
+      const isOrgAdmin = await isLoggedInUserOrgAdminOfBookingUser(authUserId, bookingUserId);
+
+      return isOrgAdmin;
+    }
+  }
+
+  isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
+    return "seatUid" in body;
+  }
+
+  // create a new helpper function for determinig if user making the request is admin or owner of the booking user org
   async cancelBooking(
     request: Request,
     bookingUid: string,

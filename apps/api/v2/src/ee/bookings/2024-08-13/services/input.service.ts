@@ -507,11 +507,13 @@ export class InputBookingsService_2024_08_13 {
   async createRescheduleBookingRequest(
     request: Request,
     bookingUid: string,
-    body: RescheduleBookingInput
+    body: RescheduleBookingInput,
+    isIndividualSeatOrOrgAdminReschedule: boolean
   ): Promise<BookingRequest> {
-    const bodyTransformed = this.isRescheduleSeatedBody(body)
-      ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
-      : await this.transformInputRescheduleBooking(bookingUid, body);
+    const bodyTransformed =
+      isIndividualSeatOrOrgAdminReschedule && "seatUid" in body
+        ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
+        : await this.transformInputRescheduleBooking(bookingUid, body);
 
     const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(
       bodyTransformed.eventTypeId
@@ -554,7 +556,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return "seatUid" in body;
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -770,7 +772,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return "seatUid" in body;
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
