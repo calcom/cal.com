@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
+import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { prisma } from "@calcom/prisma/client";
 import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
@@ -372,9 +372,6 @@ async function runMain() {
 }
 
 runMain()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
   .catch(async (e) => {
     console.error(e);
     await prisma.user.deleteMany({
@@ -391,8 +388,10 @@ runMain()
       },
     });
 
-    await prisma.$disconnect();
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
 
 /**
@@ -535,19 +534,18 @@ async function runSeed() {
   await createPerformanceData();
 }
 
-runSeed()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.user.deleteMany({
-      where: {
-        username: {
-          contains: "insights-user-",
-        },
-      },
-    });
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+// runSeed()
+//   .catch(async (e) => {
+//     console.error(e);
+//     await prisma.user.deleteMany({
+//       where: {
+//         username: {
+//           contains: "insights-user-",
+//         },
+//       },
+//     });
+//     process.exit(1);
+//   })
+//   .finally(async () => {
+//     await prisma.$disconnect();
+//   });
