@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import i18nMock from "../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
@@ -118,17 +119,6 @@ type InputWorkflow = {
   verifiedAt?: Date;
 };
 
-type PaymentData = {
-  // Common payment data fields based on Stripe and other payment providers
-  paymentIntent?: string;
-  paymentMethodId?: string;
-  clientSecret?: string;
-  customerId?: string;
-  subscriptionId?: string;
-  metadata?: Record<string, string>;
-  [key: string]: unknown; // Allow additional provider-specific fields
-};
-
 type InputPayment = {
   id?: number;
   uid: string;
@@ -139,7 +129,7 @@ type InputPayment = {
   currency: string;
   success: boolean;
   refunded: boolean;
-  data: PaymentData;
+  data: Prisma.InputJsonValue;
   externalId: string;
   paymentOption?: PaymentOption;
 };
@@ -580,7 +570,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Pretty complex type here
+
   return await addEventTypesToDb(eventTypesWithUsers as unknown as any);
 }
 
@@ -592,7 +582,6 @@ function addBookingReferencesToDB(bookingReferences: Prisma.BookingReferenceCrea
 
 async function addBookingsToDb(
   bookings: (Prisma.BookingCreateInput & {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     references: any[];
     user?: { id: number };
   })[]
@@ -700,7 +689,6 @@ export async function addBookings(bookings: InputBooking[]) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function addWebhooksToDb(webhooks: any[]) {
   await prismock.webhook.createMany({
     data: webhooks,
@@ -993,7 +981,6 @@ export async function addUsers(users: InputUser[]) {
   return await addUsersToDb(prismaUsersCreate);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function addAppsToDb(apps: any[]) {
   log.silly("TestData: Creating Apps", JSON.stringify({ apps }));
   await prismock.app.createMany({
@@ -1060,7 +1047,6 @@ export async function createOrganization(orgData: {
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]>; children: any }> {
   const org = await prismock.team.create({
     data: {
@@ -1099,7 +1085,7 @@ export async function createOrganization(orgData: {
 export async function createCredentials(
   credentialData: {
     type: string;
-    key: Prisma.JsonValue;
+    key: Prisma.InputJsonValue;
     id?: number;
     userId?: number | null;
     teamId?: number | null;
@@ -2061,11 +2047,11 @@ export function mockVideoApp({
     url: `http://mock-${metadataLookupKey}.example.com`,
   };
   log.silly("mockVideoApp", JSON.stringify({ metadataLookupKey, appStoreLookupKey }));
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const createMeetingCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const updateMeetingCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const deleteMeetingCalls: any[] = [];
 
   const mockVideoAdapter = (credential: unknown) => {
@@ -2314,7 +2300,7 @@ export function getExpectedCalEventForBookingRequest({
   eventType,
 }: {
   bookingRequest: ReturnType<typeof getMockRequestDataForBooking>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   eventType: any;
 }) {
   return {
@@ -2541,7 +2527,7 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        serviceAccountKey: workspace.defaultServiceAccountKey,
+        serviceAccountKey: workspace.defaultServiceAccountKey as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -2583,7 +2569,7 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
             id: orgId,
           },
         },
-        serviceAccountKey: workspace.defaultServiceAccountKey,
+        serviceAccountKey: workspace.defaultServiceAccountKey as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -2592,7 +2578,6 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
   throw new Error(`Unsupported type: ${type}`);
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const buildDelegationCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
   return {
     id: -1,

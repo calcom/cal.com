@@ -2,7 +2,6 @@
  * @deprecated This schema is deprecated. Use ZIntentToCreateOrgInputSchema instead.
  * See createWithPaymentIntent.handler.ts for migration guide.
  */
-
 import type { z } from "zod";
 
 import { createOrganizationSchema } from "@calcom/features/ee/organizations/types/schemas";

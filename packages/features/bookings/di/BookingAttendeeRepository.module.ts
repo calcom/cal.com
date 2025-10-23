@@ -1,4 +1,4 @@
-import { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/lib/repository/PrismaBookingAttendeeRepository";
+import { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
 import { bindModuleToClassOnToken, createModule } from "@calcom/lib/di/di";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";

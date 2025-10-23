@@ -3,9 +3,9 @@ import type { Session } from "next-auth";
 import { unstable_cache } from "next/cache";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components/TeamsListing";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -33,7 +33,9 @@ export const ServerTeamsListing = async ({
   session: Session;
 }) => {
   const token = Array.isArray(searchParams?.token) ? searchParams.token[0] : searchParams?.token;
-  const autoAccept = Array.isArray(searchParams?.autoAccept) ? searchParams.autoAccept[0] : searchParams?.autoAccept;
+  const autoAccept = Array.isArray(searchParams?.autoAccept)
+    ? searchParams.autoAccept[0]
+    : searchParams?.autoAccept;
   const userId = session.user.id;
   let invitationAccepted = false;
 
@@ -42,7 +44,7 @@ export const ServerTeamsListing = async ({
 
   if (token) {
     try {
-       if (autoAccept === "true") {
+      if (autoAccept === "true") {
         await TeamService.acceptInvitationByToken(token, userId);
         invitationAccepted = true;
       } else {

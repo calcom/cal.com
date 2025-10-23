@@ -83,7 +83,9 @@ export interface PhoneNumberRepositoryInterface {
   /**
    * Find inbound agent by phone number ID
    */
-  findInboundAgentIdByPhoneNumberId(params: { phoneNumberId: number }): Promise<{ inboundAgentId: string | null } | null>;
+  findInboundAgentIdByPhoneNumberId(params: {
+    phoneNumberId: number;
+  }): Promise<{ inboundAgentId: string | null } | null>;
 }
 
 /**

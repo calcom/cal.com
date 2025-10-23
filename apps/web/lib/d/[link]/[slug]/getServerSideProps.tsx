@@ -8,7 +8,7 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import {
   shouldHideBrandingForTeamEvent,
   shouldHideBrandingForUserEvent,

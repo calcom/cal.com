@@ -1,12 +1,12 @@
 import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import {
   findTeamMembersMatchingAttributeLogic,
   TroubleshooterCase,
 } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
+import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
@@ -64,13 +64,13 @@ function mockAttributesScenario({
             Object.entries(member.attributes).map(([attributeId, value]) => {
               return [
                 attributeId,
-                 
+
                 {
                   attributeOption:
                     value instanceof Array
                       ? value.map((value) => ({ value, isGroup: false, contains: [] }))
                       : { value, isGroup: false, contains: [] },
-                   
+
                   type: attributes.find((attribute) => attribute.id === attributeId)!.type,
                 },
               ];

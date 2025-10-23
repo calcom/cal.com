@@ -5,9 +5,7 @@ import { BookingCancelService as BaseBookingCancelService } from "@calcom/featur
 
 @Injectable()
 export class BookingCancelService extends BaseBookingCancelService {
-  constructor(
-    prismaWriteService: PrismaWriteService,
-  ) {
+  constructor(prismaWriteService: PrismaWriteService) {
     super({
       prismaClient: prismaWriteService.prisma,
     });

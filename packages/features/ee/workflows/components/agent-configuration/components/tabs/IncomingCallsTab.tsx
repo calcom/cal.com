@@ -164,7 +164,9 @@ export function IncomingCallsTab({
               });
             }
           }}
-          value={eventTypeOptions.find((opt) => opt.value === inboundAgentData?.inboundEventTypeId?.toString())}
+          value={eventTypeOptions.find(
+            (opt) => opt.value === inboundAgentData?.inboundEventTypeId?.toString()
+          )}
           options={eventTypeOptions}
           placeholder={t("select_event_type")}
         />

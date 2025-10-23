@@ -1,3 +1,4 @@
+import { calendar_v3 } from "@googleapis/calendar";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
@@ -29,7 +30,7 @@ export const createBookingAndFetchGCalEvent = async (
   await page.locator("[data-testid=success-page]");
 
   const bookingUrl = await page.url();
-  const bookingUid = bookingUrl.match(/booking\/([^\/?]+)/);
+  const bookingUid = bookingUrl.match(/booking\/([^/?]+)/);
   assertValueExists(bookingUid, "bookingUid");
 
   const [gCalReference, booking] = await Promise.all([
@@ -40,6 +41,7 @@ export const createBookingAndFetchGCalEvent = async (
         },
         type: metadata.type,
         credentialId: qaGCalCredential?.id,
+        deleted: null,
       },
       select: {
         uid: true,
@@ -107,7 +109,7 @@ export const createBookingAndFetchGCalEvent = async (
 };
 
 export const deleteBookingAndEvent = async (
-  authedCalendar: any,
+  authedCalendar: calendar_v3.Calendar,
   bookingUid: string,
   gCalReferenceUid?: string
 ) => {

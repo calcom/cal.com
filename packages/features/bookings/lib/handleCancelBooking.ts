@@ -12,6 +12,8 @@ import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/proc
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -40,20 +42,18 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { BookingRepository } from "../repositories/BookingRepository";
+import { PrismaBookingAttendeeRepository } from "../repositories/PrismaBookingAttendeeRepository";
 import type {
   CancelRegularBookingData,
   CancelBookingMeta,
   HandleCancelBookingResponse,
 } from "./dto/BookingCancel";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { BookingRepository } from "../repositories/BookingRepository";
 import { getAllCredentialsIncludeServiceAccountKey } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { PrismaBookingAttendeeRepository } from "./repository/PrismaBookingAttendeeRepository";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -87,15 +87,13 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     profileRepository,
     bookingReferenceRepository,
     attendeeRepository,
-  } =
-    dependencies || // We keep this fallback here till the followup PR where we start using the BookingCancelService itself everywhere including tests and then we can ensure that dependencies would be a required param
-    {
-      userRepository: new UserRepository(prisma),
-      bookingRepository: new BookingRepository(prisma),
-      profileRepository: new ProfileRepository({ prismaClient: prisma }),
-      bookingReferenceRepository: new BookingReferenceRepository({ prismaClient: prisma }),
-      attendeeRepository: new PrismaBookingAttendeeRepository(prisma),
-    };
+  } = dependencies || { // We keep this fallback here till the followup PR where we start using the BookingCancelService itself everywhere including tests and then we can ensure that dependencies would be a required param
+    userRepository: new UserRepository(prisma),
+    bookingRepository: new BookingRepository(prisma),
+    profileRepository: new ProfileRepository({ prismaClient: prisma }),
+    bookingReferenceRepository: new BookingReferenceRepository({ prismaClient: prisma }),
+    attendeeRepository: new PrismaBookingAttendeeRepository(prisma),
+  };
   const body = input.bookingData;
   const {
     id,
@@ -295,17 +293,17 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-        ? [bookingToDelete?.user.destinationCalendar]
-        : [],
+      ? [bookingToDelete?.user.destinationCalendar]
+      : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
-      team: {
-        name: bookingToDelete?.eventType?.team?.name || "Nameless",
-        members: teamMembers,
-        id: teamId,
-      },
-    }),
+        team: {
+          name: bookingToDelete?.eventType?.team?.name || "Nameless",
+          members: teamMembers,
+          id: teamId,
+        },
+      }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -518,7 +516,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
     await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
 
-    await bookingReferenceRepository.deleteManyByBookingId(bookingToDelete.id);
+    await bookingReferenceRepository.updateManyByBookingId(bookingToDelete.id, { deleted: true });
   } catch (error) {
     log.error(`Error deleting integrations`, safeStringify({ error }));
   }
@@ -595,7 +593,7 @@ type BookingCancelServiceDependencies = {
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
  */
 export class BookingCancelService implements IBookingCancelService {
-  constructor(private readonly deps: BookingCancelServiceDependencies) { }
+  constructor(private readonly deps: BookingCancelServiceDependencies) {}
 
   async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {

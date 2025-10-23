@@ -13,9 +13,10 @@ import {
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import type { CreateInstantBookingData } from "../dto/types";
-import { getInstantBookingCreateService } from "../../di/InstantBookingCreateService.container";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+import { getInstantBookingCreateService } from "../../di/InstantBookingCreateService.container";
+import type { CreateInstantBookingData } from "../dto/types";
 
 vi.mock("@calcom/features/notifications/sendNotification", () => ({
   sendNotification: vi.fn(),

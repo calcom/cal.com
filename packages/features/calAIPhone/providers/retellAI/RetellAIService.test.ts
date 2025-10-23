@@ -11,7 +11,6 @@ import { RetellAIError } from "./errors";
 import { createMockDatabaseAgent } from "./services/__tests__/test-utils";
 import type { RetellAIRepository } from "./types";
 
-
 vi.mock("@calcom/app-store/stripepayment/lib/customer", () => ({
   getStripeCustomerIdFromUserId: vi.fn(),
 }));

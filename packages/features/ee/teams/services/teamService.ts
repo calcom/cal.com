@@ -3,16 +3,16 @@ import { randomBytes } from "crypto";
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
-import { deleteDomain } from "@calcom/lib/domainManager/organization";
-import logger from "@calcom/lib/logger";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { deleteDomain } from "@calcom/lib/domainManager/organization";
+import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -269,13 +269,7 @@ export class TeamService {
 
     await updateNewTeamMemberEventTypes(userId, teamId);
   }
-  static async leaveTeamMembership({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }) {
+  static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
       const membership = await prisma.membership.delete({
         where: {
