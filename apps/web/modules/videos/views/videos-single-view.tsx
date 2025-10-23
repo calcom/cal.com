@@ -11,6 +11,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
+import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -34,7 +35,6 @@ export default function JoinCall(props: PageProps) {
     booking,
     hasTeamPlan,
     calVideoLogo,
-    displayLogInOverlay,
     loggedInUserName,
     overrideName,
     showRecordingButton,
@@ -43,12 +43,12 @@ export default function JoinCall(props: PageProps) {
     showTranscriptionButton,
     rediectAttendeeToOnExit,
     requireEmailForGuests,
+    guestSessionId,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
-  const [userNameForCall, setUserNameForCall] = useState<string | undefined>(
-    overrideName ?? loggedInUserName ?? undefined
-  );
-  const [isUserNameConfirmed, setIsUserNameConfirmed] = useState<boolean>(!displayLogInOverlay);
+
+  const userNameForCall = overrideName ?? loggedInUserName ?? undefined;
+  const hideLoginModal = !!userNameForCall && (requireEmailForGuests ? guestSessionId : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
   const createCallFrame = useCallback(
@@ -119,7 +119,7 @@ export default function JoinCall(props: PageProps) {
   );
 
   useEffect(() => {
-    if (displayLogInOverlay && !loggedInUserName && !overrideName && !isUserNameConfirmed) {
+    if (!loggedInUserName && !overrideName && !hideLoginModal) {
       return;
     }
 
@@ -146,28 +146,7 @@ export default function JoinCall(props: PageProps) {
       setDaily(null);
       setIsCallFrameReady(false);
     };
-  }, [
-    displayLogInOverlay,
-    isUserNameConfirmed,
-    userNameForCall,
-    createCallFrame,
-    loggedInUserName,
-    overrideName,
-  ]);
-
-  const handleJoinAsGuest = useCallback((guestName: string) => {
-    const trimmedName = guestName.trim();
-    if (!trimmedName) {
-      return;
-    }
-
-    setUserNameForCall(trimmedName);
-    setIsUserNameConfirmed(true);
-  }, []);
-
-  const handleUserNameConfirmed = useCallback(() => {
-    setIsUserNameConfirmed(true);
-  }, []);
+  }, [hideLoginModal, userNameForCall, createCallFrame, loggedInUserName, overrideName]);
 
   return (
     <DailyProvider callObject={daily}>
@@ -206,14 +185,12 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {displayLogInOverlay && !isUserNameConfirmed && (
+      {!hideLoginModal && (
         <LogInOverlay
-          isLoggedIn={!!loggedInUserName}
+          isOpen={!hideLoginModal}
           bookingUid={booking.uid}
           loggedInUserName={loggedInUserName ?? undefined}
           overrideName={overrideName}
-          onJoinAsGuest={handleJoinAsGuest}
-          onUserNameConfirmed={handleUserNameConfirmed}
           requireEmailForGuests={requireEmailForGuests}
         />
       )}
@@ -293,28 +270,18 @@ function ProgressBar(props: ProgressBarProps) {
 }
 
 interface LogInOverlayProps {
-  isLoggedIn: boolean;
+  isOpen: boolean;
   bookingUid: string;
   loggedInUserName?: string;
   overrideName?: string;
-  onJoinAsGuest: (guestName: string) => void;
-  onUserNameConfirmed?: () => void;
   requireEmailForGuests?: boolean;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
-  const {
-    bookingUid,
-    isLoggedIn,
-    loggedInUserName,
-    overrideName,
-    onJoinAsGuest,
-    onUserNameConfirmed,
-    requireEmailForGuests = false,
-  } = props;
+  const { bookingUid, isOpen: _open, loggedInUserName, overrideName, requireEmailForGuests = false } = props;
 
-  const [isOpen, setIsOpen] = useState(!isLoggedIn);
+  const [isOpen, setIsOpen] = useState(_open);
   const [userName, setUserName] = useState(overrideName ?? loggedInUserName ?? "");
   const [userEmail, setUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -335,8 +302,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
         return;
       }
 
-      // Basic email validation
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      if (!emailRegex.test(trimmedEmail)) {
         setError(t("invalid_email_address"));
         return;
       }
@@ -364,16 +330,15 @@ export function LogInOverlay(props: LogInOverlayProps) {
 
         const { guestSessionId } = await response.json();
 
-        // Reload page with guestId to get new meeting token
         const url = new URL(window.location.href);
         url.searchParams.set("guestId", guestSessionId);
         url.searchParams.set("name", trimmedName);
         window.location.href = url.toString();
       } else {
         // If email not required, just join as guest with name
-        onJoinAsGuest(trimmedName);
-        setIsOpen(false);
-        onUserNameConfirmed?.();
+        const url = new URL(window.location.href);
+        url.searchParams.set("name", trimmedName);
+        window.location.href = url.toString();
       }
     } catch (error) {
       console.error("Error joining as guest:", error);
@@ -381,7 +346,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
       setError(errorMessage);
       setIsLoading(false);
     }
-  }, [userName, userEmail, bookingUid, requireEmailForGuests, onJoinAsGuest, onUserNameConfirmed, t]);
+  }, [userName, userEmail, bookingUid, requireEmailForGuests, t]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {

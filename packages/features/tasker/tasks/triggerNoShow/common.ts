@@ -77,7 +77,7 @@ export function sendWebhookPayload(
       attendees: booking.attendees,
       endTime: booking.endTime,
       participants,
-      ...(!!hostEmail ? { hostEmail } : {}),
+      ...(hostEmail ? { hostEmail } : {}),
       ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
@@ -109,13 +109,8 @@ export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: T
     .unix();
 }
 
-export function checkIfUserOrGuestJoinedTheCall(
-  userId: number | string,
-  allParticipants: Participants
-): boolean {
-  return allParticipants.some(
-    (participant) => participant.user_id && participant.user_id === String(userId)
-  );
+export function checkIfUserOrGuestJoinedTheCall(email: string, allParticipants: Participants): boolean {
+  return allParticipants.some((participant) => participant.email && participant.email === email);
 }
 
 const getUserOrGuestById = async (id: string) => {
@@ -219,11 +214,12 @@ export const prepareNoShowTrigger = async (
   const hosts = getHosts(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
+  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
   const hostsThatJoinedTheCall: Host[] = [];
   const hostsThatDidntJoinTheCall: Host[] = [];
 
   for (const host of hosts) {
-    if (checkIfUserOrGuestJoinedTheCall(host.id, allParticipants)) {
+    if (checkIfUserOrGuestJoinedTheCall(host.email, participantsWithEmail)) {
       hostsThatJoinedTheCall.push(host);
     } else {
       hostsThatDidntJoinTheCall.push(host);
@@ -235,8 +231,6 @@ export const prepareNoShowTrigger = async (
   const didGuestJoinTheCall = meetingDetails.data.some(
     (meeting) => meeting.max_participants > numberOfHostsThatJoined
   );
-
-  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
 
   return {
     hostsThatDidntJoinTheCall,

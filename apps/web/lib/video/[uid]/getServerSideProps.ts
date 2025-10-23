@@ -10,7 +10,6 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { CAL_VIDEO_MEETING_LINK_FOR_TESTING } from "@calcom/lib/constants";
@@ -123,6 +122,7 @@ const checkIfUserIsHost = async ({
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
+  let guestSessionId = null;
 
   const bookingRepo = new BookingRepository(prisma);
   const booking = await bookingRepo.findBookingForMeetingPage({
@@ -222,9 +222,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // set meetingPassword for guests
   if (!isOrganizer) {
-    const guestSessionId = Array.isArray(context.query.guestId)
-      ? context.query.guestId[0]
-      : context.query.guestId;
+    guestSessionId = Array.isArray(context.query.guestId) ? context.query.guestId[0] : context.query.guestId;
 
     const userIdForToken = sessionUserId || guestSessionId;
 
@@ -253,11 +251,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const videoReference = getCalVideoReference(bookingObj.references);
-
-  const featureRepo = new FeaturesRepository(prisma);
-  const displayLogInOverlay = profile?.organizationId
-    ? await featureRepo.checkIfTeamHasFeature(profile.organizationId, "cal-video-log-in-overlay")
-    : false;
 
   const showRecordingButton = shouldEnableRecordButton({
     hasTeamPlan: !!hasTeamPlan,
@@ -302,7 +295,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       hasTeamPlan: !!hasTeamPlan,
       calVideoLogo,
-      displayLogInOverlay,
       loggedInUserName: sessionUserId ? session?.user?.name : undefined,
       showRecordingButton,
       enableAutomaticTranscription,
@@ -313,6 +305,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
       overrideName: Array.isArray(context.query.name) ? context.query.name[0] : context.query.name,
       requireEmailForGuests: bookingObj.eventType?.calVideoSettings?.requireEmailForGuests ?? false,
+      guestSessionId,
     },
   };
 }
