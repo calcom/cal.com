@@ -3,6 +3,7 @@ import { type TFunction } from "i18next";
 
 import { sendAdminOrganizationNotification } from "@calcom/emails";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   RESERVED_SUBDOMAINS,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
@@ -12,7 +13,6 @@ import {
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
