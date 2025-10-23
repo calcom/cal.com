@@ -558,8 +558,8 @@ test.describe("Reschedule for booking with seats", () => {
     await page.waitForTimeout(2000);
     const href = await page.locator('[data-testid="reschedule"]').getAttribute("href");
     const url = new URL(href!, page.url());
-    const seatReferenceUid = url.searchParams.get("seatReferenceUid");
-    if (!seatReferenceUid) {
+    const seatReferenceUid = url.searchParams.get('seatReferenceUid');
+    if(!seatReferenceUid) {
       await page.reload();
       await page.waitForSelector('[data-testid="bookings"]');
       await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();

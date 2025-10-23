@@ -31,4 +31,4 @@ import { Module } from "@nestjs/common";
   ],
   exports: [RegularBookingService],
 })
-export class RegularBookingModule {}
+export class RegularBookingModule { }

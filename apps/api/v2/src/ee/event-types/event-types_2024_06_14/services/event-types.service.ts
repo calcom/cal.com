@@ -39,7 +39,7 @@ export class EventTypesService_2024_06_14 {
     }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-
+     
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

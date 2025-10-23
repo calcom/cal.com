@@ -112,7 +112,7 @@ export class LegacyRoleManager implements IRoleManager {
     organizationId: number,
     role: MembershipRole | string,
     // Used in other implementation
-
+     
     _membershipId: number
   ): Promise<void> {
     await prisma.membership.update({
@@ -129,7 +129,7 @@ export class LegacyRoleManager implements IRoleManager {
   }
 
   // Used in other implementation
-
+   
   async getAllRoles(_organizationId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },
@@ -139,7 +139,7 @@ export class LegacyRoleManager implements IRoleManager {
   }
 
   // Used in other implementation
-
+   
   async getTeamRoles(_teamId: number): Promise<{ id: string; name: string }[]> {
     return [
       { id: MembershipRole.OWNER, name: "Owner" },

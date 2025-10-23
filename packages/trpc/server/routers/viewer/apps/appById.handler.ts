@@ -24,6 +24,7 @@ export const appByIdHandler = async ({ ctx, input }: AppByIdOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find app ${appId}` });
   }
 
+   
   const { credential: _, credentials: _1, ...app } = appFromDb;
   return {
     isInstalled: appFromDb.credentials.length,

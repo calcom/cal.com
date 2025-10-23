@@ -48,6 +48,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       : availableSlots.slots;
 
     return { slots: slotsInProvidedTimeZone };
+     
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);

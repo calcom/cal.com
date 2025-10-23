@@ -125,7 +125,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     readOnly,
     showAsteriskIndicator,
     onClickAddon,
-
+     
     t: __t,
     dataTestid,
     size,
