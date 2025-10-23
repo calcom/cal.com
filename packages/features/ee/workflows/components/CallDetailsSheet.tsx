@@ -162,7 +162,7 @@ export function CallDetailsSheet({ state, dispatch }: CallDetailsSheetProps) {
           {selectedCall.retell_llm_dynamic_variables && (
             <div className="space-y-3">
               <h3 className="text-emphasis text-base font-semibold">{t("event_details")}</h3>
-              <div className="border-subtle bg-muted rounded-md border p-4">
+              <div className="border-subtle bg-cal-muted rounded-md border p-4">
                 <pre className="text-default overflow-x-auto text-xs">
                   {JSON.stringify(selectedCall.retell_llm_dynamic_variables, null, 2)}
                 </pre>

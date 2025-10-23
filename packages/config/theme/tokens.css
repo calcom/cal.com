@@ -29,9 +29,9 @@
   --color-emphasis: var(--cal-bg-emphasis);
   --color-default: var(--cal-bg);
   --color-subtle: var(--cal-bg-subtle);
-  --color-muted: var(--cal-bg-muted);
+  --color-cal-muted: var(--cal-bg-muted);
   --color-inverted: var(--cal-bg-inverted);
-  --color-primary: var(--cal-bg-primary);
+  --color-primary-default: var(--cal-bg-primary);
   --color-primary-emphasis: var(--cal-bg-primary-emphasis);
   --color-primary-muted: var(--cal-bg-primary-muted);
   --color-brand: var(--cal-brand);
@@ -62,8 +62,8 @@
   --color-visualization-6-emphasis: var(--cal-bg-visualization-6-emphasis);
   --color-visualization-7-subtle: var(--cal-bg-visualization-7-subtle);
   --color-visualization-7-emphasis: var(--cal-bg-visualization-7-emphasis);
-  --color-info: var(--cal-bg-info);
-  --color-success: var(--cal-bg-success);
+  --color-cal-info: var(--cal-bg-info);
+  --color-cal-success: var(--cal-bg-success);
   --color-attention: var(--cal-bg-attention);
   --color-error: var(--cal-bg-error);
   --color-dark-error: var(--cal-bg-dark-error);

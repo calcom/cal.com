@@ -307,7 +307,7 @@ const WeightedAttributesSelector = ({
             }}
           />
         </div>
-        <div className="bg-muted mt-1 rounded-xl p-2">
+        <div className="bg-cal-muted mt-1 rounded-xl p-2">
           {attributeIdForWeights ? (
             <SelectField
               size="sm"
@@ -652,7 +652,7 @@ const Route = ({
       <div
         className={classNames(
           "cal-query-builder-card w-full gap-2 p-2",
-          route.isFallback && "bg-muted border-subtle rounded-xl  border"
+          route.isFallback && "bg-cal-muted border-subtle rounded-xl  border"
         )}>
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}
@@ -796,7 +796,7 @@ const Route = ({
                   </div>
                   <span className="text-emphasis ml-2 text-sm font-medium">Send booker to</span>
                 </div>
-                <div className="bg-muted flex w-full flex-col gap-2 rounded-xl p-2 text-sm lg:flex-row">
+                <div className="bg-cal-muted flex w-full flex-col gap-2 rounded-xl p-2 text-sm lg:flex-row">
                   <div className="flex grow items-center gap-2">
                     <Select
                       size="sm"

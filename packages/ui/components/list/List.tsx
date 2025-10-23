@@ -49,7 +49,7 @@ export function ListItem(props: ListItemProps) {
         // Pass rounded false to not round the corners -> Useful when used in list we can use roundedContainer to create the right design
         rounded ? "rounded-md" : "rounded-none",
         props.className,
-        (props.onClick || href) && "hover:bg-muted"
+        (props.onClick || href) && "hover:bg-cal-muted"
       ),
       "data-testid": "list-item",
     },
@@ -95,7 +95,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
       className={classNames(
         "group flex w-full items-center justify-between p-5 pb-4",
         className,
-        disabled ? "hover:bg-muted" : ""
+        disabled ? "hover:bg-cal-muted" : ""
       )}>
       <Link
         passHref

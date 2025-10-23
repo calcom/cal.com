@@ -519,7 +519,7 @@ function BookingListItem(booking: BookingItemProps) {
       <div
         data-testid="booking-item"
         data-today={String(booking.isToday)}
-        className="hover:bg-muted group w-full">
+        className="hover:bg-cal-muted group w-full">
         <div className="flex flex-col sm:flex-row">
           <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-48">
             <div className="flex h-full items-center">
@@ -1225,7 +1225,7 @@ const NoShowAttendeesDialog = ({
                 attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
               });
             }}>
-            <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
+            <div className="bg-cal-muted flex items-center justify-between rounded-md px-4 py-2">
               <span className="text-emphasis flex flex-col text-sm">
                 {attendee.name}
                 {attendee.email && <span className="text-muted">({attendee.email})</span>}

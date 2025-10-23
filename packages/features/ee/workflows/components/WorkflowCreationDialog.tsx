@@ -143,7 +143,7 @@ export function WorkflowCreationDialog({
               icon="circle-plus"
               isSelected={selectedOption === "scratch"}
               onClick={() => setSelectedOption("scratch")}
-              iconWrapperClassName="bg-muted"
+              iconWrapperClassName="bg-cal-muted"
               value="scratch"
             />
             <WorkflowOptionCard

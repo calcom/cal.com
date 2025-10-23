@@ -62,7 +62,7 @@ export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) =
   return (
     <div
       className={classNames(
-        highlight && "dark:bg-muted bg-yellow-100",
+        highlight && "dark:bg-cal-muted bg-yellow-100",
         className || classNameObject?.container
       )}>
       <div className="flex items-start gap-x-3 px-4 py-4 sm:px-6">

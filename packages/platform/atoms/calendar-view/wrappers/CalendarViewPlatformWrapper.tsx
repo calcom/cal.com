@@ -134,7 +134,7 @@ const CalendarViewPlatformWrapperComponent = (
 
   return (
     <AtomsWrapper>
-      <BookerSection area="header" className="bg-default dark:bg-muted sticky top-0 z-10">
+      <BookerSection area="header" className="bg-default dark:bg-cal-muted sticky top-0 z-10">
         <Header
           isCalendarView={true}
           isMyLink={true}

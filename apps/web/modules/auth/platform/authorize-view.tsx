@@ -110,7 +110,7 @@ export default function Authorize() {
         <div className="border-subtle border- -mx-9 mb-4 border-b" />
         <div className="flex justify-end">
           <Button
-            className="bg-primary mr-2 text-black"
+            className="bg-primary-default mr-2 text-black"
             onClick={() => {
               router.back();
             }}>

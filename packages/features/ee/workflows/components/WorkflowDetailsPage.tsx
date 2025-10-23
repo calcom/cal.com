@@ -210,7 +210,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <div key={index}>
                   <FormCard
                     key={step.id}
-                    className="mb-0 bg-muted border-muted"
+                    className="mb-0 bg-cal-muted border-muted"
                     collapsible={false}
                     label={
                       <div className="flex gap-2 items-center pt-1 pb-2">

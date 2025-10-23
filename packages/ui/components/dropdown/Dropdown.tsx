@@ -18,7 +18,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
       {...props}
       className={classNames(
         !props.asChild &&
-          `focus:bg-subtle hover:bg-muted text-default group-hover:text-emphasis inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium ring-0 transition ${className}`
+          `focus:bg-subtle hover:bg-cal-muted text-default group-hover:text-emphasis inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium ring-0 transition ${className}`
       )}
       ref={forwardedRef}
     />

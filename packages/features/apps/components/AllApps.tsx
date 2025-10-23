@@ -104,7 +104,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
             onCategoryChange(null);
           }}
           className={classNames(
-            selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
+            selectedCategory === null ? "bg-emphasis text-default" : "bg-cal-muted text-emphasis",
             "hover:bg-emphasis min-w-max rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
           )}>
           {t("all")}
@@ -120,7 +120,7 @@ function CategoryTab({ selectedCategory, categories, searchText, onCategoryChang
               }
             }}
             className={classNames(
-              selectedCategory === cat ? "bg-emphasis text-default" : "bg-muted text-emphasis",
+              selectedCategory === cat ? "bg-emphasis text-default" : "bg-cal-muted text-emphasis",
               "hover:bg-emphasis rounded-md px-4 py-2.5 text-sm font-medium transition hover:cursor-pointer"
             )}>
             {cat === "crm" ? cat.toUpperCase() : cat[0].toUpperCase() + cat.slice(1)}

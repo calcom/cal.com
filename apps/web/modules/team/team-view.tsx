@@ -78,7 +78,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         <li
           key={index}
           className={classNames(
-            "bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "bg-default hover:bg-cal-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
@@ -123,7 +123,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full rounded-md transition">
+            <li key={i} className="hover:bg-cal-muted w-full rounded-md transition">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">

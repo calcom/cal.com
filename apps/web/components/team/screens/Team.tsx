@@ -30,7 +30,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string | n
     <Link
       key={member.id}
       href={{ pathname: `${member.bookerUrl}/${member.username}`, query: queryParamsToForward }}>
-      <div className="bg-default hover:bg-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 transition hover:cursor-pointer sm:w-80">
+      <div className="bg-default hover:bg-cal-muted border-subtle group flex min-h-full flex-col space-y-2 rounded-md border p-4 transition hover:cursor-pointer sm:w-80">
         <UserAvatar noOrganizationIndicator size="md" user={member} />
         <section className="mt-2 line-clamp-4 w-full space-y-1">
           <p className="text-default font-medium">{member.name}</p>

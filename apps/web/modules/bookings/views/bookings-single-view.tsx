@@ -451,7 +451,7 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
+                  !isBackgroundTransparent && " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -478,7 +478,7 @@ export default function Success(props: PageProps) {
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
+                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-cal-success" : "",
                           !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
                           isCancelled ? "bg-error" : ""
                         )}>

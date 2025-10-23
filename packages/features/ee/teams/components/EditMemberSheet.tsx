@@ -189,7 +189,7 @@ export function EditMemberSheet({
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent className="bg-muted">
+      <SheetContent className="bg-cal-muted">
         {!isPending && !isLoadingRoles ? (
           <Form form={form} handleSubmit={changeRole} className="flex h-full flex-col">
             <SheetHeader showCloseButton={false} className="w-full">

@@ -121,7 +121,7 @@ const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
 
 const CalAIAgentDataSkeleton = () => {
   return (
-    <div className="bg-muted mt-4 rounded-lg p-4">
+    <div className="bg-cal-muted mt-4 rounded-lg p-4">
       <div className="flex items-center justify-between">
         <div>
           <SkeletonText className="h-5 w-28" />
@@ -839,7 +839,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             )}
           {isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && !stepAgentId && (
-            <div className="bg-muted border-muted mt-2 rounded-2xl border p-3">
+            <div className="bg-cal-muted border-muted mt-2 rounded-2xl border p-3">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center sm:gap-0">
                 <div>
                   <h2 className="text-emphasis text-sm font-medium leading-none">
@@ -866,7 +866,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
           {stepAgentId && isAgentLoading && <CalAIAgentDataSkeleton />}
           {stepAgentId && agentData && (
-            <div className="bg-muted mt-4 rounded-lg p-4">
+            <div className="bg-cal-muted mt-4 rounded-lg p-4">
               <div
                 className="flex cursor-pointer items-center justify-between"
                 onClick={(e) => {
@@ -1010,7 +1010,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           )}
           {isPhoneNumberNeeded && (
-            <div className="bg-muted mt-2 rounded-md p-4 pt-0">
+            <div className="bg-cal-muted mt-2 rounded-md p-4 pt-0">
               <Label className="pt-4">{t("custom_phone_number")}</Label>
               <div className="block sm:flex">
                 <Controller
@@ -1123,7 +1123,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             )}
           {isEmailAddressNeeded && !isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-            <div className="bg-muted border-muted mt-5 rounded-2xl border p-4">
+            <div className="bg-cal-muted border-muted mt-5 rounded-2xl border p-4">
               <Label>{t("email_address")}</Label>
               <div className="block items-center gap-2 sm:flex">
                 <Controller
@@ -1295,7 +1295,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           )}
           {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-            <div className="bg-muted border-muted mt-3 rounded-2xl border p-3">
+            <div className="bg-cal-muted border-muted mt-3 rounded-2xl border p-3">
               {isEmailSubjectNeeded && (
                 <div className="mb-6">
                   <div className="flex items-center">
@@ -1503,7 +1503,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <DialogContent enableOverflow type="creation" className="sm:max-w-[610px]">
             <div>
               <h1 className="w-full text-xl font-semibold">{t("how_booking_questions_as_variables")}</h1>
-              <div className="bg-muted-3 mb-6 rounded-md sm:p-4">
+              <div className="bg-cal-muted-3 mb-6 rounded-md sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="text-emphasis ml-5 mt-2 list-disc">
                   <li>{t("uppercase_for_letters")}</li>
@@ -1614,7 +1614,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   subscriptionStatus: phone.subscriptionStatus ?? undefined,
                 }))
               ).length > 0 && (
-                <div className="bg-muted rounded-lg p-3">
+                <div className="bg-cal-muted rounded-lg p-3">
                   <div className="flex items-center gap-2">
                     <Icon name="phone" className="text-emphasis h-4 w-4" />
                     <span className="text-emphasis text-sm font-medium">
@@ -1690,7 +1690,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </div>
                       </div>
                       {relevantPhoneNumbers.map((phone) => (
-                        <div key={phone.phoneNumber} className="bg-muted rounded-lg p-3">
+                        <div key={phone.phoneNumber} className="bg-cal-muted rounded-lg p-3">
                           <div className="flex items-center gap-2">
                             <Icon name="phone" className="text-emphasis h-4 w-4" />
                             <span className="text-emphasis text-sm font-medium">

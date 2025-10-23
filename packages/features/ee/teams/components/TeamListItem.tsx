@@ -134,7 +134,7 @@ export default function TeamListItem(props: Props) {
           }}
         />
       )}
-      <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-muted group")}>
+      <div className={classNames("flex items-center  justify-between", !isInvitee && "hover:bg-cal-muted group")}>
         {!isInvitee ? (
           team.slug ? (
             <Link

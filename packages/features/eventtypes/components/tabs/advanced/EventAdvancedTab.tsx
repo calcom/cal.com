@@ -632,7 +632,7 @@ export const EventAdvancedTab = ({
         />
       )}
 
-      <div className="border-subtle bg-muted rounded-lg border p-1">
+      <div className="border-subtle bg-cal-muted rounded-lg border p-1">
         <div className="p-5">
           <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
             {t("booking_questions_title")}

@@ -143,7 +143,7 @@ export function BaseSelectFilterOptions<
                 <div
                   className={classNames(
                     "border-subtle mr-2 flex h-4 w-4 items-center justify-center rounded-sm border",
-                    isOptionSelected(filterValue, optionValue) ? "bg-primary" : "opacity-50"
+                    isOptionSelected(filterValue, optionValue) ? "bg-primary-default" : "opacity-50"
                   )}>
                   {isOptionSelected(filterValue, optionValue) && (
                     <Icon name="check" className="text-primary-foreground h-4 w-4" />

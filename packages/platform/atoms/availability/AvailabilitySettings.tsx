@@ -429,7 +429,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
         }
         CTA={
           <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
-            <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
+            <div className="sm:hover:bg-cal-muted hidden items-center rounded-md px-2 transition sm:flex">
               {!openSidebar && allowSetToDefault ? (
                 <>
                   <Skeleton

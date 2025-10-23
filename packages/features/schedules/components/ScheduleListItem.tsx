@@ -44,7 +44,7 @@ export function ScheduleListItem({
 
   return (
     <li key={schedule.id}>
-      <div className="hover:bg-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
+      <div className="hover:bg-cal-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
         <div className="group flex w-full items-center justify-between ">
           <Link href={redirectUrl} className="grow truncate text-sm" title={schedule.name}>
             <div className="space-x-2 rtl:space-x-reverse">

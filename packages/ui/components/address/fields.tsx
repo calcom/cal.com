@@ -36,7 +36,7 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="bg-muted border-default text-subtle inline-flex shrink-0 items-center rounded-l-sm border border-r-0 px-3 sm:text-sm">
+    <span className="bg-cal-muted border-default text-subtle inline-flex shrink-0 items-center rounded-l-sm border border-r-0 px-3 sm:text-sm">
       {props.children}
     </span>
   );

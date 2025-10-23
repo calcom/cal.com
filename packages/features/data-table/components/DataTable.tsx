@@ -107,7 +107,7 @@ export function DataTable<TData>({
   return (
     <div
       className={classNames(
-        !hasWrapperContext ? "grid" : "bg-muted grid rounded-xl px-0.5 pb-0.5",
+        !hasWrapperContext ? "grid" : "bg-cal-muted grid rounded-xl px-0.5 pb-0.5",
         className
       )}
       style={{
@@ -142,7 +142,7 @@ export function DataTable<TData>({
         <TableNew
           className={classNames(
             "data-table grid border-0",
-            !hasWrapperContext && "bg-muted rounded-xl px-0.5 pb-0.5"
+            !hasWrapperContext && "bg-cal-muted rounded-xl px-0.5 pb-0.5"
           )}
           style={{
             ...columnSizingVars,
@@ -163,7 +163,7 @@ export function DataTable<TData>({
                       }}
                       className={classNames(
                         "relative flex shrink-0 items-center",
-                        "bg-muted",
+                        "bg-cal-muted",
                         column.getIsPinned() && "top-0 z-20 sm:sticky"
                       )}>
                       <TableHeadLabel header={header} />
@@ -319,10 +319,10 @@ function DataTableBody<TData>({
                   width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                 }}
                 className={classNames(
-                  "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
+                  "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
                   variant === "compact" && "p-0",
                   column.getIsPinned() &&
-                    "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
+                    "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle sm:sticky"
                 )}>
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
@@ -360,7 +360,7 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
           type="button"
           className={classNames(
             "group mr-1 flex w-full items-center gap-2 rounded-md px-2 py-1",
-            open && "bg-muted"
+            open && "bg-cal-muted"
           )}>
           <div
             className="text-default truncate text-sm leading-none"

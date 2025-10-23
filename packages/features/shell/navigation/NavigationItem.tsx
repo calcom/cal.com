@@ -302,7 +302,7 @@ export const MobileNavigationMoreItem: React.FC<{
                 <li key={childItem.name} className="border-subtle border-t">
                   <Link
                     href={childItem.href}
-                    className="hover:bg-muted flex items-center p-4 pl-12 transition">
+                    className="hover:bg-cal-muted flex items-center p-4 pl-12 transition">
                     <span className="text-default font-medium">
                       {isLocaleReady ? t(childItem.name) : <SkeletonText />}
                     </span>

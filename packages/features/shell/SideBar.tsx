@@ -75,7 +75,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
       <aside
         style={!isPlatformPages ? sidebarStylingAttributes : {}}
         className={classNames(
-          "bg-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
+          "bg-cal-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
           !isPlatformPages && "max-h-screen"
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">

@@ -158,7 +158,7 @@ const LicenseSelection = (
 
       {value === "EXISTING" && (
         <FormProvider {...formMethods}>
-          <div className="bg-muted space-y-4 rounded-md px-4 py-3">
+          <div className="bg-cal-muted space-y-4 rounded-md px-4 py-3">
             <div className="space-y-4">
               <div>
                 <Controller

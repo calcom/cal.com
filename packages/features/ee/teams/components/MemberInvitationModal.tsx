@@ -270,7 +270,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             )}
             {/* Bulk Invite */}
             {modalImportMode === "BULK" && (
-              <div className="bg-muted flex flex-col rounded-md p-4">
+              <div className="bg-cal-muted flex flex-col rounded-md p-4">
                 <Controller
                   name="emailOrUsername"
                   control={newMemberFormMethods.control}

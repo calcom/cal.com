@@ -58,7 +58,7 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
                 type="number"
                 min="0"
                 inputMode="numeric"
-                className="bg-muted border-default text-emphasis h-7 w-12 rounded-l-sm border px-2 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="bg-cal-muted border-default text-emphasis h-7 w-12 rounded-l-sm border px-2 text-sm [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 defaultValue={member.weight ?? 100}
                 onBlur={(e) => {
                   const newWeight = parseInt(e.target.value);
@@ -81,7 +81,7 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
                   }
                 }}
               />
-              <span className="text-default border-default bg-muted flex h-7 items-center rounded-r-sm border border-l-0 px-2 text-sm">
+              <span className="text-default border-default bg-cal-muted flex h-7 items-center rounded-r-sm border border-l-0 px-2 text-sm">
                 %
               </span>
             </div>

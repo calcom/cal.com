@@ -173,7 +173,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
   }
 
   return (
-    <div className="text-default bg-muted/90 backdrop-blur-md backdrop-grayscale backdrop-filter">
+    <div className="text-default bg-cal-muted/90 backdrop-blur-md backdrop-grayscale backdrop-filter">
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
         <div className="border-subtle bg-default m-10 flex max-w-2xl flex-col items-center rounded-xl border px-8 py-14 text-left">
           {hasPaymentFailed ? <PaymentFailedIcon /> : sessionId ? <PaymentSuccess /> : <MailOpenIcon />}

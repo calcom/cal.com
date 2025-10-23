@@ -269,7 +269,7 @@ export const FormBuilder = function FormBuilder({
               <li
                 key={field.name}
                 data-testid={`field-${field.name}`}
-                className="hover:bg-muted group relative flex items-center justify-between p-4 transition">
+                className="hover:bg-cal-muted group relative flex items-center justify-between p-4 transition">
                 {!disabled && (
                   <>
                     {index >= 1 && (
@@ -459,7 +459,7 @@ function Options({
   return (
     <div className={className}>
       <Label>{label}</Label>
-      <div className="bg-muted rounded-md p-4" data-testid="options-container">
+      <div className="bg-cal-muted rounded-md p-4" data-testid="options-container">
         <ul ref={animationRef} className="flex flex-col gap-3">
           {value?.map((option, index) => (
             <li key={index}>

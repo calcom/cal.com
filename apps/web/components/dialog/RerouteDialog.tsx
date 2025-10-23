@@ -373,7 +373,7 @@ const NewRoutingManager = ({
     reroutingState.value?.type === "reschedule_to_different_event_new_tab";
 
   return (
-    <div className="bg-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
+    <div className="bg-cal-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
       <h2 className="text-emphasis font-medium">{t("new_routing_status")}</h2>
       <div className="flex flex-col space-y-2">
         {reroutingState.status === ReroutingStatusEnum.REROUTING_NOT_INITIATED && reroutingPreview()}
@@ -666,7 +666,7 @@ const CurrentRoutingStatus = ({
   const bookerUrl = useBookerUrl();
   if (!fullSlug) return null;
   return (
-    <div className="bg-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
+    <div className="bg-cal-muted flex flex-col space-y-3 rounded-md p-4 text-sm">
       <h2 className="text-emphasis font-medium">{t("current_routing_status")}</h2>
       <div className="flex flex-col space-y-2">
         <span className="text-default" data-testid="current-routing-status-event-type">

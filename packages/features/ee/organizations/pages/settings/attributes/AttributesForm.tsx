@@ -419,7 +419,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
         )}
       />
       {["SINGLE_SELECT", "MULTI_SELECT"].includes(watchedType) && (
-        <div className="bg-muted border-muted mt-6 rounded-lg border p-6">
+        <div className="bg-cal-muted border-muted mt-6 rounded-lg border p-6">
           <div className="flex flex-col gap-2">
             <div>
               <Label>{t("options")}</Label>

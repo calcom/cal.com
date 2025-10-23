@@ -157,7 +157,7 @@ export const FilterCheckboxField = forwardRef<HTMLInputElement, Props>(
     return (
       <div
         data-testid={testId}
-        className="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer">
+        className="hover:bg-cal-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer">
         <label className="flex w-full max-w-full items-center justify-between hover:cursor-pointer">
           <div className="flex items-center truncate">
             {icon && (

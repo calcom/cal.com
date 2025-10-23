@@ -29,7 +29,7 @@ const RadioArea = ({ children, className, classNames: innerClassNames, ...props 
         <RadioGroupPrimitive.Indicator
           className={classNames(
             "after:bg-default dark:after:bg-inverted relative flex h-full w-full items-center justify-center rounded-full bg-black after:h-[6px] after:w-[6px] after:rounded-full after:content-['']",
-            props.disabled ? "after:bg-muted" : "bg-black"
+            props.disabled ? "after:bg-cal-muted" : "bg-black"
           )}
         />
       </RadioGroupPrimitive.Item>

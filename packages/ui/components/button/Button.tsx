@@ -79,7 +79,7 @@ export const buttonClasses = cva(
           "border",
           "border-default",
           // Hover state
-          "enabled:hover:bg-muted",
+          "enabled:hover:bg-cal-muted",
           "enabled:hover:text-emphasis",
           // Disabled
           "disabled:opacity-30",

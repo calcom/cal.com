@@ -351,7 +351,7 @@ const BookerComponent = ({
           data-testid="booker-container"
           className={classNames(
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
-            `bg-default dark:bg-muted grid max-w-full items-start dark:scheme-dark sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
+            `bg-default dark:bg-cal-muted grid max-w-full items-start dark:scheme-dark sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
             // We remove border only when the content covers entire viewport. Because in embed, it can almost never be the case that it covers entire viewport, we show the border there
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
@@ -366,7 +366,7 @@ const BookerComponent = ({
                 className={classNames(
                   layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                    "bg-default dark:bg-muted sticky top-0 z-10"
+                    "bg-default dark:bg-cal-muted sticky top-0 z-10"
                 )}>
                 {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
                   <></>

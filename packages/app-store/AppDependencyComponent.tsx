@@ -20,7 +20,7 @@ export const AppDependencyComponent = ({
     <div
       className={classNames(
         "rounded-md px-4 py-3",
-        dependencyData && dependencyData.some((dependency) => !dependency.installed) ? "bg-info" : "bg-subtle"
+        dependencyData && dependencyData.some((dependency) => !dependency.installed) ? "bg-cal-info" : "bg-subtle"
       )}>
       {dependencyData &&
         dependencyData.map((dependency) => {

@@ -88,7 +88,7 @@ export function IncomingCallsTab({
     return (
       <div className="border-subtle rounded-xl border p-8">
         <div className="flex flex-col items-center space-y-6 text-center">
-          <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
+          <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
             <Icon name="info" className="text-subtle h-8 w-8" />
           </div>
           <div className="space-y-2">
@@ -104,7 +104,7 @@ export function IncomingCallsTab({
     return (
       <div className="border-subtle rounded-xl border p-8">
         <div className="flex flex-col items-center space-y-6 text-center">
-          <div className="bg-muted flex h-16 w-16 items-center justify-center rounded-lg">
+          <div className="bg-cal-muted flex h-16 w-16 items-center justify-center rounded-lg">
             <Icon name="phone-incoming" className="text-subtle h-8 w-8" />
           </div>
           <div className="space-y-2">

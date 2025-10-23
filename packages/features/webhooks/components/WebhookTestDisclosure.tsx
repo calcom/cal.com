@@ -67,7 +67,7 @@ export default function WebhookTestDisclosure() {
             )}
           </div>
         </div>
-        <div className="bg-muted border-subtle rounded-b-lg border border-t-0 p-4 font-mono text-[13px] leading-4">
+        <div className="bg-cal-muted border-subtle rounded-b-lg border border-t-0 p-4 font-mono text-[13px] leading-4">
           {!mutation.data && <p>{t("no_data_yet")}</p>}
           {mutation.status === "success" && (
             <div className="overflow-x-auto">{JSON.stringify(mutation.data, null, 4)}</div>

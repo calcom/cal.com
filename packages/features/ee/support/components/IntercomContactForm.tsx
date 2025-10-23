@@ -126,7 +126,7 @@ export const IntercomContactForm = () => {
           ref={contentRef}
           style={{ maxWidth: "450px", maxHeight: "650px" }}
           className={classNames(
-            "!bg-muted no-scrollbar mb-2 w-screen overflow-hidden overflow-y-scroll px-6 py-4 md:w-[450px]",
+            "!bg-cal-muted no-scrollbar mb-2 w-screen overflow-hidden overflow-y-scroll px-6 py-4 md:w-[450px]",
             showTrigger ? "mr-8" : "mr-0"
           )}>
           <div className="flex w-full justify-between">
