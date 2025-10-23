@@ -15,7 +15,7 @@ services:
     image: postgres
     restart: always
     volumes:
-      - database-data:/var/lib/postgresql/data/
+      - database-data:/var/lib/postgresql
     environment:
       - POSTGRES_USER=unicorn_user
       - POSTGRES_PASSWORD=magical_password
