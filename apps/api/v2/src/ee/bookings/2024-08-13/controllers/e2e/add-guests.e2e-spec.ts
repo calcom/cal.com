@@ -105,7 +105,6 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
   async function setupTestData() {
     const oAuthClient = await createOAuthClient(organization.id, true);
 
-    // Create organizer user (booking host)
     const organizerUser = await userRepositoryFixture.create({
       email: `user-emails-2024-08-13-organizer-${randomString()}@api.com`,
       platformOAuthClients: {
@@ -113,7 +112,6 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       },
     });
 
-    // Create unrelated user (for permission tests)
     const unrelatedUserData = await userRepositoryFixture.create({
       email: `user-emails-2024-08-13-unrelated-${randomString()}@api.com`,
       platformOAuthClients: {
@@ -121,7 +119,6 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       },
     });
 
-    // Create attendee user (will be added as guest)
     const attendeeUser = await userRepositoryFixture.create({
       email: `user-emails-2024-08-13-attendee-${randomString()}@api.com`,
       platformOAuthClients: {
@@ -421,8 +418,8 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
           accessToken: organizerTokens.accessToken,
           refreshToken: organizerTokens.refreshToken,
         },
-        unrelatedUser: testSetup.unrelatedUser, // Reuse from main setup
-        attendee: testSetup.attendee, // Reuse from main setup
+        unrelatedUser: testSetup.unrelatedUser,
+        attendee: testSetup.attendee,
         eventTypeId: eventType.id,
         bookingUid: createBookingResponseBody.data.uid,
       };
@@ -446,26 +443,11 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
 
       const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
 
-      // Verify guests were added successfully
-      expect(addGuestsResponseBody.status).toEqual(SUCCESS_STATUS);
-
-      if (!responseDataIsBooking(addGuestsResponseBody.data)) {
-        throw new Error(
-          "Invalid response data - expected booking but received array of possibly recurring bookings"
-        );
-      }
-
-      const bookingData = addGuestsResponseBody.data;
-
-      // Verify guests are in the response
-      expect(bookingData.guests).toBeDefined();
-      expect(bookingData.guests).toContain("no-email.guest1@example.com");
-      expect(bookingData.guests).toContain("no-email.guest2@example.com");
-
-      // Verify emails were NOT sent
-      expect(attendeeAddGuestsEmailSpy).not.toHaveBeenCalled();
-      expect(organizerAddGuestsEmailSpy).not.toHaveBeenCalled();
-      expect(attendeeScheduledEmailSpy).not.toHaveBeenCalled();
+      verifyAddGuestsResponse(
+        addGuestsResponseBody,
+        ["no-email.guest1@example.com", "no-email.guest2@example.com"],
+        false
+      );
     });
 
     afterAll(async () => {
@@ -527,6 +509,10 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       expect(attendeeAddGuestsEmailSpy).toHaveBeenCalled();
       expect(organizerAddGuestsEmailSpy).toHaveBeenCalled();
       expect(attendeeScheduledEmailSpy).toHaveBeenCalled();
+    } else {
+      expect(attendeeAddGuestsEmailSpy).not.toHaveBeenCalled();
+      expect(organizerAddGuestsEmailSpy).not.toHaveBeenCalled();
+      expect(attendeeScheduledEmailSpy).not.toHaveBeenCalled();
     }
 
     return bookingData;
