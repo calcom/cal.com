@@ -26,6 +26,7 @@ type CalVideoSettings = {
   enableAutomaticRecordingForOrganizer: boolean;
   disableTranscriptionForGuests: boolean;
   disableTranscriptionForOrganizer: boolean;
+  requireEmailForGuests: boolean;
 };
 
 const shouldEnableRecordButton = ({
@@ -221,9 +222,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // set meetingPassword for guests
   if (!isOrganizer) {
+    const guestSessionId = Array.isArray(context.query.guestId)
+      ? context.query.guestId[0]
+      : context.query.guestId;
+
+    const userIdForToken = sessionUserId || guestSessionId;
+
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
       meetingToken: videoReferencePassword,
-      userId: sessionUserId,
+      userId: userIdForToken,
     });
 
     bookingObj.references.forEach((bookRef) => {
@@ -275,6 +282,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     isOrganizer,
   });
 
+  console.log(" bookingObj.eventType?.calVideoSettings", bookingObj.eventType?.calVideoSettings);
+
   return {
     props: {
       meetingUrl: videoReference.meetingUrl ?? "",
@@ -303,6 +312,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         ? undefined
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
       overrideName: Array.isArray(context.query.name) ? context.query.name[0] : context.query.name,
+      requireEmailForGuests: bookingObj.eventType?.calVideoSettings?.requireEmailForGuests ?? false,
     },
   };
 }

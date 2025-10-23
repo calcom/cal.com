@@ -109,16 +109,34 @@ export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: T
     .unix();
 }
 
-export function checkIfUserJoinedTheCall(userId: number, allParticipants: Participants): boolean {
+export function checkIfUserOrGuestJoinedTheCall(
+  userId: number | string,
+  allParticipants: Participants
+): boolean {
   return allParticipants.some(
-    (participant) => participant.user_id && parseInt(participant.user_id) === userId
+    (participant) => participant.user_id && participant.user_id === String(userId)
   );
 }
 
-const getUserById = async (userId: number) => {
-  return prisma.user.findUnique({
-    where: { id: userId },
-  });
+const getUserOrGuestById = async (id: string) => {
+  // Try User table (numeric IDs)
+  if (!isNaN(Number(id))) {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      select: { email: true },
+    });
+    if (user) return user;
+  }
+
+  // Try VideoCallGuest table (UUID)
+  const guestSession = await prisma.videoCallGuest
+    .findUnique({
+      where: { id },
+      select: { email: true },
+    })
+    .catch(() => null);
+
+  return guestSession;
 };
 
 type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
@@ -130,8 +148,8 @@ export async function getParticipantsWithEmail(
     allParticipants.map(async (participant) => {
       if (!participant.user_id) return participant;
 
-      const user = await getUserById(parseInt(participant.user_id));
-      return { ...participant, email: user?.email };
+      const userOrGuest = await getUserOrGuestById(participant.user_id);
+      return { ...participant, email: userOrGuest?.email };
     })
   );
 
@@ -205,7 +223,7 @@ export const prepareNoShowTrigger = async (
   const hostsThatDidntJoinTheCall: Host[] = [];
 
   for (const host of hosts) {
-    if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
+    if (checkIfUserOrGuestJoinedTheCall(host.id, allParticipants)) {
       hostsThatJoinedTheCall.push(host);
     } else {
       hostsThatDidntJoinTheCall.push(host);

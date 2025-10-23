@@ -117,6 +117,7 @@ const Locations: React.FC<LocationsProps> = ({
   });
 
   const formMethods = useFormContext<FormValues>();
+  console.log("formMethods", formMethods.watch());
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
@@ -159,7 +160,7 @@ const Locations: React.FC<LocationsProps> = ({
   );
 
   useEffect(() => {
-    if (!!prefillLocation) {
+    if (prefillLocation) {
       const newLocationType = prefillLocation.value;
 
       const canAppendLocation = !validLocations.find((location) => location.type === newLocationType);

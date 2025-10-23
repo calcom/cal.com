@@ -582,6 +582,7 @@ export class BookingRepository {
                 disableTranscriptionForGuests: true,
                 disableTranscriptionForOrganizer: true,
                 redirectUrlOnExit: true,
+                requireEmailForGuests: true,
               },
             },
           },

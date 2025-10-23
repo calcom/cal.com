@@ -42,6 +42,7 @@ export default function JoinCall(props: PageProps) {
     enableAutomaticRecordingForOrganizer,
     showTranscriptionButton,
     rediectAttendeeToOnExit,
+    requireEmailForGuests,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
   const [userNameForCall, setUserNameForCall] = useState<string | undefined>(
@@ -213,6 +214,7 @@ export default function JoinCall(props: PageProps) {
           overrideName={overrideName}
           onJoinAsGuest={handleJoinAsGuest}
           onUserNameConfirmed={handleUserNameConfirmed}
+          requireEmailForGuests={requireEmailForGuests}
         />
       )}
 
@@ -297,40 +299,89 @@ interface LogInOverlayProps {
   overrideName?: string;
   onJoinAsGuest: (guestName: string) => void;
   onUserNameConfirmed?: () => void;
+  requireEmailForGuests?: boolean;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
-  const { bookingUid, isLoggedIn, loggedInUserName, overrideName, onJoinAsGuest, onUserNameConfirmed } =
-    props;
+  const {
+    bookingUid,
+    isLoggedIn,
+    loggedInUserName,
+    overrideName,
+    onJoinAsGuest,
+    onUserNameConfirmed,
+    requireEmailForGuests = false,
+  } = props;
 
   const [isOpen, setIsOpen] = useState(!isLoggedIn);
   const [userName, setUserName] = useState(overrideName ?? loggedInUserName ?? "");
+  const [userEmail, setUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleContinueAsGuest = useCallback(async () => {
     const trimmedName = userName.trim();
+    const trimmedEmail = userEmail.trim();
+
     if (!trimmedName) {
+      setError(t("please_enter_name"));
       return;
+    }
+
+    if (requireEmailForGuests) {
+      if (!trimmedEmail) {
+        setError(t("please_enter_name_and_email"));
+        return;
+      }
+
+      // Basic email validation
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+        setError(t("invalid_email_address"));
+        return;
+      }
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      onJoinAsGuest(trimmedName);
-      onUserNameConfirmed?.();
-      setIsOpen(false);
+      // Only create guest session if email is required and provided
+      if (requireEmailForGuests && trimmedEmail) {
+        const response = await fetch("/api/video/guest-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bookingUid,
+            email: trimmedEmail,
+            name: trimmedName,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to create guest session");
+        }
+
+        const { guestSessionId } = await response.json();
+
+        // Reload page with guestId to get new meeting token
+        const url = new URL(window.location.href);
+        url.searchParams.set("guestId", guestSessionId);
+        url.searchParams.set("name", trimmedName);
+        window.location.href = url.toString();
+      } else {
+        // If email not required, just join as guest with name
+        onJoinAsGuest(trimmedName);
+        setIsOpen(false);
+        onUserNameConfirmed?.();
+      }
     } catch (error) {
       console.error("Error joining as guest:", error);
       const errorMessage = error instanceof Error ? error.message : t("failed_to_join_call");
-
       setError(errorMessage);
-    } finally {
       setIsLoading(false);
     }
-  }, [userName, onJoinAsGuest, onUserNameConfirmed, t]);
+  }, [userName, userEmail, bookingUid, requireEmailForGuests, onJoinAsGuest, onUserNameConfirmed, t]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -351,34 +402,77 @@ export function LogInOverlay(props: LogInOverlayProps) {
     [error]
   );
 
+  const handleEmailChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUserEmail(e.target.value);
+      if (error) {
+        setError(null);
+      }
+    },
+    [error]
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_appear_on_the_call")}
-        className="bg-white text-black dark:bg-black dark:text-white sm:max-w-[480px]">
-        <div className="pb-4">
+        className="bg-black/80 p-6 sm:max-w-lg">
+        <div className="mt-2 pb-4">
           <div className="space-y-4">
             <div>
               <div className="font-semibold">{t("join_as_guest")}</div>
               <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
             </div>
 
-            <div className="flex gap-4">
-              <Input
-                type="text"
-                placeholder={t("your_name")}
-                className="w-full flex-1"
-                value={userName}
-                onChange={handleUserNameChange}
-                onKeyDown={handleKeyDown}
-                disabled={isLoading}
-                autoFocus
-              />
-              <Button color="secondary" onClick={handleContinueAsGuest} loading={isLoading}>
-                {t("continue")}
-              </Button>
-            </div>
+            {requireEmailForGuests ? (
+              <div className="flex flex-col gap-4">
+                <Input
+                  type="text"
+                  placeholder={t("your_name")}
+                  className="w-full flex-1"
+                  value={userName}
+                  onChange={handleUserNameChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  autoFocus
+                />
+
+                <Input
+                  type="email"
+                  placeholder={t("email_address")}
+                  className="w-full flex-1"
+                  value={userEmail}
+                  onChange={handleEmailChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                />
+
+                <Button
+                  color="secondary"
+                  className="w-fit self-end"
+                  onClick={handleContinueAsGuest}
+                  loading={isLoading}>
+                  {t("continue")}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-4">
+                <Input
+                  type="text"
+                  placeholder={t("your_name")}
+                  className="w-full flex-1"
+                  value={userName}
+                  onChange={handleUserNameChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  autoFocus
+                />
+                <Button color="secondary" onClick={handleContinueAsGuest} loading={isLoading}>
+                  {t("continue")}
+                </Button>
+              </div>
+            )}
           </div>
 
           {error && (
@@ -392,7 +486,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
           )}
 
           {/* Divider */}
-          <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
+          <hr className="my-6 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
 
           <div className="mt-5 space-y-4">
             <div>
@@ -487,7 +581,6 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
               <div
                 className="prose-sm prose prose-invert"
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
               />
             </>

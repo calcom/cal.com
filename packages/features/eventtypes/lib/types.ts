@@ -301,4 +301,5 @@ export interface CalVideoSettings {
   disableTranscriptionForGuests?: boolean;
   disableTranscriptionForOrganizer?: boolean;
   redirectUrlOnExit?: string;
+  requireEmailForGuests?: boolean;
 }
