@@ -172,7 +172,7 @@ jobs:
         with:
           payload: |
             {
-              "text": ":white_check_mark: Workflow *${{ github.workflow }}* succeeded in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": ":large_green_circle: Workflow *${{ github.workflow }}* succeeded in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
@@ -183,7 +183,7 @@ jobs:
         with:
           payload: |
             {
-              "text": ":x: Workflow *${{ github.workflow }}* failed in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              "text": ":red_circle: Workflow *${{ github.workflow }}* failed in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
