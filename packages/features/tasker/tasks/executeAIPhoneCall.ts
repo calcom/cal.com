@@ -78,7 +78,7 @@ function getVariablesFromFormResponse({
     ATTENDEE_NAME: submittedName || "",
     ATTENDEE_EMAIL: submittedEmail || "",
     NUMBER_TO_CALL: numberToCall,
-    eventTypeId: eventTypeId.toString(),
+    eventTypeId,
   };
 }
 
