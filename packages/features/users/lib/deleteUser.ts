@@ -5,10 +5,10 @@ import {
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 
-export async function deleteUser(user: Pick<User, "id" | "email" | "metadata">) {
+async function deleteStripeConnectAccounts(userId: number): Promise<void> {
   const stripeCredentials = await prisma.credential.findMany({
     where: {
-      userId: user.id,
+      userId,
       type: "stripe_payment",
     },
     select: {
@@ -26,6 +26,10 @@ export async function deleteUser(user: Pick<User, "id" | "email" | "metadata">) 
       console.warn("Failed to disconnect Stripe Connect account:", error);
     }
   }
+}
+
+export async function deleteUser(user: Pick<User, "id" | "email" | "metadata">) {
+  await deleteStripeConnectAccounts(user.id);
 
   // If 2FA is disabled or totpCode is valid then delete the user from stripe and database
   await deleteStripeCustomer(user).catch(console.warn);
