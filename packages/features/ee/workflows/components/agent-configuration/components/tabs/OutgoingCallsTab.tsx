@@ -32,7 +32,6 @@ export function OutgoingCallsTab({
           name="eventTypeId"
           disabled={readOnly}
           eventTypeOptions={eventTypeOptions}
-          callType="outgoing"
         />
       )}
 
