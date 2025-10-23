@@ -6,9 +6,11 @@ import { getDefaultScheduleId } from "./util";
 
 type ListOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "defaultScheduleId">;
   };
 };
+
+export type GetAvailabilityListHandlerReturn = Awaited<ReturnType<typeof listHandler>>;
 
 export const listHandler = async ({ ctx }: ListOptions) => {
   const { user } = ctx;
@@ -48,6 +50,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
         },
       });
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     defaultScheduleId = null;
   }

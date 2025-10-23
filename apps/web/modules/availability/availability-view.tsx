@@ -148,6 +148,7 @@ export function AvailabilityList({ availabilities }: AvailabilityListProps) {
             <ul className="divide-subtle divide-y" data-testid="schedules" ref={animationParentRef}>
               {availabilities.schedules.map((schedule) => (
                 <ScheduleListItem
+                  redirectUrl={`/availability/${schedule.id}`}
                   displayOptions={{
                     hour12: user?.timeFormat ? user.timeFormat === 12 : undefined,
                     timeZone: schedule.timeZone || user?.timeZone,

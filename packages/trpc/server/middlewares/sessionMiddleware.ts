@@ -1,11 +1,11 @@
 import { setUser as SentrySetUser } from "@sentry/nextjs";
 import type { Session } from "next-auth";
 
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -56,7 +56,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   const locale = user?.locale ?? ctx.locale;
   const { members = [], ..._organization } = user.profile?.organization || {};
-  const isOrgAdmin = members.some((member: any) => ["OWNER", "ADMIN"].includes(member.role));
+  const isOrgAdmin = members.some((member: { role: string }) => ["OWNER", "ADMIN"].includes(member.role));
 
   if (isOrgAdmin) {
     logger.debug("User is an org admin", safeStringify({ userId: user.id }));
@@ -73,7 +73,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
 
   return {
     ...user,
-    avatar: `${WEBAPP_URL}/${user.username}/avatar.png?${organization.id}` && `orgId=${organization.id}`,
+    avatar: `${WEBAPP_URL}/${user.username}/avatar.png${organization.id ? `?orgId=${organization.id}` : ""}`,
     // TODO: OrgNewSchema - later -  We could consolidate the props in user.profile?.organization as organization is a profile thing now.
     organization,
     organizationId: organization.id,
@@ -82,6 +82,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     username,
     locale,
     defaultBookerLayouts: userMetaData?.defaultBookerLayouts || null,
+    requiresBookerEmailVerification: user.requiresBookerEmailVerification,
   };
 }
 

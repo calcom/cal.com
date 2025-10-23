@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "5.7.10",
+  "version": "5.8.3",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -201,6 +201,7 @@
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.6",
     "ts-node": "^10.9.1",
+    "turbo": "^2.5.5",
     "typescript": "^5.9.0-beta"
   },
   "nextBundleAnalysis": {

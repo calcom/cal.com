@@ -26,6 +26,7 @@ export function ScheduleListItem({
   updateDefault,
   isDeletable,
   duplicateFunction,
+  redirectUrl,
 }: {
   schedule: RouterOutputs["viewer"]["availability"]["list"]["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
@@ -37,6 +38,7 @@ export function ScheduleListItem({
   isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
   duplicateFunction: ({ scheduleId }: { scheduleId: number }) => void;
+  redirectUrl: string;
 }) {
   const { t, i18n } = useLocale();
 
@@ -44,10 +46,7 @@ export function ScheduleListItem({
     <li key={schedule.id}>
       <div className="hover:bg-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
         <div className="group flex w-full items-center justify-between ">
-          <Link
-            href={`/availability/${schedule.id}`}
-            className="flex-grow truncate text-sm"
-            title={schedule.name}>
+          <Link href={redirectUrl} className="flex-grow truncate text-sm" title={schedule.name}>
             <div className="space-x-2 rtl:space-x-reverse">
               <span className="text-emphasis truncate font-medium">{schedule.name}</span>
               {schedule.isDefault && (
