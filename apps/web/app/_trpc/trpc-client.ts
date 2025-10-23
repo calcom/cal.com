@@ -1,8 +1,7 @@
 "use client";
 
-import superjson from "superjson";
-
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
+import { transformer } from "@calcom/trpc/utils/transformer";
 
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
 
@@ -25,10 +24,9 @@ const resolveEndpoint = (links: any) => {
       endpoint = parts[0] as keyof typeof links;
       path = parts[1];
     } else if (parts.length >= 3 && parts[2] === "heavy") {
-      endpoint = parts[1] + "/heavy" as keyof typeof links;
+      endpoint = (parts[1] + "/heavy") as keyof typeof links;
       path = parts[3];
-    }
-    else {
+    } else {
       endpoint = parts[1] as keyof typeof links;
       path = parts.splice(2, parts.length - 2).join(".");
     }
@@ -81,5 +79,5 @@ export const trpcClient = trpc.createClient({
       },
     }),
   ],
-  transformer: superjson,
+  transformer,
 });

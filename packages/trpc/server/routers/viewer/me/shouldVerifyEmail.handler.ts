@@ -1,8 +1,8 @@
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
+import type { User } from "@calcom/prisma/client";
 
 type ShouldVerifyEmailType = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<User, "id" | "email" | "emailVerified" | "identityProvider">;
   };
 };
 
