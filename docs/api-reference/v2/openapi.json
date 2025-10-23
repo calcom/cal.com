@@ -9000,7 +9000,7 @@
     },
     "/v2/bookings/{bookingUid}/guests": {
       "post": {
-        "operationId": "BookingGuestsController_2024_08_13_addAttendees",
+        "operationId": "BookingGuestsController_2024_08_13_addGuests",
         "summary": "Add guests to an existing booking",
         "description": "Add one or more guests to an existing booking.\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
@@ -21575,7 +21575,7 @@
             "type": "string",
             "description": "Action to perform",
             "example": "email_host",
-            "enum": ["email_attendee", "email_address"]
+            "enum": ["email_attendee", "email_address", "sms_attendee", "sms_number"]
           }
         },
         "required": ["id", "stepNumber", "recipient", "template", "sender", "message", "action"]
@@ -22596,7 +22596,7 @@
           },
           "steps": {
             "type": "array",
-            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address",
+            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address,sms_attendee,sms_number",
             "items": {
               "oneOf": [
                 {
@@ -22604,6 +22604,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/WorkflowEmailAttendeeStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/WorkflowPhoneAttendeeStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/WorkflowPhoneNumberStepDto"
                 }
               ]
             }
@@ -23195,7 +23201,7 @@
           },
           "steps": {
             "type": "array",
-            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address",
+            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address,sms_attendee,sms_number",
             "items": {
               "oneOf": [
                 {
@@ -23203,6 +23209,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/UpdateEmailAttendeeWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdatePhoneAttendeeWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdatePhoneNumberWorkflowStepDto"
                 }
               ]
             }

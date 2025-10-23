@@ -45,7 +45,7 @@ export class BookingGuestsController_2024_08_13 {
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
-  async addAttendees(
+  async addGuests(
     @Param("bookingUid") bookingUid: string,
     @Body() body: AddGuestsInput_2024_08_13,
     @GetUser() user: ApiAuthGuardUser

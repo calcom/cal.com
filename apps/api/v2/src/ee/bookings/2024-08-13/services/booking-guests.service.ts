@@ -8,14 +8,11 @@ import { NotFoundException } from "@nestjs/common";
 import { addGuestsHandler } from "@calcom/platform-libraries/bookings";
 import type { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
 
-import { InputBookingsService_2024_08_13 } from "./input.service";
-
 @Injectable()
 export class BookingGuestsService_2024_08_13 {
   private readonly logger = new Logger("BookingGuestsService_2024_08_13");
 
   constructor(
-    private readonly inputService: InputBookingsService_2024_08_13,
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
     private readonly bookingsService: BookingsService_2024_08_13,
     private readonly platformBookingsService: PlatformBookingsService

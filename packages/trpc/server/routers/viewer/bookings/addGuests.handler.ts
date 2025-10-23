@@ -3,6 +3,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import dayjs from "@calcom/dayjs";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -20,35 +21,23 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
+type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId"> &
+  Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
+
 type AddGuestsOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id" | "email">;
+    user: TUser;
   };
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
 };
 
-type Booking = NonNullable<Awaited<ReturnType<typeof getBooking>>>;
+type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdForAddingGuests"]>>>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
 async function getBooking(bookingId: number) {
-  const booking = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    include: {
-      attendees: true,
-      eventType: true,
-      destinationCalendar: true,
-      references: true,
-      user: {
-        include: {
-          destinationCalendar: true,
-          credentials: true,
-        },
-      },
-    },
-  });
+  const bookingRepository = new BookingRepository(prisma);
+  const booking = await bookingRepository.findByIdForAddingGuests(bookingId);
 
   if (!booking || !booking.user) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
@@ -57,16 +46,17 @@ async function getBooking(bookingId: number) {
   return booking;
 }
 
-async function validateUserPermissions(booking: Booking, userId: number, userEmail: string): Promise<void> {
-  const isOrganizer = booking.userId === userId;
-  const isAttendee = !!booking.attendees.find((attendee) => attendee.email === userEmail);
+async function validateUserPermissions(booking: Booking, user: TUser): Promise<void> {
+  const isOrganizer = booking.userId === user.id;
+  const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
   let hasBookingUpdatePermission = false;
-  if (booking.eventType?.teamId) {
+  const teamId = user.profile?.organizationId || user.organizationId;
+  if (teamId) {
     const permissionCheckService = new PermissionCheckService();
     hasBookingUpdatePermission = await permissionCheckService.checkPermission({
-      userId: userId,
-      teamId: booking.eventType.teamId,
+      userId: user.id,
+      teamId: teamId,
       permission: "booking.update",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
@@ -91,7 +81,11 @@ function validateGuestsFieldEnabled(booking: Booking): void {
   }
 }
 
-async function getOrganizerData(userId: number) {
+async function getOrganizerData(userId: number | null) {
+  if (!userId) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
+  }
+
   return await prisma.user.findUniqueOrThrow({
     where: {
       id: userId,
@@ -123,9 +117,6 @@ function getBlacklistedEmails(): string[] {
     : [];
 }
 
-/**
- * Checks which guest emails require verification
- */
 async function getEmailVerificationRequirements(guestEmails: string[]): Promise<Map<string, boolean>> {
   const userRepo = new UserRepository(prisma);
   const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
@@ -170,24 +161,14 @@ async function updateBookingWithGuests(
   booking: Booking
 ) {
   const bookingResponses = booking.responses as BookingResponses;
+  const bookingRepository = new BookingRepository(prisma);
 
-  return await prisma.booking.update({
-    where: {
-      id: bookingId,
-    },
-    include: {
-      attendees: true,
-    },
-    data: {
-      attendees: {
-        createMany: {
-          data: newAttendees,
-        },
-      },
-      responses: {
-        ...bookingResponses,
-        guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
-      },
+  return await bookingRepository.updateBookingWithGuests({
+    bookingId,
+    newAttendees,
+    updatedResponses: {
+      ...bookingResponses,
+      guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
     },
   });
 }
@@ -296,27 +277,22 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
 
   const booking = await getBooking(bookingId);
 
-  await validateUserPermissions(booking, user.id, user.email);
+  await validateUserPermissions(booking, user);
 
   validateGuestsFieldEnabled(booking);
 
-  const organizer = await getOrganizerData(booking.userId || 0);
+  const organizer = await getOrganizerData(booking.userId);
 
   const uniqueGuests = await sanitizeAndFilterGuests(guests, booking);
 
-  const newGuestsFullDetails = uniqueGuests.map((guest) => ({
+  const newGuestsDetails = uniqueGuests.map((guest) => ({
     name: "",
     email: guest,
     timeZone: organizer.timeZone,
     locale: organizer.locale,
   }));
 
-  const bookingAttendees = await updateBookingWithGuests(
-    bookingId,
-    newGuestsFullDetails,
-    uniqueGuests,
-    booking
-  );
+  const bookingAttendees = await updateBookingWithGuests(bookingId, newGuestsDetails, uniqueGuests, booking);
 
   const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
