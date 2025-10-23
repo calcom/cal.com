@@ -115,6 +115,6 @@ export async function disconnectStripeConnectAccount(stripeUserId: string): Prom
       stripe_user_id: stripeUserId,
     });
   } catch (error) {
-    console.warn(`Failed to disconnect Stripe Connect account ${stripeUserId}:`, error);
+    console.warn("Failed to disconnect Stripe Connect account:", error);
   }
 }
