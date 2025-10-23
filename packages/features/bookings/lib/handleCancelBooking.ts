@@ -430,7 +430,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       await attendeeRepository.deleteManyByBookingId(bookingToDelete.id);
     }
 
-    await bookingRepository.update({
+    const updatedBooking = await bookingRepository.updateIncludeWorkflowRemindersAndReferences({
       where: {
         uid: bookingToDelete.uid,
       },
@@ -442,14 +442,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         iCalSequence: evt.iCalSequence || 100,
       },
     });
-
-    const updatedBooking = await bookingRepository.findByUidIncludeWorkflowRemindersAndReferences({
-      bookingUid: bookingToDelete.uid,
-    });
-
-    if (!updatedBooking) {
-      throw new HttpError({ statusCode: 404, message: "Booking not found" });
-    }
 
     updatedBookings.push(updatedBooking);
 

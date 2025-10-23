@@ -1224,6 +1224,35 @@ export class BookingRepository implements IBookingRepository {
   }
 
   /**
+   * Update a booking and return it with workflow reminders and references
+   * Used during booking cancellation to update status and retrieve related data in one query
+   */
+  async updateIncludeWorkflowRemindersAndReferences({
+    where,
+    data,
+  }: {
+    where: BookingWhereUniqueInput;
+    data: BookingUpdateData;
+  }) {
+    return await this.prismaClient.booking.update({
+      where,
+      data,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        references: {
+          select: referenceSelect,
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
+        uid: true,
+      },
+    });
+  }
+
+  /**
    * Find bookings with workflow reminders for cleanup during cancellation
    * Used after bulk cancellation of recurring events
    */
