@@ -14,7 +14,7 @@ import {
 import { CUSTOM_PRESET } from "@calcom/features/data-table/lib/dateRange";
 
 import type { RowData, BookingListingStatus } from "../types";
-import { WeekCalendarView } from "./WeekCalendarView";
+import { BookingsCalendarView } from "./BookingsCalendarView";
 
 type BookingsCalendarViewProps = {
   status: BookingListingStatus;
@@ -79,7 +79,7 @@ export function BookingsCalendar({ table }: BookingsCalendarViewProps) {
           <DataTableSegment.Select />
         </div>
       </div>
-      <WeekCalendarView bookings={bookings} onWeekChange={handleWeekChange} />
+      <BookingsCalendarView bookings={bookings} onWeekChange={handleWeekChange} />
     </>
   );
 }

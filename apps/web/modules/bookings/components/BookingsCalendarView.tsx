@@ -13,12 +13,12 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import type { BookingOutput } from "../types";
 
-type WeekCalendarViewProps = {
+type BookingsCalendarViewProps = {
   bookings: BookingOutput[];
   onWeekChange?: (startDate: Date, endDate: Date) => void;
 };
 
-export function WeekCalendarView({ bookings, onWeekChange }: WeekCalendarViewProps) {
+export function BookingsCalendarView({ bookings, onWeekChange }: BookingsCalendarViewProps) {
   const { t } = useLocale();
   const { timezone } = useTimePreferences();
   const [currentWeekStart, _setCurrentWeekStart] = useState(() => dayjs().startOf("week"));
