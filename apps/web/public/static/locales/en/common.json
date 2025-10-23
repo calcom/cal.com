@@ -2817,6 +2817,7 @@
   "call_to_confirm_booking": "Call to confirm booking",
   "cal_ai_phone_call_action_description": "2 hrs before event starts",
   "cal_ai_agent_configuration": "Cal.ai Agent Configuration",
+  "select_event_type_to_schedule_calls": "Please select an event type to schedule calls",
   "choose_at_least_one_event_type_test_call": "Please choose at least one event type to make a test call.",
   "mark_as_no_show": "Mark as no-show",
   "unmark_as_no_show": "Unmark no-show",

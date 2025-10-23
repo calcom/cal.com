@@ -93,6 +93,11 @@ export function AgentConfigurationSheet({
 
   const handleAgentUpdate = async (data: AgentFormValues) => {
     if (!agentId) return;
+    const trigger = form.watch("trigger");
+    if (trigger === "FORM_SUBMITTED" && !data.eventTypeId) {
+      showToast(t("select_event_type_to_schedule_calls"), "error");
+      return;
+    }
 
     const updatePayload = {
       generalPrompt: restorePromptComplexity(data.generalPrompt),
