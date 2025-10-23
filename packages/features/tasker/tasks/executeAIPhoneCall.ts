@@ -249,7 +249,9 @@ export async function executeAIPhoneCall(payload: string) {
     // Prefer response variables if present, else fall back to booking
     let dynamicVariables: VariablesType | undefined;
     if (responses) {
-      const eventTypeId = data.routedEventTypeId || workflowReminder.workflowStep?.agent?.outboundEventTypeId;
+      const eventTypeId =
+        routedEventTypeId ??
+        (workflowStep?.trigger === "FORM_SUBMITTED" ? workflowStep.agent?.outboundEventTypeId : null);
       if (!eventTypeId) {
         log.warn(
           `Form not routed to an event type and no event type id found for workflow reminder ${data.workflowReminderId}`
