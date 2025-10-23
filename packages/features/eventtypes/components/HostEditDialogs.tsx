@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 
+import { groupHostsByGroupId, getHostsFromOtherGroups } from "@calcom/features/bookings/lib/hostGroupUtils";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type {
   FormValues,
@@ -10,7 +11,6 @@ import type {
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { groupHostsByGroupId, getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -41,7 +41,7 @@ export const PriorityDialog = (
   }
 ) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, options, onChange, customClassNames } = props;
+  const { isOpenDialog, setIsOpenDialog, option, options: _options, onChange, customClassNames } = props;
   const { getValues } = useFormContext<FormValues>();
 
   const priorityOptions = [
@@ -54,7 +54,7 @@ export const PriorityDialog = (
 
   const [newPriority, setNewPriority] = useState<{ label: string; value: number }>();
   const setPriority = () => {
-    if (!!newPriority) {
+    if (newPriority) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");
@@ -162,7 +162,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
   const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
-    if (!!newWeight) {
+    if (newWeight) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");

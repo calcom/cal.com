@@ -17,7 +17,9 @@ import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/ch
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { shouldIgnoreContactOwner } from "@calcom/features/bookings/lib/routing/utils";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { ISelectedSlotRepository } from "@calcom/features/bookings/repositories/ISelectedSlotRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
@@ -28,9 +30,9 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
+import type { ScheduleRepository } from "@calcom/features/schedules/repositories/schedule";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
-import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
@@ -48,10 +50,8 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { ISelectedSlotRepository } from "@calcom/lib/server/repository/ISelectedSlotRepository";
 import type { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
-import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";

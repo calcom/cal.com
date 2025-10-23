@@ -2,8 +2,8 @@ import { AtomsWrapper } from "@/components/atoms-wrapper";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
+import { getScheduleListItemData } from "@calcom/features/schedules/lib/transformers/getScheduleListItemData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { useAtomDuplicateSchedule } from "../../hooks/schedules/useAtomDuplicateSchedule";

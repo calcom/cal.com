@@ -5,11 +5,11 @@ import { getEventLocationType, OrganizerDefaultConferencingAppType } from "@calc
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { buildCalEventFromBooking } from "@calcom/features/bookings/lib/buildCalEventFromBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";

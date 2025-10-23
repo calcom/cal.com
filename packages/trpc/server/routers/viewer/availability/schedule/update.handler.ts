@@ -1,4 +1,4 @@
-import { updateSchedule } from "@calcom/lib/schedules/updateSchedule";
+import { updateSchedule } from "@calcom/features/schedules/lib/updateSchedule";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
