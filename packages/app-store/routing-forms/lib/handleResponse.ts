@@ -120,10 +120,12 @@ const _handleResponse = async ({
                     action: chosenRoute.action,
                   })
                 : null;
-            crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
-            crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
-            crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
-            crmRecordId = contactOwnerQuery?.recordId ?? null;
+            return {
+              crmContactOwnerEmail: contactOwnerQuery?.email ?? null,
+              crmContactOwnerRecordType: contactOwnerQuery?.recordType ?? null,
+              crmAppSlug: contactOwnerQuery?.crmAppSlug ?? null,
+              crmRecordId: contactOwnerQuery?.recordId ?? null,
+            };
           })(),
           (async () => {
             const teamMembersMatchingAttributeLogicWithResult =
@@ -150,18 +152,27 @@ const _handleResponse = async ({
               safeStringify({ teamMembersMatchingAttributeLogicWithResult })
             );
 
-            teamMemberIdsMatchingAttributeLogic =
+            const teamMemberIds =
               teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
                 ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
                     (member) => member.userId
                   )
                 : null;
 
-            timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
+            return {
+              teamMemberIdsMatchingAttributeLogic: teamMemberIds,
+              timeTaken: teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {},
+            };
           })(),
         ]);
 
-      await withReporting(getRoutedMembers, "getRoutedMembers")();
+      const [crmResult, attributeRoutingResult] = await withReporting(getRoutedMembers, "getRoutedMembers")();
+      crmContactOwnerEmail = crmResult.crmContactOwnerEmail;
+      crmContactOwnerRecordType = crmResult.crmContactOwnerRecordType;
+      crmAppSlug = crmResult.crmAppSlug;
+      crmRecordId = crmResult.crmRecordId;
+      teamMemberIdsMatchingAttributeLogic = attributeRoutingResult.teamMemberIdsMatchingAttributeLogic;
+      timeTaken = attributeRoutingResult.timeTaken;
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
