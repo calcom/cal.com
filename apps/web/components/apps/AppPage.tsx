@@ -116,7 +116,7 @@ export const AppPage = ({
   const handleAppInstall = () => {
     if (isRedirectApp(slug)) {
       // For redirect apps, open the external URL directly
-      window.open(website, "_blank");
+      if (website) window.open(website, "_blank");
       return;
     }
     setIsLoading(true);

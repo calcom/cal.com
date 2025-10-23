@@ -60,7 +60,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const handleAppInstall = () => {
     if (isRedirectApp(app.slug)) {
       // For redirect apps, open the external URL directly
-      window.open(app.url, "_blank");
+      if (app.url) window.open(app.url, "_blank");
       return;
     }
     if (isConferencing(app.categories) && !app.concurrentMeetings) {
