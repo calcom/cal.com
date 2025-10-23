@@ -2819,6 +2819,7 @@
   "cal_ai_agent_configuration": "Cal.ai Agent Configuration",
   "select_event_type_to_schedule_calls": "Please select an event type to schedule calls",
   "choose_at_least_one_event_type_test_call": "Please choose at least one event type to make a test call.",
+  "choose_event_type_in_agent_setup": "Plase choose an event type in the agent setup.",
   "mark_as_no_show": "Mark as no-show",
   "unmark_as_no_show": "Unmark no-show",
   "account_unlinked_success": "Account unlinked successfully",

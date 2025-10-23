@@ -56,7 +56,7 @@ export function TestPhoneCallDialog({
     if (!eventTypeId) {
       const trigger = form.getValues("trigger");
       if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
-        showToast("choose an event type in the agent set up", "error");
+        showToast("choose_event_type_in_agent_setup", "error");
       } else {
         showToast(t("choose_at_least_one_event_type_test_call"), "error");
       }
