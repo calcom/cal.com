@@ -37,7 +37,6 @@ import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -2112,15 +2111,13 @@ async function handler(
       }
     : undefined;
 
-  const bookingFlowConfig = {
-    isDryRun,
-  };
-
   const bookingCreatedPayload = {
     config: bookingFlowConfig,
     bookingFormData: {
       // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
-      hashedLink: hashedBookingLinkData?.hasHashedBookingLink ? hashedBookingLinkData.hashedLink ?? null : null,
+      hashedLink: hashedBookingLinkData?.hasHashedBookingLink
+        ? hashedBookingLinkData.hashedLink ?? null
+        : null,
     },
   };
 
@@ -2138,7 +2135,6 @@ async function handler(
   } else {
     await bookingEventHandler.onBookingCreated(bookingCreatedPayload);
   }
-
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2391,7 +2387,6 @@ async function handler(
     // For unexpected errors, provide a generic message
     throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
   }
-
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
   try {
