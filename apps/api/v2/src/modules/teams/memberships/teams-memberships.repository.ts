@@ -6,6 +6,10 @@ import { Injectable } from "@nestjs/common";
 
 import type { Prisma } from "@calcom/prisma/client";
 
+export interface TeamMembershipFilters {
+  emails?: string[];
+}
+
 export const MembershipUserSelect: Prisma.UserSelect = {
   username: true,
   email: true,
@@ -13,7 +17,7 @@ export const MembershipUserSelect: Prisma.UserSelect = {
   name: true,
   metadata: true,
   bio: true,
-};
+} satisfies Prisma.UserSelect;
 
 @Injectable()
 export class TeamsMembershipsRepository {
@@ -35,6 +39,30 @@ export class TeamsMembershipsRepository {
       where: {
         teamId: teamId,
       },
+      include: { user: { select: MembershipUserSelect } },
+      skip,
+      take,
+    });
+  }
+
+  async findTeamMembershipsPaginatedWithFilters(
+    teamId: number,
+    filters: TeamMembershipFilters,
+    skip: number,
+    take: number
+  ) {
+    const whereClause: Prisma.MembershipWhereInput = {
+      teamId: teamId,
+    };
+
+    if (filters.emails && filters.emails.length > 0) {
+      whereClause.user = {
+        email: { in: filters.emails },
+      };
+    }
+
+    return await this.dbRead.prisma.membership.findMany({
+      where: whereClause,
       include: { user: { select: MembershipUserSelect } },
       skip,
       take,

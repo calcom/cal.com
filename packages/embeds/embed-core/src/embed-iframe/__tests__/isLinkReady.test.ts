@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
+import { type EmbedStore } from "../lib/embedStore";
 import { fakeCurrentDocumentUrl, takeBookerToSlotsLoadingState, takeBookerToReadyState } from "./test-utils";
 
 beforeEach(() => {
@@ -13,15 +14,15 @@ afterEach(() => {
 });
 
 describe("isLinkReady", async () => {
-  let isLinkReady: typeof import("../lib/utils").isLinkReady;
-  let embedStore: typeof import("../lib/embedStore").embedStore;
+  let isLinkReady: (props: { embedStore: EmbedStore }) => boolean;
+  let embedStore: EmbedStore;
 
   beforeEach(async () => {
     ({ isLinkReady } = await import("../lib/utils"));
     ({ embedStore } = await import("../lib/embedStore"));
 
     // Reset embedStore state to ensure test isolation
-    embedStore.parentInformedAboutContentHeight = true;
+    embedStore.providedCorrectHeightToParent = true;
     embedStore.renderState = null;
     embedStore.connectVersion = 1;
   });
@@ -72,11 +73,11 @@ describe("isLinkReady", async () => {
     });
   });
 
-  describe("when parent not informed about content height", () => {
+  describe("when parent not provided correct height", () => {
     it("should return false regardless of other conditions", () => {
       fakeCurrentDocumentUrl({ params: { "cal.embed.pageType": "user.event.booking.slots" } });
       takeBookerToReadyState();
-      embedStore.parentInformedAboutContentHeight = false; // Not informed yet
+      embedStore.providedCorrectHeightToParent = false; // Not informed yet
 
       const result = isLinkReady({ embedStore });
       expect(result).toBe(false);

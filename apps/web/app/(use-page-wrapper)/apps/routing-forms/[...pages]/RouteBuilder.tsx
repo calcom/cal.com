@@ -10,6 +10,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
 
+import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
 import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
 import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
@@ -44,7 +45,6 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import type { EventTypesByViewer } from "@calcom/features/eventtypes/lib/getEventTypesByViewer";
 import { areTheySiblingEntities } from "@calcom/lib/entityPermissionUtils.shared";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -308,7 +308,7 @@ const WeightedAttributesSelector = ({
           />
         </div>
         <div className="bg-muted mt-1 rounded-xl p-2">
-          {!!attributeIdForWeights ? (
+          {attributeIdForWeights ? (
             <SelectField
               size="sm"
               containerClassName="data-testid-select-router"
@@ -1190,7 +1190,7 @@ const Routes = ({
       }) || [];
 
   // const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   // const routers: any[] = [];
   /* Disable this feature for new forms till we get it fully working with Routing Form with Attributes. This isn't much used feature */
   // const routers = availableRouters.map((r) => {
@@ -1235,7 +1235,7 @@ const Routes = ({
     });
     setRoutes((routes) => {
       // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       return [...routes, fallbackRoute!];
     });
     return null;
@@ -1243,7 +1243,7 @@ const Routes = ({
     // Ensure fallback is last
     setRoutes((routes) => {
       // Even though it's obvious that fallbackRoute is defined here but TypeScript just can't figure it out.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
       return [...routes.filter((route) => route.id !== fallbackRoute!.id), fallbackRoute!];
     });
   }

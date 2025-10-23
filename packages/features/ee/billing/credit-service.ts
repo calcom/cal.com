@@ -5,15 +5,15 @@ import {
   sendCreditBalanceLimitReachedEmails,
   sendCreditBalanceLowWarningEmails,
 } from "@calcom/emails/email-manager";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import type { CreditUsageType } from "@calcom/prisma/enums";
 import { CreditType } from "@calcom/prisma/enums";
@@ -688,5 +688,66 @@ export class CreditService {
       additionalCredits,
       totalCreditsUsedThisMonth,
     };
+  }
+
+  async moveCreditsFromTeamToOrg({ teamId, orgId }: { teamId: number; orgId: number }) {
+    return await prisma.$transaction(async (tx) => {
+      // Get team's credit balance
+      const teamCreditBalance = await CreditsRepository.findCreditBalance({ teamId }, tx);
+
+      if (!teamCreditBalance || teamCreditBalance.additionalCredits <= 0) {
+        log.info("No credits to transfer from team to org", { teamId, orgId });
+        return;
+      }
+
+      // Get or create org's credit balance
+      let orgCreditBalance = await CreditsRepository.findCreditBalance({ teamId: orgId }, tx);
+
+      if (!orgCreditBalance) {
+        orgCreditBalance = await CreditsRepository.createCreditBalance(
+          {
+            teamId: orgId,
+          },
+          tx
+        );
+      }
+
+      const creditsToTransfer = teamCreditBalance.additionalCredits;
+
+      // Transfer credits from team to org
+      await CreditsRepository.updateCreditBalance(
+        {
+          teamId,
+          data: {
+            additionalCredits: 0,
+          },
+        },
+        tx
+      );
+
+      await CreditsRepository.updateCreditBalance(
+        {
+          teamId: orgId,
+          data: {
+            additionalCredits: {
+              increment: creditsToTransfer,
+            },
+          },
+        },
+        tx
+      );
+
+      log.info("Successfully transferred credits from team to org", {
+        teamId,
+        orgId,
+        creditsTransferred: creditsToTransfer,
+      });
+
+      return {
+        creditsTransferred: creditsToTransfer,
+        teamId,
+        orgId,
+      };
+    });
   }
 }
