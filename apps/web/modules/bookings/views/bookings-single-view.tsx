@@ -578,7 +578,7 @@ export default function Success(props: PageProps) {
                         )}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? (typeof bookingInfo.title === 'string' ? bookingInfo.title : String(bookingInfo.title || '')) : eventName}
+                          {isRoundRobin ? (typeof bookingInfo.title === 'string' ? bookingInfo.title : eventName) : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
