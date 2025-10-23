@@ -79,7 +79,7 @@ describe("InsightsBookingBaseService - Timezone Parsing Fix", () => {
 
       const mockData = [
         {
-          date: new Date("2025-01-15T00:00:00.000Z"),
+          date: "2025-01-15", // SQL returns bare date string
           bookingsCount: 5,
           timeStatus: "completed",
           noShowHost: false,
@@ -110,7 +110,7 @@ describe("InsightsBookingBaseService - Timezone Parsing Fix", () => {
 
       const mockData = [
         {
-          date: new Date("2025-01-15T00:00:00.000Z"),
+          date: "2025-01-15", // SQL returns bare date string
           bookingsCount: 3,
           timeStatus: "completed",
           noShowHost: false,
@@ -143,7 +143,7 @@ describe("InsightsBookingBaseService - Timezone Parsing Fix", () => {
 
       const mockData = [
         {
-          date: new Date("2025-01-15T00:00:00.000Z"),
+          date: "2025-01-15", // SQL returns bare date string
           count: 2,
         },
       ];
@@ -171,7 +171,7 @@ describe("InsightsBookingBaseService - Timezone Parsing Fix", () => {
 
       const mockData = [
         {
-          date: new Date("2025-01-15T00:00:00.000Z"),
+          date: "2025-01-15", // SQL returns bare date string
           count: 4,
         },
       ];
@@ -201,7 +201,7 @@ describe("InsightsBookingBaseService - Timezone Parsing Fix", () => {
 
       const mockData = [
         {
-          date: new Date("2025-01-15T00:00:00.000Z"),
+          date: "2025-01-15", // SQL returns bare date string
           ratings_above_3: 8,
           total_ratings: 10,
         },
@@ -230,7 +230,7 @@ describe("InsightsBookingBaseService - Timezone Parsing Fix", () => {
 
       const mockData = [
         {
-          date: new Date("2025-01-15T00:00:00.000Z"),
+          date: "2025-01-15", // SQL returns bare date string
           ratings_above_3: 7,
           total_ratings: 10,
         },
@@ -267,14 +267,14 @@ describe("InsightsBookingBaseService - Timezone Parsing Fix", () => {
 
       const mockData = [
         {
-          date: new Date("2025-01-14T00:00:00.000Z"),
+          date: "2025-01-14", // SQL returns bare date string
           bookingsCount: 2,
           timeStatus: "completed",
           noShowHost: false,
           noShowGuests: 0,
         },
         {
-          date: new Date("2025-01-15T00:00:00.000Z"),
+          date: "2025-01-15", // SQL returns bare date string
           bookingsCount: 3,
           timeStatus: "completed",
           noShowHost: false,
@@ -313,7 +313,7 @@ describe("InsightsBookingBaseService - Timezone Parsing Fix", () => {
 
       const mockData = [
         {
-          date: new Date("2025-01-15T00:00:00.000Z"),
+          date: "2025-01-15", // SQL returns bare date string
           count: 3,
         },
       ];
