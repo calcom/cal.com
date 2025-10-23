@@ -129,4 +129,100 @@ export class BookingEventHandlerService {
       this.log.error("Error while creating host no-show audit", safeStringify(error));
     }
   }
+
+  async onBookingRejected(bookingId: string, userId?: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onBookingRejected(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating booking rejected audit", safeStringify(error));
+    }
+  }
+
+  async onBookingPending(bookingId: string, userId?: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onBookingPending(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating booking pending audit", safeStringify(error));
+    }
+  }
+
+  async onBookingAwaitingHost(bookingId: string, userId?: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onBookingAwaitingHost(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating booking awaiting host audit", safeStringify(error));
+    }
+  }
+
+  async onAttendeeRemoved(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onAttendeeRemoved(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating attendee removed audit", safeStringify(error));
+    }
+  }
+
+  async onCancellationReasonUpdated(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onCancellationReasonUpdated(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating cancellation reason updated audit", safeStringify(error));
+    }
+  }
+
+  async onRejectionReasonUpdated(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onRejectionReasonUpdated(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating rejection reason updated audit", safeStringify(error));
+    }
+  }
+
+  async onAssignmentReasonUpdated(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onAssignmentReasonUpdated(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating assignment reason updated audit", safeStringify(error));
+    }
+  }
+
+  async onReassignmentReasonUpdated(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onReassignmentReasonUpdated(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating reassignment reason updated audit", safeStringify(error));
+    }
+  }
+
+  async onLocationChanged(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onLocationChanged(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating location changed audit", safeStringify(error));
+    }
+  }
+
+  async onMeetingUrlUpdated(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onMeetingUrlUpdated(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating meeting URL updated audit", safeStringify(error));
+    }
+  }
+
+  async onAttendeeNoShowUpdated(bookingId: string, userId: number, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onAttendeeNoShowUpdated(bookingId, userId, data);
+    } catch (error) {
+      this.log.error("Error while creating attendee no-show audit", safeStringify(error));
+    }
+  }
+
+  async onSystemAction(bookingId: string, data?: Partial<BookingAuditData>) {
+    try {
+      await this.bookingAuditService.onSystemAction(bookingId, data);
+    } catch (error) {
+      this.log.error("Error while creating system action audit", safeStringify(error));
+    }
+  }
 }
