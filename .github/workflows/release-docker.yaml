@@ -73,6 +73,10 @@ jobs:
         run: |
           docker compose up -d database
 
+      - name: Check database container status
+        run: |
+          docker compose ps database
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
