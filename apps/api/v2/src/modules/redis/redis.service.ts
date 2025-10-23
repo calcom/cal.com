@@ -61,7 +61,7 @@ export class RedisService implements OnModuleDestroy {
 
     try {
       return JSON.parse(data) as TData;
-    } catch (e) {
+    } catch {
       return data as TData;
     }
   }
@@ -134,6 +134,18 @@ export class RedisService implements OnModuleDestroy {
       return this.redis.lpush(key, ...stringifiedElements);
     } catch (err) {
       if (err instanceof Error) this.logger.error(`IoRedis lpush failed: ${err.message}`);
+      return 0;
+    }
+  }
+
+  async incr(key: string): Promise<number> {
+    if (!this.isReady) {
+      return 0;
+    }
+    try {
+      return this.redis.incr(key);
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis incr failed: ${err.message}`);
       return 0;
     }
   }

@@ -1,3 +1,4 @@
+import { RolesPermissionsCacheService } from "@/modules/roles/permissions/services/roles-permissions-cache.service";
 import { RolesPermissionsOutputService } from "@/modules/roles/permissions/services/roles-permissions-output.service";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
@@ -8,7 +9,8 @@ import { RoleService, isValidPermissionString } from "@calcom/platform-libraries
 export class RolesPermissionsService {
   constructor(
     private readonly roleService: RoleService,
-    private readonly rolesPermissionsOutputService: RolesPermissionsOutputService
+    private readonly rolesPermissionsOutputService: RolesPermissionsOutputService,
+    private readonly rolesPermissionsCacheService: RolesPermissionsCacheService
   ) {}
 
   async getRolePermissions(teamId: number, roleId: string) {
@@ -42,6 +44,9 @@ export class RolesPermissionsService {
 
     try {
       const updatedRole = await this.roleService.update(updateData);
+
+      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+
       return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error && error.message.includes("Invalid permissions provided")) {
@@ -73,6 +78,9 @@ export class RolesPermissionsService {
 
     try {
       const updatedRole = await this.roleService.update(updateData);
+
+      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+
       return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error) {
@@ -114,6 +122,9 @@ export class RolesPermissionsService {
 
     try {
       const updatedRole = await this.roleService.update(updateData);
+
+      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+
       return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error) {
@@ -142,6 +153,9 @@ export class RolesPermissionsService {
 
     try {
       const updatedRole = await this.roleService.update(updateData);
+
+      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+
       return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
       if (error instanceof Error) {

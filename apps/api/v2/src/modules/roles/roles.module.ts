@@ -8,6 +8,7 @@ import { Module } from "@nestjs/common";
 import { RoleService } from "@calcom/platform-libraries/pbac";
 
 import { TeamRolesOutputService } from "../organizations/teams/roles/services/team-roles-output.service";
+import { RolesPermissionsCacheService } from "./permissions/services/roles-permissions-cache.service";
 import { RolesPermissionsOutputService } from "./permissions/services/roles-permissions-output.service";
 import { RolesPermissionsService } from "./permissions/services/roles-permissions.service";
 import { RolesService } from "./services/roles.service";
@@ -24,6 +25,7 @@ import { RolesService } from "./services/roles.service";
     OrganizationsRolesOutputService,
     RolesPermissionsService,
     RolesPermissionsOutputService,
+    RolesPermissionsCacheService,
   ],
   exports: [
     RolesService,
@@ -31,6 +33,7 @@ import { RolesService } from "./services/roles.service";
     OrganizationsRolesOutputService,
     RolesPermissionsService,
     RolesPermissionsOutputService,
+    RolesPermissionsCacheService,
   ],
 })
 export class RolesModule {}

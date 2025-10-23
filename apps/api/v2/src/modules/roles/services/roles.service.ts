@@ -1,5 +1,6 @@
 import { CreateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/create-team-role.input";
 import { UpdateTeamRoleInput } from "@/modules/organizations/teams/roles/inputs/update-team-role.input";
+import { RolesPermissionsCacheService } from "@/modules/roles/permissions/services/roles-permissions-cache.service";
 import { BadRequestException, Injectable, NotFoundException, Logger } from "@nestjs/common";
 
 import { RoleService } from "@calcom/platform-libraries/pbac";
@@ -8,7 +9,10 @@ import type { CreateRoleData, UpdateRolePermissionsData } from "@calcom/platform
 @Injectable()
 export class RolesService {
   private readonly logger = new Logger(RolesService.name);
-  constructor(private readonly rolesService: RoleService) {}
+  constructor(
+    private readonly rolesService: RoleService,
+    private readonly rolesPermissionsCacheService: RolesPermissionsCacheService
+  ) {}
 
   async createRole(teamId: number, data: CreateTeamRoleInput) {
     const createRoleData: CreateRoleData = {
@@ -21,7 +25,11 @@ export class RolesService {
     };
 
     try {
-      return await this.rolesService.createRole(createRoleData);
+      const role = await this.rolesService.createRole(createRoleData);
+
+      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+
+      return role;
     } catch (error) {
       this.logger.error(
         `RolesService - createRole failed (teamId=${teamId}, roleName=${data.name}): ${
@@ -76,7 +84,13 @@ export class RolesService {
     };
 
     try {
-      return await this.rolesService.update(updateData);
+      const role = await this.rolesService.update(updateData);
+
+      if (data.permissions) {
+        await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+      }
+
+      return role;
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("Role not found")) {
@@ -109,6 +123,9 @@ export class RolesService {
 
     try {
       await this.rolesService.deleteRole(roleId);
+
+      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+
       return role;
     } catch (error) {
       if (error instanceof Error) {
