@@ -5,6 +5,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
@@ -98,6 +99,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   });
 
   const bookingResponses = booking.responses as BookingResponses;
+  const oldGuestCount = booking.attendees.length;
 
   const bookingAttendees = await prisma.booking.update({
     where: {
@@ -118,6 +120,18 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       },
     },
   });
+
+  try {
+    const bookingAuditService = BookingAuditService.create();
+    await bookingAuditService.onAttendeeAdded(String(bookingId), user.id, {
+      changes: [{ field: "attendees", oldValue: oldGuestCount, newValue: bookingAttendees.attendees.length }],
+      booking: {
+        addedGuests: uniqueGuests,
+      },
+    });
+  } catch (error) {
+    console.log("Failed to create booking audit log for adding guests", error);
+  }
 
   const attendeesListPromises = bookingAttendees.attendees.map(async (attendee) => {
     return {
@@ -183,7 +197,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   try {
     await sendAddGuestsEmails(evt, guests);
-  } catch (err) {
+  } catch {
     console.log("Error sending AddGuestsEmails");
   }
 

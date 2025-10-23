@@ -9,6 +9,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
@@ -44,7 +45,7 @@ const buildResultPayload = async (
   };
 };
 
-const logFailedResults = (results: PromiseSettledResult<any>[]) => {
+const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
   if (failed.length < 1) return;
   const failedMessage = failed.map((r) => r.reason);
@@ -249,7 +250,7 @@ const handleMarkNoShow = async ({
               : booking.user?.destinationCalendar
               ? [booking.user?.destinationCalendar]
               : [];
-            const team = !!booking.eventType?.team
+            const team = booking.eventType?.team
               ? {
                   name: booking.eventType.team.name,
                   id: booking.eventType.team.id,
@@ -313,6 +314,11 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
+      const bookingToUpdate = await prisma.booking.findUnique({
+        where: { uid: bookingUid },
+        select: { id: true, noShowHost: true },
+      });
+
       await prisma.booking.update({
         where: {
           uid: bookingUid,
@@ -321,6 +327,23 @@ const handleMarkNoShow = async ({
           noShowHost: true,
         },
       });
+
+      if (userId && bookingToUpdate) {
+        try {
+          const bookingAuditService = BookingAuditService.create();
+          await bookingAuditService.onHostNoShowUpdated(String(bookingToUpdate.id), userId, {
+            changes: [
+              {
+                field: "noShowHost",
+                oldValue: bookingToUpdate.noShowHost,
+                newValue: true,
+              },
+            ],
+          });
+        } catch (error) {
+          logger.error("Failed to create booking audit log for host no-show", error);
+        }
+      }
 
       responsePayload.setNoShowHost(true);
       responsePayload.setMessage(t("booking_no_show_updated"));

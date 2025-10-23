@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
@@ -9,6 +9,7 @@ import {
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -19,7 +20,6 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import EventManager from "@calcom/features/bookings/lib/EventManager";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
@@ -30,6 +30,7 @@ import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKey
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -247,6 +248,10 @@ export const roundRobinReassignment = async ({
 
     newBookingTitle = getEventName(eventNameObject);
 
+    const oldUserId = booking.userId;
+    const oldEmail = booking.userPrimaryEmail;
+    const oldTitle = booking.title;
+
     booking = await prisma.booking.update({
       where: {
         id: bookingId,
@@ -264,6 +269,22 @@ export const roundRobinReassignment = async ({
       },
       select: bookingSelect,
     });
+
+    try {
+      const bookingAuditService = BookingAuditService.create();
+      await bookingAuditService.onBookingUpdated(String(bookingId), reassignedById, {
+        changes: [
+          { field: "userId", oldValue: oldUserId, newValue: reassignedRRHost.id },
+          { field: "userPrimaryEmail", oldValue: oldEmail, newValue: reassignedRRHost.email },
+          { field: "title", oldValue: oldTitle, newValue: newBookingTitle },
+        ],
+        booking: {
+          reassignmentReason: "Round robin reassignment",
+        },
+      });
+    } catch (error) {
+      logger.error("Failed to create booking audit log for round robin reassignment", error);
+    }
   } else {
     const previousRRHostAttendee = booking.attendees.find(
       (attendee) => attendee.email === previousRRHost.email
@@ -410,7 +431,7 @@ export const roundRobinReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
   if (emailsEnabled) {

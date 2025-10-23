@@ -44,6 +44,14 @@ export const BookingAuditDataSchema = z
         details: z.record(z.unknown()).optional(),
       })
       .optional(),
+    changes: z
+      .object({
+        field: z.string(),
+        oldValue: z.unknown().optional(),
+        newValue: z.unknown().optional(),
+      })
+      .array()
+      .optional(),
   })
   .optional();
 
