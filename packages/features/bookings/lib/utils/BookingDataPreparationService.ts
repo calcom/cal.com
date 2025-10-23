@@ -120,6 +120,7 @@ type PreparedBookingData = {
     bookingUid: string | null;
   };
   spamCheckService: ReturnType<typeof getSpamCheckService>;
+  eventOrganizationId: number | null;
 };
 
 /**
@@ -178,7 +179,22 @@ export class BookingDataPreparationService {
     this.userRepository = deps.userRepository;
   }
 
-  private async enrichEventType({ eventTypeId, eventTypeSlug }: EnrichmentInput): Promise<EnrichmentOutput> {
+  /**
+   * Fetches external data required for booking preparation.
+   * This includes event type data and organization information.
+   */
+  private async fetch(context: {
+    eventTypeId: number;
+    eventTypeSlug: string;
+    rawBookingData: CreateRegularBookingData;
+    bookingDataSchemaGetter: BookingDataSchemaGetter;
+  }): Promise<{
+    eventType: EnrichedEventType;
+    bookingData: BookingData;
+    eventOrganizationId: number | null;
+  }> {
+    const { eventTypeId, eventTypeSlug, rawBookingData, bookingDataSchemaGetter } = context;
+
     const eventType = await getEventType({
       eventTypeId,
       eventTypeSlug,
@@ -192,47 +208,47 @@ export class BookingDataPreparationService {
     const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
     const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone ?? null;
 
-    return {
-      eventType: {
-        ...eventType,
-        isTeamEventType:
-          !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType),
-        timeZone: eventTimeZone,
-      },
+    const enrichedEventType: EnrichedEventType = {
+      ...eventType,
+      isTeamEventType:
+        !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType),
+      timeZone: eventTimeZone,
     };
-  }
-
-  /**
-   * Enriches the booking data by fetching event type and transforming raw data into a structured format.
-   */
-  async enrich(
-    context: {
-      rawBookingData: CreateRegularBookingData;
-      rawBookingMeta: CreateBookingMeta;
-      eventType: {
-        id: number;
-        slug: string;
-      };
-      loggedInUserId: number | null;
-    },
-    bookingDataSchemaGetter: BookingDataSchemaGetter
-  ): Promise<PreparedBookingData> {
-    const { rawBookingData, eventType: _eventType, loggedInUserId, rawBookingMeta } = context;
-    const { eventType } = await this.enrichEventType({
-      eventTypeId: _eventType.id,
-      eventTypeSlug: _eventType.slug,
-    });
 
     const bookingDataSchema = bookingDataSchemaGetter({
       view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
-      bookingFields: eventType.bookingFields,
+      bookingFields: enrichedEventType.bookingFields,
     });
 
     const bookingData = await getBookingData({
       reqBody: rawBookingData,
-      eventType,
+      eventType: enrichedEventType,
       schema: bookingDataSchema,
     });
+
+    const eventOrganizationId = await getEventOrganizationId({
+      eventType: enrichedEventType,
+    });
+
+    return {
+      eventType: enrichedEventType,
+      bookingData,
+      eventOrganizationId,
+    };
+  }
+
+  /**
+   * Transforms fetched data into the structured PreparedBookingData format.
+   * This is a pure transformation with no side effects or external data fetching.
+   */
+  private transform(context: {
+    eventType: EnrichedEventType;
+    bookingData: BookingData;
+    eventOrganizationId: number | null;
+    rawBookingMeta: CreateBookingMeta;
+    loggedInUserId: number | null;
+  }): PreparedBookingData {
+    const { eventType, bookingData, eventOrganizationId, rawBookingMeta, loggedInUserId } = context;
 
     const bookingFormData: BookingFormData = {
       booker: {
@@ -265,11 +281,6 @@ export class BookingDataPreparationService {
     const bookingEventUserOrTeamSlug = bookingData.user;
 
     const spamCheckService = getSpamCheckService();
-    const eventOrganizationId = await getEventOrganizationId({
-      eventType,
-    });
-
-    spamCheckService.startCheck({ email: bookingFormData.booker.email, organizationId: eventOrganizationId });
 
     const _shouldIgnoreContactOwner = shouldIgnoreContactOwner({
       skipContactOwner: bookingData.skipContactOwner ?? null,
@@ -341,19 +352,56 @@ export class BookingDataPreparationService {
       },
       teamOrUserSlug: bookingEventUserOrTeamSlug ?? null,
       spamCheckService,
+      eventOrganizationId,
     };
   }
 
   /**
-   * Validates the enriched booking data.
+   * Enriches the booking data by fetching event type and transforming raw data into a structured format.
+   * This method orchestrates the fetch and transform phases.
+   */
+  async enrich(
+    context: {
+      rawBookingData: CreateRegularBookingData;
+      rawBookingMeta: CreateBookingMeta;
+      eventType: {
+        id: number;
+        slug: string;
+      };
+      loggedInUserId: number | null;
+    },
+    bookingDataSchemaGetter: BookingDataSchemaGetter
+  ): Promise<PreparedBookingData> {
+    const { rawBookingData, eventType: _eventType, loggedInUserId, rawBookingMeta } = context;
+
+    const fetchedData = await this.fetch({
+      eventTypeId: _eventType.id,
+      eventTypeSlug: _eventType.slug,
+      rawBookingData,
+      bookingDataSchemaGetter,
+    });
+
+    return this.transform({
+      eventType: fetchedData.eventType,
+      bookingData: fetchedData.bookingData,
+      eventOrganizationId: fetchedData.eventOrganizationId,
+      rawBookingMeta,
+      loggedInUserId,
+    });
+  }
+
+  /**
+   * Validates the enriched booking data and initiates side effects like spam checking.
    */
   async validate(preparedData: PreparedBookingData, rawBookingData: CreateRegularBookingData): Promise<void> {
-    const { eventType, bookingFormData, loggedInUser } = preparedData;
+    const { eventType, bookingFormData, loggedInUser, spamCheckService, eventOrganizationId } = preparedData;
     const {
       booker: { email: bookerEmail, timeZone: bookerTimeZone },
       startTime,
       endTime,
     } = bookingFormData;
+
+    spamCheckService.startCheck({ email: bookerEmail, organizationId: eventOrganizationId });
 
     await checkIfBookerEmailIsBlocked({
       loggedInUserId: loggedInUser.id ?? undefined,
