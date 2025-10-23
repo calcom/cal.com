@@ -13,11 +13,11 @@ export const metadata = {
   slug: "zapier",
   title: "Zapier",
   type: "zapier_automation",
-  url: "https://cal.com/apps/zapier",
+  url: "https://zapier.com/apps/calcom/integrations",
   variant: "automation",
   email: "help@cal.com",
   dirName: "zapier",
-  isOAuth: true,
+  isOAuth: false,
 } as AppMeta;
 
 export default metadata;
