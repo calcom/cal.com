@@ -777,7 +777,7 @@ export class InsightsBookingBaseService {
     data.forEach(({ date, bookingsCount, timeStatus, noShowHost, noShowGuests }) => {
       // Find which date range this date belongs to using native Date comparison
       const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
+        const bookingDate = dayjs.tz(date, timeZone).startOf("day").toDate();
         const rangeStart = new Date(range.startDate);
         const rangeEnd = new Date(range.endDate);
         return bookingDate >= rangeStart && bookingDate <= rangeEnd;
@@ -869,7 +869,7 @@ export class InsightsBookingBaseService {
     data.forEach(({ date, count }) => {
       // Find which date range this date belongs to using native Date comparison
       const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
+        const bookingDate = dayjs.tz(date, timeZone).startOf("day").toDate();
         const rangeStart = new Date(range.startDate);
         const rangeEnd = new Date(range.endDate);
         return bookingDate >= rangeStart && bookingDate <= rangeEnd;
@@ -928,7 +928,7 @@ export class InsightsBookingBaseService {
     data.forEach(({ date, ratings_above_3, total_ratings }) => {
       // Find which date range this date belongs to using native Date comparison
       const dateRange = dateRanges.find((range) => {
-        const bookingDate = new Date(date);
+        const bookingDate = dayjs.tz(date, timeZone).startOf("day").toDate();
         const rangeStart = new Date(range.startDate);
         const rangeEnd = new Date(range.endDate);
         return bookingDate >= rangeStart && bookingDate <= rangeEnd;
