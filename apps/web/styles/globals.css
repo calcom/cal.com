@@ -135,23 +135,23 @@ select:focus {
 @layer components {
   /* slider */
   .slider {
-    /* @apply relative flex h-4 w-40 select-none items-center; */
+    @apply relative flex h-4 w-40 select-none items-center;
   }
 
   .slider > .slider-track {
-    /* @apply relative h-1 flex-grow rounded-md bg-gray-400; */
+    @apply relative h-1 flex-grow rounded-md bg-gray-400;
   }
 
   .slider .slider-range {
-    /* @apply absolute h-full rounded-full bg-gray-700; */
+    @apply absolute h-full rounded-full bg-gray-700;
   }
 
   .slider .slider-thumb {
-    /* @apply block h-3 w-3 cursor-pointer rounded-full bg-gray-700 transition-all; */
+    @apply block h-3 w-3 cursor-pointer rounded-full bg-gray-700 transition-all;
   }
 
   .slider .slider-thumb:hover {
-    /* @apply bg-gray-600; */
+    @apply bg-gray-600;
   }
 
   .slider .slider-thumb:focus {
@@ -373,16 +373,16 @@ select:focus {
 
 .react-tel-input .country-list .country:hover,
 .react-tel-input .country-list .country.highlight {
-  /* @apply !bg-emphasis; */
+  @apply !bg-emphasis;
 }
 
 .react-tel-input .flag-dropdown .selected-flag,
 .react-tel-input .flag-dropdown.open .selected-flag {
-  /* @apply !bg-default; */
+  @apply !bg-default;
 }
 
 .react-tel-input .flag-dropdown {
-  /* @apply !border-r-default left-0.5 !border-y-0 !border-l-0; */
+  @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
 }
 
 [data-radix-popper-content-wrapper] {
