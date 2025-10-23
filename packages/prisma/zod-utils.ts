@@ -630,15 +630,14 @@ export const downloadLinkSchema = z.object({
   download_link: z.string(),
 });
 
-// All properties within event type that can and will be updated if needed
-export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
+// Scalar fields only - for use with Zod schema .pick()
+export const allManagedEventTypePropsScalar = {
   title: true,
   description: true,
   interfaceLanguage: true,
   isInstantEvent: true,
   instantMeetingParameters: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
-  aiPhoneCallConfig: true,
   currency: true,
   periodDays: true,
   position: true,
@@ -648,9 +647,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   offsetStart: true,
   locations: true,
   hidden: true,
-  availability: true,
   recurringEvent: true,
-  customInputs: true,
   disableGuests: true,
   disableCancelling: true,
   disableRescheduling: true,
@@ -661,7 +658,6 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   requiresConfirmationWillBlockSlot: true,
   eventName: true,
   metadata: true,
-  children: true,
   hideCalendarNotes: true,
   hideCalendarEventDetails: true,
   minimumBookingNotice: true,
@@ -673,17 +669,13 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   seatsShowAvailabilityCount: true,
   forwardParamsSuccessRedirect: true,
   periodType: true,
-  hashedLink: true,
-  webhooks: true,
   periodStartDate: true,
   periodEndDate: true,
-  destinationCalendar: true,
   periodCountCalendarDays: true,
   bookingLimits: true,
   onlyShowFirstAvailableSlot: true,
   slotInterval: true,
   scheduleId: true,
-  workflows: true,
   bookingFields: true,
   durationLimits: true,
   maxActiveBookingsPerBooker: true,
@@ -700,6 +692,21 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   maxLeadThreshold: true,
   customReplyToEmail: true,
   bookingRequiresAuthentication: true,
+} as const;
+
+// All properties within event type that can and will be updated if needed
+// Includes both scalar fields and relational fields for use with Prisma select
+export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true } = {
+  ...allManagedEventTypePropsScalar,
+  // Relational fields (not in Zod schema, but needed for Prisma queries)
+  availability: true,
+  children: true,
+  customInputs: true,
+  hashedLink: true,
+  webhooks: true,
+  destinationCalendar: true,
+  workflows: true,
+  aiPhoneCallConfig: true,
 };
 
 // All properties that are defined as unlocked based on all managed props

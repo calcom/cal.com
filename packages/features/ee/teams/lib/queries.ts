@@ -16,6 +16,7 @@ import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import {
   EventTypeMetaDataSchema,
   allManagedEventTypeProps,
+  allManagedEventTypePropsScalar,
   unlockedManagedEventTypeProps,
   eventTypeLocations,
 } from "@calcom/prisma/zod-utils";
@@ -420,7 +421,7 @@ export function generateNewChildEventTypeDataForDB({
   includeWorkflow?: boolean;
   includeUserConnect?: boolean;
 }) {
-  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypeProps).extend({
+  const allManagedEventTypePropsZod = EventTypeSchema.pick(allManagedEventTypePropsScalar).extend({
     bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
     locations: z
       .preprocess((val: unknown) => (val === null ? undefined : val), eventTypeLocations)
