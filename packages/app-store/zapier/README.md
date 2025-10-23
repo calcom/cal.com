@@ -5,9 +5,12 @@
   </a>
 </div>
 
-# Setting up Zapier Integration
+# Zapier Integration – Developer Guide
 
-If you run it on localhost, check out the [additional information](https://github.com/CarinaWolli/cal.com/edit/feat/zapier-app/packages/app-store/zapier/README.md#localhost) below.
+Note: End users should connect Cal.com to Zapier directly via the Zapier Integrations page: https://zapier.com/apps/calcom/integrations
+The instructions below are intended for developers working on the Zapier app configuration.
+
+If you run it on localhost, check out the [additional information](https://github.com/calcom/cal.com/blob/main/packages/app-store/zapier/README.md#localhost) below.
 
 1. Create [Zapier Account](https://zapier.com/sign-up?next=https%3A%2F%2Fdeveloper.zapier.com%2F)
 2. If not redirected to developer account, go to: [Zapier Developer Account](https://developer.zapier.com)
@@ -21,15 +24,17 @@ If you run it on localhost, check out the [additional information](https://githu
 
 ## Authentication
 
-1. Go to Authentication, choose Api key and click save
-2. Click Add Fields
-   - Key: apiKey
-   - Check the box ‘is this field required?’
+1. Go to Authentication, choose **OAuth v2** and click save
+2. Configure OAuth settings:
+   - Authorization URL: `<baseUrl>`/api/auth/oauth/authorize
+   - Access Token URL: `<baseUrl>`/api/auth/oauth/token
+   - Client ID: Your Cal.com OAuth client ID
+   - Client Secret: Your Cal.com OAuth client secret
+   - Scope: `read:bookings write:bookings`
 3. Configure a Test
    - Test: GET `<baseUrl>`/api/integrations/zapier/listBookings
-   - URL Params
-     - apiKey: {{bundle.authData.apiKey}}
-4. Test your authentication —> First you have to install Zapier in the [Cal.com](https://cal.com)App Store and generate an API key, use this API key to test your authentication (only zapier Api key works)
+   - Headers: `Authorization: Bearer {{bundle.authData.access_token}}`
+4. Test your authentication —> Users will connect their Cal.com account directly through OAuth when setting up Zaps.
 
 ## Triggers
 
@@ -42,16 +47,19 @@ Booking created, Booking rescheduled, Booking cancelled, Meeting ended, Out Of O
    - Name: Booking created
    - Noun: Booking
    - Description: Triggers when a new booking is created
-2. API Configuration (apiKey is set automatically, leave it like it is):
+2. API Configuration (OAuth token is set automatically, leave it like it is):
    - Trigger Type: REST Hook
    - Subscribe: POST `<baseUrl>`/api/integrations/zapier/addSubscription
      - Request Body
        - subscriberUrl: {{bundle.targetUrl}}
        - triggerEvent: BOOKING_CREATED
+     - Headers: `Authorization: Bearer {{bundle.authData.access_token}}`
    - Unsubscribe: DELETE `<baseUrl>`/api/integrations/zapier/deleteSubscription
-     - URL Params (in addition to apiKey)
+     - URL Params
        - id: {{bundle.subscribeData.id}}
+     - Headers: `Authorization: Bearer {{bundle.authData.access_token}}`
    - PerformList: GET `<baseUrl>`/api/integrations/zapier/listBookings
+     - Headers: `Authorization: Bearer {{bundle.authData.access_token}}`
 3. Test your API request
 
 Create the other triggers (booking rescheduled, booking cancelled and meeting ended) exactly like this one, just use the appropriate naming (e.g. booking_rescheduled instead of booking_created)
@@ -63,16 +71,19 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
    - Name: Out Of Office Created
    - Noun: OOO Entry
    - Description: Triggers when a new Out Of Office entry is created.
-2. API Configuration (apiKey is set automatically, leave it like it is):
+2. API Configuration (OAuth token is set automatically, leave it like it is):
    - Trigger Type: REST Hook
    - Subscribe: POST `<baseUrl>`/api/integrations/zapier/addSubscription
      - Request Body
        - subscriberUrl: {{bundle.targetUrl}}
        - triggerEvent: OOO_CREATED
+     - Headers: `Authorization: Bearer {{bundle.authData.access_token}}`
    - Unsubscribe: DELETE `<baseUrl>`/api/integrations/zapier/deleteSubscription
-     - URL Params (in addition to apiKey)
+     - URL Params
        - id: {{bundle.subscribeData.id}}
+     - Headers: `Authorization: Bearer {{bundle.authData.access_token}}`
    - PerformList: GET `<baseUrl>`/api/integrations/zapier/listOOOEntries
+     - Headers: `Authorization: Bearer {{bundle.authData.access_token}}`
 3. Test your API request
 4. Note: When creating the ZAP you need to remember that data is stored in the { payload: { oooEntry: { ... } } }
 

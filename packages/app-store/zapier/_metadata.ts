@@ -17,7 +17,7 @@ export const metadata = {
   variant: "automation",
   email: "help@cal.com",
   dirName: "zapier",
-  isOAuth: false,
+  isOAuth: true,
 } as AppMeta;
 
 export default metadata;
