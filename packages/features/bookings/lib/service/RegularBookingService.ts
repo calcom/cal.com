@@ -2372,21 +2372,6 @@ async function handler(
     });
   }
 
-  try {
-    if (hashedBookingLinkData?.hasHashedBookingLink && hashedBookingLinkData.hashedLink && !isDryRun) {
-      await deps.hashedLinkService.validateAndIncrementUsage(hashedBookingLinkData.hashedLink as string);
-    }
-  } catch (error) {
-    loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
-
-    // Handle repository errors and convert to HttpErrors
-    if (error instanceof Error) {
-      throw new HttpError({ statusCode: 410, message: error.message });
-    }
-
-    // For unexpected errors, provide a generic message
-    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
-  }
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
   try {
