@@ -3,16 +3,16 @@ import { randomBytes } from "crypto";
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import { prisma } from "@calcom/prisma";
-import type { Membership } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
+import type { Membership } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -271,48 +271,22 @@ export class TeamService {
   }
   static async leaveTeamMembership({ userId, teamId }: { userId: number; teamId: number }) {
     try {
-      await prisma.$transaction(async (tx) => {
-        const ownerCount = await tx.membership.count({
-          where: {
-            teamId,
-            role: MembershipRole.OWNER,
-            accepted: true,
-          },
-        });
-
-        const userMembership = await tx.membership.findUnique({
-          where: {
-            userId_teamId: { userId, teamId },
-          },
-          select: {
-            role: true,
-          },
-        });
-
-        if (userMembership?.role === MembershipRole.OWNER && ownerCount <= 1) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Cannot leave team as the last owner",
-          });
-        }
-
-        const membership = await tx.membership.delete({
-          where: {
-            userId_teamId: { userId, teamId },
-          },
-          select: {
-            team: true,
-          },
-        });
-
-        if (membership.team.parentId) {
-          await tx.membership.delete({
-            where: {
-              userId_teamId: { userId, teamId: membership.team.parentId },
-            },
-          });
-        }
+      const membership = await prisma.membership.delete({
+        where: {
+          userId_teamId: { userId, teamId },
+        },
+        select: {
+          team: true,
+        },
       });
+
+      if (membership.team.parentId) {
+        await prisma.membership.delete({
+          where: {
+            userId_teamId: { userId, teamId: membership.team.parentId },
+          },
+        });
+      }
     } catch (e) {
       log.error("Failed to leave team membership", e);
       throw e;

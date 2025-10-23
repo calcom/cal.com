@@ -40,7 +40,8 @@ export class PBACRoleManager implements IRoleManager {
   private async validateNotLastOwner(
     organizationId: number,
     membershipId: number,
-    newRole: MembershipRole | string
+    newRole: MembershipRole | string,
+    userId?: number
   ): Promise<void> {
     // Get current membership details
     const currentMembership = await prisma.membership.findUnique({
@@ -50,6 +51,7 @@ export class PBACRoleManager implements IRoleManager {
         customRoleId: true,
         role: true,
         teamId: true,
+        userId: true,
       },
     });
 
@@ -84,8 +86,8 @@ export class PBACRoleManager implements IRoleManager {
       },
     });
 
-    // If this is the last owner, prevent the role change
-    if (ownerCount <= 1) {
+    // If this is the last owner and it's not a self-change, prevent the role change
+    if (ownerCount <= 1 && currentMembership.userId !== userId) {
       throw new RoleManagementError(
         "Cannot change the role of the last owner in the organization",
         RoleManagementErrorCode.UNAUTHORIZED
@@ -94,12 +96,12 @@ export class PBACRoleManager implements IRoleManager {
   }
 
   async assignRole(
-    _userId: number,
+    userId: number,
     organizationId: number,
     role: MembershipRole | string,
     membershipId: number
   ): Promise<void> {
-    await this.validateNotLastOwner(organizationId, membershipId, role);
+    await this.validateNotLastOwner(organizationId, membershipId, role, userId);
 
     // Check if role is one of the default MembershipRole enum values
     const isDefaultRole = role in DEFAULT_ROLE_IDS;
