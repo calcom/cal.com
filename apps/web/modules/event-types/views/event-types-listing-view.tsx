@@ -150,7 +150,11 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
           loading={query.isFetchingNextPage}
           disabled={!query.hasNextPage}
           onClick={() => query.fetchNextPage()}>
-          {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+          {query.hasNextPage
+            ? t("load_more_results")
+            : (query.data?.pages?.[0]?.eventTypes?.length ?? 0) > 0
+            ? t("no_more_results")
+            : ""}
         </Button>
       </div>
     </div>
@@ -998,8 +1002,9 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
      */
     const redirectUrl = localStorage.getItem("onBoardingRedirect");
     localStorage.removeItem("onBoardingRedirect");
-    redirectUrl && router.push(redirectUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (redirectUrl) {
+      router.push(redirectUrl);
+    }
   }, []);
 
   useEffect(() => {
