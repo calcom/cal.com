@@ -18,7 +18,7 @@ on: # yamllint disable-line rule:truthy
 
 jobs:
   release:
-    name: "Remote Release"
+    name: "Release"
 
     runs-on: "ubuntu-latest"
 
