@@ -384,10 +384,8 @@ async function runMain() {
         },
       });
 
-      process.exit(1);
-    })
-    .finally(async () => {
       await prisma.$disconnect();
+      process.exit(1);
     });
 }
 
@@ -537,10 +535,8 @@ async function runPerformanceData() {
           },
         },
       });
-      process.exit(1);
-    })
-    .finally(async () => {
       await prisma.$disconnect();
+      process.exit(1);
     });
 }
 
