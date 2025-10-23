@@ -318,13 +318,13 @@ export function Header({
             options={[
               {
                 value: "form-edit",
-                label: <span className="hidden sm:inline">{t("form")}</span>,
+                label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
                 iconLeft: <Icon name="menu" className="h-3 w-3" />,
                 dataTestId: "toggle-group-item-form-edit",
               },
               {
                 value: "route-builder",
-                label: <span className="hidden sm:inline">{t("routing")}</span>,
+                label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
                 iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
               },
             ]}
@@ -354,12 +354,12 @@ export function Header({
           options={[
             {
               value: "form-edit",
-              label: <span className="hidden sm:inline">{t("form")}</span>,
+              label: <span className="sr-only sm:not-sr-only">{t("form")}</span>,
               iconLeft: <Icon name="menu" className="h-3 w-3" />,
             },
             {
               value: "route-builder",
-              label: <span className="hidden sm:inline">{t("routing")}</span>,
+              label: <span className="sr-only sm:not-sr-only">{t("routing")}</span>,
               iconLeft: <Icon name="waypoints" className="h-3 w-3" />,
             },
           ]}

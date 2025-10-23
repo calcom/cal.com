@@ -131,11 +131,11 @@ export default function FormCard({
 
   return (
     <div className={className} {...restProps}>
-      <div className="absolute left-0 top-1/2 hidden -translate-y-1/2 sm:block">
+      <div className="absolute left-0 top-1/2 -translate-y-1/2">
         {moveUp?.check() ? (
           <button
             type="button"
-            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+            className="bg-default text-muted hover:text-emphasis invisible -ml-2 mb-1 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveUp?.fn()}>
             <Icon name="arrow-up" />
           </button>
@@ -143,7 +143,7 @@ export default function FormCard({
         {moveDown?.check() ? (
           <button
             type="button"
-            className="bg-default text-muted hover:text-emphasis invisible -ml-[13px] flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
+            className="bg-default text-muted hover:text-emphasis invisible -ml-2 flex h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:border-transparent hover:shadow group-hover:visible group-hover:scale-100"
             onClick={() => moveDown?.fn()}>
             <Icon name="arrow-down" />
           </button>
