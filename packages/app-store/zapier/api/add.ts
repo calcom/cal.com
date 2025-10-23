@@ -35,5 +35,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500);
   }
 
-  return res.status(200).json({ url: "/apps/zapier/setup" });
+  return res.status(200).json({ url: "https://zapier.com/apps/calcom/integrations" });
 }
