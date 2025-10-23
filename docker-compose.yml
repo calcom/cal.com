@@ -16,7 +16,11 @@ services:
     restart: always
     volumes:
       - database-data:/var/lib/postgresql/data/
-    env_file: .env
+    environment:
+      - POSTGRES_USER=unicorn_user
+      - POSTGRES_PASSWORD=magical_password
+      - POSTGRES_DB=calendso
+      - DATABASE_HOST=database:5432
     networks:
       - stack
 
@@ -114,7 +118,7 @@ services:
       - database
       - redis
 
-# Optional use of Prisma Studio. In production, comment out or remove the section below to prevent unwanted access to your database.
+  # Optional use of Prisma Studio. In production, comment out or remove the section below to prevent unwanted access to your database.
   studio:
     image: calcom.docker.scarf.sh/calcom/cal.com
     restart: always
