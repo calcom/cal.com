@@ -20,6 +20,7 @@ interface TestPhoneCallDialogProps {
   agentId: string;
   teamId?: number;
   form: UseFormReturn<FormValues>;
+  eventTypeIds?: number[];
   outboundEventTypeId?: number | null;
 }
 
@@ -29,6 +30,7 @@ export function TestPhoneCallDialog({
   agentId,
   teamId,
   form,
+  eventTypeIds = [],
   outboundEventTypeId,
 }: TestPhoneCallDialogProps) {
   const { t } = useLocale();
@@ -51,16 +53,29 @@ export function TestPhoneCallDialog({
       return;
     }
 
-    const eventTypeId = outboundEventTypeId ?? form.getValues("activeOn")?.[0]?.value;
+    let eventTypeId;
 
-    if (!eventTypeId) {
-      const trigger = form.getValues("trigger");
-      if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
-        showToast("choose_event_type_in_agent_setup", "error");
-      } else {
-        showToast(t("choose_at_least_one_event_type_test_call"), "error");
+    const trigger = form.getValues("trigger");
+
+    if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
+      if (!outboundEventTypeId) {
+        showToast(t("choose_event_type_in_agent_setup"), "error");
+        return;
       }
-      return;
+      eventTypeId = outboundEventTypeId;
+    } else if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT) {
+      // Pick any event type from user/team event types
+      if (!eventTypeIds || eventTypeIds.length === 0) {
+        showToast(t("no_event_types_available_for_test_call"), "error");
+        return;
+      }
+      eventTypeId = eventTypeIds[0];
+    } else {
+      if (!form.getValues("activeOn")?.[0]?.value) {
+        showToast(t("choose_at_least_one_event_type_test_call"), "error");
+        return;
+      }
+      eventTypeId = parseInt(form.getValues("activeOn")[0].value, 10);
     }
 
     if (agentId) {
@@ -68,7 +83,7 @@ export function TestPhoneCallDialog({
         agentId: agentId,
         phoneNumber: testPhoneNumber,
         teamId: teamId,
-        eventTypeId: typeof eventTypeId === "string" ? parseInt(eventTypeId, 10) : eventTypeId,
+        eventTypeId: eventTypeId,
       });
     }
   };

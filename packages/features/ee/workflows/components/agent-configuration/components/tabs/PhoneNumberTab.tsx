@@ -35,6 +35,7 @@ interface PhoneNumberTabProps {
   workflowId?: string;
   isOrganization?: boolean;
   form?: UseFormReturn<FormValues>;
+  eventTypeIds?: number[];
 }
 
 export function PhoneNumberTab({
@@ -45,6 +46,7 @@ export function PhoneNumberTab({
   workflowId,
   isOrganization = false,
   form,
+  eventTypeIds = [],
 }: PhoneNumberTabProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -237,6 +239,7 @@ export function PhoneNumberTab({
             agentId={agentId}
             teamId={teamId}
             form={form}
+            eventTypeIds={eventTypeIds}
             outboundEventTypeId={
               form.getValues("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null
             }
@@ -328,6 +331,7 @@ export function PhoneNumberTab({
           agentId={agentId}
           teamId={teamId}
           form={form}
+          eventTypeIds={eventTypeIds}
           outboundEventTypeId={
             form.getValues("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null
           }

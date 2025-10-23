@@ -169,6 +169,7 @@ export function AgentConfigurationSheet({
                 workflowId={workflowId}
                 isOrganization={isOrganization}
                 form={form}
+                eventTypeIds={eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
               />
             )}
 

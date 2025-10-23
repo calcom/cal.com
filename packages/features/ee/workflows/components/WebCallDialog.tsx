@@ -209,7 +209,7 @@ export function WebCallDialog({
     if (isFormTrigger(trigger)) {
       if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
         if (!outboundEventTypeId) {
-          showToast(t("agent_outbound_event_type_not_configured"), "error");
+          showToast(t("choose_event_type_in_agent_setup"), "error");
           return;
         }
         eventTypeId = outboundEventTypeId;
