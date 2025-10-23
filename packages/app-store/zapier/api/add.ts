@@ -13,6 +13,8 @@ const handler: AppDeclarativeHandler = {
     newTab: true,
     url: "https://zapier.com/apps/calcom/integrations",
   },
+  // Creates minimal credential record for tracking purposes only
+  // No actual credentials are stored since this is a redirect app
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
 };
