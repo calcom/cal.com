@@ -285,7 +285,7 @@ export const KBarContent = () => {
             <span className="pr-2">{t("close")}</span>
           </div>
         </KBarAnimator>
-        <div className="z-1 fixed inset-0 bg-neutral-800 bg-opacity-70" />
+        <div className="z-1 fixed inset-0 bg-neutral-800/70" />
       </KBarPositioner>
     </KBarPortal>
   );

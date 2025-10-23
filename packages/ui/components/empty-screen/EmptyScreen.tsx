@@ -6,6 +6,8 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "../button";
 import type { IconName } from "../icon";
 import { Icon } from "../icon";
+import { Button as CossButton } from "@coss/ui/components/button";
+import { Input as CossInput } from "@coss/ui/components/input";
 
 export function EmptyScreen({
   Icon: icon,
@@ -80,6 +82,10 @@ export function EmptyScreen({
           )}
           {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
           {buttonRaw}
+        </div>
+        <div className="mt-4 flex gap-2">
+          <CossInput type="email" placeholder="you@example.com" aria-label="Email" />
+          <CossButton variant="outline">Send</CossButton>
         </div>
       </div>
     </>

@@ -5,7 +5,7 @@ import { Inter } from "next/font/google";
 import "./global.css";
 
 const inter = Inter({
-  variable: "--font-inter",
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
@@ -24,7 +24,7 @@ export default function RootLayout({
       <head>
         <style>{`
           :root {
-            --font-inter: ${inter.style.fontFamily.replace(/\'/g, "")};
+            --font-sans: ${inter.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
       </head>

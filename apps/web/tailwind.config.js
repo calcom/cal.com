@@ -315,28 +315,30 @@ module.exports = {
       },
     },
   },
+  // tw4-todo: need to check this stuff
+  
   // plugins: [
   //   // Temporarily disabled for v4 upgrade - will re-enable after migration
-  //   require("@todesktop/tailwind-variants"),
-  //   require("@tailwindcss/forms"),
-  //   require("@tailwindcss/typography"),
-  //   require("tailwind-scrollbar")({ nocompatible: true }),
-  //   require("tailwindcss-radix")(),
-  //   require("@savvywombat/tailwindcss-grid-areas"),
-  //   require("tailwindcss-animate"),
-  //   plugin(({ addVariant }) => {
+  //   require("@todesktop/tailwind-variants"), // added variants to tokens.css
+  //   require("@tailwindcss/forms"), // we can definitely add it but... are we using it? can't find any "form-*" classes, need to double check
+  //   require("@tailwindcss/typography"), // added in tokens.css
+  //   require("tailwind-scrollbar")({ nocompatible: true }), // moved to tokens.css - need to double check if it works
+  //   require("tailwindcss-radix")(), // updated and moved to tokens.css - need to double check if it works
+  //   require("@savvywombat/tailwindcss-grid-areas"), // can't find any grid-areas classes in the codebase: https://savvywombat.com.au/tailwind-css/grid-areas
+  //   require("tailwindcss-animate"), // replaced with tw-animate-css
+  //   plugin(({ addVariant }) => { // can't find any "mac" or "windows" or "ios" variants in the codebase
   //     addVariant("mac", ".mac &");
   //     addVariant("windows", ".windows &");
   //     addVariant("ios", ".ios &");
   //   }),
-  //   plugin(({ addBase, theme }) => {
+  //   plugin(({ addBase, theme }) => { // hrs get the default border color from the theme, so we wouldn't need to add it here
   //     addBase({
   //       hr: {
   //         borderColor: theme("subtle"),
   //       },
   //     });
   //   }),
-  //   plugin(function ({ addVariant }) {
+  //   plugin(function ({ addVariant }) { // this shouldn't be needed: https://developer.mozilla.org/en-US/docs/Web/CSS/:enabled
   //     addVariant("enabled", "&:not(:disabled)");
   //   }),
   // ],

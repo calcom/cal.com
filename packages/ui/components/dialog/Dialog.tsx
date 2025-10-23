@@ -70,9 +70,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
     return (
       <DialogPrimitive.Portal>
         {forceOverlayWhenNoModal ? (
-          <div className="fadeIn fixed inset-0 z-50  bg-neutral-800 bg-opacity-70 transition-opacity" />
+          <div className="fadeIn fixed inset-0 z-50  bg-neutral-800/70 transition-opacity" />
         ) : (
-          <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-80" />
+          <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-50 bg-neutral-800/70 transition-opacity dark:bg-neutral-800/80" />
         )}
         <DialogPrimitive.Content
           {...props}
