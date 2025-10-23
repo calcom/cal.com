@@ -7,7 +7,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
-import { stripMarkdown } from "./markdownUtils";
+import { stripMarkdown } from "./stripMarkdown";
 
 const translator = short();
 
@@ -65,14 +65,20 @@ export const getWho = (
   }`;
 };
 
+function stripMarkdownPreserveNewlines(text: string): string {
+  const stripped = stripMarkdown(text);
+  return stripped
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{2,}/g, "\n\n")
+    .replace(/([^\n])\n([^\n])/g, "$1\n$2");
+}
+
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
-  if (!calEvent.additionalNotes) {
-    return "";
-  }
-  // Strip markdown syntax for plain text output
-  const plainText = stripMarkdown(calEvent.additionalNotes);
+  if (!calEvent.additionalNotes) return "";
+  const plainText = stripMarkdownPreserveNewlines(calEvent.additionalNotes);
   return `${t("additional_notes")}:\n${plainText}`;
 };
+
 export const getUserFieldsResponses = (
   calEvent: Parameters<typeof getLabelValueMapFromResponses>[0],
   t: TFunction
@@ -115,11 +121,8 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
 };
 
 export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
-  if (!calEvent.description) {
-    return "";
-  }
-  // Strip both HTML tags and markdown syntax for plain text output
-  const plainText = stripMarkdown(calEvent.description);
+  if (!calEvent.description) return "";
+  const plainText = stripMarkdownPreserveNewlines(calEvent.description);
   return `${t("description")}\n${plainText}`;
 };
 
