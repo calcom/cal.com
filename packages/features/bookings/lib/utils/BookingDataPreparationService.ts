@@ -6,6 +6,7 @@ import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { HttpError } from "@calcom/lib/http-error";
 import type logger from "@calcom/lib/logger";
 import { verifyCodeUnAuthenticated } from "@calcom/trpc/server/routers/viewer/auth/util";
+import type { AppsStatus } from "@calcom/types/Calendar";
 
 import type {
   BookingDataSchemaGetter,
@@ -91,6 +92,7 @@ type PreparedBookingData = {
     skipAvailabilityCheck: boolean;
     skipEventLimitsCheck: boolean;
     skipCalendarSyncTaskCreation: boolean;
+    appsStatus: AppsStatus[] | undefined;
     platform: {
       clientId: string | null;
       rescheduleUrl: string | null;
@@ -176,7 +178,7 @@ export class BookingDataPreparationService {
     this.userRepository = deps.userRepository;
   }
 
-  private async enrich({ eventTypeId, eventTypeSlug }: EnrichmentInput): Promise<EnrichmentOutput> {
+  private async enrichEventType({ eventTypeId, eventTypeSlug }: EnrichmentInput): Promise<EnrichmentOutput> {
     const eventType = await getEventType({
       eventTypeId,
       eventTypeSlug,
@@ -200,7 +202,10 @@ export class BookingDataPreparationService {
     };
   }
 
-  async prepare(
+  /**
+   * Enriches the booking data by fetching event type and transforming raw data into a structured format.
+   */
+  async enrich(
     context: {
       rawBookingData: CreateRegularBookingData;
       rawBookingMeta: CreateBookingMeta;
@@ -213,7 +218,7 @@ export class BookingDataPreparationService {
     bookingDataSchemaGetter: BookingDataSchemaGetter
   ): Promise<PreparedBookingData> {
     const { rawBookingData, eventType: _eventType, loggedInUserId, rawBookingMeta } = context;
-    const { eventType } = await this.enrich({
+    const { eventType } = await this.enrichEventType({
       eventTypeId: _eventType.id,
       eventTypeSlug: _eventType.slug,
     });
@@ -259,70 +264,12 @@ export class BookingDataPreparationService {
 
     const bookingEventUserOrTeamSlug = bookingData.user;
 
-    const {
-      booker: { email: bookerEmail, timeZone: bookerTimeZone },
-      startTime,
-      endTime,
-    } = bookingFormData;
-
-    await checkIfBookerEmailIsBlocked({
-      loggedInUserId: loggedInUserId ?? undefined,
-      bookerEmail,
-      verificationCode: rawBookingData.verificationCode,
-      userRepository: this.userRepository,
-    });
-
     const spamCheckService = getSpamCheckService();
     const eventOrganizationId = await getEventOrganizationId({
       eventType,
     });
 
-    spamCheckService.startCheck({ email: bookerEmail, organizationId: eventOrganizationId });
-
-    if (!rawBookingData.rescheduleUid) {
-      await checkActiveBookingsLimitForBooker({
-        eventTypeId: eventType.id,
-        maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
-        bookerEmail,
-        offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
-        bookingRepository: this.bookingRepository,
-      });
-    }
-
-    if (eventType.requiresBookerEmailVerification) {
-      const verificationCode = rawBookingData.verificationCode;
-      if (!verificationCode) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "email_verification_required",
-        });
-      }
-
-      try {
-        await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
-      } catch {
-        throw new HttpError({
-          statusCode: 400,
-          message: "invalid_verification_code",
-        });
-      }
-    }
-
-    await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
-      startTime,
-      bookerTimeZone,
-      eventType,
-      eventType.timeZone,
-      this.log
-    );
-
-    validateEventLength({
-      reqBodyStart: startTime,
-      reqBodyEnd: endTime,
-      eventTypeMultipleDuration: eventType.metadata?.multipleDuration,
-      eventTypeLength: eventType.length,
-      logger: this.log,
-    });
+    spamCheckService.startCheck({ email: bookingFormData.booker.email, organizationId: eventOrganizationId });
 
     const _shouldIgnoreContactOwner = shouldIgnoreContactOwner({
       skipContactOwner: bookingData.skipContactOwner ?? null,
@@ -349,6 +296,7 @@ export class BookingDataPreparationService {
         contactOwnerEmail: contactOwnerEmail ?? null,
       },
       bookingMeta: {
+        appsStatus: bookingData.appsStatus,
         areCalendarEventsEnabled: rawBookingMeta.areCalendarEventsEnabled ?? true,
         platform:
           rawBookingMeta.platformClientId ||
@@ -394,5 +342,89 @@ export class BookingDataPreparationService {
       teamOrUserSlug: bookingEventUserOrTeamSlug ?? null,
       spamCheckService,
     };
+  }
+
+  /**
+   * Validates the enriched booking data.
+   */
+  async validate(preparedData: PreparedBookingData, rawBookingData: CreateRegularBookingData): Promise<void> {
+    const { eventType, bookingFormData, loggedInUser } = preparedData;
+    const {
+      booker: { email: bookerEmail, timeZone: bookerTimeZone },
+      startTime,
+      endTime,
+    } = bookingFormData;
+
+    await checkIfBookerEmailIsBlocked({
+      loggedInUserId: loggedInUser.id ?? undefined,
+      bookerEmail,
+      verificationCode: rawBookingData.verificationCode,
+      userRepository: this.userRepository,
+    });
+
+    if (!rawBookingData.rescheduleUid) {
+      await checkActiveBookingsLimitForBooker({
+        eventTypeId: eventType.id,
+        maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
+        bookerEmail,
+        offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
+        bookingRepository: this.bookingRepository,
+      });
+    }
+
+    if (eventType.requiresBookerEmailVerification) {
+      const verificationCode = rawBookingData.verificationCode;
+      if (!verificationCode) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "email_verification_required",
+        });
+      }
+
+      try {
+        await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
+      } catch {
+        throw new HttpError({
+          statusCode: 400,
+          message: "invalid_verification_code",
+        });
+      }
+    }
+
+    await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
+      startTime,
+      bookerTimeZone,
+      eventType,
+      eventType.timeZone,
+      this.log
+    );
+
+    validateEventLength({
+      reqBodyStart: startTime,
+      reqBodyEnd: endTime,
+      eventTypeMultipleDuration: eventType.metadata?.multipleDuration,
+      eventTypeLength: eventType.length,
+      logger: this.log,
+    });
+  }
+
+  /**
+   * Validates and enriches the booking data and returns in a well defined format.
+   */
+  async prepare(
+    context: {
+      rawBookingData: CreateRegularBookingData;
+      rawBookingMeta: CreateBookingMeta;
+      eventType: {
+        id: number;
+        slug: string;
+      };
+      loggedInUserId: number | null;
+    },
+    bookingDataSchemaGetter: BookingDataSchemaGetter
+  ): Promise<PreparedBookingData> {
+    const enrichedData = await this.enrich(context, bookingDataSchemaGetter);
+    await this.validate(enrichedData, context.rawBookingData);
+    return enrichedData;
   }
 }

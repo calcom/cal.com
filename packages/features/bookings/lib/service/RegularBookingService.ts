@@ -467,6 +467,7 @@ async function handler(
   );
 
   const { isDryRun, useCacheIfEnabled, hostname, forcedSlug, noEmail } = bookingFlowConfig;
+  const { appsStatus: reqAppsStatus } = bookingMeta;
 
   const {
     booker,
@@ -481,8 +482,6 @@ async function handler(
   const luckyUsers = recurringBookingData.luckyUsers;
   const isPlatformBooking = !!bookingMeta.platform?.clientId;
   const { id: eventTypeId, slug: eventTypeSlug } = eventType;
-  // Hardcoded to null because it isn't being passed to _handler from anywhere
-  const reqAppsStatus = undefined;
 
   let troubleshooterData = buildTroubleshooterData({
     eventType,
@@ -569,7 +568,6 @@ async function handler(
       };
 
       return {
-        _type: "existing",
         ...bookingResponse,
         luckyUsers: bookingResponse.userId ? [bookingResponse.userId] : [],
         isDryRun,
@@ -1072,7 +1070,6 @@ async function handler(
     },
   ];
 
-  // Guests blacklisted validation moved to quickValidation.ts
   const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
@@ -1484,14 +1481,8 @@ async function handler(
         ...(isDryRun ? { troubleshooterData } : {}),
       };
       return {
-        _type: "success" as const,
         ...bookingResponse,
         ...luckyUserResponse,
-        paymentRequired: false as const,
-        references: newBooking.references || [],
-        seatReferenceUid: evt.attendeeSeatId ?? "",
-        luckyUsers: luckyUserResponse?.luckyUsers || [],
-        status: newBooking.status || BookingStatus.ACCEPTED,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -2249,12 +2240,11 @@ async function handler(
         email: null,
       },
       videoCallUrl: metadata?.videoCallUrl,
-      // Ensure seatReferenceUid is properly typed as string
-      seatReferenceUid: evt.attendeeSeatId ?? "",
+      // Ensure seatReferenceUid is properly typed as string|null
+      seatReferenceUid: evt.attendeeSeatId,
     };
 
     return {
-      _type: "payment_required" as const,
       ...bookingResponse,
       ...luckyUserResponse,
       message: "Payment required",
@@ -2263,7 +2253,6 @@ async function handler(
       paymentId: payment?.id,
       isDryRun,
       ...(isDryRun ? { troubleshooterData } : {}),
-      luckyUsers: luckyUserResponse?.luckyUsers || [],
     };
   }
 
@@ -2479,16 +2468,13 @@ async function handler(
   };
 
   return {
-    _type: "success" as const,
     ...bookingResponse,
     ...luckyUserResponse,
-    paymentRequired: false as const,
     isDryRun,
     ...(isDryRun ? { troubleshooterData } : {}),
     references: referencesToCreate,
-    seatReferenceUid: evt.attendeeSeatId ?? "",
+    seatReferenceUid: evt.attendeeSeatId,
     videoCallUrl: metadata?.videoCallUrl,
-    luckyUsers: luckyUserResponse?.luckyUsers || [],
   };
 }
 

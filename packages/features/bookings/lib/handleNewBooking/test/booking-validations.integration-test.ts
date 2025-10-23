@@ -2,6 +2,8 @@
  * Booking Validation Specifications
  * These specifications verify the business rules and validation behavior for booking creation
  */
+import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
+
 import {
   createBookingScenario,
   TestData,
