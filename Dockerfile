@@ -33,12 +33,12 @@ ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     BUILD_STANDALONE=true \
     CSP_POLICY=$CSP_POLICY
 
-COPY calcom/package.json calcom/yarn.lock calcom/.yarnrc.yml calcom/playwright.config.ts calcom/turbo.json calcom/i18n.json ./
-COPY calcom/.yarn ./.yarn
-COPY calcom/apps/web ./apps/web
-COPY calcom/apps/api/v2 ./apps/api/v2
-COPY calcom/packages ./packages
-COPY calcom/tests ./tests
+COPY package.json yarn.lock .yarnrc.yml playwright.config.ts turbo.json i18n.json ./
+COPY .yarn ./.yarn
+COPY apps/web ./apps/web
+COPY apps/api/v2 ./apps/api/v2
+COPY packages ./packages
+COPY tests ./tests
 
 RUN yarn config set httpTimeout 1200000
 RUN npx turbo prune --scope=@calcom/web --scope=@calcom/trpc --docker
@@ -59,13 +59,13 @@ ARG NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000
 
 ENV NODE_ENV=production
 
-COPY calcom/package.json calcom/.yarnrc.yml calcom/turbo.json calcom/i18n.json ./
-COPY calcom/.yarn ./.yarn
-COPY --from=builder /calcom/yarn.lock ./yarn.lock
-COPY --from=builder /calcom/node_modules ./node_modules
-COPY --from=builder /calcom/packages ./packages
-COPY --from=builder /calcom/apps/web ./apps/web
-COPY --from=builder /calcom/packages/prisma/schema.prisma ./prisma/schema.prisma
+COPY package.json .yarnrc.yml turbo.json i18n.json ./
+COPY .yarn ./.yarn
+COPY --from=builder /yarn.lock ./yarn.lock
+COPY --from=builder /node_modules ./node_modules
+COPY --from=builder /packages ./packages
+COPY --from=builder /apps/web ./apps/web
+COPY --from=builder /packages/prisma/schema.prisma ./prisma/schema.prisma
 COPY scripts scripts
 
 # Save value used during this build stage. If NEXT_PUBLIC_WEBAPP_URL and BUILT_NEXT_PUBLIC_WEBAPP_URL differ at
@@ -90,4 +90,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=30s --retries=5 \
     CMD wget --spider http://localhost:3000 || exit 1
 
-CMD ["/calcom/scripts/start.sh"]
+CMD ["/scripts/start.sh"]
