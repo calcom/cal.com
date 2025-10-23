@@ -1,5 +1,11 @@
 name: "Release Docker"
 
+env:
+  POSTGRES_USER: "unicorn_user"
+  POSTGRES_PASSWORD: "magical_password"
+  POSTGRES_DB: "calendso"
+  DATABASE_HOST: "database:5432"
+
 on: # yamllint disable-line rule:truthy
   release:
     types:
@@ -27,9 +33,9 @@ jobs:
         uses: docker/login-action@v3
         with:
           # Username used to log against the Docker registry
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
           # Password or personal access token used to log against the Docker registry
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
           # Log out from the Docker registry at the end of a job
           logout: true # optional, default is true
 
@@ -92,8 +98,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_WEBAPP_URL=${{ env.NEXT_PUBLIC_WEBAPP_URL }}
             NEXT_PUBLIC_API_V2_URL=${{ env.NEXT_PUBLIC_API_V2_URL }}
-            NEXT_PUBLIC_LICENSE_CONSENT=${{ env.NEXT_PUBLIC_LICENSE_CONSENT }}
-            NEXT_PUBLIC_TELEMETRY_KEY=${{ env.NEXT_PUBLIC_TELEMETRY_KEY }}
+            NEXT_PUBLIC_LICENSE_CONSENT="agree"
             DATABASE_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
             DATABASE_DIRECT_URL=postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.DATABASE_HOST }}/${{ env.POSTGRES_DB }}
 
