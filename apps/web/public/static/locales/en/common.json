@@ -1445,7 +1445,7 @@
   "url_start_with_https": "URL needs to start with http:// or https://",
   "number_provided": "Phone number will be provided",
   "before_event_trigger": "before event starts",
-  "event_cancelled_trigger": "when event is cancelled",
+  "event_cancelled_trigger": "when event is canceled",
   "after_hosts_cal_video_no_show": "After hosts didn't join cal video",
   "after_guests_cal_video_no_show": "After guests didn't join cal video",
   "join_video_call": "Join the video call",
