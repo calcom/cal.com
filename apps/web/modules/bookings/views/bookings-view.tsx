@@ -19,10 +19,14 @@ import {
   ZTextFilterValue,
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { isSeparatorRow } from "@calcom/features/data-table/lib/separator";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+import { AvatarGroup } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
@@ -269,10 +273,71 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
         },
       }),
       columnHelper.display({
-        id: "customView",
+        id: "date",
+        header: () => <span className="text-subtle text-sm font-medium">{t("date")}</span>,
         cell: (props) => {
-          if (props.row.original.type === "data") {
-            const { booking, recurringInfo, isToday } = props.row.original;
+          const row = props.row.original;
+          if (isSeparatorRow(row)) return null;
+
+          return (
+            <div className="text-default text-sm font-medium">
+              {dayjs(row.booking.startTime).tz(user?.timeZone).format("ddd, DD MMM")}
+            </div>
+          );
+        },
+      }),
+      columnHelper.display({
+        id: "time",
+        header: () => <span className="text-subtle text-sm font-medium">{t("time")}</span>,
+        cell: (props) => {
+          const row = props.row.original;
+          if (isSeparatorRow(row)) return null;
+
+          const startTime = dayjs(row.booking.startTime).tz(user?.timeZone);
+          const endTime = dayjs(row.booking.endTime).tz(user?.timeZone);
+          return (
+            <div className="text-default text-sm font-medium">
+              {startTime.format(user?.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
+              {endTime.format(user?.timeFormat === 12 ? "h:mma" : "HH:mm")}
+            </div>
+          );
+        },
+      }),
+      columnHelper.display({
+        id: "event",
+        header: () => <span className="text-subtle text-sm font-medium">{t("event")}</span>,
+        cell: (props) => {
+          const row = props.row.original;
+          if (isSeparatorRow(row)) return null;
+
+          return <div className="text-emphasis flex-1 truncate text-sm font-medium">{row.booking.title}</div>;
+        },
+      }),
+      columnHelper.display({
+        id: "who",
+        header: () => <span className="text-subtle text-sm font-medium">{t("who")}</span>,
+        cell: (props) => {
+          const row = props.row.original;
+          if (isSeparatorRow(row)) return null;
+
+          const items = row.booking.attendees.map((attendee) => ({
+            image: getPlaceholderAvatar(null, attendee.name),
+            alt: attendee.name,
+            title: attendee.name,
+            href: null,
+          }));
+
+          return <AvatarGroup size="sm" truncateAfter={4} items={items} />;
+        },
+      }),
+      columnHelper.display({
+        id: "team",
+        header: () => <span className="text-subtle text-sm font-medium">{t("team")}</span>,
+        cell: (props) => {
+          const row = props.row.original;
+          if (isSeparatorRow(row)) return null;
+
+          if (row.booking.eventType.team) {
             return (
               <BookingListItem
                 key={booking.id}
@@ -303,14 +368,29 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
               </p>
             );
           }
+          return null;
         },
+      }),
+      columnHelper.display({
+        id: "actions",
+        header: () => null,
+        cell: () => null,
       }),
     ];
   }, [user, status, t, permissions.canReadOthersBookings]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
-  const flatData = useMemo<RowData[]>(() => {
+  const groupedBookings = useMemo(() => {
+    if (!query.data?.bookings) {
+      return { today: [], currentMonth: [], monthBuckets: {} };
+    }
+
+    const now = dayjs().tz(user?.timeZone);
+    const today = now.format("YYYY-MM-DD");
+    const currentMonthStart = now.startOf("month");
+    const currentMonthEnd = now.endOf("month");
+
     const shownBookings: Record<string, BookingOutput[]> = {};
     const filterBookings = (booking: BookingOutput) => {
       if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
@@ -325,59 +405,80 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
           return false;
         }
         shownBookings[booking.recurringEventId] = [booking];
-      } else if (status === "upcoming") {
-        return (
-          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
-          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-        );
       }
       return true;
     };
 
-    return (
-      query.data?.bookings.filter(filterBookings).map((booking) => ({
+    const todayBookings: RowData[] = [];
+    const currentMonthBookings: RowData[] = [];
+    const monthBuckets: Record<string, RowData[]> = {}; // Key format: "YYYY-MM"
+
+    query.data.bookings.filter(filterBookings).forEach((booking) => {
+      const bookingDate = dayjs(booking.startTime).tz(user?.timeZone);
+      const bookingDateStr = bookingDate.format("YYYY-MM-DD");
+      const monthKey = bookingDate.format("YYYY-MM");
+
+      const rowData: RowData = {
         type: "data",
         booking,
+        isToday: bookingDateStr === today,
         recurringInfo: query.data?.recurringInfo.find(
           (info) => info.recurringEventId === booking.recurringEventId
         ),
-        isToday: false,
-      })) || []
-    );
+      };
+
+      if (bookingDateStr === today) {
+        todayBookings.push(rowData);
+      } else if (bookingDate.isAfter(currentMonthStart) && bookingDate.isBefore(currentMonthEnd)) {
+        currentMonthBookings.push(rowData);
+      } else if (bookingDate.isAfter(currentMonthEnd)) {
+        if (!monthBuckets[monthKey]) {
+          monthBuckets[monthKey] = [];
+        }
+        monthBuckets[monthKey].push(rowData);
+      }
+    });
+
+    return { today: todayBookings, currentMonth: currentMonthBookings, monthBuckets };
   }, [query.data, status, user?.timeZone]);
 
+  const flatData = useMemo<RowData[]>(() => {
+    return [...groupedBookings.currentMonth, ...Object.values(groupedBookings.monthBuckets).flat()];
+  }, [groupedBookings]);
+
   const bookingsToday = useMemo<RowData[]>(() => {
-    return (
-      query.data?.bookings
-        .filter(
-          (booking: BookingOutput) =>
-            dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
-            dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-        )
-        .map((booking) => ({
-          type: "data" as const,
-          booking,
-          recurringInfo: query.data?.recurringInfo.find(
-            (info) => info.recurringEventId === booking.recurringEventId
-          ),
-          isToday: true,
-        })) ?? []
-    );
-  }, [query.data, user?.timeZone]);
+    return groupedBookings.today;
+  }, [groupedBookings]);
 
   const finalData = useMemo<RowData[]>(() => {
     if (status !== "upcoming") {
       return flatData;
     }
+
     const merged: RowData[] = [];
-    if (bookingsToday.length > 0) {
-      merged.push({ type: "today" as const }, ...bookingsToday);
+
+    // Add Today section
+    if (groupedBookings.today.length > 0) {
+      merged.push({ type: "separator", label: t("today") }, ...groupedBookings.today);
     }
-    if (flatData.length > 0) {
-      merged.push({ type: "next" as const }, ...flatData);
+
+    // Add Current Month section (rest of this month, excluding today)
+    if (groupedBookings.currentMonth.length > 0) {
+      merged.push({ type: "separator", label: t("this_month") }, ...groupedBookings.currentMonth);
     }
+
+    // Add individual month sections
+    const sortedMonthKeys = Object.keys(groupedBookings.monthBuckets).sort();
+    sortedMonthKeys.forEach((monthKey) => {
+      const bookings = groupedBookings.monthBuckets[monthKey];
+      if (bookings.length > 0) {
+        const monthLabel = dayjs(monthKey, "YYYY-MM").format("MMMM YYYY");
+        merged.push({ type: "separator", label: monthLabel }, ...bookings);
+      }
+    });
+
     return merged;
-  }, [bookingsToday, flatData, status]);
+  }, [groupedBookings, status, t, flatData]);
 
   const selectedBooking = useMemo(() => {
     if (!selectedBookingId) return null;
@@ -408,6 +509,12 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
         attendeeEmail: false,
         dateRange: false,
         bookingUid: false,
+        date: true,
+        time: true,
+        event: true,
+        who: true,
+        team: true,
+        actions: true,
       },
     },
     getCoreRowModel: getCoreRowModel(),

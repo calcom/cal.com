@@ -60,7 +60,7 @@ const Page = async ({ params }: PageProps) => {
   );
 
   return (
-    <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
+    <ShellMainAppDir heading={t("bookings")}>
       <BookingsList
         status={parsed.data.status}
         userId={session?.user?.id}
