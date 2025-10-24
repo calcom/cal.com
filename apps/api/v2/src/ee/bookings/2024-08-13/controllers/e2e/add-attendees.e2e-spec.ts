@@ -231,7 +231,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     describe("Authentication", () => {
       it("should return 401 when adding guests without authentication", async () => {
         const addGuestsBody = {
-          attendees: ["unauthenticated.guest@example.com"],
+          attendees: [{ email: "unauthenticated.guest@example.com" }],
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
@@ -246,7 +246,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     describe("Authorization - Organizer", () => {
       it("should allow booking organizer to add multiple guests", async () => {
         const addGuestsBody = {
-          guests: ["organizer.guest1@example.com", "organizer.guest2@example.com"],
+          guests: [{ email: "organizer.guest1@example.com" }, { email: "organizer.guest2@example.com" }],
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
@@ -267,7 +267,10 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
 
       it("should return 403 when unrelated user tries to add guests", async () => {
         const addGuestsBody = {
-          guests: ["non-organizer.guest1@example.com", "non-organizer.guest2@example.com"],
+          guests: [
+            { email: "non-organizer.guest1@example.com" },
+            { email: "non-organizer.guest2@example.com" },
+          ],
         };
 
         await request(app.getHttpServer())
@@ -283,7 +286,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       it("should allow organizer to add a user as attendee, then attendee can add more guests", async () => {
         // Step 1: Organizer adds attendee user as a guest
         const addAttendeeBody = {
-          guests: [testSetup.attendee.user.email],
+          guests: [{ email: testSetup.attendee.user.email }],
         };
 
         const addAttendeeResponse = await request(app.getHttpServer())
@@ -299,7 +302,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
 
         // Step 2: Now the attendee can add their own guests
         const addGuestsBody = {
-          guests: ["attendee.guest1@example.com"],
+          guests: [{ email: "attendee.guest1@example.com" }],
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
@@ -316,7 +319,10 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
 
       it("should return 403 when non-attendee user tries to add guests", async () => {
         const addGuestsBody = {
-          guests: ["non-attendee.guest1@example.com", "non-attendee.guest2@example.com"],
+          guests: [
+            { email: "non-attendee.guest1@example.com" },
+            { email: "non-attendee.guest2@example.com" },
+          ],
         };
 
         await request(app.getHttpServer())
@@ -331,7 +337,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     describe("Validation", () => {
       it("should return 400 when attempting to add duplicate guest email", async () => {
         const addGuestsBody = {
-          guests: ["organizer.guest1@example.com"],
+          guests: [{ email: "organizer.guest1@example.com" }],
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
@@ -431,7 +437,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       attendeeScheduledEmailSpy.mockClear();
 
       const addGuestsBody = {
-        guests: ["no-email.guest1@example.com", "no-email.guest2@example.com"],
+        guests: [{ email: "no-email.guest1@example.com" }, { email: "no-email.guest2@example.com" }],
       };
 
       const addGuestsResponse = await request(app.getHttpServer())
