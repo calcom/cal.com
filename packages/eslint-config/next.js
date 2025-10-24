@@ -9,10 +9,9 @@ import tseslint from "typescript-eslint";
 import { config as baseConfig } from "./base.js";
 
 /**
- * A custom ESLint configuration for libraries that use Next.js.
- *
- * @type {import("eslint").Linter.Config}
- * */
+ * ESLint config for Next.js libraries and apps (flat config style).
+ * Includes: React, React Hooks, TypeScript, Next, Prettier, and custom rules.
+ */
 export const nextJsConfig = [
   ...baseConfig,
   js.configs.recommended,
@@ -23,19 +22,22 @@ export const nextJsConfig = [
     languageOptions: {
       ...pluginReact.configs.flat.recommended.languageOptions,
       globals: {
+        ...globals.browser,
         ...globals.serviceworker,
       },
     },
   },
+
+  // Next.js rules
   {
-    plugins: {
-      "@next/next": pluginNext,
-    },
+    plugins: { "@next/next": pluginNext },
     rules: {
       ...pluginNext.configs.recommended.rules,
       ...pluginNext.configs["core-web-vitals"].rules,
     },
   },
+
+  // React Hooks + custom project rules
   {
     plugins: {
       "react-hooks": pluginReactHooks,
@@ -43,19 +45,26 @@ export const nextJsConfig = [
     settings: { react: { version: "detect" } },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
-      // React scope no longer necessary with new JSX transform.
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
-      "no-restricted-object": [
+      "no-restricted-properties": [
         "warn",
         {
-          name: "localStorage",
-          message: "Avoid using localStorage",
+          object: "window",
+          property: "localStorage",
+          message: "Avoid using localStorage. Use a secure storage layer instead.",
         },
         {
-          name: "localStorage",
-          message: "Avoid using sessionStorage",
+          object: "window",
+          property: "sessionStorage",
+          message: "Avoid using sessionStorage. Use a secure storage layer instead.",
         },
+      ],
+
+      "no-restricted-globals": [
+        "warn",
+        { name: "localStorage", message: "Avoid using localStorage" },
+        { name: "sessionStorage", message: "Avoid using sessionStorage" },
       ],
     },
   },
