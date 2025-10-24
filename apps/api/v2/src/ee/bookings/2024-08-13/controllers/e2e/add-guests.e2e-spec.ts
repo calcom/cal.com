@@ -53,7 +53,7 @@ type TestUser = {
 type TestSetup = {
   organizer: TestUser;
   unrelatedUser: TestUser;
-  attendee: TestUser;
+  guest: TestUser;
   eventTypeId: number;
   bookingUid: string;
 };
@@ -119,8 +119,8 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       },
     });
 
-    const attendeeUser = await userRepositoryFixture.create({
-      email: `user-emails-2024-08-13-attendee-${randomString()}@api.com`,
+    const guestUser = await userRepositoryFixture.create({
+      email: `user-emails-2024-08-13-guest-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: { id: oAuthClient.id },
       },
@@ -131,7 +131,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       unrelatedUserData.id,
       oAuthClient.id
     );
-    const attendeeTokens = await tokensRepositoryFixture.createTokens(attendeeUser.id, oAuthClient.id);
+    const guestTokens = await tokensRepositoryFixture.createTokens(guestUser.id, oAuthClient.id);
 
     const schedule: CreateScheduleInput_2024_04_15 = {
       name: `user-add-guests-2024-08-13-schedule-${randomString()}`,
@@ -160,10 +160,10 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         accessToken: unrelatedUserTokens.accessToken,
         refreshToken: unrelatedUserTokens.refreshToken,
       },
-      attendee: {
-        user: attendeeUser,
-        accessToken: attendeeTokens.accessToken,
-        refreshToken: attendeeTokens.refreshToken,
+      guest: {
+        user: guestUser,
+        accessToken: guestTokens.accessToken,
+        refreshToken: guestTokens.refreshToken,
       },
       eventTypeId: eventType.id,
       bookingUid: "",
@@ -190,7 +190,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     attendeeScheduledEmailSpy.mockClear();
   });
 
-  describe("POST /v2/bookings/:bookingUid/attendees", () => {
+  describe("POST /v2/bookings/:bookingUid/guests", () => {
     beforeAll(async () => {
       const createBookingBody: CreateBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
@@ -231,11 +231,11 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     describe("Authentication", () => {
       it("should return 401 when adding guests without authentication", async () => {
         const addGuestsBody = {
-          attendees: [{ email: "unauthenticated.guest@example.com" }],
+          guests: [{ email: "unauthenticated.guest@example.com" }],
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
@@ -250,7 +250,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
@@ -274,7 +274,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
@@ -282,51 +282,48 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       });
     });
 
-    describe("Authorization - Attendee", () => {
-      it("should allow organizer to add a user as attendee, then attendee can add more guests", async () => {
-        // Step 1: Organizer adds attendee user as a guest
-        const addAttendeeBody = {
-          guests: [{ email: testSetup.attendee.user.email }],
+    describe("Authorization - guest", () => {
+      it("should allow organizer to add a user as guest, then guest can add more guests", async () => {
+        // Step 1: Organizer adds guest user as a guest
+        const addguestBody = {
+          guests: [{ email: testSetup.guest.user.email }],
         };
 
-        const addAttendeeResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
-          .send(addAttendeeBody)
+        const addguestResponse = await request(app.getHttpServer())
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .send(addguestBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const addAttendeeResponseBody: AddGuestsOutput_2024_08_13 = addAttendeeResponse.body;
+        const addguestResponseBody: AddGuestsOutput_2024_08_13 = addguestResponse.body;
 
-        verifyAddGuestsResponse(addAttendeeResponseBody, [testSetup.attendee.user.email], true);
+        verifyAddGuestsResponse(addguestResponseBody, [testSetup.guest.user.email], true);
 
-        // Step 2: Now the attendee can add their own guests
+        // Step 2: Now the guest can add their own guests
         const addGuestsBody = {
-          guests: [{ email: "attendee.guest1@example.com" }],
+          guests: [{ email: "guest.guest1@example.com" }],
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
-          .set("Authorization", `Bearer ${testSetup.attendee.accessToken}`)
+          .set("Authorization", `Bearer ${testSetup.guest.accessToken}`)
           .expect(200);
 
         const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
 
-        verifyAddGuestsResponse(addGuestsResponseBody, ["attendee.guest1@example.com"], true);
+        verifyAddGuestsResponse(addGuestsResponseBody, ["guest.guest1@example.com"], true);
       });
 
-      it("should return 403 when non-attendee user tries to add guests", async () => {
+      it("should return 403 when non-guest user tries to add guests", async () => {
         const addGuestsBody = {
-          guests: [
-            { email: "non-attendee.guest1@example.com" },
-            { email: "non-attendee.guest2@example.com" },
-          ],
+          guests: [{ email: "non-guest.guest1@example.com" }, { email: "non-guest.guest2@example.com" }],
         };
 
         await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
@@ -341,7 +338,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`);
@@ -352,7 +349,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     });
   });
 
-  describe("POST /v2/bookings/:bookingUid/attendees - Emails Disabled", () => {
+  describe("POST /v2/bookings/:bookingUid/guests - Emails Disabled", () => {
     let emailsDisabledSetup: TestSetup;
 
     beforeAll(async () => {
@@ -425,7 +422,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
           refreshToken: organizerTokens.refreshToken,
         },
         unrelatedUser: testSetup.unrelatedUser,
-        attendee: testSetup.attendee,
+        guest: testSetup.guest,
         eventTypeId: eventType.id,
         bookingUid: createBookingResponseBody.data.uid,
       };
@@ -441,7 +438,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       };
 
       const addGuestsResponse = await request(app.getHttpServer())
-        .post(`/v2/bookings/${emailsDisabledSetup.bookingUid}/attendees`)
+        .post(`/v2/bookings/${emailsDisabledSetup.bookingUid}/guests`)
         .send(addGuestsBody)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .set("Authorization", `Bearer ${emailsDisabledSetup.organizer.accessToken}`)
@@ -470,7 +467,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
 
     await userRepositoryFixture.deleteByEmail(testSetup.organizer.user.email);
     await userRepositoryFixture.deleteByEmail(testSetup.unrelatedUser.user.email);
-    await userRepositoryFixture.deleteByEmail(testSetup.attendee.user.email);
+    await userRepositoryFixture.deleteByEmail(testSetup.guest.user.email);
 
     await bookingsRepositoryFixture.deleteAllBookings(
       testSetup.organizer.user.id,
@@ -499,8 +496,8 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
 
     const bookingData = responseBody.data;
 
-    expect(bookingData.attendees).toBeDefined();
-    const guestEmails = bookingData.attendees.map((attendee) => attendee.email);
+    expect(bookingData.guests).toBeDefined();
+    const guestEmails = bookingData.guests;
 
     expectedGuestEmails.forEach((email) => {
       expect(guestEmails).toContain(email);
