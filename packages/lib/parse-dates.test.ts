@@ -82,6 +82,7 @@ describe("parseRecurringDates", () => {
 
       expect(dayjs(dates[0]).tz(userTimezone).format("YYYY-MM-DD HH:mm")).toBe("2024-03-18 10:00");
       expect(dayjs(dates[1]).tz(userTimezone).format("YYYY-MM-DD HH:mm")).toBe("2024-03-25 10:00");
+      // Central European Time (CET) changes to Central European Summer Time (CEST) on 31 March 2024
       expect(dayjs(dates[2]).tz(userTimezone).format("YYYY-MM-DD HH:mm")).toBe("2024-04-01 10:00");
     });
   });
