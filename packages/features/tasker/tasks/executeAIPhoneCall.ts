@@ -2,6 +2,7 @@ import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
   getSubmitterEmail,
@@ -10,7 +11,6 @@ import {
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
@@ -26,39 +26,11 @@ interface ExecuteAIPhoneCallPayload {
 }
 const log = logger.getSubLogger({ prefix: [`[[executeAIPhoneCall] `] });
 
-const bookingSelect = {
-  uid: true,
-  startTime: true,
-  endTime: true,
-  eventTypeId: true,
-  responses: true,
-  location: true,
-  description: true,
-  attendees: {
-    select: {
-      name: true,
-      email: true,
-      phoneNumber: true,
-      timeZone: true,
-    },
-  },
-  eventType: {
-    select: {
-      title: true,
-      bookingFields: true,
-    },
-  },
-  user: {
-    select: {
-      name: true,
-      timeZone: true,
-    },
-  },
-} satisfies Prisma.BookingSelect;
-
-type BookingWithRelations = Prisma.BookingGetPayload<{
-  select: typeof bookingSelect;
-}>;
+type BookingWithRelations = NonNullable<
+  NonNullable<
+    Awaited<ReturnType<typeof WorkflowReminderRepository.findWorkflowReminderForAIPhoneCallExecution>>
+  >["booking"]
+>;
 
 function getVariablesFromFormResponse({
   responses,
@@ -154,30 +126,9 @@ export async function executeAIPhoneCall(payload: string) {
   log.info(`Executing AI phone call for workflow reminder ${data.workflowReminderId}`, data);
 
   try {
-    const workflowReminder = await prisma.workflowReminder.findUnique({
-      where: { id: data.workflowReminderId },
-      select: {
-        id: true,
-        scheduled: true,
-        referenceId: true,
-        workflowStep: {
-          select: {
-            workflow: {
-              select: {
-                trigger: true,
-              },
-            },
-            agent: {
-              select: {
-                outboundPhoneNumbers: { select: { phoneNumber: true } },
-                outboundEventTypeId: true,
-              },
-            },
-          },
-        },
-        booking: { select: bookingSelect },
-      },
-    });
+    const workflowReminder = await WorkflowReminderRepository.findWorkflowReminderForAIPhoneCallExecution(
+      data.workflowReminderId
+    );
 
     if (!workflowReminder || !workflowReminder.scheduled) {
       log.warn(`Workflow reminder ${data.workflowReminderId} not found or not scheduled`);
@@ -292,12 +243,9 @@ export async function executeAIPhoneCall(payload: string) {
 
     log.info("AI phone call created successfully:", call);
 
-    await prisma.workflowReminder.update({
-      where: { id: data.workflowReminderId },
-      data: {
-        referenceId: call.call_id,
-        scheduled: true,
-      },
+    await WorkflowReminderRepository.updateWorkflowReminderReferenceAndScheduled(data.workflowReminderId, {
+      referenceId: call.call_id,
+      scheduled: true,
     });
 
     log.info(`AI phone call executed successfully for workflow reminder ${data.workflowReminderId}`, {
