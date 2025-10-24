@@ -8,8 +8,8 @@ import type {
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
+import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import getLabelValueMapFromResponses from "@calcom/lib/getLabelValueMapFromResponses";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -20,10 +20,6 @@ import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/C
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
-
-interface CustomPublicObjectInput extends SimplePublicObjectInput {
-  id?: string;
-}
 
 export default class HubspotCalendarService implements CRM {
   private url = "";
@@ -117,8 +113,14 @@ export default class HubspotCalendarService implements CRM {
     return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
-  private hubspotDeleteMeeting = async (uid: string) => {
-    return this.hubspotClient.crm.objects.meetings.basicApi.archive(uid);
+  private hubspotCancelMeeting = async (uid: string) => {
+    const simplePublicObjectInput: SimplePublicObjectInput = {
+      properties: {
+        hs_meeting_outcome: "CANCELED",
+      },
+    };
+
+    return this.hubspotClient.crm.objects.meetings.basicApi.update(uid, simplePublicObjectInput);
   };
 
   private hubspotAuth = async (credential: CredentialPayload) => {
@@ -204,7 +206,6 @@ export default class HubspotCalendarService implements CRM {
     return await this.handleMeetingCreation(event, contacts);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
     const auth = await this.auth;
     await auth.getToken();
@@ -214,7 +215,7 @@ export default class HubspotCalendarService implements CRM {
   async deleteEvent(uid: string): Promise<void> {
     const auth = await this.auth;
     await auth.getToken();
-    return await this.hubspotDeleteMeeting(uid);
+    await this.hubspotCancelMeeting(uid);
   }
 
   async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {

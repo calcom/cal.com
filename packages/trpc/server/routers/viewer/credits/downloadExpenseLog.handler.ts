@@ -1,5 +1,7 @@
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -28,9 +30,17 @@ export const downloadExpenseLogHandler = async ({ ctx, input }: DownloadExpenseL
   const { teamId, startDate, endDate } = input;
 
   if (teamId) {
-    const adminMembership = await MembershipRepository.getAdminOrOwnerMembership(ctx.user.id, teamId);
+    const team = await TeamService.fetchTeamOrThrow(teamId);
 
-    if (!adminMembership) {
+    const permissionService = new PermissionCheckService();
+    const hasManageBillingPermission = await permissionService.checkPermission({
+      userId: ctx.user.id,
+      teamId,
+      permission: team.isOrganization ? "organization.manageBilling" : "team.manageBilling",
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
+
+    if (!hasManageBillingPermission) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
       });

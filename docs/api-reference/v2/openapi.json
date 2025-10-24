@@ -4421,6 +4421,70 @@
         "tags": ["Orgs / Teams / Event Types / Private Links"]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/invite": {
+      "post": {
+        "operationId": "OrganizationsTeamsInviteController_createInvite",
+        "summary": "Create team invite link",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateInviteOutputDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Invite"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getAllOrgTeamMemberships",
@@ -5641,7 +5705,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowsOutput"
+                  "$ref": "#/components/schemas/GetEventTypeWorkflowsOutput"
                 }
               }
             }
@@ -5650,8 +5714,8 @@
         "tags": ["Orgs / Teams / Workflows"]
       },
       "post": {
-        "operationId": "OrganizationTeamWorkflowsController_createWorkflow",
-        "summary": "Create organization team workflow",
+        "operationId": "OrganizationTeamWorkflowsController_createEventTypeWorkflow",
+        "summary": "Create organization team workflow for event-types",
         "parameters": [
           {
             "name": "Authorization",
@@ -5694,7 +5758,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateWorkflowDto"
+                "$ref": "#/components/schemas/CreateEventTypeWorkflowDto"
               }
             }
           }
@@ -5705,7 +5769,160 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                  "$ref": "#/components/schemas/GetEventTypeWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows/routing-form": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getRoutingFormWorkflows",
+        "summary": "Get organization team workflows",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of items to return",
+            "example": 25,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "default": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "Number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormWorkflowsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "post": {
+        "operationId": "OrganizationTeamWorkflowsController_createFormWorkflow",
+        "summary": "Create organization team workflow for routing-forms",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFormWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormWorkflowOutput"
                 }
               }
             }
@@ -5769,7 +5986,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                  "$ref": "#/components/schemas/GetEventTypeWorkflowOutput"
                 }
               }
             }
@@ -5830,7 +6047,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateWorkflowDto"
+                "$ref": "#/components/schemas/UpdateEventTypeWorkflowDto"
               }
             }
           }
@@ -5841,7 +6058,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetWorkflowOutput"
+                  "$ref": "#/components/schemas/GetEventTypeWorkflowOutput"
                 }
               }
             }
@@ -5852,6 +6069,197 @@
       "delete": {
         "operationId": "OrganizationTeamWorkflowsController_deleteWorkflow",
         "summary": "Delete organization team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form": {
+      "get": {
+        "operationId": "OrganizationTeamWorkflowsController_getRoutingFormWorkflowById",
+        "summary": "Get organization team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "patch": {
+        "operationId": "OrganizationTeamWorkflowsController_updateRoutingFormWorkflow",
+        "summary": "Update organization routing form team workflow",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "For non-platform customers - value must be `Bearer <token>` where `<token>` is api key prefixed with cal_",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFormWorkflowDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormWorkflowOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Workflows"]
+      },
+      "delete": {
+        "operationId": "OrganizationTeamWorkflowsController_deleteRoutingFormWorkflow",
+        "summary": "Delete organization team routing-form workflow",
         "parameters": [
           {
             "name": "Authorization",
@@ -5973,6 +6381,7 @@
             "required": false,
             "in": "query",
             "description": "The email address or an array of email addresses to filter by",
+            "example": ["user1@example.com", "user2@example.com"],
             "schema": {
               "type": "array",
               "items": {
@@ -7548,12 +7957,12 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_createBooking",
         "summary": "Create a booking",
-        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n\n      Finally, there are 2 ways to book an event type belonging to an individual user:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `username` and optionally `organizationSlug` if the user with the username is within an organization.\n\n      And 2 ways to book and event type belonging to a team:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `teamSlug` and optionally `organizationSlug` if the team with the teamSlug is within an organization.\n\n      If you are creating a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n      ",
+        "description": "\n      POST /v2/bookings is used to create regular bookings, recurring bookings and instant bookings. The request bodies for all 3 are almost the same except:\n      If eventTypeId in the request body is id of a regular event, then regular booking is created.\n\n      If it is an id of a recurring event type, then recurring booking is created.\n\n      Meaning that the request bodies are equal but the outcome depends on what kind of event type it is with the goal of making it as seamless for developers as possible.\n\n      For team event types it is possible to create instant meeting. To do that just pass `\"instant\": true` to the request body.\n\n      The start needs to be in UTC aka if the timezone is GMT+2 in Rome and meeting should start at 11, then UTC time should have hours 09:00 aka without time zone.\n\n      Finally, there are 2 ways to book an event type belonging to an individual user:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `username` and optionally `organizationSlug` if the user with the username is within an organization.\n\n      And 2 ways to book and event type belonging to a team:\n      1. Provide `eventTypeId` in the request body.\n      2. Provide `eventTypeSlug` and `teamSlug` and optionally `organizationSlug` if the team with the teamSlug is within an organization.\n\n      If you are creating a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -7626,11 +8035,12 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookings",
         "summary": "Get all bookings",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -7876,12 +8286,12 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBooking",
         "summary": "Get a booking",
-        "description": "`:bookingUid` can be\n\n      1. uid of a normal booking\n\n      2. uid of one of the recurring booking recurrences\n\n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).\n      \n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n      ",
+        "description": "`:bookingUid` can be\n\n      1. uid of a normal booking\n\n      2. uid of one of the recurring booking recurrences\n\n      3. uid of recurring booking which will return an array of all recurring booking recurrences (stored as recurringBookingUid on one of the individual recurrences).\n      \n      If you are fetching a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n      you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -7943,12 +8353,12 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingRecordings",
         "summary": "Get all the recordings for the booking",
-        "description": "Fetches all the recordings for the booking `:bookingUid`",
+        "description": "Fetches all the recordings for the booking `:bookingUid`\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -7983,12 +8393,12 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingTranscripts",
         "summary": "Get all the transcripts download links for the booking",
-        "description": "Fetches all the transcripts download links for the booking `:bookingUid`",
+        "description": "Fetches all the transcripts download links for the booking `:bookingUid`\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8023,12 +8433,12 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_rescheduleBooking",
         "summary": "Reschedule a booking",
-        "description": "Reschedule a booking or seated booking",
+        "description": "Reschedule a booking or seated booking\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8108,12 +8518,12 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "summary": "Cancel a booking",
-        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    \n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n    \n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.\n    \n    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n    ",
+        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    \n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n    \n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.\n    \n    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8193,12 +8603,12 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_markNoShow",
         "summary": "Mark a booking absence",
-        "description": "The provided authorization header refers to the owner of the booking.",
+        "description": "The provided authorization header refers to the owner of the booking.\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8252,12 +8662,12 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBooking",
         "summary": "Reassign a booking to auto-selected host",
-        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
+        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.\n      \n       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8301,12 +8711,12 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_reassignBookingToUser",
         "summary": "Reassign a booking to a specific host",
-        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.",
+        "description": "Currently only supports reassigning host for round robin bookings. The provided authorization header refers to the owner of the booking.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8368,12 +8778,12 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_confirmBooking",
         "summary": "Confirm a booking",
-        "description": "The provided authorization header refers to the owner of the booking.",
+        "description": "The provided authorization header refers to the owner of the booking.\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8417,12 +8827,12 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_declineBooking",
         "summary": "Decline a booking",
-        "description": "The provided authorization header refers to the owner of the booking.",
+        "description": "The provided authorization header refers to the owner of the booking.\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note> \n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8476,12 +8886,12 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getCalendarLinks",
         "summary": "Get 'Add to Calendar' links for a booking",
-        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.",
+        "description": "Retrieve calendar links for a booking that can be used to add the event to various calendar services. Returns links for Google Calendar, Microsoft Office, Microsoft Outlook, and a downloadable ICS file.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note> \n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -8525,11 +8935,12 @@
       "get": {
         "operationId": "BookingsController_2024_08_13_getBookingReferences",
         "summary": "Get booking references",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-08-13",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -9417,11 +9828,12 @@
       "post": {
         "operationId": "EventTypesController_2024_06_14_createEventType",
         "summary": "Create an event type",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-14",
+            "description": "Must be set to 2024-06-14. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -9465,12 +9877,12 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypes",
         "summary": "Get all event types",
-        "description": "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.",
+        "description": "Hidden event types are returned only if authentication is provided and it belongs to the event type owner.\n      \n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-14",
+            "description": "Must be set to 2024-06-14. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -9569,11 +9981,12 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypeById",
         "summary": "Get an event type",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-14",
+            "description": "Must be set to 2024-06-14. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -9615,11 +10028,12 @@
       "patch": {
         "operationId": "EventTypesController_2024_06_14_updateEventType",
         "summary": "Update an event type",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-14",
+            "description": "Must be set to 2024-06-14. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -9671,11 +10085,12 @@
       "delete": {
         "operationId": "EventTypesController_2024_06_14_deleteEventType",
         "summary": "Delete an event type",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-14",
+            "description": "Must be set to 2024-06-14. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11223,7 +11638,7 @@
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
         "summary": "Create a schedule",
-        "description": "\n      Create a schedule for the authenticated user.\n\n      The point of creating schedules is for event types to be available at specific times.\n\n      The first goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.\n      1. If you passed `timeZone` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the `AvailabilitySettings` atom.\n      2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying\n      `\"isDefault\": true` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.\n\n      The second goal of schedules is to create another schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.\n      After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH `event-types/{eventTypeId}` endpoint.\n\n      When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.\n      ",
+        "description": "\n      Create a schedule for the authenticated user.\n\n      The point of creating schedules is for event types to be available at specific times.\n\n      The first goal of schedules is to have a default schedule. If you are platform customer and created managed users, then it is important to note that each managed user should have a default schedule.\n      1. If you passed `timeZone` when creating managed user, then the default schedule from Monday to Friday from 9AM to 5PM will be created with that timezone. The managed user can then change the default schedule via the `AvailabilitySettings` atom.\n      2. If you did not, then we assume you want the user to have this specific schedule right away. You should create a default schedule by specifying\n      `\"isDefault\": true` in the request body. Until the user has a default schedule the user can't be booked nor manage their schedule via the AvailabilitySettings atom.\n\n      The second goal of schedules is to create another schedule that event types can point to. This is useful for when an event is booked because availability is not checked against the default schedule but instead against that specific schedule.\n      After creating a non-default schedule, you can update an event type to point to that schedule via the PATCH `event-types/{eventTypeId}` endpoint.\n\n      When specifying start time and end time for each day use the 24 hour format e.g. 08:00, 15:00 etc.\n\n      <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "Authorization",
@@ -11237,7 +11652,7 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-11",
+            "description": "Must be set to 2024-06-11. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11272,7 +11687,7 @@
       "get": {
         "operationId": "SchedulesController_2024_06_11_getSchedules",
         "summary": "Get all schedules",
-        "description": "Get all schedules of the authenticated user.",
+        "description": "Get all schedules of the authenticated user.\n    \n     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "Authorization",
@@ -11286,7 +11701,7 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-11",
+            "description": "Must be set to 2024-06-11. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11313,7 +11728,7 @@
       "get": {
         "operationId": "SchedulesController_2024_06_11_getDefaultSchedule",
         "summary": "Get default schedule",
-        "description": "Get the default schedule of the authenticated user.",
+        "description": "Get the default schedule of the authenticated user.\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "Authorization",
@@ -11327,7 +11742,7 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-11",
+            "description": "Must be set to 2024-06-11. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11354,6 +11769,7 @@
       "get": {
         "operationId": "SchedulesController_2024_06_11_getSchedule",
         "summary": "Get a schedule",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "Authorization",
@@ -11367,7 +11783,7 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-11",
+            "description": "Must be set to 2024-06-11. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11400,6 +11816,7 @@
       "patch": {
         "operationId": "SchedulesController_2024_06_11_updateSchedule",
         "summary": "Update a schedule",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "Authorization",
@@ -11413,7 +11830,7 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-11",
+            "description": "Must be set to 2024-06-11. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11456,6 +11873,7 @@
       "delete": {
         "operationId": "SchedulesController_2024_06_11_deleteSchedule",
         "summary": "Delete a schedule",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "Authorization",
@@ -11469,7 +11887,7 @@
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-06-11",
+            "description": "Must be set to 2024-06-11. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11604,12 +12022,12 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
         "summary": "Get available time slots for an event type",
-        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.\n      ",
+        "description": "\n      There are 4 ways to get available slots for event type of an individual user:\n\n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      And 3 ways to get available slots for team event type:\n\n      1. By team event type id. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By team event type slug + team slug. Example '/v2/slots?eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      3. By team event type slug + team slug + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&teamSlug=team-slug&start=2050-09-05&end=2050-09-06'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - format: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      - bookingUidToReschedule: When rescheduling an existing booking, provide the booking's unique identifier to exclude its time slot from busy time calculations. This ensures the original booking time appears as available for rescheduling.\n\n       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-09-04",
+            "description": "Must be set to 2024-09-04. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11807,12 +12225,12 @@
       "post": {
         "operationId": "SlotsController_2024_09_04_reserveSlot",
         "summary": "Reserve a slot",
-        "description": "Make a slot not available for others to book for a certain period of time. If you authenticate using oAuth credentials, api key or access token\n    then you can also specify custom duration for how long the slot should be reserved for (defaults to 5 minutes).",
+        "description": "Make a slot not available for others to book for a certain period of time. If you authenticate using oAuth credentials, api key or access token\n    then you can also specify custom duration for how long the slot should be reserved for (defaults to 5 minutes).\n    \n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>    \n    ",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-09-04",
+            "description": "Must be set to 2024-09-04. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11867,11 +12285,12 @@
       "get": {
         "operationId": "SlotsController_2024_09_04_getReservedSlot",
         "summary": "Get reserved slot",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-09-04",
+            "description": "Must be set to 2024-09-04. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11904,11 +12323,12 @@
       "patch": {
         "operationId": "SlotsController_2024_09_04_updateReservedSlot",
         "summary": "Update a reserved slot",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-09-04",
+            "description": "Must be set to 2024-09-04. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -11951,11 +12371,12 @@
       "delete": {
         "operationId": "SlotsController_2024_09_04_deleteReservedSlot",
         "summary": "Delete a reserved slot",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
             "in": "header",
-            "description": "Must be set to 2024-09-04",
+            "description": "Must be set to 2024-09-04. If not set to this value, the endpoint will default to an older version.",
             "required": true,
             "schema": {
               "type": "string",
@@ -12617,6 +13038,7 @@
       "get": {
         "operationId": "TeamsMembershipsController_getTeamMemberships",
         "summary": "Get all memberships",
+        "description": "Retrieve team memberships with optional filtering by email addresses. Supports pagination.",
         "parameters": [
           {
             "name": "Authorization",
@@ -12658,6 +13080,19 @@
               "minimum": 0,
               "default": 0,
               "type": "number"
+            }
+          },
+          {
+            "name": "emails",
+            "required": false,
+            "in": "query",
+            "description": "Filter team memberships by email addresses. If you want to filter by multiple emails, separate them with a comma (max 20 emails for performance).",
+            "example": "?emails=user1@example.com,user2@example.com",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         ],
@@ -15214,14 +15649,27 @@
           }
         }
       },
+      "BookerActiveBookingsLimit_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "maximumActiveBookings": {
+            "type": "number",
+            "description": "The maximum number of active bookings a booker can have for this event type.",
+            "example": 3
+          },
+          "offerReschedule": {
+            "type": "boolean",
+            "description": "Whether to offer rescheduling the last active booking to the chosen time slot when limit is reached."
+          }
+        }
+      },
       "Disabled_2024_06_14": {
         "type": "object",
         "properties": {
           "disabled": {
             "type": "boolean",
-            "description": "Indicates if the option is disabled",
-            "example": true,
-            "default": false
+            "description": "Only acceptable value for the `disabled` property is `true`. It is used to reset the value of the property for which previously an object containing specific settings was passed.",
+            "example": true
           }
         },
         "required": ["disabled"]
@@ -15552,6 +16000,19 @@
         },
         "required": ["type"]
       },
+      "EmailSettings_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "disableEmailsToAttendees": {
+            "type": "boolean",
+            "description": "Disables all email communication to attendees for this event type, including booking confirmations, reminders, and cancellations. This DOES NOT include emails sent by custom email workflows."
+          },
+          "disableEmailsToHosts": {
+            "type": "boolean",
+            "description": "Disables all email communication to hosts for this event type, including booking confirmations, reminders, and cancellations. This DOES NOT include emails sent by custom email workflows."
+          }
+        }
+      },
       "CalVideoSettings": {
         "type": "object",
         "properties": {
@@ -15712,6 +16173,17 @@
               }
             ]
           },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
@@ -15838,7 +16310,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "locations": {
             "type": "array",
@@ -15877,22 +16349,11 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp"
-            ],
             "example": "address",
             "description": "only allowed value for type is `address`"
           },
           "address": {
             "type": "string",
-            "minLength": 1,
             "example": "123 Example St, City, Country"
           },
           "public": {
@@ -15906,16 +16367,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp"
-            ],
             "example": "link",
             "description": "only allowed value for type is `link`"
           },
@@ -15934,23 +16385,12 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp",
-              "conferencing",
-              "unknown"
-            ],
             "example": "integration",
             "description": "Only allowed value for type is `integration`"
           },
           "integration": {
             "type": "string",
+            "example": "cal-video",
             "enum": [
               "cal-video",
               "google-meet",
@@ -15981,8 +16421,7 @@
               "discord-video",
               "demodesk-video",
               "campfire-video"
-            ],
-            "example": "cal-video"
+            ]
           },
           "link": {
             "type": "string",
@@ -16000,16 +16439,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp"
-            ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
           },
@@ -16028,18 +16457,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp",
-              "conferencing",
-              "unknown"
-            ],
             "example": "organizersDefaultApp",
             "description": "only allowed value for type is `organizersDefaultApp`"
           }
@@ -16051,18 +16468,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "address",
-              "link",
-              "integration",
-              "phone",
-              "attendeeAddress",
-              "attendeePhone",
-              "attendeeDefined",
-              "organizersDefaultApp",
-              "conferencing",
-              "unknown"
-            ],
             "example": "unknown",
             "description": "only allowed value for type is `unknown`"
           },
@@ -16077,22 +16482,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "email",
             "description": "only allowed value for type is `email`",
             "default": "email"
@@ -16102,7 +16491,6 @@
           },
           "required": {
             "type": "object",
-            "default": true,
             "description": "Can be set to false only for organization team event types and if you also pass booking field {type: \"phone\", slug: \"attendeePhoneNumber\", required: true, hidden: false, label: \"whatever label\"} of booking field type PhoneFieldInput_2024_06_14 - this is done\n      to enable phone only bookings where during the booking attendee can provide only their phone number and not provide email, so you must pass to the email booking field {hidden: true, required: false}.\n      If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           },
           "hidden": {
@@ -16118,38 +16506,22 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "slug": {
             "type": "string",
             "default": "email"
           }
         },
-        "required": ["type", "isDefault", "slug"]
+        "required": ["type", "label", "placeholder", "isDefault", "slug"]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "name",
             "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
             "default": "name"
@@ -16166,9 +16538,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "slug": {
             "type": "string",
@@ -16178,16 +16550,16 @@
             "type": "boolean"
           }
         },
-        "required": ["type", "isDefault", "slug", "required"]
+        "required": ["type", "label", "placeholder", "isDefault", "slug", "required"]
       },
       "LocationDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "slug": {
             "type": "string",
@@ -16209,14 +16581,13 @@
             "type": "string"
           }
         },
-        "required": ["isDefault", "slug", "type", "required", "hidden"]
+        "required": ["isDefault", "slug", "type", "required", "hidden", "label"]
       },
       "RescheduleReasonDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "slug": {
             "type": "string",
-            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
             "example": "rescheduleReason",
             "description": "only allowed value for type is `rescheduleReason`",
             "default": "rescheduleReason"
@@ -16240,9 +16611,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "type": {
             "type": "string",
@@ -16256,7 +16627,6 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
             "example": "title",
             "description": "only allowed value for type is `title`",
             "default": "title"
@@ -16280,9 +16650,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "type": {
             "type": "string",
@@ -16296,7 +16666,6 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
             "example": "notes",
             "description": "only allowed value for type is `notes`",
             "default": "notes"
@@ -16320,9 +16689,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "type": {
             "type": "string",
@@ -16336,7 +16705,6 @@
         "properties": {
           "slug": {
             "type": "string",
-            "enum": ["title", "location", "notes", "guests", "rescheduleReason"],
             "example": "guests",
             "description": "only allowed value for type is `guests`",
             "default": "guests"
@@ -16360,9 +16728,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": true,
             "description": "This property is always true because it's a default field",
-            "example": true
+            "example": true,
+            "default": true
           },
           "type": {
             "type": "string",
@@ -16376,22 +16744,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "address",
             "description": "only allowed value for type is `address`"
           },
@@ -16421,34 +16773,18 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
-        "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
+        "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
       },
       "BooleanFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "boolean",
             "description": "only allowed value for type is `boolean`"
           },
@@ -16474,9 +16810,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
@@ -16486,22 +16822,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "checkbox",
             "description": "only allowed value for type is `checkbox`"
           },
@@ -16534,9 +16854,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": ["type", "slug", "label", "required", "options", "hidden", "isDefault"]
@@ -16546,22 +16866,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "multiemail",
             "description": "only allowed value for type is `multiemail`"
           },
@@ -16591,34 +16895,18 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
-        "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
+        "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
       },
       "MultiSelectFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "multiselect",
             "description": "only allowed value for type is `multiselect`"
           },
@@ -16651,9 +16939,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": ["type", "slug", "label", "required", "options", "hidden", "isDefault"]
@@ -16663,22 +16951,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "url",
             "description": "only allowed value for type is `url`"
           },
@@ -16708,34 +16980,18 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
-        "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
+        "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
       },
       "NumberFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "number",
             "description": "only allowed value for type is `number`"
           },
@@ -16765,34 +17021,18 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
-        "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
+        "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
       },
       "PhoneFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "phone",
             "description": "only allowed value for type is `phone`"
           },
@@ -16820,34 +17060,18 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
-        "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
+        "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
       },
       "RadioGroupFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "radio",
             "description": "only allowed value for type is `radio`"
           },
@@ -16880,9 +17104,9 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
         "required": ["type", "slug", "label", "required", "options", "hidden", "isDefault"]
@@ -16892,22 +17116,6 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "select",
             "description": "only allowed value for type is `select`"
           },
@@ -16944,34 +17152,18 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
-        "required": ["type", "slug", "label", "required", "options", "hidden", "isDefault"]
+        "required": ["type", "slug", "label", "required", "placeholder", "options", "hidden", "isDefault"]
       },
       "TextAreaFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "textarea",
             "description": "only allowed value for type is `textarea`"
           },
@@ -17001,34 +17193,18 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
-        "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
+        "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
       },
       "TextFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "phone",
-              "address",
-              "text",
-              "number",
-              "textarea",
-              "select",
-              "multiselect",
-              "multiemail",
-              "checkbox",
-              "radio",
-              "boolean",
-              "url"
-            ],
             "example": "text",
             "description": "only allowed value for type is `text`"
           },
@@ -17058,12 +17234,26 @@
           },
           "isDefault": {
             "type": "object",
-            "default": false,
             "description": "This property is always false because it's not default field but custom field",
-            "example": false
+            "example": false,
+            "default": false
           }
         },
-        "required": ["type", "slug", "label", "required", "hidden", "isDefault"]
+        "required": ["type", "slug", "label", "required", "placeholder", "hidden", "isDefault"]
+      },
+      "BookerActiveBookingsLimitOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "maximumActiveBookings": {
+            "type": "number",
+            "description": "The maximum number of active bookings a booker can have for this event type.",
+            "example": 3
+          },
+          "offerReschedule": {
+            "type": "boolean",
+            "description": "Whether to offer rescheduling the last active booking to the chosen time slot when limit is reached."
+          }
+        }
       },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
@@ -17251,6 +17441,9 @@
           "bookingLimitsCount": {
             "type": "object"
           },
+          "bookerActiveBookingsLimit": {
+            "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
           },
@@ -17324,7 +17517,7 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "ownerId": {
             "type": "number",
@@ -17535,6 +17728,17 @@
               }
             ]
           },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
@@ -17661,7 +17865,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "locations": {
             "type": "array",
@@ -19106,6 +19310,17 @@
               }
             ]
           },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
@@ -19232,7 +19447,7 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "schedulingType": {
             "type": "string",
@@ -19241,7 +19456,7 @@
             "description": "The scheduling type for the team event - collective, roundRobin or managed."
           },
           "hosts": {
-            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users.",
+            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Host"
@@ -19249,7 +19464,7 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean",
-            "description": "If true, all current and future team members will be assigned to this event type"
+            "description": "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both"
           },
           "locations": {
             "type": "array",
@@ -19282,66 +19497,21 @@
                 }
               ]
             }
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type - only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         },
         "required": ["lengthInMinutes", "title", "slug", "schedulingType"]
-      },
-      "CreateTeamEventTypeOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
-              },
-              {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
-                }
-              }
-            ]
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "TeamEventTypeResponseHost": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "number",
-            "description": "Which user is the host of this event"
-          },
-          "mandatory": {
-            "type": "boolean",
-            "default": false,
-            "description": "Only relevant for round robin event types. If true then the user must attend round robin event always."
-          },
-          "priority": {
-            "type": "string",
-            "default": "medium",
-            "enum": ["lowest", "low", "medium", "high", "highest"]
-          },
-          "name": {
-            "type": "string",
-            "example": "John Doe"
-          },
-          "username": {
-            "type": "string",
-            "example": "john-doe"
-          },
-          "avatarUrl": {
-            "type": "string",
-            "nullable": true,
-            "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png"
-          }
-        },
-        "required": ["userId", "name", "username"]
       },
       "EventTypeTeam": {
         "type": "object",
@@ -19374,7 +19544,17 @@
             "type": "string"
           }
         },
-        "required": ["id"]
+        "required": [
+          "id",
+          "slug",
+          "bannerUrl",
+          "name",
+          "logoUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "theme"
+        ]
       },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -19385,7 +19565,6 @@
           },
           "lengthInMinutes": {
             "type": "number",
-            "minimum": 1,
             "example": 60
           },
           "lengthInMinutesOptions": {
@@ -19393,8 +19572,7 @@
             "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
             "type": "array",
             "items": {
-              "type": "number",
-              "minimum": 1
+              "type": "number"
             }
           },
           "title": {
@@ -19502,23 +19680,20 @@
             "type": "boolean"
           },
           "slotInterval": {
-            "type": "number",
-            "nullable": true,
-            "example": 60
+            "type": "object",
+            "example": 60,
+            "nullable": true
           },
           "minimumBookingNotice": {
             "type": "number",
-            "minimum": 0,
             "example": 0
           },
           "beforeEventBuffer": {
             "type": "number",
-            "minimum": 0,
             "example": 0
           },
           "afterEventBuffer": {
             "type": "number",
-            "minimum": 0,
             "example": 0
           },
           "recurrence": {
@@ -19542,15 +19717,15 @@
             "type": "boolean"
           },
           "seatsPerTimeSlot": {
-            "type": "number",
+            "type": "object",
             "nullable": true
           },
           "forwardParamsSuccessRedirect": {
-            "type": "boolean",
+            "type": "object",
             "nullable": true
           },
           "successRedirectUrl": {
-            "type": "string",
+            "type": "object",
             "nullable": true
           },
           "isInstantEvent": {
@@ -19566,6 +19741,9 @@
           },
           "bookingLimitsCount": {
             "type": "object"
+          },
+          "bookerActiveBookingsLimit": {
+            "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
@@ -19609,8 +19787,7 @@
             "$ref": "#/components/schemas/Seats_2024_06_14"
           },
           "offsetStart": {
-            "type": "number",
-            "minimum": 1
+            "type": "number"
           },
           "customName": {
             "type": "string"
@@ -19629,7 +19806,6 @@
             "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
           },
           "calVideoSettings": {
-            "nullable": true,
             "description": "Cal video settings for the event type",
             "allOf": [
               {
@@ -19642,24 +19818,24 @@
           },
           "bookingRequiresAuthentication": {
             "type": "boolean",
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "teamId": {
             "type": "number"
           },
           "ownerId": {
-            "type": "number",
+            "type": "object",
             "nullable": true
           },
           "parentEventTypeId": {
-            "type": "number",
-            "nullable": true,
-            "description": "For managed event types, parent event type is the event type that this event type is based on"
+            "type": "object",
+            "description": "For managed event types, parent event type is the event type that this event type is based on",
+            "nullable": true
           },
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
+              "type": "string"
             }
           },
           "assignAllTeamMembers": {
@@ -19671,6 +19847,18 @@
           },
           "team": {
             "$ref": "#/components/schemas/EventTypeTeam"
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type. Only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         },
         "required": [
@@ -19691,11 +19879,37 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "hidden",
+          "bookingRequiresAuthentication",
           "teamId",
           "hosts",
           "schedulingType",
           "team"
         ]
+      },
+      "CreateTeamEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
+                }
+              }
+            ]
+          }
+        },
+        "required": ["status", "data"]
       },
       "GetTeamEventTypeOutput": {
         "type": "object",
@@ -19933,6 +20147,17 @@
               }
             ]
           },
+          "bookerActiveBookingsLimit": {
+            "description": "Limit the number of active bookings a booker can make for this event type.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BookerActiveBookingsLimit_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/Disabled_2024_06_14"
+              }
+            ]
+          },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean",
             "description": "This will limit your availability for this event type to one slot per day, scheduled at the earliest available time."
@@ -20059,9 +20284,10 @@
           "bookingRequiresAuthentication": {
             "type": "boolean",
             "default": false,
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users can book this event type."
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
           "hosts": {
+            "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Host"
@@ -20069,7 +20295,7 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean",
-            "description": "If true, all current and future team members will be assigned to this event type"
+            "description": "If true, all current and future team members will be assigned to this event type. Provide either assignAllTeamMembers or hosts but not both"
           },
           "locations": {
             "type": "array",
@@ -20102,6 +20328,18 @@
                 }
               ]
             }
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type. Only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
           }
         }
       },
@@ -20238,6 +20476,35 @@
           }
         },
         "required": ["userId", "role"]
+      },
+      "InviteDataDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Unique invitation token for this team. Share this token with prospective members to allow them to join the team/organization.",
+            "example": "f6a5c8b1d2e34c7f90a1b2c3d4e5f6a5b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2"
+          },
+          "inviteLink": {
+            "type": "string",
+            "description": "Complete invitation URL that can be shared with prospective members. Opens the signup page with the token and redirects to getting started after signup.",
+            "example": "http://app.cal.com/signup?token=f6a5c8b1d2e34c7f90a1b2c3d4e5f6a5b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2&callbackUrl=/getting-started"
+          }
+        },
+        "required": ["token", "inviteLink"]
+      },
+      "CreateInviteOutputDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/InviteDataDto"
+          }
+        },
+        "required": ["status", "data"]
       },
       "Attribute": {
         "type": "object",
@@ -20895,7 +21162,7 @@
           }
         }
       },
-      "WorkflowActivationOutputDto": {
+      "EventTypeWorkflowActivationOutputDto": {
         "type": "object",
         "properties": {
           "isActiveOnAllEventTypes": {
@@ -20931,7 +21198,7 @@
         },
         "required": ["value", "unit"]
       },
-      "WorkflowTriggerOutputDto": {
+      "EventTypeWorkflowTriggerOutputDto": {
         "type": "object",
         "properties": {
           "type": {
@@ -20985,7 +21252,7 @@
         },
         "required": ["subject"]
       },
-      "WorkflowStepOutputDto": {
+      "EventTypeWorkflowStepOutputDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -20997,21 +21264,6 @@
             "type": "number",
             "description": "Step number in the workflow sequence",
             "example": 1
-          },
-          "action": {
-            "type": "string",
-            "description": "Action to perform",
-            "example": "email_host",
-            "enum": [
-              "email_host",
-              "email_attendee",
-              "email_address",
-              "sms_attendee",
-              "sms_number",
-              "whatsapp_attendee",
-              "whatsapp_number",
-              "cal_ai_phone_call"
-            ]
           },
           "recipient": {
             "type": "string",
@@ -21027,6 +21279,12 @@
           "phone": {
             "type": "string",
             "description": "Verified Phone if action is SMS_NUMBER or WHATSAPP_NUMBER"
+          },
+          "phoneRequired": {
+            "type": "boolean",
+            "description": "whether or not the attendees are required to provide their phone numbers when booking",
+            "example": true,
+            "default": false
           },
           "template": {
             "type": "string",
@@ -21052,11 +21310,26 @@
                 "$ref": "#/components/schemas/WorkflowMessageOutputDto"
               }
             ]
+          },
+          "action": {
+            "type": "string",
+            "description": "Action to perform",
+            "example": "email_host",
+            "enum": [
+              "email_host",
+              "email_attendee",
+              "email_address",
+              "sms_attendee",
+              "sms_number",
+              "whatsapp_attendee",
+              "whatsapp_number",
+              "cal_ai_phone_call"
+            ]
           }
         },
-        "required": ["id", "stepNumber", "action", "recipient", "template", "sender", "message"]
+        "required": ["id", "stepNumber", "recipient", "template", "sender", "message", "action"]
       },
-      "WorkflowOutput": {
+      "EventTypeWorkflowOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -21079,29 +21352,6 @@
             "description": "ID of the team owning the workflow",
             "example": 4214321
           },
-          "activation": {
-            "description": "Activation settings (scope)",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/WorkflowActivationOutputDto"
-              }
-            ]
-          },
-          "trigger": {
-            "description": "Trigger configuration",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/WorkflowTriggerOutputDto"
-              }
-            ]
-          },
-          "steps": {
-            "description": "Steps comprising the workflow",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkflowStepOutputDto"
-            }
-          },
           "createdAt": {
             "type": "object",
             "description": "Timestamp of creation",
@@ -21111,11 +21361,41 @@
             "type": "object",
             "description": "Timestamp of last update",
             "example": "2024-05-12T11:30:00.000Z"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["event-type"],
+            "description": "type of the workflow",
+            "example": "event-type",
+            "default": "event-type"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeWorkflowActivationOutputDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeWorkflowTriggerOutputDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps comprising the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeWorkflowStepOutputDto"
+            }
           }
         },
-        "required": ["id", "name", "activation", "trigger", "steps"]
+        "required": ["id", "name", "type", "activation", "trigger", "steps"]
       },
-      "GetWorkflowsOutput": {
+      "GetEventTypeWorkflowsOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -21128,13 +21408,205 @@
             "description": "List of workflows",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowOutput"
+              "$ref": "#/components/schemas/EventTypeWorkflowOutput"
             }
           }
         },
         "required": ["status", "data"]
       },
-      "GetWorkflowOutput": {
+      "RoutingFormWorkflowActivationOutputDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAllRoutingForms": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether the workflow is active for all routing forms associated with the team/user",
+            "example": false
+          },
+          "activeOnRoutingFormIds": {
+            "description": "List of Event Type IDs the workflow is specifically active on (if not active on all)",
+            "example": ["5cacdec7-1234-6e1b-78d9-7bcda8a1b332"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RoutingFormWorkflowTriggerOutputDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Trigger type for the workflow",
+            "example": "formSubmitted",
+            "enum": ["formSubmitted", "formSubmittedNoEvent"]
+          },
+          "offset": {
+            "description": "Offset details (present for BEFORE_EVENT/AFTER_EVENT/FORM_SUBMITTED_NO_EVENT)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetOutputDto"
+              }
+            ]
+          }
+        },
+        "required": ["type"]
+      },
+      "RoutingFormWorkflowStepOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the step",
+            "example": 67244
+          },
+          "stepNumber": {
+            "type": "number",
+            "description": "Step number in the workflow sequence",
+            "example": 1
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Intended recipient type",
+            "example": "const",
+            "enum": ["const", "attendee", "email", "phone_number"]
+          },
+          "email": {
+            "type": "string",
+            "description": "Verified Email  if action is EMAIL_ADDRESS",
+            "example": 31214
+          },
+          "phone": {
+            "type": "string",
+            "description": "Verified Phone if action is SMS_NUMBER or WHATSAPP_NUMBER"
+          },
+          "phoneRequired": {
+            "type": "boolean",
+            "description": "whether or not the attendees are required to provide their phone numbers when booking",
+            "example": true,
+            "default": false
+          },
+          "template": {
+            "type": "string",
+            "description": "Template type used",
+            "example": "reminder",
+            "enum": ["reminder", "custom", "rescheduled", "completed", "rating", "cancelled"]
+          },
+          "includeCalendarEvent": {
+            "type": "object",
+            "default": false,
+            "description": "Whether a calendar event (.ics) was included (for email actions)",
+            "example": true
+          },
+          "sender": {
+            "type": "string",
+            "description": "Displayed sender name used for this step",
+            "example": "Cal.com Notifications"
+          },
+          "message": {
+            "description": "Message content for this step",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowMessageOutputDto"
+              }
+            ]
+          },
+          "action": {
+            "type": "string",
+            "description": "Action to perform",
+            "example": "email_host",
+            "enum": ["email_attendee", "email_address"]
+          }
+        },
+        "required": ["id", "stepNumber", "recipient", "template", "sender", "message", "action"]
+      },
+      "RoutingFormWorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Unique identifier of the workflow",
+            "example": 101
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "userId": {
+            "type": "number",
+            "description": "ID of the user who owns the workflow (if not team-owned)",
+            "example": 2313
+          },
+          "teamId": {
+            "type": "number",
+            "description": "ID of the team owning the workflow",
+            "example": 4214321
+          },
+          "createdAt": {
+            "type": "object",
+            "description": "Timestamp of creation",
+            "example": "2024-05-12T10:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "object",
+            "description": "Timestamp of last update",
+            "example": "2024-05-12T11:30:00.000Z"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["routing-form"],
+            "description": "type of the workflow",
+            "example": "routing-form",
+            "default": "routing-form"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RoutingFormWorkflowActivationOutputDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RoutingFormWorkflowTriggerOutputDto"
+              }
+            ]
+          },
+          "steps": {
+            "description": "Steps comprising the workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormWorkflowStepOutputDto"
+            }
+          }
+        },
+        "required": ["id", "name", "type", "activation", "trigger", "steps"]
+      },
+      "GetRoutingFormWorkflowsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "List of workflows",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormWorkflowOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetEventTypeWorkflowOutput": {
         "type": "object",
         "properties": {
           "status": {
@@ -21147,7 +21619,26 @@
             "description": "workflow",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WorkflowOutput"
+              "$ref": "#/components/schemas/EventTypeWorkflowOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "GetRoutingFormWorkflowOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Indicates the status of the response",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "description": "workflow",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormWorkflowOutput"
             }
           }
         },
@@ -21174,7 +21665,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21195,7 +21686,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21307,7 +21798,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21328,7 +21819,7 @@
         "type": "object",
         "properties": {
           "offset": {
-            "description": "Offset before/after the trigger time; required for BEFORE_EVENT and AFTER_EVENT only",
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
@@ -21628,6 +22119,12 @@
                 "$ref": "#/components/schemas/TextWorkflowMessageDto"
               }
             ]
+          },
+          "phoneRequired": {
+            "type": "boolean",
+            "default": false,
+            "description": "whether or not the attendees are required to provide their phone numbers when booking",
+            "example": true
           }
         },
         "required": ["action", "stepNumber", "recipient", "template", "sender", "message"]
@@ -21801,32 +22298,37 @@
                 "$ref": "#/components/schemas/TextWorkflowMessageDto"
               }
             ]
+          },
+          "phoneRequired": {
+            "type": "boolean",
+            "default": false,
+            "description": "whether or not the attendees are required to provide their phone numbers when booking",
+            "example": true
           }
         },
         "required": ["action", "stepNumber", "recipient", "template", "sender", "message"]
       },
-      "BaseWorkflowTriggerDto": {
+      "EventTypeWorkflowTriggerDto": {
         "type": "object",
         "properties": {
           "type": {
             "type": "object",
             "enum": [
-              [
-                "beforeEvent",
-                "eventCancelled",
-                "newEvent",
-                "afterEvent",
-                "rescheduleEvent",
-                "afterHostsCalVideoNoShow",
-                "afterGuestsCalVideoNoShow",
-                "bookingRejected",
-                "bookingRequested",
-                "bookingPaymentInitiated",
-                "bookingPaid",
-                "bookingNoShowUpdated"
-              ]
+              "beforeEvent",
+              "eventCancelled",
+              "newEvent",
+              "afterEvent",
+              "rescheduleEvent",
+              "afterHostsCalVideoNoShow",
+              "afterGuestsCalVideoNoShow",
+              "bookingRejected",
+              "bookingRequested",
+              "bookingPaymentInitiated",
+              "bookingPaid",
+              "bookingNoShowUpdated"
             ],
-            "description": "Trigger type for the workflow"
+            "description": "Trigger type for the event-type workflow",
+            "example": "beforeEvent"
           }
         },
         "required": ["type"]
@@ -21852,7 +22354,7 @@
         },
         "required": ["isActiveOnAllEventTypes"]
       },
-      "CreateWorkflowDto": {
+      "CreateEventTypeWorkflowDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -21869,7 +22371,7 @@
             ]
           },
           "trigger": {
-            "description": "Trigger configuration for the workflow",
+            "description": "Trigger configuration for the event-type workflow, allowed triggers are beforeEvent,eventCancelled,newEvent,afterEvent,rescheduleEvent,afterHostsCalVideoNoShow,afterGuestsCalVideoNoShow,bookingRejected,bookingRequested,bookingPaymentInitiated,bookingPaid,bookingNoShowUpdated",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
@@ -21911,7 +22413,7 @@
           },
           "steps": {
             "type": "array",
-            "description": "Steps to execute as part of the workflow",
+            "description": "Steps to execute as part of the event-type workflow, allowed steps are email_host,email_attendee,email_address,sms_attendee,sms_number,whatsapp_attendee,whatsapp_number,cal_ai_phone_call",
             "items": {
               "oneOf": [
                 {
@@ -21934,6 +22436,115 @@
                 },
                 {
                   "$ref": "#/components/schemas/WorkflowPhoneAttendeeStepDto"
+                }
+              ]
+            }
+          }
+        },
+        "required": ["name", "activation", "trigger", "steps"]
+      },
+      "OnFormSubmittedTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "formSubmitted",
+            "enum": ["formSubmitted"],
+            "description": "Trigger type for the workflow",
+            "example": "formSubmitted"
+          }
+        },
+        "required": ["type"]
+      },
+      "OnFormSubmittedNoEventTriggerDto": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "description": "Offset before/after the trigger time; required for BEFORE_EVENT, AFTER_EVENT, and FORM_SUBMITTED_NO_EVENT",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowTriggerOffsetDto"
+              }
+            ]
+          },
+          "type": {
+            "type": "string",
+            "default": "formSubmittedNoEvent",
+            "enum": ["formSubmittedNoEvent"],
+            "description": "Trigger type for the workflow",
+            "example": "formSubmittedNoEvent"
+          }
+        },
+        "required": ["offset", "type"]
+      },
+      "RoutingFormWorkflowTriggerDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "object",
+            "enum": ["formSubmitted", "formSubmittedNoEvent"],
+            "description": "Trigger type for the routing-form workflow",
+            "example": "formSubmitted"
+          }
+        },
+        "required": ["type"]
+      },
+      "WorkflowFormActivationDto": {
+        "type": "object",
+        "properties": {
+          "isActiveOnAllRoutingForms": {
+            "type": "boolean",
+            "description": "Whether the workflow is active for all the routing forms",
+            "example": false
+          },
+          "activeOnRoutingFormIds": {
+            "description": "List of routing form IDs the workflow applies to",
+            "example": ["abd1-123edf-a213d-123dfwf"],
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": ["isActiveOnAllRoutingForms"]
+      },
+      "CreateFormWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Platform Test Workflow"
+          },
+          "activation": {
+            "description": "Activation settings for the workflow",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowFormActivationDto"
+              }
+            ]
+          },
+          "trigger": {
+            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted,formSubmittedNoEvent",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnFormSubmittedNoEventTriggerDto"
+              }
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/WorkflowEmailAddressStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/WorkflowEmailAttendeeStepDto"
                 }
               ]
             }
@@ -22212,6 +22823,12 @@
               }
             ]
           },
+          "phoneRequired": {
+            "type": "boolean",
+            "default": false,
+            "description": "whether or not the attendees are required to provide their phone numbers when booking",
+            "example": true
+          },
           "id": {
             "type": "number",
             "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
@@ -22332,6 +22949,12 @@
               }
             ]
           },
+          "phoneRequired": {
+            "type": "boolean",
+            "default": false,
+            "description": "whether or not the attendees are required to provide their phone numbers when booking",
+            "example": true
+          },
           "id": {
             "type": "number",
             "description": "Unique identifier of the step you want to update, if adding a new step do not provide this id",
@@ -22404,7 +23027,7 @@
         },
         "required": ["action", "stepNumber", "recipient", "template", "sender", "verifiedPhoneId", "message"]
       },
-      "UpdateWorkflowDto": {
+      "UpdateEventTypeWorkflowDto": {
         "type": "object",
         "properties": {
           "name": {
@@ -22413,7 +23036,7 @@
             "example": "Platform Test Workflow"
           },
           "activation": {
-            "description": "Activation settings for the workflow, the action that will trigger the workflow.",
+            "description": "Activation settings for the workflow",
             "allOf": [
               {
                 "$ref": "#/components/schemas/WorkflowActivationDto"
@@ -22421,7 +23044,7 @@
             ]
           },
           "trigger": {
-            "description": "Trigger configuration for the workflow",
+            "description": "Trigger configuration for the event-type workflow, allowed triggers are beforeEvent,eventCancelled,newEvent,afterEvent,rescheduleEvent,afterHostsCalVideoNoShow,afterGuestsCalVideoNoShow,bookingRejected,bookingRequested,bookingPaymentInitiated,bookingPaid,bookingNoShowUpdated",
             "oneOf": [
               {
                 "$ref": "#/components/schemas/OnBeforeEventTriggerDto"
@@ -22463,7 +23086,7 @@
           },
           "steps": {
             "type": "array",
-            "description": "Steps to execute as part of the workflow",
+            "description": "Steps to execute as part of the event-type workflow, allowed steps are email_host,email_attendee,email_address,sms_attendee,sms_number,whatsapp_attendee,whatsapp_number,cal_ai_phone_call",
             "items": {
               "oneOf": [
                 {
@@ -22489,6 +23112,44 @@
                 }
               ]
             }
+          }
+        }
+      },
+      "UpdateFormWorkflowDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the workflow",
+            "example": "Rounting-form Test Workflow"
+          },
+          "trigger": {
+            "description": "Trigger configuration for the routing-form workflow, allowed triggers are formSubmitted,formSubmittedNoEvent",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OnFormSubmittedTriggerDto"
+              },
+              {
+                "$ref": "#/components/schemas/OnFormSubmittedNoEventTriggerDto"
+              }
+            ]
+          },
+          "steps": {
+            "type": "array",
+            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UpdateEmailAddressWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdateEmailAttendeeWorkflowStepDto"
+                }
+              ]
+            }
+          },
+          "activation": {
+            "$ref": "#/components/schemas/WorkflowFormActivationDto"
           }
         }
       },
@@ -22814,28 +23475,6 @@
         },
         "required": ["name"]
       },
-      "CreateTeamOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Output"
-              },
-              {
-                "$ref": "#/components/schemas/TeamOutputDto"
-              }
-            ],
-            "description": "Either an Output object or a TeamOutputDto."
-          }
-        },
-        "required": ["status", "data"]
-      },
       "TeamOutputDto": {
         "type": "object",
         "properties": {
@@ -22846,8 +23485,7 @@
             "type": "number"
           },
           "name": {
-            "type": "string",
-            "minLength": 1
+            "type": "string"
           },
           "slug": {
             "type": "string"
@@ -22877,8 +23515,7 @@
             "type": "boolean"
           },
           "hideBookATeamMember": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "metadata": {
             "type": "object",
@@ -22911,6 +23548,43 @@
           }
         },
         "required": ["id", "name", "isOrganization"]
+      },
+      "CreateTeamOutputData": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "paymentLink": {
+            "type": "string"
+          },
+          "pendingTeam": {
+            "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": ["message", "paymentLink", "pendingTeam"]
+      },
+      "CreateTeamOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CreateTeamOutputData"
+              },
+              {
+                "$ref": "#/components/schemas/TeamOutputDto"
+              }
+            ],
+            "description": "Either an Output object or a TeamOutputDto."
+          }
+        },
+        "required": ["status", "data"]
       },
       "GetTeamOutput": {
         "type": "object",
@@ -23083,6 +23757,21 @@
           }
         },
         "required": ["private_key", "client_email", "client_id"]
+      },
+      "MicrosoftServiceAccountKeyInput": {
+        "type": "object",
+        "properties": {
+          "private_key": {
+            "type": "string"
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": ["private_key", "tenant_id", "client_id"]
       },
       "CreateDelegationCredentialInput": {
         "type": "object",
@@ -23893,6 +24582,14 @@
         },
         "required": ["status", "data"]
       },
+      "SlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
+      "RangeSlotsOutput_2024_09_04": {
+        "type": "object",
+        "properties": {}
+      },
       "Routing": {
         "type": "object",
         "properties": {
@@ -24106,14 +24803,6 @@
           }
         },
         "required": ["status", "data"]
-      },
-      "SlotsOutput_2024_09_04": {
-        "type": "object",
-        "properties": {}
-      },
-      "RangeSlotsOutput_2024_09_04": {
-        "type": "object",
-        "properties": {}
       },
       "ResponseSlotsOutputData": {
         "type": "object",
@@ -26351,6 +27040,10 @@
             "type": "string",
             "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
             "description": "Uid of the specific seat within booking."
+          },
+          "cancellationReason": {
+            "type": "string",
+            "example": "User requested cancellation"
           }
         },
         "required": ["seatUid"]
@@ -26942,6 +27635,135 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "CalendarEventVideoLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "video",
+            "enum": ["video"],
+            "description": "Indicates this is a video conference location"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL for joining the video conference"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name for the video conference"
+          },
+          "password": {
+            "type": "string",
+            "nullable": true,
+            "description": "Password required to join the video conference"
+          },
+          "meetingCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Meeting code or ID required to join the conference"
+          },
+          "accessCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Access code required to join the conference"
+          }
+        },
+        "required": ["type", "url"]
+      },
+      "CalendarEventPhoneLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "phone",
+            "enum": ["phone"],
+            "description": "Indicates this is a phone conference location"
+          },
+          "url": {
+            "type": "string",
+            "description": "Phone number or URL for dialing into the conference"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name for the phone conference"
+          },
+          "pin": {
+            "type": "string",
+            "nullable": true,
+            "description": "PIN number required for the phone conference"
+          },
+          "password": {
+            "type": "string",
+            "nullable": true,
+            "description": "Password required for the phone conference"
+          },
+          "accessCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Access code required for the phone conference"
+          },
+          "regionCode": {
+            "type": "string",
+            "nullable": true,
+            "description": "Country/region code for the phone number"
+          }
+        },
+        "required": ["type", "url"]
+      },
+      "CalendarEventSipLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "sip",
+            "enum": ["sip"],
+            "description": "Indicates this is a SIP (Session Initiation Protocol) conference location"
+          },
+          "url": {
+            "type": "string",
+            "description": "SIP URL for joining the conference"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name for the SIP conference"
+          },
+          "pin": {
+            "type": "string",
+            "nullable": true,
+            "description": "PIN number required for the SIP conference"
+          },
+          "password": {
+            "type": "string",
+            "nullable": true,
+            "description": "Password required for the SIP conference"
+          }
+        },
+        "required": ["type", "url"]
+      },
+      "CalendarEventMoreLocation": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "default": "more",
+            "enum": ["more"],
+            "description": "Indicates this is an additional conference location type"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL for accessing this location"
+          },
+          "label": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name for this location"
+          }
+        },
+        "required": ["type", "url"]
       },
       "CalendarEventResponseStatus": {
         "type": "string",
