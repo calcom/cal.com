@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
+import { WebhookVersion } from "@calcom/prisma/enums";
 import { WebhookSchema } from "@calcom/prisma/zod/modelSchema/WebhookSchema";
 
 const schemaWebhookBaseBodyParams = WebhookSchema.pick({
@@ -21,10 +22,7 @@ export const schemaWebhookCreateParams = z
     eventTypeId: z.number().optional(),
     userId: z.number().optional(),
     secret: z.string().optional().nullable(),
-    version: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/)
-      .optional(),
+    version: z.nativeEnum(WebhookVersion).optional(),
     // API shouldn't mess with Apps webhooks yet (ie. Zapier)
     // appId: z.string().optional().nullable(),
   })
@@ -37,10 +35,7 @@ export const schemaWebhookEditBodyParams = schemaWebhookBaseBodyParams
     z.object({
       eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
       secret: z.string().optional().nullable(),
-      version: z
-        .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/)
-        .optional(),
+      version: z.nativeEnum(WebhookVersion).optional(),
     })
   )
   .partial()

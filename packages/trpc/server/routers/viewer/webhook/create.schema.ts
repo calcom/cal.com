@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
+import { WebhookVersion } from "@calcom/prisma/enums";
 
 import { webhookIdAndEventTypeIdSchema } from "./types";
 
@@ -17,10 +18,7 @@ export const ZCreateInputSchema = webhookIdAndEventTypeIdSchema.extend({
   platform: z.boolean().optional(),
   time: z.number().nullable().optional(),
   timeUnit: z.enum(TIME_UNIT).nullable().optional(),
-  version: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  version: z.nativeEnum(WebhookVersion).optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

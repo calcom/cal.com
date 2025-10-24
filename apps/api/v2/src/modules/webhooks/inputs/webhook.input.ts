@@ -1,7 +1,8 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
-import { IsArray, IsBoolean, IsEnum, IsOptional, IsString, Matches } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 
 import { WebhookTriggerEvents } from "@calcom/platform-libraries";
+import { WebhookVersion } from "@calcom/prisma/enums";
 
 export class CreateWebhookInputDto {
   @IsString()
@@ -49,15 +50,14 @@ export class CreateWebhookInputDto {
   @ApiPropertyOptional()
   secret?: string;
 
-  @IsString()
   @IsOptional()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: "Version must be in YYYY-MM-DD format" })
+  @IsEnum(WebhookVersion)
   @ApiPropertyOptional({
-    description: "The version of the webhook in YYYY-MM-DD format",
-    example: "2021-10-20",
-    pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+    description: "The version of the webhook",
+    example: WebhookVersion.V_2021_10_20,
+    enum: WebhookVersion,
   })
-  version?: string;
+  version?: WebhookVersion;
 }
 
 export class UpdateWebhookInputDto extends PartialType(CreateWebhookInputDto) {}

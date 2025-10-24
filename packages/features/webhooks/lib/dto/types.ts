@@ -1,6 +1,6 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
-import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { TimeUnit, WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export interface BaseEventDTO {
@@ -404,6 +404,7 @@ export interface WebhookSubscriber {
   time?: number | null;
   timeUnit?: TimeUnit | null;
   eventTriggers: WebhookTriggerEvents[];
+  version: WebhookVersion;
 }
 
 export interface WebhookDeliveryResult {
