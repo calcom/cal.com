@@ -46,14 +46,23 @@ export default function JoinCall(props: PageProps) {
     guestSessionId,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
+  const [guestCredentials, setGuestCredentials] = useState<{
+    meetingPassword: string;
+    meetingUrl: string;
+    userName: string;
+  } | null>(null);
 
   const userNameForCall = overrideName ?? loggedInUserName ?? undefined;
   const hideLoginModal =
     !!userNameForCall && (requireEmailForGuests ? guestSessionId || loggedInUserName : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
+  const activeMeetingPassword = guestCredentials?.meetingPassword ?? meetingPassword;
+  const activeMeetingUrl = guestCredentials?.meetingUrl ?? meetingUrl;
+  const activeUserName = guestCredentials?.userName ?? userNameForCall;
+
   const createCallFrame = useCallback(
-    (userName?: string) => {
+    (userName?: string, password?: string, url?: string) => {
       let callFrame: DailyCall | undefined;
 
       try {
@@ -78,9 +87,9 @@ export default function JoinCall(props: PageProps) {
             width: "100%",
             height: "100%",
           },
-          url: meetingUrl,
+          url: url ?? meetingUrl,
           userName: userName,
-          ...(typeof meetingPassword === "string" && { token: meetingPassword }),
+          ...(typeof (password ?? meetingPassword) === "string" && { token: password ?? meetingPassword }),
           ...(hasTeamPlan && {
             customTrayButtons: {
               ...(showRecordingButton
@@ -120,14 +129,15 @@ export default function JoinCall(props: PageProps) {
   );
 
   useEffect(() => {
-    if (!loggedInUserName && !overrideName && !hideLoginModal) {
+    if (!loggedInUserName && !overrideName && !hideLoginModal && !guestCredentials) {
       return;
     }
 
     let callFrame: DailyCall | null = null;
 
     try {
-      callFrame = createCallFrame(userNameForCall) ?? null;
+      callFrame =
+        createCallFrame(activeUserName, activeMeetingPassword, activeMeetingUrl) ?? null;
       setDaily(callFrame);
       setIsCallFrameReady(true);
 
@@ -147,7 +157,16 @@ export default function JoinCall(props: PageProps) {
       setDaily(null);
       setIsCallFrameReady(false);
     };
-  }, [hideLoginModal, userNameForCall, createCallFrame, loggedInUserName, overrideName]);
+  }, [
+    hideLoginModal,
+    activeUserName,
+    activeMeetingPassword,
+    activeMeetingUrl,
+    createCallFrame,
+    loggedInUserName,
+    overrideName,
+    guestCredentials,
+  ]);
 
   return (
     <DailyProvider callObject={daily}>
@@ -193,6 +212,9 @@ export default function JoinCall(props: PageProps) {
           loggedInUserName={loggedInUserName ?? undefined}
           overrideName={overrideName}
           requireEmailForGuests={requireEmailForGuests}
+          onGuestCredentialsReceived={setGuestCredentials}
+          meetingPassword={meetingPassword}
+          meetingUrl={meetingUrl}
         />
       )}
 
@@ -276,11 +298,27 @@ interface LogInOverlayProps {
   loggedInUserName?: string;
   overrideName?: string;
   requireEmailForGuests?: boolean;
+  onGuestCredentialsReceived: (credentials: {
+    meetingPassword: string;
+    meetingUrl: string;
+    userName: string;
+  }) => void;
+  meetingPassword: string;
+  meetingUrl: string;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
-  const { bookingUid, isOpen: _open, loggedInUserName, overrideName, requireEmailForGuests = false } = props;
+  const {
+    bookingUid,
+    isOpen: _open,
+    loggedInUserName,
+    overrideName,
+    requireEmailForGuests = false,
+    onGuestCredentialsReceived,
+    meetingPassword,
+    meetingUrl,
+  } = props;
 
   const [isOpen, setIsOpen] = useState(_open);
   const [userName, setUserName] = useState(overrideName ?? loggedInUserName ?? "");
@@ -333,17 +371,24 @@ export function LogInOverlay(props: LogInOverlayProps) {
           throw new Error("Failed to create guest session");
         }
 
-        const { guestSessionId } = await response.json();
+        const { meetingPassword, meetingUrl } = await response.json();
 
-        const url = new URL(window.location.href);
-        url.searchParams.set("guestId", guestSessionId);
-        url.searchParams.set("name", trimmedName);
-        window.location.href = url.toString();
+        onGuestCredentialsReceived({
+          meetingPassword,
+          meetingUrl,
+          userName: trimmedName,
+        });
+
+        setIsOpen(false);
       } else {
-        // If email not required, just join as guest with name
-        const url = new URL(window.location.href);
-        url.searchParams.set("name", trimmedName);
-        window.location.href = url.toString();
+        // If email not required, use existing credentials from SSR props
+        onGuestCredentialsReceived({
+          meetingPassword,
+          meetingUrl,
+          userName: trimmedName,
+        });
+
+        setIsOpen(false);
       }
     } catch (error) {
       console.error("Error joining as guest:", error);
@@ -351,7 +396,16 @@ export function LogInOverlay(props: LogInOverlayProps) {
       setError(errorMessage);
       setIsLoading(false);
     }
-  }, [userName, userEmail, bookingUid, requireEmailForGuests, t]);
+  }, [
+    userName,
+    userEmail,
+    bookingUid,
+    requireEmailForGuests,
+    t,
+    onGuestCredentialsReceived,
+    meetingPassword,
+    meetingUrl,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {

@@ -4,6 +4,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 
+import {
+  generateGuestMeetingTokenFromOwnerMeetingToken,
+  updateMeetingTokenIfExpired,
+} from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import prisma from "@calcom/prisma";
 
 const videoCallGuestWithCsrfSchema = z.object({
@@ -32,6 +37,9 @@ async function handler(req: NextRequest) {
 
   const booking = await prisma.booking.findUnique({
     where: { uid: guestData.bookingUid },
+    include: {
+      references: true,
+    },
   });
 
   if (!booking) {
@@ -53,7 +61,33 @@ async function handler(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ guestSessionId: guestSession.id });
+  const videoReference = getCalVideoReference(booking.references);
+
+  if (!videoReference) {
+    return NextResponse.json({ error: "Video reference not found" }, { status: 404 });
+  }
+
+  const endTime = new Date(booking.endTime);
+  const fourteenDaysAfter = new Date(endTime.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const epochTimeFourteenDaysAfter = Math.floor(fourteenDaysAfter.getTime() / 1000);
+
+  const videoReferencePassword = await updateMeetingTokenIfExpired({
+    bookingReferenceId: videoReference.id,
+    roomName: videoReference.uid,
+    meetingToken: videoReference.meetingPassword,
+    exp: epochTimeFourteenDaysAfter,
+  });
+
+  const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
+    meetingToken: videoReferencePassword,
+    userId: guestSession.id,
+  });
+
+  return NextResponse.json({
+    guestSessionId: guestSession.id,
+    meetingPassword: guestMeetingPassword,
+    meetingUrl: videoReference.meetingUrl,
+  });
 }
 
 export const POST = defaultResponderForAppDir(handler);
