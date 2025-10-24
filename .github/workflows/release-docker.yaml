@@ -118,7 +118,6 @@ jobs:
 
             server_pid=$!
 
-
             echo "Waiting for the server to start..."
             sleep 120
 
