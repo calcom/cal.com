@@ -28,7 +28,7 @@ export async function fetchGeolocation() {
   localStorage.setItem(CACHE_KEY, JSON.stringify(newCacheData));
   return data;
 }
-
+//
 export function useGeolocation() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["geolocation"],

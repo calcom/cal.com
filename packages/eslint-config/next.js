@@ -46,6 +46,17 @@ export const nextJsConfig = [
       // React scope no longer necessary with new JSX transform.
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
+      "no-restricted-properties": [
+        "warn",
+        {
+          name: "localStorage",
+          message: "Avoid using localStorage",
+        },
+        {
+          name: "localStorage",
+          message: "Avoid using sessionStorage",
+        },
+      ],
     },
   },
 ];
