@@ -129,14 +129,37 @@ async function getEmailVerificationRequirements(guestEmails: string[]): Promise<
   return emailToRequiresVerification;
 }
 
-async function sanitizeAndFilterGuests(guests: string[], booking: Booking): Promise<string[]> {
-  const deduplicatedGuests = deduplicateGuestEmails(guests);
+async function sanitizeAndFilterGuests(
+  guests: Array<{
+    email: string;
+    name?: string;
+    timeZone?: string;
+    phoneNumber?: string;
+    language?: string;
+  }>,
+  booking: Booking
+): Promise<
+  Array<{
+    email: string;
+    name?: string;
+    timeZone?: string;
+    phoneNumber?: string;
+    language?: string;
+  }>
+> {
+  const guestEmails = guests.map((guest) => guest.email);
+  const deduplicatedGuests = deduplicateGuestEmails(guestEmails);
   const blacklistedGuestEmails = getBlacklistedEmails();
-  const guestEmails = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
-  const emailToRequiresVerification = await getEmailVerificationRequirements(guestEmails);
+  const guestEmailsLowerCase = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
+  const emailToRequiresVerification = await getEmailVerificationRequirements(guestEmailsLowerCase);
 
-  const uniqueGuests = deduplicatedGuests.filter((guest) => {
-    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+  // Create a map of email to guest object for easy lookup
+  const emailToGuestMap = new Map(
+    guests.map((guest) => [extractBaseEmail(guest.email).toLowerCase(), guest])
+  );
+
+  const uniqueGuestEmails = deduplicatedGuests.filter((email) => {
+    const baseGuestEmail = extractBaseEmail(email).toLowerCase();
     return (
       !booking.attendees.some(
         (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
@@ -146,17 +169,20 @@ async function sanitizeAndFilterGuests(guests: string[], booking: Booking): Prom
     );
   });
 
-  if (uniqueGuests.length === 0) {
+  if (uniqueGuestEmails.length === 0) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
   }
 
-  return uniqueGuests;
+  // Return the full guest objects for unique emails
+  return uniqueGuestEmails
+    .map((email) => emailToGuestMap.get(extractBaseEmail(email).toLowerCase()))
+    .filter((guest): guest is NonNullable<typeof guest> => guest !== undefined);
 }
 
 async function updateBookingWithGuests(
   bookingId: number,
   newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[],
-  uniqueGuests: string[],
+  uniqueGuestEmails: string[],
   booking: Booking
 ) {
   const bookingResponses = booking.responses as BookingResponses;
@@ -167,7 +193,7 @@ async function updateBookingWithGuests(
     newAttendees,
     updatedResponses: {
       ...bookingResponses,
-      guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
+      guests: [...(bookingResponses?.guests || []), ...uniqueGuestEmails],
     },
   });
 }
@@ -285,13 +311,20 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
   const uniqueGuests = await sanitizeAndFilterGuests(guests, booking);
 
   const newGuestsDetails = uniqueGuests.map((guest) => ({
-    name: "",
-    email: guest,
-    timeZone: organizer.timeZone,
-    locale: organizer.locale,
+    name: guest.name || "",
+    email: guest.email,
+    timeZone: guest.timeZone || organizer.timeZone,
+    locale: guest.language || organizer.locale,
   }));
 
-  const bookingAttendees = await updateBookingWithGuests(bookingId, newGuestsDetails, uniqueGuests, booking);
+  const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
+
+  const bookingAttendees = await updateBookingWithGuests(
+    bookingId,
+    newGuestsDetails,
+    uniqueGuestEmails,
+    booking
+  );
 
   const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
@@ -300,7 +333,7 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
   await updateCalendarEvent(booking, evt);
 
   if (emailsEnabled) {
-    await sendGuestNotifications(evt, booking, uniqueGuests);
+    await sendGuestNotifications(evt, booking, uniqueGuestEmails);
   }
 
   return { message: "Guests added" };

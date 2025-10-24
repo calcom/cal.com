@@ -1,8 +1,8 @@
-import { BookingGuestsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-guests.controller";
+import { BookingAttendeesController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-attendees.controller";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
-import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
+import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
@@ -74,7 +74,7 @@ import { Module } from "@nestjs/common";
     OAuthClientRepository,
     OAuthClientUsersService,
     BookingsService_2024_08_13,
-    BookingGuestsService_2024_08_13,
+    BookingAttendeesService_2024_08_13,
     InputBookingsService_2024_08_13,
     OutputBookingsService_2024_08_13,
     OutputBookingReferencesService_2024_08_13,
@@ -97,7 +97,7 @@ import { Module } from "@nestjs/common";
     BookingReferencesRepository_2024_08_13,
     CalVideoService,
   ],
-  controllers: [BookingsController_2024_08_13, BookingGuestsController_2024_08_13],
+  controllers: [BookingsController_2024_08_13, BookingAttendeesController_2024_08_13],
   exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],
 })
 export class BookingsModule_2024_08_13 {}

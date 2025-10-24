@@ -9000,7 +9000,7 @@
     },
     "/v2/bookings/{bookingUid}/guests": {
       "post": {
-        "operationId": "BookingGuestsController_2024_08_13_addGuests",
+        "operationId": "BookingAttendeesController_2024_08_13_addGuests",
         "summary": "Add guests to an existing booking",
         "description": "Add one or more guests to an existing booking.\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
@@ -9037,7 +9037,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddGuestsInput_2024_08_13"
+                "$ref": "#/components/schemas/AddAttendeesInput_2024_08_13"
               }
             }
           }
@@ -9048,7 +9048,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddGuestsOutput_2024_08_13"
+                  "$ref": "#/components/schemas/AddAttendeesOutput_2024_08_13"
                 }
               }
             }
@@ -27344,7 +27344,7 @@
         },
         "required": ["status", "data"]
       },
-      "AddGuestsInput_2024_08_13": {
+      "AddAttendeesInput_2024_08_13": {
         "type": "object",
         "properties": {
           "guests": {
@@ -27358,7 +27358,7 @@
         },
         "required": ["guests"]
       },
-      "AddGuestsOutput_2024_08_13": {
+      "AddAttendeesOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {

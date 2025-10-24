@@ -1,6 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-guests.output";
+import { AddAttendeesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendees.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -190,7 +190,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     attendeeScheduledEmailSpy.mockClear();
   });
 
-  describe("POST /v2/bookings/:bookingUid/guests", () => {
+  describe("POST /v2/bookings/:bookingUid/attendees", () => {
     beforeAll(async () => {
       const createBookingBody: CreateBookingInput_2024_08_13 = {
         start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
@@ -235,7 +235,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13);
 
@@ -250,13 +250,13 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
+        const addGuestsResponseBody: AddAttendeesOutput_2024_08_13 = addGuestsResponse.body;
 
         verifyAddGuestsResponse(
           addGuestsResponseBody,
@@ -271,7 +271,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
@@ -287,13 +287,13 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         const addAttendeeResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
           .send(addAttendeeBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const addAttendeeResponseBody: AddGuestsOutput_2024_08_13 = addAttendeeResponse.body;
+        const addAttendeeResponseBody: AddAttendeesOutput_2024_08_13 = addAttendeeResponse.body;
 
         verifyAddGuestsResponse(addAttendeeResponseBody, [testSetup.attendee.user.email], true);
 
@@ -303,13 +303,13 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.attendee.accessToken}`)
           .expect(200);
 
-        const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
+        const addGuestsResponseBody: AddAttendeesOutput_2024_08_13 = addGuestsResponse.body;
 
         verifyAddGuestsResponse(addGuestsResponseBody, ["attendee.guest1@example.com"], true);
       });
@@ -320,7 +320,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.unrelatedUser.accessToken}`)
@@ -335,7 +335,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         };
 
         const addGuestsResponse = await request(app.getHttpServer())
-          .post(`/v2/bookings/${testSetup.bookingUid}/guests`)
+          .post(`/v2/bookings/${testSetup.bookingUid}/attendees`)
           .send(addGuestsBody)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`);
@@ -346,7 +346,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
     });
   });
 
-  describe("POST /v2/bookings/:bookingUid/guests - Emails Disabled", () => {
+  describe("POST /v2/bookings/:bookingUid/attendees - Emails Disabled", () => {
     let emailsDisabledSetup: TestSetup;
 
     beforeAll(async () => {
@@ -435,13 +435,13 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
       };
 
       const addGuestsResponse = await request(app.getHttpServer())
-        .post(`/v2/bookings/${emailsDisabledSetup.bookingUid}/guests`)
+        .post(`/v2/bookings/${emailsDisabledSetup.bookingUid}/attendees`)
         .send(addGuestsBody)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .set("Authorization", `Bearer ${emailsDisabledSetup.organizer.accessToken}`)
         .expect(200);
 
-      const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
+      const addGuestsResponseBody: AddAttendeesOutput_2024_08_13 = addGuestsResponse.body;
 
       verifyAddGuestsResponse(
         addGuestsResponseBody,
@@ -479,7 +479,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
   }
 
   function verifyAddGuestsResponse(
-    responseBody: AddGuestsOutput_2024_08_13,
+    responseBody: AddAttendeesOutput_2024_08_13,
     expectedGuestEmails: string[],
     shouldEmailsBeSent: boolean
   ): BookingOutput_2024_08_13 {

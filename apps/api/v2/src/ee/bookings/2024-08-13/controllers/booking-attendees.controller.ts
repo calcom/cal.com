@@ -1,6 +1,6 @@
 import { BookingUidGuard } from "@/ee/bookings/2024-08-13/guards/booking-uid.guard";
-import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-guests.output";
-import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
+import { AddAttendeesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendees.output";
+import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -12,14 +12,14 @@ import { Controller, Post, Logger, Body, UseGuards, Param, HttpCode, HttpStatus 
 import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
 
 import { BOOKING_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
+import { AddAttendeesInput_2024_08_13 } from "@calcom/platform-types";
 
 @Controller({
-  path: "/v2/bookings",
+  path: "/v2/bookings/:bookingUid/attendees",
   version: VERSION_2024_08_13_VALUE,
 })
 @UseGuards(PermissionsGuard)
-@DocsTags("Bookings")
+@DocsTags("Bookings / Attendees")
 @ApiHeader({
   name: "cal-api-version",
   description: `Must be set to ${VERSION_2024_08_13}. If not set to this value, the endpoint will default to an older version.`,
@@ -29,28 +29,28 @@ import { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
     default: VERSION_2024_08_13,
   },
 })
-export class BookingGuestsController_2024_08_13 {
-  private readonly logger = new Logger("BookingGuestsController_2024_08_13");
+export class BookingAttendeesController_2024_08_13 {
+  private readonly logger = new Logger("BookingAttendeesController_2024_08_13");
 
-  constructor(private readonly bookingGuestsService: BookingGuestsService_2024_08_13) {}
+  constructor(private readonly bookingAttendeesService: BookingAttendeesService_2024_08_13) {}
 
-  @Post("/:bookingUid/guests")
+  @Post("/")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
-    summary: "Add guests to an existing booking",
-    description: `Add one or more guests to an existing booking.
+    summary: "Add attendees to an existing booking",
+    description: `Add one or more attendees to an existing booking.
     <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
     `,
   })
-  async addGuests(
+  async addAttendees(
     @Param("bookingUid") bookingUid: string,
-    @Body() body: AddGuestsInput_2024_08_13,
+    @Body() body: AddAttendeesInput_2024_08_13,
     @GetUser() user: ApiAuthGuardUser
-  ): Promise<AddGuestsOutput_2024_08_13> {
-    const booking = await this.bookingGuestsService.addGuests(bookingUid, body, user);
+  ): Promise<AddAttendeesOutput_2024_08_13> {
+    const booking = await this.bookingAttendeesService.addAttendees(bookingUid, body, user);
 
     return {
       status: SUCCESS_STATUS,
