@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Logo } from "@calcom/ui/components/logo";
@@ -18,6 +19,7 @@ type OnboardingViewProps = {
 
 export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => {
   const router = useRouter();
+  const { t } = useLocale();
   const { selectedPlan, setSelectedPlan } = useOnboardingStore();
 
   const handleContinue = () => {
@@ -33,22 +35,21 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
   const allPlans = [
     {
       id: "personal" as PlanType,
-      title: "For personal use",
-      badge: "Free",
-      description: "Good for individuals who are just starting out and simply want the essentials.",
+      title: t("onboarding_plan_personal_title"),
+      badge: t("onboarding_plan_personal_badge"),
+      description: t("onboarding_plan_personal_description"),
     },
     {
       id: "team" as PlanType,
-      title: "With my team",
-      badge: "$15 p/mo p/person",
-      description:
-        "Highly recommended for small teams who seek to upgrade their time and perform better as a unit.",
+      title: t("onboarding_plan_team_title"),
+      badge: t("onboarding_plan_team_badge"),
+      description: t("onboarding_plan_team_description"),
     },
     {
       id: "organization" as PlanType,
-      title: "For my organization",
-      badge: "$37 p/mo p/person",
-      description: "Robust scheduling for larger teams looking to have more control, privacy, and security.",
+      title: t("onboarding_plan_organization_title"),
+      badge: t("onboarding_plan_organization_badge"),
+      description: t("onboarding_plan_organization_description"),
     },
   ];
 
@@ -89,9 +90,11 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
               {/* Card Header */}
               <div className="flex w-full gap-1.5 px-5 py-4">
                 <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">Hey {userName}</h1>
+                  <h1 className="font-cal text-xl font-semibold leading-6">
+                    {t("onboarding_welcome_message", { userName })}
+                  </h1>
                   <p className="text-subtle text-sm font-medium leading-tight">
-                    To personalize your experience, what do you plan to use Cal.com for?
+                    {t("onboarding_welcome_question")}
                   </p>
                 </div>
               </div>
@@ -129,7 +132,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
               {/* Footer */}
               <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
                 <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-                  Continue
+                  {t("continue")}
                 </Button>
               </div>
             </div>
