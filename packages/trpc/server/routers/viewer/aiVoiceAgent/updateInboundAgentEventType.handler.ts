@@ -3,6 +3,7 @@ import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/comp
 import logger from "@calcom/lib/logger";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import prisma from "@calcom/prisma";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInboundAgentEventTypeInputSchema } from "./updateInboundAgentEventType.schema";
 

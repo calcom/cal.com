@@ -1,4 +1,3 @@
-
 import { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/lib/handleNewBooking/checkBookingAndDurationLimits";
 
 import { createModule, bindModuleToClassOnToken, type ModuleLoader } from "../di";

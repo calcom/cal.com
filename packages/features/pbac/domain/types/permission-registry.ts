@@ -121,7 +121,6 @@ export const isValidPermissionString = (val: unknown): val is PermissionString =
  * @returns A new object without the _resource property
  */
 export const filterResourceConfig = (config: ResourceConfig): Omit<ResourceConfig, "_resource"> => {
-
   const { _resource, ...rest } = config;
   return rest;
 };
