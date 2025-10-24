@@ -280,4 +280,5 @@ export const lucideIconList = new Set([
   "square-chart-gantt",
   "monitor-stop",
   "monitor",
+  "badge-percent",
 ]);

@@ -1,3 +1,15 @@
+import { Badge } from "@calid/features/ui/components/badge";
+import { Button } from "@calid/features/ui/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@calid/features/ui/components/dialog";
+import { TextField, NumberInput } from "@calid/features/ui/components/input/input";
+import { triggerToast } from "@calid/features/ui/components/toast";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -11,15 +23,8 @@ import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { TextField } from "@calcom/ui/components/form";
 import { DatePicker } from "@calcom/ui/components/form";
-import { NumberInput } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
-import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export const MultiplePrivateLinksController = ({
   team,
@@ -281,12 +286,12 @@ export const MultiplePrivateLinksController = ({
                                 StartIcon="copy"
                                 onClick={() => {
                                   copyToClipboard(singleUseURL);
-                                  showToast(t("link_copied"), "success");
+                                  triggerToast(t("link_copied"), "success");
                                 }}
                               />
                             </Tooltip>
                           ) : (
-                            <Badge data-testid="private-link-expired" variant="red">
+                            <Badge data-testid="private-link-expired" variant="destructive">
                               {t("expired")}
                             </Badge>
                           )
@@ -333,7 +338,11 @@ export const MultiplePrivateLinksController = ({
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent title={t("link_settings")} type="creation">
+        <DialogContent type="creation">
+          <DialogHeader className="mb-4">
+            <DialogTitle>{t("link_settings")}</DialogTitle>
+            <DialogDescription>{t("link_settings_description")}</DialogDescription>
+          </DialogHeader>
           <div className="mb-4 space-y-4">
             <RadioArea.Group
               className="space-y-2"
@@ -343,7 +352,7 @@ export const MultiplePrivateLinksController = ({
                 setSelectedType(value);
               }}>
               <RadioArea.Item value="usage" data-testid="private-link-usage" className="w-full text-sm">
-                <strong className="mb-1 block">{t("usage_based_expiration")}</strong>
+                <strong className="block">{t("usage_based_expiration")}</strong>
                 <p>
                   {selectedType !== "usage"
                     ? t("usage_based_generic_expiration_description")
@@ -375,7 +384,7 @@ export const MultiplePrivateLinksController = ({
                 )}
               </RadioArea.Item>
               <RadioArea.Item data-testid="private-link-time" value="time" className="w-full text-sm">
-                <strong className="mb-1 block">{t("time_based_expiration")}</strong>
+                <strong className="block">{t("time_based_expiration")}</strong>
                 {selectedType !== "time"
                   ? t("time_based_generic_expiration_description")
                   : t("time_based_expiration_description", {

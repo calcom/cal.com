@@ -178,7 +178,7 @@ export function TimezoneSelectComponent({
               ? "h-7 px-2 py-1"
               : "h-8 px-3 py-1",
             props.isDisabled && "bg-subtle",
-            "rounded-md focus-within:shadow-outline-gray-focused focus-within:ring-offset-2",
+            "rounded-md focus-within:ring-2 focus-within:ring-brand-default focus-within:border-none",
             timezoneClassNames?.control && timezoneClassNames.control(state)
           ),
         singleValue: (state) =>

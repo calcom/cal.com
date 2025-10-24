@@ -14,6 +14,7 @@ export type IconName =
   | "atom"
   | "award"
   | "badge-check"
+  | "badge-percent"
   | "ban"
   | "banana"
   | "battery"

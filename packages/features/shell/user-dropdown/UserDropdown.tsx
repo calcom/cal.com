@@ -29,6 +29,7 @@ declare global {
       init: (config: any) => void;
       open: () => void;
     };
+    openOneHashChat?: () => void;
   }
 }
 
@@ -59,6 +60,10 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const handleHelpClick = () => {
     if (window.Plain) {
       window.Plain.open();
+    }
+    // Open OneHash chat widget if available
+    if (window.openOneHashChat) {
+      window.openOneHashChat();
     }
     setMenuOpen(false);
   };

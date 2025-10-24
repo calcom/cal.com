@@ -18,8 +18,10 @@ export const Header = ({ heading, subtitle }: HeaderProps) => {
         <div className="flex flex-col justify-center space-y-1">
           <div className="flex items-center space-x-4">
             <div className="flex flex-col">
-              <h3 className="text-emphasis flex items-center text-xl font-semibold">{heading}</h3>
-              <p className="text-default hidden md:block text-sm">{subtitle}</p>
+              <h3 className="text-emphasis flex hidden items-center text-xl font-semibold md:block">
+                {heading}
+              </h3>
+              <p className="text-default hidden text-sm md:block">{subtitle}</p>
             </div>
           </div>
         </div>

@@ -37,7 +37,7 @@ const usePersistedExpansionState = (itemName: string) => {
 
 export type NavigationItemType = {
   name: string;
-  href: string;
+  href?: string;
   isLoading?: boolean;
   onClick?: React.MouseEventHandler<HTMLAnchorElement | HTMLButtonElement>;
   target?: HTMLAnchorElement["target"];
@@ -101,7 +101,8 @@ export const NavigationItem: React.FC<{
               "[&[aria-current='page']]:text-emphasis mt-1.5 text-sm",
               isLocaleReady
                 ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
-                : ""
+                : "",
+              item.name === "avail_offer" ? "offer-moving-bg" : ""
             )}>
             {item.icon && (
               <Icon
@@ -126,7 +127,7 @@ export const NavigationItem: React.FC<{
             )}
           </button>
         </Tooltip>
-      ) : (
+      ) : item.href ? (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
           <Link
             data-test-id={item.name}
@@ -145,7 +146,8 @@ export const NavigationItem: React.FC<{
                 : "mt-1.5 text-sm [&[aria-current='page']]:text-white",
               isLocaleReady
                 ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
-                : ""
+                : "",
+              item.name === "avail_offer" ? "offer-moving-bg" : ""
             )}
             aria-current={current ? "page" : undefined}>
             {item.icon && (
@@ -171,6 +173,51 @@ export const NavigationItem: React.FC<{
             )}
           </Link>
         </Tooltip>
+      ) : (
+        <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+          <button
+            data-test-id={item.name}
+            onClick={item.onClick}
+            aria-label={t(item.name)}
+            className={classNames(
+              "todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+              item.child
+                ? `[&[aria-current='page']]:bg-emphasis`
+                : `[&[aria-current='page']]:bg-active dark:[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-white`,
+              isChild
+                ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
+                    props.index === 0 ? "mt-0" : "mt-px"
+                  }`
+                : "mt-1.5 text-sm [&[aria-current='page']]:text-white",
+              isLocaleReady
+                ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
+                : "",
+              item.name === "avail_offer" ? "offer-moving-bg" : ""
+            )}
+            aria-current={current ? "page" : undefined}>
+            {item.icon && (
+              <Icon
+                name={item.isLoading ? "rotate-cw" : item.icon}
+                className={classNames(
+                  "todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 md:ltr:mx-auto lg:ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit",
+                  item.isLoading && "animate-spin"
+                )}
+                aria-hidden="true"
+                aria-current={current ? "page" : undefined}
+              />
+            )}
+            {isLocaleReady ? (
+              <span
+                className="hidden w-full justify-between truncate text-ellipsis lg:flex"
+                data-testid={`${item.name}-test`}>
+                {t(item.name)}
+                {item.badge && item.badge}
+              </span>
+            ) : (
+              <SkeletonText className="h-[20px] w-full" />
+            )}
+          </button>
+        </Tooltip>
       )}
       {item.child &&
         shouldShowChildren &&
@@ -191,11 +238,33 @@ export const MobileNavigationItem: React.FC<{
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
 
   if (!shouldDisplayNavigationItem) return null;
+
+  if (item.href) {
+    return (
+      <Link
+        key={item.name}
+        href={(item.href || "#") as any}
+        target={item.target}
+        className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
+        aria-current={current ? "page" : undefined}>
+        {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
+        {item.icon && (
+          <Icon
+            name={item.icon}
+            className="[&[aria-current='page']]:text-emphasis  mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit"
+            aria-hidden="true"
+            aria-current={current ? "page" : undefined}
+          />
+        )}
+        {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
+      </Link>
+    );
+  }
+
   return (
-    <Link
+    <button
       key={item.name}
-      href={item.href}
-      target={item.target}
+      onClick={item.onClick}
       className="[&[aria-current='page']]:text-emphasis hover:text-default text-muted relative my-2 min-w-0 flex-1 overflow-hidden rounded-md !bg-transparent p-1 text-center text-xs font-medium focus:z-10 sm:text-sm"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
@@ -208,7 +277,7 @@ export const MobileNavigationItem: React.FC<{
         />
       )}
       {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
-    </Link>
+    </button>
   );
 };
 
@@ -249,7 +318,7 @@ export const MobileNavigationMoreItem: React.FC<{
               {item.child.map((childItem) => (
                 <li key={childItem.name} className="border-subtle border-t">
                   <Link
-                    href={childItem.href}
+                    href={(childItem.href || "#") as any}
                     className="hover:bg-muted flex items-center p-4 pl-12 transition">
                     <span className="text-default font-medium">
                       {isLocaleReady ? t(childItem.name) : <SkeletonText />}
@@ -261,7 +330,9 @@ export const MobileNavigationMoreItem: React.FC<{
           )}
         </>
       ) : (
-        <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
+        <Link
+          href={(item.href || "#") as any}
+          className="hover:bg-subtle flex items-center justify-between p-5 transition">
           <span className="text-default flex items-center font-semibold ">
             {item.icon && (
               <Icon name={item.icon} className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />

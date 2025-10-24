@@ -3,14 +3,14 @@
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
-import { TextField } from "@calid/features/ui/components/input/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
+import { Icon } from "@calid/features/ui/components/icon";
+import { TextField } from "@calid/features/ui/components/input/input";
 import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -42,9 +42,9 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
 
   return (
     <div className="mb-6 w-full">
-      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-        {/* Search Bar and Public URL - Mobile: Stacked, Desktop: Inline */}
-        <div className="flex flex-1 flex-col space-y-3 sm:flex-row sm:items-center sm:space-x-3 sm:space-y-0">
+      <div className="flex flex-row items-center justify-between space-x-3">
+        {/* Search Bar and Public URL - Always inline */}
+        <div className="flex flex-1 flex-row items-center space-x-3">
           {/* Search Bar */}
           <div className="w-full sm:max-w-md">
             <TextField
@@ -58,10 +58,10 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
             />
           </div>
 
-          {/* Public URL Display - Hidden on small mobile, shown on larger screens */}
-          <div className="hidden sm:block">
+          {/* Public URL Display - Always visible but with responsive sizing */}
+          <div className="hidden md:block">
             <Badge variant="secondary" publicUrl={cleanPublicUrl} className="rounded-md">
-              <span className="max-w-[200px] truncate lg:max-w-none">{cleanPublicUrl}</span>
+              <span className="truncate">{cleanPublicUrl}</span>
             </Badge>
           </div>
         </div>
@@ -70,10 +70,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
         <div className="flex-shrink-0" ref={newDropdownRef}>
           <DropdownMenu open={showNewDropdown} onOpenChange={onToggleNewDropdown}>
             <DropdownMenuTrigger asChild>
-              <Button
-                StartIcon="plus"
-                disabled={currentTeam?.metadata?.readOnly}
-                className="w-full sm:w-auto">
+              <Button StartIcon="plus" disabled={currentTeam?.metadata?.readOnly} className="w-auto">
                 {t("new")}
               </Button>
             </DropdownMenuTrigger>
@@ -109,7 +106,7 @@ export const EventTypesHeader: React.FC<EventTypesHeaderProps> = ({
       </div>
 
       {/* Public URL Display for Mobile - Shows below on small screens */}
-      <div className="mt-3 sm:hidden">
+      <div className="mt-3 md:hidden">
         <Badge variant="secondary" publicUrl={cleanPublicUrl} className="rounded-md">
           <span className="truncate">{cleanPublicUrl}</span>
         </Badge>
