@@ -387,7 +387,7 @@ export default function Success(props: PageProps) {
   const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
-    if (isAwaitingPayment) {
+    if (isAwaitingPayment && !isCancelled) {
       return props.paymentStatus?.paymentOption === "HOLD"
         ? t("meeting_awaiting_payment_method")
         : t("meeting_awaiting_payment");
