@@ -183,6 +183,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     logoUrl: null,
     bio: null,
     paymentSubscriptionId: null,
+    brandColor: null,
+    bannerUrl: null,
   };
 
   // Create a new user and invite them as the owner of the organization
