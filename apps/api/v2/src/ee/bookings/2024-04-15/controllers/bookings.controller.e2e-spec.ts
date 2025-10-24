@@ -42,6 +42,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
     let user: User;
 
     let eventTypeId: number;
+    let recEventTypeId: number;
 
     let createdBooking: RegularBookingCreateResult;
 
@@ -84,7 +85,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         user.id
       );
 
-      await eventTypesRepositoryFixture.create(
+      const recEventType = await eventTypesRepositoryFixture.create(
         {
           title: `rec-bookings-2024-04-15-event-type-${randomString()}-${describe.name}`,
           slug: `rec-bookings-2024-04-15-event-type-${randomString()}-${describe.name}`,
@@ -93,6 +94,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         },
         user.id
       );
+      recEventTypeId = recEventType.id;
 
       eventTypeId = event.id;
 
@@ -418,7 +420,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
     });
 
     it("should create recurring bookings", async () => {
-      const bookingEventTypeId = eventTypeId;
+      const bookingEventTypeId = recEventTypeId;
       const bookingTimeZone = "Europe/London";
       const bookingLanguage = "en";
       const bookingHashedLink = "";
