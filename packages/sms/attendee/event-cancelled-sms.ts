@@ -13,9 +13,11 @@ export default class EventCancelledSMS extends SMSManager {
     const bookingUrl = `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`;
 
     const eventTitle =
-      typeof this.calEvent.title === "object"
-        ? this.calEvent.title?.title || this.calEvent.title?.name || ""
-        : this.calEvent.title;
+      typeof this.calEvent.title === "string"
+        ? this.calEvent.title
+        : (this.calEvent.title as any)?.title ||
+          (this.calEvent.title as any)?.name ||
+          String(this.calEvent.title || "");
 
     const messageText = `${t("hey_there")} ${attendee.name}, ${t("event_request_cancelled")}\n\n${t(
       "event_cancelled_subject",
@@ -30,8 +32,7 @@ export default class EventCancelledSMS extends SMSManager {
       url: bookingUrl,
       interpolation: { escapeValue: false },
     });
-  
-    return `${messageText}\n\n${urlText}`;
-}
 
+    return `${messageText}\n\n${urlText}`;
+  }
 }
