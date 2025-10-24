@@ -6,11 +6,11 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import slugify from "@calcom/lib/slugify";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -80,9 +80,9 @@ export const UsernameAvailabilityField = ({
           inputUsernameValue={value}
           usernameRef={ref}
           setInputUsernameValue={(val) => {
-            const sanitizedUsername = slugify(val);
-            formMethods.setValue("username", sanitizedUsername, { shouldDirty: true });
-            onChange?.(sanitizedUsername);
+            const displayValue = val.toLowerCase().trim();
+            formMethods.setValue("username", displayValue, { shouldDirty: true });
+            onChange?.(displayValue);
           }}
           onSuccessMutation={onSuccessMutation}
           onErrorMutation={onErrorMutation}
