@@ -16,7 +16,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
 
-class Attendee {
+class Guest {
   @ApiProperty({
     type: String,
     description: "The email of the guest.",
@@ -65,14 +65,14 @@ class Attendee {
   language?: BookingLanguageType;
 }
 
-export class AddAttendeesInput_2024_08_13 {
+export class AddGuestsInput_2024_08_13 {
   @ArrayMinSize(1)
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => Attendee)
+  @Type(() => Guest)
   @ApiProperty({
-    type: [Attendee],
-    description: "Array of attendees to add to the booking",
+    type: [Guest],
+    description: "Array of guests to add to the booking",
     example: [
       {
         email: "john.doe@example.com",
@@ -85,5 +85,5 @@ export class AddAttendeesInput_2024_08_13 {
       },
     ],
   })
-  guests!: Attendee[];
+  guests!: Guest[];
 }

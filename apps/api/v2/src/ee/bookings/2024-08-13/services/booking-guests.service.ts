@@ -6,11 +6,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundException } from "@nestjs/common";
 
 import { addGuestsHandler } from "@calcom/platform-libraries/bookings";
-import type { AddAttendeesInput_2024_08_13 } from "@calcom/platform-types";
+import type { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
 
 @Injectable()
-export class BookingAttendeesService_2024_08_13 {
-  private readonly logger = new Logger("BookingAttendeesService_2024_08_13");
+export class BookingGuestsService_2024_08_13 {
+  private readonly logger = new Logger("BookingGuestsService_2024_08_13");
 
   constructor(
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
@@ -18,7 +18,7 @@ export class BookingAttendeesService_2024_08_13 {
     private readonly platformBookingsService: PlatformBookingsService
   ) {}
 
-  async addAttendees(bookingUid: string, input: AddAttendeesInput_2024_08_13, user: ApiAuthGuardUser) {
+  async addGuests(bookingUid: string, input: AddGuestsInput_2024_08_13, user: ApiAuthGuardUser) {
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid ${bookingUid} not found`);

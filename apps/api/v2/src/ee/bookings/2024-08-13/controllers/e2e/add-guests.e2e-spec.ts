@@ -1,6 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { AddAttendeesOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendees.output";
+import { AddGuestsOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-guests.output";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -256,7 +256,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const addGuestsResponseBody: AddAttendeesOutput_2024_08_13 = addGuestsResponse.body;
+        const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
 
         verifyAddGuestsResponse(
           addGuestsResponseBody,
@@ -296,7 +296,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
           .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
           .expect(200);
 
-        const addAttendeeResponseBody: AddAttendeesOutput_2024_08_13 = addAttendeeResponse.body;
+        const addAttendeeResponseBody: AddGuestsOutput_2024_08_13 = addAttendeeResponse.body;
 
         verifyAddGuestsResponse(addAttendeeResponseBody, [testSetup.attendee.user.email], true);
 
@@ -312,7 +312,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
           .set("Authorization", `Bearer ${testSetup.attendee.accessToken}`)
           .expect(200);
 
-        const addGuestsResponseBody: AddAttendeesOutput_2024_08_13 = addGuestsResponse.body;
+        const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
 
         verifyAddGuestsResponse(addGuestsResponseBody, ["attendee.guest1@example.com"], true);
       });
@@ -447,7 +447,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
         .set("Authorization", `Bearer ${emailsDisabledSetup.organizer.accessToken}`)
         .expect(200);
 
-      const addGuestsResponseBody: AddAttendeesOutput_2024_08_13 = addGuestsResponse.body;
+      const addGuestsResponseBody: AddGuestsOutput_2024_08_13 = addGuestsResponse.body;
 
       verifyAddGuestsResponse(
         addGuestsResponseBody,
@@ -485,7 +485,7 @@ describe("Bookings Endpoints 2024-08-13 add guests", () => {
   }
 
   function verifyAddGuestsResponse(
-    responseBody: AddAttendeesOutput_2024_08_13,
+    responseBody: AddGuestsOutput_2024_08_13,
     expectedGuestEmails: string[],
     shouldEmailsBeSent: boolean
   ): BookingOutput_2024_08_13 {

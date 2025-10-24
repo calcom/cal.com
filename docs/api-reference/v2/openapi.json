@@ -8998,11 +8998,11 @@
         "tags": ["Bookings"]
       }
     },
-    "/v2/bookings/{bookingUid}/attendees": {
+    "/v2/bookings/{bookingUid}/guests": {
       "post": {
-        "operationId": "BookingAttendeesController_2024_08_13_addAttendees",
-        "summary": "Add attendees to an existing booking",
-        "description": "Add one or more attendees to an existing booking.\n    \n    **Email Notifications:**\n    When attendees are added, the following notifications are sent (unless disabled by event type settings):\n    \n    - **Organizer & Team Members:** Receive an \"Add Guests\" notification email informing them that new attendees have been added to the booking.\n    \n    - **New Attendees:** Receive a \"Scheduled Event\" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.\n    \n    - **Existing Attendees:** Receive an \"Add Guests\" notification email informing them that additional attendees have been added to the booking.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
+        "operationId": "BookingGuestsController_2024_08_13_addGuests",
+        "summary": "Add guests to an existing booking",
+        "description": "Add one or more guests to an existing booking.\n    \n    **Email Notifications:**\n    When guests are added, the following notifications are sent (unless disabled by event type settings):\n    \n    - **Organizer & Team Members:** Receive an \"Add Guests\" notification email informing them that new guests have been added to the booking.\n    \n    - **New Guests:** Receive a \"Scheduled Event\" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.\n    \n    - **Existing Guests:** Receive an \"Add Guests\" notification email informing them that additional guests have been added to the booking.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9036,7 +9036,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddAttendeesInput_2024_08_13"
+                "$ref": "#/components/schemas/AddGuestsInput_2024_08_13"
               }
             }
           }
@@ -9047,13 +9047,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AddAttendeesOutput_2024_08_13"
+                  "$ref": "#/components/schemas/AddGuestsOutput_2024_08_13"
                 }
               }
             }
           }
         },
-        "tags": ["Bookings / Attendees"]
+        "tags": ["Bookings / Guests"]
       }
     },
     "/v2/calendars/{calendar}/event/{eventUid}": {
@@ -27343,7 +27343,7 @@
         },
         "required": ["status", "data"]
       },
-      "Attendee": {
+      "Guest": {
         "type": "object",
         "properties": {
           "email": {
@@ -27420,11 +27420,11 @@
         },
         "required": ["email"]
       },
-      "AddAttendeesInput_2024_08_13": {
+      "AddGuestsInput_2024_08_13": {
         "type": "object",
         "properties": {
           "guests": {
-            "description": "Array of attendees to add to the booking",
+            "description": "Array of guests to add to the booking",
             "example": [
               {
                 "email": "john.doe@example.com",
@@ -27438,13 +27438,13 @@
             ],
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Attendee"
+              "$ref": "#/components/schemas/Guest"
             }
           }
         },
         "required": ["guests"]
       },
-      "AddAttendeesOutput_2024_08_13": {
+      "AddGuestsOutput_2024_08_13": {
         "type": "object",
         "properties": {
           "status": {
