@@ -39,7 +39,7 @@ export const TeamTabs: React.FC<TeamTabsProps> = ({
         className="no-scrollbar border-muted scrollbar-hide flex overflow-x-auto border-b pb-0"
         aria-label="Tabs"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
-        <div className="flex min-w-max space-x-1 px-2 sm:px-0">
+        <div className="flex min-w-max space-x-1">
           <HorizontalTabItem {...personalTab} />
           {teamTabs.length > 0 && <div className="bg-subtle mx-2 h-6 w-0.5 self-center sm:mx-3" />}
           {teamTabs.map((tab, idx) => (

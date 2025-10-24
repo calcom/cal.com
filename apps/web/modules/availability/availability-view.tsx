@@ -206,7 +206,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
   const currentValue = searchParams?.get("type") ?? "mine";
 
   return (
-    <div className="flex w-full items-center">
+    <div className="flex items-center gap-2">
       {/* <ToggleGroup
         className="hidden h-fit md:block"
         defaultValue={searchParams?.get("type") ?? "mine"}

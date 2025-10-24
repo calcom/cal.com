@@ -226,8 +226,8 @@ const ProfileView = ({ user }: Props) => {
 
     const gtmEvent = {
       event: "user_deletion_success",
-      booker_email_address: user.email,
-      booker_team_id: user.username,
+      email: user.email,
+      username: user.username,
     };
 
     console.log("Sent gtm event: ", gtmEvent);
@@ -317,20 +317,7 @@ const ProfileView = ({ user }: Props) => {
           }
           setShowCreateAccountPasswordDialog(true);
         }}
-        extraField={
-          <div className="mt-6">
-            <UsernameAvailabilityField
-              onSuccessMutation={async () => {
-                triggerToast(t("settings_updated_successfully"), "success");
-                await utils.viewer.me.invalidate();
-                revalidateSettingsProfile();
-              }}
-              onErrorMutation={() => {
-                triggerToast(t("error_updating_settings"), "error");
-              }}
-            />
-          </div>
-        }
+        extraField={<></>}
         isCALIdentityProvider={isCALIdentityProvider}
       />
 
@@ -536,6 +523,7 @@ const ProfileForm = ({
   isCALIdentityProvider: boolean;
 }) => {
   const { t } = useLocale();
+  const utils = trpc.useUtils();
   const [firstRender, setFirstRender] = useState(true);
 
   const profileFormSchema = z.object({
@@ -730,7 +718,22 @@ const ProfileForm = ({
             }}
           />
         </div>
-        {extraField}
+        {/* {extraField} */}
+
+        <div className="mt-6">
+          <UsernameAvailabilityField
+            control={formMethods.control}
+            onSuccessMutation={async () => {
+              triggerToast(t("settings_updated_successfully"), "success");
+              await utils.viewer.me.invalidate();
+              revalidateSettingsProfile();
+            }}
+            onErrorMutation={() => {
+              triggerToast(t("error_updating_settings"), "error");
+            }}
+          />
+        </div>
+
         <div className="mt-6">
           <TextField label={t("full_name")} {...formMethods.register("name")} />
         </div>

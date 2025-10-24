@@ -21,9 +21,11 @@ import { trpc } from "@calcom/trpc/react";
 export function NewScheduleButton({
   name = "new-schedule",
   fromEventType,
+  onlyMobile = false,
 }: {
   name?: string;
   fromEventType?: boolean;
+  onlyMobile?: boolean;
 }) {
   const router = useRouter();
   const { t } = useLocale();
@@ -66,7 +68,7 @@ export function NewScheduleButton({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="fab" data-testid={name} StartIcon="plus" size="sm">
+        <Button data-testid={name} StartIcon="plus">
           {t("new")}
         </Button>
       </DialogTrigger>

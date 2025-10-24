@@ -398,7 +398,7 @@ const ScheduleDisplay = memo(
         </div>
 
         {/* Footer with Timezone and Edit Button */}
-        <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-row items-center justify-between gap-2">
           <div className="flex flex-col gap-2">
             {/* Timezone Display */}
             <span
