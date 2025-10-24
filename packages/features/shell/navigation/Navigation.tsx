@@ -32,26 +32,31 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
       {
         name: "upcoming",
         href: "/bookings/upcoming",
+        preserveQueryParams: ({ prevPathname }) => prevPathname?.startsWith("/bookings/") ?? false,
         isCurrent: ({ pathname }) => pathname === "/bookings/upcoming",
       },
       {
         name: "unconfirmed",
         href: "/bookings/unconfirmed",
+        preserveQueryParams: ({ prevPathname }) => prevPathname?.startsWith("/bookings/") ?? false,
         isCurrent: ({ pathname }) => pathname === "/bookings/unconfirmed",
       },
       {
         name: "recurring",
         href: "/bookings/recurring",
+        preserveQueryParams: ({ prevPathname }) => prevPathname?.startsWith("/bookings/") ?? false,
         isCurrent: ({ pathname }) => pathname === "/bookings/recurring",
       },
       {
         name: "past",
         href: "/bookings/past",
+        preserveQueryParams: ({ prevPathname }) => prevPathname?.startsWith("/bookings/") ?? false,
         isCurrent: ({ pathname }) => pathname === "/bookings/past",
       },
       {
         name: "cancelled",
         href: "/bookings/cancelled",
+        preserveQueryParams: ({ prevPathname }) => prevPathname?.startsWith("/bookings/") ?? false,
         isCurrent: ({ pathname }) => pathname === "/bookings/cancelled",
       },
     ],

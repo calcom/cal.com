@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 
+import { applySelectFilter } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
@@ -15,10 +16,9 @@ test.describe("Booking Filters", () => {
       teammates: [{ name: teamMateName }],
     });
 
-    const allUsers = await users.get();
+    const allUsers = users.get();
     const memberUser = allUsers.find((user) => user.name === teamMateName);
 
-    // eslint-disable-next-line playwright/no-conditional-in-test
     if (!memberUser) {
       throw new Error("user should exist");
     }
@@ -47,5 +47,170 @@ test.describe("Booking Filters", () => {
     await bookingsGetResponse;
     await page.locator('[data-testid="add-filter-button"]').click();
     await expect(page.locator('[data-testid="add-filter-item-userId"]')).toBeVisible();
+  });
+
+  test("Query params should be preserved when switching between bookings tabs", async ({ page, users }) => {
+    const owner = await users.create(
+      { name: "Owner User" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        teammates: [{ name: "Team Member 1" }, { name: "Team Member 2" }],
+      }
+    );
+
+    await owner.apiLogin();
+
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
+    await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
+    await bookingsGetResponse;
+
+    await applySelectFilter(page, "userId", "Owner User");
+
+    await page.waitForURL(/.*userId.*/);
+    const urlWithFilters = page.url();
+    expect(urlWithFilters).toContain("userId");
+
+    const searchParams = new URL(urlWithFilters).searchParams;
+    const activeFilters = searchParams.get("activeFilters");
+    expect(activeFilters).toBeTruthy();
+
+    await page.getByTestId("past-test").click();
+    await page.waitForURL(/\/bookings\/past/);
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+
+    const pastUrl = page.url();
+    expect(pastUrl).toContain("/bookings/past");
+    expect(pastUrl).toContain("userId");
+
+    const pastSearchParams = new URL(pastUrl).searchParams;
+    expect(pastSearchParams.get("activeFilters")).toBe(activeFilters);
+
+    await page.getByTestId("cancelled-test").click();
+    await page.waitForURL(/\/bookings\/cancelled/);
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+
+    const cancelledUrl = page.url();
+    expect(cancelledUrl).toContain("/bookings/cancelled");
+    expect(cancelledUrl).toContain("userId");
+
+    const cancelledSearchParams = new URL(cancelledUrl).searchParams;
+    expect(cancelledSearchParams.get("activeFilters")).toBe(activeFilters);
+  });
+
+  test("Query params should be preserved when switching between bookings tabs in calendar view", async ({
+    page,
+    users,
+  }) => {
+    const owner = await users.create(
+      { name: "Owner User" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        teammates: [{ name: "Team Member 1" }, { name: "Team Member 2" }],
+      }
+    );
+
+    await owner.apiLogin();
+
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
+    await page.goto(`/bookings/upcoming?view=calendar`, { waitUntil: "domcontentloaded" });
+    await bookingsGetResponse;
+
+    await applySelectFilter(page, "userId", "Owner User");
+
+    await page.waitForURL(/.*userId.*/);
+    const urlWithFilters = page.url();
+    expect(urlWithFilters).toContain("userId");
+
+    const searchParams = new URL(urlWithFilters).searchParams;
+    const activeFilters = searchParams.get("activeFilters");
+    expect(activeFilters).toBeTruthy();
+    expect(searchParams.get("view")).toBe("calendar");
+
+    await page.getByTestId("past-test").click();
+    await page.waitForURL(/\/bookings\/past/);
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+
+    const pastUrl = page.url();
+    expect(pastUrl).toContain("/bookings/past");
+    expect(pastUrl).toContain("userId");
+
+    const pastSearchParams = new URL(pastUrl).searchParams;
+    expect(pastSearchParams.get("activeFilters")).toBe(activeFilters);
+    expect(pastSearchParams.get("view")).toBe("calendar");
+
+    await page.getByTestId("cancelled-test").click();
+    await page.waitForURL(/\/bookings\/cancelled/);
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+
+    const cancelledUrl = page.url();
+    expect(cancelledUrl).toContain("/bookings/cancelled");
+    expect(cancelledUrl).toContain("userId");
+
+    const cancelledSearchParams = new URL(cancelledUrl).searchParams;
+    expect(cancelledSearchParams.get("activeFilters")).toBe(activeFilters);
+    expect(cancelledSearchParams.get("view")).toBe("calendar");
+  });
+
+  test("Query params should NOT be preserved when navigating from a non-bookings page", async ({
+    page,
+    users,
+  }) => {
+    const owner = await users.create(undefined, {
+      hasTeam: true,
+      isOrg: true,
+    });
+
+    await owner.apiLogin();
+    await page.goto(`/event-types?someParam=value`);
+    await page.waitForURL(/.*someParam=value.*/);
+
+    await page.getByTestId("bookings-test").click();
+    await page.getByTestId("upcoming-test").click();
+    await page.waitForURL(/\/bookings\/upcoming/);
+    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+
+    const upcomingUrl = page.url();
+    expect(upcomingUrl).toContain("/bookings/upcoming");
+    expect(upcomingUrl).not.toContain("someParam=value");
+  });
+
+  test("Query params should NOT be preserved when navigating from a bookings page to a non-bookings page", async ({
+    page,
+    users,
+  }) => {
+    const owner = await users.create(
+      { name: "Owner User" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        teammates: [{ name: "Team Member 1" }, { name: "Team Member 2" }],
+      }
+    );
+
+    await owner.apiLogin();
+
+    const bookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
+    await page.goto(`/bookings/upcoming`, { waitUntil: "domcontentloaded" });
+    await bookingsGetResponse;
+
+    await applySelectFilter(page, "userId", "Owner User");
+
+    await page.waitForURL(/.*userId.*/);
+    const urlWithFilters = page.url();
+    expect(urlWithFilters).toContain("userId");
+
+    await page.getByTestId("event_types_page_title-test").click();
+    await page.waitForURL(/\/event-types/);
+
+    const eventTypeSearchParams = new URL(page.url()).searchParams;
+    expect(eventTypeSearchParams.get("activeFilters")).toBeFalsy();
   });
 });
