@@ -57,7 +57,7 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
         if (eventTypes?.length === 0) {
           await Promise.all(
             DEFAULT_EVENT_TYPES.map(async (event) => {
-              return createEventType.mutate({
+              return createEventType.mutateAsync({
                 title: t(event.title),
                 slug: event.slug,
                 length: event.length,
