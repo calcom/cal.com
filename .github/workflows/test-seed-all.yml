@@ -1,0 +1,83 @@
+name: Test Seed All
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/seed*.ts'
+      - 'packages/prisma/package.json'
+      - 'packages/prisma/schema.prisma'
+      - '.github/workflows/test-seed-all.yml'
+env:
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/calendso
+  DATABASE_READ_URL: postgresql://postgres:postgres@localhost:5432/calendso
+  DATABASE_WRITE_URL: postgresql://postgres:postgres@localhost:5432/calendso
+  DATABASE_DIRECT_URL: postgresql://postgres:postgres@localhost:5432/calendso
+  NEXTAUTH_SECRET: test-secret-for-ci
+  CALENDSO_ENCRYPTION_KEY: test-encryption-key-for-ci
+  NEXT_PUBLIC_WEBAPP_URL: http://localhost:3000
+  NODE_OPTIONS: --max-old-space-size=4096
+permissions:
+  contents: read
+jobs:
+  test-seed-all:
+    timeout-minutes: 15
+    name: Test seed-all command
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    services:
+      postgres:
+        image: postgres:13
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: calendso
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      
+      - name: Run database migrations
+        run: yarn workspace @calcom/prisma db-deploy
+      
+      - name: Run seed-all command
+        run: |
+          yarn workspace @calcom/prisma seed-all
+          EXIT_CODE=$?
+          echo "seed-all command exit code: $EXIT_CODE"
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "❌ seed-all command failed with exit code $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
+          echo "✅ seed-all command completed successfully"
+      
+      - name: Verify database was seeded
+        run: |
+          # Check if users were created
+          yarn workspace @calcom/prisma prisma db execute --stdin <<EOF
+          SELECT COUNT(*) as user_count FROM "User";
+          EOF
+          
+          # Check if event types were created
+          yarn workspace @calcom/prisma prisma db execute --stdin <<EOF
+          SELECT COUNT(*) as event_type_count FROM "EventType";
+          EOF
+          
+          # Check if teams were created
+          yarn workspace @calcom/prisma prisma db execute --stdin <<EOF
+          SELECT COUNT(*) as team_count FROM "Team";
+          EOF
+          
+          echo "✅ Database verification completed"
