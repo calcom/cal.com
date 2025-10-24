@@ -6,6 +6,7 @@ import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard } from "../ChartCard";
 import { KPICard } from "../KPICard";
 
 export const BookingKPICards = () => {
@@ -76,9 +77,8 @@ export const BookingKPICards = () => {
   if (!isSuccess || !data) return null;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-emphasis mb-4 text-xl font-semibold">{t("events")}</h2>
+    <div className="space-y-4">
+      <ChartCard title={t("events")}>
         <StatContainer>
           {eventCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -90,10 +90,9 @@ export const BookingKPICards = () => {
             </StatItem>
           ))}
         </StatContainer>
-      </div>
+      </ChartCard>
 
-      <div>
-        <h2 className="text-emphasis mb-4 text-xl font-semibold">{t("performance")}</h2>
+      <ChartCard title={t("performance")}>
         <StatContainer>
           {performanceCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -105,7 +104,7 @@ export const BookingKPICards = () => {
             </StatItem>
           ))}
         </StatContainer>
-      </div>
+      </ChartCard>
     </div>
   );
 };
@@ -118,9 +117,8 @@ const LoadingKPICards = (props: {
   const { t } = useLocale();
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-emphasis mb-4 text-xl font-semibold">{t("events")}</h2>
+    <div className="space-y-4">
+      <ChartCard title={t("events")}>
         <StatContainer>
           {eventCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -136,10 +134,9 @@ const LoadingKPICards = (props: {
             </StatItem>
           ))}
         </StatContainer>
-      </div>
+      </ChartCard>
 
-      <div>
-        <h2 className="text-emphasis mb-4 text-xl font-semibold">{t("performance")}</h2>
+      <ChartCard title={t("performance")}>
         <StatContainer>
           {performanceCategories.map((item, index) => (
             <StatItem key={item.title} index={index}>
@@ -155,7 +152,7 @@ const LoadingKPICards = (props: {
             </StatItem>
           ))}
         </StatContainer>
-      </div>
+      </ChartCard>
     </div>
   );
 };

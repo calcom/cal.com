@@ -7,6 +7,7 @@ import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
+import { ChartCard } from "../ChartCard";
 import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
@@ -69,8 +70,7 @@ export const CSATOverTimeChart = () => {
   if (!isSuccess) return null;
 
   return (
-    <div>
-      <h3 className="text-emphasis mb-4 text-lg font-semibold">{t("csat_over_time")}</h3>
+    <ChartCard title={t("csat_over_time")} className="h-full">
       <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={csatData ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
@@ -98,6 +98,6 @@ export const CSATOverTimeChart = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </ChartCard>
   );
 };

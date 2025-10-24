@@ -8,6 +8,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
 import { valueFormatter } from "../../lib/valueFormatter";
+import { ChartCard } from "../ChartCard";
 import { LoadingInsight } from "../LoadingInsights";
 
 const COLOR = {
@@ -70,8 +71,7 @@ export const NoShowHostsOverTimeChart = () => {
   if (!isSuccess) return null;
 
   return (
-    <div>
-      <h3 className="text-emphasis mb-4 text-lg font-semibold">{t("no_show_hosts_over_time")}</h3>
+    <ChartCard title={t("no_show_hosts_over_time")} className="h-full">
       <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={noShowHostsData ?? []} margin={{ top: 30, right: 20, left: 0, bottom: 0 }}>
@@ -98,6 +98,6 @@ export const NoShowHostsOverTimeChart = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </ChartCard>
   );
 };
