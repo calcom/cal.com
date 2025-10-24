@@ -376,11 +376,14 @@ Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1
 
 ### Docker
 
+**Official support**: Our team will begin to officially support the Dockerfile and docker-compose resources in this
+repository.
+
+**Important**: Cal.com will **not** be supporting installations that use these Docker resources. While we provide and maintain the Docker configurations, support for Docker-based installations is the responsibility of the user.
+
 This image can be found on DockerHub at [https://hub.docker.com/r/calcom/cal.com](https://hub.docker.com/r/calcom/cal.com).
 
 **Note for ARM Users**: Use the {version}-arm suffix for pulling images. Example: `docker pull calcom/cal.com:v5.6.19-arm`.
-
-The Docker configuration for Cal.com is an effort powered by people within the community. Cal.com, Inc. does not yet provide official support for Docker, but we will accept fixes and documentation at this time. Use at your own risk.
 
 #### Requirements
 
