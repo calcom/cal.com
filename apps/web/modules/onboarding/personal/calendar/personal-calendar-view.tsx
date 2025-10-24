@@ -81,7 +81,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
                         className="border-subtle bg-default flex flex-col items-start gap-4 rounded-xl border p-5">
                         {app.logo && <img src={app.logo} alt={app.name} className="h-9 w-9 rounded-md" />}
                         <p
-                          className="text-default line-clamp-1 max-w- break-words text-left text-sm font-medium leading-none"
+                          className="text-default line-clamp-1 break-words text-left text-sm font-medium leading-none"
                           title={app.name}>
                           {app.name}
                         </p>
