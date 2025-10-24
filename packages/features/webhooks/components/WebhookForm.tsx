@@ -33,7 +33,7 @@ export type WebhookFormData = {
   payloadTemplate: string | undefined | null;
   time?: number | null;
   timeUnit?: TimeUnit | null;
-  version: number;
+  version: string;
 };
 
 export type WebhookFormSubmitData = WebhookFormData & {
@@ -242,7 +242,7 @@ export type WebhookFormValues = {
   payloadTemplate: string | undefined | null;
   time?: number | null;
   timeUnit?: TimeUnit | null;
-  version: number;
+  version: string;
 };
 
 const WebhookForm = (props: {
@@ -290,7 +290,7 @@ const WebhookForm = (props: {
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
       timeUnit: props?.webhook?.timeUnit || undefined,
       time: props?.webhook?.time || undefined,
-      version: props?.webhook?.version || 1,
+      version: props?.webhook?.version || "2021-10-20",
     },
   });
 
@@ -377,11 +377,8 @@ const WebhookForm = (props: {
                 <>{t("webhook_version")}</>
               </Label>
               <Select
-                options={[
-                  { value: 1, label: "V1" },
-                  { value: 2, label: "V2" },
-                ]}
-                value={{ value, label: value === 1 ? "V1" : "V2" }}
+                options={[{ value: "2021-10-20", label: "2021-10-20" }]}
+                value={{ value, label: value }}
                 onChange={(option) => {
                   if (option) {
                     formMethods.setValue("version", option.value, { shouldDirty: true });
