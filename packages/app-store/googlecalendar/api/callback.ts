@@ -3,6 +3,7 @@ import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -14,7 +15,6 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";

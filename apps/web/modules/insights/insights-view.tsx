@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useState, useCallback } from "react";
 
 import {
@@ -41,8 +42,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 export default function InsightsPage({ timeZone }: { timeZone: string }) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} timeZone={timeZone}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <InsightsPageContent />
       </InsightsOrgTeamsProvider>
