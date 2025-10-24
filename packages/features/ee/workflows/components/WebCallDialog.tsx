@@ -200,7 +200,7 @@ export function WebCallDialog({
   };
 
   const handleStartCall = () => {
-    const result = getEventTypeIdForTest({
+    const eventTypeValidation = getEventTypeIdForTest({
       trigger: form.getValues("trigger"),
       outboundEventTypeId,
       eventTypeIds,
@@ -208,8 +208,8 @@ export function WebCallDialog({
       t,
     });
 
-    if (result.error || !result.eventTypeId) {
-      showToast(result.error || t("no_event_type_selected"), "error");
+    if (eventTypeValidation.error || !eventTypeValidation.eventTypeId) {
+      showToast(eventTypeValidation.error || t("no_event_type_selected"), "error");
       return;
     }
 
@@ -220,7 +220,7 @@ export function WebCallDialog({
       createWebCallMutation.mutate({
         agentId: agentId,
         teamId: teamId,
-        eventTypeId: result.eventTypeId,
+        eventTypeId: eventTypeValidation.eventTypeId,
       });
     }
   };
