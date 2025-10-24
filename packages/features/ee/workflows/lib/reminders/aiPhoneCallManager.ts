@@ -84,7 +84,7 @@ const createWorkflowReminderAndExtractPhone = async (
 };
 
 type ScheduleAIPhoneCallArgs = {
-  reminderPhone: string | null;
+  submittedPhoneNumber: string | null;
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
@@ -312,7 +312,7 @@ const scheduleAIPhoneCallForForm = async (
     userId,
     teamId,
     seatReferenceUid,
-    reminderPhone,
+    submittedPhoneNumber,
     agent,
     activePhoneNumber,
     routedEventTypeId,
@@ -322,7 +322,7 @@ const scheduleAIPhoneCallForForm = async (
     const reminderAndPhone = await createWorkflowReminderAndExtractPhone({
       formData,
       workflowStepId,
-      submittedPhoneNumber: reminderPhone,
+      submittedPhoneNumber,
       scheduledDate: dayjs(),
       seatReferenceUid,
     });

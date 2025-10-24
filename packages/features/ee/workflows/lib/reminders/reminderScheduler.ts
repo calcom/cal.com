@@ -225,7 +225,7 @@ const processWorkflowStep = async (
       userId: workflow.userId,
       teamId: workflow.teamId,
       seatReferenceUid,
-      reminderPhone: smsReminderNumber,
+      submittedPhoneNumber: smsReminderNumber,
       verifiedAt: step.verifiedAt,
       routedEventTypeId: formData ? formData.routedEventTypeId : null,
       ...contextData,

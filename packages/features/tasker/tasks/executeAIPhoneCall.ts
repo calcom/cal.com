@@ -72,8 +72,6 @@ function getVariablesFromFormResponse({
   const submittedEmail = getSubmitterEmail(responses);
   const submittedName = getSubmitterName(responses);
 
-  // if event type id is not given
-
   return {
     ATTENDEE_NAME: submittedName || "",
     ATTENDEE_EMAIL: submittedEmail || "",
