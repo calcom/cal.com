@@ -23,9 +23,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-        with:
-          # Check out the tag specified in workflow_dispatch, or the tag that triggered the push event
-          ref: ${{ github.event.inputs.RELEASE_TAG || github.ref }}
+        # with:
+        #   # Check out the tag specified in workflow_dispatch, or the tag that triggered the push event
+        #   ref: ${{ github.event.inputs.RELEASE_TAG || github.ref }}
 
       - name: "Determine tag"
         # The logic here assumes `github.ref` is present, which is true for 'push: tags' or when `ref` is set in 'checkout'
