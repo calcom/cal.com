@@ -161,94 +161,6 @@ describe("Bookings Endpoints 2024-04-15", () => {
         });
     });
 
-    it("should create recurring bookings", async () => {
-      const bookingEventTypeId = eventTypeId;
-      const bookingTimeZone = "Europe/London";
-      const bookingLanguage = "en";
-      const bookingHashedLink = "";
-      const bookingMetadata = {
-        timeFormat: "12",
-        meetingType: "organizer-phone",
-      };
-      const bookingResponses = {
-        name: "tester",
-        email: "tester@example.com",
-        location: {
-          value: "link",
-          optionValue: "",
-        },
-        notes: "test",
-      };
-
-      const body: CreateRecurringBookingInput_2024_04_15[] = [
-        {
-          start: "2040-05-21T09:30:00.000Z",
-          end: "2040-05-21T10:30:00.000Z",
-          eventTypeId: bookingEventTypeId,
-          timeZone: bookingTimeZone,
-          language: bookingLanguage,
-          metadata: bookingMetadata,
-          hashedLink: bookingHashedLink,
-          responses: bookingResponses,
-          recurringEventId: "test-recurring-event-id",
-        },
-        {
-          start: "2040-05-27T09:30:00.000Z",
-          end: "2040-05-27T10:30:00.000Z",
-          eventTypeId: bookingEventTypeId,
-          timeZone: bookingTimeZone,
-          language: bookingLanguage,
-          metadata: bookingMetadata,
-          hashedLink: bookingHashedLink,
-          responses: bookingResponses,
-          recurringEventId: "test-recurring-event-id-2",
-        },
-        {
-          start: "2040-05-04T09:30:00.000Z",
-          end: "2040-05-04T10:30:00.000Z",
-          eventTypeId: bookingEventTypeId,
-          timeZone: bookingTimeZone,
-          language: bookingLanguage,
-          metadata: bookingMetadata,
-          hashedLink: bookingHashedLink,
-          responses: bookingResponses,
-          recurringEventId: "test-recurring-event-id-3",
-        },
-        {
-          start: "2040-05-11T09:30:00.000Z",
-          end: "2040-05-11T10:30:00.000Z",
-          eventTypeId: bookingEventTypeId,
-          timeZone: bookingTimeZone,
-          language: bookingLanguage,
-          metadata: bookingMetadata,
-          hashedLink: bookingHashedLink,
-          responses: bookingResponses,
-          recurringEventId: "test-recurring-event-id-4",
-        },
-      ];
-
-      return request(app.getHttpServer())
-        .post("/v2/bookings/recurring")
-        .send(body)
-        .expect(201)
-        .then(async (response) => {
-          const responseBody: ApiSuccessResponse<BookingResponse[]> = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toBeDefined();
-          responseBody.data.forEach((booking) => {
-            expect(booking.userPrimaryEmail).toBeDefined();
-            expect(booking.userPrimaryEmail).toEqual(userEmail);
-            expect(booking.id).toBeDefined();
-            expect(booking.uid).toBeDefined();
-            expect(booking.eventTypeId).toEqual(bookingEventTypeId);
-            expect(booking.user.timeZone).toEqual(bookingTimeZone);
-            expect(booking.metadata).toEqual(bookingMetadata);
-            expect(booking.responses).toEqual(bookingResponses);
-            expect(booking.creationSource).toEqual("API_V2");
-          });
-        });
-    });
-
     it("should fail to create a booking with no_available_users_found_error", async () => {
       const bookingStart = "2040-05-21T09:30:00.000Z";
       const bookingEnd = "2040-05-21T10:30:00.000Z";
@@ -502,6 +414,94 @@ describe("Bookings Endpoints 2024-04-15", () => {
           });
 
           createdBooking = responseBody.data;
+        });
+    });
+
+    it("should create recurring bookings", async () => {
+      const bookingEventTypeId = eventTypeId;
+      const bookingTimeZone = "Europe/London";
+      const bookingLanguage = "en";
+      const bookingHashedLink = "";
+      const bookingMetadata = {
+        timeFormat: "12",
+        meetingType: "organizer-phone",
+      };
+      const bookingResponses = {
+        name: "tester",
+        email: "tester@example.com",
+        location: {
+          value: "link",
+          optionValue: "",
+        },
+        notes: "test",
+      };
+
+      const body: CreateRecurringBookingInput_2024_04_15[] = [
+        {
+          start: "2040-06-21T09:30:00.000Z",
+          end: "2040-06-21T10:30:00.000Z",
+          eventTypeId: bookingEventTypeId,
+          timeZone: bookingTimeZone,
+          language: bookingLanguage,
+          metadata: bookingMetadata,
+          hashedLink: bookingHashedLink,
+          responses: bookingResponses,
+          recurringEventId: "test-recurring-event-id",
+        },
+        {
+          start: "2040-06-27T09:30:00.000Z",
+          end: "2040-06-27T10:30:00.000Z",
+          eventTypeId: bookingEventTypeId,
+          timeZone: bookingTimeZone,
+          language: bookingLanguage,
+          metadata: bookingMetadata,
+          hashedLink: bookingHashedLink,
+          responses: bookingResponses,
+          recurringEventId: "test-recurring-event-id-2",
+        },
+        {
+          start: "2040-06-04T09:30:00.000Z",
+          end: "2040-06-04T10:30:00.000Z",
+          eventTypeId: bookingEventTypeId,
+          timeZone: bookingTimeZone,
+          language: bookingLanguage,
+          metadata: bookingMetadata,
+          hashedLink: bookingHashedLink,
+          responses: bookingResponses,
+          recurringEventId: "test-recurring-event-id-3",
+        },
+        {
+          start: "2040-06-11T09:30:00.000Z",
+          end: "2040-06-11T10:30:00.000Z",
+          eventTypeId: bookingEventTypeId,
+          timeZone: bookingTimeZone,
+          language: bookingLanguage,
+          metadata: bookingMetadata,
+          hashedLink: bookingHashedLink,
+          responses: bookingResponses,
+          recurringEventId: "test-recurring-event-id-4",
+        },
+      ];
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings/recurring")
+        .send(body)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<BookingResponse[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          responseBody.data.forEach((booking) => {
+            expect(booking.userPrimaryEmail).toBeDefined();
+            expect(booking.userPrimaryEmail).toEqual(userEmail);
+            expect(booking.id).toBeDefined();
+            expect(booking.uid).toBeDefined();
+            expect(booking.eventTypeId).toEqual(bookingEventTypeId);
+            expect(booking.user.timeZone).toEqual(bookingTimeZone);
+            expect(booking.metadata).toEqual(bookingMetadata);
+            expect(booking.responses).toEqual(bookingResponses);
+            expect(booking.creationSource).toEqual("API_V2");
+          });
         });
     });
 
