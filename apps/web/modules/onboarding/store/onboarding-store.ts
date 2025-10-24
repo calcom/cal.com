@@ -26,16 +26,6 @@ export interface Invite {
   role: InviteRole;
 }
 
-export interface TeamDetails {
-  name: string;
-  slug: string;
-}
-
-export interface TeamBrand {
-  color: string;
-  logo: string | null; // base64 or URL
-}
-
 export interface OnboardingState {
   selectedPlan: PlanType | null;
 
@@ -48,11 +38,6 @@ export interface OnboardingState {
   invites: Invite[];
   inviteRole: InviteRole;
 
-  // Team-specific state
-  teamDetails: TeamDetails;
-  teamBrand: TeamBrand;
-  teamInvites: Invite[];
-
   // Actions
   setSelectedPlan: (plan: PlanType) => void;
   setOrganizationDetails: (details: Partial<OrganizationDetails>) => void;
@@ -60,11 +45,6 @@ export interface OnboardingState {
   setTeams: (teams: Team[]) => void;
   setInvites: (invites: Invite[]) => void;
   setInviteRole: (role: InviteRole) => void;
-
-  // Team actions
-  setTeamDetails: (details: Partial<TeamDetails>) => void;
-  setTeamBrand: (brand: Partial<TeamBrand>) => void;
-  setTeamInvites: (invites: Invite[]) => void;
 
   // Reset
   resetOnboarding: () => void;
@@ -85,15 +65,6 @@ const initialState = {
   teams: [],
   invites: [],
   inviteRole: "MEMBER" as InviteRole,
-  teamDetails: {
-    name: "",
-    slug: "",
-  },
-  teamBrand: {
-    color: "#000000",
-    logo: null,
-  },
-  teamInvites: [],
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -119,18 +90,6 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       setInviteRole: (role) => set({ inviteRole: role }),
 
-      setTeamDetails: (details) =>
-        set((state) => ({
-          teamDetails: { ...state.teamDetails, ...details },
-        })),
-
-      setTeamBrand: (brand) =>
-        set((state) => ({
-          teamBrand: { ...state.teamBrand, ...brand },
-        })),
-
-      setTeamInvites: (invites) => set({ teamInvites: invites }),
-
       resetOnboarding: () => set(initialState),
     }),
     {
@@ -143,9 +102,6 @@ export const useOnboardingStore = create<OnboardingState>()(
         teams: state.teams,
         invites: state.invites,
         inviteRole: state.inviteRole,
-        teamDetails: state.teamDetails,
-        teamBrand: state.teamBrand,
-        teamInvites: state.teamInvites,
       }),
     }
   )

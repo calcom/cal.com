@@ -1,4 +1,5 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isEmailAction, isFormTrigger } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -8,7 +9,6 @@ import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
 import { WorkflowRelationsRepository } from "@calcom/lib/server/repository/workflowRelations";
 import { WorkflowStepRepository } from "@calcom/lib/server/repository/workflowStep";

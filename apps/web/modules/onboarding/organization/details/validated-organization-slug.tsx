@@ -37,19 +37,19 @@ export function ValidatedOrganizationSlug({
 
       setValidationState("checking");
 
-      startTransition(async () => {
-        // Call server action
-        const result = await checkSlugAvailability(slug);
-
-        if (result.available) {
-          setValidationState("available");
-          setErrorMessage("");
-          onValidationChange?.(true);
-        } else {
-          setValidationState("taken");
-          setErrorMessage(result.message || "This slug is not available");
-          onValidationChange?.(false);
-        }
+      // Call server action
+      checkSlugAvailability(slug).then((result) => {
+        startTransition(() => {
+          if (result.available) {
+            setValidationState("available");
+            setErrorMessage("");
+            onValidationChange?.(true);
+          } else {
+            setValidationState("taken");
+            setErrorMessage(result.message || "This slug is not available");
+            onValidationChange?.(false);
+          }
+        });
       });
     },
     [onValidationChange]
