@@ -1173,7 +1173,7 @@ export class BookingRepository {
     });
   }
 
-  async findByIdForAddingGuests(bookingId: number) {
+  async findByIdIncludeDestinationCalendar(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
         id: bookingId,
@@ -1193,7 +1193,7 @@ export class BookingRepository {
     });
   }
 
-  async updateBookingWithGuests({
+  async updateBookingAttendees({
     bookingId,
     newAttendees,
     updatedResponses,

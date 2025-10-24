@@ -32,12 +32,12 @@ type AddGuestsOptions = {
   emailsEnabled?: boolean;
 };
 
-type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdForAddingGuests"]>>>;
+type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
 async function getBooking(bookingId: number) {
   const bookingRepository = new BookingRepository(prisma);
-  const booking = await bookingRepository.findByIdForAddingGuests(bookingId);
+  const booking = await bookingRepository.findByIdIncludeDestinationCalendar(bookingId);
 
   if (!booking || !booking.user) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
@@ -179,7 +179,7 @@ async function sanitizeAndFilterGuests(
     .filter((guest): guest is NonNullable<typeof guest> => guest !== undefined);
 }
 
-async function updateBookingWithGuests(
+async function updateBookingAttendees(
   bookingId: number,
   newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[],
   uniqueGuestEmails: string[],
@@ -188,7 +188,7 @@ async function updateBookingWithGuests(
   const bookingResponses = booking.responses as BookingResponses;
   const bookingRepository = new BookingRepository(prisma);
 
-  return await bookingRepository.updateBookingWithGuests({
+  return await bookingRepository.updateBookingAttendees({
     bookingId,
     newAttendees,
     updatedResponses: {
@@ -319,7 +319,7 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
 
   const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
 
-  const bookingAttendees = await updateBookingWithGuests(
+  const bookingAttendees = await updateBookingAttendees(
     bookingId,
     newGuestsDetails,
     uniqueGuestEmails,
