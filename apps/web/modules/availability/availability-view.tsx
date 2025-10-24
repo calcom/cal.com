@@ -18,7 +18,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { ToggleGroup } from "@calcom/ui/components/form";
 
 type AvailabilityListProps = {
   availabilities: RouterOutputs["viewer"]["availability"]["list"];
@@ -204,8 +203,10 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
     },
     [searchParams]
   );
+  const currentValue = searchParams?.get("type") ?? "mine";
 
   return (
+
     <div className="flex items-center gap-2">
       {/* <ToggleGroup
         className="hidden h-fit md:block"
@@ -220,3 +221,19 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
     </div>
   );
 };
+
+{
+  /** For showing New button on Right corner aligned to Availability heading  */
+}
+export function MobileAvailabilityButton() {
+  const searchParams = useCompatSearchParams();
+  const currentValue = searchParams?.get("type") ?? "mine";
+
+  return currentValue === "mine" ? (
+    <NewScheduleButton />
+  ) : (
+    <div className="invisible">
+      <NewScheduleButton />
+    </div>
+  );
+}
