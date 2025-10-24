@@ -35,6 +35,49 @@ type AddGuestsOptions = {
 type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
+export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
+  const { user } = ctx;
+  const { bookingId, guests } = input;
+
+  const booking = await getBooking(bookingId);
+
+  await validateUserPermissions(booking, user);
+
+  validateGuestsFieldEnabled(booking);
+
+  const organizer = await getOrganizerData(booking.userId);
+
+  const uniqueGuests = await sanitizeAndFilterGuests(guests, booking);
+
+  const newGuestsDetails = uniqueGuests.map((guest) => ({
+    name: guest.name || "",
+    email: guest.email,
+    timeZone: guest.timeZone || organizer.timeZone,
+    locale: guest.language || organizer.locale,
+  }));
+
+  const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
+
+  const bookingAttendees = await updateBookingAttendees(
+    bookingId,
+    newGuestsDetails,
+    uniqueGuestEmails,
+    booking
+  );
+
+  const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
+
+  const evt = await buildCalendarEvent(booking, organizer, attendeesList);
+
+  await updateCalendarEvent(booking, evt);
+
+  if (emailsEnabled) {
+    await sendGuestNotifications(evt, booking, uniqueGuestEmails);
+  }
+
+  return { message: "Guests added" };
+};
+
 async function getBooking(bookingId: number) {
   const bookingRepository = new BookingRepository(prisma);
   const booking = await bookingRepository.findByIdIncludeDestinationCalendar(bookingId);
@@ -295,46 +338,3 @@ async function sendGuestNotifications(
     newGuests: uniqueGuests,
   });
 }
-
-export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
-  const { user } = ctx;
-  const { bookingId, guests } = input;
-
-  const booking = await getBooking(bookingId);
-
-  await validateUserPermissions(booking, user);
-
-  validateGuestsFieldEnabled(booking);
-
-  const organizer = await getOrganizerData(booking.userId);
-
-  const uniqueGuests = await sanitizeAndFilterGuests(guests, booking);
-
-  const newGuestsDetails = uniqueGuests.map((guest) => ({
-    name: guest.name || "",
-    email: guest.email,
-    timeZone: guest.timeZone || organizer.timeZone,
-    locale: guest.language || organizer.locale,
-  }));
-
-  const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
-
-  const bookingAttendees = await updateBookingAttendees(
-    bookingId,
-    newGuestsDetails,
-    uniqueGuestEmails,
-    booking
-  );
-
-  const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
-
-  const evt = await buildCalendarEvent(booking, organizer, attendeesList);
-
-  await updateCalendarEvent(booking, evt);
-
-  if (emailsEnabled) {
-    await sendGuestNotifications(evt, booking, uniqueGuestEmails);
-  }
-
-  return { message: "Guests added" };
-};
