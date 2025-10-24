@@ -165,6 +165,120 @@ export class SlotsService_2024_09_04 {
     return results;
   }
 
+  async getSlotsByUsers(input: { date: string; timeZone: string; userIds: string; format?: SlotFormat }) {
+    const { date, timeZone, userIds, format } = input;
+
+    // Validate required parameters
+    if (!date) {
+      throw new BadRequestException("Missing required parameter: date");
+    }
+    if (!timeZone) {
+      throw new BadRequestException("Missing required parameter: timeZone");
+    }
+    if (!userIds) {
+      throw new BadRequestException("Missing required parameter: userIds");
+    }
+
+    // Validate and parse date
+    const start = DateTime.fromISO(date, { zone: "utc" }).startOf("day");
+    const end = DateTime.fromISO(date, { zone: "utc" }).endOf("day");
+
+    if (!start.isValid || !end.isValid) {
+      throw new BadRequestException("Invalid date format. Expected ISO 8601 like 2050-09-05");
+    }
+
+    // Parse and validate userIds
+    const userIdArray = userIds
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+
+    if (userIdArray.length === 0) {
+      throw new BadRequestException("userIds cannot be empty");
+    }
+
+    if (userIdArray.length > 50) {
+      throw new BadRequestException("Maximum 50 user IDs allowed");
+    }
+
+    const parsedUserIds: number[] = [];
+    for (const idStr of userIdArray) {
+      const parsed = parseInt(idStr, 10);
+      if (isNaN(parsed) || parsed <= 0 || !Number.isInteger(parseFloat(idStr))) {
+        throw new BadRequestException(
+          `Invalid userIds format. Must be comma-separated positive integers. Invalid value: '${idStr}'`
+        );
+      }
+      parsedUserIds.push(parsed);
+    }
+
+    // Fetch event types for specified users only
+    const eventTypes = await this.dbRead.prisma.eventType.findMany({
+      where: {
+        hidden: { equals: false },
+        userId: { in: parsedUserIds },
+        teamId: null,
+      },
+      select: {
+        id: true,
+        slug: true,
+        userId: true,
+        teamId: true,
+      },
+    });
+
+    // Early return if no event types found
+    if (eventTypes.length === 0) {
+      return [];
+    }
+
+    const startIso = start.toISO();
+    const endIso = end.toISO();
+
+    // Fetch slots for each event type in parallel
+    const results = await Promise.all(
+      eventTypes.map(async (et) => {
+        const internalQuery: InternalGetSlotsQuery = {
+          isTeamEvent: !!et.teamId,
+          startTime: startIso!,
+          endTime: endIso!,
+          duration: undefined,
+          eventTypeId: et.id,
+          eventTypeSlug: et.slug,
+          usernameList: [],
+          timeZone,
+          orgSlug: null,
+          rescheduleUid: null,
+        };
+
+        try {
+          const formatted = await this.fetchAndFormatSlots(internalQuery, format);
+          const formattedMap = formatted as Record<string, unknown[]>;
+          const onlyRequested = formattedMap && formattedMap[date] ? { [date]: formattedMap[date] } : {};
+
+          return {
+            eventTypeId: et.id,
+            eventTypeSlug: et.slug,
+            ownerUserId: et.userId ?? null,
+            ownerTeamId: et.teamId ?? null,
+            slotsByDate: onlyRequested,
+          };
+        } catch {
+          // Swallow per-event type errors to not fail the whole aggregation
+          return {
+            eventTypeId: et.id,
+            eventTypeSlug: et.slug,
+            ownerUserId: et.userId ?? null,
+            ownerTeamId: et.teamId ?? null,
+            slotsByDate: {},
+          };
+        }
+      })
+    );
+
+    return results;
+  }
+
   async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {
     if (input.reservationDuration && !authUserId) {
       throw new UnauthorizedException(

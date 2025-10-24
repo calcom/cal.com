@@ -283,6 +283,83 @@ export class SlotsController_2024_09_04 {
     };
   }
 
+  @Get("/by-users")
+  @ApiOperation({
+    summary: "Get available slots for specific users on a given day",
+    description:
+      "Aggregates available slots for the specified user IDs. Only includes non-hidden event types owned by the provided users.",
+  })
+  @ApiQuery({
+    name: "date",
+    required: true,
+    description: "ISO 8601 date format (YYYY-MM-DD)",
+    example: "2050-09-05",
+  })
+  @ApiQuery({
+    name: "timeZone",
+    required: true,
+    description: "IANA timezone string for slot formatting",
+    example: "Europe/London",
+  })
+  @ApiQuery({
+    name: "userIds",
+    required: true,
+    description: "Comma-separated list of Cal.com user IDs (max 50). Example: '1,10,11,12'",
+    example: "1,10,11",
+  })
+  @ApiQuery({
+    name: "format",
+    required: false,
+    description: "Format of slot times in response. Use 'range' to get start and end times.",
+    example: "range",
+  })
+  @DocsResponse({
+    status: 200,
+    description: "Available slots for specified users",
+    schema: {
+      type: "object",
+      example: {
+        status: "success",
+        data: [
+          {
+            eventTypeId: 2,
+            eventTypeSlug: "15min",
+            ownerUserId: 1,
+            ownerTeamId: null,
+            slotsByDate: {
+              "2050-09-05": [
+                { start: "2050-09-05T08:00:00.000+01:00", end: "2050-09-05T08:15:00.000+01:00" },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  })
+  @DocsResponse({
+    status: 400,
+    description: "Bad Request - Invalid parameters",
+    schema: {
+      type: "object",
+      example: {
+        statusCode: 400,
+        message: "Invalid userIds format. Must be comma-separated positive integers.",
+      },
+    },
+  })
+  async getSlotsByUsers(
+    @Query("date") date: string,
+    @Query("timeZone") timeZone: string,
+    @Query("userIds") userIds: string,
+    @Query("format") format?: SlotFormat
+  ): Promise<ApiResponse<unknown>> {
+    const data = await this.slotsService.getSlotsByUsers({ date, timeZone, userIds, format });
+    return {
+      status: SUCCESS_STATUS,
+      data,
+    };
+  }
+
   @Post("/reservations")
   @UseGuards(OptionalApiAuthGuard)
   @ApiOperation({

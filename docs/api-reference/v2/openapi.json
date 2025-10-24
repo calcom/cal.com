@@ -11928,6 +11928,111 @@
         "tags": ["Slots"]
       }
     },
+    "/v2/slots/by-users": {
+      "get": {
+        "operationId": "SlotsController_2024_09_04_getSlotsByUsers",
+        "summary": "Get available slots for specific users on a given day",
+        "description": "Aggregates available slots for the specified user IDs. Only includes non-hidden event types owned by the provided users.",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-09-04",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-09-04"
+            }
+          },
+          {
+            "name": "date",
+            "required": true,
+            "in": "query",
+            "description": "ISO 8601 date format (YYYY-MM-DD)",
+            "example": "2050-09-05",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": true,
+            "in": "query",
+            "description": "IANA timezone string for slot formatting",
+            "example": "Europe/London",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userIds",
+            "required": true,
+            "in": "query",
+            "description": "Comma-separated list of Cal.com user IDs (max 50). Example: '1,10,11,12'",
+            "example": "1,10,11",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times.",
+            "example": "range",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available slots for specified users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "status": "success",
+                    "data": [
+                      {
+                        "eventTypeId": 2,
+                        "eventTypeSlug": "15min",
+                        "ownerUserId": 1,
+                        "ownerTeamId": null,
+                        "slotsByDate": {
+                          "2050-09-05": [
+                            {
+                              "start": "2050-09-05T08:00:00.000+01:00",
+                              "end": "2050-09-05T08:15:00.000+01:00"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "statusCode": 400,
+                    "message": "Invalid userIds format. Must be comma-separated positive integers."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Slots"]
+      }
+    },
     "/v2/slots/reservations": {
       "post": {
         "operationId": "SlotsController_2024_09_04_reserveSlot",

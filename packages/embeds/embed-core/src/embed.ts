@@ -85,6 +85,7 @@ if (!globalCal || !globalCal.q) {
 
 initializeGlobalCalProps();
 
+// @ts-ignore
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
