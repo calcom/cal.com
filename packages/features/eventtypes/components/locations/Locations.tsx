@@ -2,17 +2,13 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { ErrorMessage } from "@hookform/error-message";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useFieldArray } from "react-hook-form";
 import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type {
-  LocationFormValues,
-  EventTypeSetupProps,
-  FormValues,
-} from "@calcom/features/eventtypes/lib/types";
+import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
@@ -33,11 +29,6 @@ export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locatio
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
-
-type LocationInputCustomClassNames = {
-  addressInput?: string;
-  phoneInput?: string;
-};
 
 type LocationsProps = {
   team: { id: number } | null;
@@ -115,9 +106,6 @@ const Locations: React.FC<LocationsProps> = ({
     control,
     name: "locations",
   });
-
-  const formMethods = useFormContext<FormValues>();
-  console.log("formMethods", formMethods.watch());
 
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
