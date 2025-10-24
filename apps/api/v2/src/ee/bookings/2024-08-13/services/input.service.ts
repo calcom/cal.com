@@ -508,10 +508,10 @@ export class InputBookingsService_2024_08_13 {
     request: Request,
     bookingUid: string,
     body: RescheduleBookingInput,
-    isIndividualSeatOrOrgAdminReschedule: boolean
+    isIndividualSeatReschedule: boolean
   ): Promise<BookingRequest> {
     const bodyTransformed =
-      isIndividualSeatOrOrgAdminReschedule && "seatUid" in body
+      isIndividualSeatReschedule && "seatUid" in body
         ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
         : await this.transformInputRescheduleBooking(bookingUid, body);
 

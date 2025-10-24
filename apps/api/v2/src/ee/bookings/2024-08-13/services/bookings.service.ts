@@ -457,6 +457,16 @@ export class BookingsService_2024_08_13 {
     );
   }
 
+  private ensureIdsPresent(bookingUserId?: number | null, authUserId?: number | null) {
+    if (!authUserId) {
+      throw new Error(`No auth user found`);
+    }
+
+    if (!bookingUserId) {
+      throw new Error(`No user found for booking`);
+    }
+  }
+
   async createInstantBooking(
     request: Request,
     body: CreateInstantBookingInput_2024_08_13,
@@ -766,10 +776,10 @@ export class BookingsService_2024_08_13 {
     try {
       await this.canRescheduleBooking(bookingUid);
 
-      const isIndividualSeatOrOrgAdminRescheduleeee = this.isRescheduleSeatedBody(body);
-      const isIndividualSeatOrOrgAdminReschedulee = await this.shouldRescheduleIndividualSeat(
+      const isIndividualSeatRequest = this.isRescheduleSeatedBody(body);
+      const isIndividualSeatReschedule = await this.shouldRescheduleIndividualSeat(
         bookingUid,
-        isIndividualSeatOrOrgAdminRescheduleeee,
+        isIndividualSeatRequest,
         authUser
       );
 
@@ -777,7 +787,7 @@ export class BookingsService_2024_08_13 {
         request,
         bookingUid,
         body,
-        isIndividualSeatOrOrgAdminReschedulee
+        isIndividualSeatReschedule
       );
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -859,44 +869,34 @@ export class BookingsService_2024_08_13 {
     const booking = await this.bookingsRepository.getByUidWithUserIdAndSeatsReferences(bookingUid);
 
     if (!booking) {
-      throw new Error(`Booking with uid=${bookingUid} was not found in the database`);
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const hasSeatsPresentOrNot = Boolean(booking?.seatsReferences?.length);
+    const hasSeatsPresent = Boolean(booking.seatsReferences?.length);
 
-    if (hasSeatsPresentOrNot) {
-      const isIndividualSeatOrOrgAdminReschedulee =
-        await this.validateAndDetermineIfIndividualSeatOrOrgAdminReschedule(
-          isIndividualSeatReschedule,
-          booking.userId,
-          authUser?.id
-        );
-      return isIndividualSeatOrOrgAdminReschedulee;
-    } else {
-      return false;
-    }
+    if (!hasSeatsPresent) return false;
+
+    return await this.isIndividualSeatOrOrgAdminReschedule(
+      isIndividualSeatReschedule,
+      booking.userId,
+      authUser?.id
+    );
   }
 
-  async validateAndDetermineIfIndividualSeatOrOrgAdminReschedule(
+  async isIndividualSeatOrOrgAdminReschedule(
     isIndividualSeatReschedule: boolean,
     bookingUserId: number | null,
     authUserId?: number | null
   ) {
     if (isIndividualSeatReschedule) {
       return true;
-    } else {
-      if (!authUserId) {
-        throw new Error(`No auth user found`);
-      }
-
-      if (!bookingUserId) {
-        throw new Error(`No user found for booking`);
-      }
-
-      const isOrgAdmin = await isLoggedInUserOrgAdminOfBookingUser(authUserId, bookingUserId);
-
-      return isOrgAdmin;
     }
+
+    this.ensureIdsPresent(bookingUserId, authUserId);
+
+    const isOrgAdmin = await isLoggedInUserOrgAdminOfBookingUser(authUserId, bookingUserId);
+
+    return isOrgAdmin;
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
