@@ -909,7 +909,7 @@ export async function scheduleBookingReminders(
           userId,
           teamId,
           verifiedAt: step?.verifiedAt ?? null,
-          reminderPhone: booking.smsReminderNumber,
+          submittedPhoneNumber: booking.smsReminderNumber,
           routedEventTypeId: null,
         });
       }
