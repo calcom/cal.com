@@ -7,7 +7,7 @@ import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { buildCalEventFromBooking } from "@calcom/lib/buildCalEventFromBooking";
@@ -295,7 +295,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
       });
       hideBranding = false;
     } else {
-      hideBranding = await shouldHideBrandingForEvent({
+      hideBranding = await shouldHideBrandingForEventWithPrisma({
         eventTypeId,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,

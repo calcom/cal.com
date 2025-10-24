@@ -10,7 +10,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -130,7 +130,7 @@ export async function handleConfirmation(args: {
     });
     hideBranding = false;
   } else {
-    hideBranding = await shouldHideBrandingForEvent({
+    hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId,
       team: booking.eventType?.team ?? null,
       owner: booking.user ?? null,

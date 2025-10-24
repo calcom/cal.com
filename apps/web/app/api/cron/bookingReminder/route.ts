@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import dayjs from "@calcom/dayjs";
 import { sendOrganizerRequestReminderEmail, withHideBranding } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -133,7 +133,7 @@ async function postHandler(request: NextRequest) {
       const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
 
       // Use pre-fetched branding data from booking query
-      const hideBranding = await shouldHideBrandingForEvent({
+      const hideBranding = await shouldHideBrandingForEventWithPrisma({
         eventTypeId: booking.eventType?.id ?? 0,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,

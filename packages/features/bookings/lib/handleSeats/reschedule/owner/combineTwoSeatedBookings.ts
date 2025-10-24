@@ -4,7 +4,7 @@ import { uuid } from "short-uuid";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -137,7 +137,7 @@ const combineTwoSeatedBookings = async (
 
   if (noEmail !== true && isConfirmedByDefault) {
     // Use pre-fetched branding data from eventType
-    const hideBranding = await shouldHideBrandingForEvent({
+    const hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId: eventType.id,
       team: eventType.team ?? null,
       owner: organizerUser ?? null,

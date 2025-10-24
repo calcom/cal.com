@@ -6,7 +6,7 @@ import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsRe
 import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
+import { getHideBrandingWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { prisma } from "@calcom/prisma";
@@ -121,9 +121,10 @@ export class WorkflowService {
       }
     }
 
-    const hideBranding = await getHideBranding({
+    const hideBranding = await getHideBrandingWithPrisma({
       userId: form.userId,
       teamId: form.teamId ?? undefined,
+      prisma,
     });
 
     await scheduleWorkflowReminders({

@@ -9,7 +9,7 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -246,7 +246,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
       hideBranding: isPlatformBooking
         ? true
-        : await shouldHideBrandingForEvent({
+        : await shouldHideBrandingForEventWithPrisma({
             eventTypeId: eventType.id,
             team: eventType?.parent?.team ?? eventType?.team,
             owner: eventType.users[0] ?? null,

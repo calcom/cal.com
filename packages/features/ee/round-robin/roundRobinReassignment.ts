@@ -25,7 +25,7 @@ import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
@@ -342,13 +342,13 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
-  const hideBranding = await shouldHideBrandingForEvent({
+  const hideBranding = await shouldHideBrandingForEventWithPrisma({
     eventTypeId: eventType.id,
     team: eventType.team ?? null,
     owner: organizer,
     organizationId: orgId ?? null,
   });
-  (evt as any).hideBranding = hideBranding;
+  evt.hideBranding = hideBranding;
 
   if (hasOrganizerChanged) {
     // location might changed and will be new created in eventManager.create (organizer default location)

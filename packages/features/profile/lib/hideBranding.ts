@@ -2,11 +2,9 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import { PrismaClient } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
-const teamRepository = new TeamRepository(prisma);
-const userRepository = new UserRepository(prisma);
 export type TeamWithBranding = {
   hideBranding: boolean | null;
   parent: {
@@ -31,7 +29,6 @@ export type UserWithProfileAndBranding = UserWithBranding & {
 
 // Internal type aliases for backward compatibility
 type Team = TeamWithBranding;
-type Profile = ProfileWithBranding;
 type UserWithoutProfile = UserWithBranding;
 type UserWithProfile = UserWithProfileAndBranding;
 
@@ -79,9 +76,13 @@ function resolveHideBranding(options: {
 export async function getHideBranding({
   userId,
   teamId,
+  teamRepository,
+  userRepository,
 }: {
   userId?: number;
   teamId?: number;
+  teamRepository: TeamRepository;
+  userRepository: UserRepository;
 }): Promise<boolean> {
   if (teamId) {
     // Get team data with parent organization
@@ -254,5 +255,53 @@ export function shouldHideBrandingForUserEvent({
     owner,
     team: null,
     eventTypeId,
+  });
+}
+
+/**
+ * Convenience function that creates repositories with a PrismaClient instance
+ * This maintains backward compatibility for existing code
+ */
+export async function getHideBrandingWithPrisma({
+  userId,
+  teamId,
+  prisma,
+}: {
+  userId?: number;
+  teamId?: number;
+  prisma: PrismaClient;
+}): Promise<boolean> {
+  const teamRepository = new TeamRepository(prisma);
+  const userRepository = new UserRepository(prisma);
+
+  return getHideBranding({
+    userId,
+    teamId,
+    teamRepository,
+    userRepository,
+  });
+}
+
+/**
+ * Convenience function that creates repositories with a PrismaClient instance
+ * This maintains backward compatibility for existing code
+ */
+export async function shouldHideBrandingForEventWithPrisma({
+  eventTypeId,
+  team,
+  owner,
+  organizationId,
+}: {
+  eventTypeId: number;
+  team: Team | null;
+  owner: UserWithoutProfile | null;
+  organizationId: number | null;
+}) {
+  // ProfileRepository is a static class, so we don't need to instantiate it
+  return shouldHideBrandingForEvent({
+    eventTypeId,
+    team,
+    owner,
+    organizationId,
   });
 }

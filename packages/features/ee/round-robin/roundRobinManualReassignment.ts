@@ -25,7 +25,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
@@ -313,7 +313,7 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
-  const hideBranding = await shouldHideBrandingForEvent({
+  const hideBranding = await shouldHideBrandingForEventWithPrisma({
     eventTypeId: eventType.id,
     team: eventType.team ?? null,
     owner: organizer,

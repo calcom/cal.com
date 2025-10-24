@@ -3,7 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -248,7 +248,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       });
       hideBranding = false;
     } else {
-      hideBranding = await shouldHideBrandingForEvent({
+      hideBranding = await shouldHideBrandingForEventWithPrisma({
         eventTypeId,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,
