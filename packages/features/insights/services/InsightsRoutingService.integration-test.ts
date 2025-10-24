@@ -759,9 +759,10 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+      const query = Prisma.sql`
         SELECT id FROM "RoutingFormResponseDenormalized" rfrd WHERE ${baseConditions}
       `;
+      const results = await prisma.$queryRaw<Array<{ id: number }>>(query);
 
       // Should only return the authorized user's form response
       expect(results).toHaveLength(2);
@@ -863,9 +864,10 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+      const query = Prisma.sql`
         SELECT id FROM "RoutingFormResponseDenormalized" rfrd WHERE ${baseConditions}
       `;
+      const results = await prisma.$queryRaw<Array<{ id: number }>>(query);
 
       // Should only return the authorized user's form response
       expect(results).toHaveLength(1);
@@ -953,9 +955,10 @@ describe("InsightsRoutingService Integration Tests", () => {
       });
 
       const baseConditions = await service.getBaseConditions();
-      const results = await prisma.$queryRaw<Array<{ id: number }>>`
+      const query = Prisma.sql`
         SELECT id FROM "RoutingFormResponseDenormalized" rfrd WHERE ${baseConditions}
       `;
+      const results = await prisma.$queryRaw<Array<{ id: number }>>(query);
 
       // Should return both form responses (original user's and team member's)
       expect(results).toHaveLength(2);
