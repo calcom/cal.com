@@ -13,8 +13,9 @@ interface FilterBarProps<TData> {
 export function FilterBar<TData>({ table, columnIdsToHide }: FilterBarProps<TData>) {
   const { activeFilters } = useDataTable();
   const displayedFilterCount = useMemo(() => {
-    return activeFilters.filter((filter) => (columnIdsToHide ? !columnIdsToHide.includes(filter.f) : true))
-      .length;
+    return (activeFilters ?? []).filter((filter) =>
+      columnIdsToHide ? !columnIdsToHide.includes(filter.f) : true
+    ).length;
   }, [activeFilters, columnIdsToHide]);
 
   return (

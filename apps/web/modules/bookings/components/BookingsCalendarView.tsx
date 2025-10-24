@@ -131,9 +131,7 @@ export function BookingsCalendarView({
           showBackgroundPattern={false}
           showBorder={false}
           borderColor="subtle"
-          onEventClick={(event) => {
-            console.log("Event clicked:", event);
-          }}
+          onEventClick={(_event) => {}}
           hideHeader
         />
       </div>
