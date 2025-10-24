@@ -465,6 +465,8 @@ export class BookingsService_2024_08_13 {
     if (!bookingUserId) {
       throw new Error(`No user found for booking`);
     }
+
+    return { bookingUserId, authUserId };
   }
 
   async createInstantBooking(
@@ -792,7 +794,7 @@ export class BookingsService_2024_08_13 {
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
-          userId: bookingRequest.userId,
+          userId: bookingRequest.userId ?? authUser?.id,
           hostname: bookingRequest.headers?.host || "",
           platformClientId: bookingRequest.platformClientId,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
@@ -892,9 +894,12 @@ export class BookingsService_2024_08_13 {
       return true;
     }
 
-    this.ensureIdsPresent(bookingUserId, authUserId);
+    const { authUserId: authenticatedUserId, bookingUserId: bookingOwnerId } = this.ensureIdsPresent(
+      bookingUserId,
+      authUserId
+    );
 
-    const isOrgAdmin = await isLoggedInUserOrgAdminOfBookingUser(authUserId, bookingUserId);
+    const isOrgAdmin = await isLoggedInUserOrgAdminOfBookingUser(authenticatedUserId, bookingOwnerId);
 
     return isOrgAdmin;
   }
