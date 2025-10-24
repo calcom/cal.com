@@ -120,12 +120,11 @@ select:focus {
   border-color: var(--brand-color);
 }
 
-/* TODO: need to check if this is needed */
-/* @layer components {
+@layer components {
   .scroll-bar {
     @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
   }
-} */
+}
 
 /* TODO: avoid global specific css */
 /* button[role="switch"][data-state="checked"] span {
@@ -139,7 +138,7 @@ select:focus {
   }
 
   .slider > .slider-track {
-    @apply relative h-1 flex-grow rounded-md bg-gray-400;
+    @apply relative h-1 grow rounded-md bg-gray-400;
   }
 
   .slider .slider-range {
@@ -373,16 +372,16 @@ select:focus {
 
 .react-tel-input .country-list .country:hover,
 .react-tel-input .country-list .country.highlight {
-  @apply !bg-emphasis;
+  @apply bg-emphasis!;
 }
 
 .react-tel-input .flag-dropdown .selected-flag,
 .react-tel-input .flag-dropdown.open .selected-flag {
-  @apply !bg-default;
+  @apply bg-default!;
 }
 
 .react-tel-input .flag-dropdown {
-  @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
+  @apply border-r-default! left-0.5 border-y-0! border-l-0!;
 }
 
 [data-radix-popper-content-wrapper] {
