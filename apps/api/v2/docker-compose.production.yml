@@ -42,7 +42,7 @@ services:
 
   # Cal.com API v2
   api-v2:
-    image: calcom-api-v2:latest  # Use pre-built image
+    image: 194266086878.dkr.ecr.us-east-2.amazonaws.com/collegecontact/calcom-api-v2:latest
     # build:
     #   context: ../../..  # Build from repo root to include monorepo
     #   dockerfile: apps/api/v2/Dockerfile
