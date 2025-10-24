@@ -217,7 +217,8 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
         options={toggleGroupOptions}
         />
         <NewScheduleButton /> */}
-      {/* Mobile: Full width tabs without button */}
+
+      {/*For Mobile: Full width tabs without button */}
       <div className="border-muted flex w-full gap-0 border-b md:hidden dark:border-gray-700">
         {toggleGroupOptions.map((option) => {
           const isActive = currentValue === option.value;
@@ -244,7 +245,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
         })}
       </div>
 
-      {/* Desktop: Tabs on left, button on right */}
+      {/*For Desktop: Tabs on left, button on right */}
       <div className="hidden w-full items-center md:flex">
         <div className="border-muted flex max-w-full gap-0 border-b dark:border-gray-700">
           {toggleGroupOptions.map((option) => {
