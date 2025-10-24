@@ -297,7 +297,7 @@ export default function Success(props: PageProps) {
     if (isCancelled) {
       return "";
     }
-    if (isAwaitingPayment) {
+    if (isAwaitingPayment && !isCancelled) {
       return t("complete_your_booking_subject", {
         title: eventName,
         date: formatToLocalizedDate(date, undefined, "long", tz),
