@@ -111,26 +111,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const shouldSkipCrmRefetch =
     crmFetchAttempted === "true" || (Array.isArray(crmFetchAttempted) && crmFetchAttempted[0] === "true");
 
-  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
-    if (!shouldSkipCrmRefetch) {
-      const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-        "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
-      );
-      const {
-        email,
-        recordType,
-        crmAppSlug: crmAppSlugQuery,
-        recordId,
-      } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-        query,
-        eventData,
-      });
+  if (!shouldSkipCrmRefetch && (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug)) {
+    const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+      "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
+    );
+    const {
+      email,
+      recordType,
+      crmAppSlug: crmAppSlugQuery,
+      recordId,
+    } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+      query,
+      eventData,
+    });
 
-      teamMemberEmail = email ?? undefined;
-      crmOwnerRecordType = recordType ?? undefined;
-      crmAppSlug = crmAppSlugQuery ?? undefined;
-      crmRecordId = recordId ?? undefined;
-    }
+    teamMemberEmail = email ?? undefined;
+    crmOwnerRecordType = recordType ?? undefined;
+    crmAppSlug = crmAppSlugQuery ?? undefined;
+    crmRecordId = recordId ?? undefined;
   }
 
   const organizationSettings = getOrganizationSEOSettings(team);
