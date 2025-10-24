@@ -4,7 +4,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
@@ -12,6 +11,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { getEventTypeIdForTest } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 
 interface TestPhoneCallDialogProps {
@@ -53,28 +53,17 @@ export function TestPhoneCallDialog({
       return;
     }
 
-    let eventTypeId;
+    const result = getEventTypeIdForTest({
+      trigger: form.getValues("trigger"),
+      outboundEventTypeId,
+      eventTypeIds,
+      activeOnEventTypeId: form.getValues("activeOn")?.[0]?.value,
+      t,
+    });
 
-    const trigger = form.getValues("trigger");
-    if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
-      if (!outboundEventTypeId) {
-        showToast(t("choose_event_type_in_agent_setup"), "error");
-        return;
-      }
-      eventTypeId = outboundEventTypeId;
-    } else if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT) {
-      // Pick any event type from user/team event types
-      if (!eventTypeIds || eventTypeIds.length === 0) {
-        showToast(t("no_event_types_available_for_test_call"), "error");
-        return;
-      }
-      eventTypeId = eventTypeIds[0];
-    } else {
-      if (!form.getValues("activeOn")?.[0]?.value) {
-        showToast(t("choose_at_least_one_event_type_test_call"), "error");
-        return;
-      }
-      eventTypeId = parseInt(form.getValues("activeOn")[0].value, 10);
+    if (result.error || !result.eventTypeId) {
+      showToast(result.error || t("no_event_type_selected"), "error");
+      return;
     }
 
     if (agentId) {
@@ -82,7 +71,7 @@ export function TestPhoneCallDialog({
         agentId: agentId,
         phoneNumber: testPhoneNumber,
         teamId: teamId,
-        eventTypeId,
+        eventTypeId: result.eventTypeId,
       });
     }
   };
