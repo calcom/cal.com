@@ -36,7 +36,7 @@ export function ValidatedTeamSlug({ value, onChange, onValidationChange }: Valid
 
       setValidationState("checking");
 
-      startTransition(async () => {
+      const checkAvailability = async () => {
         const result = await checkTeamSlugAvailability(slug);
 
         if (result.available) {
@@ -48,6 +48,10 @@ export function ValidatedTeamSlug({ value, onChange, onValidationChange }: Valid
           setErrorMessage(result.message || "This slug is not available");
           onValidationChange?.(false);
         }
+      };
+
+      startTransition(() => {
+        checkAvailability();
       });
     },
     [onValidationChange]
