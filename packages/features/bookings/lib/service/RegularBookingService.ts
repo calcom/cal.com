@@ -2283,7 +2283,7 @@ async function handler(
   const bookingRescheduledPayload = bookingCreatedPayload;
 
   const bookingEventHandler = new BookingEventHandlerService({
-    log: loggerWithEventDetails,
+    log: tracingLogger,
     hashedLinkService: deps.hashedLinkService,
   });
 
