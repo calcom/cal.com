@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import path from "path";
 import prisma from "@calcom/prisma";
 
 /**
@@ -8,6 +9,8 @@ import prisma from "@calcom/prisma";
  * 3. seed-pbac-organization.ts - PBAC organization
  */
 
+const rootDir = path.resolve(__dirname, "..");
+
 async function runSeedAll() {
   console.log("🌱 Starting seed-all process...\n");
 
@@ -15,23 +18,23 @@ async function runSeedAll() {
     await prisma.$connect();
 
     console.log("📦 Running main seed script (seed.ts)...");
-    execSync("ts-node --transpile-only ./scripts/seed.ts", {
+    execSync("ts-node --transpile-only scripts/seed.ts", {
       stdio: "inherit",
-      cwd: process.cwd(),
+      cwd: rootDir,
     });
     console.log("✅ Main seed completed\n");
 
     console.log("📊 Running insights seed script (seed-insights.ts)...");
-    execSync("ts-node --transpile-only ./scripts/seed-insights.ts", {
+    execSync("ts-node --transpile-only scripts/seed-insights.ts", {
       stdio: "inherit",
-      cwd: process.cwd(),
+      cwd: rootDir,
     });
     console.log("✅ Insights seed completed\n");
 
     console.log("🔐 Running PBAC organization seed script (seed-pbac-organization.ts)...");
-    execSync("ts-node --transpile-only ./scripts/seed-pbac-organization.ts", {
+    execSync("ts-node --transpile-only scripts/seed-pbac-organization.ts", {
       stdio: "inherit",
-      cwd: process.cwd(),
+      cwd: rootDir,
     });
     console.log("✅ PBAC organization seed completed\n");
 
