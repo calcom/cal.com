@@ -80,6 +80,8 @@ export function AgentConfigurationSheet({
 
   const { outboundAgentForm, inboundAgentForm } = useAgentForms({ agentData, inboundAgentData });
 
+  const trigger = form.watch("trigger");
+
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: async () => {
       if (activeAgentId) {
@@ -93,8 +95,7 @@ export function AgentConfigurationSheet({
 
   const handleAgentUpdate = async (data: AgentFormValues) => {
     if (!agentId) return;
-    const trigger = form.watch("trigger");
-    if (trigger === "FORM_SUBMITTED" && !data.eventTypeId) {
+    if (trigger === "FORM_SUBMITTED" && !data.outboundEventTypeId) {
       showToast(t("select_event_type_to_schedule_calls"), "error");
       return;
     }
@@ -104,7 +105,7 @@ export function AgentConfigurationSheet({
       beginMessage: data.beginMessage,
       language: data.language as Language,
       voiceId: data.voiceId,
-      outboundEventTypeId: data.eventTypeId,
+      outboundEventTypeId: data.outboundEventTypeId,
     };
 
     await updateAgentMutation.mutateAsync({
@@ -156,7 +157,7 @@ export function AgentConfigurationSheet({
                 outboundAgentForm={outboundAgentForm}
                 readOnly={readOnly}
                 eventTypeOptions={eventTypeOptions}
-                trigger={form.watch("trigger")}
+                trigger={trigger}
               />
             )}
 
