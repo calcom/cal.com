@@ -35,8 +35,8 @@ type TaskPayloads = {
     userId: number | null;
     teamId: number | null;
     providerAgentId: string;
-    responses: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
-    routedEventTypeId: number | null;
+    responses?: FORM_SUBMITTED_WEBHOOK_RESPONSES | null;
+    routedEventTypeId?: number | null;
   };
 };
 export type TaskTypes = keyof TaskPayloads;

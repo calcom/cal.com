@@ -48,7 +48,7 @@ export function useAgentForms({ agentData, inboundAgentData }: UseAgentFormsProp
         language: retellData.language || "en-US",
         voiceId: retellData.voiceId || "",
         generalTools: retellData.generalTools || [],
-        eventTypeId: agentData.outboundEventTypeId || undefined,
+        outboundEventTypeId: agentData.outboundEventTypeId || undefined,
       });
     }
   }, [agentData, outboundAgentForm]);

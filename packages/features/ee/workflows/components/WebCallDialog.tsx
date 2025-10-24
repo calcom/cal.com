@@ -238,7 +238,7 @@ export function WebCallDialog({
       createWebCallMutation.mutate({
         agentId: agentId,
         teamId: teamId,
-        eventTypeId: eventTypeId,
+        eventTypeId,
       });
     }
   };

@@ -112,6 +112,9 @@ export function PhoneNumberTab({
         phone.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE || !phone.subscriptionStatus
     ).length > 0;
 
+  const outboundEventTypeId =
+    form?.getValues("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null;
+
   if (hasActivePhoneNumbers) {
     const activePhoneNumbers = agentData.outboundPhoneNumbers.filter(
       (phone) =>
@@ -240,9 +243,7 @@ export function PhoneNumberTab({
             teamId={teamId}
             form={form}
             eventTypeIds={eventTypeIds}
-            outboundEventTypeId={
-              form.getValues("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null
-            }
+            outboundEventTypeId={outboundEventTypeId}
           />
         )}
 
@@ -254,7 +255,7 @@ export function PhoneNumberTab({
             teamId={teamId}
             isOrganization={isOrganization}
             form={form}
-            outboundEventTypeId={agentData?.outboundEventTypeId}
+            outboundEventTypeId={outboundEventTypeId}
           />
         )}
 
@@ -332,9 +333,7 @@ export function PhoneNumberTab({
           teamId={teamId}
           form={form}
           eventTypeIds={eventTypeIds}
-          outboundEventTypeId={
-            form.getValues("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null
-          }
+          outboundEventTypeId={outboundEventTypeId}
         />
       )}
 

@@ -56,7 +56,6 @@ export function TestPhoneCallDialog({
     let eventTypeId;
 
     const trigger = form.getValues("trigger");
-
     if (trigger === WorkflowTriggerEvents.FORM_SUBMITTED) {
       if (!outboundEventTypeId) {
         showToast(t("choose_event_type_in_agent_setup"), "error");
@@ -83,7 +82,7 @@ export function TestPhoneCallDialog({
         agentId: agentId,
         phoneNumber: testPhoneNumber,
         teamId: teamId,
-        eventTypeId: eventTypeId,
+        eventTypeId,
       });
     }
   };
