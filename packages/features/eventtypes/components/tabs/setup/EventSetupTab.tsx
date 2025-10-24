@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
+import type { UseFormGetValues, Control, FormState } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
@@ -70,7 +70,7 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
+  const { eventType, team, urlPrefix, hasOrgBranding, customClassNames } = props;
 
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
@@ -366,7 +366,6 @@ export const EventSetupTab = (
                   isManagedEventType={isManagedEventType}
                   disableLocationProp={shouldLockDisableProps("locations").disabled}
                   getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
-                  setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
                   control={formMethods.control as unknown as Control<LocationFormValues>}
                   formState={formMethods.formState as unknown as FormState<LocationFormValues>}
                   {...props}
