@@ -1601,7 +1601,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
-            eventTypeOptions={props.eventTypeOptions || []}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10)) || []}
             outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}

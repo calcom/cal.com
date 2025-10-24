@@ -254,7 +254,7 @@ export function AgentConfigurationSheet({
           teamId={teamId}
           isOrganization={isOrganization}
           form={form}
-          eventTypeOptions={eventTypeOptions}
+          eventTypeIds={eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
           outboundEventTypeId={agentData?.outboundEventTypeId}
         />
       )}

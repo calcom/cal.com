@@ -255,6 +255,7 @@ export function PhoneNumberTab({
             teamId={teamId}
             isOrganization={isOrganization}
             form={form}
+            eventTypeIds={eventTypeIds}
             outboundEventTypeId={outboundEventTypeId}
           />
         )}
@@ -345,6 +346,8 @@ export function PhoneNumberTab({
           teamId={teamId}
           isOrganization={isOrganization}
           form={form}
+          eventTypeIds={eventTypeIds}
+          outboundEventTypeId={outboundEventTypeId}
         />
       )}
 
