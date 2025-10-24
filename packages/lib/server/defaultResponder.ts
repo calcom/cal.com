@@ -21,7 +21,7 @@ export function defaultResponder<T>(
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     let ok = false;
-    const operation = endpointRoute?.replace(/^\//, "").replace(/\//g, "_") || "api_request";
+    const operation = endpointRoute ? endpointRoute.replace(/^\//, "").replace(/\//g, "_") : "api_request";
     const traceContext = distributedTracing.createTrace(operation, {
       meta: {
         method: req.method || "",
