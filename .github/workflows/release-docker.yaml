@@ -39,7 +39,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "false"
+          push-image: "true"
 
       - name: Notify Slack on Success
         if: success()
@@ -85,7 +85,7 @@ jobs:
           postgres-password: ${{ env.POSTGRES_PASSWORD }}
           postgres-db: ${{ env.POSTGRES_DB }}
           database-host: ${{ env.DATABASE_HOST }}
-          push-image: "false"
+          push-image: "true"
 
       - name: Notify Slack on Success
         if: success()
