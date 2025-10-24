@@ -225,4 +225,37 @@ describe("jsonLogic", () => {
       ).toBe(false);
     });
   });
+
+  describe("starts_with operation", () => {
+    it("should return true if string starts with the given substring case-insensitively", () => {
+      expect(jsonLogic.apply({ starts_with: ["Hello World", "hello"] })).toBe(true);
+      expect(jsonLogic.apply({ starts_with: ["HELLO WORLD", "hello"] })).toBe(true);
+      expect(jsonLogic.apply({ starts_with: ["hello", "HELLO"] })).toBe(true);
+    });
+
+    it("should return false if string does not start with the given substring", () => {
+      expect(jsonLogic.apply({ starts_with: ["Hello World", "world"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: ["Hello World", "hi"] })).toBe(false);
+    });
+
+    it("should return false if the second argument is falsy", () => {
+      expect(jsonLogic.apply({ starts_with: ["Hello World", ""] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: ["Hello World", null] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: ["Hello World", false] })).toBe(false);
+    });
+
+    it("should handle edge cases", () => {
+      expect(jsonLogic.apply({ starts_with: ["", "hello"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: ["hello", "hello world"] })).toBe(false);
+    });
+
+    it("should handle non-string first argument (haystack) safely", () => {
+      expect(jsonLogic.apply({ starts_with: [null, "x"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [undefined, "x"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [123, "1"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [true, "t"] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [[], ""] })).toBe(false);
+      expect(jsonLogic.apply({ starts_with: [{}, ""] })).toBe(false);
+    });
+  });
 });

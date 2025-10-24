@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
-import type { Resource } from "../domain/types/permission-registry";
+import type { Resource, CustomAction } from "../domain/types/permission-registry";
 import { CrudAction } from "../domain/types/permission-registry";
 import { PermissionCheckService } from "../services/permission-check.service";
 
@@ -84,4 +84,59 @@ export const getResourcePermissions = async ({
     canDelete: roleActions[CrudAction.Delete] ?? false,
     canCreate: roleActions[CrudAction.Create] ?? false,
   };
+};
+
+// Enhanced function to get specific custom action permissions
+type ActionType = CrudAction | CustomAction;
+
+interface SpecificActionMapping {
+  [key: string]: RoleMapping;
+}
+
+interface SpecificPermissionsOptions {
+  userId: number;
+  teamId: number;
+  resource: Resource;
+  userRole: MembershipRole;
+  actions: ActionType[];
+  fallbackRoles?: SpecificActionMapping;
+}
+
+export const getSpecificPermissions = async ({
+  userId,
+  teamId,
+  resource,
+  userRole,
+  actions,
+  fallbackRoles = {},
+}: SpecificPermissionsOptions): Promise<Record<string, boolean>> => {
+  const featureRepo = new FeaturesRepository(prisma);
+  const permissionService = new PermissionCheckService();
+
+  const pbacEnabled = await featureRepo.checkIfTeamHasFeature(teamId, "pbac");
+
+  // If PBAC is disabled, use fallback role configuration
+  if (!pbacEnabled) {
+    const permissions: Record<string, boolean> = {};
+    for (const action of actions) {
+      permissions[action] = checkRoleAccess(userRole, fallbackRoles[action]);
+    }
+    return permissions;
+  }
+
+  // PBAC is enabled, get permissions from the service
+  const resourcePermissions = await permissionService.getResourcePermissions({
+    userId,
+    teamId,
+    resource,
+  });
+
+  const roleActions = PermissionMapper.toActionMap(resourcePermissions, resource);
+
+  const permissions: Record<string, boolean> = {};
+  for (const action of actions) {
+    permissions[action] = roleActions[action] ?? false;
+  }
+
+  return permissions;
 };

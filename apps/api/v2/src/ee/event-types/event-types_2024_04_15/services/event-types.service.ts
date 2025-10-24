@@ -19,7 +19,7 @@ import {
   EventTypesPublic,
   getEventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import { EventType } from "@calcom/prisma/client";
+import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesService_2024_04_15 {
@@ -137,7 +137,11 @@ export class EventTypesService_2024_04_15 {
       !bookingFields.find((field) => field.type === "email") &&
       !bookingFields.find((field) => field.type === "phone")
     ) {
-      bookingFields.push({ ...systemBeforeFieldEmail, type: BaseField.email, editable: Editable.system });
+      bookingFields.push({
+        ...systemBeforeFieldEmail,
+        type: BaseField.email,
+        editable: Editable.systemButOptional,
+      });
     }
 
     await updateEventType({

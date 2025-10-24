@@ -14,10 +14,13 @@ import type {
   DeletionResult,
 } from "../types";
 
+type Dependencies = {
+  retellRepository: RetellAIRepository;
+};
+
 export class AIConfigurationService {
   private logger = logger.getSubLogger({ prefix: ["AIConfigurationService"] });
-
-  constructor(private retellRepository: RetellAIRepository) {}
+  constructor(private deps: Dependencies) {}
 
   async setupAIConfiguration(config: AIConfigurationSetup): Promise<{ llmId: string; agentId: string }> {
     let llmId: string | null = null;
@@ -35,19 +38,19 @@ export class AIConfigurationService {
       );
 
       // Step 1: Create LLM
-      const llm = await this.retellRepository.createLLM(llmRequest);
+      const llm = await this.deps.retellRepository.createLLM(llmRequest);
       llmId = llm.llm_id;
 
       // Step 2: Create Agent
       const agentRequest = RetellAIServiceMapper.mapToCreateAgentRequest(llm.llm_id, config.eventTypeId);
-      const agent = await this.retellRepository.createAgent(agentRequest);
+      const agent = await this.deps.retellRepository.createOutboundAgent(agentRequest);
 
       return { llmId: llm.llm_id, agentId: agent.agent_id };
     } catch (error) {
       // Compensation: Clean up LLM if agent creation failed
       if (llmId) {
         try {
-          await this.retellRepository.deleteLLM(llmId);
+          await this.deps.retellRepository.deleteLLM(llmId);
           this.logger.info(`Successfully cleaned up orphaned LLM ${llmId} after setup failure`);
         } catch (cleanupError) {
           const errorMessage = `Failed to cleanup LLM ${llmId} after AI configuration setup failure. This will cause billing charges.`;
@@ -86,7 +89,7 @@ export class AIConfigurationService {
     if (config.agentId) {
       try {
         this.logger.info(`Attempting to delete agent: ${config.agentId}`);
-        await this.retellRepository.deleteAgent(config.agentId);
+        await this.deps.retellRepository.deleteAgent(config.agentId);
         result.deleted.agent = true;
         this.logger.info(`Successfully deleted agent: ${config.agentId}`);
       } catch (error) {
@@ -108,7 +111,7 @@ export class AIConfigurationService {
     if (config.llmId) {
       try {
         this.logger.info(`Attempting to delete LLM: ${config.llmId}`);
-        await this.retellRepository.deleteLLM(config.llmId);
+        await this.deps.retellRepository.deleteLLM(config.llmId);
         result.deleted.llm = true;
         this.logger.info(`Successfully deleted LLM: ${config.llmId}`);
       } catch (error) {
@@ -152,11 +155,16 @@ export class AIConfigurationService {
 
     try {
       const updateRequest = RetellAIServiceMapper.mapToUpdateLLMRequest(data);
-      return await this.retellRepository.updateLLM(llmId, updateRequest);
+
+      return await this.deps.retellRepository.updateLLM(llmId, updateRequest);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to update LLM configuration for ${llmId}: ${errorMessage}`);
     }
+  }
+
+  async setupInboundAIConfiguration(): Promise<{ llmId: string; agentId: string }> {
+    return this.setupAIConfiguration({});
   }
 
   async getLLMDetails(llmId: string): Promise<AIPhoneServiceModel<AIPhoneServiceProviderType.RETELL_AI>> {
@@ -165,7 +173,7 @@ export class AIConfigurationService {
     }
 
     try {
-      return await this.retellRepository.getLLM(llmId);
+      return await this.deps.retellRepository.getLLM(llmId);
     } catch (error) {
       this.logger.error(`Failed to get LLM details for '${llmId}'`, {
         llmId,

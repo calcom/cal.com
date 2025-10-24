@@ -1,7 +1,8 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import type { Prisma } from "@prisma/client";
+
+import type { Prisma, AttributeToUser, Membership, User, Profile } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsUsersRepository {
@@ -60,7 +61,11 @@ export class OrganizationsUsersRepository {
       skip,
       take,
     });
-    return attributeToUsersWithProfile.map((attributeToUser) => attributeToUser.member.user);
+    return attributeToUsersWithProfile.map(
+      (
+        attributeToUser: AttributeToUser & { member: Membership & { user: User & { profiles: Profile[] } } }
+      ) => attributeToUser.member.user
+    );
   }
 
   async getOrganizationUsersByEmails(

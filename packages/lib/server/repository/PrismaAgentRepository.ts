@@ -1,6 +1,4 @@
-import { Prisma } from "@prisma/client";
-
-import prisma from "@calcom/prisma";
+import { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 interface _AgentRawResult {
@@ -10,6 +8,7 @@ interface _AgentRawResult {
   enabled: boolean;
   userId: number;
   teamId: number | null;
+  inboundEventTypeId?: number | null;
   createdAt: Date;
   updatedAt: Date;
   user_id?: number;
@@ -30,8 +29,10 @@ interface _PhoneNumberRawResult {
 }
 
 export class PrismaAgentRepository {
-  private static async getUserAccessibleTeamIds(userId: number): Promise<number[]> {
-    const memberships = await prisma.membership.findMany({
+  constructor(private prismaClient: PrismaClient) {}
+
+  private async getUserAccessibleTeamIds(userId: number): Promise<number[]> {
+    const memberships = await this.prismaClient.membership.findMany({
       where: {
         userId,
         accepted: true,
@@ -44,8 +45,8 @@ export class PrismaAgentRepository {
     return memberships.map((membership) => membership.teamId);
   }
 
-  private static async getUserAdminTeamIds(userId: number): Promise<number[]> {
-    const memberships = await prisma.membership.findMany({
+  private async getUserAdminTeamIds(userId: number): Promise<number[]> {
+    const memberships = await this.prismaClient.membership.findMany({
       where: {
         userId,
         accepted: true,
@@ -61,19 +62,37 @@ export class PrismaAgentRepository {
     return memberships.map((membership) => membership.teamId);
   }
 
-  static async findByIdWithUserAccess({ agentId, userId }: { agentId: string; userId: number }) {
+  async findByIdWithUserAccess({
+    agentId,
+    userId,
+    teamId,
+  }: {
+    agentId: string;
+    userId: number;
+    teamId?: number;
+  }) {
     const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
-    if (accessibleTeamIds.length > 0) {
+    if (teamId) {
+      // If teamId is provided, check that the user has access to that specific team
+      if (accessibleTeamIds.includes(teamId)) {
+        whereCondition = Prisma.sql`id = ${agentId} AND "teamId" = ${teamId}`;
+      } else {
+        // If user doesn't have access to the team, only check for personal agents
+        whereCondition = Prisma.sql`id = ${agentId} AND "userId" = ${userId}`;
+      }
+    } else if (accessibleTeamIds.length > 0) {
+      // No specific teamId provided, check both personal and team agents
       whereCondition = Prisma.sql`id = ${agentId} AND ("userId" = ${userId} OR "teamId" IN (${Prisma.join(
         accessibleTeamIds
       )}))`;
     } else {
+      // User has no team access, only check personal agents
       whereCondition = Prisma.sql`id = ${agentId} AND "userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         id,
         name,
@@ -81,6 +100,7 @@ export class PrismaAgentRepository {
         enabled,
         "userId",
         "teamId",
+        "inboundEventTypeId",
         "createdAt",
         "updatedAt"
       FROM "Agent"
@@ -88,10 +108,12 @@ export class PrismaAgentRepository {
       LIMIT 1
     `;
 
+    const agents = await this.prismaClient.$queryRaw<_AgentRawResult[]>(query);
+
     return agents.length > 0 ? agents[0] : null;
   }
 
-  static async findByProviderAgentIdWithUserAccess({
+  async findByProviderAgentIdWithUserAccess({
     providerAgentId,
     userId,
   }: {
@@ -109,7 +131,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`"providerAgentId" = ${providerAgentId} AND "userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         id,
         name,
@@ -117,6 +139,7 @@ export class PrismaAgentRepository {
         enabled,
         "userId",
         "teamId",
+        "inboundEventTypeId",
         "createdAt",
         "updatedAt"
       FROM "Agent"
@@ -124,11 +147,13 @@ export class PrismaAgentRepository {
       LIMIT 1
     `;
 
+    const agents = await this.prismaClient.$queryRaw<_AgentRawResult[]>(query);
+
     return agents.length > 0 ? agents[0] : null;
   }
 
-  static async findById({ id }: { id: string }) {
-    return await prisma.agent.findUnique({
+  async findById({ id }: { id: string }) {
+    return await this.prismaClient.agent.findUnique({
       select: {
         id: true,
         name: true,
@@ -136,6 +161,7 @@ export class PrismaAgentRepository {
         enabled: true,
         userId: true,
         teamId: true,
+        inboundEventTypeId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -145,8 +171,8 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async findByProviderAgentId({ providerAgentId }: { providerAgentId: string }) {
-    return await prisma.agent.findUnique({
+  async findByProviderAgentId({ providerAgentId }: { providerAgentId: string }) {
+    return await this.prismaClient.agent.findUnique({
       select: {
         id: true,
         name: true,
@@ -154,6 +180,7 @@ export class PrismaAgentRepository {
         enabled: true,
         userId: true,
         teamId: true,
+        inboundEventTypeId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -163,7 +190,7 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async findManyWithUserAccess({
+  async findManyWithUserAccess({
     userId,
     teamId,
     scope = "all",
@@ -210,7 +237,7 @@ export class PrismaAgentRepository {
       }
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         a.id,
         a.name,
@@ -218,6 +245,7 @@ export class PrismaAgentRepository {
         a.enabled,
         a."userId",
         a."teamId",
+        a."inboundEventTypeId",
         a."createdAt",
         a."updatedAt",
         u.id as user_id,
@@ -234,11 +262,13 @@ export class PrismaAgentRepository {
       ORDER BY a."teamId" ASC, a."createdAt" DESC
     `;
 
+    const agents = await this.prismaClient.$queryRaw<_AgentRawResult[]>(query);
+
     // Get phone numbers for each agent in a separate query to avoid N+1
     const agentIds = agents.map((agent) => agent.id);
     const phoneNumbers =
       agentIds.length > 0
-        ? await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+        ? await this.prismaClient.$queryRaw<_PhoneNumberRawResult[]>`
       SELECT
         pn.id,
         pn."phoneNumber",
@@ -275,28 +305,29 @@ export class PrismaAgentRepository {
       enabled: agent.enabled,
       userId: agent.userId,
       teamId: agent.teamId,
+      inboundEventTypeId: agent.inboundEventTypeId,
       createdAt: agent.createdAt,
       updatedAt: agent.updatedAt,
       user: agent.user_id
         ? {
             id: agent.user_id,
-            name: agent.user_name,
-            email: agent.user_email,
+            name: agent.user_name ?? null,
+            email: agent.user_email ?? null,
           }
         : null,
       team: agent.team_id
         ? {
             id: agent.team_id,
-            name: agent.team_name,
-            slug: agent.team_slug,
-            logoUrl: agent.team_logo_url,
+            name: agent.team_name ?? null,
+            slug: agent.team_slug ?? null,
+            logoUrl: agent.team_logo_url ?? null,
           }
         : null,
       outboundPhoneNumbers: phoneNumbersByAgent[agent.id] || [],
     }));
   }
 
-  static async findByIdWithUserAccessAndDetails({
+  async findByIdWithUserAccessAndDetails({
     id,
     userId,
     teamId,
@@ -326,7 +357,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`a.id = ${id} AND a."userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         a.id,
         a.name,
@@ -334,6 +365,7 @@ export class PrismaAgentRepository {
         a.enabled,
         a."userId",
         a."teamId",
+        a."inboundEventTypeId",
         a."createdAt",
         a."updatedAt",
         u.id as user_id,
@@ -349,13 +381,15 @@ export class PrismaAgentRepository {
       LIMIT 1
     `;
 
+    const agents = await this.prismaClient.$queryRaw<_AgentRawResult[]>(query);
+
     if (agents.length === 0) {
       return null;
     }
 
     const agent = agents[0];
 
-    const phoneNumbers = await prisma.$queryRaw<_PhoneNumberRawResult[]>`
+    const phoneNumbers = await this.prismaClient.$queryRaw<_PhoneNumberRawResult[]>`
       SELECT
         pn.id,
         pn."phoneNumber",
@@ -373,20 +407,21 @@ export class PrismaAgentRepository {
       enabled: agent.enabled,
       userId: agent.userId,
       teamId: agent.teamId,
+      inboundEventTypeId: agent.inboundEventTypeId,
       createdAt: agent.createdAt,
       updatedAt: agent.updatedAt,
       user: agent.user_id
         ? {
             id: agent.user_id,
-            name: agent.user_name,
-            email: agent.user_email,
+            name: agent.user_name ?? null,
+            email: agent.user_email ?? null,
           }
         : null,
       team: agent.team_id
         ? {
             id: agent.team_id,
-            name: agent.team_name,
-            slug: agent.team_slug,
+            name: agent.team_name ?? null,
+            slug: agent.team_slug ?? null,
           }
         : null,
       outboundPhoneNumbers: phoneNumbers.map((pn) => ({
@@ -398,7 +433,7 @@ export class PrismaAgentRepository {
     };
   }
 
-  static async create({
+  async create({
     name,
     providerAgentId,
     userId,
@@ -409,7 +444,7 @@ export class PrismaAgentRepository {
     userId: number;
     teamId?: number;
   }) {
-    return await prisma.agent.create({
+    return await this.prismaClient.agent.create({
       data: {
         name,
         providerAgentId,
@@ -419,7 +454,7 @@ export class PrismaAgentRepository {
     });
   }
 
-  static async findByIdWithAdminAccess({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
+  async findByIdWithAdminAccess({ id, userId, teamId }: { id: string; userId: number; teamId?: number }) {
     const adminTeamIds = await this.getUserAdminTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
@@ -439,7 +474,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`id = ${id} AND "userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         id,
         name,
@@ -448,16 +483,19 @@ export class PrismaAgentRepository {
         "userId",
         "teamId",
         "createdAt",
-        "updatedAt"
+        "updatedAt",
+        "inboundEventTypeId"
       FROM "Agent"
       WHERE ${whereCondition}
       LIMIT 1
     `;
 
+    const agents = await this.prismaClient.$queryRaw<_AgentRawResult[]>(query);
+
     return agents.length > 0 ? agents[0] : null;
   }
 
-  static async findByIdWithCallAccess({ id, userId }: { id: string; userId: number }) {
+  async findByIdWithCallAccess({ id, userId }: { id: string; userId: number }) {
     const accessibleTeamIds = await this.getUserAccessibleTeamIds(userId);
 
     let whereCondition: Prisma.Sql;
@@ -469,7 +507,7 @@ export class PrismaAgentRepository {
       whereCondition = Prisma.sql`a.id = ${id} AND a."userId" = ${userId}`;
     }
 
-    const agents = await prisma.$queryRaw<_AgentRawResult[]>`
+    const query = Prisma.sql`
       SELECT
         a.id,
         a.name,
@@ -477,6 +515,7 @@ export class PrismaAgentRepository {
         a.enabled,
         a."userId",
         a."teamId",
+        a."inboundEventTypeId",
         a."createdAt",
         a."updatedAt"
       FROM "Agent" a
@@ -484,13 +523,15 @@ export class PrismaAgentRepository {
       LIMIT 1
     `;
 
+    const agents = await this.prismaClient.$queryRaw<_AgentRawResult[]>(query);
+
     if (agents.length === 0) {
       return null;
     }
 
     const agent = agents[0];
 
-    const phoneNumbers = await prisma.$queryRaw<{ phoneNumber: string }[]>`
+    const phoneNumbers = await this.prismaClient.$queryRaw<{ phoneNumber: string }[]>`
       SELECT "phoneNumber"
       FROM "CalAiPhoneNumber"
       WHERE "outboundAgentId" = ${agent.id}
@@ -502,27 +543,49 @@ export class PrismaAgentRepository {
     };
   }
 
-  static async delete({ id }: { id: string }) {
-    return await prisma.agent.delete({
+  async delete({ id }: { id: string }) {
+    return await this.prismaClient.agent.delete({
       where: { id },
     });
   }
 
-  static async linkToWorkflowStep({ workflowStepId, agentId }: { workflowStepId: number; agentId: string }) {
-    return await prisma.workflowStep.update({
+  async linkOutboundAgentToWorkflow({
+    workflowStepId,
+    agentId,
+  }: {
+    workflowStepId: number;
+    agentId: string;
+  }) {
+    return await this.prismaClient.workflowStep.update({
       where: { id: workflowStepId },
       data: { agentId },
     });
   }
 
-  static async canManageTeamResources({
-    userId,
-    teamId,
-  }: {
-    userId: number;
-    teamId: number;
-  }): Promise<boolean> {
-    const result = await prisma.$queryRaw<{ count: bigint }[]>`
+  async linkInboundAgentToWorkflow({ workflowStepId, agentId }: { workflowStepId: number; agentId: string }) {
+    return await this.prismaClient.workflowStep.update({
+      where: {
+        id: workflowStepId,
+      },
+      data: {
+        inboundAgentId: agentId,
+      },
+    });
+  }
+
+  async updateEventTypeId({ agentId, eventTypeId }: { agentId: string; eventTypeId: number }) {
+    return await this.prismaClient.agent.update({
+      where: {
+        id: agentId,
+      },
+      data: {
+        inboundEventTypeId: eventTypeId,
+      },
+    });
+  }
+
+  async canManageTeamResources({ userId, teamId }: { userId: number; teamId: number }): Promise<boolean> {
+    const result = await this.prismaClient.$queryRaw<{ count: bigint }[]>`
       SELECT COUNT(*) as count
       FROM "Membership"
       WHERE "userId" = ${userId}
@@ -532,5 +595,28 @@ export class PrismaAgentRepository {
     `;
 
     return Number(result[0].count) > 0;
+  }
+
+  async findAgentWithPhoneNumbers(agentId: string) {
+    return await this.prismaClient.agent.findUnique({
+      where: { id: agentId },
+      select: {
+        id: true,
+        outboundPhoneNumbers: {
+          select: {
+            id: true,
+            phoneNumber: true,
+            subscriptionStatus: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findProviderAgentIdById(agentId: string) {
+    return await this.prismaClient.agent.findUnique({
+      where: { id: agentId },
+      select: { providerAgentId: true },
+    });
   }
 }

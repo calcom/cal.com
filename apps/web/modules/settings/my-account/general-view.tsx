@@ -116,7 +116,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       },
       weekStart: {
         value: user.weekStart,
-        label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
+        label: weekStartOptions.find((option) => option.value === user.weekStart)?.label || "",
       },
       travelSchedules:
         travelSchedules.map((schedule) => {
@@ -146,6 +146,9 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   );
   const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
     !!user.receiveMonthlyDigestEmail
+  );
+  const [isRequireBookerEmailVerificationChecked, setIsRequireBookerEmailVerificationChecked] = useState(
+    !!user.requiresBookerEmailVerification
   );
 
   const watchedTzSchedules = formMethods.watch("travelSchedules");
@@ -350,6 +353,19 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           onCheckedChange={(checked) => {
             setIsReceiveMonthlyDigestEmailChecked(checked);
             mutation.mutate({ receiveMonthlyDigestEmail: checked });
+          }}
+          switchContainerClassName="mt-6"
+        />
+
+        <SettingsToggle
+          toggleSwitchAtTheEnd={true}
+          title={t("require_booker_email_verification")}
+          description={t("require_booker_email_verification_description")}
+          disabled={mutation.isPending}
+          checked={isRequireBookerEmailVerificationChecked}
+          onCheckedChange={(checked) => {
+            setIsRequireBookerEmailVerificationChecked(checked);
+            mutation.mutate({ requiresBookerEmailVerification: checked });
           }}
           switchContainerClassName="mt-6"
         />

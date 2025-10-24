@@ -1,4 +1,5 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -20,6 +21,7 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.se
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -43,12 +45,14 @@ import { JwtService } from "@nestjs/jwt";
     StripeModule,
     BillingModule,
     SchedulesModule_2024_04_15,
+    ProfilesModule,
   ],
   providers: [
     OAuthClientRepository,
     TokensRepository,
     OAuthFlowService,
     CalendarsService,
+    CalendarsCacheService,
     CredentialsRepository,
     AppsRepository,
     CalendarsRepository,

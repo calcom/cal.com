@@ -2,6 +2,7 @@
  * TODO: Consolidate this file with BookingLocationService and add tests
  */
 import type { TFunction } from "i18next";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
@@ -10,6 +11,15 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
+import {
+  MeetLocationType as importedMeetLocationType,
+  MSTeamsLocationType as importedMSTeamsLocationType,
+  DailyLocationType as importedDailyLocationType,
+} from "./constants";
+
+export const MeetLocationType = importedMeetLocationType;
+export const MSTeamsLocationType = importedMSTeamsLocationType;
+export const DailyLocationType = importedDailyLocationType;
 
 export type DefaultEventLocationType = {
   default: true;
@@ -62,11 +72,7 @@ export type EventLocationTypeFromApp = Ensure<
 
 export type EventLocationType = DefaultEventLocationType | EventLocationTypeFromApp;
 
-export const DailyLocationType = "integrations:daily";
 export const CalVideoLocationType = DailyLocationType;
-export const MeetLocationType = "integrations:google:meet";
-
-export const MSTeamsLocationType = "integrations:office365_video";
 
 /**
  * This isn't an actual location app type. It is a special value that informs to use the Organizer's default conferencing app during booking
@@ -496,4 +502,67 @@ export const isAttendeeInputRequired = (locationType: string) => {
     return false;
   }
   return location.attendeeInputType;
+};
+
+export const locationsResolver = (t: TFunction) => {
+  return z
+    .array(
+      z
+        .object({
+          type: z.string(),
+          address: z.string().optional(),
+          link: z.string().url().optional(),
+          phone: z
+            .string()
+            .refine((val) => isValidPhoneNumber(val))
+            .optional(),
+          hostPhoneNumber: z
+            .string()
+            .refine((val) => isValidPhoneNumber(val))
+            .optional(),
+          displayLocationPublicly: z.boolean().optional(),
+          credentialId: z.number().optional(),
+          teamName: z.string().optional(),
+        })
+        .passthrough()
+        .superRefine((val, ctx) => {
+          if (val?.link) {
+            const link = val.link;
+            const eventLocationType = getEventLocationType(val.type);
+            if (
+              eventLocationType &&
+              !eventLocationType.default &&
+              eventLocationType.linkType === "static" &&
+              eventLocationType.urlRegExp
+            ) {
+              const valid = z.string().regex(new RegExp(eventLocationType.urlRegExp)).safeParse(link).success;
+
+              if (!valid) {
+                const sampleUrl = eventLocationType.organizerInputPlaceholder;
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: [eventLocationType?.defaultValueVariable ?? "link"],
+                  message: t("invalid_url_error_message", {
+                    label: eventLocationType.label,
+                    sampleUrl: sampleUrl ?? "https://cal.com",
+                  }),
+                });
+              }
+              return;
+            }
+
+            const valid = z.string().url().optional().safeParse(link).success;
+
+            if (!valid) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [eventLocationType?.defaultValueVariable ?? "link"],
+                message: `Invalid URL`,
+              });
+            }
+          }
+          return;
+        })
+    )
+    .optional();
 };

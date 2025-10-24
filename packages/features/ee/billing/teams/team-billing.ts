@@ -1,4 +1,4 @@
-import type { Team } from "@prisma/client";
+import type { Team } from "@calcom/prisma/client";
 
 export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization">;
 export const TeamBillingPublishResponseStatus = {

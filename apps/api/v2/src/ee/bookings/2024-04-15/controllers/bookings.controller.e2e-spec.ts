@@ -8,12 +8,10 @@ import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -22,9 +20,10 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { handleNewBooking } from "@calcom/platform-libraries";
-import { ApiSuccessResponse, ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { type RegularBookingCreateResult } from "@calcom/platform-libraries/bookings";
+import type { ApiSuccessResponse, ApiErrorResponse } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-04-15", () => {
   describe("User Authenticated", () => {
@@ -42,7 +41,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
 
     let eventTypeId: number;
 
-    let createdBooking: Awaited<ReturnType<typeof handleNewBooking>>;
+    let createdBooking: RegularBookingCreateResult;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -132,8 +131,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         .send(body)
         .expect(201)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
-            response.body;
+          const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.userPrimaryEmail).toBeDefined();
@@ -232,8 +230,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .expect(201)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
-            response.body;
+          const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.userPrimaryEmail).toBeDefined();
@@ -290,8 +287,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
           .send(body)
           .expect(201)
           .then(async (response) => {
-            const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
-              response.body;
+            const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
             expect(responseBody.data).toBeDefined();
             expect(responseBody.data.userPrimaryEmail).toBeDefined();
@@ -388,8 +384,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         .send(body)
         .expect(201)
         .then(async (response) => {
-          const responseBody: ApiSuccessResponse<Awaited<ReturnType<typeof handleNewBooking>>> =
-            response.body;
+          const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data).toBeDefined();
           expect(responseBody.data.userPrimaryEmail).toBeDefined();

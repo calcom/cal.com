@@ -7,7 +7,7 @@ test.describe("Change App Theme Test", () => {
     const pro = await users.create();
     await pro.apiLogin();
     await page.goto("/settings/my-account/appearance");
-    await expect(page.locator('text="Dashboard theme"')).toBeVisible();
+    await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
     await page.click('[data-testid="appTheme-dark"]');
     await page.click('[data-testid="update-app-theme-btn"]');
 
@@ -25,7 +25,7 @@ test.describe("Change App Theme Test", () => {
     const pro = await users.create();
     await pro.apiLogin();
     await page.goto("/settings/my-account/appearance");
-    await expect(page.locator('text="Dashboard theme"')).toBeVisible();
+    await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
     await page.click('[data-testid="appTheme-light"]');
     await page.click('[data-testid="update-app-theme-btn"]');
 
@@ -44,7 +44,7 @@ test.describe("Change App Theme Test", () => {
     await pro.apiLogin();
 
     await page.goto("/settings/my-account/appearance");
-    await expect(page.locator('text="Dashboard theme"')).toBeVisible();
+    await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
     await page.click('[data-testid="appTheme-light"]');
     await page.click('[data-testid="update-app-theme-btn"]');
     const toast1 = await page.waitForSelector('[data-testid="toast-success"]');
@@ -72,7 +72,7 @@ test.describe("Change Booking Page Theme Test", () => {
     await pro.apiLogin();
 
     await page.goto("/settings/my-account/appearance");
-    await expect(page.locator('text="Dashboard theme"')).toBeVisible();
+    await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
 
     //Click the "Dark" theme label
     await page.click('[data-testid="theme-dark"]');
@@ -94,7 +94,7 @@ test.describe("Change Booking Page Theme Test", () => {
     await pro.apiLogin();
 
     await page.goto("/settings/my-account/appearance");
-    await expect(page.locator('text="Dashboard theme"')).toBeVisible();
+    await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
 
     //Click the "Light" theme label
     await page.click('[data-testid="theme-light"]');
@@ -114,7 +114,7 @@ test.describe("Change Booking Page Theme Test", () => {
     await pro.apiLogin();
 
     await page.goto("/settings/my-account/appearance");
-    await expect(page.locator('text="Dashboard theme"')).toBeVisible();
+    await expect(page.getByTestId("dashboard-shell").getByText("Dashboard theme")).toBeVisible();
 
     await page.click('[data-testid="theme-light"]');
     await page.click('[data-testid="update-theme-btn"]');
