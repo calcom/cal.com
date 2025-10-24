@@ -1,16 +1,15 @@
- 
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -28,6 +27,7 @@ export const handleNoShowFee = async ({
     endTime: Date;
     userPrimaryEmail: string | null;
     userId: number | null;
+    eventTypeId: number | null;
     user?: {
       id: number;
       email: string;
@@ -37,7 +37,6 @@ export const handleNoShowFee = async ({
       hideBranding: boolean;
     } | null;
     eventType: {
-      id: number;
       title: string;
       hideOrganizerEmail: boolean;
       teamId: number | null;
@@ -168,7 +167,7 @@ export const handleNoShowFee = async ({
     }
 
     const hideBranding = await shouldHideBrandingForEvent({
-      eventTypeId: booking.eventType?.id ?? 0,
+      eventTypeId: booking.eventTypeId ?? 0,
       team: booking.eventType?.team ?? null,
       owner: booking.user ?? null,
       organizationId: booking.eventType?.team?.parentId ?? null,
