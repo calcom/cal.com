@@ -115,7 +115,6 @@ model CalVideoSettings {
 model VideoCallGuest {
   id         String    @id @default(uuid())
   bookingUid String
-  booking    Booking   @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   email      String
   name       String
   joinedAt   DateTime?
@@ -865,7 +864,6 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
-  videoCallGuests              VideoCallGuest[]
 
   @@index([eventTypeId])
   @@index([userId])

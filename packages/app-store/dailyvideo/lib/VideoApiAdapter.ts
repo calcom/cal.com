@@ -205,7 +205,6 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async ({
   userId?: number;
 }) => {
   if (!meetingToken) return null;
-
   const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
   const guestMeetingToken = await postToDailyAPI("/meeting-tokens", {
     properties: {

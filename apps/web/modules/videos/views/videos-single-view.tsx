@@ -48,7 +48,8 @@ export default function JoinCall(props: PageProps) {
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
   const userNameForCall = overrideName ?? loggedInUserName ?? undefined;
-  const hideLoginModal = !!userNameForCall && (requireEmailForGuests ? guestSessionId : true);
+  const hideLoginModal =
+    !!userNameForCall && (requireEmailForGuests ? guestSessionId || loggedInUserName : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
   const createCallFrame = useCallback(
@@ -314,6 +315,9 @@ export function LogInOverlay(props: LogInOverlayProps) {
     try {
       // Only create guest session if email is required and provided
       if (requireEmailForGuests && trimmedEmail) {
+        const csrfResponse = await fetch("/api/csrf", { cache: "no-store" });
+        const { csrfToken } = await csrfResponse.json();
+
         const response = await fetch("/api/video/guest-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -321,6 +325,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
             bookingUid,
             email: trimmedEmail,
             name: trimmedName,
+            csrfToken,
           }),
         });
 

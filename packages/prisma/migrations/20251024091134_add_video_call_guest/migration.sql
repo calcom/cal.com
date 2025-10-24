@@ -1,3 +1,6 @@
+-- AlterTable
+ALTER TABLE "public"."CalVideoSettings" ADD COLUMN     "requireEmailForGuests" BOOLEAN NOT NULL DEFAULT false;
+
 -- CreateTable
 CREATE TABLE "public"."VideoCallGuest" (
     "id" TEXT NOT NULL,
@@ -18,6 +21,3 @@ CREATE INDEX "VideoCallGuest_email_idx" ON "public"."VideoCallGuest"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "VideoCallGuest_bookingUid_email_key" ON "public"."VideoCallGuest"("bookingUid", "email");
-
--- AddForeignKey
-ALTER TABLE "public"."VideoCallGuest" ADD CONSTRAINT "VideoCallGuest_bookingUid_fkey" FOREIGN KEY ("bookingUid") REFERENCES "public"."Booking"("uid") ON DELETE CASCADE ON UPDATE CASCADE;

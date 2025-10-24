@@ -254,6 +254,7 @@ const calVideoSettingsSchema = z
     disableTranscriptionForGuests: z.boolean().nullish(),
     disableTranscriptionForOrganizer: z.boolean().nullish(),
     redirectUrlOnExit: z.string().url().nullish(),
+    requireEmailForGuests: z.boolean().nullish(),
   })
   .optional()
   .nullable();

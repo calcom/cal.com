@@ -26,6 +26,7 @@ export type Host = {
 export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
+type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
 
 export function getHosts(booking: Booking): Host[] {
   const hostMap = new Map<number, Host>();
@@ -109,7 +110,10 @@ export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: T
     .unix();
 }
 
-export function checkIfUserOrGuestJoinedTheCall(email: string, allParticipants: Participants): boolean {
+export function checkIfUserOrGuestJoinedTheCall(
+  email: string,
+  allParticipants: ParticipantsWithEmail
+): boolean {
   return allParticipants.some((participant) => participant.email && participant.email === email);
 }
 
@@ -133,8 +137,6 @@ const getUserOrGuestById = async (id: string) => {
 
   return guestSession;
 };
-
-type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
 
 export async function getParticipantsWithEmail(
   allParticipants: Participants
