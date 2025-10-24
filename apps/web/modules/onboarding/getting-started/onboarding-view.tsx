@@ -35,7 +35,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
   const planIconByType: Record<PlanType, IconName> = {
     personal: "user",
     team: "users",
-    organization: "building",
+    organization: "users",
   };
 
   const allPlans = [
@@ -60,7 +60,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       title: t("onboarding_plan_organization_title"),
       badge: t("onboarding_plan_organization_badge"),
       description: t("onboarding_plan_organization_description"),
-      icon: planIconByType.team,
+      icon: planIconByType.organization,
       variant: "double",
     },
   ];
