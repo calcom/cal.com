@@ -161,7 +161,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         });
     });
 
-    it.only("should create recurring bookings", async () => {
+    it("should create recurring bookings", async () => {
       const bookingEventTypeId = eventTypeId;
       const bookingTimeZone = "Europe/London";
       const bookingLanguage = "en";
