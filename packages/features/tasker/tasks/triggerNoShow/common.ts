@@ -26,6 +26,7 @@ export type Host = {
 export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
+type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
 
 export function getHosts(booking: Booking): Host[] {
   const hostMap = new Map<number, Host>();
@@ -77,7 +78,7 @@ export function sendWebhookPayload(
       attendees: booking.attendees,
       endTime: booking.endTime,
       participants,
-      ...(!!hostEmail ? { hostEmail } : {}),
+      ...(hostEmail ? { hostEmail } : {}),
       ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
@@ -109,19 +110,33 @@ export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: T
     .unix();
 }
 
-export function checkIfUserJoinedTheCall(userId: number, allParticipants: Participants): boolean {
-  return allParticipants.some(
-    (participant) => participant.user_id && parseInt(participant.user_id) === userId
-  );
+export function checkIfUserOrGuestJoinedTheCall(
+  email: string,
+  allParticipants: ParticipantsWithEmail
+): boolean {
+  return allParticipants.some((participant) => participant.email && participant.email === email);
 }
 
-const getUserById = async (userId: number) => {
-  return prisma.user.findUnique({
-    where: { id: userId },
-  });
-};
+const getUserOrGuestById = async (id: string) => {
+  // Try User table (numeric IDs)
+  if (!isNaN(Number(id))) {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      select: { email: true },
+    });
+    if (user) return user;
+  }
 
-type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
+  // Try VideoCallGuest table (UUID)
+  const guestSession = await prisma.videoCallGuest
+    .findUnique({
+      where: { id },
+      select: { email: true },
+    })
+    .catch(() => null);
+
+  return guestSession;
+};
 
 export async function getParticipantsWithEmail(
   allParticipants: Participants
@@ -130,8 +145,8 @@ export async function getParticipantsWithEmail(
     allParticipants.map(async (participant) => {
       if (!participant.user_id) return participant;
 
-      const user = await getUserById(parseInt(participant.user_id));
-      return { ...participant, email: user?.email };
+      const userOrGuest = await getUserOrGuestById(participant.user_id);
+      return { ...participant, email: userOrGuest?.email };
     })
   );
 
@@ -201,11 +216,12 @@ export const prepareNoShowTrigger = async (
   const hosts = getHosts(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
+  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
   const hostsThatJoinedTheCall: Host[] = [];
   const hostsThatDidntJoinTheCall: Host[] = [];
 
   for (const host of hosts) {
-    if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
+    if (checkIfUserOrGuestJoinedTheCall(host.email, participantsWithEmail)) {
       hostsThatJoinedTheCall.push(host);
     } else {
       hostsThatDidntJoinTheCall.push(host);
@@ -217,8 +233,6 @@ export const prepareNoShowTrigger = async (
   const didGuestJoinTheCall = meetingDetails.data.some(
     (meeting) => meeting.max_participants > numberOfHostsThatJoined
   );
-
-  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
 
   return {
     hostsThatDidntJoinTheCall,
