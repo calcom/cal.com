@@ -1,0 +1,65 @@
+name: "Release Docker ARM"
+
+env:
+  POSTGRES_USER: "unicorn_user"
+  POSTGRES_PASSWORD: "magical_password"
+  POSTGRES_DB: "calendso"
+  DATABASE_HOST: "database:5432"
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      RELEASE_TAG:
+        description: "v{Major}.{Minor}.{Patch}"
+
+jobs:
+  release-arm:
+    name: "Release ARM"
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: "Determine tag"
+        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+
+      - name: Build and test Docker image
+        uses: ./.github/actions/docker-build-and-test
+        with:
+          platform: "arm64"
+          platform-suffix: "-arm"
+          runner-type: "arm"
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          slack-webhook-url: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
+          postgres-user: ${{ env.POSTGRES_USER }}
+          postgres-password: ${{ env.POSTGRES_PASSWORD }}
+          postgres-db: ${{ env.POSTGRES_DB }}
+          database-host: ${{ env.DATABASE_HOST }}
+          push-image: "false"  # Set to "true" when ready to push
+
+      - name: Notify Slack on Success
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":large_green_circle: Workflow *${{ github.workflow }}* succeeded in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on Failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":red_circle: Workflow *${{ github.workflow }}* failed in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
