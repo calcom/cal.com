@@ -22,21 +22,58 @@ type OnboardingViewProps = {
 function PlanIcon({ icon }: { icon: IconName }) {
   return (
     <div className="relative h-[76px] w-[151px] shrink-0">
-      {/* Outer ring - radial gradient with feather */}
-      <div
-        className="pointer-events-none absolute left-[calc(50%+0.627px)] top-[-42.34px] h-[155.589px] w-[155.589px] -translate-x-1/2 rounded-full"
-        style={{
-          background: "radial-gradient(circle, rgba(156, 163, 175, 0.15) 0%, rgba(156, 163, 175, 0.08) 40%, rgba(156, 163, 175, 0.03) 70%, transparent 100%)",
-        }}
-      />
+      {/* Outer ring - SVG with linear gradient */}
+      <svg
+        className="pointer-events-none absolute left-[calc(50%+0.627px)] top-[-42.34px] -translate-x-1/2"
+        width="156"
+        height="156"
+        viewBox="0 0 156 156"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <circle opacity="0.3" cx="78" cy="78" r="77.5" stroke="url(#paint0_linear_outer)" strokeWidth="0.5" />
+        <defs>
+          <linearGradient
+            id="paint0_linear_outer"
+            x1="78"
+            y1="0"
+            x2="78"
+            y2="156"
+            gradientUnits="userSpaceOnUse">
+            <stop stopColor="var(--cal-border-default, #D3D3D3)" />
+            <stop offset="1" stopColor="var(--cal-border-emphasis, #B2B2B2)" />
+          </linearGradient>
+        </defs>
+      </svg>
 
-      {/* Middle ring - radial gradient with feather */}
-      <div
-        className="pointer-events-none absolute left-[calc(50%+0.628px)] top-[-20.01px] h-[110.922px] w-[110.922px] -translate-x-1/2 rounded-full"
-        style={{
-          background: "radial-gradient(circle, rgba(156, 163, 175, 0.2) 0%, rgba(156, 163, 175, 0.12) 45%, rgba(156, 163, 175, 0.05) 75%, transparent 100%)",
-        }}
-      />
+      {/* Middle ring - SVG with linear gradient */}
+      <svg
+        className="pointer-events-none absolute left-[calc(50%+0.628px)] top-[-20.01px] -translate-x-1/2"
+        width="111"
+        height="111"
+        viewBox="0 0 111 111"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <circle
+          opacity="0.4"
+          cx="55.461"
+          cy="55.455"
+          r="55.211"
+          stroke="url(#paint0_linear_middle)"
+          strokeWidth="0.5"
+        />
+        <defs>
+          <linearGradient
+            id="paint0_linear_middle"
+            x1="55.461"
+            y1="-0.006"
+            x2="55.461"
+            y2="110.916"
+            gradientUnits="userSpaceOnUse">
+            <stop stopColor="var(--cal-border-default, #D3D3D3)" />
+            <stop offset="1" stopColor="var(--cal-border-emphasis, #B2B2B2)" />
+          </linearGradient>
+        </defs>
+      </svg>
 
       {/* Main icon container with gradient background */}
       <div
@@ -48,7 +85,7 @@ function PlanIcon({ icon }: { icon: IconName }) {
             "0px 2.818px 5.635px 0px rgba(34, 42, 53, 0.05), 0px 0px 0px 0.704px rgba(34, 42, 53, 0.08), 0px 0.704px 3.522px -2.818px rgba(19, 19, 22, 0.7)",
         }}>
         {/* Icon with reduced opacity */}
-        <div className="flex size-8 items-center justify-center opacity-70">
+        <div className="size-8 flex items-center justify-center opacity-70">
           <Icon name={icon} size={24} strokeWidth={1.75} className="text-emphasis" />
         </div>
 
@@ -168,7 +205,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                       key={plan.id}
                       value={plan.id}
                       className={classNames(
-                        "bg-default relative flex items-center rounded-[10px] border transition",
+                        "bg-default relative flex items-center overflow-hidden rounded-[10px] border transition",
                         isSelected ? "border-emphasis shadow-sm" : "border-subtle",
                         "pr-12 [&>button]:left-auto [&>button]:right-6 [&>button]:mt-0 [&>button]:transform"
                       )}
