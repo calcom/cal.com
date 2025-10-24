@@ -1,8 +1,7 @@
-import type { User } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 
 export const PASSWORD_RESET_EXPIRY_HOURS = 6;
 
@@ -11,6 +10,19 @@ const RECENT_PERIOD_IN_MINUTES = 5;
 
 const createPasswordReset = async (email: string): Promise<string> => {
   const expiry = dayjs().add(PASSWORD_RESET_EXPIRY_HOURS, "hours").toDate();
+
+  await prisma.resetPasswordRequest.updateMany({
+    where: {
+      email,
+      expires: {
+        gt: new Date(),
+      },
+    },
+    data: {
+      expires: new Date(),
+    },
+  });
+
   const createdResetPasswordRequest = await prisma.resetPasswordRequest.create({
     data: {
       email,

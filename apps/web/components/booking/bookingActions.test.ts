@@ -475,6 +475,34 @@ describe("Booking Actions", () => {
       expect(isActionDisabled("cancel", context)).toBe(true);
     });
 
+    it("should disable cancelling all past bookings", () => {
+      const pastConfirmedContext = createMockContext({
+        isBookingInPast: true,
+        isPending: false,
+        isConfirmed: true,
+      });
+
+      const pastPendingContext = createMockContext({
+        isBookingInPast: true,
+        isPending: true,
+        isConfirmed: false,
+      });
+
+      // Current implementation blocks ALL past bookings
+      expect(isActionDisabled("cancel", pastConfirmedContext)).toBe(true);
+      expect(isActionDisabled("cancel", pastPendingContext)).toBe(true);
+    });
+
+    it("should allow cancelling future bookings when cancelling is not disabled", () => {
+      const futureContext = createMockContext({
+        isBookingInPast: false,
+        isPending: true,
+        isConfirmed: false,
+      });
+
+      expect(isActionDisabled("cancel", futureContext)).toBe(false);
+    });
+
     it("should disable video actions for non-past bookings", () => {
       const context = createMockContext({ isBookingInPast: false });
 

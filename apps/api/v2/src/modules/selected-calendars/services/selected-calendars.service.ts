@@ -1,3 +1,4 @@
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
@@ -23,6 +24,7 @@ type SelectedCalendarsInputDelegationCredential = SelectedCalendarsInputDto & {
 export class SelectedCalendarsService {
   constructor(
     private readonly calendarsService: CalendarsService,
+    private readonly calendarsCacheService: CalendarsCacheService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly organizationsMembershipService: OrganizationsMembershipService,
     private readonly organizationsDelegationCredentialRepository: OrganizationsDelegationCredentialRepository
@@ -49,6 +51,8 @@ export class SelectedCalendarsService {
       externalId,
       credentialId
     );
+
+    await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(user.id);
 
     return userSelectedCalendar;
   }
@@ -122,7 +126,7 @@ export class SelectedCalendarsService {
         externalId,
         delegationCredentialId
       );
-
+      await this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(user.id);
       return removedCalendarEntry;
     } catch (error) {
       if (error instanceof Error) {

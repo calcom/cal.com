@@ -1,3 +1,6 @@
+// prisma client of example app
+//  using local prisma db, not related to the cal.com monorepo prisma client
+// eslint-disable-next-line
 import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {

@@ -1,7 +1,7 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/platform-libraries";
 
 @Injectable()
 export class MembershipsRepository {
@@ -107,7 +107,7 @@ export class MembershipsRepository {
       },
     });
 
-    return userOrgAdminMemberships.map((m) => m.teamId);
+    return userOrgAdminMemberships.map((m: { teamId: number }) => m.teamId);
   }
 
   async createMembership(teamId: number, userId: number, role: MembershipRole, accepted: boolean) {

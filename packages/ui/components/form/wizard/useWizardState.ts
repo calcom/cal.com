@@ -25,7 +25,8 @@ export function useWizardState(defaultStep = 1, maxSteps: number) {
 
   const goToStep = useCallback(
     (newStep: number) => {
-      setStep(Math.min(Math.max(newStep, 1), maxSteps));
+      // Convert 0-based newStep to 1-based for URL (?step=1), So actual step = newStep+1
+      setStep(Math.min(Math.max(newStep + 1, 1), maxSteps));
     },
     [setStep, maxSteps]
   );

@@ -1,33 +1,36 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
+import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/lib/delegationCredential/server";
-import { getEventName } from "@calcom/lib/event";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingLocationService } from "@calcom/lib/server/service/bookingLocationService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -290,6 +293,7 @@ export const roundRobinManualReassignment = async ({
     },
     attendees: attendeeList,
     uid: booking.uid,
+    iCalUID: booking.iCalUID,
     destinationCalendar,
     team: {
       members: teamMembers,
@@ -308,6 +312,13 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
+  if( hasOrganizerChanged ){
+    // location might changed and will be new created in eventManager.create (organizer default location)
+    evt.videoCallData = undefined;
+    // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+    evt.iCalUID = undefined;
+  }
+
   const credentials = await prisma.credential.findMany({
     where: { userId: newUser.id },
     include: { user: { select: { email: true } } },
@@ -322,6 +333,41 @@ export const roundRobinManualReassignment = async ({
         where: { userId: originalOrganizer.id },
       })
     : null;
+
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+
+  // remove the event and meeting using the old host's credentials
+  if (hasOrganizerChanged && originalOrganizer.id !== newUser.id) {
+    const previousHostCredentials = await getAllCredentialsIncludeServiceAccountKey(
+      originalOrganizer,
+      eventType
+    );
+
+    const originalHostEventManager = new EventManager(
+      { ...originalOrganizer, credentials: previousHostCredentials },
+      apps
+    );
+
+    const deletionEvent: CalendarEvent = {
+      ...evt,
+      organizer: {
+        id: originalOrganizer.id,
+        name: originalOrganizer.name || "",
+        email: originalOrganizer.email,
+        username: originalOrganizer.username || undefined,
+        timeZone: originalOrganizer.timeZone,
+        language: { translate: originalOrganizerT, locale: originalOrganizer.locale ?? "en" },
+        timeFormat: getTimeFormatStringFromUserTimeFormat(originalOrganizer.timeFormat),
+      },
+      destinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
+      title: booking.title,
+    };
+
+    await originalHostEventManager.deleteEventsAndMeetings({
+      event: deletionEvent,
+      bookingReferences: booking.references,
+    });
+  }
 
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
@@ -373,9 +419,9 @@ export const roundRobinManualReassignment = async ({
   };
 
   if (previousRRHost && emailsEnabled) {
-    await sendRoundRobinCancelledEmailsAndSMS(
-      cancelledEvt,
-      [
+    await sendRoundRobinReassignedEmailsAndSMS({
+      calEvent: cancelledEvt,
+      members: [
         {
           ...previousRRHost,
           name: previousRRHost.name || "",
@@ -384,9 +430,9 @@ export const roundRobinManualReassignment = async ({
           language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
         },
       ],
-      eventType?.metadata as EventTypeMetadata,
-      { name: newUser.name, email: newUser.email }
-    );
+      reassignedTo: { name: newUser.name, email: newUser.email },
+      eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
+    });
   }
 
   if (hasOrganizerChanged) {
@@ -394,6 +440,7 @@ export const roundRobinManualReassignment = async ({
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
+        eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
       });
     }
 
@@ -502,8 +549,6 @@ export async function handleWorkflowsUpdate({
         includeCalendarEvent: workflowStep.includeCalendarEvent,
         workflowStepId: workflowStep.id,
         verifiedAt: workflowStep.verifiedAt,
-        userId: workflow.userId,
-        teamId: workflow.teamId,
       });
     }
 

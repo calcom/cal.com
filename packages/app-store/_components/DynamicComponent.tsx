@@ -2,6 +2,7 @@
 export function DynamicComponent<T extends Record<string, React.ComponentType<any>>>(props: {
   componentMap: T;
   slug: string;
+  onAppInstallSuccess?: () => void;
   wrapperClassName?: string;
 }) {
   const { componentMap, slug, wrapperClassName, ...rest } = props;

@@ -1,5 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { Locales } from "@/lib/enums/locales";
+import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
@@ -7,7 +7,6 @@ import { GetManagedUsersInput } from "@/modules/oauth-clients/controllers/oauth-
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
-import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { TOKENS_DOCS } from "@/modules/oauth-clients/controllers/oauth-flow/oauth-flow.controller";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
@@ -34,10 +33,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags, ApiHeader } from "@nestjs/swagger";
-import { User, MembershipRole } from "@prisma/client";
-import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+import { MembershipRole } from "@calcom/platform-libraries";
+import type { User } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",
@@ -129,12 +128,18 @@ export class OAuthClientUsersController {
   async updateUser(
     @Param("clientId") clientId: string,
     @Param("userId") userId: number,
-    @Body() body: UpdateManagedUserInput
+    @Body() body: UpdateManagedUserInput,
+    @GetOrgId() organizationId: number
   ): Promise<GetManagedUserOutput> {
     await this.validateManagedUserOwnership(clientId, userId);
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
-    const user = await this.oAuthClientUsersService.updateOAuthClientUser(clientId, userId, body);
+    const user = await this.oAuthClientUsersService.updateOAuthClientUser(
+      clientId,
+      userId,
+      body,
+      organizationId
+    );
 
     return {
       status: SUCCESS_STATUS,

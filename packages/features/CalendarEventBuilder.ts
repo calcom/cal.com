@@ -1,7 +1,7 @@
-import type { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
+import type { TFunction } from "i18next";
 
 import type { TimeFormat } from "@calcom/lib/timeFormat";
+import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
@@ -81,6 +81,7 @@ export class CalendarEventBuilder {
     name: string | null;
     email: string;
     username?: string;
+    usernameInOrg?: string;
     timeZone: string;
     timeFormat?: TimeFormat;
     language: {
@@ -95,6 +96,7 @@ export class CalendarEventBuilder {
         name: organizer.name || "Nameless",
         email: organizer.email,
         username: organizer.username,
+        usernameInOrg: organizer.usernameInOrg,
         timeZone: organizer.timeZone,
         language: organizer.language,
         timeFormat: organizer.timeFormat,

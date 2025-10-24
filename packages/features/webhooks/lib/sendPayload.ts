@@ -1,10 +1,10 @@
-import type { Payment, Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
@@ -78,6 +78,7 @@ export type OOOEntryPayloadType = {
 export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
+    uid?: string | null;
     metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
     status?: string;
@@ -130,6 +131,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
   const location = getHumanReadableLocationValue(data.location || "", t);
 
   const body = {
+    uid: data.uid,
     title: data.title,
     description: data.description,
     customInputs: data.customInputs,
@@ -142,6 +144,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     cancellationReason: data.cancellationReason,
     user: {
       username: data.organizer.username,
+      usernameInOrg: data.organizer.usernameInOrg,
       name: data.organizer.name,
       email: data.organizer.email,
       timeZone: data.organizer.timeZone,
@@ -158,6 +161,9 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     },
     attendees: attendees,
     createdAt: data.createdAt,
+    metadata: {
+      videoCallUrl: data.metadata?.videoCallUrl,
+    },
   };
   return JSON.stringify(body);
 }
@@ -174,7 +180,7 @@ function applyTemplate(template: string, data: WebhookDataType, contentType: Con
 export function jsonParse(jsonString: string) {
   try {
     return JSON.parse(jsonString);
-  } catch (e) {
+  } catch {
     // don't do anything.
   }
   return false;

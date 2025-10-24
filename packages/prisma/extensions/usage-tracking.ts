@@ -1,12 +1,32 @@
-import { Prisma } from "@prisma/client";
-import type { PrismaClient as PrismaClientWithoutExtensions } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
 import { UsageEvent, LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
+import type { IDeploymentRepository } from "@calcom/lib/server/repository/deployment.interface";
+import { Prisma } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma/client";
 
-async function incrementUsage(prismaClient: PrismaClientWithoutExtensions, event?: UsageEvent) {
-  const deploymentRepo = new DeploymentRepository(prismaClient);
+class InlineDeploymentRepository implements IDeploymentRepository {
+  constructor(private prisma: PrismaClient) {}
+
+  async getLicenseKeyWithId(id: number): Promise<string | null> {
+    const deployment = await this.prisma.deployment.findUnique({
+      where: { id },
+      select: { licenseKey: true },
+    });
+    return deployment?.licenseKey || null;
+  }
+
+  async getSignatureToken(id: number): Promise<string | null> {
+    const deployment = await this.prisma.deployment.findUnique({
+      where: { id },
+      select: { signatureTokenEncrypted: true },
+    });
+    return deployment?.signatureTokenEncrypted || null;
+  }
+}
+
+async function incrementUsage(prismaClient: PrismaClient, event?: UsageEvent) {
+  const deploymentRepo = new InlineDeploymentRepository(prismaClient);
   try {
     const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
     await licenseKeyService.incrementUsage(event);
@@ -15,7 +35,7 @@ async function incrementUsage(prismaClient: PrismaClientWithoutExtensions, event
   }
 }
 
-export function usageTrackingExtention(prismaClient: PrismaClientWithoutExtensions) {
+export function usageTrackingExtention(prismaClient: PrismaClient) {
   return Prisma.defineExtension({
     query: {
       booking: {

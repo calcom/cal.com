@@ -105,6 +105,8 @@ export class RoutingFormResponseRepository {
               select: {
                 id: true,
                 email: true,
+                timeFormat: true,
+                locale: true,
               },
             },
             id: true,
@@ -122,6 +124,38 @@ export class RoutingFormResponseRepository {
             settings: true,
           },
         },
+      },
+    });
+  }
+
+  async findAllResponsesWithBooking({
+    formId,
+    responseId,
+    createdAfter,
+    createdBefore,
+  }: {
+    formId: string;
+    responseId: number;
+    createdAfter: Date;
+    createdBefore: Date;
+  }) {
+    return await this.prismaClient.app_RoutingForms_FormResponse.findMany({
+      where: {
+        formId,
+        createdAt: {
+          gte: createdAfter,
+          lt: createdBefore,
+        },
+        routedToBookingUid: {
+          not: null,
+        },
+        NOT: {
+          id: responseId,
+        },
+      },
+      select: {
+        id: true,
+        response: true,
       },
     });
   }
