@@ -86,7 +86,7 @@ export const NavigationItem: React.FC<{
   const buildHref = (childItem: NavigationItemType) => {
     if (
       childItem.preserveQueryParams &&
-      childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current })
+      childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current ?? pathname })
     ) {
       const params = searchParams.toString();
       return params ? `${childItem.href}?${params}` : childItem.href;

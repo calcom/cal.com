@@ -69,7 +69,7 @@ test.describe("Booking Filters", () => {
 
     await applySelectFilter(page, "userId", "Owner User");
 
-    await page.waitForURL(/.*userId.*/);
+    await expect(page).toHaveURL(/.*userId.*/);
     const urlWithFilters = page.url();
     expect(urlWithFilters).toContain("userId");
 
@@ -77,9 +77,12 @@ test.describe("Booking Filters", () => {
     const activeFilters = searchParams.get("activeFilters");
     expect(activeFilters).toBeTruthy();
 
+    const pastBookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.getByTestId("past-test").click();
-    await page.waitForURL(/\/bookings\/past/);
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await expect(page).toHaveURL(/\/bookings\/past/);
+    await pastBookingsGetResponse;
 
     const pastUrl = page.url();
     expect(pastUrl).toContain("/bookings/past");
@@ -88,9 +91,12 @@ test.describe("Booking Filters", () => {
     const pastSearchParams = new URL(pastUrl).searchParams;
     expect(pastSearchParams.get("activeFilters")).toBe(activeFilters);
 
+    const cancelledBookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.getByTestId("cancelled-test").click();
-    await page.waitForURL(/\/bookings\/cancelled/);
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await expect(page).toHaveURL(/\/bookings\/cancelled/);
+    await cancelledBookingsGetResponse;
 
     const cancelledUrl = page.url();
     expect(cancelledUrl).toContain("/bookings/cancelled");
@@ -123,7 +129,7 @@ test.describe("Booking Filters", () => {
 
     await applySelectFilter(page, "userId", "Owner User");
 
-    await page.waitForURL(/.*userId.*/);
+    await expect(page).toHaveURL(/.*userId.*/);
     const urlWithFilters = page.url();
     expect(urlWithFilters).toContain("userId");
 
@@ -132,9 +138,12 @@ test.describe("Booking Filters", () => {
     expect(activeFilters).toBeTruthy();
     expect(searchParams.get("view")).toBe("calendar");
 
+    const pastBookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.getByTestId("past-test").click();
-    await page.waitForURL(/\/bookings\/past/);
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await expect(page).toHaveURL(/\/bookings\/past/);
+    await pastBookingsGetResponse;
 
     const pastUrl = page.url();
     expect(pastUrl).toContain("/bookings/past");
@@ -144,9 +153,12 @@ test.describe("Booking Filters", () => {
     expect(pastSearchParams.get("activeFilters")).toBe(activeFilters);
     expect(pastSearchParams.get("view")).toBe("calendar");
 
+    const cancelledBookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.getByTestId("cancelled-test").click();
-    await page.waitForURL(/\/bookings\/cancelled/);
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await expect(page).toHaveURL(/\/bookings\/cancelled/);
+    await cancelledBookingsGetResponse;
 
     const cancelledUrl = page.url();
     expect(cancelledUrl).toContain("/bookings/cancelled");
@@ -168,12 +180,15 @@ test.describe("Booking Filters", () => {
 
     await owner.apiLogin();
     await page.goto(`/event-types?someParam=value`);
-    await page.waitForURL(/.*someParam=value.*/);
+    await expect(page).toHaveURL(/.*someParam=value.*/);
 
+    const upcomingBookingsGetResponse = page.waitForResponse((response) =>
+      /\/api\/trpc\/bookings\/get.*/.test(response.url())
+    );
     await page.getByTestId("bookings-test").click();
     await page.getByTestId("upcoming-test").click();
-    await page.waitForURL(/\/bookings\/upcoming/);
-    await page.waitForResponse((response) => /\/api\/trpc\/bookings\/get.*/.test(response.url()));
+    await expect(page).toHaveURL(/\/bookings\/upcoming/);
+    await upcomingBookingsGetResponse;
 
     const upcomingUrl = page.url();
     expect(upcomingUrl).toContain("/bookings/upcoming");
@@ -203,12 +218,12 @@ test.describe("Booking Filters", () => {
 
     await applySelectFilter(page, "userId", "Owner User");
 
-    await page.waitForURL(/.*userId.*/);
+    await expect(page).toHaveURL(/.*userId.*/);
     const urlWithFilters = page.url();
     expect(urlWithFilters).toContain("userId");
 
     await page.getByTestId("event_types_page_title-test").click();
-    await page.waitForURL(/\/event-types/);
+    await expect(page).toHaveURL(/\/event-types/);
 
     const eventTypeSearchParams = new URL(page.url()).searchParams;
     expect(eventTypeSearchParams.get("activeFilters")).toBeFalsy();
