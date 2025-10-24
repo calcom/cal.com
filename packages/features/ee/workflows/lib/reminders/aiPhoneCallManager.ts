@@ -71,12 +71,12 @@ const createWorkflowReminderAndExtractPhone = async (
 
   const workflowReminder = await prisma.workflowReminder.create({
     data: {
+      bookingUid: evt?.uid,
       workflowStepId,
       method: WorkflowMethods.AI_PHONE_CALL,
       scheduledDate: scheduledDate.toDate(),
       scheduled: true,
       seatReferenceId: seatReferenceUid,
-      bookingUid: evt?.uid,
     },
   });
 
@@ -125,6 +125,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
     return;
   }
 
+  // Get the workflow step to check if it has an agent configured
   const workflowStep = await prisma.workflowStep.findUnique({
     where: { id: workflowStepId },
     select: {
@@ -299,7 +300,7 @@ const scheduleAIPhoneCallForEvt = async (
   }
 };
 
-// sends all immediately, no scheduling needed
+// sends all immediately, no scheduling needed (tasker handles scheduling)
 const scheduleAIPhoneCallForForm = async (
   args: ScheduleAIPhoneCallArgsWithRequiredFields & {
     formData: FormSubmissionData;
