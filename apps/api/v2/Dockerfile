@@ -17,13 +17,8 @@ COPY . .
 
 RUN yarn install
 
-# Build prisma schema and make sure that it is linked to v2 node_modules
 RUN yarn workspace @calcom/api-v2 run generate-schemas
-RUN rm -rf apps/api/v2/node_modules
-RUN yarn install
-
 RUN yarn workspace @calcom/platform-libraries run build
-
 RUN yarn workspace @calcom/api-v2 run build
 
 EXPOSE 80

@@ -99,7 +99,7 @@ runs:
       uses: docker/build-push-action@v6
       with:
         context: ./
-        file: ./Dockerfile
+        file: ./apps/web/Dockerfile
         load: true
         push: false
         platforms: ${{ inputs.platform }}
@@ -159,7 +159,7 @@ runs:
       if: ${{ inputs.push-image == 'true' && !github.event.release.prerelease }}
       with:
         context: ./
-        file: ./Dockerfile
+        file: ./apps/web/Dockerfile
         push: true
         platforms: ${{ inputs.platform }}
         tags: ${{ steps.meta.outputs.tags }}

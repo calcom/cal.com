@@ -38,7 +38,7 @@ services:
     image: calcom.docker.scarf.sh/calcom/cal.com
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL}
         NEXT_PUBLIC_API_V2_URL: ${NEXT_PUBLIC_API_V2_URL}
@@ -68,7 +68,7 @@ services:
   calcom-api:
     container_name: calcom-api
     build:
-      context: ./calcom
+      context: ./
       dockerfile: apps/api/v2/Dockerfile
       args:
         DATABASE_URL: ${DATABASE_URL}
