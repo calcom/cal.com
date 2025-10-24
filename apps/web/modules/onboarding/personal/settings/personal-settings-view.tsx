@@ -103,7 +103,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
         <div className="flex w-full max-w-[600px] flex-col gap-6">
           {/* Card */}
           <div className="bg-muted border-muted relative rounded-xl border p-1">
-            <div className="ounded-inherit flex w-full flex-col items-start ">
+            <div className="rounded-inherit flex w-full flex-col items-start ">
               {/* Card Header */}
               <div className="flex w-full gap-1.5 px-5 py-4">
                 <div className="flex w-full flex-col gap-1">
