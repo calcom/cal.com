@@ -56,3 +56,8 @@ export type InstantBookingCreateResult = {
   expires: Date;
   userId: number | null;
 };
+
+// More properties to be added to this config in followup PRs
+export type BookingFlowConfig = {
+  isDryRun: boolean;
+};
