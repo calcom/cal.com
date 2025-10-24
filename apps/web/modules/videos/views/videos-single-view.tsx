@@ -303,7 +303,7 @@ interface LogInOverlayProps {
     meetingUrl: string;
     userName: string;
   }) => void;
-  meetingPassword: string;
+  meetingPassword?: string;
   meetingUrl: string;
 }
 
@@ -382,6 +382,10 @@ export function LogInOverlay(props: LogInOverlayProps) {
         setIsOpen(false);
       } else {
         // If email not required, use existing credentials from SSR props
+        if (!meetingPassword) {
+          throw new Error("Meeting password not available");
+        }
+
         onGuestCredentialsReceived({
           meetingPassword,
           meetingUrl,
