@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
@@ -16,6 +18,51 @@ type OnboardingViewProps = {
   userName: string;
   userEmail: string;
 };
+
+function PlanIcon({ icon }: { icon: IconName }) {
+  return (
+    <div className="relative h-[76px] w-[151px] shrink-0">
+      {/* Outer ring - radial gradient with feather */}
+      <div
+        className="pointer-events-none absolute left-[calc(50%+0.627px)] top-[-42.34px] h-[155.589px] w-[155.589px] -translate-x-1/2 rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(156, 163, 175, 0.15) 0%, rgba(156, 163, 175, 0.08) 40%, rgba(156, 163, 175, 0.03) 70%, transparent 100%)",
+        }}
+      />
+
+      {/* Middle ring - radial gradient with feather */}
+      <div
+        className="pointer-events-none absolute left-[calc(50%+0.628px)] top-[-20.01px] h-[110.922px] w-[110.922px] -translate-x-1/2 rounded-full"
+        style={{
+          background: "radial-gradient(circle, rgba(156, 163, 175, 0.2) 0%, rgba(156, 163, 175, 0.12) 45%, rgba(156, 163, 175, 0.05) 75%, transparent 100%)",
+        }}
+      />
+
+      {/* Main icon container with gradient background */}
+      <div
+        className="bg-default absolute left-[calc(50%+1px)] top-[10px] flex h-[55px] w-[55px] -translate-x-1/2 items-center justify-center overflow-clip rounded-full"
+        style={{
+          background:
+            "linear-gradient(to bottom, var(--cal-bg-default, #ffffff), var(--cal-bg-muted, #f7f7f7))",
+          boxShadow:
+            "0px 2.818px 5.635px 0px rgba(34, 42, 53, 0.05), 0px 0px 0px 0.704px rgba(34, 42, 53, 0.08), 0px 0.704px 3.522px -2.818px rgba(19, 19, 22, 0.7)",
+        }}>
+        {/* Icon with reduced opacity */}
+        <div className="flex size-8 items-center justify-center opacity-70">
+          <Icon name={icon} size={24} strokeWidth={1.75} className="text-emphasis" />
+        </div>
+
+        {/* Inner highlight/shine effect */}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-full"
+          style={{
+            boxShadow: "0px 0.704px 0.423px 0px inset #ffffff",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => {
   const router = useRouter();
@@ -32,24 +79,33 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
     }
   };
 
+  const planIconByType: Record<PlanType, IconName> = {
+    personal: "user",
+    team: "users",
+    organization: "building",
+  };
+
   const allPlans = [
     {
       id: "personal" as PlanType,
       title: t("onboarding_plan_personal_title"),
       badge: t("onboarding_plan_personal_badge"),
       description: t("onboarding_plan_personal_description"),
+      icon: planIconByType.personal,
     },
     {
       id: "team" as PlanType,
       title: t("onboarding_plan_team_title"),
       badge: t("onboarding_plan_team_badge"),
       description: t("onboarding_plan_team_description"),
+      icon: planIconByType.team,
     },
     {
       id: "organization" as PlanType,
       title: t("onboarding_plan_organization_title"),
       badge: t("onboarding_plan_organization_badge"),
       description: t("onboarding_plan_organization_description"),
+      icon: planIconByType.organization,
     },
   ];
 
@@ -104,29 +160,49 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                 value={selectedPlan ?? undefined}
                 onValueChange={(value) => setSelectedPlan(value as PlanType)}
                 className="flex w-full flex-col gap-1 rounded-[10px]">
-                {plans.map((plan) => (
-                  <RadioAreaGroup.Item
-                    key={plan.id}
-                    value={plan.id}
-                    className={
-                      selectedPlan === plan.id ? "border-emphasis bg-default" : "bg-default border-subtle"
-                    }>
-                    <div className="flex w-full flex-col gap-2">
-                      <div className="flex items-start gap-2">
-                        <p className="text-emphasis text-base font-semibold leading-4">{plan.title}</p>
-                        <Badge variant="gray" size="md" className="hidden h-4 rounded-md px-1 py-1 md:block">
-                          <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
-                        </Badge>
+                {plans.map((plan) => {
+                  const isSelected = selectedPlan === plan.id;
+
+                  return (
+                    <RadioAreaGroup.Item
+                      key={plan.id}
+                      value={plan.id}
+                      className={classNames(
+                        "bg-default relative flex items-center rounded-[10px] border transition",
+                        isSelected ? "border-emphasis shadow-sm" : "border-subtle",
+                        "pr-12 [&>button]:left-auto [&>button]:right-6 [&>button]:mt-0 [&>button]:transform"
+                      )}
+                      classNames={{
+                        container: "flex w-full items-center gap-4 p-4 pl-5 pr-12 md:p-5 md:pr-14",
+                      }}>
+                      <div className="flex w-full items-center gap-4">
+                        <PlanIcon icon={plan.icon} />
+                        <div className="flex flex-1 flex-col gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-emphasis text-base font-semibold leading-5">{plan.title}</p>
+                            <Badge
+                              variant="gray"
+                              size="md"
+                              className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center">
+                              <span className="text-emphasis text-xs font-medium leading-3">
+                                {plan.badge}
+                              </span>
+                            </Badge>
+                          </div>
+                          <Badge
+                            variant="gray"
+                            size="md"
+                            className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
+                            <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
+                          </Badge>
+                          <p className="text-subtle max-w-full text-sm font-normal leading-tight">
+                            {plan.description}
+                          </p>
+                        </div>
                       </div>
-                      <Badge variant="gray" size="md" className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
-                        <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
-                      </Badge>
-                      <p className="text-subtle max-w-full text-sm font-normal leading-tight">
-                        {plan.description}
-                      </p>
-                    </div>
-                  </RadioAreaGroup.Item>
-                ))}
+                    </RadioAreaGroup.Item>
+                  );
+                })}
               </RadioAreaGroup.Group>
 
               {/* Footer */}
