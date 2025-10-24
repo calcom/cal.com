@@ -83,9 +83,9 @@ fi
 
 # Step 3: Generate environment file if it doesn't exist
 echo -e "\n${YELLOW}🔧 Configuring environment...${NC}"
-if [ ! -f .env.production ]; then
-    echo "Creating .env.production from example..."
-    cp .env.example .env.production
+if [ ! -f .env ]; then
+    echo "Creating .env from example..."
+    cp .env.example .env
     
     # Generate secure passwords
     DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
@@ -95,26 +95,26 @@ if [ ! -f .env.production ]; then
     # Replace in file (cross-platform compatible)
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS
-        sed -i '' "s/your_secure_postgres_password_here/$DB_PASSWORD/" .env.production
-        sed -i '' "s/your_secure_redis_password_here/$REDIS_PASSWORD/" .env.production
-        sed -i '' "s/your_32_character_secret_here/$NEXTAUTH_SECRET/" .env.production
+        sed -i '' "s/your_secure_postgres_password_here/$DB_PASSWORD/" .env
+        sed -i '' "s/your_secure_redis_password_here/$REDIS_PASSWORD/" .env
+        sed -i '' "s/your_32_character_secret_here/$NEXTAUTH_SECRET/" .env
     else
         # Linux
-        sed -i "s/your_secure_postgres_password_here/$DB_PASSWORD/" .env.production
-        sed -i "s/your_secure_redis_password_here/$REDIS_PASSWORD/" .env.production
-        sed -i "s/your_32_character_secret_here/$NEXTAUTH_SECRET/" .env.production
+        sed -i "s/your_secure_postgres_password_here/$DB_PASSWORD/" .env
+        sed -i "s/your_secure_redis_password_here/$REDIS_PASSWORD/" .env
+        sed -i "s/your_32_character_secret_here/$NEXTAUTH_SECRET/" .env
     fi
     
     echo -e "${GREEN}✅ Generated secure passwords${NC}"
-    echo -e "${YELLOW}⚠️  Please edit .env.production and update:${NC}"
+    echo -e "${YELLOW}⚠️  Please edit .env and update:${NC}"
     echo "   - API_URL (your domain)"
     echo "   - DOMAIN (for SSL certificate)"
     echo "   - EMAIL (for SSL certificate)"
     
-    read -p "Press enter to open .env.production in nano editor..."
-    nano .env.production
+    read -p "Press enter to open .env in nano editor..."
+    nano .env
 else
-    echo -e "${GREEN}✅ .env.production already exists${NC}"
+    echo -e "${GREEN}✅ .env already exists${NC}"
 fi
 
 # Step 4: Setup Cloudflare-friendly configuration
@@ -159,7 +159,7 @@ echo -e "\n${YELLOW}🧪 Testing deployment...${NC}"
 
 # Get the IP address
 IP=$(curl -s ifconfig.me)
-DOMAIN=$(grep "^DOMAIN=" .env.production | cut -d'=' -f2)
+DOMAIN=$(grep "^DOMAIN=" .env | cut -d'=' -f2)
 
 echo "Testing health endpoint via IP: http://$IP/health"
 sleep 5

@@ -1,3 +1,6 @@
+/* eslint-env node */
+/* eslint-disable no-useless-escape */
+
 require("dotenv").config({ path: "../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
@@ -400,11 +403,12 @@ const nextConfig = (phase) => {
       }, */
       ];
 
-      if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
-        afterFiles.push({
+      if (process.env.NEXT_PUBLIC_API_V2_URL) {
+        const rewrite = {
           source: "/api/v2/:path*",
           destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
-        });
+        };
+        afterFiles.push(rewrite);
       }
 
       return {
@@ -625,6 +629,7 @@ const nextConfig = (phase) => {
               type: "query",
               key: "callbackUrl",
               // prettier-ignore
+
               value: "^(?!https?:\/\/).*$",
             },
           ],

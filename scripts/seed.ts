@@ -990,11 +990,11 @@ async function main() {
     user: {
       email: "platform@collegecontactcalendar.com",
       /** To comply with admin password requirements  */
-      password: "PLATFORMLeah1602!",
+      password: "PLATFORMadmin2024!", // Changed it :)
       username: "platform",
       name: "Platform Admin",
       role: "USER",
-      
+
     },
   });
 
