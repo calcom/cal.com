@@ -119,7 +119,7 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
       .tz(attendee?.timeZone || timeZone)
       .format("h:mm A"),
     // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
-    eventTypeId: booking.eventTypeId || 0,
+    eventTypeId: booking.eventTypeId,
     // Include any custom form responses
     ...Object.fromEntries(
       Object.entries(responses || {}).map(([key, value]) => [
@@ -246,7 +246,7 @@ export async function executeAIPhoneCall(payload: string) {
       ATTENDEE_EMAIL: string;
       ATTENDEE_NAME: string;
       NUMBER_TO_CALL: string;
-      eventTypeId: number;
+      eventTypeId: number | null;
     } & Partial<ReturnType<typeof getVariablesFromBooking>>;
 
     // Prefer response variables if present, else fall back to booking
