@@ -6,10 +6,10 @@ env:
   POSTGRES_DB: "calendso"
   DATABASE_HOST: "database:5432"
 
-on: # yamllint disable-line rule:truthy
-  release:
-    types:
-      - published
+on:
+  push:
+    tags:
+      - "v*"
   # in case manual trigger is needed
   workflow_dispatch:
     inputs:
@@ -23,8 +23,12 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        with:
+          # Check out the tag specified in workflow_dispatch, or the tag that triggered the push event
+          ref: ${{ github.event.inputs.RELEASE_TAG || github.ref }}
 
       - name: "Determine tag"
+        # The logic here assumes `github.ref` is present, which is true for 'push: tags' or when `ref` is set in 'checkout'
         run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
 
       - name: Log in to the Docker Hub registry
