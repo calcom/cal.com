@@ -908,7 +908,6 @@ export class BookingsService_2024_08_13 {
     return "seatUid" in body;
   }
 
-  // create a new helpper function for determinig if user making the request is admin or owner of the booking user org
   async cancelBooking(
     request: Request,
     bookingUid: string,
