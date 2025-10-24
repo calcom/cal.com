@@ -158,7 +158,7 @@ export const TeamEventTypeForm = ({
           </RadioArea.Group>
         </div>
       </div>
-      {SubmitButton(isPending)}
+      <div className="mt-6">{SubmitButton(isPending)}</div>
     </Form>
   );
 };
