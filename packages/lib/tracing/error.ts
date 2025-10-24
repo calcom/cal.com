@@ -20,7 +20,9 @@ export class TracedError extends Error {
     if (error && typeof error === "object" && "data" in error) {
       const errorWithData = error as { data: Record<string, unknown> };
       this.data = {
-        ...errorWithData.data,
+        ...(errorWithData.data && typeof errorWithData.data === "object"
+          ? (errorWithData.data as Record<string, unknown>)
+          : {}),
         ...additionalData,
       };
     } else if (additionalData) {

@@ -311,12 +311,11 @@ export async function scheduleTrigger({
   });
 
   const payloadData = { triggerEvent, ...booking };
-  const payload = JSON.stringify(
-    spanContext ? distributedTracing.injectTraceIntoPayload(payloadData, spanContext) : payloadData
-  );
 
   try {
-    const payload = JSON.stringify({ triggerEvent, ...booking });
+    const payload = JSON.stringify(
+      spanContext ? distributedTracing.injectTraceIntoPayload(payloadData, spanContext) : payloadData
+    );
 
     await prisma.webhookScheduledTriggers.create({
       data: {

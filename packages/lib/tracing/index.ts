@@ -19,12 +19,12 @@ export class DistributedTracing {
   createTrace(operation: string, context?: Partial<TraceContext>): TraceContext {
     const { traceId, spanId, meta, ...otherContext } = context || {};
     return {
+      ...otherContext,
       traceId: traceId || `trace_${this.idGenerator.generate()}`,
       spanId: `span_${this.idGenerator.generate()}`,
       parentSpanId: spanId,
       operation,
       meta,
-      ...otherContext,
     };
   }
 

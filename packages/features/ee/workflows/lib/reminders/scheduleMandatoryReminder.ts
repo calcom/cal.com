@@ -2,15 +2,12 @@ import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleN
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
-import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
 import type { ExtendedCalendarEvent } from "./reminderScheduler";
-
-const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
 export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | getEventTypeResponse;
 
@@ -34,6 +31,7 @@ async function _scheduleMandatoryReminder({
   traceContext?: TraceContext;
 }) {
   if (isDryRun) return;
+  if (isPlatformNoEmail) return;
 
   const reminderMeta = {
     eventTitle: evt.title || "unknown",
