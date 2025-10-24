@@ -7,111 +7,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Icon, type IconName } from "@calcom/ui/components/icon";
+import { type IconName } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
+import { PlanIcon } from "../components/plan-icon";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
   userName: string;
   userEmail: string;
 };
-
-function PlanIcon({ icon }: { icon: IconName }) {
-  return (
-    <div className="relative h-[76px] w-[160px] shrink-0 overflow-visible">
-      {/* Outer ring - SVG with linear gradient */}
-      <svg
-        className="pointer-events-none absolute left-[calc(50%+0.627px)] top-[-40px] -translate-x-1/2"
-        width="156"
-        height="156"
-        viewBox="0 0 156 156"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          maskImage:
-            "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
-          WebkitMaskImage:
-            "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
-        }}>
-        <circle opacity="0.3" cx="78" cy="78" r="77.5" stroke="url(#paint0_linear_outer)" strokeWidth="0.5" />
-        <defs>
-          <linearGradient
-            id="paint0_linear_outer"
-            x1="78"
-            y1="0"
-            x2="78"
-            y2="156"
-            gradientUnits="userSpaceOnUse">
-            <stop stopColor="var(--cal-border-default, #D3D3D3)" />
-            <stop offset="1" stopColor="var(--cal-border-emphasis, #B2B2B2)" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      {/* Middle ring - SVG with linear gradient */}
-      <svg
-        className="pointer-events-none absolute left-[calc(50%+0.628px)] top-[-20.01px] -translate-x-1/2"
-        width="111"
-        height="111"
-        viewBox="0 0 111 111"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          maskImage:
-            "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
-          WebkitMaskImage:
-            "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
-        }}>
-        <circle
-          opacity="0.4"
-          cx="55.461"
-          cy="55.455"
-          r="55.211"
-          stroke="url(#paint0_linear_middle)"
-          strokeWidth="0.5"
-        />
-        <defs>
-          <linearGradient
-            id="paint0_linear_middle"
-            x1="55.461"
-            y1="-0.006"
-            x2="55.461"
-            y2="110.916"
-            gradientUnits="userSpaceOnUse">
-            <stop stopColor="var(--cal-border-default, #D3D3D3)" />
-            <stop offset="1" stopColor="var(--cal-border-emphasis, #B2B2B2)" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      {/* Main icon container with gradient background */}
-      <div
-        className="bg-default absolute left-[calc(50%+1px)] top-[10px] flex h-[55px] w-[55px] -translate-x-1/2 items-center justify-center overflow-clip rounded-full"
-        style={{
-          background:
-            "linear-gradient(to bottom, var(--cal-bg-default, #ffffff), var(--cal-bg-muted, #f7f7f7))",
-          boxShadow:
-            "0px 2.818px 5.635px 0px rgba(34, 42, 53, 0.05), 0px 0px 0px 0.704px rgba(34, 42, 53, 0.08), 0px 0.704px 3.522px -2.818px rgba(19, 19, 22, 0.7)",
-        }}>
-        {/* Icon with reduced opacity */}
-        <div className="size-8 flex items-center justify-center opacity-70">
-          <Icon name={icon} size={24} strokeWidth={1.75} className="text-emphasis" />
-        </div>
-
-        {/* Inner highlight/shine effect */}
-        <div
-          className="pointer-events-none absolute inset-0 rounded-full"
-          style={{
-            boxShadow: "0px 0.704px 0.423px 0px inset #ffffff",
-          }}
-        />
-      </div>
-    </div>
-  );
-}
 
 export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => {
   const router = useRouter();
@@ -141,6 +48,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       badge: t("onboarding_plan_personal_badge"),
       description: t("onboarding_plan_personal_description"),
       icon: planIconByType.personal,
+      variant: "single",
     },
     {
       id: "team" as PlanType,
@@ -148,13 +56,15 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       badge: t("onboarding_plan_team_badge"),
       description: t("onboarding_plan_team_description"),
       icon: planIconByType.team,
+      variant: "single",
     },
     {
       id: "organization" as PlanType,
       title: t("onboarding_plan_organization_title"),
       badge: t("onboarding_plan_organization_badge"),
       description: t("onboarding_plan_organization_description"),
-      icon: planIconByType.organization,
+      icon: planIconByType.team,
+      variant: "double",
     },
   ];
 
@@ -225,7 +135,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                         container: "flex w-full items-center gap-4 p-4 pl-5 pr-12 md:p-5 md:pr-14",
                       }}>
                       <div className="flex w-full items-center gap-4">
-                        <PlanIcon icon={plan.icon} />
+                        <PlanIcon icon={plan.icon} variant={plan.variant} />
                         <div className="flex flex-1 flex-col gap-2">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-emphasis text-base font-semibold leading-5">{plan.title}</p>
