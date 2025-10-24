@@ -2,6 +2,7 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
+import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { useInsightsBookingParameters } from "../../hooks/useInsightsBookingParameters";
@@ -159,12 +160,22 @@ const LoadingKPICards = (props: {
   );
 };
 
-// StatContainer: wraps the grid with gap for separated cards
+// StatContainer: wraps the grid
 function StatContainer({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">{children}</div>;
+  return <div className="group grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4">{children}</div>;
 }
 
-// StatItem: individual card with curved edges and elevation
-function StatItem({ index: _index, children }: { index: number; children: React.ReactNode }) {
-  return <div className="bg-default border-subtle rounded-2xl border p-6 shadow-sm">{children}</div>;
+// StatItem: handles border logic
+function StatItem({ index, children }: { index: number; children: React.ReactNode }) {
+  return (
+    <div
+      className={classNames(
+        "border-muted flex-1 p-4",
+        index === 0 && "border-b sm:border-r md:border-b-0 md:border-r",
+        index === 1 && "border-b sm:border-r-0 md:border-b-0 md:border-r",
+        index === 2 && "border-b sm:border-b-0 sm:border-r md:border-b-0"
+      )}>
+      {children}
+    </div>
+  );
 }
