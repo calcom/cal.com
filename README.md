@@ -401,7 +401,7 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
 2. Change into the directory
 
    ```bash
-   cd cal.com/apps/web
+   cd cal.com
    ```
 
 3. Prepare your configuration: Rename `.env.example` to `.env` and then update `.env`
