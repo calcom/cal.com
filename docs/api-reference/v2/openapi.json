@@ -8998,11 +8998,11 @@
         "tags": ["Bookings"]
       }
     },
-    "/v2/bookings/{bookingUid}/guests": {
+    "/v2/bookings/{bookingUid}/attendees": {
       "post": {
-        "operationId": "BookingAttendeesController_2024_08_13_addGuests",
-        "summary": "Add guests to an existing booking",
-        "description": "Add one or more guests to an existing booking.\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "operationId": "BookingAttendeesController_2024_08_13_addAttendees",
+        "summary": "Add attendees to an existing booking",
+        "description": "Add one or more attendees to an existing booking.\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -9054,7 +9054,7 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": ["Bookings / Attendees"]
       }
     },
     "/v2/calendars/{calendar}/event/{eventUid}": {
@@ -27344,15 +27344,102 @@
         },
         "required": ["status", "data"]
       },
+      "Attendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The email of the guest.",
+            "example": "john.doe@example.com"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the guest.",
+            "example": "John Doe"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "The time zone of the guest.",
+            "example": "America/New_York"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The phone number of the guest in international format.",
+            "example": "+919876543210"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW",
+              "bn"
+            ],
+            "description": "The preferred language of the guest. Used for booking confirmation.",
+            "example": "it",
+            "default": "en"
+          }
+        },
+        "required": ["email"]
+      },
       "AddAttendeesInput_2024_08_13": {
         "type": "object",
         "properties": {
           "guests": {
-            "description": "Array of guest email addresses to add to the booking",
-            "example": ["john.doe@example.com", "jane.smith@example.com"],
+            "description": "Array of attendees to add to the booking",
+            "example": [
+              {
+                "email": "john.doe@example.com",
+                "name": "John Doe",
+                "timeZone": "America/New_York"
+              },
+              {
+                "email": "jane.smith@example.com",
+                "name": "Jane Smith"
+              }
+            ],
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/Attendee"
             }
           }
         },
