@@ -47,21 +47,21 @@ docker push 194266086878.dkr.ecr.us-east-2.amazonaws.com/collegecontact/calcom-a
 SSH into your EC2 instance and run:
 
 ```bash
-# Navigate to the deployment directory
-cd /path/to/cal.com/apps/api/v2
+# Navigate to the repository root
+cd /path/to/cal.com
 
 # Authenticate with ECR
 aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 194266086878.dkr.ecr.us-east-2.amazonaws.com
 
 # Pull the latest image
-docker-compose -f docker-compose.production.yml pull api-v2
+docker-compose -f apps/api/v2/docker-compose.production.yml pull api-v2
 
 # Restart the service with the new image
-docker-compose -f docker-compose.production.yml up -d api-v2
+docker-compose -f apps/api/v2/docker-compose.production.yml up -d api-v2
 
 # Verify deployment
-docker-compose -f docker-compose.production.yml ps
-docker-compose -f docker-compose.production.yml logs -f api-v2
+docker-compose -f apps/api/v2/docker-compose.production.yml ps
+docker-compose -f apps/api/v2/docker-compose.production.yml logs -f api-v2
 ```
 
 ### Step 3: Verify Health
@@ -83,7 +83,7 @@ If something goes wrong, rollback to a previous version:
 docker pull 194266086878.dkr.ecr.us-east-2.amazonaws.com/collegecontact/calcom-api-v2:previous-tag
 docker tag 194266086878.dkr.ecr.us-east-2.amazonaws.com/collegecontact/calcom-api-v2:previous-tag \
   194266086878.dkr.ecr.us-east-2.amazonaws.com/collegecontact/calcom-api-v2:latest
-docker-compose -f docker-compose.production.yml up -d api-v2
+docker-compose -f apps/api/v2/docker-compose.production.yml up -d api-v2
 ```
 
 ## Deployment Checklist
@@ -116,13 +116,13 @@ aws ecr get-login-password --region us-east-2 | docker login --username AWS --pa
 
 ```bash
 # Check logs
-docker-compose -f docker-compose.production.yml logs api-v2
+docker-compose -f apps/api/v2/docker-compose.production.yml logs api-v2
 
 # Check environment variables
-docker-compose -f docker-compose.production.yml config
+docker-compose -f apps/api/v2/docker-compose.production.yml config
 
 # Verify database connectivity
-docker-compose -f docker-compose.production.yml exec api-v2 sh
+docker-compose -f apps/api/v2/docker-compose.production.yml exec api-v2 sh
 # Inside container:
 nc -zv postgres 5432
 ```
@@ -178,10 +178,10 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /path/to/cal.com/apps/api/v2
+            cd /path/to/cal.com
             aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 194266086878.dkr.ecr.us-east-2.amazonaws.com
-            docker-compose -f docker-compose.production.yml pull api-v2
-            docker-compose -f docker-compose.production.yml up -d api-v2
+            docker-compose -f apps/api/v2/docker-compose.production.yml pull api-v2
+            docker-compose -f apps/api/v2/docker-compose.production.yml up -d api-v2
 ```
 
 ### Option 2: Watchtower (Auto-Update on New Images)
@@ -221,7 +221,7 @@ On EC2, add to crontab:
 crontab -e
 
 # Add (checks every 5 minutes)
-*/5 * * * * cd /path/to/cal.com/apps/api/v2 && docker-compose -f docker-compose.production.yml pull -q api-v2 && docker-compose -f docker-compose.production.yml up -d api-v2 >> /var/log/api-deploy.log 2>&1
+*/5 * * * * cd /path/to/cal.com && docker-compose -f apps/api/v2/docker-compose.production.yml pull -q api-v2 && docker-compose -f apps/api/v2/docker-compose.production.yml up -d api-v2 >> /var/log/api-deploy.log 2>&1
 ```
 
 ## Recommended: Versioned Tags
