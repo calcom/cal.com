@@ -65,7 +65,7 @@ jobs:
 
   release-arm:
     name: "Release ARM"
-    runs-on: ubuntu-24.04-arm
+    runs-on: buildjet-4vcpu-ubuntu-2204-arm
     steps:
       - name: checkout
         uses: actions/checkout@v4
