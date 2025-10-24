@@ -1,4 +1,3 @@
-// lint-staged.config.mjs
 export default {
   "(apps|packages)/**/*.{js,ts,jsx,tsx}": (files) =>
     process.env.SKIP_WARNINGS === "1"
