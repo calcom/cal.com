@@ -22,12 +22,9 @@ import { AddAttendeesInput_2024_08_13 } from "@calcom/platform-types";
 @DocsTags("Bookings / Attendees")
 @ApiHeader({
   name: "cal-api-version",
-  description: `Must be set to ${VERSION_2024_08_13}. If not set to this value, the endpoint will default to an older version.`,
+  description: `Must be set to ${VERSION_2024_08_13}. This header is required as this endpoint does not exist in older API versions.`,
   example: VERSION_2024_08_13,
   required: true,
-  schema: {
-    default: VERSION_2024_08_13,
-  },
 })
 export class BookingAttendeesController_2024_08_13 {
   private readonly logger = new Logger("BookingAttendeesController_2024_08_13");
@@ -42,7 +39,7 @@ export class BookingAttendeesController_2024_08_13 {
   @ApiOperation({
     summary: "Add attendees to an existing booking",
     description: `Add one or more attendees to an existing booking.
-    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>
     `,
   })
   async addAttendees(
