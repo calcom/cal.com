@@ -1160,7 +1160,7 @@ export class AvailableSlotsService {
 
           // If session user has availability, intersect it with the organizer's availability
           if (sessionUserAvailability.dateRanges && sessionUserAvailability.dateRanges.length > 0) {
-            const { intersect } = await import("@calcom/lib/date-ranges");
+            const { intersect } = await import("@calcom/features/schedules/lib/date-ranges");
 
             // Intersect session user's availability with each organizer's availability
             const intersectedAvailabilities = allUsersAvailability.map((organizerAvailability) => ({
