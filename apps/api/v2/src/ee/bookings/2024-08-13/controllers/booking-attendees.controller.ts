@@ -39,6 +39,16 @@ export class BookingAttendeesController_2024_08_13 {
   @ApiOperation({
     summary: "Add attendees to an existing booking",
     description: `Add one or more attendees to an existing booking.
+    
+    **Email Notifications:**
+    When attendees are added, the following notifications are sent (unless disabled by event type settings):
+    
+    - **Organizer & Team Members:** Receive an "Add Guests" notification email informing them that new attendees have been added to the booking.
+    
+    - **New Attendees:** Receive a "Scheduled Event" email with full booking details and calendar invite. If they have a phone number, they also receive an SMS notification.
+    
+    - **Existing Attendees:** Receive an "Add Guests" notification email informing them that additional attendees have been added to the booking.
+    
     <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>
     `,
   })
