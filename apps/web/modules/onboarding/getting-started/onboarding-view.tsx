@@ -21,15 +21,21 @@ type OnboardingViewProps = {
 
 function PlanIcon({ icon }: { icon: IconName }) {
   return (
-    <div className="relative h-[76px] w-[151px] shrink-0">
+    <div className="relative h-[76px] w-[160px] shrink-0 overflow-visible">
       {/* Outer ring - SVG with linear gradient */}
       <svg
-        className="pointer-events-none absolute left-[calc(50%+0.627px)] top-[-42.34px] -translate-x-1/2"
+        className="pointer-events-none absolute left-[calc(50%+0.627px)] top-[-40px] -translate-x-1/2"
         width="156"
         height="156"
         viewBox="0 0 156 156"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg">
+        xmlns="http://www.w3.org/2000/svg"
+        style={{
+          maskImage:
+            "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
+        }}>
         <circle opacity="0.3" cx="78" cy="78" r="77.5" stroke="url(#paint0_linear_outer)" strokeWidth="0.5" />
         <defs>
           <linearGradient
@@ -52,7 +58,13 @@ function PlanIcon({ icon }: { icon: IconName }) {
         height="111"
         viewBox="0 0 111 111"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg">
+        xmlns="http://www.w3.org/2000/svg"
+        style={{
+          maskImage:
+            "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
+        }}>
         <circle
           opacity="0.4"
           cx="55.461"
