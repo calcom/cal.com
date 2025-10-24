@@ -4,6 +4,7 @@ import { useState } from "react";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 
 import type { OnboardingState } from "../store/onboarding-store";
 
@@ -11,6 +12,7 @@ export const useSubmitOnboarding = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const flags = useFlagMap();
 
   const intentToCreateOrg = trpc.viewer.organizations.intentToCreateOrg.useMutation();
 
@@ -80,7 +82,8 @@ export const useSubmitOnboarding = () => {
       showToast("Organization created successfully!", "success");
       // TODO: after this redirect we need to hard refresh the page to see org
       resetOnboarding();
-      router.push("/getting-started");
+      const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
+      router.push(gettingStartedPath);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create organization";
       setError(errorMessage);

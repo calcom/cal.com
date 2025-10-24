@@ -9,6 +9,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -503,12 +504,13 @@ export async function sendSignupToOrganizationEmail({
 }) {
   try {
     const verificationToken = await createVerificationToken(usernameOrEmail, teamId);
+    const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
     await sendTeamInviteEmail({
       language: translation,
       from: inviterName || `${team.name}'s admin`,
       to: usernameOrEmail,
       teamName: team.name,
-      joinLink: `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`,
+      joinLink: `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`,
       isCalcomMember: false,
       isOrg: isOrg,
       parentTeamName: team?.parent?.name,
@@ -717,7 +719,8 @@ export const sendExistingUserTeamInviteEmails = async ({
       if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
         const verificationToken = await createVerificationToken(user.email, teamId);
 
-        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=/getting-started`;
+        const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
+        inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`;
         inviteTeamOptions.isCalcomMember = false;
       } else if (!isAutoJoin) {
         let verificationToken = await prisma.verificationToken.findFirst({

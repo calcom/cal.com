@@ -7,6 +7,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { ssoTenantProduct } from "@calcom/features/ee/sso/lib/sso";
 import { checkUsername } from "@calcom/features/profile/lib/checkUsername";
+import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
@@ -18,7 +19,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const providerParam = asStringOrNull(context.query.provider);
   const emailParam = asStringOrNull(context.query.email);
   const usernameParam = asStringOrNull(context.query.username);
-  const successDestination = `/getting-started${usernameParam ? `?username=${usernameParam}` : ""}`;
+
+  const successDestination = await OnboardingPathService.getGettingStartedPathWithParams(
+    prisma,
+    usernameParam ? { username: usernameParam } : undefined
+  );
+
   if (!providerParam) {
     throw new Error(`File is not named sso/[provider]`);
   }
