@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
-import { usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { createParser, useQueryState } from "nuqs";
 import { useMemo } from "react";
 
@@ -21,6 +21,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
+import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import BookingListItem from "@components/booking/BookingListItem";
@@ -91,6 +93,45 @@ function BookingsContent({ status, permissions }: BookingsProps) {
   const [view] = useQueryState("view", viewParser.withDefault("list"));
   const { t } = useLocale();
   const user = useMeQuery().data;
+  const searchParams = useSearchParams();
+
+  const tabs: HorizontalTabItemProps[] = useMemo(() => {
+    const queryString = searchParams?.toString() || "";
+
+    const baseTabConfigs = [
+      {
+        name: "upcoming",
+        path: "/bookings/upcoming",
+        "data-testid": "upcoming",
+      },
+      {
+        name: "unconfirmed",
+        path: "/bookings/unconfirmed",
+        "data-testid": "unconfirmed",
+      },
+      {
+        name: "recurring",
+        path: "/bookings/recurring",
+        "data-testid": "recurring",
+      },
+      {
+        name: "past",
+        path: "/bookings/past",
+        "data-testid": "past",
+      },
+      {
+        name: "cancelled",
+        path: "/bookings/cancelled",
+        "data-testid": "cancelled",
+      },
+    ];
+
+    return baseTabConfigs.map((tabConfig) => ({
+      name: tabConfig.name,
+      href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
+      "data-testid": tabConfig["data-testid"],
+    }));
+  }, [searchParams]);
 
   const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
   const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
@@ -349,6 +390,14 @@ function BookingsContent({ status, permissions }: BookingsProps) {
 
   return (
     <div className="flex flex-col">
+      <div className="flex flex-row flex-wrap justify-between lg:hidden">
+        <HorizontalTabs
+          tabs={tabs.map((tab) => ({
+            ...tab,
+            name: t(tab.name),
+          }))}
+        />
+      </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
           {query.status === "error" && (
