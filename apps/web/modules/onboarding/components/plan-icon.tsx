@@ -12,21 +12,21 @@ export function PlanIcon({ icon, variant = "single" }: { icon: IconName; variant
         className="bg-default absolute top-[10px] flex h-[55px] w-[55px] -translate-x-1/2 items-center justify-center overflow-clip rounded-full"
         style={{
           left: leftPosition,
-          background:
-            "linear-gradient(to bottom, var(--cal-bg-default, #ffffff), var(--cal-bg-muted, #f7f7f7))",
+          background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-muted, #f7f7f7))",
           boxShadow:
-            "0px 2.818px 5.635px 0px rgba(34, 42, 53, 0.05), 0px 0px 0px 0.704px rgba(34, 42, 53, 0.08), 0px 0.704px 3.522px -2.818px rgba(19, 19, 22, 0.7)",
+            "0px 2.818px 5.635px 0px var(--cal-border-subtle), 0px 0px 0px 0.704px var(--cal-border), 0px 0.704px 3.522px -2.818px rgba(0, 0, 0, 0.3)",
         }}>
-        {/* Icon with reduced opacity */}
-        <div className="size-8 flex items-center justify-center opacity-70">
-          <Icon name={icon} size={24} strokeWidth={1.75} className="text-emphasis" />
+        {/* Icon */}
+        <div className="size-8 flex items-center justify-center">
+          <Icon name={icon} size={24} strokeWidth={1.75} className="text-emphasis opacity-80" />
         </div>
 
         {/* Inner highlight/shine effect */}
         <div
           className="pointer-events-none absolute inset-0 rounded-full"
           style={{
-            boxShadow: "0px 0.704px 0.423px 0px inset #ffffff",
+            boxShadow: "0px 0.704px 0.423px 0px inset var(--cal-bg-inverted)",
+            opacity: 0.15,
           }}
         />
       </div>
