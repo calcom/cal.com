@@ -615,7 +615,7 @@ async function handler(
   }
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
-    .settings.minLevel = 0;
+    tracingLogger.settings.minLevel = 0;
   }
 
   const fullName = getFullName(bookerName);
