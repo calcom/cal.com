@@ -132,35 +132,29 @@ export class PermissionRepository implements IPermissionRepository {
       const { resource, action } = parsePermissionString(p);
       return { resource, action };
     });
-    const resourceActions = permissionPairs.map((p) => [p.resource, p.action]);
-    const resources = permissionPairs.map((p) => p.resource);
-    const actions = permissionPairs.map((p) => p.action);
 
+    // Convert permission pairs to JSONB for proper serialization
+    const permissionPairsJson = JSON.stringify(permissionPairs);
+
+    // Check if each requested permission is satisfied by at least one role permission
     const matchingPermissions = await this.client.$queryRaw<[{ count: bigint }]>`
-      WITH permission_checks AS (
-        -- Universal permission (*,*)
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "resource" = '*' AND "action" = '*'
-
-        UNION ALL
-
-        -- Wildcard resource with specific actions
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "resource" = '*' AND "action" = ANY(${actions})
-
-        UNION ALL
-
-        -- Specific resources with wildcard action
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND "action" = '*' AND "resource" = ANY(${resources})
-
-        UNION ALL
-
-        -- Exact resource-action pairs
-        SELECT 1 as match FROM "RolePermission"
-        WHERE "roleId" = ${roleId} AND ("resource", "action") = ANY(${resourceActions})
+      SELECT COUNT(*) as count
+      FROM jsonb_array_elements(${permissionPairsJson}::jsonb) AS required_perm
+      WHERE EXISTS (
+        SELECT 1
+        FROM "RolePermission" rp
+        WHERE rp."roleId" = ${roleId}
+          AND (
+            -- Universal permission (*,*)
+            (rp."resource" = '*' AND rp."action" = '*') OR
+            -- Wildcard resource with specific action
+            (rp."resource" = '*' AND rp."action" = required_perm->>'action') OR
+            -- Specific resource with wildcard action
+            (rp."resource" = required_perm->>'resource' AND rp."action" = '*') OR
+            -- Exact resource-action pair
+            (rp."resource" = required_perm->>'resource' AND rp."action" = required_perm->>'action')
+          )
       )
-      SELECT COUNT(*) as count FROM permission_checks
     `;
 
     return Number(matchingPermissions[0].count) >= permissions.length;

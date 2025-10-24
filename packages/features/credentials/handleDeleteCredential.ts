@@ -298,10 +298,11 @@ const handleDeleteCredential = async ({
               },
             });
 
-            await prisma.bookingReference.deleteMany({
+            await prisma.bookingReference.updateMany({
               where: {
                 bookingId: booking.id,
               },
+              data: { deleted: true },
             });
 
             const attendeesListPromises = booking.attendees.map(async (attendee) => {

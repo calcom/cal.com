@@ -27,6 +27,7 @@ const DateOverrideList = ({
   fields,
   weekStart = 0,
   handleAvailabilityUpdate = noop,
+  isDryRun = false,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
@@ -38,6 +39,7 @@ const DateOverrideList = ({
   travelSchedules?: RouterOutputs["viewer"]["travelSchedules"]["get"];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   handleAvailabilityUpdate?: VoidFunction;
+  isDryRun?: boolean;
 }) => {
   const { t, i18n } = useLocale();
   const isPlatform = useIsPlatform();
@@ -109,10 +111,12 @@ const DateOverrideList = ({
               }))}
               weekStart={weekStart}
               onChange={(ranges) => {
-                // update has very weird side-effects with sorting.
-                replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
-                delete unsortedFieldArrayMap[item.id];
-                handleAvailabilityUpdate();
+                if (!isDryRun) {
+                  // update has very weird side-effects with sorting.
+                  replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);
+                  delete unsortedFieldArrayMap[item.id];
+                  handleAvailabilityUpdate();
+                }
               }}
               Trigger={
                 <DialogTrigger asChild>
@@ -145,7 +149,9 @@ const DateOverrideList = ({
                 StartIcon="trash-2"
                 onClick={() => {
                   replace([...fields.filter((currentItem) => currentItem.id !== item.id)]);
-                  handleAvailabilityUpdate();
+                  if (!isDryRun) {
+                    handleAvailabilityUpdate();
+                  }
                 }}
               />
             </Tooltip>

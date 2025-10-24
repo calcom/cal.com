@@ -42,7 +42,7 @@ test.describe("private links creation and usage", () => {
     const $url = await page.locator('[data-testid="private-link-url"]').inputValue();
 
     // click update
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     // book using generated url hash
@@ -74,7 +74,7 @@ test.describe("private links creation and usage", () => {
     await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
     await expect(page.locator('[data-testid="event-slug"]').first()).toHaveValue("somethingrandom");
 
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     await page.locator("[data-testid=vertical-tab-event_advanced_tab_title]").click();
@@ -113,7 +113,7 @@ test.describe("private links creation and usage", () => {
     await page.locator('[data-testid="private-link-expiration-settings-save"]').click();
     await page.waitForLoadState("networkidle");
     // click update
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     // book using generated url hash
@@ -164,7 +164,7 @@ test.describe("private links creation and usage", () => {
     await page.locator('[data-testid="private-link-expiration-settings-save"]').click();
     await page.waitForLoadState("networkidle");
     // click update
-    await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+    await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
       action: () => page.locator("[data-testid=update-eventtype]").click(),
     });
     // book using generated url hash

@@ -83,9 +83,12 @@ export const getServerSideProps = async function getServerSideProps(
     props: {
       isEmbed,
       profile: {
-        theme: form.user.theme,
-        brandColor: form.user.brandColor,
-        darkBrandColor: form.user.darkBrandColor,
+        theme: formWithUserProfile.user.profile?.organization?.theme ?? formWithUserProfile.user.theme,
+        brandColor:
+          formWithUserProfile.user.profile?.organization?.brandColor ?? formWithUserProfile.user.brandColor,
+        darkBrandColor:
+          formWithUserProfile.user.profile?.organization?.darkBrandColor ??
+          formWithUserProfile.user.darkBrandColor,
       },
       form: await getSerializableForm({ form: enrichFormWithMigrationData(formWithUserProfile) }),
     },

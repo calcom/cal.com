@@ -27,6 +27,7 @@ const initialData: AppFlags = {
   "tiered-support-chat": false,
   "calendar-subscription-cache": false,
   "calendar-subscription-sync": false,
+  "onboarding-v3": false,
   "booker-botid": false,
 };
 

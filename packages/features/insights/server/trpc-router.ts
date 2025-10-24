@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { getInsightsBookingService } from "@calcom/features/di/containers/InsightsBooking";
+import { getInsightsRoutingService } from "@calcom/features/di/containers/InsightsRouting";
 import {
   extractDateRangeFromColumnFilters,
   replaceDateRangeColumnFilter,
@@ -13,8 +15,6 @@ import {
   routedToPerPeriodCsvInputSchema,
   bookingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
-import { getInsightsBookingService } from "@calcom/features/di/containers/InsightsBooking";
-import { getInsightsRoutingService } from "@calcom/features/di/containers/InsightsRouting";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";

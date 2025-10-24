@@ -78,6 +78,7 @@ export type OOOEntryPayloadType = {
 export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
+    uid?: string | null;
     metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
     status?: string;
@@ -130,6 +131,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
   const location = getHumanReadableLocationValue(data.location || "", t);
 
   const body = {
+    uid: data.uid,
     title: data.title,
     description: data.description,
     customInputs: data.customInputs,

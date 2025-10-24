@@ -203,6 +203,7 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
         allowSetToDefault={allowSetToDefault}
         onFormStateChange={onFormStateChange}
         callbacksRef={callbacksRef}
+        isDryRun={isDryRun}
       />
     </AtomsWrapper>
   );

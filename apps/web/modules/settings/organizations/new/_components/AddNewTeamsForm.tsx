@@ -205,6 +205,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
             <TextField
               key={field.id}
               {...register(`teams.${index}.name`)}
+              data-testid={`team.${index}.name`}
               label=""
               addOnClassname="bg-transparent p-0 border-l-0"
               className={index > 0 ? "mb-2" : ""}

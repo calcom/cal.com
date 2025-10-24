@@ -1,5 +1,5 @@
-import type { WebhookTriggerEvents, UserPermissionRole } from "@calcom/prisma/enums";
 import type { Webhook } from "@calcom/prisma/client";
+import type { WebhookTriggerEvents, UserPermissionRole } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber } from "../dto/types";
 
@@ -42,10 +42,7 @@ export interface IWebhookRepository {
     time: number | null;
     timeUnit: string | null;
   }>;
-  getFilteredWebhooksForUser(options: {
-    userId: number;
-    userRole?: UserPermissionRole;
-  }): Promise<{
+  getFilteredWebhooksForUser(options: { userId: number; userRole?: UserPermissionRole }): Promise<{
     webhookGroups: WebhookGroup[];
     profiles: {
       teamId: number | null | undefined;

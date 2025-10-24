@@ -234,9 +234,10 @@ for Logger level to be set at info, for example.
 
    </details>
 
-   If you don't want to create a local DB. Then you can also consider using services like railway.app or render.
+   If you don't want to create a local DB. Then you can also consider using services like railway.app, Northflank or render.
 
    - [Setup postgres DB with railway.app](https://docs.railway.app/guides/postgresql)
+   - [Setup postgres DB with Northflank](https://northflank.com/guides/deploy-postgres-database-on-northflank)
    - [Setup postgres DB with render](https://render.com/docs/databases)
 
 1. Copy and paste your `DATABASE_URL` from `.env` to `.env.appStore`.
@@ -389,6 +390,12 @@ Cal.com, Inc. does not provide official support for Docker, but we will accept f
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/cal)
 
 You can deploy Cal.com on [Railway](https://railway.app) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Cal.com on their platform.
+
+### Northflank
+
+[![Deploy on Northflank](https://assets.northflank.com/deploy_to_northflank_smm_36700fb050.svg)](https://northflank.com/stacks/deploy-calcom)
+
+You can deploy Cal.com on [Northflank](https://northflank.com) using the button above. The team at Northflank also have a [detailed blog post](https://northflank.com/guides/deploy-calcom-with-northflank) on deploying Cal.com on their platform.
 
 ### Vercel
 

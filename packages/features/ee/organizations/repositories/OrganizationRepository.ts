@@ -1,8 +1,8 @@
 import type { z } from "zod";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
@@ -36,6 +36,8 @@ export class OrganizationRepository {
       billingPeriod?: "MONTHLY" | "ANNUALLY";
       logoUrl: string | null;
       bio: string | null;
+      brandColor: string | null;
+      bannerUrl: string | null;
       requestedSlug?: string | null;
     };
     owner: {
@@ -84,6 +86,8 @@ export class OrganizationRepository {
       isPlatform: boolean;
       logoUrl: string | null;
       bio: string | null;
+      brandColor: string | null;
+      bannerUrl: string | null;
     };
     owner: {
       email: string;
@@ -133,6 +137,8 @@ export class OrganizationRepository {
     isPlatform: boolean;
     logoUrl: string | null;
     bio: string | null;
+    brandColor: string | null;
+    bannerUrl: string | null;
     requestedSlug?: string | null;
   }) {
     return await prisma.team.create({
@@ -140,9 +146,10 @@ export class OrganizationRepository {
         name: orgData.name,
         isOrganization: true,
         slug: orgData.slug,
-        // This is huge and causes issues, we need to have the logic to convert logo to logoUrl and then use that url ehre.
-        // logoUrl: orgData.logoUrl,
+        logoUrl: orgData.logoUrl,
         bio: orgData.bio,
+        brandColor: orgData.brandColor,
+        bannerUrl: orgData.bannerUrl,
         organizationSettings: {
           create: {
             isAdminReviewed: orgData.isOrganizationAdminReviewed,

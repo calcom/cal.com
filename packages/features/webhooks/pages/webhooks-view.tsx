@@ -41,7 +41,7 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
       description={t("add_webhook_description", { appName: APP_NAME })}
       CTA={webhooksByViewer.webhookGroups.length > 0 ? <CreateNewWebhookButton /> : null}
       borderInShellHeader={false}>
-      {!!webhookGroups.length ? (
+      {webhookGroups.length ? (
         <div className={classNames("mt-6")}>
           {webhookGroups.map((group) => (
             <div key={group.teamId}>
