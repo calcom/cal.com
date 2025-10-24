@@ -330,8 +330,14 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                                         {booking.eventType.title}{" "}
                                       </p>
                                       <p className="text-sm ">
-                                        <span className="font-medium">{t("at")} : </span>
+                                        <span className="font-medium">{t("At")} : </span>
                                         {slotTime} , {date}
+                                      </p>
+                                      <p className="flex gap-1 text-sm">
+                                        <span className="font-medium">{t("location")} : </span>
+                                        <p className="capitalize">
+                                          {booking.location?.replace("integrations:", "")}
+                                        </p>
                                       </p>
                                       <p className="text-sm ">
                                         <span className="font-medium">{t("attendees")} : </span>
@@ -340,16 +346,12 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                                       </p>
                                     </div>
                                     <div className="flex  flex-col items-center justify-center">
-                                      {status == "upcoming" && joinLink ? (
+                                      {status === "upcoming" && joinLink && (
                                         <Button
                                           color="minimal"
                                           onClick={() => window.open(joinLink as string, "_blank")}>
                                           {t("join_meeting")}
                                         </Button>
-                                      ) : (
-                                        <p className="mr-2 capitalize">
-                                          {booking.location?.replace("integrations:", "")}
-                                        </p>
                                       )}
                                     </div>
                                   </div>

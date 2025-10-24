@@ -313,8 +313,9 @@ function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
       },
       {
         id: "slider",
+        size: 45 * 24 + 49,
         meta: {
-          autoWidth: true,
+          autoWidth: false,
         },
         enableHiding: false,
         enableSorting: false,
