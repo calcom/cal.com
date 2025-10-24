@@ -84,7 +84,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
         user.id
       );
 
-      const recurringEvent = await eventTypesRepositoryFixture.create(
+      await eventTypesRepositoryFixture.create(
         {
           title: `rec-bookings-2024-04-15-event-type-${randomString()}-${describe.name}`,
           slug: `rec-bookings-2024-04-15-event-type-${randomString()}-${describe.name}`,
