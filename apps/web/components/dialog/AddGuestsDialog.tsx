@@ -1,6 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
-import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,10 +18,6 @@ interface IAddGuestsDialog {
 
 export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   const { t } = useLocale();
-  const ZAddGuestsInputSchema = z.array(z.string().email()).refine((emails) => {
-    const uniqueEmails = new Set(emails);
-    return uniqueEmails.size === emails.length;
-  });
   const { isOpenDialog, setIsOpenDialog, bookingId } = props;
   const utils = trpc.useUtils();
   const [multiEmailValue, setMultiEmailValue] = useState<string[]>([""]);
@@ -45,12 +40,10 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
     if (multiEmailValue.length === 0) {
       return;
     }
-    const validationResult = ZAddGuestsInputSchema.safeParse(multiEmailValue);
-    if (validationResult.success) {
-      addGuestsMutation.mutate({ bookingId, guests: multiEmailValue });
-    } else {
-      setIsInvalidEmail(true);
-    }
+
+    const guests = multiEmailValue.map((email) => ({ email }));
+
+    addGuestsMutation.mutate({ bookingId, guests });
   };
 
   return (
