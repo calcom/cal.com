@@ -8,7 +8,7 @@ import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -208,10 +208,13 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   await eventManager.updateCalendarAttendees(evt, booking);
 
-  try {
-    await sendAddGuestsEmails(evt, uniqueGuests);
-  } catch (err) {
-    console.error("Error sending AddGuestsEmails", err);
+  const shouldSendAddGuestsEmail = booking.status === BookingStatus.ACCEPTED;
+  if (shouldSendAddGuestsEmail) {
+    try {
+      await sendAddGuestsEmails(evt, uniqueGuests);
+    } catch (err) {
+      console.error("Error sending AddGuestsEmails", err);
+    }
   }
 
   return { message: "Guests added" };

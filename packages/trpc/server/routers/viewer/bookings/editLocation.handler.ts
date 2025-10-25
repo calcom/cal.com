@@ -15,6 +15,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { Booking, BookingReference } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -83,6 +84,7 @@ async function updateBookingLocationInDb({
     id: number;
     metadata: Booking["metadata"];
     responses: Booking["responses"];
+    attendees: { email: string; name: string }[];
   };
   evt: Ensure<CalendarEvent, "location">;
   references: PartialReference[];
@@ -98,8 +100,23 @@ async function updateBookingLocationInDb({
       ...(credentialId && credentialId > 0 ? { credentialId } : {}),
     };
   });
+
+  const existingResponses: Record<string, unknown> = (
+    typeof booking.responses === "object" && booking.responses !== null && !Array.isArray(booking.responses)
+      ? (booking.responses as Record<string, unknown>)
+      : {}
+  ) as Record<string, unknown>;
+
+  // ensures email and name are stored from attendees if not in responses
   const responses = {
-    ...(typeof booking.responses === "object" && booking.responses),
+    ...existingResponses,
+    // Only add email/name from attendees if they don't already exist in responses
+    ...((!existingResponses.email || !existingResponses.name) && booking.attendees.length > 0
+      ? {
+          email: existingResponses.email || booking.attendees[0].email,
+          name: existingResponses.name || booking.attendees[0].name,
+        }
+      : {}),
     location: {
       value: evt.location,
       optionValue: "",
@@ -283,13 +300,16 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     references: updatedResult.referencesToCreate,
   });
 
-  try {
-    await sendLocationChangeEmailsAndSMS(
-      { ...evt, additionalInformation },
-      booking?.eventType?.metadata as EventTypeMetadata
-    );
-  } catch (error) {
-    console.log("Error sending LocationChangeEmails", safeStringify(error));
+  const shouldSendLocationChangeEmail = booking.status === BookingStatus.ACCEPTED;
+  if (shouldSendLocationChangeEmail) {
+    try {
+      await sendLocationChangeEmailsAndSMS(
+        { ...evt, additionalInformation },
+        booking?.eventType?.metadata as EventTypeMetadata
+      );
+    } catch (error) {
+      console.log("Error sending LocationChangeEmails", safeStringify(error));
+    }
   }
 
   return { message: "Location updated" };

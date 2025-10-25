@@ -108,6 +108,11 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
           attendee: z.boolean().optional(),
         })
         .optional(),
+      request: z
+        .object({
+          attendee: z.boolean().optional(),
+        })
+        .optional(),
     })
     .optional(),
   managedEventConfig: z

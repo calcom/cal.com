@@ -2447,6 +2447,8 @@
   "disable_attendees_confirmation_emails_description": "At least one workflow is active on this event type that sends a booking confirmation to the attendees.",
   "disable_host_confirmation_emails": "Disable default confirmation emails for host",
   "disable_host_confirmation_emails_description": "At least one workflow is active on this event type that sends an email to the host when the event is booked.",
+  "disable_attendee_pending_emails": "Disable pending booking emails for attendees",
+  "disable_attendee_pending_emails_description": "When enabled, attendees will not receive emails when their booking is submitted and pending approval.",
   "add_an_override": "Add an override",
   "import_from_google_workspace": "Import users from Google Workspace",
   "connect_google_workspace": "Connect Google Workspace",
