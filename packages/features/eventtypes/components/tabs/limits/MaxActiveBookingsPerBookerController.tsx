@@ -47,7 +47,7 @@ export default function MaxActiveBookingsPerBookerController({
               isChecked && "rounded-b-none"
             )}
             childrenClassName={classNames("lg:ml-0")}
-            title={t("booker_booking_limit")}
+            title={t("booker_upcoming_limit")}
             description={t("booker_booking_limit_description")}
             checked={isChecked}
             onCheckedChange={(active) => {
@@ -76,7 +76,7 @@ export default function MaxActiveBookingsPerBookerController({
               <CheckboxField
                 checked={!!maxActiveBookingPerBookerOfferReschedule}
                 descriptionAsLabel
-                description={t("offer_to_reschedule_last_booking")}
+                description={t("reschedule_last_booking_offer")}
                 disabled={maxActiveBookingsPerBookerLocked.disabled}
                 onChange={(e) => {
                   formMethods.setValue("maxActiveBookingPerBookerOfferReschedule", e.target.checked, {

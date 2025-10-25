@@ -461,7 +461,7 @@ test.describe("Organization", () => {
       await page.locator('[data-testid="fixed-hosts-select"]').click();
       await page.locator(`text="${invitedUserEmail}"`).click();
       await page.locator('[data-testid="update-eventtype"]').click();
-      await page.waitForResponse("/api/trpc/eventTypes/heavy/update?batch=1");
+      await page.waitForResponse("/api/trpc/eventTypesHeavy/update?batch=1");
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
       await doOnOrgDomain(

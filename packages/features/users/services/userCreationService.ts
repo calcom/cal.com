@@ -1,7 +1,8 @@
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import logger from "@calcom/lib/logger";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
@@ -33,7 +34,11 @@ export class UserCreationService {
   static async createUser({ data }: { data: CreateUserInput }) {
     const { email, password, username } = data;
 
-    const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
+    const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController({
+      email,
+      organizationId: data.organizationId ?? undefined,
+      span: sentrySpan,
+    });
 
     const hashedPassword = password ? await hashPassword(password) : null;
 
@@ -48,7 +53,7 @@ export class UserCreationService {
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
 
-    const { locked, ...restUser } = user;
+    const { locked: _locked, ...restUser } = user;
 
     return restUser;
   }
