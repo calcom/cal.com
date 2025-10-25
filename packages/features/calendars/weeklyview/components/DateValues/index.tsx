@@ -5,11 +5,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
 type Props = {
+  showBorder: boolean;
+  borderColor: "default" | "subtle";
   days: dayjs.Dayjs[];
   containerNavRef: React.RefObject<HTMLDivElement>;
 };
 
-export function DateValues({ days, containerNavRef }: Props) {
+export function DateValues({ showBorder, borderColor, days, containerNavRef }: Props) {
   const { i18n } = useLocale();
   const formatDate = (date: dayjs.Dayjs): string => {
     return new Intl.DateTimeFormat(i18n.language, { weekday: "short" }).format(date.toDate());
@@ -17,7 +19,11 @@ export function DateValues({ days, containerNavRef }: Props) {
   return (
     <div
       ref={containerNavRef}
-      className="bg-default dark:bg-muted border-b-subtle rtl:border-r-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b border-r sm:pr-8">
+      className={classNames(
+        "bg-default dark:bg-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none sm:pr-8",
+        borderColor === "subtle" ? "border-b-subtle border-b" : "border-b-default border-b",
+        showBorder && (borderColor === "subtle" ? "border-r-subtle border-r" : "border-r-default border-r")
+      )}>
       <div className="text-subtle flex text-sm leading-6 sm:hidden" data-dayslength={days.length}>
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
@@ -39,7 +45,13 @@ export function DateValues({ days, containerNavRef }: Props) {
         })}
       </div>
       <div className="text-subtle -mr-px hidden  auto-cols-fr text-sm leading-6 sm:flex ">
-        <div className="border-default col-end-1 w-14 ltr:border-l" />
+        <div
+          className={classNames(
+            "col-end-1 w-14",
+            showBorder &&
+              (borderColor === "subtle" ? "border-l-subtle border-l" : "border-l-default border-l")
+          )}
+        />
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (

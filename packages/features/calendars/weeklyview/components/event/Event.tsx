@@ -1,8 +1,8 @@
 import { cva } from "class-variance-authority";
 
 import dayjs from "@calcom/dayjs";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import classNames from "@calcom/ui/classNames";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { CalendarEvent } from "../../types/events";
 
@@ -21,9 +21,9 @@ const eventClasses = cva(
       status: {
         ACCEPTED: "bg-subtle hover:bg-emphasis text-emphasis border-[1px] border-gray-900",
         PENDING: "bg-default text-emphasis border-[1px] border-dashed border-gray-900",
-        REJECTED: "",
-        CANCELLED: "",
-        AWAITING_HOST: "",
+        REJECTED: "bg-default border-[1px] text-subtle line-through",
+        CANCELLED: "bg-default border-[1px] text-subtle line-through",
+        AWAITING_HOST: "bg-default text-emphasis border-[1px] border-dashed border-gray-900",
       },
       disabled: {
         true: "hover:cursor-default",

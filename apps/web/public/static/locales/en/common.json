@@ -3876,5 +3876,7 @@
   "onboarding_skip_for_now": "Skip for now",
   "onboarding_or_divider": "or",
   "onboarding_team_required": "Team is required",
+  "view_previous_week": "View previous week",
+  "view_next_week": "View next week",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
