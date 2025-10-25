@@ -1,6 +1,6 @@
 import chokidar from "chokidar";
 import fs from "fs";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
@@ -82,7 +82,7 @@ function generateFiles() {
           throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else if (fs.existsSync(metadataPath)) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+         
         app = require(metadataPath).metadata;
       } else {
         app = {};
@@ -212,7 +212,7 @@ function generateFiles() {
         output.push(``);
 
         // Add Proxy for backward compatibility
-        output.push(`export const ${objectName} = new Proxy({} as Record<string, Promise<any>>, {`);
+        output.push(`export const ${objectName} = new Proxy({}, {`);
         output.push(`  get: (target, prop) => {`);
         output.push(`    if (typeof prop === 'string') {`);
         output.push(`      return ${functionName}(prop);`);

@@ -1,0 +1,540 @@
+turbo 2.5.5
+
+• Packages in scope: @calcom/web
+• Running copy-app-store-static in 1 packages
+• Remote caching disabled
+@calcom/web:copy-app-store-static: cache miss, executing 94f6e18673fca449
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoomvideo/static/zoom7.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoomvideo/zoom7.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoomvideo/static/zoom6.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoomvideo/zoom6.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoomvideo/static/zoom5.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoomvideo/zoom5.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoomvideo/static/zoom4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoomvideo/zoom4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoomvideo/static/zoom3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoomvideo/zoom3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoomvideo/static/zoom2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoomvideo/zoom2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoomvideo/static/zoom1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoomvideo/zoom1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoomvideo/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoomvideo/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zohocrm/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zohocrm/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zohocrm/static/icon.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zohocrm/icon.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zohocrm/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zohocrm/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zohocalendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zohocalendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zohocalendar/static/ZCal4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zohocalendar/ZCal4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zohocalendar/static/ZCal3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zohocalendar/ZCal3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zohocalendar/static/ZCal2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zohocalendar/ZCal2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zohocalendar/static/ZCal1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zohocalendar/ZCal1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoho-bigin/static/zohobigin.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoho-bigin/zohobigin.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zoho-bigin/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zoho-bigin/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zapier/static/todoist.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zapier/todoist.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zapier/static/salesforce.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zapier/salesforce.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zapier/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zapier/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zapier/static/googleSheets.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zapier/googleSheets.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zapier/static/googleCalendar.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zapier/googleCalendar.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zapier/static/gmail.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zapier/gmail.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zapier/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zapier/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/zapier/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/zapier/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/wordpress/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/wordpress/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/wipemycalother/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/wipemycalother/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/wipemycalother/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/wipemycalother/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/whereby/static/whereby2.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/whereby/whereby2.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/whereby/static/whereby1.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/whereby/whereby1.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/whereby/static/logo.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/whereby/logo.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/whereby/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/whereby/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/whatsapp/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/whatsapp/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/whatsapp/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/whatsapp/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/whatsapp/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/whatsapp/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/whatsapp/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/whatsapp/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/webex/static/icon.ico to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/webex/icon.ico
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/webex/static/4.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/webex/4.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/webex/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/webex/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/webex/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/webex/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/webex/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/webex/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/weather_in_your_calendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/weather_in_your_calendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/weather_in_your_calendar/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/weather_in_your_calendar/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/weather_in_your_calendar/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/weather_in_your_calendar/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/vital/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/vital/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/vital/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/vital/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/vimcal/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/vimcal/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/vimcal/static/4.avif to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/vimcal/4.avif
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/vimcal/static/3.avif to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/vimcal/3.avif
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/vimcal/static/2.gif to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/vimcal/2.gif
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/vimcal/static/2.avif to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/vimcal/2.avif
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/vimcal/static/1.avif to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/vimcal/1.avif
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/umami/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/umami/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/umami/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/umami/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/twipla/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/twipla/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/twipla/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/twipla/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/link-as-an-app/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/link-as-an-app/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/link-as-an-app/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/link-as-an-app/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/link-as-an-app/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/link-as-an-app/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/link-as-an-app/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/link-as-an-app/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/general-app-settings/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/general-app-settings/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/general-app-settings/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/general-app-settings/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/general-app-settings/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/general-app-settings/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/general-app-settings/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/general-app-settings/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/event-type-location-video-static/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/event-type-location-video-static/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/event-type-location-video-static/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/event-type-location-video-static/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/event-type-location-video-static/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/event-type-location-video-static/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/event-type-location-video-static/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/event-type-location-video-static/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/event-type-app-card/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/event-type-app-card/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/event-type-app-card/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/event-type-app-card/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/event-type-app-card/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/event-type-app-card/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/event-type-app-card/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/event-type-app-card/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/booking-pages-tag/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/booking-pages-tag/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/booking-pages-tag/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/booking-pages-tag/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/booking-pages-tag/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/booking-pages-tag/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/booking-pages-tag/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/booking-pages-tag/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/basic/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/basic/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/basic/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/basic/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/basic/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/basic/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/templates/basic/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/templates/basic/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telli/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telli/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telli/static/5.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telli/5.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telli/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telli/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telli/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telli/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telli/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telli/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telli/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telli/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telegram/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telegram/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telegram/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telegram/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telegram/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telegram/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/telegram/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/telegram/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/tandemvideo/static/tandem6.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/tandemvideo/tandem6.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/tandemvideo/static/tandem5.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/tandemvideo/tandem5.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/tandemvideo/static/tandem4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/tandemvideo/tandem4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/tandemvideo/static/tandem3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/tandemvideo/tandem3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/tandemvideo/static/tandem2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/tandemvideo/tandem2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/tandemvideo/static/tandem1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/tandemvideo/tandem1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/tandemvideo/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/tandemvideo/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/synthflow/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/synthflow/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/synthflow/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/synthflow/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/synthflow/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/synthflow/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/synthflow/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/synthflow/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/sylapsvideo/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/sylapsvideo/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/sylapsvideo/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/sylapsvideo/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/stripepayment/static/stripe5.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/stripepayment/stripe5.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/stripepayment/static/stripe4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/stripepayment/stripe4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/stripepayment/static/stripe3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/stripepayment/stripe3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/stripepayment/static/stripe2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/stripepayment/stripe2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/stripepayment/static/stripe1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/stripepayment/stripe1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/stripepayment/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/stripepayment/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/skype/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/skype/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/skype/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/skype/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/skype/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/skype/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/skype/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/skype/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/sirius_video/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/sirius_video/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/sirius_video/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/sirius_video/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/sirius_video/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/sirius_video/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/sirius_video/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/sirius_video/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/signal/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/signal/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/signal/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/signal/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/signal/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/signal/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/shimmervideo/static/icon.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/shimmervideo/icon.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/shimmervideo/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/shimmervideo/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/shimmervideo/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/shimmervideo/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/sendgrid/static/logo.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/sendgrid/logo.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/sendgrid/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/sendgrid/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesroom/static/salesroom-demo.mp4 to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesroom/salesroom-demo.mp4
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesroom/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesroom/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesroom/static/5.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesroom/5.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesroom/static/4.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesroom/4.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesroom/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesroom/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesroom/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesroom/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesroom/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesroom/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesforce/static/icon.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesforce/icon.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/salesforce/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/salesforce/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/routing-forms/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/routing-forms/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/routing-forms/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/routing-forms/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/routing-forms/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/routing-forms/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/routing-forms/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/routing-forms/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/roam/static/icon.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/roam/icon.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/roam/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/roam/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/roam/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/roam/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/roam/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/roam/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/roam/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/roam/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/riverside/static/riverside1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/riverside/riverside1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/riverside/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/riverside/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/retell-ai/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/retell-ai/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/retell-ai/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/retell-ai/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/retell-ai/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/retell-ai/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/retell-ai/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/retell-ai/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/retell-ai/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/retell-ai/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/raycast/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/raycast/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/raycast/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/raycast/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/raycast/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/raycast/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/raycast/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/raycast/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/raycast/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/raycast/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/qr_code/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/qr_code/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/posthog/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/posthog/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/posthog/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/posthog/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/plausible/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/plausible/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/plausible/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/plausible/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/pipedrive-crm/static/pipedrive-banner.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/pipedrive-crm/pipedrive-banner.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/pipedrive-crm/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/pipedrive-crm/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/pipedream/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/pipedream/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/pipedream/static/5.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/pipedream/5.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/pipedream/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/pipedream/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/pipedream/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/pipedream/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/pipedream/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/pipedream/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/pipedream/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/pipedream/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ping/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ping/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ping/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ping/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ping/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ping/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ping/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ping/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/paypal/static/paypal-logo.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/paypal/paypal-logo.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/paypal/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/paypal/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/paypal/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/paypal/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/paypal/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/paypal/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/paypal/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/paypal/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365video/static/teams5.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365video/teams5.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365video/static/teams4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365video/teams4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365video/static/teams3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365video/teams3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365video/static/teams2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365video/teams2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365video/static/teams1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365video/teams1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365video/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365video/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365calendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365calendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365calendar/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365calendar/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365calendar/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365calendar/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365calendar/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365calendar/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/office365calendar/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/office365calendar/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/nextcloudtalk/static/nextcloudtalk2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/nextcloudtalk/nextcloudtalk2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/nextcloudtalk/static/nextcloudtalk1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/nextcloudtalk/nextcloudtalk1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/nextcloudtalk/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/nextcloudtalk/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/n8n/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/n8n/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/n8n/static/4.gif to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/n8n/4.gif
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/n8n/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/n8n/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/n8n/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/n8n/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/n8n/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/n8n/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/monobot/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/monobot/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/monobot/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/monobot/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/monobot/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/monobot/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/monobot/static/1.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/monobot/1.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/mock-payment-app/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/mock-payment-app/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/mirotalk/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/mirotalk/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/mirotalk/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/mirotalk/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/mirotalk/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/mirotalk/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/millis-ai/static/icon.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/millis-ai/icon.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/millis-ai/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/millis-ai/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/millis-ai/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/millis-ai/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/millis-ai/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/millis-ai/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/millis-ai/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/millis-ai/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/millis-ai/static/0.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/millis-ai/0.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/metapixel/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/metapixel/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/metapixel/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/metapixel/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/metapixel/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/metapixel/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/metapixel/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/metapixel/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/matomo/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/matomo/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/matomo/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/matomo/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/make/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/make/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/make/static/5.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/make/5.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/make/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/make/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/make/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/make/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/make/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/make/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/make/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/make/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/linear/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/linear/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/linear/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/linear/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/lindy/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/lindy/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/lindy/static/5.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/lindy/5.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/lindy/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/lindy/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/lindy/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/lindy/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/lindy/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/lindy/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/lindy/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/lindy/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/larkcalendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/larkcalendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/larkcalendar/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/larkcalendar/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/larkcalendar/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/larkcalendar/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/larkcalendar/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/larkcalendar/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/larkcalendar/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/larkcalendar/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/jitsivideo/static/jitsi1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/jitsivideo/jitsi1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/jitsivideo/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/jitsivideo/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/jelly/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/jelly/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/jelly/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/jelly/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/jelly/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/jelly/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/jelly/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/jelly/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/intercom/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/intercom/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/intercom/static/3.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/intercom/3.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/intercom/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/intercom/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/intercom/static/2.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/intercom/2.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/intercom/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/intercom/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/intercom/static/1.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/intercom/1.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/intercom/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/intercom/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/insihts/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/insihts/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/insihts/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/insihts/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ics-feedcalendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ics-feedcalendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/huddle01video/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/huddle01video/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/huddle01video/static/6.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/huddle01video/6.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/huddle01video/static/5.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/huddle01video/5.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/huddle01video/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/huddle01video/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/huddle01video/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/huddle01video/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/huddle01video/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/huddle01video/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/huddle01video/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/huddle01video/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/hubspot/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/hubspot/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/hubspot/static/hubspot01.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/hubspot/hubspot01.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/horizon-workrooms/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/horizon-workrooms/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/horizon-workrooms/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/horizon-workrooms/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/horizon-workrooms/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/horizon-workrooms/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/horizon-workrooms/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/horizon-workrooms/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/hitpay/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/hitpay/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/hitpay/static/4.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/hitpay/4.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/hitpay/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/hitpay/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/hitpay/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/hitpay/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/hitpay/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/hitpay/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/gtm/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/gtm/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/gtm/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/gtm/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/gtm/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/gtm/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/greetmate-ai/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/greetmate-ai/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/greetmate-ai/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/greetmate-ai/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/greetmate-ai/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/greetmate-ai/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/granola/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/granola/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/granola/static/5.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/granola/5.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/granola/static/4.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/granola/4.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/granola/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/granola/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/granola/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/granola/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/granola/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/granola/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/googlevideo/static/logo.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/googlevideo/logo.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/googlevideo/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/googlevideo/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/googlevideo/static/gmeet2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/googlevideo/gmeet2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/googlevideo/static/gmeet1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/googlevideo/gmeet1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/googlecalendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/googlecalendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/googlecalendar/static/GCal2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/googlecalendar/GCal2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/googlecalendar/static/GCal1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/googlecalendar/GCal1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/giphy/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/giphy/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/giphy/static/GIPHY2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/giphy/GIPHY2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/giphy/static/GIPHY1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/giphy/GIPHY1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ga4/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ga4/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ga4/static/5.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ga4/5.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ga4/static/4.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ga4/4.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ga4/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ga4/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ga4/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ga4/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/ga4/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/ga4/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/framer/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/framer/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/framer/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/framer/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/framer/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/framer/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/framer/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/framer/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/framer/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/framer/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/fonio-ai/static/icon.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/fonio-ai/icon.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/fonio-ai/static/5.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/fonio-ai/5.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/fonio-ai/static/4.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/fonio-ai/4.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/fonio-ai/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/fonio-ai/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/fonio-ai/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/fonio-ai/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/fonio-ai/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/fonio-ai/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/feishucalendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/feishucalendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/feishucalendar/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/feishucalendar/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/feishucalendar/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/feishucalendar/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/feishucalendar/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/feishucalendar/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/feishucalendar/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/feishucalendar/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/fathom/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/fathom/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/fathom/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/fathom/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/facetime/static/logo.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/facetime/logo.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/facetime/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/facetime/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/facetime/static/facetime2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/facetime/facetime2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/facetime/static/facetime1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/facetime/facetime1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/exchangecalendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/exchangecalendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/exchange2016calendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/exchange2016calendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/exchange2013calendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/exchange2013calendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/elevenlabs/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/elevenlabs/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/elevenlabs/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/elevenlabs/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/elevenlabs/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/elevenlabs/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/element-call/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/element-call/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/element-call/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/element-call/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/element-call/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/element-call/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/element-call/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/element-call/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/eightxeight/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/eightxeight/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/eightxeight/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/eightxeight/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/eightxeight/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/eightxeight/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dub/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dub/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dub/static/4.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dub/4.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dub/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dub/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dub/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dub/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dub/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dub/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/discord/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/discord/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/discord/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/discord/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/discord/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/discord/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/discord/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/discord/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/discord/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/discord/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dialpad/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dialpad/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dialpad/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dialpad/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dialpad/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dialpad/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dialpad/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dialpad/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/demodesk/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/demodesk/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/demodesk/static/4.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/demodesk/4.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/demodesk/static/3.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/demodesk/3.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/demodesk/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/demodesk/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/demodesk/static/2.webp to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/demodesk/2.webp
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/demodesk/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/demodesk/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/demodesk/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/demodesk/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/deel/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/deel/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/deel/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/deel/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/deel/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/deel/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/deel/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/deel/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dailyvideo/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dailyvideo/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dailyvideo/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dailyvideo/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dailyvideo/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dailyvideo/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/dailyvideo/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/dailyvideo/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/cron/static/logo.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/cron/logo.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/cron/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/cron/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/cron/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/cron/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/cron/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/cron/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/cron/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/cron/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/closecom/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/closecom/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/closecom/static/5.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/closecom/5.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/closecom/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/closecom/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/closecom/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/closecom/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/closecom/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/closecom/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/closecom/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/closecom/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/chatbase/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/chatbase/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/chatbase/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/chatbase/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/chatbase/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/chatbase/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/chatbase/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/chatbase/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/4.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/4.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/campfire/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/campfire/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/caldavcalendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/caldavcalendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/caldavcalendar/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/caldavcalendar/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/btcpayserver/static/website.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/btcpayserver/website.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/btcpayserver/static/integrations.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/btcpayserver/integrations.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/btcpayserver/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/btcpayserver/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/btcpayserver/static/checkout.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/btcpayserver/checkout.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/bolna/static/icon-primary.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/bolna/icon-primary.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/bolna/static/4.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/bolna/4.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/bolna/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/bolna/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/bolna/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/bolna/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/bolna/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/bolna/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/basecamp3/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/basecamp3/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/basecamp3/static/3.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/basecamp3/3.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/basecamp3/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/basecamp3/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/basecamp3/static/1.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/basecamp3/1.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/baa-for-hipaa/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/baa-for-hipaa/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/baa-for-hipaa/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/baa-for-hipaa/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/autocheckin/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/autocheckin/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/autocheckin/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/autocheckin/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/autocheckin/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/autocheckin/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/attio/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/attio/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/attio/static/icon-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/attio/icon-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/attio/static/6.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/attio/6.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/attio/static/5.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/attio/5.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/attio/static/4.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/attio/4.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/attio/static/3.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/attio/3.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/attio/static/2.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/attio/2.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/attio/static/1.jpeg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/attio/1.jpeg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/applecalendar/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/applecalendar/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/applecalendar/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/applecalendar/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/amie/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/amie/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/amie/static/3.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/amie/3.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/amie/static/2.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/amie/2.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/amie/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/amie/1.jpg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/alby/static/logo.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/alby/logo.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/alby/static/logo-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/alby/logo-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/alby/static/icon.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/alby/icon.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/alby/static/icon-borderless.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/alby/icon-borderless.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/alby/static/icon-borderless-dark.svg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/alby/icon-borderless-dark.svg
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/alby/static/2.png to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/alby/2.png
+@calcom/web:copy-app-store-static: Copied ../../packages/app-store/alby/static/1.jpg to /Users/michaeloboyle/Documents/github/cal.com-bounty/cal.com/apps/web/public/app-store/alby/1.jpg
+
+ Tasks:    1 successful, 1 total
+Cached:    0 cached, 1 total
+  Time:    1.95s 
+
+[33mDuplicate value found in common.json keys: [0m  other and report_reason_other
+[33mDuplicate value found in common.json keys: [0m  cal_ai_phone_numbers and phone_numbers
+[33mDuplicate value found in common.json keys: [0m  add_members_no_ellipsis and add_org_members
+[33mDuplicate value found in common.json keys: [0m  location_variable and location
+[33mDuplicate value found in common.json keys: [0m  additional_notes_variable and additional_notes
+[33mDuplicate value found in common.json keys: [0m  billing_freeplan_cta and try_now
+[33mDuplicate value found in common.json keys: [0m  timezone_variable and timezone
+[33mDuplicate value found in common.json keys: [0m  days and day_timeUnit
+[33mDuplicate value found in common.json keys: [0m  verify_email and verify_email_button
+[33mDuplicate value found in common.json keys: [0m  event_start_time_in_attendee_timezone_info and event_start_time_in_attendee_timezone_variable
+[33mDuplicate value found in common.json keys: [0m  event_end_time_in_attendee_timezone_variable and event_end_time_in_attendee_timezone_info
+[33mDuplicate value found in common.json keys: [0m  advanced and event_advanced_tab_title
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_event_type and event_types_page_title
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_team and teams
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_organization and organization
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_booking and bookings
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_insights and insights
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_role and roles
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_routing_form and routing_forms
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_workflow and workflows
+[33mDuplicate value found in common.json keys: [0m  pbac_action_create and create
+[33mDuplicate value found in common.json keys: [0m  pbac_action_read and view
+[33mDuplicate value found in common.json keys: [0m  pbac_action_update and edit
+[33mDuplicate value found in common.json keys: [0m  pbac_action_delete and delete
+[33mDuplicate value found in common.json keys: [0m  pbac_action_invite and invite
+[33mDuplicate value found in common.json keys: [0m  pbac_action_remove and remove
+[33mDuplicate value found in common.json keys: [0m  pbac_action_impersonate and impersonate
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_attributes and attributes
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_availability and availability
+[33mDuplicate value found in common.json keys: [0m  pbac_desc_create_organization and create_org
+[33mDuplicate value found in common.json keys: [0m  pbac_desc_invite_organization_members and invite_organization_admins
+[33mDuplicate value found in common.json keys: [0m  enter_license_key_description and enter_your_license_key
+[33mDuplicate value found in common.json keys: [0m  webhook_title and event_name_info
+[33mDuplicate value found in common.json keys: [0m  webhook_cancellation_reason and cancellation_reason_host
+[33mDuplicate value found in common.json keys: [0m  webhook_people and people
+[33mDuplicate value found in common.json keys: [0m  webhook_teams and teams
+[33mDuplicate value found in common.json keys: [0m  free and free_to_use_apps
+[33mDuplicate value found in common.json keys: [0m  created_at_option and routing_form_insights_created_at
+[33mDuplicate value found in common.json keys: [0m  onboarding_connect_google_workspace and connect_google_workspace
+[33mDuplicate value found in common.json keys: [0m  onboarding_copy_invite_link and copy_invite_link
+[33mDuplicate value found in common.json keys: [0m  onboarding_or_divider and or_lowercase
+[Phase: phase-development-server] Skipping rewrite config for organizations because ORGANIZATIONS_ENABLED is not set
+[33mDuplicate value found in common.json keys: [0m  other and report_reason_other
+[33mDuplicate value found in common.json keys: [0m  cal_ai_phone_numbers and phone_numbers
+[33mDuplicate value found in common.json keys: [0m  add_members_no_ellipsis and add_org_members
+[33mDuplicate value found in common.json keys: [0m  location_variable and location
+[33mDuplicate value found in common.json keys: [0m  additional_notes_variable and additional_notes
+[33mDuplicate value found in common.json keys: [0m  billing_freeplan_cta and try_now
+[33mDuplicate value found in common.json keys: [0m  timezone_variable and timezone
+[33mDuplicate value found in common.json keys: [0m  days and day_timeUnit
+[33mDuplicate value found in common.json keys: [0m  verify_email and verify_email_button
+[33mDuplicate value found in common.json keys: [0m  event_start_time_in_attendee_timezone_info and event_start_time_in_attendee_timezone_variable
+[33mDuplicate value found in common.json keys: [0m  event_end_time_in_attendee_timezone_variable and event_end_time_in_attendee_timezone_info
+[33mDuplicate value found in common.json keys: [0m  advanced and event_advanced_tab_title
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_event_type and event_types_page_title
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_team and teams
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_organization and organization
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_booking and bookings
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_insights and insights
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_role and roles
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_routing_form and routing_forms
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_workflow and workflows
+[33mDuplicate value found in common.json keys: [0m  pbac_action_create and create
+[33mDuplicate value found in common.json keys: [0m  pbac_action_read and view
+[33mDuplicate value found in common.json keys: [0m  pbac_action_update and edit
+[33mDuplicate value found in common.json keys: [0m  pbac_action_delete and delete
+[33mDuplicate value found in common.json keys: [0m  pbac_action_invite and invite
+[33mDuplicate value found in common.json keys: [0m  pbac_action_remove and remove
+[33mDuplicate value found in common.json keys: [0m  pbac_action_impersonate and impersonate
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_attributes and attributes
+[33mDuplicate value found in common.json keys: [0m  pbac_resource_availability and availability
+[33mDuplicate value found in common.json keys: [0m  pbac_desc_create_organization and create_org
+[33mDuplicate value found in common.json keys: [0m  pbac_desc_invite_organization_members and invite_organization_admins
+[33mDuplicate value found in common.json keys: [0m  enter_license_key_description and enter_your_license_key
+[33mDuplicate value found in common.json keys: [0m  webhook_title and event_name_info
+[33mDuplicate value found in common.json keys: [0m  webhook_cancellation_reason and cancellation_reason_host
+[33mDuplicate value found in common.json keys: [0m  webhook_people and people
+[33mDuplicate value found in common.json keys: [0m  webhook_teams and teams
+[33mDuplicate value found in common.json keys: [0m  free and free_to_use_apps
+[33mDuplicate value found in common.json keys: [0m  created_at_option and routing_form_insights_created_at
+[33mDuplicate value found in common.json keys: [0m  onboarding_connect_google_workspace and connect_google_workspace
+[33mDuplicate value found in common.json keys: [0m  onboarding_copy_invite_link and copy_invite_link
+[33mDuplicate value found in common.json keys: [0m  onboarding_or_divider and or_lowercase
+[Phase: phase-development-server] Skipping rewrite config for organizations because ORGANIZATIONS_ENABLED is not set
+   ▲ Next.js 15.5.4 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.157:3000
+   - Experiments (use with caution):
+     ✓ webpackBuildWorker
+     · optimizePackageImports
+     ✓ webpackMemoryOptimizations
+
+ ✓ Starting...
+ ✓ Compiled instrumentation Node.js in 14ms
+ ✓ Compiled instrumentation Edge in 13ms
+ ✓ Compiled middleware in 161ms
+ ✓ Ready in 2.4s
+[Phase: phase-development-server] Skipping rewrite config for organizations because ORGANIZATIONS_ENABLED is not set
+ ⚠ Webpack is configured while Turbopack is not, which may cause problems.
+ ⚠ See instructions if you need to configure Turbopack:
+  https://nextjs.org/docs/app/api-reference/next-config-js/turbopack
+
