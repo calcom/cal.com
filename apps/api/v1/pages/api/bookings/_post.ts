@@ -5,6 +5,7 @@ import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBooking
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import type { TracedRequest } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
@@ -212,7 +213,7 @@ import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
  *       401:
  *         description: Authorization information is missing or invalid.
  */
-async function handler(req: NextApiRequest) {
+async function handler(req: TracedRequest) {
   const { isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
   let userId = req.userId;
 
@@ -247,6 +248,7 @@ async function handler(req: NextApiRequest) {
         userId,
         hostname: req.headers.host || "",
         forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+        traceContext: req.traceContext,
       },
       bookingDataSchemaGetter: getBookingDataSchemaForApi,
     });

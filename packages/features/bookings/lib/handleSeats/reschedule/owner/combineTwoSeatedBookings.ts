@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
@@ -6,12 +5,13 @@ import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
-import prisma from "@calcom/prisma";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
+import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
 
 const combineTwoSeatedBookings = async (
@@ -19,7 +19,7 @@ const combineTwoSeatedBookings = async (
   seatedBooking: SeatedBooking,
   newTimeSlotBooking: NewTimeSlotBooking,
   eventManager: EventManager,
-  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
+  traceContext: TraceContext
 ) => {
   const {
     eventType,
@@ -31,6 +31,14 @@ const combineTwoSeatedBookings = async (
     additionalNotes,
     rescheduleReason,
   } = rescheduleSeatedBookingObject;
+
+  const spanContext = distributedTracing.createSpan(traceContext, "combine_two_seated_bookings", {
+    bookingId: seatedBooking.id.toString(),
+    rescheduleUid: rescheduleUid || "null",
+    eventTypeId: eventType.id.toString(),
+  });
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
+
   let { evt } = rescheduleSeatedBookingObject;
   // Merge two bookings together
   const attendeesToMove = [],
@@ -135,7 +143,7 @@ const combineTwoSeatedBookings = async (
 
   if (noEmail !== true && isConfirmedByDefault) {
     // TODO send reschedule emails to attendees of the old booking
-    loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
+    tracingLogger.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,

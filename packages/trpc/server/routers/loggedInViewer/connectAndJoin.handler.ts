@@ -4,6 +4,7 @@ import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewB
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -17,6 +18,7 @@ import type { TConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 type Options = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    traceContext: TraceContext;
   };
   input: TConnectAndJoinInputSchema;
 };
@@ -246,6 +248,7 @@ export const Handler = async ({ ctx, input }: Options) => {
     eventTypeId: eventType?.id ?? null,
     teamId: eventType?.teamId,
     orgId: user.organizationId,
+    traceContext: ctx.traceContext,
   });
 
   return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };
