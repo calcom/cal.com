@@ -840,4 +840,63 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
 
     vi.useRealTimers();
   });
+
+  it("should respect separate availability blocks for consistent booking start times (8am-11am, 11am-2pm)", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      {
+        start: nextDay.hour(8),
+        end: nextDay.hour(11),
+      },
+      {
+        start: nextDay.hour(11),
+        end: nextDay.hour(14),
+      },
+    ];
+
+    const result = getSlots({
+      inviteeDate: nextDay,
+      frequency: 60,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 180,
+      offsetStart: 0,
+    });
+
+    expect(result).toHaveLength(2);
+    expect(result.map((slot) => slot.time.format())).toStrictEqual([
+      nextDay.hour(8).format(),
+      nextDay.hour(11).format(),
+    ]);
+  });
+
+  it("should respect separate availability blocks with minimum booking notice on current day", async () => {
+    // Simulate current time at 11:05am
+    vi.setSystemTime(dayjs.utc("2021-06-20T11:05:00.000Z").toDate());
+
+    const today = dayjs.utc("2021-06-20").startOf("day");
+    const dateRanges = [
+      {
+        start: today.hour(8),
+        end: today.hour(11),
+      },
+      {
+        start: today.hour(11),
+        end: today.hour(14),
+      },
+    ];
+
+    const result = getSlots({
+      inviteeDate: today,
+      frequency: 60,
+      minimumBookingNotice: 1440,
+      dateRanges: dateRanges,
+      eventLength: 180,
+      offsetStart: 0,
+    });
+
+    expect(result).toHaveLength(0);
+
+    vi.useRealTimers();
+  });
 });

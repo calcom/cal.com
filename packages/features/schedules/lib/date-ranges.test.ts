@@ -158,6 +158,52 @@ describe("processWorkingHours", () => {
     vi.useRealTimers();
   });
 
+  it("does not merge adjacent working hour blocks within the same day", () => {
+    const morning = {
+      days: [1],
+      startTime: new Date(Date.UTC(2023, 5, 12, 8, 0)),
+      endTime: new Date(Date.UTC(2023, 5, 12, 11, 0)),
+    };
+    const afternoon = {
+      days: [1],
+      startTime: new Date(Date.UTC(2023, 5, 12, 11, 0)),
+      endTime: new Date(Date.UTC(2023, 5, 12, 14, 0)),
+    };
+
+    const timeZone = "UTC";
+    const dateFrom = dayjs.utc("2023-06-12T00:00:00Z");
+    const dateTo = dayjs.utc("2023-06-13T00:00:00Z");
+
+    const intermediateResults = processWorkingHours(
+      {},
+      {
+        item: morning,
+        timeZone,
+        dateFrom,
+        dateTo,
+        travelSchedules: [],
+      }
+    );
+
+    const finalResults = processWorkingHours(intermediateResults, {
+      item: afternoon,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    const dayRanges = Object.values(finalResults)
+      .filter((range) => range.start.isSame(dateFrom, "day"))
+      .sort((a, b) => a.start.valueOf() - b.start.valueOf());
+
+    expect(dayRanges).toHaveLength(2);
+    expect(dayRanges[0].start.hour()).toBe(8);
+    expect(dayRanges[0].end.hour()).toBe(11);
+    expect(dayRanges[1].start.hour()).toBe(11);
+    expect(dayRanges[1].end.hour()).toBe(14);
+  });
+
   // TEMPORAIRLY SKIPPING THIS TEST - Started failing after 29th Oct
   it.skip("should return the correct working hours in the month were DST ends", () => {
     const item = {
@@ -1243,15 +1289,6 @@ describe("intersect function comprehensive tests", () => {
       ];
 
       const result = subtract(dateRanges, formattedBusyTimes);
-
-      // What the result SHOULD be (correct behavior): June 2 range is properly excluded due to overlapping busy time
-      const expectedCorrectedOutput = [
-        { start: dayjs("2024-05-31T04:00:00.000Z"), end: dayjs("2024-05-31T12:30:00.000Z") },
-        { start: dayjs("2024-06-01T04:00:00.000Z"), end: dayjs("2024-06-01T12:30:00.000Z") },
-        { start: dayjs("2024-06-03T04:00:00.000Z"), end: dayjs("2024-06-03T12:30:00.000Z") },
-        { start: dayjs("2024-06-04T04:00:00.000Z"), end: dayjs("2024-06-04T12:30:00.000Z") },
-        { start: dayjs("2024-06-05T04:00:00.000Z"), end: dayjs("2024-06-05T12:30:00.000Z") },
-      ];
 
       expect(result).toHaveLength(5); // Correct: June 2 range is properly excluded
       expect(result[0].end.toISOString()).toBe("2024-05-31T12:30:00.000Z"); // Correct: no extension
