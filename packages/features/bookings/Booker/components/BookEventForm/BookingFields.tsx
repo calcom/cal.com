@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -12,6 +13,10 @@ import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { RouterOutputs } from "@calcom/trpc/react";
+
+type TouchedFields = {
+  responses?: Record<string, boolean>;
+};
 
 type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
 export const BookingFields = ({
@@ -32,10 +37,45 @@ export const BookingFields = ({
   paymentCurrency?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const { watch, setValue } = useFormContext();
+  const { watch, setValue, getValues, formState } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+
+  // Identify all phone fields (except location field)
+  const otherPhoneFieldNames = useMemo(
+    () => fields.filter((f) => f.type === "phone" && f.name !== SystemField.Enum.location).map((f) => f.name),
+    [fields]
+  );
+
+  // Auto-fill other phone fields when location phone is filled
+  useEffect(() => {
+    // Only run when phone location is selected
+    if (locationResponse?.value !== "phone") return;
+
+    const phone = (locationResponse?.optionValue ?? "").trim();
+    if (!phone) return;
+
+    // Copy phone to other phone fields (only if user hasn't manually touched them)
+    otherPhoneFieldNames.forEach((name) => {
+      const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
+
+      // Only auto-fill if user hasn't manually touched the field
+      if (!targetTouched) {
+        setValue(`responses.${name}`, phone, {
+          shouldDirty: false,
+          shouldValidate: false,
+        });
+      }
+    });
+  }, [
+    locationResponse?.value,
+    locationResponse?.optionValue,
+    otherPhoneFieldNames,
+    getValues,
+    setValue,
+    formState.touchedFields,
+  ]);
 
   const getPriceFormattedLabel = (label: string, price: number) =>
     `${label} (${Intl.NumberFormat(i18n.language, {
