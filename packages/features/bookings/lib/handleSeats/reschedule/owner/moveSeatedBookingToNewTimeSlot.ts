@@ -3,6 +3,7 @@ import { cloneDeep } from "lodash";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
@@ -29,9 +30,18 @@ const moveSeatedBookingToNewTimeSlot = async (
     isConfirmedByDefault,
     additionalNotes,
   } = rescheduleSeatedBookingObject;
+
+  // Use pre-fetched branding data from eventType
+  const hideBranding = await shouldHideBrandingForEventWithPrisma({
+    eventTypeId: eventType.id,
+    team: eventType.team ?? null,
+    owner: organizerUser ?? null,
+    organizationId: eventType.team?.parentId ?? null,
+  });
+
   let { evt } = rescheduleSeatedBookingObject;
 
-  const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
+  const newBooking: Booking & { appsStatus?: AppsStatus[] } = await prisma.booking.update({
     where: {
       id: seatedBooking.id,
     },
@@ -93,9 +103,10 @@ const moveSeatedBookingToNewTimeSlot = async (
     await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,
-        additionalNotes, // Resets back to the additionalNote input and not the override value
-        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-      },
+        additionalNotes,
+        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
+        hideBranding,
+      } as any,
       eventType.metadata
     );
   }

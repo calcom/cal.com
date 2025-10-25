@@ -227,6 +227,7 @@ export const Handler = async ({ ctx, input }: Options) => {
   await sendScheduledEmailsAndSMS(
     {
       ...evt,
+      hideBranding: evt.hideBranding ?? false,
     },
     undefined,
     false,

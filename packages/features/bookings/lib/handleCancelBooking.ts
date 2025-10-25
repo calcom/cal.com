@@ -4,7 +4,7 @@ import { DailyLocationType } from "@calcom/app-store/constants";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendCancelledEmailsAndSMS } from "@calcom/emails";
+import { sendCancelledEmailsAndSMS, withHideBranding } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
@@ -12,6 +12,7 @@ import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/proc
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -244,6 +245,29 @@ async function handler(input: CancelBookingInput) {
     bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
   );
 
+  // Use existing data from bookingToDelete - no additional queries needed!
+  let hideBranding = false;
+
+  if (!bookingToDelete.eventTypeId) {
+    log.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
+      bookingId: bookingToDelete.id,
+      userId: bookingToDelete.userId,
+    });
+    hideBranding = false;
+  } else {
+    hideBranding = await shouldHideBrandingForEventWithPrisma({
+      eventTypeId: bookingToDelete.eventTypeId,
+      team: bookingToDelete.eventType?.team ?? null,
+      owner: bookingToDelete.user ?? null,
+      organizationId: bookingToDelete.eventType?.team?.parentId ?? null,
+    });
+  }
+
+  log.debug("Computed hideBranding", {
+    hideBranding,
+    eventTypeId: bookingToDelete.eventTypeId,
+  });
+
   const evt: CalendarEvent = {
     bookerUrl,
     title: bookingToDelete?.title,
@@ -296,6 +320,7 @@ async function handler(input: CancelBookingInput) {
     iCalUID: bookingToDelete.iCalUID,
     iCalSequence: bookingToDelete.iCalSequence + 1,
     platformClientId,
+    hideBranding,
     platformRescheduleUrl,
     platformCancelUrl,
     hideOrganizerEmail: bookingToDelete.eventType?.hideOrganizerEmail,
@@ -359,7 +384,7 @@ async function handler(input: CancelBookingInput) {
         },
       },
     },
-    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+    hideBranding,
   });
 
   let updatedBookings: {
@@ -575,12 +600,19 @@ async function handler(input: CancelBookingInput) {
 
   try {
     // TODO: if emails fail try to requeue them
-    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
+    if (!platformClientId || (platformClientId && arePlatformEmailsEnabled)) {
+      log.debug("Sending cancellation emails with branding config", {
+        hideBranding: evt.hideBranding,
+        platformClientId,
+        arePlatformEmailsEnabled,
+      });
+
       await sendCancelledEmailsAndSMS(
-        evt,
+        withHideBranding(evt, hideBranding),
         { eventName: bookingToDelete?.eventType?.eventName },
         bookingToDelete?.eventType?.metadata as EventTypeMetadata
       );
+    }
   } catch (error) {
     log.error("Error deleting event", error);
   }
