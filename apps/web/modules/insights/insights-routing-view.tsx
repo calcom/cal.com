@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+
 import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import {
@@ -13,9 +15,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsRoutingFormResponsesPage() {
   const { t } = useLocale();
+  const pathname = usePathname();
+
+  if (!pathname) return null;
 
   return (
-    <DataTableProvider useSegments={useSegments}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
       <InsightsOrgTeamsProvider>
         <div className="mb-4 space-y-4">
           <RoutingFormResponsesTable />

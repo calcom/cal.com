@@ -74,7 +74,14 @@ type AddonProps = {
   position?: "start" | "end";
 };
 
-const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
+const Addon = ({
+  children,
+  className,
+  error,
+  onClickAddon,
+  size: _size = "md",
+  position: _position = "start",
+}: AddonProps) => (
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
@@ -118,7 +125,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     readOnly,
     showAsteriskIndicator,
     onClickAddon,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     t: __t,
     dataTestid,
     size,
@@ -208,6 +215,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           size={size}
           className={classNames(
             className,
+            type === "email" && "focus:border-subtle focus:ring-brand-default focus:ring-2",
             "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"
           )}
           {...passThrough}

@@ -1,12 +1,9 @@
 import type { z } from "zod";
 
-import {
-  SMS_REMINDER_NUMBER_FIELD,
-  CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-} from "@calcom/features/bookings/lib/SystemField";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
+import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
 import type { EventTypeCustomInput, EventType } from "@calcom/prisma/client";
@@ -18,7 +15,7 @@ import {
   EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
 
-type Fields = z.infer<typeof eventTypeBookingFields>;
+export type Fields = z.infer<typeof eventTypeBookingFields>;
 
 if (typeof window !== "undefined" && !process.env.INTEGRATION_TEST_MODE) {
   // This file imports some costly dependencies, so we want to make sure it's not imported on the client side.

@@ -407,7 +407,7 @@ test.describe("Bookings", () => {
       await page.goto(`/event-types/${teamEvent.id}?tabName=advanced`);
       await page.getByTestId("requires-confirmation").click();
       await page.getByTestId("update-eventtype").click();
-      await page.waitForResponse((response) => response.url().includes("/api/trpc/eventTypes/heavy/update"));
+      await page.waitForResponse((response) => response.url().includes("/api/trpc/eventTypesHeavy/update"));
 
       await doOnOrgDomain(
         {
@@ -783,7 +783,7 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
   const emailRequiredFiled = await page.locator('[data-testid="field-required"]').first();
   await emailRequiredFiled.click();
   await page.getByTestId("field-add-save").click();
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 };
@@ -797,7 +797,7 @@ const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   const phoneRequiredFiled = await page.locator('[data-testid="field-required"]').first();
   await phoneRequiredFiled.click();
   await page.getByTestId("field-add-save").click();
-  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
     action: () => page.locator("[data-testid=update-eventtype]").click(),
   });
 };
