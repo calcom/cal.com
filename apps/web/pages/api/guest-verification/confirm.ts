@@ -59,6 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         timeZone: true,
         locale: true,
         credentials: true,
+        destinationCalendar: true,
       },
     });
 
@@ -143,7 +144,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Update calendar and send emails
     try {
       const credentials = await getUsersCredentialsIncludeServiceAccountKey(organizer);
-      const eventManager = new EventManager({ ...organizer, credentials });
+      const eventManager = new EventManager({
+        ...organizer,
+        credentials,
+        destinationCalendar: organizer.destinationCalendar,
+      });
       await eventManager.updateCalendarAttendees(evt, updatedBooking);
       await sendAddGuestsEmails(evt, [pendingGuest.email]);
     } catch (err) {
