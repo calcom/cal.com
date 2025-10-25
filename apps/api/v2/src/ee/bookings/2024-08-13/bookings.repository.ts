@@ -138,6 +138,42 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
+  async getByUidForCalendarLinks(uid: string) {
+    const booking = await this.dbRead.prisma.booking.findUnique({
+      where: { uid },
+      select: {
+        startTime: true,
+        endTime: true,
+        location: true,
+        title: true,
+        metadata: true,
+        responses: true,
+        eventTypeId: true,
+        attendees: {
+          select: {
+            bookingSeat: {
+              select: { data: true },
+            },
+          },
+        },
+      },
+    });
+    if (!booking) {
+      return null;
+    }
+
+    return {
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      location: booking.location,
+      title: booking.title,
+      responses: booking.responses as Prisma.JsonObject,
+      metadata: booking.metadata as Prisma.JsonObject | null,
+      attendees: booking.attendees,
+      eventTypeId: booking.eventTypeId,
+    };
+  }
+
   async getRecurringByUid(uid: string) {
     return this.dbRead.prisma.booking.findMany({
       where: {
