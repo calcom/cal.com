@@ -7,6 +7,7 @@ import { JsonBodyMiddleware } from "@/middleware/body/json.body.middleware";
 import { RawBodyMiddleware } from "@/middleware/body/raw.body.middleware";
 import { ResponseInterceptor } from "@/middleware/request-ids/request-id.interceptor";
 import { RequestIdMiddleware } from "@/middleware/request-ids/request-id.middleware";
+import { ApiLoggingInterceptor } from "@/modules/api-logs/interceptors/api-logging.interceptor";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { EndpointsModule } from "@/modules/endpoints.module";
 import { JwtModule } from "@/modules/jwt/jwt.module";
@@ -75,6 +76,10 @@ import { AppController } from "./app.controller";
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiLoggingInterceptor,
     },
     {
       provide: APP_GUARD,
