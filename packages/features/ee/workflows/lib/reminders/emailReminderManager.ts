@@ -8,6 +8,7 @@ import tasker from "@calcom/features/tasker";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
@@ -20,6 +21,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
+import type { FormSubmissionData } from "./reminderScheduler";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
@@ -33,8 +35,7 @@ type ScheduleEmailReminderAction = Extract<
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
 
-export interface ScheduleReminderArgs {
-  evt: BookingInfo;
+export type ScheduleReminderArgs = {
   triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
@@ -44,10 +45,15 @@ export interface ScheduleReminderArgs {
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
-}
+} & (
+  | { evt: BookingInfo; formData?: never }
+  | {
+      evt?: never;
+      formData: FormSubmissionData;
+    }
+);
 
-interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
-  evt: BookingInfo;
+type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   sendTo: string[];
   action: ScheduleEmailReminderAction;
   emailSubject?: string;
@@ -55,9 +61,64 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   verifiedAt: Date | null;
-}
+};
+
+type SendEmailReminderParams = {
+  mailData: {
+    subject: string;
+    html: string;
+    replyTo?: string;
+    attachments?: any[];
+    sender?: string | null;
+  };
+  sendTo: string[];
+  triggerEvent: WorkflowTriggerEvents;
+  scheduledDate?: dayjs.Dayjs | null;
+  uid?: string;
+  workflowStepId?: number;
+  seatReferenceUid?: string;
+};
+
+const sendOrScheduleWorkflowEmailWithReminder = async (params: SendEmailReminderParams) => {
+  const { mailData, sendTo, scheduledDate, uid, workflowStepId } = params;
+
+  let reminderUid = undefined;
+  if (scheduledDate) {
+    const reminder = await prisma.workflowReminder.create({
+      data: {
+        bookingUid: uid,
+        workflowStepId,
+        method: WorkflowMethods.EMAIL,
+        scheduledDate: scheduledDate.toDate(),
+        scheduled: true,
+      },
+    });
+    reminderUid = reminder.uuid;
+  }
+
+  await sendOrScheduleWorkflowEmails({
+    ...mailData,
+    to: sendTo,
+    sendAt: scheduledDate?.toDate(),
+    referenceUid: reminderUid ?? undefined,
+  });
+};
 
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
+  const { verifiedAt, workflowStepId } = args;
+  if (!verifiedAt) {
+    log.warn(`Workflow step ${workflowStepId} not yet verified`);
+    return;
+  }
+
+  if (args.evt) {
+    await scheduleEmailReminderForEvt(args);
+  } else {
+    await scheduleEmailReminderForForm(args);
+  }
+};
+
+const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     triggerEvent,
@@ -72,13 +133,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     hideBranding,
     includeCalendarEvent,
     action,
-    verifiedAt,
   } = args;
-
-  if (!verifiedAt) {
-    log.warn(`Workflow step ${workflowStepId} not yet verified`);
-    return;
-  }
 
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -274,25 +329,68 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
 
   const mailData = await prepareEmailData();
 
-  let reminderUid = undefined;
-  if (scheduledDate) {
-    const reminder = await prisma.workflowReminder.create({
-      data: {
-        bookingUid: uid,
-        workflowStepId,
-        method: WorkflowMethods.EMAIL,
-        scheduledDate: scheduledDate.toDate(),
-        scheduled: true,
-      },
-    });
-    reminderUid = reminder.uuid;
+  await sendOrScheduleWorkflowEmailWithReminder({
+    mailData,
+    sendTo,
+    triggerEvent,
+    scheduledDate,
+    uid,
+    workflowStepId,
+    seatReferenceUid,
+  });
+};
+
+// sends all immediately, no scheduling needed
+const scheduleEmailReminderForForm = async (
+  args: scheduleEmailReminderArgs & {
+    formData: FormSubmissionData;
+  }
+) => {
+  const {
+    formData,
+    triggerEvent,
+    sender,
+    workflowStepId,
+    sendTo,
+    emailSubject = "",
+    emailBody = "",
+    hideBranding,
+  } = args;
+
+  const emailContent = {
+    emailSubject,
+    emailBody: `<body style="white-space: pre-wrap;">${emailBody}</body>`,
+  };
+
+  if (emailBody) {
+    const timeFormat = getTimeFormatStringFromUserTimeFormat(formData.user.timeFormat);
+    //todo: add variables
+    const emailSubjectTemplate = customTemplate(emailSubject, {}, formData.user.locale, timeFormat);
+    emailContent.emailSubject = emailSubjectTemplate.text;
+    emailContent.emailBody = customTemplate(
+      emailBody,
+      {},
+      formData.user.locale,
+      timeFormat,
+      hideBranding
+    ).html;
   }
 
-  await sendOrScheduleWorkflowEmails({
-    ...mailData,
-    to: sendTo,
-    sendAt: scheduledDate?.toDate(),
-    referenceUid: reminderUid ?? undefined,
+  // Allows debugging generated email content without waiting for sendgrid to send emails
+  log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
+
+  const mailData = {
+    subject: emailContent.emailSubject,
+    html: emailContent.emailBody,
+    sender,
+  };
+
+  await sendOrScheduleWorkflowEmailWithReminder({
+    mailData,
+    sendTo,
+    triggerEvent,
+    workflowStepId,
+    scheduledDate: null,
   });
 };
 
