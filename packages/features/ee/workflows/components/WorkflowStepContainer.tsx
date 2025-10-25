@@ -89,6 +89,7 @@ type WorkflowStepProps = {
   setSelectedOptions?: Dispatch<SetStateAction<Option[]>>;
   isOrganization?: boolean;
   allOptions?: Option[];
+  eventTypeOptions?: Option[];
   onSaveWorkflow?: () => Promise<void>;
   setIsDeleteStepDialogOpen?: Dispatch<SetStateAction<boolean>>;
   isDeleteStepDialogOpen?: boolean;
@@ -379,11 +380,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
-  const hasAiAction = hasCalAIAction(steps);
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
   const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
 
-  const disallowFormTriggers = hasAiAction || hasEmailToHostAction || hasWhatsappAction;
+  const disallowFormTriggers = hasEmailToHostAction || hasWhatsappAction;
 
   const filteredTriggerOptions = triggerOptions.filter(
     (option) => !(isFormTrigger(option.value) && disallowFormTriggers)
@@ -1578,7 +1578,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             workflowId={params?.workflow as string}
             workflowStepId={step?.id}
             form={form}
-            eventTypeOptions={props.allOptions}
+            eventTypeOptions={props.eventTypeOptions}
           />
         )}
 
@@ -1589,6 +1589,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             agentId={stepAgentId || ""}
             teamId={teamId}
             form={form}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
           />
         )}
 
@@ -1600,6 +1601,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             teamId={teamId}
             isOrganization={props.isOrganization}
             form={form}
+            eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10)) || []}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 

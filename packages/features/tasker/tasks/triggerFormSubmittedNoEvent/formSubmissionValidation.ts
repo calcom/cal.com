@@ -1,11 +1,12 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import prisma from "@calcom/prisma";
+import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/routing-forms/lib/formSubmissionUtils";
 
 export interface ValidationOptions {
   responseId: number;
   formId: string;
-  responses: any;
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
   submittedAt?: Date;
 }
 
@@ -36,15 +37,31 @@ export async function shouldTriggerFormSubmittedNoEvent(options: ValidationOptio
   return true;
 }
 
-export function getSubmitterEmail(responses: any) {
-  const submitterEmail = Object.values(responses).find(
-    (response): response is { value: string; label: string } => {
-      const value =
-        typeof response === "object" && response && "value" in response ? response.value : response;
-      return typeof value === "string" && value.includes("@");
-    }
-  )?.value;
+export function getSubmitterEmail(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES): string | undefined {
+  const submitterEmail = Object.values(responses).find((response) => {
+    const value = typeof response === "object" && response && "value" in response ? response.value : response;
+    return typeof value === "string" && value.includes("@");
+  })?.value;
+  if (typeof submitterEmail !== "string") return undefined;
   return submitterEmail;
+}
+
+/**
+ * Extracts the submitter's name from form responses.
+ * Looks for fields with identifiers "name", "firstName", or "lastName" in that order of preference.
+ */
+export function getSubmitterName(responses: FORM_SUBMITTED_WEBHOOK_RESPONSES) {
+  const nameField = responses?.name || responses?.firstName || responses?.lastName;
+
+  if (nameField && typeof nameField === "object") {
+    // Try the new response property first, then fall back to value
+    if (typeof nameField.response === "string") {
+      return nameField.response;
+    }
+    if (typeof nameField.value === "string") {
+      return nameField.value;
+    }
+  }
 }
 
 /**
@@ -57,7 +74,7 @@ async function hasDuplicateSubmission({
   submittedAt,
 }: {
   formId: string;
-  responses: any;
+  responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
   responseId: number;
   submittedAt?: Date;
 }): Promise<boolean> {

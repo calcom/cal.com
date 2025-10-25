@@ -9,6 +9,7 @@ interface _AgentRawResult {
   userId: number;
   teamId: number | null;
   inboundEventTypeId?: number | null;
+  outboundEventTypeId?: number | null;
   createdAt: Date;
   updatedAt: Date;
   user_id?: number;
@@ -101,6 +102,7 @@ export class PrismaAgentRepository {
         "userId",
         "teamId",
         "inboundEventTypeId",
+        "outboundEventTypeId",
         "createdAt",
         "updatedAt"
       FROM "Agent"
@@ -140,6 +142,7 @@ export class PrismaAgentRepository {
         "userId",
         "teamId",
         "inboundEventTypeId",
+        "outboundEventTypeId",
         "createdAt",
         "updatedAt"
       FROM "Agent"
@@ -162,6 +165,7 @@ export class PrismaAgentRepository {
         userId: true,
         teamId: true,
         inboundEventTypeId: true,
+        outboundEventTypeId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -181,6 +185,7 @@ export class PrismaAgentRepository {
         userId: true,
         teamId: true,
         inboundEventTypeId: true,
+        outboundEventTypeId: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -246,6 +251,7 @@ export class PrismaAgentRepository {
         a."userId",
         a."teamId",
         a."inboundEventTypeId",
+        a."outboundEventTypeId",
         a."createdAt",
         a."updatedAt",
         u.id as user_id,
@@ -306,6 +312,7 @@ export class PrismaAgentRepository {
       userId: agent.userId,
       teamId: agent.teamId,
       inboundEventTypeId: agent.inboundEventTypeId,
+      outboundEventTypeId: agent.outboundEventTypeId,
       createdAt: agent.createdAt,
       updatedAt: agent.updatedAt,
       user: agent.user_id
@@ -366,6 +373,7 @@ export class PrismaAgentRepository {
         a."userId",
         a."teamId",
         a."inboundEventTypeId",
+        a."outboundEventTypeId",
         a."createdAt",
         a."updatedAt",
         u.id as user_id,
@@ -408,6 +416,7 @@ export class PrismaAgentRepository {
       userId: agent.userId,
       teamId: agent.teamId,
       inboundEventTypeId: agent.inboundEventTypeId,
+      outboundEventTypeId: agent.outboundEventTypeId,
       createdAt: agent.createdAt,
       updatedAt: agent.updatedAt,
       user: agent.user_id
@@ -484,7 +493,8 @@ export class PrismaAgentRepository {
         "teamId",
         "createdAt",
         "updatedAt",
-        "inboundEventTypeId"
+        "inboundEventTypeId",
+        "outboundEventTypeId"
       FROM "Agent"
       WHERE ${whereCondition}
       LIMIT 1
@@ -516,6 +526,7 @@ export class PrismaAgentRepository {
         a."userId",
         a."teamId",
         a."inboundEventTypeId",
+        a."outboundEventTypeId",
         a."createdAt",
         a."updatedAt"
       FROM "Agent" a
@@ -580,6 +591,17 @@ export class PrismaAgentRepository {
       },
       data: {
         inboundEventTypeId: eventTypeId,
+      },
+    });
+  }
+
+  async updateOutboundEventTypeId({ agentId, eventTypeId }: { agentId: string; eventTypeId: number }) {
+    return await this.prismaClient.agent.update({
+      where: {
+        id: agentId,
+      },
+      data: {
+        outboundEventTypeId: eventTypeId,
       },
     });
   }
