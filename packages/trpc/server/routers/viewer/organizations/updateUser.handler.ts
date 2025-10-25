@@ -1,13 +1,12 @@
-import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/client";
-
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { RoleManagementError } from "@calcom/features/pbac/domain/errors/role-management.error";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
+import { checkRegularUsername } from "@calcom/features/profile/lib/checkRegularUsername";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
-import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -47,7 +46,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
 
   try {
-    await roleManager.checkPermissionToChangeRole(userId, organizationId);
+    await roleManager.checkPermissionToChangeRole(userId, organizationId, "org");
   } catch (error) {
     if (error instanceof RoleManagementError) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: error.message });
@@ -133,7 +132,9 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   }
 
   // Update user
-  const transactions: PrismaPromise<User | Membership | Profile>[] = [
+  type TransactionPromise = ReturnType<typeof prisma.user.update> | ReturnType<typeof prisma.profile.update>;
+
+  const transactions: TransactionPromise[] = [
     prisma.user.update({
       where: {
         id: input.userId,

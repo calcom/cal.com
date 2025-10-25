@@ -2,7 +2,8 @@ import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import type { Prisma } from "@prisma/client";
+
+import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesRepository_2024_06_14 {
@@ -75,6 +76,16 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
+  async getUserEventTypesPublic(userId: number) {
+    return this.dbRead.prisma.eventType.findMany({
+      where: {
+        userId,
+        hidden: false,
+      },
+      include: { users: true, schedule: true, destinationCalendar: true },
+    });
+  }
+
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
@@ -131,5 +142,27 @@ export class EventTypesRepository_2024_06_14 {
 
   async deleteEventType(eventTypeId: number) {
     return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
+  }
+
+  async isUserHostOfEventType(userId: number, eventTypeId: number) {
+    const eventType = await this.dbRead.prisma.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        hosts: { some: { userId: userId } },
+      },
+      select: { id: true },
+    });
+    return !!eventType;
+  }
+
+  async isUserAssignedToEventType(userId: number, eventTypeId: number) {
+    const eventType = await this.dbRead.prisma.eventType.findFirst({
+      where: {
+        id: eventTypeId,
+        users: { some: { id: userId } },
+      },
+      select: { id: true },
+    });
+    return !!eventType;
   }
 }

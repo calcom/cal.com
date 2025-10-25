@@ -1,5 +1,8 @@
+import { z } from "zod";
+
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -9,12 +12,19 @@ import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { RetellAIRepository } from "../types";
 
+const stripeErrorSchema = z.object({
+  raw: z.object({
+    code: z.string(),
+  }),
+});
+
 export class BillingService {
   private logger = logger.getSubLogger({ prefix: ["BillingService"] });
-
   constructor(
-    private phoneNumberRepository: PhoneNumberRepositoryInterface,
-    private retellRepository: RetellAIRepository
+    private deps: {
+      phoneNumberRepository: PhoneNumberRepositoryInterface;
+      retellRepository: RetellAIRepository;
+    }
   ) {}
 
   async generatePhoneNumberCheckoutSession({
@@ -33,7 +43,7 @@ export class BillingService {
     if (!phoneNumberPriceId) {
       throw new HttpError({
         statusCode: 500,
-        message: "Phone number price ID not configured. Please contact support.",
+        message: "Phone number price ID not configured",
       });
     }
 
@@ -55,7 +65,7 @@ export class BillingService {
           quantity: 1,
         },
       ],
-      success_url: `${WEBAPP_URL}/api/phone-numbers/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${WEBAPP_URL}/api/calAIPhone/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${WEBAPP_URL}/workflows/${workflowId}`,
       allow_promotion_codes: true,
       customer_update: {
@@ -69,7 +79,7 @@ export class BillingService {
         teamId: teamId?.toString() || "",
         agentId: agentId || "",
         workflowId: workflowId || "",
-        type: "phone_number_subscription",
+        type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
       },
       subscription_data: {
         metadata: {
@@ -77,7 +87,7 @@ export class BillingService {
           teamId: teamId?.toString() || "",
           agentId: agentId || "",
           workflowId: workflowId || "",
-          type: "phone_number_subscription",
+          type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
         },
       },
     });
@@ -103,12 +113,12 @@ export class BillingService {
   }) {
     // Find phone number with proper team authorization
     const phoneNumber = teamId
-      ? await this.phoneNumberRepository.findByIdWithTeamAccess({
+      ? await this.deps.phoneNumberRepository.findByIdWithTeamAccess({
           id: phoneNumberId,
           teamId,
           userId,
         })
-      : await this.phoneNumberRepository.findByIdAndUserId({
+      : await this.deps.phoneNumberRepository.findByIdAndUserId({
           id: phoneNumberId,
           userId,
         });
@@ -128,17 +138,41 @@ export class BillingService {
     }
 
     try {
-      await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
-
-      await this.phoneNumberRepository.updateSubscriptionStatus({
+      await this.deps.phoneNumberRepository.updateSubscriptionStatus({
         id: phoneNumberId,
         subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
-        disconnectOutboundAgent: true,
+        disconnectAgents: false,
+      });
+
+      try {
+        await stripe.subscriptions.cancel(phoneNumber.stripeSubscriptionId);
+      } catch (error) {
+        const parsedError = stripeErrorSchema.safeParse(error);
+        if (parsedError.success && parsedError.data.raw.code === "resource_missing") {
+          this.logger.info("Subscription not found in Stripe (already cancelled or deleted):", {
+            subscriptionId: phoneNumber.stripeSubscriptionId,
+            phoneNumberId,
+            stripeMessage: "Subscription resource not found",
+          });
+        } else {
+          await this.deps.phoneNumberRepository.updateSubscriptionStatus({
+            id: phoneNumberId,
+            subscriptionStatus: PhoneNumberSubscriptionStatus.ACTIVE,
+          });
+          throw error;
+        }
+      }
+
+      // Disconnnect agent after cancelling from stripe
+      await this.deps.phoneNumberRepository.updateSubscriptionStatus({
+        id: phoneNumberId,
+        subscriptionStatus: PhoneNumberSubscriptionStatus.CANCELLED,
+        disconnectAgents: true,
       });
 
       // Delete the phone number from Retell, DB
       try {
-        await this.retellRepository.deletePhoneNumber(phoneNumber.phoneNumber);
+        await this.deps.retellRepository.deletePhoneNumber(phoneNumber.phoneNumber);
       } catch (error) {
         this.logger.error("Failed to delete phone number from AI service, but subscription was cancelled:", {
           error,

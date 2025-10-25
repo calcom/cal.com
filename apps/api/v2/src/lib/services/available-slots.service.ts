@@ -10,6 +10,7 @@ import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository"
 import { BusyTimesService } from "@/lib/services/busy-times.service";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
+import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
 import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
@@ -35,7 +36,8 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     checkBookingLimitsService: CheckBookingLimitsService,
     cacheService: CacheService,
     userAvailabilityService: UserAvailabilityService,
-    busyTimesService: BusyTimesService
+    busyTimesService: BusyTimesService,
+    noSlotsNotificationService: NoSlotsNotificationService
   ) {
     super({
       oooRepo: oooRepoDependency,
@@ -53,6 +55,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       busyTimesService,
       qualifiedHostsService,
       featuresRepo: featuresRepository,
+      noSlotsNotificationService,
     });
   }
 }

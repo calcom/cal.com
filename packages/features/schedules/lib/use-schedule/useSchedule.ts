@@ -6,7 +6,7 @@ import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookin
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
@@ -136,13 +136,11 @@ export const useSchedule = ({
     eventTypeId: eventId ?? undefined,
   });
 
-  const schedule = isTeamEvent
-    ? trpc.viewer.highPerf.getTeamSchedule.useQuery(input, {
-        ...options,
-        // Only enable if we're not using API V2
-        enabled: options.enabled && !isCallingApiV2Slots,
-      })
-    : trpc.viewer.slots.getSchedule.useQuery(input, options);
+  const schedule = trpc.viewer.slots.getSchedule.useQuery(input, {
+    ...options,
+    // Only enable if we're not using API V2
+    enabled: options.enabled && !isCallingApiV2Slots,
+  });
 
   if (isCallingApiV2Slots && !teamScheduleV2.failureReason) {
     updateEmbedBookerState({

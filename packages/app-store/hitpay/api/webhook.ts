@@ -2,10 +2,10 @@ import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import type z from "zod";
 
+import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
-import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import prisma from "@calcom/prisma";
 
 import type { hitpayCredentialKeysSchema } from "../lib/hitpayCredentialKeysSchema";

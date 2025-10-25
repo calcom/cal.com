@@ -10,12 +10,13 @@ import {
 } from "@calcom/prisma/enums";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import {
   getContentSidForTemplate,
   getContentVariablesForTemplate,
 } from "../reminders/templates/whatsapp/ContentSidMapping";
 import { scheduleSmsOrFallbackEmail, sendSmsOrFallbackEmail } from "./messageDispatcher";
-import type { ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
+import type { BookingInfo, ScheduleTextReminderArgs, timeUnitLowerCase } from "./smsReminderManager";
 import {
   whatsappEventCancelledTemplate,
   whatsappEventCompletedTemplate,
@@ -25,7 +26,7 @@ import {
 
 const log = logger.getSubLogger({ prefix: ["[whatsappReminderManager]"] });
 
-export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) => {
+export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs & { evt: BookingInfo }) => {
   const {
     evt,
     reminderPhone,
@@ -63,7 +64,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
         phoneNumber: reminderPhone || "",
       },
     });
-    if (!!verifiedNumber) return true;
+    if (verifiedNumber) return true;
     return isVerificationPending;
   }
   const isNumberVerified = await getIsNumberVerified();
@@ -172,11 +173,7 @@ export const scheduleWhatsappReminder = async (args: ScheduleTextReminderArgs) =
   log.debug(`Sending Whatsapp for trigger ${triggerEvent}`, textMessage);
   if (textMessage.length > 0 && reminderPhone && isNumberVerified) {
     //send WHATSAPP when event is booked/cancelled/rescheduled
-    if (
-      triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-      triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-      triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
-    ) {
+    if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
       try {
         await sendSmsOrFallbackEmail({
           twilioData: {

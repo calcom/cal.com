@@ -8,7 +8,6 @@ import { OrganizationsTeamsBookingsModule } from "@/modules/organizations/teams/
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -28,14 +27,14 @@ import {
   X_CAL_CLIENT_ID,
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
-import {
+import type {
   CreateBookingInput_2024_08_13,
   BookingOutput_2024_08_13,
   RecurringBookingOutput_2024_08_13,
   GetBookingsOutput_2024_08_13,
   GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
-import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
+import type { User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Organizations Bookings Endpoints 2024-08-13", () => {
   describe("Organization bookings", () => {
@@ -66,6 +65,8 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
     let orgEventTypeId2: number;
     let nonOrgEventTypeId: number;
 
+    let collectiveOrgBookingUid: string;
+
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
         orgUserEmail2,
@@ -91,12 +92,17 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await organizationsRepositoryFixture.create({ name: "organization bookings" });
+      oAuthClient = await createOAuthClient(organization.id);
       team1 = await teamRepositoryFixture.create({
         name: "team orgs booking 1",
         isOrganization: false,
         parent: { connect: { id: organization.id } },
+        createdByOAuthClient: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
       });
-      oAuthClient = await createOAuthClient(organization.id);
 
       nonOrgUser1 = await userRepositoryFixture.create({
         email: nonOrgUserEmail1,
@@ -315,6 +321,7 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
 
             if (responseDataIsBooking(responseBody.data)) {
               const data: BookingOutput_2024_08_13 = responseBody.data;
+              collectiveOrgBookingUid = data.uid;
               expect(data.id).toBeDefined();
               expect(data.uid).toBeDefined();
               expect(data.hosts.length).toEqual(1);
@@ -668,6 +675,125 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
               [orgEventTypeId2, nonOrgEventTypeId, nonOrgEventTypeId].sort()
             );
           });
+      });
+
+      describe("get by bookingUid param", () => {
+        it("should get a specific booking by bookingUid query param", async () => {
+          return request(app.getHttpServer())
+            .get(`/v2/organizations/${organization.id}/bookings?bookingUid=${collectiveOrgBookingUid}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .set(X_CAL_CLIENT_ID, oAuthClient.id)
+            .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+
+              const data: (
+                | BookingOutput_2024_08_13
+                | RecurringBookingOutput_2024_08_13
+                | GetSeatedBookingOutput_2024_08_13
+              )[] = responseBody.data;
+              expect(data.length).toEqual(1);
+              expect(responseDataIsBooking(data[0])).toBe(true);
+
+              if (responseDataIsBooking(data[0])) {
+                const booking: BookingOutput_2024_08_13 = data[0];
+                expect(booking.uid).toEqual(collectiveOrgBookingUid);
+                expect(booking.eventTypeId).toEqual(orgEventTypeId);
+                expect(booking.status).toEqual("accepted");
+                expect(booking.attendees.length).toEqual(2);
+                expect(booking.attendees[0].name).toEqual("alice");
+                expect(booking.attendees[0].email).toEqual("alice@gmail.com");
+              } else {
+                throw new Error("Expected single booking but received different response type");
+              }
+            });
+        });
+
+        it("should return empty array for non-existent booking UID query param", async () => {
+          const nonExistentUid = "non-existent-booking-uid";
+
+          return request(app.getHttpServer())
+            .get(`/v2/organizations/${organization.id}/bookings?bookingUid=${nonExistentUid}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .set(X_CAL_CLIENT_ID, oAuthClient.id)
+            .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              expect(responseBody.data.length).toEqual(0);
+            });
+        });
+
+        it("should return empty array for booking UID not belonging to the organization", async () => {
+          const regularUser = await userRepositoryFixture.create({
+            email: `org-bookings-regular-user-${Math.floor(Math.random() * 10000)}@api.com`,
+            name: "Regular User",
+          });
+
+          const regularUserEventType = await eventTypesRepositoryFixture.create(
+            {
+              title: `regular-user-event-type-${Math.floor(Math.random() * 10000)}`,
+              slug: `regular-user-event-type-${Math.floor(Math.random() * 10000)}`,
+              length: 60,
+              bookingFields: [],
+              locations: [],
+            },
+            regularUser.id
+          );
+
+          const regularUserBooking = await bookingsRepositoryFixture.create({
+            user: {
+              connect: {
+                id: regularUser.id,
+              },
+            },
+            startTime: new Date(Date.UTC(2030, 0, 15, 13, 0, 0)),
+            endTime: new Date(Date.UTC(2030, 0, 15, 14, 0, 0)),
+            title: "Regular user booking",
+            uid: `regular-user-booking-${Math.floor(Math.random() * 10000)}`,
+            eventType: {
+              connect: {
+                id: regularUserEventType.id,
+              },
+            },
+            location: "https://meet.google.com/regular-user",
+            customInputs: {},
+            metadata: {},
+            status: "ACCEPTED",
+            responses: {
+              name: "Regular Attendee",
+              email: "regular@example.com",
+            },
+            attendees: {
+              create: {
+                email: "regular@example.com",
+                name: "Regular Attendee",
+                locale: "en",
+                timeZone: "Europe/Rome",
+              },
+            },
+          });
+
+          return request(app.getHttpServer())
+            .get(`/v2/organizations/${organization.id}/bookings?bookingUid=${regularUserBooking.uid}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .set(X_CAL_CLIENT_ID, oAuthClient.id)
+            .set(X_CAL_SECRET_KEY, oAuthClient.secret)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+              expect(responseBody.status).toEqual(SUCCESS_STATUS);
+              expect(responseBody.data).toBeDefined();
+              expect(responseBody.data.length).toEqual(0);
+
+              await userRepositoryFixture.delete(regularUser.id);
+            });
+        });
       });
     });
 

@@ -1,7 +1,7 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
-import { MSTeamsLocationType } from "@calcom/app-store/locations";
+import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
@@ -481,7 +481,9 @@ export default class Office365CalendarService implements Calendar {
               .map((member) => {
                 const destinationCalendar =
                   event.destinationCalendar &&
-                  event.destinationCalendar.find((cal) => cal.userId === member.id);
+                  event.destinationCalendar.find(
+                    (cal) => cal.integration === this.integrationName && cal.userId === member.id
+                  );
                 return {
                   emailAddress: {
                     address: destinationCalendar?.externalId ?? member.email,
@@ -661,32 +663,43 @@ export default class Office365CalendarService implements Calendar {
     );
   };
 
-  private handleErrorJsonOffice365Calendar = <Type>(response: Response): Promise<Type | string> => {
+  private async handleErrorJsonOffice365Calendar<Type>(response: Response): Promise<Type | string> {
     if (response.headers.get("content-encoding") === "gzip") {
       return response.text();
     }
 
     if (response.status === 204) {
-      return new Promise((resolve) => resolve({} as Type));
+      return {} as Type;
     }
 
-    if (!response.ok && response.status < 200 && response.status >= 300) {
-      response.json().then(console.log);
-      throw Error(response.statusText);
+    if (!response.ok) {
+      let errorBody: string | object;
+      try {
+        errorBody = await response.json();
+      } catch (e) {
+        errorBody = await response.text();
+      }
+      this.log.error(
+        `handleErrorJsonOffice365Calendar: Office365 API request failed with status ${response.status}`,
+        errorBody
+      );
     }
 
     return response.json();
-  };
+  }
 
   async getMainTimeZone(): Promise<string> {
     try {
       const response = await this.fetcher(`${await this.getUserEndpoint()}/mailboxSettings/timeZone`);
       const timezone = await handleErrorsJson<string>(response);
 
-      if (!timezone) {
-        this.log.warn("No timezone found in mailbox settings, defaulting to Europe/London");
+      if (!timezone || typeof timezone !== "string") {
+        this.log.warn("No timezone found in outlook mailbox settings, defaulting to Europe/London", {
+          timezone,
+        });
         return "Europe/London";
       }
+      this.log.info("timezone found in outlook mailbox settings", { timezone });
 
       return timezone;
     } catch (error) {

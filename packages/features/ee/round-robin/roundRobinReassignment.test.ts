@@ -17,11 +17,11 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, vi, expect } from "vitest";
 
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
-vi.mock("@calcom/lib/EventManager");
+vi.mock("@calcom/features/bookings/lib/EventManager");
 
 const testDestinationCalendar = {
   integration: "test-calendar",
@@ -61,7 +61,7 @@ describe("roundRobinReassignment test", () => {
 
   test("reassign new round robin organizer", async ({ emails }) => {
     const roundRobinReassignment = (await import("./roundRobinReassignment")).default;
-    const EventManager = (await import("@calcom/lib/EventManager")).default;
+    const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
     eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
@@ -171,7 +171,9 @@ describe("roundRobinReassignment test", () => {
       bookingToReassignUid,
       undefined,
       true,
-      expect.arrayContaining([expect.objectContaining(testDestinationCalendar)])
+      expect.arrayContaining([expect.objectContaining(testDestinationCalendar)]),
+      undefined,
+      true
     );
 
     // Use equal fairness rr algorithm
@@ -192,7 +194,7 @@ describe("roundRobinReassignment test", () => {
   // TODO: add fixed hosts test
   test("Reassign round robin host with fixed host as organizer", async () => {
     const roundRobinReassignment = (await import("./roundRobinReassignment")).default;
-    const EventManager = (await import("@calcom/lib/EventManager")).default;
+    const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
 
@@ -279,7 +281,9 @@ describe("roundRobinReassignment test", () => {
       bookingToReassignUid,
       undefined,
       false,
-      []
+      [],
+      undefined,
+      false
     );
 
     // Ensure organizer stays the same

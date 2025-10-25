@@ -1,14 +1,15 @@
 import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
-import type { Prisma } from "@prisma/client";
+
+import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class BookingReferencesRepository_2024_08_13 {
   constructor(private readonly dbRead: PrismaReadService) {}
 
   async getBookingReferences(bookingId: number, filter?: BookingReferencesFilterInput_2024_08_13) {
-    const whereClause: Prisma.BookingReferenceWhereInput = { bookingId };
+    const whereClause: Prisma.BookingReferenceWhereInput = { bookingId, deleted: null };
 
     if (filter?.type) {
       whereClause.type = filter.type;
@@ -29,6 +30,7 @@ export class BookingReferencesRepository_2024_08_13 {
     return this.dbRead.prisma.bookingReference.findFirst({
       where: {
         uid: eventUid,
+        deleted: null,
       },
       include: {
         credential: true,

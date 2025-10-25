@@ -1,4 +1,3 @@
-import { _generateMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
 
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";

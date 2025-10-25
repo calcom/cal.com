@@ -1,6 +1,6 @@
 "use client";
 
-import type { User } from "@prisma/client";
+import type { User } from "@calcom/prisma/client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
