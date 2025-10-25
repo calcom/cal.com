@@ -1,10 +1,12 @@
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { handleInsufficientCredits } from "@calcom/features/ee/billing/helpers/handleInsufficientCredits";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { CreditUsageType } from "@calcom/prisma/enums";
 
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
@@ -31,7 +33,7 @@ export async function executeAIPhoneCall(payload: string) {
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
 
   if (!calAIVoiceAgents) {
-    log.warn("Cal AI voice agents are disabled - skipping AI phone call");
+    log.warn("Cal.ai voice agents are disabled - skipping AI phone call");
     return;
   }
 
@@ -107,15 +109,25 @@ export async function executeAIPhoneCall(payload: string) {
       });
 
       if (!hasCredits) {
-        log.warn(`Insufficient credits for AI phone call`, {
+        log.warn(`Insufficient credits for AI phone call for workflow reminder ${data.workflowReminderId}`, {
           userId: data.userId,
           teamId: data.teamId,
           workflowReminderId: data.workflowReminderId,
           bookingUid: workflowReminder.booking?.uid,
         });
-        throw new Error(
-          `Insufficient credits to make AI phone call. Please purchase more credits. user: ${data?.userId}, team: ${data?.teamId}`
-        );
+
+        await handleInsufficientCredits({
+          userId: data.userId,
+          teamId: data.teamId,
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
+          prismaClient: prisma,
+          context: {
+            workflowReminderId: data.workflowReminderId,
+            bookingUid: workflowReminder.booking?.uid,
+          },
+        });
+
+        return;
       }
     }
 
