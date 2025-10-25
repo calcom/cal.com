@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
@@ -19,6 +20,7 @@ import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { KBarTrigger } from "../kbar/Kbar";
+import { SkipTrialConfirmationModal } from "./SkipTrialConfirmationModal";
 import { Navigation } from "./navigation/Navigation";
 import { useBottomNavItems } from "./useBottomNavItems";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
@@ -56,6 +58,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const [isSkipTrialModalOpen, setIsSkipTrialModalOpen] = useState(false);
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.orgAwareUsername}`;
 
@@ -63,6 +66,11 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
     publicPageUrl,
     isAdmin,
     user,
+    onNavClick: (navItemName: string) => {
+      if (navItemName === "skip_trial") {
+        setIsSkipTrialModalOpen(true);
+      }
+    },
   });
 
   const sidebarStylingAttributes = {
@@ -185,6 +193,10 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
             {!IS_VISUAL_REGRESSION_TESTING && <Credits />}
           </div>
         )}
+        <SkipTrialConfirmationModal
+          isOpen={isSkipTrialModalOpen}
+          onClose={() => setIsSkipTrialModalOpen(false)}
+        />
       </aside>
     </div>
   );
