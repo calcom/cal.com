@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Script from "next/script";
+import { useEffect, useState } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -15,17 +16,37 @@ export type PageWrapperProps = Readonly<{
   isBookingPage?: boolean;
 }>;
 
-function PageWrapper(props: PageWrapperProps) {
+function usePageStatus() {
+  const [pageStatus, setPageStatus] = useState("200");
   const pathname = usePathname();
-  let pageStatus = "200";
 
-  if (pathname === "/404") {
-    pageStatus = "404";
-  } else if (pathname === "/500") {
-    pageStatus = "500";
-  } else if (pathname === "/403") {
-    pageStatus = "403";
-  }
+  useEffect(() => {
+    const checkForErrorPage = () => {
+      const has404Content = document.querySelector('[data-testid="app-router-not-found-page"]');
+      if (has404Content) {
+        setPageStatus("404");
+        return;
+      }
+
+      const hasErrorContent = document.querySelector('[data-testid="app-router-error-page"]');
+      if (hasErrorContent) {
+        setPageStatus("500");
+        return;
+      }
+    };
+
+    checkForErrorPage();
+
+    // Check after a small delay to ensure content has rendered
+    const timer = setTimeout(checkForErrorPage, 100);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  return pageStatus;
+}
+
+function PageWrapper(props: PageWrapperProps) {
+  const pageStatus = usePageStatus();
 
   // On client side don't let nonce creep into DOM
   // It also avoids hydration warning that says that Client has the nonce value but server has "" because browser removes nonce attributes before DOM is built
