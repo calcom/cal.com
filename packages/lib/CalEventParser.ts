@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import removeMd from "remove-markdown";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -7,7 +8,6 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
-import { stripMarkdown } from "./stripMarkdown";
 
 const translator = short();
 
@@ -66,11 +66,21 @@ export const getWho = (
 };
 
 function stripMarkdownPreserveNewlines(text: string): string {
-  const stripped = stripMarkdown(text);
-  return stripped
+  if (!text) return "";
+  const PAR_TOKEN = "CALPARABREAK9F8B";
+  const LINE_TOKEN = "CALLINEBREAK9F8B";
+
+  const withPlaceholders = text
+
     .replace(/\r\n/g, "\n")
-    .replace(/\n{2,}/g, "\n\n")
-    .replace(/([^\n])\n([^\n])/g, "$1\n$2");
+    .replace(/\n{2,}/g, PAR_TOKEN)
+    .replace(/\n/g, LINE_TOKEN);
+  let stripped = removeMd(withPlaceholders);
+  stripped = stripped.replace(/\\/g, "");
+  stripped = stripped.replace(/[*_~`#>]+/g, "");
+  stripped = stripped.replace(new RegExp(PAR_TOKEN, "g"), "\n\n").replace(new RegExp(LINE_TOKEN, "g"), "\n");
+  stripped = stripped.replace(/[ \t]{2,}/g, " ").trim();
+  return stripped;
 }
 
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
@@ -123,7 +133,7 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
 export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
   if (!calEvent.description) return "";
   const plainText = stripMarkdownPreserveNewlines(calEvent.description);
-  return `${t("description")}\n${plainText}`;
+  return `${t("description")}:\n${plainText}`;
 };
 
 export const getLocation = (

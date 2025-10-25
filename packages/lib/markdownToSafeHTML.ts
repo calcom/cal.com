@@ -1,6 +1,6 @@
+// ADD THIS LINE
+import MarkdownIt from "markdown-it";
 import sanitizeHtml from "sanitize-html";
-
-import { md } from "@calcom/lib/markdownIt";
 
 if (typeof window !== "undefined") {
   // This file imports markdown parser which is a costly dependency, so we want to make sure it's not imported on the client side.
@@ -11,9 +11,42 @@ if (typeof window !== "undefined") {
 export function markdownToSafeHTML(markdown: string | null) {
   if (!markdown) return "";
 
+  const md = new MarkdownIt({ html: true, breaks: true });
   const html = md.render(markdown);
 
-  const safeHTML = sanitizeHtml(html);
+  const sanitizeOptions = {
+    allowedSchemes: ["http", "https", "mailto", "tel"],
+    allowedTags: [
+      "p",
+      "br",
+      "strong",
+      "em",
+      "b",
+      "i",
+      "u",
+      "s",
+      "strike",
+      "ul",
+      "ol",
+      "li",
+      "a",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "blockquote",
+      "pre",
+      "code",
+      "hr",
+    ],
+    allowedAttributes: {
+      a: ["href"],
+    },
+  };
+
+  const safeHTML = sanitizeHtml(html, sanitizeOptions);
 
   let safeHTMLWithListFormatting = safeHTML
     .replace(
