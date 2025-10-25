@@ -65,17 +65,9 @@ export const getWho = (
   }`;
 };
 
-function stripMarkdownPreserveNewlines(text: string): string {
-  const stripped = stripMarkdown(text);
-  return stripped
-    .replace(/\r\n/g, "\n")
-    .replace(/\n{2,}/g, "\n\n")
-    .replace(/([^\n])\n([^\n])/g, "$1\n$2");
-}
-
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
   if (!calEvent.additionalNotes) return "";
-  const plainText = stripMarkdownPreserveNewlines(calEvent.additionalNotes);
+  const plainText = stripMarkdown(calEvent.additionalNotes, { preserveNewlines: true });
   return `${t("additional_notes")}:\n${plainText}`;
 };
 
@@ -122,8 +114,8 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
 
 export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
   if (!calEvent.description) return "";
-  const plainText = stripMarkdownPreserveNewlines(calEvent.description);
-  return `${t("description")}\n${plainText}`;
+  const plainText = stripMarkdown(calEvent.description, { preserveNewlines: true });
+  return `${t("description")}:\n${plainText}`;
 };
 
 export const getLocation = (
