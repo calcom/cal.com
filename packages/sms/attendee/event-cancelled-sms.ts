@@ -12,10 +12,17 @@ export default class EventCancelledSMS extends SMSManager {
     const t = attendee.language.translate;
     const bookingUrl = `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`;
 
+    const eventTitle =
+      typeof this.calEvent.title === "string"
+        ? this.calEvent.title
+        : (this.calEvent.title as any)?.title ||
+          (this.calEvent.title as any)?.name ||
+          String(this.calEvent.title || "");
+
     const messageText = `${t("hey_there")} ${attendee.name}, ${t("event_request_cancelled")}\n\n${t(
       "event_cancelled_subject",
       {
-        title: this.calEvent.title,
+        title: eventTitle,
         date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
         interpolation: { escapeValue: false },
       }
