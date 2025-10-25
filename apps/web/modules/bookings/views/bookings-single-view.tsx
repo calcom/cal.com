@@ -100,7 +100,14 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
 
-  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
+  const {
+    eventType,
+    bookingInfo,
+    previousBooking,
+    requiresLoginToUpdate,
+    rescheduledToUid,
+    canViewHiddenData,
+  } = props;
 
   const {
     allRemainingBookings,
@@ -374,7 +381,7 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+  const _canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
@@ -460,7 +467,7 @@ export default function Success(props: PageProps) {
                 {!isFeedbackMode && (
                   <>
                     <div
-                      className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
+                      className={classNames(isRoundRobin && "min-w-22 w-22 relative mx-auto h-24 min-h-24")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
@@ -546,7 +553,7 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 gap-x-4 border-t pt-8 text-left rtl:text-right sm:gap-x-0">
+                      <div className="border-subtle text-default mt-2 grid grid-cols-2 gap-x-4 border-t pt-2 text-left rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -698,7 +705,7 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {!!utmParams && isHost && (
+                        {!!utmParams && canViewHiddenData && (
                           <>
                             <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
                             <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
@@ -1071,7 +1078,7 @@ export default function Success(props: PageProps) {
               </div>
               {isGmail && !isFeedbackMode && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right"
                   severity="warning"
                   message={
                     <div>

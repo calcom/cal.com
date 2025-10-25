@@ -7,6 +7,7 @@ import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
@@ -184,6 +185,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
 
+  const isLoggedInUserTeamMember = !!(
+    userId &&
+    ((eventType.team?.id && (await isTeamMember(userId, eventType.team.id))) ||
+      (eventType.parent?.teamId && (await isTeamMember(userId, eventType.parent.teamId))))
+  );
+
+  const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamMember;
+
   if (bookingInfo !== null && eventType.seatsPerTimeSlot) {
     await handleSeatsEventTypeOnBooking(eventType, bookingInfo, seatReferenceUid, isLoggedInUserHost);
   }
@@ -202,8 +211,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!isLoggedInUserHost) {
-    // Removing hidden fields from responses
+  if (!canViewHiddenData) {
     for (const key in bookingInfo.responses) {
       const field = eventTypeRaw.bookingFields.find((field) => field.name === key);
       if (field && !!field.hidden) {
@@ -215,7 +223,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   async function getInternalNotePresets(teamId: number | null) {
-    if (!teamId || !isLoggedInUserHost) return [];
+    if (!teamId || !canViewHiddenData) return [];
     return await prisma.internalNotePreset.findMany({
       where: {
         teamId,
@@ -264,6 +272,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
+      canViewHiddenData,
       internalNotePresets: internalNotes,
     },
   };
