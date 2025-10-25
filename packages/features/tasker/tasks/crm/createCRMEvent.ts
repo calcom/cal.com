@@ -106,6 +106,7 @@ export async function createCRMEvent(payload: string): Promise<void> {
     const existingBookingReferences = await prisma.bookingReference.findMany({
       where: {
         bookingId: booking.id,
+        deleted: null,
       },
     });
 
@@ -170,7 +171,7 @@ export async function createCRMEvent(payload: string): Promise<void> {
           continue;
         }
 
-        const CrmManager = (await import("@calcom/lib/crmManager/crmManager")).default;
+        const CrmManager = (await import("@calcom/features/crmManager/crmManager")).default;
 
         const crm = new CrmManager(crmCredential, app);
 

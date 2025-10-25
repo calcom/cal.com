@@ -10,7 +10,7 @@ import { getBookingForReschedule, type GetBookingType } from "@calcom/features/b
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import type { TeamData } from "@calcom/features/ee/teams/lib/getTeamData";
-import { shouldHideBrandingForTeamEvent } from "@calcom/lib/hideBranding";
+import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import slugify from "@calcom/lib/slugify";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";

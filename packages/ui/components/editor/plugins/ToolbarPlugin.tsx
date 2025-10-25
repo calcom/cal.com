@@ -35,8 +35,6 @@ import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
 const LowPriority = 1;
 
-const supportedBlockTypes = new Set(["paragraph", "h1", "h2", "ul", "ol"]);
-
 interface BlockType {
   [key: string]: string;
 }
@@ -389,6 +387,10 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     if (props.setFirstRender) {
       props.setFirstRender(false);
       editor.update(() => {
+        const currentContent = $getRoot().getTextContent().trim();
+        if (currentContent) {
+          return;
+        }
         const parser = new DOMParser();
         const dom = parser.parseFromString(props.getText(), "text/html");
 
@@ -451,7 +453,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   return (
     <div className="toolbar flex" ref={toolbarRef}>
       <>
-        {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
+        {!props.excludedToolbarItems?.includes("blockType") && (
           <>
             <Dropdown>
               <DropdownMenuTrigger className="text-subtle">
@@ -488,7 +490,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           </>
         )}
 
-        <>
+        <div className="flex gap-1">
           {!props.excludedToolbarItems?.includes("bold") && (
             <Button
               aria-label="Bold"
@@ -529,7 +531,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
             </>
           )}
-        </>
+        </div>
         {props.variables && (
           <div className={`${props.addVariableButtonTop ? "-mt-10" : ""} ml-auto`}>
             <AddVariablesDropdown
