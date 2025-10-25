@@ -19,8 +19,11 @@ import { Label } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
 
 import AssignAllTeamMembers from "./AssignAllTeamMembers";
-import CheckedTeamSelect from "./CheckedTeamSelect";
-import type { CheckedSelectOption, CheckedTeamSelectCustomClassNames } from "./CheckedTeamSelect";
+import CheckedTeamSelectWithEmails from "./CheckedTeamSelectWithEmails";
+import type {
+  CheckedSelectOptionWithEmail,
+  CheckedTeamSelectWithEmailsCustomClassNames,
+} from "./CheckedTeamSelectWithEmails";
 
 interface IUserToValue {
   id: number | null;
@@ -59,7 +62,7 @@ const CheckedHostField = ({
   isFixed,
   value,
   onChange,
-  helperText,
+  helperText: _helperText,
   isRRWeightsEnabled,
   groupId,
   customClassNames,
@@ -70,34 +73,65 @@ const CheckedHostField = ({
   isFixed: boolean;
   value: Host[];
   onChange?: (options: Host[]) => void;
-  options?: Options<CheckedSelectOption>;
+  options?: Options<CheckedSelectOptionWithEmail>;
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
   groupId: string | null;
-} & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
+} & Omit<Partial<ComponentProps<typeof CheckedTeamSelectWithEmails>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
-        <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+        <CheckedTeamSelectWithEmails
+          isOptionDisabled={(option) => !!value.find((host) => host.userId?.toString() === option.value)}
           onChange={(options) => {
-            onChange &&
-              onChange(
-                options.map((option) => ({
+            onChange?.(
+              options.map((option) => {
+                // Handle email invites
+                if (option.isEmailInvite && option.email) {
+                  return {
+                    isFixed,
+                    userId: 0,
+                    email: option.email,
+                    priority: option.priority ?? 2,
+                    weight: option.weight ?? 100,
+                    scheduleId: null,
+                    groupId: option.groupId,
+                  };
+                }
+
+                return {
                   isFixed,
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
                   groupId: option.groupId,
-                }))
-              );
+                };
+              })
+            );
           }}
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .reduce((acc, host) => {
-              const option = options.find((member) => member.value === host.userId.toString());
+              if ("email" in host && host.email) {
+                acc.push({
+                  value: `email:${host.email}`,
+                  label: host.email,
+                  avatar: "",
+                  email: host.email,
+                  isEmailInvite: true,
+                  priority: host.priority ?? 2,
+                  isFixed,
+                  weight: host.weight ?? 100,
+                  groupId: host.groupId,
+                  defaultScheduleId: null,
+                });
+                return acc;
+              }
+
+              // handle regular users
+              const option = options.find((member) => member.value === host.userId?.toString());
               if (!option) return acc;
 
               acc.push({
@@ -109,7 +143,7 @@ const CheckedHostField = ({
               });
 
               return acc;
-            }, [] as CheckedSelectOption[])}
+            }, [] as CheckedSelectOptionWithEmail[])}
           controlShouldRenderValue={false}
           options={options}
           placeholder={placeholder}
@@ -172,7 +206,7 @@ function MembersSegmentWithToggle({
 
 export type AddMembersWithSwitchCustomClassNames = {
   assingAllTeamMembers?: SettingsToggleClassNames;
-  teamMemberSelect?: CheckedTeamSelectCustomClassNames;
+  teamMemberSelect?: CheckedTeamSelectWithEmailsCustomClassNames;
 };
 
 export type AddMembersWithSwitchProps = {
@@ -260,7 +294,7 @@ export function AddMembersWithSwitch({
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
-  const { setValue } = useFormContext<FormValues>();
+  const { setValue: _setValue } = useFormContext<FormValues>();
   const {
     assignRRMembersUsingSegment,
     setAssignRRMembersUsingSegment,
