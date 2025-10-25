@@ -72,7 +72,7 @@ export const DestinationCalendarSelector = ({
             : selectedCalendar.primary?.name
         })`,
         options: (selectedCalendar.calendars ?? [])
-          .filter((cal) => cal.readOnly === false)
+          .filter((cal) => cal.readOnly === false || cal.integration === "ics-feed_calendar")
           .map((cal) => ({
             label: ` ${cal.name} `,
             subtitle: `(${selectedCalendar?.integration.title?.replace(/calendar/i, "")} - ${
