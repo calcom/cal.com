@@ -20,8 +20,12 @@ vi.mock("@calcom/lib/OgImages", () => ({
   Generic: vi.fn(() => null),
 }));
 
-vi.mock("@calcom/lib/constants", () => ({
-  WEBAPP_URL: "http://localhost:3000",
+vi.mock(import("@calcom/lib/constants"), async (importOriginal) => {
+  return await importOriginal();
+});
+
+vi.mock("@calcom/web/public/app-store/svg-hashes.json", () => ({
+  default: {},
 }));
 
 global.fetch = vi.fn();
@@ -82,7 +86,7 @@ describe("GET /api/social/og/image", () => {
       const response = await GET(request);
 
       expect(response.status).toBe(404);
-      expect(await response.text()).toBe("What you're looking for is not here..");
+      expect(await response.text()).toBe("Wrong image type");
     });
 
     test("returns 404 when invalid type parameter is provided", async () => {
@@ -90,7 +94,7 @@ describe("GET /api/social/og/image", () => {
       const response = await GET(request);
 
       expect(response.status).toBe(404);
-      expect(await response.text()).toBe("What you're looking for is not here..");
+      expect(await response.text()).toBe("Wrong image type");
     });
   });
 
