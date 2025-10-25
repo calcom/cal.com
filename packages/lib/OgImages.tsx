@@ -53,21 +53,21 @@ const OG_ASSETS = {
   meeting: {
     id: "meeting-og-image-v1", // Bump version when changing Meeting component structure/styling
     logo: LOGO,
-    logoWidth: "350px",
-    avatarSize: "160px",
+    logoWidth: "350",
+    avatarSize: "160",
     variant: "dark" as const,
   },
   app: {
     id: "app-og-image-v1", // Bump version when changing App component structure/styling
     logo: LOGO,
-    logoWidth: "150px",
-    iconSize: "172px",
+    logoWidth: "150",
+    iconSize: "172",
     variant: "light" as const,
   },
   generic: {
     id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
     logo: "cal-logo-word-black.svg",
-    logoWidth: "350px",
+    logoWidth: "350",
     variant: "light" as const,
   },
 };
