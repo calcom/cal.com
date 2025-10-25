@@ -1,13 +1,13 @@
+import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
 
-import { hasReadPermissionsForUserId } from "../../hasEditPermissionForUser";
 import {
   transformAvailabilityForAtom,
   transformDateOverridesForAtom,
   transformWorkingHoursForAtom,
-} from "../../schedules/transformers";
+} from "../lib/transformers";
 
 export type FindDetailedScheduleByIdReturnType = Awaited<
   ReturnType<typeof ScheduleRepository.findDetailedScheduleById>

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { buildCalEventFromBooking } from "@calcom/features/bookings/lib/buildCalEventFromBooking";
 
-import { buildCalEventFromBooking } from "../buildCalEventFromBooking";
 import { parseRecurringEvent } from "../isRecurringEvent";
 import { getTranslation } from "../server/i18n";
 
@@ -63,7 +63,7 @@ describe("buildCalEventFromBooking", () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     getTranslation.mockImplementation((locale: string, namespace: string) => {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
+       
       const translate = () => {};
       translate.locale = locale;
       translate.namespace = namespace;

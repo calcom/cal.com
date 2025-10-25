@@ -1,6 +1,6 @@
+import { transformScheduleToAvailabilityForAtom } from "@calcom/features/schedules/lib/transformers/for-atom";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
-import { transformScheduleToAvailabilityForAtom } from "@calcom/lib/schedules/transformers/for-atom";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 import { setupDefaultSchedule } from "@calcom/trpc/server/routers/viewer/availability/util";

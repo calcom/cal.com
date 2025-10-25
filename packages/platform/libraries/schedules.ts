@@ -1,9 +1,9 @@
 export {
   ScheduleRepository,
   type FindDetailedScheduleByIdReturnType,
-} from "@calcom/lib/server/repository/schedule";
+} from "@calcom/features/schedules/repositories/schedule";
 
-export { updateSchedule, type UpdateScheduleResponse } from "@calcom/lib/schedules/updateSchedule";
+export { updateSchedule, type UpdateScheduleResponse } from "@calcom/features/schedules/lib/updateSchedule";
 export { UserAvailabilityService } from "@calcom/features/availability/lib/getUserAvailability";
 
 export {
