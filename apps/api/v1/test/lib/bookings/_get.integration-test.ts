@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeAll } from "vitest";
 import { ZodError } from "zod";
 
 import prisma from "@calcom/prisma";
@@ -17,6 +17,30 @@ const DefaultPagination = {
 };
 
 describe("GET /api/bookings", async () => {
+  beforeAll(async () => {
+    const acmeOrg = await prisma.team.findFirst({
+      where: {
+        slug: "acme",
+        isOrganization: true,
+      },
+    });
+
+    if (acmeOrg) {
+      await prisma.organizationSettings.upsert({
+        where: {
+          organizationId: acmeOrg.id,
+        },
+        update: {
+          isAdminAPIEnabled: true,
+        },
+        create: {
+          organizationId: acmeOrg.id,
+          orgAutoAcceptEmail: "acme.com",
+          isAdminAPIEnabled: true,
+        },
+      });
+    }
+  });
   const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
   const proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
@@ -317,11 +341,6 @@ describe("GET /api/bookings", async () => {
       const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
 
       const testUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-
-      const testUserBooking = await prisma.booking.findFirstOrThrow({
-        where: { userId: testUser.id },
-        include: { attendees: true },
-      });
 
       const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "GET",
