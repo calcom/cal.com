@@ -41,7 +41,8 @@ export type CreateBookingMeta = {
 
 export type BookingHandlerInput = {
   bookingData: CreateRegularBookingData;
-} & CreateBookingMeta;
+  bookingMeta: CreateBookingMeta;
+};
 
 // TODO: In a followup PR, we working on defining the type here itself instead of inferring it.
 export type RegularBookingCreateResult = Awaited<ReturnType<RegularBookingService["createBooking"]>>;
@@ -55,7 +56,10 @@ export type InstantBookingCreateResult = {
   userId: number | null;
 };
 
-// More properties to be added to this config in followup PRs
 export type BookingFlowConfig = {
   isDryRun: boolean;
+  useCacheIfEnabled: boolean;
+  noEmail: boolean;
+  hostname: string | null;
+  forcedSlug: string | null;
 };
