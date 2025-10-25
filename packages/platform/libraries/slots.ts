@@ -14,3 +14,8 @@ export { QualifiedHostsService };
 export { FilterHostsService };
 export { NoSlotsNotificationService };
 export { validateRoundRobinSlotAvailability };
+
+export {
+  RESERVED_SLOT_UID_COOKIE_NAME,
+  getReservedSlotUidFromCookies,
+} from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";

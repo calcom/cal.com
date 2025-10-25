@@ -5,6 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
 import { PrismaSelectedSlotRepository } from "@calcom/lib/server/repository/PrismaSelectedSlotRepository";
 import type { PrismaClient } from "@calcom/prisma";
+import { getReservedSlotUidFromCookies } from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";
 
 import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
 
@@ -27,7 +28,7 @@ export const isAvailableHandler = async ({
   input,
 }: IsAvailableOptions): Promise<TIsAvailableOutputSchema> => {
   const { req } = ctx;
-  const uid = req?.cookies?.uid;
+  const uid = getReservedSlotUidFromCookies(req);
 
   const { slots, eventTypeId } = input;
 

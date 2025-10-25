@@ -53,6 +53,7 @@ import type { RoutingFormResponseRepository } from "@calcom/lib/server/repositor
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { SchedulingType, PeriodType } from "@calcom/prisma/enums";
+import { getReservedSlotUidFromCookies } from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";
 import type { EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -83,7 +84,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
-  troubleshooter?: any;
+  troubleshooter?: unknown;
 }
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -460,7 +461,7 @@ export class AvailableSlotsService {
                   rescheduleUid,
                   timeZone,
                 });
-              } catch (_) {
+              } catch {
                 limitManager.addBusyTime(periodStart, unit, timeZone);
                 if (
                   periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -661,7 +662,7 @@ export class AvailableSlotsService {
                 includeManagedEvents,
                 timeZone,
               });
-            } catch (_) {
+            } catch {
               limitManager.addBusyTime(periodStart, unit, timeZone);
               if (
                 periodStartDates.every((start: Dayjs) => limitManager.isAlreadyBusy(start, unit, timeZone))
@@ -1156,7 +1157,7 @@ export class AvailableSlotsService {
     });
 
     let availableTimeSlots: typeof timeSlots = [];
-    const bookerClientUid = ctx?.req?.cookies?.uid;
+    const bookerClientUid = getReservedSlotUidFromCookies(ctx?.req);
     const isRestrictionScheduleFeatureEnabled = await this.checkRestrictionScheduleEnabled(
       eventType.team?.id
     );

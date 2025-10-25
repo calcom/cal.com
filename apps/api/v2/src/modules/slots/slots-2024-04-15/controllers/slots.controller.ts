@@ -7,7 +7,7 @@ import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/servic
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, BadRequestException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
+import { ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import {
@@ -18,6 +18,10 @@ import {
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
 import { TRPCError } from "@calcom/platform-libraries";
+import {
+  RESERVED_SLOT_UID_COOKIE_NAME,
+  getReservedSlotUidFromCookies,
+} from "@calcom/platform-libraries/slots";
 import { RemoveSelectedSlotInput_2024_04_15, ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform-types";
 
@@ -57,9 +61,9 @@ export class SlotsController_2024_04_15 {
     @Res({ passthrough: true }) res: ExpressResponse,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse<string>> {
-    const uid = await this.slotsService.reserveSlot(body, req.cookies?.uid);
+    const uid = await this.slotsService.reserveSlot(body, getReservedSlotUidFromCookies(req));
 
-    res.cookie("uid", uid);
+    res.cookie(RESERVED_SLOT_UID_COOKIE_NAME, uid);
     return {
       status: SUCCESS_STATUS,
       data: uid,
@@ -81,7 +85,7 @@ export class SlotsController_2024_04_15 {
     @Query() params: RemoveSelectedSlotInput_2024_04_15,
     @Req() req: ExpressRequest
   ): Promise<ApiResponse> {
-    const uid = req.cookies?.uid || params.uid;
+    const uid = getReservedSlotUidFromCookies(req) || params.uid;
 
     await this.slotsService.deleteSelectedslot(uid);
 
