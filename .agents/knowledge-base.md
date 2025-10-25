@@ -526,273 +526,51 @@ class BookingRepository {
 
 ## Creating Services and Using Them in API v2
 
-This guide explains how to create a new service in the `packages/features` directory and properly integrate it with API v2 using the platform-libraries pattern.
+When creating a new service and integrating it with API v2, follow the layered architecture pattern used in the codebase.
 
-### Architecture Overview
-
-The Cal.com codebase uses a layered architecture for services:
+### Architecture Layers
 
 1. **Base Service** (`packages/features/*/lib/service/`) - Contains business logic with optional dependency injection
-2. **Platform Library Export** (`packages/platform/libraries/`) - Re-exports base services for API v2 consumption
-3. **API v2 Service** (`apps/api/v2/src/lib/services/`) - Extends base service with NestJS dependency injection
+2. **Platform Library Export** (`packages/platform/libraries/`) - Re-exports base services for API v2
+3. **API v2 Service** (`apps/api/v2/src/lib/services/`) - Extends base service with NestJS DI
 4. **API v2 Repository** (`apps/api/v2/src/lib/repositories/`) - Wraps base repositories with NestJS DI
-5. **API v2 Module** (`apps/api/v2/src/lib/modules/`) - Registers all providers for dependency injection
+5. **API v2 Module** (`apps/api/v2/src/lib/modules/`) - Registers providers for dependency injection
 
-### Step 1: Create the Base Service
+### Implementation Steps
 
-Create your service in `packages/features/[feature-name]/lib/service/[ServiceName].ts`:
+Follow the pattern demonstrated in `apps/api/v2/src/lib/services/regular-booking.service.ts` and its associated files:
 
-```typescript
-// packages/features/notifications/lib/service/NotificationService.ts
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { EmailService } from "@calcom/features/email/lib/EmailService";
+1. **Create Base Service** in `packages/features/[feature]/lib/service/[Name]Service.ts`
+   - Constructor should accept optional dependencies with fallback instantiation
+   - Keep services framework-agnostic (no NestJS dependencies)
 
-interface NotificationServiceDeps {
-  userRepository: UserRepository;
-  emailService: EmailService;
-}
+2. **Export from Platform Libraries** in `packages/platform/libraries/[feature].ts`
+   - Export the service class and its dependency types
+   - See `packages/platform/libraries/bookings.ts` for reference
 
-export class NotificationService {
-  private readonly userRepository: UserRepository;
-  private readonly emailService: EmailService;
+3. **Create API v2 Repository Wrappers** in `apps/api/v2/src/lib/repositories/`
+   - Extend base repository from platform-libraries
+   - Use `@Injectable()` decorator and inject `PrismaWriteService`
+   - See `apps/api/v2/src/lib/repositories/prisma-booking.repository.ts` for reference
 
-  // Constructor accepts optional dependencies with fallback instantiation
-  constructor(deps?: NotificationServiceDeps) {
-    this.userRepository = deps?.userRepository ?? new UserRepository();
-    this.emailService = deps?.emailService ?? new EmailService();
-  }
+4. **Create API v2 Service** in `apps/api/v2/src/lib/services/`
+   - Extend base service from platform-libraries
+   - Use `@Injectable()` and inject API v2 repositories/services
+   - Pass dependencies to base via `super()`
+   - See `apps/api/v2/src/lib/services/regular-booking.service.ts` for reference
 
-  async sendNotification(userId: number, message: string) {
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
+5. **Create API v2 Module** in `apps/api/v2/src/lib/modules/`
+   - Import `PrismaModule`
+   - Register all repositories and services as providers
+   - Export the main service
+   - See `apps/api/v2/src/lib/modules/regular-booking.module.ts` for reference
 
-    await this.emailService.send({
-      to: user.email,
-      subject: "Notification",
-      body: message,
-    });
+### Key Rules
 
-    return { success: true };
-  }
-}
-```
-
-**Key Points:**
-- Dependencies are optional with fallback instantiation (for backward compatibility)
-- Business logic lives in the service, not in repositories
-- Service methods should be focused and single-purpose
-
-### Step 2: Export Service from Platform Libraries
-
-Add your service to the appropriate platform library file:
-
-```typescript
-// packages/platform/libraries/notifications.ts
-export { NotificationService } from "@calcom/features/notifications/lib/service/NotificationService";
-export type { NotificationServiceDeps } from "@calcom/features/notifications/lib/service/NotificationService";
-```
-
-**Note:** If the platform library file doesn't exist, create it following the pattern of existing files like `packages/platform/libraries/bookings.ts`.
-
-### Step 3: Create API v2 Repository Wrappers
-
-For each repository your service depends on, create an API v2 wrapper:
-
-```typescript
-// apps/api/v2/src/lib/repositories/prisma-user.repository.ts
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-
-import { PrismaUserRepository as PrismaUserRepositoryLib } from "@calcom/platform-libraries/repositories";
-import type { PrismaClient } from "@calcom/prisma";
-
-@Injectable()
-export class PrismaUserRepository extends PrismaUserRepositoryLib {
-  constructor(private readonly dbWrite: PrismaWriteService) {
-    super(dbWrite.prisma as unknown as PrismaClient);
-  }
-}
-```
-
-**Key Points:**
-- Extends the base repository from platform-libraries
-- Uses `@Injectable()` decorator for NestJS dependency injection
-- Injects `PrismaWriteService` to get the Prisma client
-
-### Step 4: Create API v2 Service
-
-Create your API v2 service that extends the base service:
-
-```typescript
-// apps/api/v2/src/lib/services/notification.service.ts
-import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
-import { EmailService } from "@/lib/services/email.service";
-import { Injectable } from "@nestjs/common";
-
-import { NotificationService as BaseNotificationService } from "@calcom/platform-libraries/notifications";
-
-@Injectable()
-export class NotificationService extends BaseNotificationService {
-  constructor(
-    userRepository: PrismaUserRepository,
-    emailService: EmailService
-  ) {
-    super({
-      userRepository,
-      emailService,
-    });
-  }
-}
-```
-
-**Key Points:**
-- Extends the base service from platform-libraries
-- Uses `@Injectable()` decorator for NestJS DI
-- Injects API v2-specific repository and service implementations
-- Passes dependencies to base service via `super()`
-
-### Step 5: Create API v2 Module
-
-Create a module to register all providers:
-
-```typescript
-// apps/api/v2/src/lib/modules/notification.module.ts
-import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
-import { EmailService } from "@/lib/services/email.service";
-import { NotificationService } from "@/lib/services/notification.service";
-import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { Module } from "@nestjs/common";
-
-@Module({
-  imports: [PrismaModule],
-  providers: [
-    PrismaUserRepository,
-    EmailService,
-    NotificationService,
-  ],
-  exports: [NotificationService],
-})
-export class NotificationModule {}
-```
-
-**Key Points:**
-- Import `PrismaModule` for database access
-- Register all repositories and services as providers
-- Export the main service for use in other modules
-
-### Step 6: Use Service in API v2 Controllers
-
-Import the module and inject the service in your controller:
-
-```typescript
-// apps/api/v2/src/modules/notifications/controllers/notifications.controller.ts
-import { NotificationService } from "@/lib/services/notification.service";
-import { NotificationModule } from "@/lib/modules/notification.module";
-import { Controller, Post, Body } from "@nestjs/common";
-
-@Controller("notifications")
-export class NotificationsController {
-  constructor(private readonly notificationService: NotificationService) {}
-
-  @Post("send")
-  async sendNotification(@Body() body: { userId: number; message: string }) {
-    return this.notificationService.sendNotification(body.userId, body.message);
-  }
-}
-```
-
-### Common Patterns
-
-#### Pattern 1: Service with No Dependencies
-
-If your service doesn't need dependencies:
-
-```typescript
-// Base service
-export class SimpleService {
-  constructor() {}
-  
-  async doSomething() {
-    // Logic here
-  }
-}
-
-// API v2 service
-@Injectable()
-export class SimpleService extends BaseSimpleService {
-  constructor() {
-    super();
-  }
-}
-```
-
-#### Pattern 2: Service with Prisma Client
-
-Some base services accept a Prisma client directly:
-
-```typescript
-// Base service
-export class DataService {
-  constructor(private readonly prisma: PrismaClient) {}
-}
-
-// API v2 service
-@Injectable()
-export class DataService extends BaseDataService {
-  constructor(prismaWriteService: PrismaWriteService) {
-    super(prismaWriteService.prisma as unknown as PrismaClient);
-  }
-}
-```
-
-#### Pattern 3: Service with Mixed Dependencies
-
-Services can have both repository and service dependencies:
-
-```typescript
-// API v2 service
-@Injectable()
-export class ComplexService extends BaseComplexService {
-  constructor(
-    userRepository: PrismaUserRepository,
-    bookingRepository: PrismaBookingRepository,
-    emailService: EmailService,
-    cacheService: CacheService
-  ) {
-    super({
-      userRepository,
-      bookingRepository,
-      emailService,
-      cacheService,
-    });
-  }
-}
-```
-
-### Best Practices
-
-1. **Never import directly from `packages/features` in API v2** - Always go through platform-libraries
-2. **Use dependency injection** - Let NestJS handle instantiation, don't use `new`
-3. **Keep base services framework-agnostic** - They should work without NestJS
-4. **Register all dependencies in modules** - Every repository and service must be in the providers array
-5. **Follow the naming convention** - `[Name]Service.ts` for services, `Prisma[Name]Repository.ts` for repositories
-6. **Export from platform-libraries** - Make base services available through the platform layer
-
-### Troubleshooting
-
-**Error: "Cannot find module '@calcom/platform-libraries/[name]'"**
-- Solution: Add your service export to the appropriate platform library file
-
-**Error: "Nest can't resolve dependencies"**
-- Solution: Ensure all dependencies are registered as providers in the module
-
-**Error: "prismaClient does not exist in type"**
-- Solution: You're trying to pass Prisma client directly instead of using repository wrappers
-
-**Error: "Cannot import from features/ in API v2"**
-- Solution: Use platform-libraries imports instead of direct feature imports
+- **Never import directly from `packages/features` in API v2** - Always use platform-libraries
+- **Use NestJS dependency injection** - Let the framework handle instantiation
+- **Register all dependencies as providers** in the module
+- **Follow naming conventions** - `[Name]Service.ts` for services, `Prisma[Name]Repository.ts` for repositories
 
 ## When using Day.js
 
