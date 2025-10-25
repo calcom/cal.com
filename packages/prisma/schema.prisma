@@ -460,6 +460,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  apiCallLogs                    ApiCallLog[]
 
   @@unique([email])
   @@unique([email, username])
@@ -573,6 +574,7 @@ model Team {
   calAiPhoneNumbers      CalAiPhoneNumber[]
   agents                 Agent[]
   bookingReports         BookingReport[]
+  apiCallLogs            ApiCallLog[]
 
   features TeamFeatures[]
 
@@ -1945,6 +1947,7 @@ model PlatformOAuthClient {
   areEmailsEnabled             Boolean @default(false)
   areDefaultEventTypesEnabled  Boolean @default(true)
   areCalendarEventsEnabled     Boolean @default(true)
+  apiCallLogs                  ApiCallLog[]
 
   createdAt DateTime @default(now())
 }
@@ -2740,4 +2743,53 @@ model CalendarCacheEvent {
   @@unique([selectedCalendarId, externalId])
   @@index([start, end, status])
   @@index([selectedCalendarId, iCalUID])
+}
+
+// API Call Logging for debugging dashboard
+model ApiCallLog {
+  id                String    @id @default(uuid())
+  requestId         String    @unique
+  
+  // Request metadata
+  method            String
+  endpoint          String
+  path              String
+  queryParams       Json?
+  requestHeaders    Json?
+  requestBody       Json?
+  
+  // Response data
+  statusCode        Int
+  responseBody      Json?
+  responseHeaders   Json?
+  responseTime      Int       // milliseconds
+  
+  // Authentication context
+  userId            Int?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organizationId    Int?
+  organization      Team?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  oauthClientId     String?
+  oauthClient       PlatformOAuthClient? @relation(fields: [oauthClientId], references: [id], onDelete: SetNull)
+  
+  // Error details
+  isError           Boolean   @default(false)
+  errorMessage      String?
+  errorStack        String?   @db.Text
+  errorCode         String?
+  
+  // Timestamps
+  timestamp         DateTime  @default(now())
+  
+  // Metadata
+  userAgent         String?
+  ipAddress         String?
+  
+  @@index([userId, timestamp])
+  @@index([organizationId, timestamp])
+  @@index([oauthClientId, timestamp])
+  @@index([endpoint, timestamp])
+  @@index([isError, timestamp])
+  @@index([statusCode, timestamp])
+  @@index([timestamp])
 }
