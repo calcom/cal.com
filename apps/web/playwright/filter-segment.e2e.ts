@@ -78,6 +78,7 @@ test.describe("Filter Segment Functionality", () => {
 
     await test.step("Can delete a filter segment", async () => {
       await deleteSegment(page, "Admin Users");
+      await page.reload();
 
       const segments = await listSegments(page);
       expect(segments.includes(segmentName)).toBe(false);
