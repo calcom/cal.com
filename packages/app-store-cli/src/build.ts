@@ -189,32 +189,66 @@ function generateFiles() {
     }
 
     function createExportObject() {
-      output.push(`export const ${objectName} = {`);
+      // Special handling for apiHandlers to use dynamic loader function
+      if (lazyImport && objectName === "apiHandlers") {
+        // Generate switch-based dynamic loader function
+        const functionName = `get${objectName.charAt(0).toUpperCase() + objectName.slice(1, -1)}`;
 
-      forEachAppDir((app) => {
-        const chosenConfig = getChosenImportConfig(importConfig, app);
+        output.push(`export const ${functionName} = async (slug: string) => {`);
+        output.push(`  switch(slug) {`);
 
-        if (fileToBeImportedExists(app, chosenConfig)) {
-          if (!lazyImport) {
+        forEachAppDir((app) => {
+          const chosenConfig = getChosenImportConfig(importConfig, app);
+
+          if (fileToBeImportedExists(app, chosenConfig)) {
             const key = entryObjectKeyGetter(app);
-            output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
-          } else {
-            const key = entryObjectKeyGetter(app);
-            if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
-              output.push(
-                `"${key}": dynamic(() => import("${getModulePath(
-                  app.path,
-                  chosenConfig.fileToBeImported
-                )}")),`
-              );
+            output.push(`    case "${key}": return await import("${getModulePath(app.path, chosenConfig.fileToBeImported)}");`);
+          }
+        }, filter);
+
+        output.push(`    default: throw new Error(\`Unknown app: \${slug}\`);`);
+        output.push(`  }`);
+        output.push(`};`);
+        output.push(``);
+
+        // Add Proxy for backward compatibility
+        output.push(`export const ${objectName} = new Proxy({} as Record<string, Promise<any>>, {`);
+        output.push(`  get: (target, prop) => {`);
+        output.push(`    if (typeof prop === 'string') {`);
+        output.push(`      return ${functionName}(prop);`);
+        output.push(`    }`);
+        output.push(`    return undefined;`);
+        output.push(`  }`);
+        output.push(`});`);
+      } else {
+        // Original behavior for other objects or non-lazy imports
+        output.push(`export const ${objectName} = {`);
+
+        forEachAppDir((app) => {
+          const chosenConfig = getChosenImportConfig(importConfig, app);
+
+          if (fileToBeImportedExists(app, chosenConfig)) {
+            if (!lazyImport) {
+              const key = entryObjectKeyGetter(app);
+              output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
             } else {
-              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+              const key = entryObjectKeyGetter(app);
+              if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
+                output.push(
+                  `"${key}": dynamic(() => import("${getModulePath(
+                    app.path,
+                    chosenConfig.fileToBeImported
+                  )}")),`
+                );
+              } else {
+                output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+              }
             }
           }
-        }
-      }, filter);
+        }, filter);
 
-      output.push(`};`);
+        output.push(`};`);
+      }
     }
 
     function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
