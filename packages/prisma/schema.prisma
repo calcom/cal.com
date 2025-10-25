@@ -2756,6 +2756,5 @@ model PendingGuest {
   @@unique([email, bookingId])
   @@index([email])
   @@index([bookingId])
-  @@index([token])
   @@index([expiresAt])
 }

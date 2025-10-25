@@ -31,10 +31,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         verified: false,
         expiresAt: { gte: new Date() },
       },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        bookingId: true,
         booking: {
-          include: {
-            attendees: true,
+          select: {
+            id: true,
+            uid: true,
+            status: true,
+            userId: true,
           },
         },
       },

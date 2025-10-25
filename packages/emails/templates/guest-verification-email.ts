@@ -26,7 +26,7 @@ export default class GuestVerificationEmailTemplate extends BaseEmail {
     return {
       to: this.email.to,
       from: this.email.from,
-      subject: this.email.language("verify_email_to_join"),
+      subject: this.email.language("guest_verification_verify_email_to_join"),
       html: await renderEmail("GuestVerificationEmail", {
         language: this.email.language,
         guestEmail: this.email.guestEmail,
@@ -41,15 +41,15 @@ export default class GuestVerificationEmailTemplate extends BaseEmail {
   protected getTextBody(): string {
     const t = this.email.language;
     return `
-${t("youve_been_invited_as_guest")} ${this.email.bookingTitle}
+${t("guest_verification_youve_been_invited_as_guest")} ${this.email.bookingTitle}
 ${t("when")}: ${this.email.bookingDate}
 
-${t("to_confirm_attendance")}
+${t("guest_verification_to_confirm_attendance")}
 ${this.email.verificationLink}
 
-${t("verification_link_expires_48h")}
+${t("guest_verification_link_expires_48h")}
 
-${t("if_not_expecting_invitation")}
+${t("guest_verification_if_not_expecting_invitation")}
     `.trim();
   }
 }

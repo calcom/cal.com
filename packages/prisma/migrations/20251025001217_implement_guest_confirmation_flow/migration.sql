@@ -21,9 +21,6 @@ CREATE INDEX "PendingGuest_email_idx" ON "public"."PendingGuest"("email");
 CREATE INDEX "PendingGuest_bookingId_idx" ON "public"."PendingGuest"("bookingId");
 
 -- CreateIndex
-CREATE INDEX "PendingGuest_token_idx" ON "public"."PendingGuest"("token");
-
--- CreateIndex
 CREATE INDEX "PendingGuest_expiresAt_idx" ON "public"."PendingGuest"("expiresAt");
 
 -- CreateIndex

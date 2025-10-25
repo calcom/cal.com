@@ -21,8 +21,19 @@ export async function createPendingGuestsAndSendEmails({
     const token = generateToken();
     const expiresAt = dayjs().add(48, "hours").toDate();
 
-    await prisma.pendingGuest.create({
-      data: {
+    await prisma.pendingGuest.upsert({
+      where: {
+        email_bookingId: {
+          email: guestEmail,
+          bookingId: booking.id,
+        },
+      },
+      update: {
+        token,
+        expiresAt,
+        verified: false,
+      },
+      create: {
         email: guestEmail,
         bookingId: booking.id,
         token,

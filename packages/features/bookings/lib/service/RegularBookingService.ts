@@ -2604,7 +2604,7 @@ async function handler(
           },
           bookerUrl,
         });
-        log.info("Sent verification emails to pending guests", guestsToVerify);
+        log.info("Sent verification emails to pending guests", { count: guestsToVerify.length });
       } catch (error) {
         log.error("Error sending verification emails to pending guests", error);
       }
