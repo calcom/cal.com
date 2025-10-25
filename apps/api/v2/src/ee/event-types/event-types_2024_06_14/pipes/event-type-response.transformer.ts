@@ -14,24 +14,25 @@ type EventTypeResponse = DatabaseEventType & { ownerId: number };
 export class EventTypeResponseTransformPipe implements PipeTransform {
   constructor(private readonly outputEventTypesService: OutputEventTypesService_2024_06_14) {}
 
-  private transformEventType(eventType: EventTypeResponse): EventTypeOutput_2024_06_14 {
-    return plainToClass(
-      EventTypeOutput_2024_06_14,
-      this.outputEventTypesService.getResponseEventType(eventType.ownerId, eventType, false),
-      { strategy: "exposeAll" }
+  private async transformEventType(eventType: EventTypeResponse): Promise<EventTypeOutput_2024_06_14> {
+    const output = await this.outputEventTypesService.getResponseEventType(
+      eventType.ownerId,
+      eventType,
+      false
     );
+    return plainToClass(EventTypeOutput_2024_06_14, output, { strategy: "exposeAll" });
   }
 
   // Implementing function overloading to ensure correct return types based on input type:
-  transform(value: EventTypeResponse[]): EventTypeOutput_2024_06_14[];
+  async transform(value: EventTypeResponse[]): Promise<EventTypeOutput_2024_06_14[]>;
 
-  transform(value: EventTypeResponse): EventTypeOutput_2024_06_14;
+  async transform(value: EventTypeResponse): Promise<EventTypeOutput_2024_06_14>;
 
-  transform(
+  async transform(
     value: EventTypeResponse | EventTypeResponse[]
-  ): EventTypeOutput_2024_06_14 | EventTypeOutput_2024_06_14[] {
+  ): Promise<EventTypeOutput_2024_06_14 | EventTypeOutput_2024_06_14[]> {
     if (Array.isArray(value)) {
-      return value.map((item) => this.transformEventType(item));
+      return Promise.all(value.map((item) => this.transformEventType(item)));
     } else {
       return this.transformEventType(value);
     }

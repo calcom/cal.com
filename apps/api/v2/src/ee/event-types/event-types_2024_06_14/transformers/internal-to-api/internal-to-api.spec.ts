@@ -22,6 +22,7 @@ import type {
   OutputPhoneLocation_2024_06_14,
   OutputUnknownLocation_2024_06_14,
 } from "@calcom/platform-types";
+import { prisma } from "@calcom/prisma";
 
 import {
   transformLocationsInternalToApi,
@@ -41,8 +42,30 @@ import {
   type SystemField,
 } from "./booking-fields";
 
+// Mock Prisma
+jest.mock("@calcom/prisma", () => ({
+  prisma: {
+    app: {
+      findMany: jest.fn(),
+    },
+  },
+}));
+
 describe("transformLocationsInternalToApi", () => {
-  it("should reverse transform address location", () => {
+  beforeEach(() => {
+    // Mock the database response for integration mappings
+    (prisma.app.findMany as jest.Mock).mockResolvedValue([
+      { slug: "cal-video", dirName: "daily" },
+      { slug: "discord-video", dirName: "discord_video" },
+      { slug: "zoom", dirName: "zoomvideo" },
+      { slug: "google-meet", dirName: "googlevideo" },
+    ]);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  it("should reverse transform address location", async () => {
     const transformedLocation = [
       {
         type: "inPerson" as const,
@@ -59,12 +82,12 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should reverse transform link location", () => {
+  it("should reverse transform link location", async () => {
     const transformedLocation = [
       {
         type: "link" as const,
@@ -81,12 +104,12 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should reverse transform phone location", () => {
+  it("should reverse transform phone location", async () => {
     const transformedLocation = [
       {
         type: "userPhone" as const,
@@ -103,12 +126,12 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should reverse transform integration location", () => {
+  it("should reverse transform integration location", async () => {
     const transformedLocation = [
       {
         type: "integrations:daily" as const,
@@ -122,12 +145,12 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should transform integration location", () => {
+  it("should transform integration location", async () => {
     const transformedLocation = [
       {
         type: "integrations:discord_video" as const,
@@ -141,12 +164,12 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should transform integration location with link and credentialId", () => {
+  it("should transform integration location with link and credentialId", async () => {
     const transformedLocation = [
       {
         type: "integrations:discord_video" as const,
@@ -164,12 +187,12 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should transform unknown location", () => {
+  it("should transform unknown location", async () => {
     const transformedLocation = [
       {
         type: "unknown" as const,
@@ -186,12 +209,12 @@ describe("transformLocationsInternalToApi", () => {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should transform unknown integration location", () => {
+  it("should transform unknown integration location", async () => {
     const transformedLocation = [
       {
         type: "integrations:unknown_video" as const,
@@ -207,12 +230,12 @@ describe("transformLocationsInternalToApi", () => {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
 
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should reverse transform attendee address location", () => {
+  it("should reverse transform attendee address location", async () => {
     const transformedLocation = [
       {
         type: "attendeeInPerson" as const,
@@ -225,11 +248,11 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should reverse transform organizersDefaultApp locations", () => {
+  it("should reverse transform organizersDefaultApp locations", async () => {
     const transformedLocation = [
       {
         type: "conferencing" as const,
@@ -242,11 +265,11 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should reverse transform attendee phone location", () => {
+  it("should reverse transform attendee phone location", async () => {
     const transformedLocation = [
       {
         type: "phone" as const,
@@ -259,11 +282,11 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
     expect(result).toEqual(expectedOutput);
   });
 
-  it("should reverse transform attendee defined location", () => {
+  it("should reverse transform attendee defined location", async () => {
     const transformedLocation = [
       {
         type: "somewhereElse" as const,
@@ -276,7 +299,7 @@ describe("transformLocationsInternalToApi", () => {
       },
     ];
 
-    const result = transformLocationsInternalToApi(transformedLocation);
+    const result = await transformLocationsInternalToApi(transformedLocation);
     expect(result).toEqual(expectedOutput);
   });
 });
