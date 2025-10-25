@@ -36,6 +36,7 @@ import {
   TextFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
   LocationDefaultFieldInput_2024_06_14,
+  DateFieldInput_2024_06_14,
   ValidateInputBookingFields_2024_06_14,
 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
@@ -99,6 +100,7 @@ import { CantHaveRecurrenceAndBookerActiveBookingsLimit } from "./validators/Can
   CheckboxGroupFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
+  DateFieldInput_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
   RangeWindow_2024_06_14,
@@ -181,6 +183,7 @@ class BaseUpdateEventTypeInput {
       { $ref: getSchemaPath(CheckboxGroupFieldInput_2024_06_14) },
       { $ref: getSchemaPath(RadioGroupFieldInput_2024_06_14) },
       { $ref: getSchemaPath(BooleanFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(DateFieldInput_2024_06_14) },
     ],
     type: "array",
   })

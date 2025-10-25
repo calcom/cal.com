@@ -593,6 +593,42 @@ describe("transformBookingFieldsApiToInternal", () => {
     expect(result).toEqual(expectedOutput);
   });
 
+  it("should transform date field", () => {
+    const bookingField: InputBookingField_2024_06_14 = {
+      type: "date",
+      slug: "event-date",
+      label: "Event Date",
+      required: true,
+    };
+
+    const input: InputBookingField_2024_06_14[] = [bookingField];
+
+    const expectedOutput: CustomField[] = [
+      {
+        name: bookingField.slug,
+        type: bookingField.type,
+        label: bookingField.label,
+        labelAsSafeHtml: `<p>${bookingField.label}</p>\n`,
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: bookingField.required,
+        disableOnPrefill: false,
+        hidden: false,
+      },
+    ];
+
+    const result = transformBookingFieldsApiToInternal(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+
   it("should transform boolean field", () => {
     const bookingField: InputBookingField_2024_06_14 = {
       type: "boolean",
