@@ -1,6 +1,6 @@
 ---
 items:
-  - 1.jpg
+  - 1.png
 ---
 
 Privacy-first web analytics for devs (Google Analytics alternative)
