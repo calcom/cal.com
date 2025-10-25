@@ -243,21 +243,21 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   // If pass an `href`-attr is passed it's `<a>`, otherwise it's a `<button />`
   const isLink = typeof props.href !== "undefined";
   const elementType = isLink ? "a" : "button";
-  const element = React.createElement(
-    elementType,
-    {
-      ...passThroughProps,
-      disabled,
-      type: !isLink ? type : undefined,
-      ref: forwardedRef,
-      className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
-      // if we click a disabled button, we prevent going through the click handler
-      onClick: disabled
-        ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-            e.preventDefault();
-          }
-        : props.onClick,
-    },
+
+  const elementProps = {
+    ...passThroughProps,
+    disabled,
+    type: !isLink ? type : undefined,
+    className: classNames(buttonClasses({ color, size, loading, variant }), props.className),
+    // if we click a disabled button, we prevent going through the click handler
+    onClick: disabled
+      ? (e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+          e.preventDefault();
+        }
+      : props.onClick,
+  };
+
+  const elementContent = (
     <>
       {CustomStartIcon ||
         (StartIcon && (
@@ -333,8 +333,13 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
   );
 
   return props.href ? (
-    <Link data-testid="link-component" passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
-      {element}
+    <Link
+      data-testid="link-component"
+      href={props.href}
+      shallow={shallow && shallow}
+      className={elementProps.className}
+      onClick={elementProps.onClick}>
+      {elementContent}
     </Link>
   ) : (
     <Wrapper
@@ -343,7 +348,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       tooltipSide={tooltipSide}
       tooltipOffset={tooltipOffset}
       tooltipClassName={tooltipClassName}>
-      {element}
+      {React.createElement(elementType, { ...elementProps, ref: forwardedRef }, elementContent)}
     </Wrapper>
   );
 });
