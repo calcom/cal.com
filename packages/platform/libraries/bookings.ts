@@ -4,6 +4,7 @@ export { CheckBookingAndDurationLimitsService } from "@calcom/features/bookings/
 export { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
 export { RecurringBookingService } from "@calcom/features/bookings/lib/service/RecurringBookingService";
 export { InstantBookingCreateService } from "@calcom/features/bookings/lib/service/InstantBookingCreateService";
+export { BookingCancelService } from "@calcom/features/bookings/lib/handleCancelBooking";
 export type {
   InstantBookingCreateResult,
   RegularBookingCreateResult,
