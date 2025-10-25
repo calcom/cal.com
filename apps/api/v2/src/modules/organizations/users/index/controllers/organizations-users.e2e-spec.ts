@@ -351,6 +351,7 @@ describe("Organizations Users Endpoints", () => {
         email: `organizations-users-new-member-${randomString()}@api.com`,
         bio,
         metadata,
+        timeZone: "Europe/Rome",
       };
 
       const emailSpy = jest
@@ -367,6 +368,7 @@ describe("Organizations Users Endpoints", () => {
       expect(userData.email).toBe(newOrgUser.email);
       expect(userData.bio).toBe(newOrgUser.bio);
       expect(userData.metadata).toEqual(newOrgUser.metadata);
+      expect(userData.timeZone).toBe(newOrgUser.timeZone);
       expect(emailSpy).toHaveBeenCalledWith({
         usernameOrEmail: newOrgUser.email,
         orgName: org.name,

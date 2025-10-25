@@ -1,13 +1,22 @@
 import { MembershipRole } from "@calcom/prisma/enums";
 
 /**
+ * Enum for default role IDs
+ */
+export enum DefaultPBACRole {
+  OWNER_ROLE = "owner_role",
+  ADMIN_ROLE = "admin_role",
+  MEMBER_ROLE = "member_role",
+}
+
+/**
  * Default role IDs used in the PBAC system
  * These IDs match the ones created in the migration
  */
 export const DEFAULT_ROLE_IDS = {
-  [MembershipRole.OWNER]: "owner_role",
-  [MembershipRole.ADMIN]: "admin_role",
-  [MembershipRole.MEMBER]: "member_role",
+  [MembershipRole.OWNER]: DefaultPBACRole.OWNER_ROLE,
+  [MembershipRole.ADMIN]: DefaultPBACRole.ADMIN_ROLE,
+  [MembershipRole.MEMBER]: DefaultPBACRole.MEMBER_ROLE,
 } as const;
 
 /**

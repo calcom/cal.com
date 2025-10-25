@@ -11,7 +11,7 @@ import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { createUserAndEventType } from "../packages/prisma/seed-utils";
+import { createUserAndEventType } from "./seed-utils";
 
 async function _createManyDifferentUsersWithDifferentEventTypesAndBookings({
   tillUser,
@@ -322,4 +322,4 @@ async function createAUserWithManyBookings() {
 //   startFrom: 10000,
 // });
 
-createAUserWithManyBookings(); 
+createAUserWithManyBookings();

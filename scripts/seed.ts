@@ -6,7 +6,7 @@ import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
 import type { Membership, Team, User, UserPermissionRole } from "@calcom/prisma/client";
@@ -14,10 +14,10 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
-import mainHugeEventTypesSeed from "../packages/prisma/seed-huge-event-types";
-import { createUserAndEventType } from "../packages/prisma/seed-utils";
 import type { teamMetadataSchema } from "../packages/prisma/zod-utils";
 import mainAppStore from "./seed-app-store";
+import mainHugeEventTypesSeed from "./seed-huge-event-types";
+import { createUserAndEventType } from "./seed-utils";
 
 type PlatformUser = {
   email: string;
@@ -556,6 +556,12 @@ async function createOrganizationAndAddMembersAndTeams({
     );
 
     const ownerForEvent = orgMembersInDBWithProfileId[0];
+    if (!ownerForEvent) {
+      console.log(
+        `Warning: No organization members with profiles found for creating team event, skipping event creation for team ${team.teamData.slug}`
+      );
+      continue;
+    }
     // Create event for each team
     await prisma.eventType.create({
       data: {
@@ -1364,11 +1370,178 @@ async function main() {
       },
     ],
   });
+
+  const seededForm = {
+    id: "948ae412-d995-4865-875a-48302588de03",
+    name: "Seeded Form - Pro",
+  };
+
+  const form = await prisma.app_RoutingForms_Form.findUnique({
+    where: {
+      id: seededForm.id,
+    },
+  });
+  if (form) {
+    console.log(`Skipping Routing Form - Form Seed, "Seeded Form - Pro" already exists`);
+  } else {
+    const proUser = await prisma.user.findFirst({
+      where: {
+        username: "pro",
+      },
+    });
+
+    if (!proUser) {
+      console.log(`Skipping Routing Form - Seeding - Pro User not found`);
+    } else {
+      const multiSelectLegacyFieldId = "d2292635-9f12-17b1-9153-c3a854649182";
+      await prisma.app_RoutingForms_Form.create({
+        data: {
+          id: seededForm.id,
+          routes: [
+            {
+              id: "8a898988-89ab-4cde-b012-31823f708642",
+              action: { type: "eventTypeRedirectUrl", value: "pro/30min" },
+              queryValue: {
+                id: "8a898988-89ab-4cde-b012-31823f708642",
+                type: "group",
+                children1: {
+                  "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
+                    type: "rule",
+                    properties: {
+                      field: "c1296635-9f12-47b1-8153-c3a854649182",
+                      value: ["event-routing"],
+                      operator: "equal",
+                      valueSrc: ["value"],
+                      valueType: ["text"],
+                    },
+                  },
+                },
+              },
+            },
+            {
+              id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+              action: { type: "customPageMessage", value: "Custom Page Result" },
+              queryValue: {
+                id: "aa8aaba9-cdef-4012-b456-71823f70f7ef",
+                type: "group",
+                children1: {
+                  "b99b8a89-89ab-4cde-b012-31823f718ff5": {
+                    type: "rule",
+                    properties: {
+                      field: "c1296635-9f12-47b1-8153-c3a854649182",
+                      value: ["custom-page"],
+                      operator: "equal",
+                      valueSrc: ["value"],
+                      valueType: ["text"],
+                    },
+                  },
+                },
+              },
+            },
+            {
+              id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+              action: { type: "externalRedirectUrl", value: "https://cal.com" },
+              queryValue: {
+                id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
+                type: "group",
+                children1: {
+                  "998b9b9a-0123-4456-b89a-b1823f7232b9": {
+                    type: "rule",
+                    properties: {
+                      field: "c1296635-9f12-47b1-8153-c3a854649182",
+                      value: ["external-redirect"],
+                      operator: "equal",
+                      valueSrc: ["value"],
+                      valueType: ["text"],
+                    },
+                  },
+                },
+              },
+            },
+            {
+              id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+              action: { type: "customPageMessage", value: "Multiselect chosen" },
+              queryValue: {
+                id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                type: "group",
+                children1: {
+                  "b98a8abb-cdef-4012-b456-718262343d27": {
+                    type: "rule",
+                    properties: {
+                      field: multiSelectLegacyFieldId,
+                      value: [["Option-2"]],
+                      operator: "multiselect_equals",
+                      valueSrc: ["value"],
+                      valueType: ["multiselect"],
+                    },
+                  },
+                },
+              },
+            },
+            {
+              id: "898899aa-4567-489a-bcde-f1823f708646",
+              action: { type: "customPageMessage", value: "Fallback Message" },
+              isFallback: true,
+              queryValue: { id: "898899aa-4567-489a-bcde-f1823f708646", type: "group" },
+            },
+          ],
+          fields: [
+            {
+              id: "c1296635-9f12-47b1-8153-c3a854649182",
+              type: "text",
+              label: "Test field",
+              required: true,
+            },
+            {
+              id: multiSelectLegacyFieldId,
+              type: "multiselect",
+              label: "Multi Select(with legacy `selectText`)",
+              identifier: "multi",
+              selectText: "Option-1\nOption-2",
+              required: false,
+            },
+            {
+              id: "d3292635-9f12-17b1-9153-c3a854649182",
+              type: "multiselect",
+              label: "Multi Select",
+              identifier: "multi",
+              options: [
+                {
+                  id: "d1234635-9f12-17b1-9153-c3a854649182",
+                  label: "Option-1",
+                },
+                {
+                  id: "d1235635-9f12-17b1-9153-c3a854649182",
+                  label: "Option-2",
+                },
+              ],
+              required: false,
+            },
+          ],
+          user: {
+            connect: {
+              email_username: {
+                username: "pro",
+                email: "pro@example.com",
+              },
+            },
+          },
+          name: seededForm.name,
+        },
+      });
+    }
+  }
 }
 
-main()
-  .then(() => mainAppStore())
-  .then(() => mainHugeEventTypesSeed())
+async function runSeed() {
+  await prisma.$connect();
+  
+  await mainAppStore();
+  await main();
+  await mainHugeEventTypesSeed();
+}
+
+runSeed()
   .catch((e) => {
     console.error(e);
     process.exit(1);

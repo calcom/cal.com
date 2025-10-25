@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect } from "react";
 import type { IntercomBootProps, IntercomProps } from "react-use-intercom";
@@ -13,18 +12,17 @@ import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
-// eslint-disable-next-line turbo/no-undeclared-env-vars
 export const isInterComEnabled = z.string().min(1).safeParse(process.env.NEXT_PUBLIC_INTERCOM_APP_ID).success;
 
 const useIntercomHook = isInterComEnabled
   ? useIntercomLib
   : () => {
       return {
-        // eslint-disable-next-line
+         
         boot: (_props: IntercomBootProps) => {},
         show: noop,
         shutdown: noop,
-        // eslint-disable-next-line
+         
         update: (_props: Partial<IntercomProps>) => {},
       };
     };
@@ -40,7 +38,7 @@ export const useIntercom = () => {
       },
     },
   });
-  const { hasPaidPlan } = useHasPaidPlan();
+  const { hasPaidPlan, plan } = useHasPaidPlan();
   const { hasTeamPlan } = useHasTeamPlan();
 
   const boot = async () => {
@@ -57,6 +55,7 @@ export const useIntercom = () => {
       ...(data && data?.email && { email: data.email }),
       ...(data && data?.id && { userId: data.id }),
       createdAt: String(dayjs(data?.createdDate).unix()),
+      zIndex: 10,
       ...(userHash && { userHash }),
       hideDefaultLauncher: isMobile,
       customAttributes: {
@@ -83,6 +82,7 @@ export const useIntercom = () => {
         sum_of_event_types: statsData?.sumOfEventTypes,
         sum_of_team_event_types: statsData?.sumOfTeamEventTypes,
         is_premium: data?.isPremium,
+        Plan: plan,
       },
     });
   };
@@ -103,6 +103,7 @@ export const useIntercom = () => {
       createdAt: String(dayjs(data?.createdDate).unix()),
       ...(userHash && { userHash }),
       hideDefaultLauncher: isMobile,
+      zIndex: 10,
       customAttributes: {
         //keys should be snake cased
         user_name: data?.username,
@@ -127,6 +128,7 @@ export const useIntercom = () => {
         sum_of_event_types: statsData?.sumOfEventTypes,
         sum_of_team_event_types: statsData?.sumOfTeamEventTypes,
         is_premium: data?.isPremium,
+        Plan: plan,
       },
     });
     hookData.show();
@@ -181,7 +183,6 @@ export const useBootIntercom = () => {
       };
       window.dispatchEvent(new Event("support:ready"));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, statsData, hasPaidPlan, isTieredSupportEnabled]);
 };
 

@@ -1,20 +1,10 @@
-import type { TFunction } from "i18next";
-
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
-import { renderEmail } from "..";
+import type { IBookingRedirect } from "../lib/types/booking-redirect-types";
+import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
-export interface IBookingRedirect {
-  language: TFunction;
-  fromEmail: string;
-  eventOwner: string;
-  toEmail: string;
-  toName: string;
-  oldDates?: string;
-  dates: string;
-  action: "add" | "update" | "cancel";
-}
+export type { IBookingRedirect } from "../lib/types/booking-redirect-types";
 
 export default class BookingRedirectNotification extends BaseEmail {
   bookingRedirect: IBookingRedirect;

@@ -24,6 +24,7 @@ type Props = {
   team: EventTypeSetupProps["team"];
   eventTypeApps?: EventTypeApps;
   allActiveWorkflows?: Workflow[];
+  canReadWorkflows?: boolean;
 };
 export const useTabsNavigations = ({
   formMethods,
@@ -31,6 +32,7 @@ export const useTabsNavigations = ({
   team,
   eventTypeApps,
   allActiveWorkflows,
+  canReadWorkflows = false,
 }: Props) => {
   const { t } = useLocale();
 
@@ -69,22 +71,25 @@ export const useTabsNavigations = ({
 
   const enabledWorkflowsNumber = allActiveWorkflows ? allActiveWorkflows.length : 0;
 
+  const eventTypeId = formMethods.getValues("id");
+
   const EventTypeTabs = useMemo(() => {
     const navigation: VerticalTabItemProps[] = getNavigation({
       t,
       length,
       multipleDuration,
-      id: formMethods.getValues("id"),
+      id: eventTypeId,
       enabledAppsNumber,
       installedAppsNumber,
       enabledWorkflowsNumber,
       availability,
+      canReadWorkflows,
     });
 
     if (!requirePayment) {
       navigation.splice(3, 0, {
         name: t("recurring"),
-        href: `/event-types/${formMethods.getValues("id")}?tabName=recurring`,
+        href: `/event-types/${eventTypeId}?tabName=recurring`,
         icon: "repeat",
         info: t(`recurring_event_tab_description`),
         "data-testid": "recurring",
@@ -92,7 +97,7 @@ export const useTabsNavigations = ({
     }
     navigation.splice(1, 0, {
       name: t("availability"),
-      href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
+      href: `/event-types/${eventTypeId}?tabName=availability`,
       icon: "calendar",
       info:
         isManagedEventType || isChildrenManagedEventType
@@ -112,7 +117,7 @@ export const useTabsNavigations = ({
     if (team) {
       navigation.splice(2, 0, {
         name: t("assignment"),
-        href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
+        href: `/event-types/${eventTypeId}?tabName=team`,
         icon: "users",
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
           isManagedEventType ? ` - ${t("number_member", { count: watchChildrenCount || 0 })}` : ""
@@ -134,21 +139,11 @@ export const useTabsNavigations = ({
     }
     navigation.push({
       name: t("webhooks"),
-      href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
+      href: `/event-types/${eventTypeId}?tabName=webhooks`,
       icon: "webhook",
       info: `${activeWebhooksNumber} ${t("active")}`,
       "data-testid": "webhooks",
     });
-    const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
-    if (team && hidden) {
-      navigation.push({
-        name: "Cal.ai",
-        href: `/event-types/${eventType.id}?tabName=ai`,
-        icon: "sparkles",
-        info: t("cal_ai_event_tab_description"), // todo `cal_ai_event_tab_description`,
-        "data-testid": "Cal.ai",
-      });
-    }
     return navigation;
   }, [
     t,
@@ -162,10 +157,13 @@ export const useTabsNavigations = ({
     length,
     requirePayment,
     multipleDuration,
-    formMethods.getValues("id"),
+    eventTypeId,
     watchSchedulingType,
     watchChildrenCount,
     activeWebhooksNumber,
+    canReadWorkflows,
+    eventType.id,
+    formMethods,
   ]);
 
   return { tabsNavigation: EventTypeTabs };
@@ -180,6 +178,7 @@ type getNavigationProps = {
   enabledWorkflowsNumber: number;
   installedAppsNumber: number;
   availability: AvailabilityOption | undefined;
+  canReadWorkflows: boolean;
 };
 
 function getNavigation({
@@ -190,10 +189,11 @@ function getNavigation({
   enabledAppsNumber,
   installedAppsNumber,
   enabledWorkflowsNumber,
+  canReadWorkflows,
 }: getNavigationProps) {
   const duration = multipleDuration?.map((duration) => ` ${duration}`) || length;
 
-  return [
+  const baseNavigation: VerticalTabItemProps[] = [
     {
       name: t("basics"),
       href: `/event-types/${id}?tabName=setup`,
@@ -223,12 +223,18 @@ function getNavigation({
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
       "data-testid": "apps",
     },
-    {
+  ];
+
+  // Only add workflows tab if user has permission to read workflows
+  if (canReadWorkflows) {
+    baseNavigation.push({
       name: t("workflows"),
       href: `/event-types/${id}?tabName=workflows`,
       icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,
       "data-testid": "workflows",
-    },
-  ] satisfies VerticalTabItemProps[];
+    });
+  }
+
+  return baseNavigation;
 }

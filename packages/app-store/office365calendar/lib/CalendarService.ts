@@ -481,7 +481,9 @@ export default class Office365CalendarService implements Calendar {
               .map((member) => {
                 const destinationCalendar =
                   event.destinationCalendar &&
-                  event.destinationCalendar.find((cal) => cal.userId === member.id);
+                  event.destinationCalendar.find(
+                    (cal) => cal.integration === this.integrationName && cal.userId === member.id
+                  );
                 return {
                   emailAddress: {
                     address: destinationCalendar?.externalId ?? member.email,

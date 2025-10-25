@@ -111,7 +111,7 @@ The event types page UI components are located in `apps/web/modules/event-types/
 
 Changes to shared UI patterns (like tab layouts and button alignments) need to be checked across multiple views to maintain consistency:
 - Event types page layout: `apps/web/modules/event-types/views/event-types-listing-view.tsx`
-- Bookings page layout: `apps/web/modules/bookings/views/bookings-listing-view.tsx`
+- Bookings page layout: `apps/web/modules/bookings/views/bookings-view.tsx`
 - Common elements like tabs, search bars, and filter buttons should maintain consistent alignment across views
 
 ## When working on workflow triggers or similar enum-based features in the Cal.com codebase
@@ -306,6 +306,224 @@ import { Button } from "@calcom/ui/components/button";
 - **Tests**: Same as source file + `.test.ts` or `.spec.ts`
 - **Avoid**: Dot-suffixes like `.service.ts`, `.repository.ts` (except for tests, types, specs)
 
+## Repository Method Conventions
+
+Repositories should follow consistent naming and design patterns to promote reusability and maintainability.
+
+### Method Naming Rules
+
+**1. Don't include the repository's entity name in method names**
+
+Method names should be concise and avoid redundancy since the repository class name already indicates the entity type.
+
+```typescript
+// ✅ Good - Concise method names
+class BookingRepository {
+  findById(id: string) { ... }
+  findByUserId(userId: string) { ... }
+  create(data: BookingCreateInput) { ... }
+  delete(id: string) { ... }
+}
+
+// ❌ Bad - Redundant entity name in methods
+class BookingRepository {
+  findBookingById(id: string) { ... }
+  findBookingByUserId(userId: string) { ... }
+  createBooking(data: BookingCreateInput) { ... }
+  deleteBooking(id: string) { ... }
+}
+```
+
+**2. Use `include` or similar keywords for methods that fetch relational data**
+
+When a method retrieves additional related entities, make this explicit in the method name using keywords like `include`, `with`, or `andRelations`.
+
+```typescript
+// ✅ Good - Clear indication of included relations
+class EventTypeRepository {
+  findById(id: string) {
+    return prisma.eventType.findUnique({
+      where: { id },
+    });
+  }
+
+  findByIdIncludeHosts(id: string) {
+    return prisma.eventType.findUnique({
+      where: { id },
+      include: {
+        hosts: true,
+      },
+    });
+  }
+
+  findByIdIncludeHostsAndSchedule(id: string) {
+    return prisma.eventType.findUnique({
+      where: { id },
+      include: {
+        hosts: true,
+        schedule: true,
+      },
+    });
+  }
+}
+
+// ❌ Bad - Unclear what data is included
+class EventTypeRepository {
+  findById(id: string) {
+    return prisma.eventType.findUnique({
+      where: { id },
+      include: {
+        hosts: true,
+        schedule: true,
+      },
+    });
+  }
+
+  findByIdForReporting(id: string) {
+    return prisma.eventType.findUnique({
+      where: { id },
+      include: {
+        hosts: true,
+      },
+    });
+  }
+}
+```
+
+**3. Keep methods generic and reusable - avoid use-case-specific names**
+
+Repository methods should be general-purpose and describe what data they return, not how or where it's used. This promotes code reuse across different features.
+
+```typescript
+// ✅ Good - Generic, reusable methods
+class BookingRepository {
+  findByUserIdIncludeAttendees(userId: string) {
+    return prisma.booking.findMany({
+      where: { userId },
+      include: {
+        attendees: true,
+      },
+    });
+  }
+
+  findByDateRangeIncludeEventType(startDate: Date, endDate: Date) {
+    return prisma.booking.findMany({
+      where: {
+        startTime: { gte: startDate },
+        endTime: { lte: endDate },
+      },
+      include: {
+        eventType: true,
+      },
+    });
+  }
+}
+
+// ❌ Bad - Use-case-specific method names
+class BookingRepository {
+  findBookingsForReporting(userId: string) {
+    return prisma.booking.findMany({
+      where: { userId },
+      include: {
+        attendees: true,
+      },
+    });
+  }
+
+  findBookingsForDashboard(startDate: Date, endDate: Date) {
+    return prisma.booking.findMany({
+      where: {
+        startTime: { gte: startDate },
+        endTime: { lte: endDate },
+      },
+      include: {
+        eventType: true,
+      },
+    });
+  }
+}
+```
+
+**4. No business logic in repositories**
+
+Repositories should only handle data access. Business logic, validations, and complex transformations belong in the Service layer.
+
+```typescript
+// ✅ Good - Repository only handles data access
+class BookingRepository {
+  findByIdIncludeAttendees(id: string) {
+    return prisma.booking.findUnique({
+      where: { id },
+      include: {
+        attendees: true,
+      },
+    });
+  }
+
+  updateStatus(id: string, status: BookingStatus) {
+    return prisma.booking.update({
+      where: { id },
+      data: { status },
+    });
+  }
+}
+
+class BookingService {
+  async confirmBooking(bookingId: string) {
+    const booking = await this.bookingRepository.findByIdIncludeAttendees(bookingId);
+    
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+
+    if (booking.status !== "PENDING") {
+      throw new Error("Only pending bookings can be confirmed");
+    }
+
+    // Business logic: send confirmation emails
+    await this.emailService.sendConfirmationToAttendees(booking.attendees);
+    
+    // Update status through repository
+    return this.bookingRepository.updateStatus(bookingId, "CONFIRMED");
+  }
+}
+
+// ❌ Bad - Business logic in repository
+class BookingRepository {
+  async confirmBooking(bookingId: string) {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        attendees: true,
+      },
+    });
+
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+
+    if (booking.status !== "PENDING") {
+      throw new Error("Only pending bookings can be confirmed");
+    }
+
+    // ❌ Business logic shouldn't be here
+    await sendEmailToAttendees(booking.attendees);
+
+    return prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: "CONFIRMED" },
+    });
+  }
+}
+```
+
+### Summary
+
+- Method names should be concise: `findById` not `findBookingById`
+- Use `include`/`with` keywords when fetching relations: `findByIdIncludeHosts`
+- Keep methods generic and reusable: `findByUserIdIncludeAttendees` not `findBookingsForReporting`
+- No business logic in repositories - that belongs in Services
+
 ## When using Day.js
 
 ```typescript
@@ -318,6 +536,55 @@ dates.map((date) => dayjs.utc(date).add(1, "day").format());
 // ✅ Best - Use native Date when possible
 dates.map((date) => new Date(date.valueOf() + 24 * 60 * 60 * 1000));
 ```
+
+## Next.js App Directory: Authorisation Checks in Pages
+
+This can include checking session.user exists or session.org etc.
+
+### TL;DR:
+
+Don’t put permission checks in layout.tsx! Always put them directly inside your page.tsx or relevant server components for every restricted route.
+
+
+### Why Not to Use Layouts for Permission Checks
+
+* Layouts don’t intercept all requests: If a user navigates directly or refreshes a protected route, layout checks might be skipped, exposing sensitive content.
+* APIs and server actions bypass layouts: Sensitive operations running on the server can’t be guarded by checks in the layout.
+* Risk of data leaks: Only page/server-level checks ensure that unauthorized users never get protected data.
+
+### ✅ How To Secure Routes (The Right Way)
+
+* Check permissions inside page.tsx or the actual server component.
+* Perform all session/user/role validation before querying or rendering sensitive content.
+* Redirect or return nothing to unauthorized users, before running restricted code.
+
+### 🛠️ Example: Page-Level Permission Check
+
+
+```tsx
+// app/admin/page.tsx
+
+import { redirect } from "next/navigation";
+import { getUserSession } from "@/lib/auth";
+
+export default async function AdminPage() {
+  const session = await getUserSession();
+
+  if (!session || session.user.role !== "admin") {
+    redirect("/"); // Or show an error
+  }
+
+  // Protected content here
+  return <div>Welcome, Admin!</div>;
+}
+```
+
+### 🧠 Key Reminders
+
+* Put permission guards in every restricted page.tsx.
+* Never assume layouts are secure for guarding data.
+* Validate users before any sensitive queries or rendering.
+
 
 ## Avoid using Dayjs if you don’t need to be strictly tz aware.
 
