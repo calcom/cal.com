@@ -259,7 +259,7 @@ const EventTypeScheduleDetails = memo(
             })}
           </ol>
         </div>
-        <div className="bg-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="bg-cal-muted border-subtle flex flex-col items-center gap-2 rounded-b-md border p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
             <span className="text-default flex items-center justify-center text-center text-sm sm:justify-start">
               <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
@@ -385,7 +385,7 @@ const EventTypeRestrictionScheduleDetails = memo(
             })}
           </ol>
         </div>
-        <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
+        <div className="bg-cal-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
           <div className="flex flex-col gap-2">
             <span
               className={classNames(
@@ -609,7 +609,7 @@ const EventTypeSchedule = ({
       ) : (
         isManagedEventType &&
         fieldName === "schedule" && (
-          <p className="!mt-2 ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
+          <p className="mt-2! ml-1 text-sm text-gray-600">{t("members_default_schedule_description")}</p>
         )
       )}
     </div>
@@ -730,7 +730,7 @@ const TeamAvailability = ({
           </Label>
           <p
             className={classNames(
-              "text-subtle max-w-full break-words text-sm leading-tight",
+              "text-subtle max-w-full wrap-break-word text-sm leading-tight",
               customClassNames?.chooseHostSchedulesLabelDescription
             )}>
             {t("hosts_schedule_description")}
@@ -759,7 +759,7 @@ const TeamAvailability = ({
               ))}
             </ul>
           ) : (
-            <p className="text-subtle max-w-full break-words text-sm leading-tight">
+            <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
               {t("no_hosts_description")}
             </p>
           )}

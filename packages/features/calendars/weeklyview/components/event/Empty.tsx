@@ -151,7 +151,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
       className={classNames(
         "group flex w-[calc(100%-1px)] items-center justify-center",
         isDisabled && "pointer-events-none",
-        !isDisabled && "bg-default dark:bg-muted",
+        !isDisabled && "bg-default dark:bg-cal-muted",
         topOffsetMinutes && "absolute"
       )}
       data-disabled={isDisabled}
@@ -179,7 +179,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
             // multiple events are stacked next to each other. We might need to add this back later.
             width: "calc(100% - 2px)",
           }}>
-          <div className="overflow-ellipsis leading-[0]">{timeSlot.format(timeFormat)}</div>
+          <div className="text-ellipsis leading-0">{timeSlot.format(timeFormat)}</div>
         </div>
       )}
     </div>
@@ -195,7 +195,7 @@ function CustomCell({
   return (
     <div
       className={classNames(
-        "bg-default dark:bg-muted group absolute z-[65] flex w-[calc(100%-1px)] items-center justify-center"
+        "bg-default dark:bg-cal-muted group absolute z-65 flex w-[calc(100%-1px)] items-center justify-center"
       )}
       data-slot={timeSlot.toISOString()}
       style={{
@@ -204,7 +204,7 @@ function CustomCell({
       }}>
       <div
         className={classNames(
-          "dark:border-emphasis bg-default dark:bg-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
+          "dark:border-emphasis bg-default dark:bg-cal-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
         )}
         style={{
           height: `calc(${startEndTimeDuration}*var(--one-minute-height) - 2px)`,

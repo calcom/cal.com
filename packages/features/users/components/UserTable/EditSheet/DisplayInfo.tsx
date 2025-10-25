@@ -74,10 +74,10 @@ export function DisplayInfo({
                 </div>
               </Tooltip>
               {showLeftGradient && (
-                <div className="from-default pointer-events-none absolute left-0 top-0 h-full w-8 bg-gradient-to-r to-transparent" />
+                <div className="from-default pointer-events-none absolute left-0 top-0 h-full w-8 bg-linear-to-r to-transparent" />
               )}
               {showRightGradient && (
-                <div className="from-default pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l to-transparent" />
+                <div className="from-default pointer-events-none absolute right-0 top-0 h-full w-8 bg-linear-to-l to-transparent" />
               )}
             </div>
           </div>

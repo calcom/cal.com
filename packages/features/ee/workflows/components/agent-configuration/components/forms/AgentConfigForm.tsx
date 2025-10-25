@@ -122,7 +122,7 @@ export function AgentConfigForm({
           {toolFields.map((tool, idx) => (
             <div
               key={tool.id}
-              className="flex justify-between items-center p-4 rounded-lg border transition-colors border-subtle bg-muted hover:bg-default">
+              className="flex justify-between items-center p-4 rounded-lg border transition-colors border-subtle bg-cal-muted hover:bg-default">
               <div className="flex gap-3">
                 <div className="flex justify-center items-center w-8 h-8 rounded-md border bg-default border-subtle">
                   <Icon name="zap" className="w-4 h-4 text-emphasis" />
@@ -161,7 +161,7 @@ export function AgentConfigForm({
             </div>
           ))}
           {toolFields.length === 0 && (
-            <div className="flex flex-col justify-center items-center p-6 text-center rounded-lg border border-subtle bg-muted">
+            <div className="flex flex-col justify-center items-center p-6 text-center rounded-lg border border-subtle bg-cal-muted">
               <Icon name="zap" className="w-6 h-6 text-subtle" />
               <p className="mt-2 text-sm text-subtle">{t("No functions configured yet")}</p>
               <p className="text-xs text-subtle">

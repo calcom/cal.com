@@ -19,8 +19,8 @@ const eventClasses = cva(
   {
     variants: {
       status: {
-        ACCEPTED: "bg-subtle hover:bg-emphasis text-emphasis border-[1px] border-gray-900",
-        PENDING: "bg-default text-emphasis border-[1px] border-dashed border-gray-900",
+        ACCEPTED: "bg-subtle hover:bg-emphasis text-emphasis border border-gray-900",
+        PENDING: "bg-default text-emphasis border border-dashed border-gray-900",
         REJECTED: "",
         CANCELLED: "",
         AWAITING_HOST: "",
@@ -30,7 +30,7 @@ const eventClasses = cva(
         false: "hover:cursor-pointer",
       },
       selected: {
-        true: "bg-inverted text-inverted border-[1px] border-transparent",
+        true: "bg-inverted text-inverted border border-transparent",
         false: "",
       },
       borderColor: {
@@ -82,7 +82,7 @@ export function Event({
         style={styles}>
         <div
           className={classNames(
-            "flex w-full gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
+            "flex w-full gap-2 overflow-hidden text-ellipsis whitespace-nowrap text-left leading-4",
             eventDuration <= 30 && "items-center"
           )}>
           <span>{event.title}</span>

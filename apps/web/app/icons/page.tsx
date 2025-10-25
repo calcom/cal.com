@@ -18,7 +18,7 @@ export const metadata: Metadata = _generateMetadataForStaticPage(
   "/icons"
 );
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
 const calFont = localFont({
   src: "../../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",

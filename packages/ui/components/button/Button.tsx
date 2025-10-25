@@ -79,7 +79,7 @@ export const buttonClasses = cva(
           "border",
           "border-default",
           // Hover state
-          "enabled:hover:bg-muted",
+          "enabled:hover:bg-cal-muted",
           "enabled:hover:text-emphasis",
           // Disabled
           "disabled:opacity-30",
@@ -187,22 +187,22 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "base",
-        className: "min-h-[36px] min-w-[36px] !p-2 hover:border-default",
+        className: "min-h-[36px] min-w-[36px] p-2! hover:border-default",
       },
       {
         variant: "icon",
         size: "xs",
-        className: "h-5 w-5 !p-1 rounded-md",
+        className: "h-5 w-5 p-1! rounded-md",
       },
       {
         variant: "icon",
         size: "sm",
-        className: "h-6 w-6 !p-1 rounded-md",
+        className: "h-6 w-6 p-1! rounded-md",
       },
       {
         variant: "icon",
         size: "lg",
-        className: "h-10 w-10 !p-1",
+        className: "h-10 w-10 p-1!",
       },
       {
         variant: "fab",

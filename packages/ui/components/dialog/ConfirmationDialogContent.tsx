@@ -58,7 +58,7 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
               </div>
             )}
             {variety === "success" && (
-              <div className="bg-success mx-auto rounded-full p-2 text-center">
+              <div className="bg-cal-success mx-auto rounded-full p-2 text-center">
                 <Icon name="check" className="h-5 w-5 text-green-600" />
               </div>
             )}

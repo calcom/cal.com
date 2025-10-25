@@ -48,7 +48,7 @@ export function PanelCard({
       data-testid="panel-card"
       ref={animationParent}
       className={classNames(
-        "bg-muted group relative flex w-full flex-col items-center rounded-2xl px-1",
+        "bg-cal-muted group relative flex w-full flex-col items-center rounded-2xl px-1",
         !isCollapsed && "pb-1",
         className
       )}>

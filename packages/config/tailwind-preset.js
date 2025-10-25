@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports, no-undef */
 const plugin = require("tailwindcss/plugin");
 const { fontFamily } = require("tailwindcss/defaultTheme");
 const colors = require("tailwindcss/colors");
@@ -272,10 +273,10 @@ module.exports = {
         full: "100%",
         screen: "100vw",
       }),
-      maxWidth: (theme, { breakpoints }) => ({
+      maxWidth: (theme) => ({
         0: "0",
         ...theme("spacing"),
-        ...breakpoints(theme("screens")),
+        ...theme("screens"),
         full: "100%",
         screen: "100vw",
       }),
@@ -318,12 +319,13 @@ module.exports = {
     },
   },
   plugins: [
-    require("@todesktop/tailwind-variants"),
-    require("@tailwindcss/forms"),
-    require("@tailwindcss/typography"),
-    require("tailwind-scrollbar")({ nocompatible: true }),
-    require("tailwindcss-radix")(),
-    require("@savvywombat/tailwindcss-grid-areas"),
+    // Temporarily disabled for v4 upgrade - will re-enable after migration
+    // require("@todesktop/tailwind-variants"),
+    // require("@tailwindcss/forms"),
+    // require("@tailwindcss/typography"),
+    // require("tailwind-scrollbar")({ nocompatible: true }),
+    // require("tailwindcss-radix")(),
+    // require("@savvywombat/tailwindcss-grid-areas"),
     plugin(({ addVariant }) => {
       addVariant("mac", ".mac &");
       addVariant("windows", ".windows &");
@@ -340,7 +342,4 @@ module.exports = {
       addVariant("enabled", "&:not(:disabled)");
     }),
   ],
-  variants: {
-    scrollbar: ["dark"],
-  },
 };

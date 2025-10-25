@@ -37,7 +37,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
       onOpenChange={(open) => {
         if (!open) setQuery("");
       }}>
-      <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-muted pt-[6px]">
+      <DropdownMenuTrigger aria-label="Add variable" className="focus:bg-cal-muted pt-[6px]">
         <div className="items-center">
           {props.isTextEditor ? (
             <>
