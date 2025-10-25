@@ -389,6 +389,31 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
   return videoAdapter?.checkIfRoomNameMatchesInRecording?.(roomName, recordingId);
 };
 
+const getCalVideoMeetingSessionsByRoomName = async (roomName: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      invalid: false,
+      delegationCredentialId: null,
+    },
+  ]);
+
+  return videoAdapter?.getMeetingInformation?.(roomName);
+};
+
 export {
   getBusyVideoTimes,
   createMeeting,
@@ -401,4 +426,5 @@ export {
   submitBatchProcessorTranscriptionJob,
   getTranscriptsAccessLinkFromRecordingId,
   checkIfRoomNameMatchesInRecording,
+  getCalVideoMeetingSessionsByRoomName,
 };
