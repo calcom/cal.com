@@ -1,25 +1,27 @@
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { PrismaBookingAttendeeRepository } from "@/lib/repositories/prisma-booking-attendee.repository";
+import { PrismaBookingReferenceRepository } from "@/lib/repositories/prisma-booking-reference.repository";
+import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
+import { PrismaProfileRepository } from "@/lib/repositories/prisma-profile.repository";
+import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { Injectable } from "@nestjs/common";
 
 import { BookingCancelService as BaseBookingCancelService } from "@calcom/platform-libraries/bookings";
-import {
-  PrismaBookingRepository,
-  PrismaBookingAttendeeRepository,
-  PrismaProfileRepository,
-  PrismaUserRepository,
-  PrismaBookingReferenceRepository,
-} from "@calcom/platform-libraries/repositories";
 
 @Injectable()
 export class BookingCancelService extends BaseBookingCancelService {
-  constructor(prismaWriteService: PrismaWriteService) {
-    const prisma = prismaWriteService.prisma;
+  constructor(
+    userRepository: PrismaUserRepository,
+    bookingRepository: PrismaBookingRepository,
+    profileRepository: PrismaProfileRepository,
+    bookingReferenceRepository: PrismaBookingReferenceRepository,
+    attendeeRepository: PrismaBookingAttendeeRepository
+  ) {
     super({
-      userRepository: new PrismaUserRepository(prisma),
-      bookingRepository: new PrismaBookingRepository(prisma),
-      profileRepository: new PrismaProfileRepository({ prismaClient: prisma }),
-      bookingReferenceRepository: new PrismaBookingReferenceRepository({ prismaClient: prisma }),
-      attendeeRepository: new PrismaBookingAttendeeRepository(prisma),
+      userRepository,
+      bookingRepository,
+      profileRepository,
+      bookingReferenceRepository,
+      attendeeRepository,
     });
   }
 }
