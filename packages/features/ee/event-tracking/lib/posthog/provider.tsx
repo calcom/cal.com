@@ -4,10 +4,14 @@ import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { useEffect, useRef } from "react";
 
+import { IS_EUROPE } from "@calcom/lib/timezoneConstants";
+
 function Provider({ children }: { children: React.ReactNode }) {
   const initializeOnce = useRef(false);
 
   useEffect(() => {
+    if (IS_EUROPE) return;
+
     if (!process.env.NEXT_PUBLIC_POSTHOG_KEY || initializeOnce.current) return;
 
     initializeOnce.current = true;
@@ -16,7 +20,6 @@ function Provider({ children }: { children: React.ReactNode }) {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
       autocapture: false,
       person_profiles: "never",
-      persistence: "memory",
       request_batching: true,
       capture_pageview: false,
       capture_pageleave: false,
