@@ -86,7 +86,7 @@ describe("GET /api/social/og/image", () => {
       const response = await GET(request);
 
       expect(response.status).toBe(404);
-      expect(await response.text()).toBe("What you're looking for is not here..");
+      expect(await response.text()).toBe("Wrong image type");
     });
 
     test("returns 404 when invalid type parameter is provided", async () => {
@@ -94,7 +94,7 @@ describe("GET /api/social/og/image", () => {
       const response = await GET(request);
 
       expect(response.status).toBe(404);
-      expect(await response.text()).toBe("What you're looking for is not here..");
+      expect(await response.text()).toBe("Wrong image type");
     });
   });
 
