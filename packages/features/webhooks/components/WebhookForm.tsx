@@ -6,8 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { TimeTimeUnitInput } from "@calcom/features/ee/workflows/components/TimeTimeUnitInput";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeUnit } from "@calcom/prisma/enums";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { TimeUnit, WebhookTriggerEvents, WebhookVersion } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
@@ -33,6 +32,7 @@ export type WebhookFormData = {
   payloadTemplate: string | undefined | null;
   time?: number | null;
   timeUnit?: TimeUnit | null;
+  version: WebhookVersion;
 };
 
 export type WebhookFormSubmitData = WebhookFormData & {
@@ -241,6 +241,7 @@ export type WebhookFormValues = {
   payloadTemplate: string | undefined | null;
   time?: number | null;
   timeUnit?: TimeUnit | null;
+  version: WebhookVersion;
 };
 
 const WebhookForm = (props: {
@@ -288,6 +289,7 @@ const WebhookForm = (props: {
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
       timeUnit: props?.webhook?.timeUnit || undefined,
       time: props?.webhook?.time || undefined,
+      version: props?.webhook?.version || WebhookVersion.V_2021_10_20,
     },
   });
 
@@ -363,6 +365,26 @@ const WebhookForm = (props: {
                 }}
               />
             </>
+          )}
+        />
+        <Controller
+          name="version"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <div className="mt-6">
+              <Label className="font-sm text-emphasis font-medium">
+                <>{t("webhook_version")}</>
+              </Label>
+              <Select
+                options={[{ value: WebhookVersion.V_2021_10_20, label: "2021-10-20" }]}
+                value={{ value, label: value === WebhookVersion.V_2021_10_20 ? "2021-10-20" : value }}
+                onChange={(option) => {
+                  if (option) {
+                    formMethods.setValue("version", option.value, { shouldDirty: true });
+                  }
+                }}
+              />
+            </div>
           )}
         />
         <Controller
