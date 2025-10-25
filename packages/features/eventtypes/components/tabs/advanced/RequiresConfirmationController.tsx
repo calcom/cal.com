@@ -16,7 +16,9 @@ import { Select } from "@calcom/ui/components/form";
 import { CheckboxField } from "@calcom/ui/components/form";
 import { Input } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { RadioField } from "@calcom/ui/components/radio";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -59,7 +61,6 @@ export default function RequiresConfirmationController({
     if (!requiresConfirmation) {
       formMethods.setValue("metadata.requiresConfirmationThreshold", undefined, { shouldDirty: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiresConfirmation]);
 
   const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
@@ -235,21 +236,29 @@ export default function RequiresConfirmationController({
                           value="notice"
                         />
                         <div className="-ml-1 space-y-2">
-                          <CheckboxField
-                            checked={requiresConfirmationWillBlockSlot}
-                            descriptionAsLabel
-                            description={t("requires_confirmation_will_block_slot_description")}
-                            className={customClassNames?.conditionalConfirmationRadio?.checkbox}
-                            descriptionClassName={
-                              customClassNames?.conditionalConfirmationRadio?.checkboxDescription
-                            }
-                            onChange={(e) => {
-                              // We set should dirty to properly detect when we can submit the form
-                              formMethods.setValue("requiresConfirmationWillBlockSlot", e.target.checked, {
-                                shouldDirty: true,
-                              });
-                            }}
-                          />
+                          <div className="flex gap-2">
+                            <CheckboxField
+                              checked={requiresConfirmationWillBlockSlot}
+                              descriptionAsLabel
+                              description={t("requires_confirmation_will_block_slot_description")}
+                              className={customClassNames?.conditionalConfirmationRadio?.checkbox}
+                              descriptionClassName={
+                                customClassNames?.conditionalConfirmationRadio?.checkboxDescription
+                              }
+                              onChange={(e) => {
+                                // We set should dirty to properly detect when we can submit the form
+                                formMethods.setValue("requiresConfirmationWillBlockSlot", e.target.checked, {
+                                  shouldDirty: true,
+                                });
+                              }}
+                            />
+                            <div className="flex flex-col items-center justify-center">
+                              <Tooltip
+                                content={t("requires_confirmation_will_block_slot_description_tooltip")}>
+                                <Icon name="info" className="text-muted-foreground h-4 w-4" />
+                              </Tooltip>
+                            </div>
+                          </div>
                           <CheckboxField
                             checked={requiresConfirmationForFreeEmail}
                             descriptionAsLabel
