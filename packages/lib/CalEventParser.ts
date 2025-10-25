@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import removeMd from "remove-markdown";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -64,11 +65,28 @@ export const getWho = (
   }`;
 };
 
+function stripMarkdownPreserveNewlines(text: string): string {
+  if (!text) return "";
+  const PAR_TOKEN = "CALPARABREAK9F8B";
+  const LINE_TOKEN = "CALLINEBREAK9F8B";
+
+  const withPlaceholders = text
+
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{2,}/g, PAR_TOKEN)
+    .replace(/\n/g, LINE_TOKEN);
+  let stripped = removeMd(withPlaceholders);
+  stripped = stripped.replace(/\\/g, "");
+  stripped = stripped.replace(/[*_~`#>]+/g, "");
+  stripped = stripped.replace(new RegExp(PAR_TOKEN, "g"), "\n\n").replace(new RegExp(LINE_TOKEN, "g"), "\n");
+  stripped = stripped.replace(/[ \t]{2,}/g, " ").trim();
+  return stripped;
+}
+
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
-  if (!calEvent.additionalNotes) {
-    return "";
-  }
-  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
+  if (!calEvent.additionalNotes) return "";
+  const plainText = stripMarkdownPreserveNewlines(calEvent.additionalNotes);
+  return `${t("additional_notes")}:\n${plainText}`;
 };
 
 export const getUserFieldsResponses = (
@@ -113,11 +131,9 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
 };
 
 export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
-  if (!calEvent.description) {
-    return "";
-  }
-  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
-  return `${t("description")}\n${plainText}`;
+  if (!calEvent.description) return "";
+  const plainText = stripMarkdownPreserveNewlines(calEvent.description);
+  return `${t("description")}:\n${plainText}`;
 };
 
 export const getLocation = (
@@ -223,8 +239,9 @@ export const getPlatformCancelLink = (
   if (calEvent.platformCancelUrl) {
     const platformCancelLink = new URL(`${calEvent.platformCancelUrl}/${bookingUid}`);
     platformCancelLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformCancelLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformCancelLink.searchParams.append("cancel", "true");
     platformCancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
     if (seatUid) platformCancelLink.searchParams.append("seatReferenceUid", seatUid);
@@ -267,8 +284,9 @@ export const getPlatformRescheduleLink = (
       `${calEvent.platformRescheduleUrl}/${seatUid ? seatUid : bookingUid}`
     );
     platformRescheduleLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformRescheduleLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformRescheduleLink.searchParams.append("reschedule", "true");
     if (calEvent?.team) platformRescheduleLink.searchParams.append("teamId", calEvent.team.id.toString());
     return platformRescheduleLink.toString();
