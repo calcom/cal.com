@@ -124,6 +124,7 @@ export async function getCRMData(
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
   const crmAppSlugParam = query["cal.crmAppSlug"];
   const crmRecordIdParam = query["cal.crmRecordId"];
+  const crmFetchAttempted = query["cal.crmFetchAttempted"];
 
   let teamMemberEmail = Array.isArray(crmContactOwnerEmail) ? crmContactOwnerEmail[0] : crmContactOwnerEmail;
   let crmOwnerRecordType = Array.isArray(crmContactOwnerRecordType)
@@ -132,7 +133,10 @@ export async function getCRMData(
   let crmAppSlug = Array.isArray(crmAppSlugParam) ? crmAppSlugParam[0] : crmAppSlugParam;
   let crmRecordId = Array.isArray(crmRecordIdParam) ? crmRecordIdParam[0] : crmRecordIdParam;
 
-  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
+  const shouldSkipCrmRefetch =
+    crmFetchAttempted === "true" || (Array.isArray(crmFetchAttempted) && crmFetchAttempted[0] === "true");
+
+  if (!shouldSkipCrmRefetch && (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug)) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
       "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
     );
