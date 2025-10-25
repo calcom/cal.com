@@ -1,4 +1,4 @@
-import type { BaseWidget } from "react-awesome-query-builder";
+import type { BaseWidget } from "@react-awesome-query-builder/ui";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {

@@ -1,11 +1,11 @@
-// This is taken from "react-awesome-query-builder/lib/config/basic";
+// This is taken from "@react-awesome-query-builder/ui/lib/config/basic";
 import type {
   Conjunction as RAQBConjunction,
   Widget as RAQBWidget,
   Type as RAQBType,
   Settings as RAQBSettings,
   Operator as RAQBOperator,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
 
 export type Conjunction = RAQBConjunction;
 export type Conjunctions = Record<string, Conjunction>;
@@ -86,7 +86,7 @@ const operators: Operators = {
     labelForFormat: "Contains",
     reversedOp: "not_like",
     jsonLogic: "in",
-    _jsonLogicIsRevArgs: true,
+
     valueSources: ["value"],
   },
   not_like: {
@@ -212,7 +212,7 @@ const operators: Operators = {
     label: "All in",
     reversedOp: "multiselect_not_equals",
     // jsonLogic2: "all-in",
-    jsonLogic: (field: any, op: any, vals: any, ...rest) => {
+    jsonLogic: (field: any, op: any, vals: any, ..._rest: any[]) => {
       return {
         // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
         all: [field, { in: [{ var: "" }, vals] }],
@@ -381,6 +381,7 @@ const types: Types = {
     },
   },
   multiselect: {
+    mainWidget: "multiselect",
     defaultOperator: "multiselect_equals",
     widgets: {
       multiselect: {
@@ -453,7 +454,10 @@ const settings: Settings = {
   setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
 };
 
+const ctx = {};
+
 const basicConfig = {
+  ctx,
   conjunctions,
   operators,
   widgets,
