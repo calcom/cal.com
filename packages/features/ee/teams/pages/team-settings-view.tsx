@@ -186,6 +186,42 @@ const PrivacySettingsView = ({ team }: ProfileViewProps) => {
   );
 };
 
+const AvailabilityLockView = ({ team }: ProfileViewProps) => {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+  const isAdmin = team && checkAdminOrOwner(team.membership.role);
+  const isTeamInOrganization = team?.parentId !== null && team?.parentId !== undefined;
+
+  const mutation = trpc.viewer.teams.update.useMutation({
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      showToast(t("availability_lock_updated_successfully"), "success");
+    },
+  });
+
+  return (
+    <>
+      {isAdmin && isTeamInOrganization && (
+        <div className="mt-6">
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            labelClassName="text-sm"
+            title={t("lock_default_availability")}
+            description={t("lock_default_availability_description")}
+            checked={team?.lockDefaultAvailability ?? false}
+            onCheckedChange={(checked) => {
+              mutation.mutate({ id: team.id, lockDefaultAvailability: checked });
+            }}
+          />
+        </div>
+      )}
+    </>
+  );
+};
+
 const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
@@ -217,6 +253,7 @@ const TeamSettingsViewWrapper = () => {
   return (
     <>
       <BookingLimitsView team={team} />
+      <AvailabilityLockView team={team} />
       <PrivacySettingsView team={team} />
       <InternalNotePresetsView team={team} />
       <RoundRobinSettings team={team} />

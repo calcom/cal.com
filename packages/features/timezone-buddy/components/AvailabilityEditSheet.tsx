@@ -144,6 +144,8 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
   });

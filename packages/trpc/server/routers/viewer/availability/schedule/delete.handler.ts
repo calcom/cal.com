@@ -1,3 +1,4 @@
+import { checkLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
 import { HostRepository } from "@calcom/lib/server/repository/host";
 import { prisma } from "@calcom/prisma";
 
@@ -31,6 +32,9 @@ export const deleteHandler = async ({ input, ctx }: DeleteOptions) => {
   // cannot remove this schedule if this is the last schedule remaining
   // if this is the last remaining schedule of the user then this would be the default schedule and so cannot remove it
   if (user.defaultScheduleId === input.scheduleId) {
+    // Only block if user has locked team membership AND is not an admin/owner of any team
+    await checkLockedDefaultAvailabilityRestriction(user.id);
+
     // set a new default or unset default if no other schedule
     const scheduleToSetAsDefault = await prisma.schedule.findFirst({
       where: {
