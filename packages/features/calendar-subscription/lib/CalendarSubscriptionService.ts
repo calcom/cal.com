@@ -123,7 +123,7 @@ export class CalendarSubscriptionService {
     log.debug("Processing webhook", { channelId });
     const selectedCalendar = await this.deps.selectedCalendarRepository.findByChannelId(channelId);
     // it maybe caused by an old subscription being triggered
-    if (!selectedCalendar) return null;
+    if (!selectedCalendar) return;
 
     // incremental event loading
     await this.processEvents(selectedCalendar);
@@ -209,7 +209,13 @@ export class CalendarSubscriptionService {
       integrations: this.deps.adapterFactory.getProviders(),
     });
     log.debug("checkForNewSubscriptions", { count: rows.length });
-    await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
+    const results = await Promise.allSettled(rows.map(({ id }) => this.subscribe(id)));
+
+    const errors = results.filter((r) => r.status === "rejected");
+    const successes = results.filter((r) => r.status === "fulfilled");
+
+    log.info(`Subscriptions: ${successes.length} succeeded | ${errors.length} failed`);
+    errors.forEach((e) => log.error(e.reason));
   }
 
   /**
