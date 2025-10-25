@@ -8,6 +8,7 @@ import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/cr
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
@@ -30,6 +31,8 @@ import {
 } from "../utils/token";
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
+
+const userRepo = new UserRepository(prisma);
 
 const handler: CustomNextApiHandler = async (body, usernameStatus) => {
   const {
@@ -154,25 +157,10 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       },
     });
     if (team) {
-      const user = await prisma.user.upsert({
-        where: { email },
-        update: {
-          username,
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-          password: {
-            upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
-            },
-          },
-        },
-        create: {
-          username,
-          email,
-          identityProvider: IdentityProvider.CAL,
-          password: { create: { hash: hashedPassword } },
-        },
+      const user = await userRepo.upsert({
+        email,
+        username,
+        hashedPassword,
       });
       // Wrapping in a transaction as if one fails we want to rollback the whole thing to preventa any data inconsistencies
       await createOrUpdateMemberships({
@@ -197,19 +185,20 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
     });
   } else {
     // Create the user
-    await prisma.user.create({
-      data: {
-        username,
-        email,
-        locked: shouldLockByDefault,
-        password: { create: { hash: hashedPassword } },
-        metadata: {
-          stripeCustomerId: customer.stripeCustomerId,
-          checkoutSessionId,
-        },
-        creationSource: CreationSource.WEBAPP,
+    await userRepo.create({
+      username,
+      email,
+      locked: shouldLockByDefault,
+      hashedPassword,
+      metadata: {
+        stripeCustomerId: customer.stripeCustomerId,
+        checkoutSessionId,
       },
+      creationSource: CreationSource.WEBAPP,
+      skipDefaultSchedule: true,
+      organizationId: null,
     });
+
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }
