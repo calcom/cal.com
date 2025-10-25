@@ -81,7 +81,7 @@ export const UsernameAvailabilityField = ({
           usernameRef={ref}
           setInputUsernameValue={(val) => {
             const displayValue = val.toLowerCase().trim();
-            formMethods.setValue("username", displayValue, { shouldDirty: true });
+            formMethods.setValue("username", displayValue);
             onChange?.(displayValue);
           }}
           onSuccessMutation={onSuccessMutation}
