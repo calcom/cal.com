@@ -80,7 +80,7 @@ export const UsernameAvailabilityField = ({
           inputUsernameValue={value}
           usernameRef={ref}
           setInputUsernameValue={(val) => {
-            const displayValue = val.toLowerCase().trim();
+            const displayValue = slugify(val, true);
             formMethods.setValue("username", displayValue);
             onChange?.(displayValue);
           }}

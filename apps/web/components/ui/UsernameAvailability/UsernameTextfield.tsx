@@ -137,7 +137,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             )}
             onChange={(event) => {
               event.preventDefault();
-              const sanitized = slugify(event.target.value);
+              const sanitized = slugify(event.target.value, true);
               setInputUsernameValue(sanitized);
             }}
             data-testid="username-input"
