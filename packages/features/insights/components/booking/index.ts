@@ -14,3 +14,5 @@ export { RecentFeedbackTable } from "./RecentFeedbackTable";
 export { TimezoneBadge } from "./TimezoneBadge";
 export { MostCompletedTeamMembersTable } from "./MostCompletedBookings";
 export { LeastCompletedTeamMembersTable } from "./LeastCompletedBookings";
+export { NoShowHostsOverTimeChart } from "./NoShowHostsOverTimeChart";
+export { CSATOverTimeChart } from "./CSATOverTimeChart";
