@@ -441,6 +441,7 @@ const _sendAttendeeRequestEmailAndSMS = async (
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
+  if (eventTypeMetadata?.disableStandardEmails?.request?.attendee) return;
 
   const calendarEvent = formatCalEvent(calEvent);
   await sendEmail(() => new AttendeeRequestEmail(calendarEvent, attendee));

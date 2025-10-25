@@ -1456,6 +1456,27 @@ export const EventAdvancedTab = ({
         />
       )}
 
+      {requiresConfirmation && (
+        <Controller
+          name="metadata.disableStandardEmails.request.attendee"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                customClassNames?.emailNotifications?.container
+              )}
+              descriptionClassName={customClassNames?.emailNotifications?.description}
+              title={t("disable_attendee_pending_emails")}
+              description={t("disable_attendee_pending_emails_description")}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
+
       {team?.parentId && (
         <>
           <Controller
