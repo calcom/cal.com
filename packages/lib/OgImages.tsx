@@ -112,7 +112,6 @@ export const constructMeetingImage = async ({
     params.append("usernames", user.username);
   });
 
-  // Use content-based versioning instead of environment variable
   params.set("v", await getOgImageVersion("meeting"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
@@ -136,7 +135,6 @@ export const constructAppImage = async ({
     logoUrl,
   });
 
-  // Use content-based versioning instead of environment variable
   params.set("v", await getOgImageVersion("app"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
@@ -149,7 +147,6 @@ export const constructGenericImage = async ({ title, description }: GenericImage
     description,
   });
 
-  // Use content-based versioning instead of environment variable
   params.set("v", await getOgImageVersion("generic"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
