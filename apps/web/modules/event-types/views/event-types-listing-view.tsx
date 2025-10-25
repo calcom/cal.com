@@ -144,15 +144,17 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
           debouncedSearchTerm={debouncedSearchTerm}
         />
       )}
-      <div className="text-default p-4 text-center" ref={buttonInView.ref}>
-        <Button
-          color="minimal"
-          loading={query.isFetchingNextPage}
-          disabled={!query.hasNextPage}
-          onClick={() => query.fetchNextPage()}>
-          {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-        </Button>
-      </div>
+      {(query.data?.pages?.[0]?.eventTypes?.length ?? 0) > 0 && (
+        <div className="text-default p-4 text-center" ref={buttonInView.ref}>
+          <Button
+            color="minimal"
+            loading={query.isFetchingNextPage}
+            disabled={!query.hasNextPage}
+            onClick={() => query.fetchNextPage()}>
+            {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
@@ -271,7 +273,7 @@ export const InfiniteEventTypeList = ({
     },
   });
 
-  const setHiddenMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+  const setHiddenMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onMutate: async (data) => {
       await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
@@ -998,8 +1000,9 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
      */
     const redirectUrl = localStorage.getItem("onBoardingRedirect");
     localStorage.removeItem("onBoardingRedirect");
-    redirectUrl && router.push(redirectUrl);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (redirectUrl) {
+      router.push(redirectUrl);
+    }
   }, []);
 
   useEffect(() => {
