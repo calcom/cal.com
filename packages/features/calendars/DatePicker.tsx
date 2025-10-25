@@ -68,6 +68,7 @@ const Day = ({
   active,
   disabled,
   away,
+  hasAvailableSlots,
   emoji,
   customClassName,
   showMonthTooltip,
@@ -77,6 +78,7 @@ const Day = ({
   active: boolean;
   date: Dayjs;
   away?: boolean;
+  hasAvailableSlots?: boolean;
   emoji?: string | null;
   customClassName?: {
     dayContainer?: string;
@@ -99,9 +101,9 @@ const Day = ({
           ? "bg-brand-default text-brand"
           : !disabled
           ? `${
-              !customClassName?.dayActive
+              !customClassName?.dayActive && hasAvailableSlots
                 ? "hover:border-brand-default text-emphasis bg-emphasis"
-                : `hover:border-brand-default ${customClassName.dayActive}`
+                : `hover:border-brand-default ${customClassName?.dayActive ?? ""}`
             }`
           : `${customClassName ? "" : " text-mute"}`
       )}
@@ -277,6 +279,7 @@ const Days = ({
       day,
       disabled,
       away,
+      hasAvailableSlots,
       emoji: oooInfo?.emoji,
       isFirstDayOfNextMonth,
     };
@@ -316,38 +319,41 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji, isFirstDayOfNextMonth }, idx) => (
-        <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
-          {day === null ? (
-            <div key={`e-${idx}`} />
-          ) : props.isLoading ? (
-            <button
-              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
-              key={`e-${idx}`}
-              disabled>
-              <SkeletonText className="h-8 w-9" />
-            </button>
-          ) : (
-            <DayComponent
-              customClassName={{
-                dayContainer: customClassName?.datePickerDate,
-                dayActive: customClassName?.datePickerDateActive,
-              }}
-              date={day}
-              onClick={() => {
-                props.onChange(day);
-                props?.scrollToTimeSlots?.();
-              }}
-              disabled={disabled}
-              active={isActive(day)}
-              away={away}
-              emoji={emoji}
-              showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
-              isFirstDayOfNextMonth={isFirstDayOfNextMonth}
-            />
-          )}
-        </div>
-      ))}
+      {daysToRenderForTheMonth.map(
+        ({ day, disabled, away, hasAvailableSlots, emoji, isFirstDayOfNextMonth }, idx) => (
+          <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
+            {day === null ? (
+              <div key={`e-${idx}`} />
+            ) : props.isLoading ? (
+              <button
+                className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
+                key={`e-${idx}`}
+                disabled>
+                <SkeletonText className="h-8 w-9" />
+              </button>
+            ) : (
+              <DayComponent
+                customClassName={{
+                  dayContainer: customClassName?.datePickerDate,
+                  dayActive: customClassName?.datePickerDateActive,
+                }}
+                date={day}
+                onClick={() => {
+                  props.onChange(day);
+                  props?.scrollToTimeSlots?.();
+                }}
+                disabled={disabled}
+                active={isActive(day)}
+                away={away}
+                hasAvailableSlots={hasAvailableSlots}
+                emoji={emoji}
+                showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
+                isFirstDayOfNextMonth={isFirstDayOfNextMonth}
+              />
+            )}
+          </div>
+        )
+      )}
       {!props.isLoading &&
         !isBookingInPast &&
         includedDates &&
