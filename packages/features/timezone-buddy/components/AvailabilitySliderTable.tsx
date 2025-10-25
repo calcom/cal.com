@@ -3,6 +3,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -68,8 +69,10 @@ function UpgradeTeamTip() {
 }
 
 export function AvailabilitySliderTable(props: { isOrg: boolean }) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider>
+    <DataTableProvider tableIdentifier={pathname}>
       <AvailabilitySliderTableContent {...props} />
     </DataTableProvider>
   );
@@ -81,10 +84,6 @@ function AvailabilitySliderTableContent(props: { isOrg: boolean }) {
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
   const { searchTerm } = useDataTable();
-
-  const tbStore = createTimezoneBuddyStore({
-    browsingDate: browsingDate.toDate(),
-  });
 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {

@@ -6,6 +6,7 @@ import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -119,15 +120,17 @@ const AppProviders = (props: PageWrapperProps) => {
             nonce={props.nonce}
             isThemeSupported={isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
-            <FeatureFlagsProvider>
-              {props.isBookingPage || isBookingPage ? (
-                <OrgBrandProvider>{props.children}</OrgBrandProvider>
-              ) : (
-                <DynamicIntercomProvider>
+            <NuqsAdapter>
+              <FeatureFlagsProvider>
+                {props.isBookingPage || isBookingPage ? (
                   <OrgBrandProvider>{props.children}</OrgBrandProvider>
-                </DynamicIntercomProvider>
-              )}
-            </FeatureFlagsProvider>
+                ) : (
+                  <DynamicIntercomProvider>
+                    <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                  </DynamicIntercomProvider>
+                )}
+              </FeatureFlagsProvider>
+            </NuqsAdapter>
           </CalcomThemeProvider>
         </TooltipProvider>
       </EventCollectionProvider>

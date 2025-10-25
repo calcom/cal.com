@@ -184,6 +184,7 @@ export default function Signup({
   orgAutoAcceptEmail,
   redirectUrl,
   emailVerificationEnabled,
+  onboardingV3Enabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
   const [isSamlSignup, setIsSamlSignup] = useState(false);
@@ -262,7 +263,8 @@ export default function Signup({
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
-        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
+        const gettingStartedPath = onboardingV3Enabled ? "onboarding/getting-started" : "getting-started";
+        const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : gettingStartedPath;
         const gettingStartedWithPlatform = "settings/platform/new";
 
         const constructCallBackIfUrlPresent = () => {

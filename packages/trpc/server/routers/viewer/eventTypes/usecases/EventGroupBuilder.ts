@@ -68,7 +68,8 @@ export class EventGroupBuilder {
       },
     }));
 
-    const teamMemberships = accessibleMemberships.map((membership) => ({
+    // This ensures org roles are considered when calculating effective permissions
+    const teamMemberships = profileMemberships.map((membership) => ({
       teamId: membership.team.id,
       membershipRole: membership.role,
     }));

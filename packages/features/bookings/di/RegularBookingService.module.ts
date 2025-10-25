@@ -6,6 +6,7 @@ import { moduleLoader as checkBookingAndDurationLimitsModuleLoader } from "@calc
 import { moduleLoader as luckyUserServiceModuleLoader } from "@calcom/features/di/modules/LuckyUser";
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { moduleLoader as hashedLinkServiceModuleLoader } from "@calcom/features/hashedLink/di/HashedLinkService.module";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 
 const thisModule = createModule();
@@ -24,6 +25,7 @@ const loadModule = bindModuleToClassOnToken({
     bookingRepository: bookingRepositoryModuleLoader,
     luckyUserService: luckyUserServiceModuleLoader,
     userRepository: userRepositoryModuleLoader,
+    hashedLinkService: hashedLinkServiceModuleLoader,
   },
 });
 

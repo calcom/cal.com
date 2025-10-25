@@ -177,7 +177,7 @@ const EventTypeWeb = ({
 
   // Check workflow permissions
   const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
-  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
 

@@ -46,7 +46,7 @@ export const useCreateEventType = (
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const createMutation = trpc.viewer.eventTypes.heavy.create.useMutation({
+  const createMutation = trpc.viewer.eventTypesHeavy.create.useMutation({
     onSuccess: async ({ eventType }) => {
       onSuccessMutation(eventType);
 
