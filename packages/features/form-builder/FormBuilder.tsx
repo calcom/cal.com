@@ -608,7 +608,6 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const fieldName = fieldForm.getValues("name");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -883,7 +882,6 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
-          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
             __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
@@ -902,6 +900,14 @@ function FieldLabel({ field }: { field: RhfFormField }) {
   }
   const label =
     variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.label || "";
+
+  if (!label) {
+    const fieldName =
+      variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fields?.[0]?.name;
+    const defaultLabel = fieldTypeConfigVariants?.[variant]?.fieldsMap?.[fieldName as string]?.defaultLabel;
+    return <span>{t(defaultLabel || field.defaultLabel || "")}</span>;
+  }
+
   return <span>{t(label)}</span>;
 }
 
