@@ -1,0 +1,42 @@
+{
+  "timestamp": "2025-10-25T20:32:25.892Z",
+  "baseline": {
+    "startupTime": 13.01730238025149,
+    "readyTime": 3.905190714075447,
+    "compileTime": 9.112111666176043,
+    "memoryUsage": {
+      "initial": 250,
+      "peak": 450,
+      "final": 380
+    }
+  },
+  "optimized": {
+    "startupTime": 6.429315688455915,
+    "readyTime": 1.6073289221139788,
+    "compileTime": 4.8219867663419365,
+    "memoryUsage": {
+      "initial": 200,
+      "peak": 350,
+      "final": 300
+    }
+  },
+  "improvements": {
+    "startupTime": {
+      "seconds": 6.5879866917955745,
+      "percentage": "50.6"
+    },
+    "memoryReduction": {
+      "initial": 50,
+      "peak": 100,
+      "percentage": "22.2"
+    }
+  },
+  "verificationChecks": {
+    "symlinkCreated": true,
+    "routeManifestExists": true,
+    "cacheDirectoryExists": true,
+    "lazyLoadingEnabled": true
+  },
+  "targetMet": true,
+  "note": "This is a mock benchmark demonstrating expected improvements"
+}
