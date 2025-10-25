@@ -7,7 +7,11 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { allManagedEventTypeProps, unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
+import {
+  allManagedEventTypeProps,
+  allManagedEventTypePropsScalar,
+  unlockedManagedEventTypeProps,
+} from "@calcom/prisma/zod-utils";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 
 interface handleChildrenEventTypesProps {
@@ -118,7 +122,7 @@ export default async function handleChildrenEventTypes({
     bookingFields: EventTypeSchema.shape.bookingFields.nullish(),
   });
 
-  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypeProps);
+  const allManagedEventTypePropsZod = _ManagedEventTypeModel.pick(allManagedEventTypePropsScalar);
   const managedEventTypeValues = allManagedEventTypePropsZod
     .omit(unlockedManagedEventTypeProps)
     .parse(eventType);
