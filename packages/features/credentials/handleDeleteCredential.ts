@@ -239,6 +239,7 @@ const handleDeleteCredential = async ({
                   destinationCalendar: true,
                   locale: true,
                   hideBranding: true,
+                  organizationId: true,
                 },
               },
               location: true,
@@ -265,11 +266,18 @@ const handleDeleteCredential = async ({
                       id: true,
                       name: true,
                       hideBranding: true,
+                      parentId: true,
                       parent: {
                         select: {
                           hideBranding: true,
                         },
                       },
+                    },
+                  },
+                  parent: {
+                    // ✅ Add this entire block
+                    select: {
+                      teamId: true,
                     },
                   },
                   metadata: true,
@@ -328,11 +336,17 @@ const handleDeleteCredential = async ({
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
 
+            const organizationId =
+              booking.eventType?.team?.parentId ??
+              booking.eventType?.parent?.teamId ??
+              booking.user?.organizationId ??
+              null;
+
             const hideBranding = await shouldHideBrandingForEventWithPrisma({
               eventTypeId: booking.eventTypeId ?? 0,
               team: booking.eventType?.team ?? null,
-              owner: booking.user ?? null,
-              organizationId: null,
+              owner: booking.eventType?.team ? null : booking.user ?? null,
+              organizationId: organizationId,
             });
 
             await sendCancelledEmailsAndSMS(

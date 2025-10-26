@@ -35,6 +35,7 @@ export const handleNoShowFee = async ({
       locale: string | null;
       timeZone: string;
       hideBranding: boolean;
+      organizationId: number | null;
     } | null;
     eventType: {
       title: string;
@@ -45,6 +46,9 @@ export const handleNoShowFee = async ({
         hideBranding: boolean;
         parentId: number | null;
         parent: { hideBranding: boolean | null } | null;
+      } | null;
+      parent?: {
+        teamId: number | null;
       } | null;
       metadata?: Prisma.JsonValue;
     } | null;
@@ -166,11 +170,17 @@ export const handleNoShowFee = async ({
       throw new Error("Payment processing failed");
     }
 
+    const organizationId =
+      booking.eventType?.team?.parentId ??
+      booking.eventType?.parent?.teamId ??
+      booking.user?.organizationId ??
+      null;
+
     const hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId: booking.eventTypeId ?? 0,
       team: booking.eventType?.team ?? null,
       owner: booking.user ?? null,
-      organizationId: booking.eventType?.team?.parentId ?? null,
+      organizationId: organizationId,
     });
 
     await sendNoShowFeeChargedEmail(attendee, { ...evt, hideBranding }, eventTypeMetdata);

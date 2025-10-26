@@ -241,25 +241,27 @@ async function handler(input: CancelBookingInput) {
     },
   });
 
-  const bookerUrl = await getBookerBaseUrl(
-    bookingToDelete.eventType?.team?.parentId ?? ownerProfile?.organizationId ?? null
-  );
+  const organizationId =
+    bookingToDelete.eventType?.team?.parentId ??
+    bookingToDelete.eventType?.parent?.teamId ??
+    bookingToDelete.user?.organizationId ??
+    ownerProfile?.organizationId ??
+    null;
+
+  const bookerUrl = await getBookerBaseUrl(organizationId);
 
   // Use existing data from bookingToDelete - no additional queries needed!
   let hideBranding = false;
 
   if (!bookingToDelete.eventTypeId) {
-    log.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
-      bookingId: bookingToDelete.id,
-      userId: bookingToDelete.userId,
-    });
+    log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
     hideBranding = false;
   } else {
     hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId: bookingToDelete.eventTypeId,
       team: bookingToDelete.eventType?.team ?? null,
       owner: bookingToDelete.user ?? null,
-      organizationId: bookingToDelete.eventType?.team?.parentId ?? null,
+      organizationId: organizationId,
     });
   }
 

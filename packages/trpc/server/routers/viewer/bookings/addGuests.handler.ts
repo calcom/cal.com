@@ -70,6 +70,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
           destinationCalendar: true,
           credentials: true,
           hideBranding: true,
+          organizationId: true,
         },
       },
     },
@@ -242,17 +243,15 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     const eventTypeId = booking.eventTypeId;
     let hideBranding = false;
     if (!eventTypeId) {
-      console.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
-        bookingId: booking.id,
-        userId: booking.userId,
-      });
+      console.warn("Booking missing eventTypeId, defaulting hideBranding to false");
       hideBranding = false;
     } else {
+      const organizationId = booking.eventType?.team?.parentId ?? booking.user?.organizationId ?? null;
       hideBranding = await shouldHideBrandingForEventWithPrisma({
         eventTypeId,
         team: booking.eventType?.team ?? null,
         owner: booking.user ?? null,
-        organizationId: null, // Will be fetched by the function if needed
+        organizationId: organizationId,
       });
     }
 

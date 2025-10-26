@@ -1156,6 +1156,34 @@ export class BookingRepository {
             hideOrganizerEmail: true,
             teamId: true,
             metadata: true,
+            team: {
+              select: {
+                id: true,
+                hideBranding: true,
+                parentId: true,
+                parent: {
+                  select: {
+                    hideBranding: true,
+                  },
+                },
+              },
+            },
+            parent: {
+              select: {
+                teamId: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            locale: true,
+            timeZone: true,
+            hideBranding: true,
+            organizationId: true,
           },
         },
         payment: {

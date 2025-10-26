@@ -1,6 +1,7 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -115,7 +116,12 @@ export const Handler = async ({ ctx, input }: Options) => {
       eventType: {
         select: {
           id: true,
-          owner: true,
+          owner: {
+            select: {
+              id: true,
+              hideBranding: true,
+            },
+          },
           teamId: true,
           title: true,
           slug: true,
@@ -135,6 +141,18 @@ export const Handler = async ({ ctx, input }: Options) => {
             select: {
               id: true,
               name: true,
+              parentId: true,
+              hideBranding: true,
+              parent: {
+                select: {
+                  hideBranding: true,
+                },
+              },
+            },
+          },
+          parent: {
+            select: {
+              teamId: true,
             },
           },
         },
@@ -186,10 +204,24 @@ export const Handler = async ({ ctx, input }: Options) => {
 
   const attendeesList = await Promise.all(attendeesListPromises);
 
+  const organizationId =
+    updatedBooking.eventType?.team?.parentId ??
+    updatedBooking.eventType?.parent?.teamId ??
+    user.organization.id ??
+    null;
+
+  const hideBranding = await shouldHideBrandingForEventWithPrisma({
+    eventTypeId: updatedBooking.eventTypeId ?? 0,
+    team: updatedBooking.eventType?.team ?? null,
+    owner: updatedBooking.eventType?.team ? null : updatedBooking.eventType?.owner ?? null,
+    organizationId: organizationId,
+  });
+
   const evt: CalendarEvent = {
     type: updatedBooking?.eventType?.slug as string,
     title: updatedBooking.title,
     description: updatedBooking.description,
+    hideBranding: hideBranding,
     ...getCalEventResponses({
       bookingFields: eventType?.bookingFields ?? null,
       booking: updatedBooking,
@@ -227,7 +259,7 @@ export const Handler = async ({ ctx, input }: Options) => {
   await sendScheduledEmailsAndSMS(
     {
       ...evt,
-      hideBranding: evt.hideBranding ?? false,
+      hideBranding: hideBranding,
     },
     undefined,
     false,

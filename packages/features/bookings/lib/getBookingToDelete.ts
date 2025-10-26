@@ -24,6 +24,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
           destinationCalendar: true,
           locale: true,
           hideBranding: true,
+          organizationId: true,
         },
       },
       location: true,

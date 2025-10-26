@@ -124,10 +124,7 @@ export async function handleConfirmation(args: {
   let hideBranding = false;
 
   if (!eventTypeId) {
-    log.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
-      bookingId: booking.id,
-      userId: booking.userId,
-    });
+    log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
     hideBranding = false;
   } else {
     hideBranding = await shouldHideBrandingForEventWithPrisma({
@@ -153,7 +150,6 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
 
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
