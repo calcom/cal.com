@@ -178,7 +178,7 @@ const Item = ({
   const content = () => (
     <div>
       <span
-        className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+        className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
         data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
@@ -212,7 +212,7 @@ const Item = ({
           <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
             <div>
               <span
-                className="text-default font-semibold break-words ltr:mr-1 rtl:ml-1"
+                className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
                 data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
