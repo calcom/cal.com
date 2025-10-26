@@ -184,12 +184,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   const isLoggedInUserHost = checkIfUserIsHost(userId);
-
-  const isLoggedInUserTeamMember = !!(
-    userId &&
-    ((eventType.team?.id && (await isTeamMember(userId, eventType.team.id))) ||
-      (eventType.parent?.teamId && (await isTeamMember(userId, eventType.parent.teamId))))
-  );
+  const eventTeamId = eventType.team?.id ?? eventType.parent?.teamId;
+  const isLoggedInUserTeamMember = !!(userId && eventTeamId && (await isTeamMember(userId, eventTeamId)));
 
   const canViewHiddenData = isLoggedInUserHost || isLoggedInUserTeamMember;
 
@@ -241,8 +237,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // Filter out organizer information if hideOrganizerEmail is true
   const sanitizedPreviousBooking =
     eventType.hideOrganizerEmail &&
-    previousBooking &&
-    previousBooking.rescheduledBy === bookingInfo.user?.email
+      previousBooking &&
+      previousBooking.rescheduledBy === bookingInfo.user?.email
       ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
       : previousBooking;
 
@@ -255,11 +251,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       hideBranding: isPlatformBooking
         ? true
         : await shouldHideBrandingForEvent({
-            eventTypeId: eventType.id,
-            team: eventType?.parent?.team ?? eventType?.team,
-            owner: eventType.users[0] ?? null,
-            organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
-          }),
+          eventTypeId: eventType.id,
+          team: eventType?.parent?.team ?? eventType?.team,
+          owner: eventType.users[0] ?? null,
+          organizationId: session?.user?.profile?.organizationId ?? session?.user?.org?.id ?? null,
+        }),
       profile,
       eventType,
       recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
