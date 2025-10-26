@@ -3902,6 +3902,7 @@
   "confirmation_code": "Confirmation code",
   "or_click_link": "Or click this link",
   "code_expires_in": "This code expires in {{minutes}} minutes",
+  "code_expires_in_hours": "This code expires in {{hours}} hours",
   "confirm_attendance": "Confirm Attendance",
   "guest_confirmed": "Guest Confirmed",
   "guest_confirmed_description": "You have been successfully added to the meeting",

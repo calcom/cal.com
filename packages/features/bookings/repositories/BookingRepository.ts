@@ -1172,4 +1172,90 @@ export class BookingRepository {
       },
     });
   }
+  async confirmPendingGuest({ bookingUid, guestEmail }: { bookingUid: string; guestEmail: string }) {
+    const booking = await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      include: {
+        pendingGuests: true,
+        attendees: true,
+        user: {
+          include: {
+            credentials: true,
+            destinationCalendar: true,
+          },
+        },
+        eventType: {
+          select: {
+            metadata: true,
+            title: true,
+            length: true,
+            description: true,
+          },
+        },
+        references: {
+          where: {
+            deleted: null,
+          },
+        },
+        destinationCalendar: true,
+      },
+    });
+
+    if (!booking) {
+      return { success: false, reason: "booking_not_found" as const, booking: null };
+    }
+
+    const pendingGuest = booking.pendingGuests.find((g) => g.email === guestEmail);
+
+    if (!pendingGuest) {
+      return { success: false, reason: "guest_not_found" as const, booking: null };
+    }
+
+    if (booking.attendees.some((a) => a.email === guestEmail)) {
+      return { success: true, alreadyConfirmed: true, booking };
+    }
+
+    await this.prismaClient.attendee.create({
+      data: {
+        email: pendingGuest.email,
+        name: pendingGuest.name,
+        timeZone: pendingGuest.timeZone,
+        locale: pendingGuest.locale,
+        bookingId: booking.id,
+      },
+    });
+
+    await this.prismaClient.pendingGuest.delete({
+      where: { id: pendingGuest.id },
+    });
+
+    const updatedBooking = await this.prismaClient.booking.findUnique({
+      where: { id: booking.id },
+      include: {
+        attendees: true,
+        user: {
+          include: {
+            credentials: true,
+            destinationCalendar: true,
+          },
+        },
+        eventType: {
+          select: {
+            metadata: true,
+            title: true,
+            length: true,
+            description: true,
+          },
+        },
+        references: {
+          where: {
+            deleted: null,
+          },
+        },
+        destinationCalendar: true,
+      },
+    });
+
+    return { success: true, alreadyConfirmed: false, booking: updatedBooking };
+  }
 }

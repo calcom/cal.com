@@ -47,7 +47,7 @@ export const PendingGuestConfirmation = (
       </div>
       <div style={{ lineHeight: "6px", marginTop: "24px" }}>
         <p style={{ fontWeight: 400, lineHeight: "24px", fontSize: "12px", color: "#666" }}>
-          <>{props.language("code_expires_in", { minutes: 15 })}</>
+          <>{props.language("code_expires_in_hours", { hours: 48 })}</>
         </p>
       </div>
     </BaseEmailHtml>
