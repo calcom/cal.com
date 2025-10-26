@@ -54,7 +54,7 @@ const OG_ASSETS = {
     id: "meeting-og-image-v1", // Bump version when changing Meeting component structure/styling
     logo: LOGO,
     logoWidth: "350",
-    avatarSize: "160",
+    avatarSize: "160px",
     variant: "dark" as const,
   },
   app: {

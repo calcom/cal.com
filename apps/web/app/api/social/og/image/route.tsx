@@ -93,7 +93,7 @@ async function handler(req: NextRequest) {
               "Content-Type": "image/png",
               "Cache-Control":
                 "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
-              ETag: etag,
+              ETag: `"${etag}"`,
             },
           });
         } catch (error) {
@@ -135,7 +135,7 @@ async function handler(req: NextRequest) {
               "Content-Type": "image/png",
               "Cache-Control":
                 "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
-              ETag: etag,
+              ETag: `"${etag}"`,
             },
           });
         } catch (error) {
@@ -172,7 +172,7 @@ async function handler(req: NextRequest) {
               "Content-Type": "image/png",
               "Cache-Control":
                 "public, max-age=31536000, immutable, s-maxage=31536000, stale-while-revalidate=31536000",
-              ETag: etag,
+              ETag: `"${etag}"`,
             },
           });
         } catch (error) {
