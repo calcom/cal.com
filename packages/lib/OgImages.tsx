@@ -54,7 +54,7 @@ const OG_ASSETS = {
     id: "meeting-og-image-v1", // Bump version when changing Meeting component structure/styling
     logo: LOGO,
     logoWidth: "350",
-    avatarSize: "160px",
+    avatarSize: "160",
     variant: "dark" as const,
   },
   app: {
@@ -217,7 +217,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
             ))}
             {avatars.length > 3 && (
               <div
-                tw={`flex items-center justify-center w-[${config.avatarSize}] h-[${config.avatarSize}] rounded-full bg-black text-inverted text-[54px] font-bold`}>
+                tw={`flex items-center justify-center w-[${config.avatarSize}px] h-[${config.avatarSize}px] rounded-full bg-black text-inverted text-[54px] font-bold`}>
                 <span tw="flex top-[-5px] left-[-5px]">+{avatars.length - 3}</span>
               </div>
             )}
