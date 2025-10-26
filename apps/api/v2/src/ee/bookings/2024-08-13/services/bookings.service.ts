@@ -868,13 +868,13 @@ export class BookingsService_2024_08_13 {
     isIndividualSeatReschedule: boolean,
     authUser: AuthOptionalUser
   ) {
-    const booking = await this.bookingsRepository.getByUidWithUserIdAndSeatsReferences(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithUserIdAndSeatsReferencesCount(bookingUid);
 
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const hasSeatsPresent = Boolean(booking.seatsReferences?.length);
+    const hasSeatsPresent = booking._count.seatsReferences > 0;
 
     if (!hasSeatsPresent) return false;
 

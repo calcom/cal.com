@@ -72,6 +72,9 @@ export async function isLoggedInUserOrgAdminOfBookingUser(loggedInUserId: number
         parentId: null,
       },
     },
+    select: {
+      userId: true,
+    },
   });
 
   if (bookingUserOrgMembership) return true;
