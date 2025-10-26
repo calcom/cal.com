@@ -52,7 +52,6 @@ export const bookingsProcedure = authedProcedure
         include: {
           destinationCalendar: true,
           credentials: true,
-          hideBranding: true,
         },
       },
     };

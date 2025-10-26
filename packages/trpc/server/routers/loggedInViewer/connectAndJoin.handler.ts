@@ -204,11 +204,7 @@ export const Handler = async ({ ctx, input }: Options) => {
 
   const attendeesList = await Promise.all(attendeesListPromises);
 
-  const organizationId =
-    updatedBooking.eventType?.team?.parentId ??
-    updatedBooking.eventType?.parent?.teamId ??
-    user.organization.id ??
-    null;
+  const organizationId = updatedBooking.eventType?.team?.parentId ?? user.organization.id ?? null;
 
   const hideBranding = await shouldHideBrandingForEventWithPrisma({
     eventTypeId: updatedBooking.eventTypeId ?? 0,

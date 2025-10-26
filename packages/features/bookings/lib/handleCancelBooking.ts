@@ -243,7 +243,6 @@ async function handler(input: CancelBookingInput) {
 
   const organizationId =
     bookingToDelete.eventType?.team?.parentId ??
-    bookingToDelete.eventType?.parent?.teamId ??
     bookingToDelete.user?.organizationId ??
     ownerProfile?.organizationId ??
     null;

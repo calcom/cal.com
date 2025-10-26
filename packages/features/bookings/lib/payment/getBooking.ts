@@ -118,6 +118,7 @@ export async function getBooking(bookingId: number) {
           destinationCalendar: true,
           isPlatformManaged: true,
           hideBranding: true,
+          organizationId: true,
         },
       },
     },

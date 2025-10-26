@@ -336,11 +336,7 @@ const handleDeleteCredential = async ({
             const attendeesList = await Promise.all(attendeesListPromises);
             const tOrganizer = await getTranslation(booking?.user?.locale ?? "en", "common");
 
-            const organizationId =
-              booking.eventType?.team?.parentId ??
-              booking.eventType?.parent?.teamId ??
-              booking.user?.organizationId ??
-              null;
+            const organizationId = booking.eventType?.team?.parentId ?? booking.user?.organizationId ?? null;
 
             const hideBranding = await shouldHideBrandingForEventWithPrisma({
               eventTypeId: booking.eventTypeId ?? 0,
