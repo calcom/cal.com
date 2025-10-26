@@ -249,7 +249,6 @@ async function handler(input: CancelBookingInput) {
 
   const bookerUrl = await getBookerBaseUrl(organizationId);
 
-  // Use existing data from bookingToDelete - no additional queries needed!
   let hideBranding = false;
 
   if (!bookingToDelete.eventTypeId) {

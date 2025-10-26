@@ -287,7 +287,6 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   });
 
   try {
-    // Use pre-fetched branding data from booking context
     const eventTypeId = booking.eventTypeId;
     let hideBranding = false;
     if (!eventTypeId) {

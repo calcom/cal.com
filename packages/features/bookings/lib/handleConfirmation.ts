@@ -120,7 +120,6 @@ export async function handleConfirmation(args: {
 
   const eventTypeId = eventType?.id ?? booking.eventTypeId ?? null;
 
-  // Use existing data from booking - no additional queries needed!
   let hideBranding = false;
 
   if (!eventTypeId) {

@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
@@ -23,7 +23,6 @@ const attendeeRescheduleSeatedBooking = async (
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
   const { organizerUser } = rescheduleSeatedBookingObject;
 
-  // Use pre-fetched branding data from eventType
   const hideBranding = await shouldHideBrandingForEventWithPrisma({
     eventTypeId: eventType.id,
     team: eventType.team ?? null,

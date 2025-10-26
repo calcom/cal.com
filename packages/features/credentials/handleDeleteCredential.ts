@@ -275,7 +275,6 @@ const handleDeleteCredential = async ({
                     },
                   },
                   parent: {
-                    // ✅ Add this entire block
                     select: {
                       teamId: true,
                     },

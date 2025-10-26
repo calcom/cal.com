@@ -132,7 +132,6 @@ async function postHandler(request: NextRequest) {
       const attendeesList = await Promise.all(attendeesListPromises);
       const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
 
-      // Use pre-fetched branding data from booking query
       const hideBranding = await shouldHideBrandingForEventWithPrisma({
         eventTypeId: booking.eventType?.id ?? 0,
         team: booking.eventType?.team ?? null,
