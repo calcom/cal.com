@@ -441,10 +441,12 @@ const _sendAttendeeRequestEmailAndSMS = async (
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
-  if (eventTypeMetadata?.disableStandardEmails?.request?.attendee) return;
 
   const calendarEvent = formatCalEvent(calEvent);
-  await sendEmail(() => new AttendeeRequestEmail(calendarEvent, attendee));
+  if (!eventTypeMetadata?.disableStandardEmails?.request?.attendee) {
+    await sendEmail(() => new AttendeeRequestEmail(calendarEvent, attendee));
+  }
+
   const eventRequestSms = new EventRequestSMS(calendarEvent);
   await eventRequestSms.sendSMSToAttendee(attendee);
 };
