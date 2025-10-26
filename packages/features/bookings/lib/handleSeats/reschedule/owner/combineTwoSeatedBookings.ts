@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
@@ -136,7 +136,6 @@ const combineTwoSeatedBookings = async (
     : calendarResult?.updatedEvent?.iCalUID || undefined;
 
   if (noEmail !== true && isConfirmedByDefault) {
-    // Use pre-fetched branding data from eventType
     const hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId: eventType.id,
       team: eventType.team ?? null,
@@ -148,10 +147,10 @@ const combineTwoSeatedBookings = async (
     await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,
-        additionalNotes,
-        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`,
+        additionalNotes, // Resets back to the additionalNote input and not the override value
+        cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
         hideBranding,
-      } as any,
+      },
       eventType.metadata
     );
   }
