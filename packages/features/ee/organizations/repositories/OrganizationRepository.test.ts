@@ -150,3 +150,64 @@ describe("Organization.getVerifiedOrganizationByAutoAcceptEmailDomain", () => {
     expect(result).toEqual(null);
   });
 });
+
+describe("Organization.create", () => {
+  it("should create organization with branding data (logoUrl, brandColor, bannerUrl)", async () => {
+    const orgData = {
+      name: "Test Organization",
+      slug: "test-org",
+      isOrganizationConfigured: true,
+      isOrganizationAdminReviewed: true,
+      autoAcceptEmail: "test.com",
+      seats: 10,
+      pricePerSeat: 15,
+      isPlatform: false,
+      billingPeriod: "MONTHLY" as const,
+      logoUrl: "https://example.com/logo.png",
+      bio: "Test organization bio",
+      brandColor: "#FF5733",
+      bannerUrl: "https://example.com/banner.jpg",
+    };
+
+    const organization = await OrganizationRepository.create(orgData);
+
+    expect(organization).toMatchObject({
+      name: "Test Organization",
+      slug: "test-org",
+      isOrganization: true,
+      logoUrl: "https://example.com/logo.png",
+      bio: "Test organization bio",
+      brandColor: "#FF5733",
+      bannerUrl: "https://example.com/banner.jpg",
+    });
+  });
+
+  it("should create organization with null branding data", async () => {
+    const orgData = {
+      name: "Test Organization",
+      slug: "test-org-2",
+      isOrganizationConfigured: true,
+      isOrganizationAdminReviewed: true,
+      autoAcceptEmail: "test.com",
+      seats: null,
+      pricePerSeat: null,
+      isPlatform: false,
+      logoUrl: null,
+      bio: null,
+      brandColor: null,
+      bannerUrl: null,
+    };
+
+    const organization = await OrganizationRepository.create(orgData);
+
+    expect(organization).toMatchObject({
+      name: "Test Organization",
+      slug: "test-org-2",
+      isOrganization: true,
+      logoUrl: null,
+      bio: null,
+      brandColor: null,
+      bannerUrl: null,
+    });
+  });
+});

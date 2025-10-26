@@ -8,6 +8,7 @@ import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import dynamic from "next/dynamic";
+import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
@@ -286,15 +287,17 @@ const AppProviders = (props: AppPropsWithChildren) => {
             isThemeSupported={props.Component.isThemeSupported}
             isBookingPage={props.Component.isBookingPage || isBookingPage}
             router={props.router}>
-            <FeatureFlagsProvider>
-              {_isBookingPage ? (
-                <OrgBrandProvider>{props.children}</OrgBrandProvider>
-              ) : (
-                <DynamicIntercomProvider>
+            <NuqsAdapter>
+              <FeatureFlagsProvider>
+                {_isBookingPage ? (
                   <OrgBrandProvider>{props.children}</OrgBrandProvider>
-                </DynamicIntercomProvider>
-              )}
-            </FeatureFlagsProvider>
+                ) : (
+                  <DynamicIntercomProvider>
+                    <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                  </DynamicIntercomProvider>
+                )}
+              </FeatureFlagsProvider>
+            </NuqsAdapter>
           </CalcomThemeProvider>
         </TooltipProvider>
       </CustomI18nextProvider>
