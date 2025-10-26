@@ -72,7 +72,7 @@ const OG_ASSETS = {
   },
 };
 
-export const getOgImageVersion = async (type: "meeting" | "app" | "generic") => {
+export const getOgImageVersion = async (type: keyof typeof OG_ASSETS) => {
   const versionInputs = OG_ASSETS[type];
   const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
 

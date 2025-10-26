@@ -35,10 +35,6 @@ async function handler(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const imageType = searchParams.get("type");
 
-  if (!imageType || !["app", "meeting", "generic"].includes(imageType)) {
-    return new Response("Wrong image type", { status: 404 });
-  }
-
   try {
     const fontResults = await Promise.allSettled([
       fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
@@ -67,7 +63,6 @@ async function handler(req: NextRequest) {
       fonts,
     };
 
-    const etag = await getOgImageVersion(imageType as "app" | "meeting" | "generic");
     switch (imageType) {
       case "meeting": {
         try {
@@ -80,6 +75,7 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
+          const etag = await getOgImageVersion("meeting");
           const img = new ImageResponse(
             (
               <Meeting
@@ -127,6 +123,7 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
+          const etag = await getOgImageVersion("app");
           const img = new ImageResponse(
             <App name={name} description={description} slug={slug} logoUrl={logoUrl} />,
             ogConfig
@@ -166,6 +163,7 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
+          const etag = await getOgImageVersion("generic");
           const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
 
           return new Response(img.body, {
