@@ -144,7 +144,7 @@ function RangeLimitRadioItem({
       <div>
         <div
           className={classNames(
-            "me-2 ms-0 mt-2 w-full sm:ms-2 sm:mt-0 sm:w-auto",
+            "mr-2 ml-0 mt-2 w-full sm:ml-2 sm:mt-0 sm:w-auto",
             customClassNames?.datePickerWraper
           )}>
           <Controller
@@ -355,7 +355,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
-          className={classNames("mb-0 h-9 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
+          className={classNames("mb-0 h-8 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
           min={0}
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
@@ -364,7 +364,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
         isSearchable={false}
         isDisabled={passThroughProps.disabled}
         className={classNames(
-          "mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
+          "mb-0 ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]",
           customClassNames?.select
         )}
         innerClassNames={customClassNames?.innerClassNames}

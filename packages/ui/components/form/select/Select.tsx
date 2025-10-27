@@ -78,11 +78,11 @@ export const Select = <
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
               : size === "sm"
-              ? "h-7 px-2 py-1"
-              : "h-8 px-3 py-2",
+              ? "h-7 px-2 py-0.5"
+              : "h-8 px-3 py-1",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
-            "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused focus-within:ring-0 flex!",
+            "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused focus-within:ring-0 flex! **:[input]:leading-none text-sm",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
