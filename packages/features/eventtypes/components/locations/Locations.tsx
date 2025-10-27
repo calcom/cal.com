@@ -87,7 +87,7 @@ const Locations: React.FC<LocationsProps> = ({
   disableLocationProp,
   isManagedEventType,
   getValues,
-  setValue,
+  setValue: _setValue,
   control,
   formState,
   team,
@@ -161,8 +161,7 @@ const Locations: React.FC<LocationsProps> = ({
         setSelectedNewOption(prefillLocation);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefillLocation, seatsEnabled]);
+  }, [prefillLocation, seatsEnabled, validLocations, append]);
 
   const isPlatform = useIsPlatform();
 
@@ -239,6 +238,7 @@ const Locations: React.FC<LocationsProps> = ({
                     type="button"
                     onClick={() => {
                       remove(index);
+                      setSelectedNewOption(null);
                     }}
                     aria-label={t("remove")}>
                     <div className="h-4 w-4">
