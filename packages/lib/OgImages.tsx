@@ -72,8 +72,15 @@ const OG_ASSETS = {
   },
 };
 
-export const getOgImageVersion = async (type: keyof typeof OG_ASSETS) => {
-  const versionInputs = OG_ASSETS[type];
+export const getOgImageVersion = async (
+  type: keyof typeof OG_ASSETS,
+  additionalInputs?: Record<string, string>
+) => {
+  const versionInputs: Record<string, unknown> = {
+    ...OG_ASSETS[type],
+    ...(additionalInputs ?? {}),
+  };
+
   const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
 
   // Use Web Crypto API instead of Node.js crypto for Edge Runtime compatibility (`/api/social/og/image` is an Edge Runtime route)

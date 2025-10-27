@@ -123,7 +123,12 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
-          const etag = await getOgImageVersion("app");
+          // Get SVG hash for the app
+          const svgHashesModule = await import("@calcom/web/public/app-store/svg-hashes.json");
+          const SVG_HASHES = svgHashesModule.default ?? {};
+          const svgHash = SVG_HASHES[slug] ?? undefined;
+
+          const etag = await getOgImageVersion("app", { svgHash });
           const img = new ImageResponse(
             <App name={name} description={description} slug={slug} logoUrl={logoUrl} />,
             ogConfig
