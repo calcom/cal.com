@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,6 +13,12 @@ type Props = {
 export function HavingTroubleFindingTime(props: Props) {
   const { t } = useLocale();
   const [internalClick, setInternalClick] = useState(false);
+
+  useEffect(() => {
+    if (props.visible) {
+      setInternalClick(false);
+    }
+  }, [props.visible]);
 
   if (!props.visible) return null;
 
