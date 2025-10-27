@@ -110,7 +110,7 @@ test.describe("Filter Segment Functionality", () => {
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    const dataTable = page.getByTestId("user-list-data-table");
+    const dataTable = page.getByTestId('user-list-data-table').nth(0); 
     await expect(dataTable).toBeVisible();
 
     await applySelectFilter(page, "role", "admin");

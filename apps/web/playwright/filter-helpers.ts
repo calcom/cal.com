@@ -160,7 +160,7 @@ export async function deleteSegment(page: Page, segmentName: string) {
  * List all available segments
  */
 export async function listSegments(page: Page): Promise<string[]> {
-  await page.getByTestId("filter-segment-select").click();
+  await page.getByTestId("filter-segment-select").nth(0).click();
 
   const menuItems = page.locator('[data-testid="filter-segment-select-content"] [role="menuitem"]');
   const count = await menuItems.count();
