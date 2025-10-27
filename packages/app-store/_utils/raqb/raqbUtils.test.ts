@@ -93,7 +93,7 @@ const createComplexQueryValue = ({
   }>;
 }): AttributesQueryValue => {
   const children1: Record<string, RaqbChild> = {};
-  
+
   rules.forEach((rule) => {
     children1[rule.ruleId] = createQueryValueRule({
       type: "rule",
