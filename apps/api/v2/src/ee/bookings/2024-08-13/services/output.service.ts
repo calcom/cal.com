@@ -501,4 +501,40 @@ export class OutputBookingsService_2024_08_13 {
       },
     };
   }
+
+  getOutputVideoSessions(sessions: {
+    data: Array<{
+      id: string;
+      room: string;
+      start_time: number;
+      duration: number;
+      ongoing: boolean;
+      max_participants: number;
+      participants: Array<{
+        user_id: string | null;
+        participant_id: string;
+        user_name: string | null;
+        join_time: number;
+        duration: number;
+      }>;
+    }>;
+  }) {
+    if (!sessions || !("data" in sessions)) return [];
+
+    return sessions.data.map((session) => ({
+      id: session.id,
+      room: session.room,
+      startTime: session.start_time,
+      duration: session.duration,
+      ongoing: session.ongoing,
+      maxParticipants: session.max_participants,
+      participants: session.participants.map((participant) => ({
+        userId: participant.user_id,
+        participantId: participant.participant_id,
+        userName: participant.user_name,
+        joinTime: participant.join_time,
+        duration: participant.duration,
+      })),
+    }));
+  }
 }

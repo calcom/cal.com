@@ -6,6 +6,7 @@ import {
   getRecordingsOfCalVideoByRoomName,
   getAllTranscriptsAccessLinkFromRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
+  getCalVideoMeetingSessionsByRoomName,
 } from "@calcom/platform-libraries/conferencing";
 
 @Injectable()
@@ -79,5 +80,28 @@ export class CalVideoService {
     const transcripts = await getAllTranscriptsAccessLinkFromRoomName(roomName);
 
     return transcripts;
+  }
+
+  async getVideoSessions(bookingUid: string) {
+    const booking = await this.bookingsRepository.getByUidWithBookingReference(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const roomName =
+      booking?.references?.filter((reference) => reference.type === "daily_video")?.pop()?.meetingId ??
+      undefined;
+
+    if (!roomName) {
+      throw new NotFoundException(`No Cal Video reference found with booking uid ${bookingUid}`);
+    }
+
+    const sessions = await getCalVideoMeetingSessionsByRoomName(roomName);
+
+    if (!sessions) {
+      return [];
+    }
+
+    return this.outputService.getOutputVideoSessions(sessions);
   }
 }
