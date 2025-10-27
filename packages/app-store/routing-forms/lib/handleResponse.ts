@@ -127,10 +127,10 @@ const _handleResponse = async ({
               crmRecordId = contactOwnerQuery?.recordId ?? null;
             } catch (error) {
               moduleLogger.error("Error fetching CRM contact owner", safeStringify(error));
-              crmContactOwnerEmail = null;
-              crmContactOwnerRecordType = null;
-              crmAppSlug = null;
-              crmRecordId = null;
+              crmContactOwnerEmail = "";
+              crmContactOwnerRecordType = "";
+              crmAppSlug = "";
+              crmRecordId = "";
             }
           })(),
           (async () => {

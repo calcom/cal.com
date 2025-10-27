@@ -217,7 +217,6 @@ const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | 
               stringify({
                 ...paramsToBeForwardedAsIs,
                 "cal.action": "eventTypeRedirectUrl",
-                ...(fetchCrm ? { "cal.crmFetchAttempted": "true" } : {}),
               })
             ),
             teamMembersMatchingAttributeLogic,

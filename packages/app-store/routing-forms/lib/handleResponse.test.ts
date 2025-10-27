@@ -343,7 +343,7 @@ describe("handleResponse", () => {
     ).rejects.toThrow(/Chosen route is a router/);
   });
 
-  it("should handle CRM fetch errors gracefully and return null CRM values", async () => {
+  it("should handle CRM fetch errors gracefully and return empty string CRM values", async () => {
     const chosenRoute = {
       id: "route1",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -389,9 +389,9 @@ describe("handleResponse", () => {
 
     expect(routerGetCrmContactOwnerEmail).toHaveBeenCalled();
     expect(findTeamMembersMatchingAttributeLogic).toHaveBeenCalled();
-    expect(result.crmContactOwnerEmail).toBeNull();
-    expect(result.crmContactOwnerRecordType).toBeNull();
-    expect(result.crmAppSlug).toBeNull();
+    expect(result.crmContactOwnerEmail).toBe("");
+    expect(result.crmContactOwnerRecordType).toBe("");
+    expect(result.crmAppSlug).toBe("");
     expect(result.teamMembersMatchingAttributeLogic).toEqual([123]);
   });
 });
