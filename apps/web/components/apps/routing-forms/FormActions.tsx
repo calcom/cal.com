@@ -96,7 +96,7 @@ function NewFormDialog({
       <DialogContent className="overflow-y-auto">
         <div className="mb-1">
           <h3
-            className="text-emphasis !font-cal text-semibold leading-20 text-xl font-medium"
+            className="text-emphasis !font-cal text-semibold text-xl font-medium"
             id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
@@ -272,16 +272,16 @@ function Dialogs({
 
 const actionsCtx = createContext({
   appUrl: "",
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   setNewFormDialogState: null as SetNewFormDialogState | null,
   newFormDialogState: null as NewFormDialogState,
   _delete: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+     
     onAction: (_arg: { routingForm: RoutingForm | null }) => {},
     isPending: false,
   },
   toggle: {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
+     
     onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => {},
     isPending: false,
   },
