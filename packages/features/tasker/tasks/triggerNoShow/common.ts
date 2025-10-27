@@ -134,7 +134,7 @@ const getUserOrGuestById = async (id: string) => {
     })
     .catch(() => null);
 
-  return { email: guestSession.email, isLoggedIn: false };
+  return { email: guestSession?.email, isLoggedIn: false };
 };
 
 export async function getParticipantsWithEmail(
