@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { describe, expect, test, vi, beforeEach } from "vitest";
 
-import { getOgImageVersion } from "@calcom/lib/OgImages";
+import { getOGImageVersion } from "@calcom/lib/OgImages";
 
 import { GET } from "../route";
 
@@ -115,10 +115,10 @@ describe("GET /api/social/og/image", () => {
     });
   });
 
-  describe("getOgImageVersion with SVG hash", () => {
+  describe("getOGImageVersion with SVG hash", () => {
     test("app type: ETag changes when SVG hash is provided", async () => {
-      const etagWithoutHash = await getOgImageVersion("app");
-      const etagWithHash = await getOgImageVersion("app", {
+      const etagWithoutHash = await getOGImageVersion("app");
+      const etagWithHash = await getOGImageVersion("app", {
         slug: "huddle01video",
         svgHash: "81a0653b",
       });
@@ -129,11 +129,11 @@ describe("GET /api/social/og/image", () => {
     });
 
     test("app type: different SVG hashes produce different ETags", async () => {
-      const etagHash1 = await getOgImageVersion("app", {
+      const etagHash1 = await getOGImageVersion("app", {
         slug: "huddle01video",
         svgHash: "81a0653b",
       });
-      const etagHash2 = await getOgImageVersion("app", {
+      const etagHash2 = await getOGImageVersion("app", {
         slug: "zoomvideo",
         svgHash: "d1c78abf",
       });

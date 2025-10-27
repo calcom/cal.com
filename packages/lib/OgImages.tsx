@@ -72,7 +72,7 @@ const OG_ASSETS = {
   },
 };
 
-export const getOgImageVersion = async (
+export const getOGImageVersion = async (
   type: keyof typeof OG_ASSETS,
   additionalInputs?: Record<string, string>
 ) => {
@@ -119,7 +119,7 @@ export const constructMeetingImage = async ({
     params.append("usernames", user.username);
   });
 
-  params.set("v", await getOgImageVersion("meeting"));
+  params.set("v", await getOGImageVersion("meeting"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
@@ -142,7 +142,7 @@ export const constructAppImage = async ({
     logoUrl,
   });
 
-  params.set("v", await getOgImageVersion("app"));
+  params.set("v", await getOGImageVersion("app"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
@@ -154,7 +154,7 @@ export const constructGenericImage = async ({ title, description }: GenericImage
     description,
   });
 
-  params.set("v", await getOgImageVersion("generic"));
+  params.set("v", await getOGImageVersion("generic"));
 
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };

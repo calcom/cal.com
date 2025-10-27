@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import type { SatoriOptions } from "satori";
 import { z, ZodError } from "zod";
 
-import { Meeting, App, Generic, getOgImageVersion } from "@calcom/lib/OgImages";
+import { Meeting, App, Generic, getOGImageVersion } from "@calcom/lib/OgImages";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 export const runtime = "edge";
@@ -75,7 +75,7 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
-          const etag = await getOgImageVersion("meeting");
+          const etag = await getOGImageVersion("meeting");
           const img = new ImageResponse(
             (
               <Meeting
@@ -128,7 +128,7 @@ async function handler(req: NextRequest) {
           const SVG_HASHES = svgHashesModule.default ?? {};
           const svgHash = SVG_HASHES[slug] ?? undefined;
 
-          const etag = await getOgImageVersion("app", { svgHash });
+          const etag = await getOGImageVersion("app", { svgHash });
           const img = new ImageResponse(
             <App name={name} description={description} slug={slug} logoUrl={logoUrl} />,
             ogConfig
@@ -168,7 +168,7 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
-          const etag = await getOgImageVersion("generic");
+          const etag = await getOGImageVersion("generic");
           const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
 
           return new Response(img.body, {
