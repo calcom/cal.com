@@ -1,8 +1,8 @@
+import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
-import type { Host } from "./common";
 
 const markAllGuestNoshowInBooking = async ({
   bookingId,
