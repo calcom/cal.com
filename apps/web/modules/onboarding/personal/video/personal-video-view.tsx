@@ -5,10 +5,16 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { Logo } from "@calcom/ui/components/logo";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+
+import { InstallableAppCard } from "../_components/InstallableAppCard";
+import { OnboardingCard } from "../_components/OnboardingCard";
+import { OnboardingLayout } from "../_components/OnboardingLayout";
+import { SkipButton } from "../_components/SkipButton";
+import { useAppInstallation } from "../_components/useAppInstallation";
 
 type PersonalVideoViewProps = {
   userEmail: string;
@@ -38,6 +44,8 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
   const telemetry = useTelemetry();
+  const utils = trpc.useUtils();
+  const { installingAppSlug, setInstallingAppSlug, createInstallHandlers } = useAppInstallation();
 
   const { data: queryConnectedVideoApps, isPending } = trpc.viewer.apps.integrations.useQuery({
     variant: "conferencing",
@@ -46,10 +54,19 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
     sortByInstalledFirst: true,
   });
 
+  const setDefaultConferencingApp = trpc.viewer.apps.setDefaultConferencingApp.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.me.invalidate();
+    },
+    onError: (error) => {
+      showToast(t("something_went_wrong"), "error");
+      console.error(error);
+    },
+  });
+
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const createEventType = trpc.viewer.eventTypesHeavy.create.useMutation();
 
-  const utils = trpc.useUtils();
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       try {
@@ -77,8 +94,6 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
 
   const handleContinue = async () => {
     telemetry.event(telemetryEventTypes.onboardingFinished);
-
-    // Complete onboarding
     mutation.mutate({
       completedOnboarding: true,
     });
@@ -86,118 +101,62 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
 
   const handleSkip = async () => {
     telemetry.event(telemetryEventTypes.onboardingFinished);
-
-    // Complete onboarding
     mutation.mutate({
       completedOnboarding: true,
     });
   };
 
   if (!user) {
-    return null; // or a loading spinner
+    return null;
   }
 
+  // Check if user has a default conferencing app
+  const result = userMetadata.safeParse(user.metadata);
+  const metadata = result?.success ? result.data : null;
+  const hasDefaultConferencingApp = !!metadata?.defaultConferencingApp?.appSlug;
+
   return (
-    <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">
-      {/* Header */}
-      <div className="flex w-full items-center justify-between px-6 py-4">
-        <Logo className="h-5 w-auto" />
+    <OnboardingLayout userEmail={userEmail} currentStep={4}>
+      <OnboardingCard
+        title={t("connect_video_app")}
+        subtitle={t("video_app_connection_subtitle")}
+        isLoading={isPending}
+        footer={
+          <Button
+            color="primary"
+            className="rounded-[10px]"
+            onClick={handleContinue}
+            loading={mutation.isPending}
+            disabled={mutation.isPending}>
+            {t("finish_and_start")}
+          </Button>
+        }>
+        <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
+          {queryConnectedVideoApps?.items
+            .filter((app) => app.slug !== "daily-video")
+            .map((app) => {
+              const shouldAutoSetDefault =
+                !hasDefaultConferencingApp && app.appData?.location?.linkType === "dynamic";
 
-        {/* Progress dots - centered */}
-        <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1">
-          <div className="bg-emphasis h-1 w-1 rounded-full" />
-          <div className="bg-emphasis h-1 w-1 rounded-full" />
-          <div className="bg-emphasis h-1 w-1 rounded-full" />
-          <div className="bg-emphasis h-1.5 w-1.5 rounded-full" />
+              return (
+                <InstallableAppCard
+                  key={app.slug}
+                  app={app}
+                  isInstalling={installingAppSlug === app.slug}
+                  onInstallClick={setInstallingAppSlug}
+                  installOptions={createInstallHandlers(app.slug, (appSlug) => {
+                    // Auto-set as default if it's the first connected video app
+                    if (shouldAutoSetDefault) {
+                      setDefaultConferencingApp.mutate({ slug: appSlug });
+                    }
+                  })}
+                />
+              );
+            })}
         </div>
+      </OnboardingCard>
 
-        <div className="bg-muted flex items-center gap-2 rounded-full px-3 py-2">
-          <p className="text-emphasis text-sm font-medium leading-none">{userEmail}</p>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex h-full w-full items-start justify-center px-6 py-8">
-        <div className="flex w-full max-w-[600px] flex-col gap-4">
-          {/* Card */}
-          <div className="bg-muted border-muted relative rounded-xl border p-1">
-            <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-              {/* Card Header */}
-              <div className="flex w-full gap-1.5 px-5 py-4">
-                <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">{t("connect_video_app")}</h1>
-                  <p className="text-subtle text-sm font-medium leading-tight">
-                    {t("video_app_connection_subtitle")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="flex w-full flex-col gap-4 px-5 py-5">
-                {isPending ? (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <SkeletonText className="h-40 w-full" />
-                    <SkeletonText className="h-40 w-full" />
-                  </div>
-                ) : (
-                  <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
-                    {queryConnectedVideoApps?.items
-                      .filter((app) => app.slug !== "daily-video")
-                      .map((app) => (
-                        <div
-                          key={app.slug}
-                          className="border-subtle bg-default relative flex flex-col items-start gap-4 rounded-xl border p-5">
-                          {app.userCredentialIds.length > 0 && (
-                            <span className="bg-success text-success absolute right-2 top-2 rounded-md px-2 py-1 text-xs font-medium">
-                              {t("connected")}
-                            </span>
-                          )}
-                          {app.logo && <img src={app.logo} alt={app.name} className="h-9 w-9 rounded-md" />}
-                          <p
-                            className="text-default max-w- line-clamp-1 break-words text-left text-sm font-medium leading-none"
-                            title={app.name}>
-                            {app.name}
-                          </p>
-                          <p className="text-subtle line-clamp-2 text-left text-xs leading-tight">
-                            {app.description}
-                          </p>
-                          <Button
-                            color="secondary"
-                            href={`/apps/${app.slug}`}
-                            className="mt-auto w-full items-center justify-center rounded-[10px]">
-                            {t("connect")}
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button
-                  color="primary"
-                  className="rounded-[10px]"
-                  onClick={handleContinue}
-                  loading={mutation.isPending}
-                  disabled={mutation.isPending}>
-                  {t("finish_and_start")}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Skip button */}
-          <div className="flex w-full justify-center">
-            <button
-              onClick={handleSkip}
-              disabled={mutation.isPending}
-              className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4 disabled:opacity-50">
-              {t("ill_do_this_later")}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      <SkipButton onClick={handleSkip} disabled={mutation.isPending} />
+    </OnboardingLayout>
   );
 };
