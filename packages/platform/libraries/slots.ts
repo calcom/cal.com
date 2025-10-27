@@ -18,4 +18,5 @@ export { validateRoundRobinSlotAvailability };
 export {
   RESERVED_SLOT_UID_COOKIE_NAME,
   getReservedSlotUidFromCookies,
+  getReservedSlotUidFromRequest,
 } from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";

@@ -21,6 +21,17 @@ export function getReservedSlotUidFromCookies(req?: {
   return req?.cookies?.[RESERVED_SLOT_UID_COOKIE_NAME];
 }
 
+export function getReservedSlotUidFromRequest(req?: {
+  cookies: Record<string, string | undefined> | undefined;
+  body?: { reservedSlotUid?: string };
+}) {
+  const fromCookies = getReservedSlotUidFromCookies(req);
+  if (fromCookies) {
+    return fromCookies;
+  }
+  return req?.body?.reservedSlotUid;
+}
+
 interface ReserveSlotOptions {
   ctx: {
     prisma: PrismaClient;
