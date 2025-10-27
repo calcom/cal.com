@@ -263,7 +263,7 @@ export const KBarContent = () => {
             <Icon name="search" className="text-default mx-3 h-4 w-4" />
             <KBarSearch
               defaultPlaceholder={t("kbar_search_placeholder")}
-              className="bg-default placeholder:text-subtle text-default w-full rounded-sm py-2.5 focus-visible:outline-none"
+              className="bg-default placeholder:text-subtle text-default w-full rounded-sm py-2.5 focus-visible:outline-none px-0 border-0 focus:ring-0"
               value={inputText}
               onChange={(e) => {
                 setInputText(e.currentTarget.value.trim());
