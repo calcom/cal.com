@@ -271,6 +271,16 @@ export default function Success(props: PageProps) {
     (!!seatReferenceUid &&
       !bookingInfo.seatsReferences.some((reference) => reference.referenceUid === seatReferenceUid));
 
+  const isOrganizerEmail = (email: string): boolean => {
+    if (!email) return false;
+
+    const isHostEmail = eventType.users?.some((user) => user.email === email) ?? false;
+    const isPrimaryOrganizerEmail =
+      email === bookingInfo?.userPrimaryEmail || email === bookingInfo.user?.email;
+
+    return isHostEmail || isPrimaryOrganizerEmail;
+  };
+
   // const telemetry = useTelemetry();
   /*  useEffect(() => {
     if (top !== window) {
@@ -374,7 +384,6 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
@@ -557,20 +566,19 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {isCancelled && bookingInfo?.cancelledBy && (
-                          <>
-                            <div className="font-medium">{t("cancelled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">
-                                {bookingInfo.eventType?.hideOrganizerEmail &&
-                                bookingInfo.cancelledBy ===
-                                  (bookingInfo?.userPrimaryEmail ?? bookingInfo.user?.email)
-                                  ? bookingInfo.user?.name
-                                  : bookingInfo.cancelledBy}
-                              </p>
-                            </div>
-                          </>
-                        )}
+                        {isCancelled &&
+                          bookingInfo?.cancelledBy &&
+                          !(
+                            bookingInfo.eventType?.hideOrganizerEmail &&
+                            isOrganizerEmail(bookingInfo.cancelledBy)
+                          ) && (
+                            <>
+                              <div className="font-medium">{t("cancelled_by")}</div>
+                              <div className="col-span-2 mb-6 last:mb-0">
+                                <p className="break-words">{bookingInfo.cancelledBy}</p>
+                              </div>
+                            </>
+                          )}
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
