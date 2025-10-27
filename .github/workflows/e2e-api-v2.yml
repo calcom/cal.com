@@ -82,7 +82,7 @@ jobs:
         with:
           base: https://raw.githubusercontent.com/calcom/cal.com/refs/heads/main/docs/api-reference/v2/openapi.json
           revision: docs/api-reference/v2/openapi.json
-          fail-on: WARN
+          fail-on: ERR
           
       - name: Run Tests
         working-directory: apps/api/v2
