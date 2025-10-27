@@ -438,11 +438,11 @@ test.describe("Reschedule for booking with seats", () => {
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     // expect textarea with name notes to be visible
-    const notesElement = await page.locator("textarea[name=notes]");
-    await expect(notesElement).toBeVisible();
+    await expect(page.locator("textarea[name=notes]")).toBeVisible();
 
-    // expect button confirm instead of reschedule
-    await expect(page.locator('[data-testid="confirm-book-button"]')).toHaveCount(1);
+    // expect button confirm instead of reschedule (not logged in)
+    await expect(page.locator('[data-testid="confirm-book-button"]')).toBeVisible();
+    await expect(page.locator('[data-testid="confirm-reschedule-button"]')).not.toBeVisible();
 
     // now login and try again
     await user.apiLogin();
@@ -451,10 +451,9 @@ test.describe("Reschedule for booking with seats", () => {
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
-    await expect(page).toHaveTitle(/(?!.*reschedule).*/);
-
-    // expect button reschedule
-    await expect(page.locator('[data-testid="confirm-reschedule-button"]')).toHaveCount(1);
+    // expect button reschedule (logged in as owner)
+    await expect(page.locator('[data-testid="confirm-reschedule-button"]')).toBeVisible();
+    await expect(page.locator('[data-testid="confirm-book-button"]')).not.toBeVisible();
   });
 
   test("Host reschedule from /upcoming page should have rescheduleUid parameter set to bookingUid", async ({
@@ -554,24 +553,16 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
 
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-    await page.waitForTimeout(2000);
-    const href = await page.locator('[data-testid="reschedule"]').getAttribute("href");
-    const url = new URL(href!, page.url());
-    const seatReferenceUid = url.searchParams.get('seatReferenceUid');
-    if(!seatReferenceUid) {
-      await page.reload();
-      await page.waitForSelector('[data-testid="bookings"]');
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
-      await page.waitForTimeout(2000);
-    }
+    await page.locator('[data-testid="booking-actions-dropdown"]').first().click();
+    await expect(page.locator('[data-testid="reschedule"]')).toBeVisible();
     await page.locator('[data-testid="reschedule"]').click();
-    await expect(page.getByText("Seats available").first()).toBeVisible();
 
     await page.waitForURL((url) => {
       const rescheduleUid = url.searchParams.get("rescheduleUid");
       return !!rescheduleUid && rescheduleUid === references[1].referenceUid;
     });
+
+    await expect(page.getByText("Seats available").first()).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
 
