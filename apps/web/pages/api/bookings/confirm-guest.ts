@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -10,7 +11,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { totpRawCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const querySchema = z.object({
@@ -54,9 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      const credentials = await getUsersCredentialsIncludeServiceAccountKey({
-        userId: booking.user.id,
-      });
+      const credentials = await getUsersCredentialsIncludeServiceAccountKey(booking.user);
       const apps = eventTypeAppMetadataOptionalSchema.parse(booking.eventType?.metadata?.apps);
       const eventManager = new EventManager({ ...booking.user, credentials }, apps);
 
