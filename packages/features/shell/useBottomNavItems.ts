@@ -2,9 +2,6 @@ import type { User as UserAuth } from "next-auth";
 
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useHasActiveTeamPlanAsOwner } from "@calcom/lib/hooks/useHasPaidPlan";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { type NavigationItemType } from "./navigation/NavigationItem";
 
@@ -12,26 +9,16 @@ type BottomNavItemsProps = {
   publicPageUrl: string;
   isAdmin: boolean;
   user: UserAuth | null | undefined;
+  onNavClick?: (navItemName: string) => void;
 };
 
 export function useBottomNavItems({
   publicPageUrl,
   isAdmin,
   user,
+  onNavClick,
 }: BottomNavItemsProps): NavigationItemType[] {
-  const { t } = useLocale();
   const { isTrial } = useHasActiveTeamPlanAsOwner();
-  const utils = trpc.useUtils();
-
-  const skipTeamTrialsMutation = trpc.viewer.teams.skipTeamTrials.useMutation({
-    onSuccess: () => {
-      utils.viewer.teams.hasActiveTeamPlan.invalidate();
-      showToast(t("team_trials_skipped_successfully"), "success");
-    },
-    onError: () => {
-      showToast(t("something_went_wrong"), "error");
-    },
-  });
 
   return [
     // Render above to prevent layout shift as much as possible
@@ -39,11 +26,10 @@ export function useBottomNavItems({
       ? {
           name: "skip_trial",
           href: "",
-          isLoading: skipTeamTrialsMutation.isPending,
           icon: "clock",
           onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
-            skipTeamTrialsMutation.mutate({});
+            onNavClick?.("skip_trial");
           },
         }
       : null,
@@ -59,7 +45,6 @@ export function useBottomNavItems({
       onClick: (e: { preventDefault: () => void }) => {
         e.preventDefault();
         navigator.clipboard.writeText(publicPageUrl);
-        showToast(t("link_copied"), "success");
       },
       icon: "copy",
     },
