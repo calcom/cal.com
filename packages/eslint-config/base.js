@@ -7,7 +7,7 @@ import tseslint from "typescript-eslint";
 
 import noCascadeWithoutIndex from "./rules/no-cascade-without-index.rule.js";
 
-/** @type {import("eslint").Linter.FlatConfig[]} */
+/** @type {import("eslint").Linter.Config[]} */
 export const config = [
   js.configs.recommended,
   eslintConfigPrettier,
@@ -38,6 +38,21 @@ export const config = [
   },
   {
     files: ["**/*.prisma"],
+    languageOptions: {
+      parser: {
+        parse(text) {
+          return {
+            type: "Program",
+            body: [],
+            sourceType: "module",
+            tokens: [],
+            comments: [],
+            range: [0, text.length],
+            loc: { start: { line: 1, column: 0 }, end: { line: 1, column: 0 } },
+          };
+        },
+      },
+    },
     rules: {
       "calcom/no-cascade-without-index": "error",
     },

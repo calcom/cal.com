@@ -3256,6 +3256,7 @@ __metadata:
   resolution: "@calcom/eslint-config@workspace:packages/eslint-config"
   dependencies:
     "@eslint/js": 9.36.0
+    "@mrleebo/prisma-ast": ^0.13.1
     "@next/eslint-plugin-next": 15.4.5
     "@prisma/internals": ^6.18.0
     "@typescript-eslint/eslint-plugin": 8.39.0
@@ -9309,6 +9310,16 @@ __metadata:
     chevrotain: ^10.5.0
     lilconfig: ^2.1.0
   checksum: f02f053372fdb49b10675987918e7eb370653249acc7bc53111f9ae27db8b1a12140c562b1ea26287d4b4f5e0e134fc27dcbc5247ba2fd1abd4778b5f3e769e5
+  languageName: node
+  linkType: hard
+
+"@mrleebo/prisma-ast@npm:^0.13.1":
+  version: 0.13.1
+  resolution: "@mrleebo/prisma-ast@npm:0.13.1"
+  dependencies:
+    chevrotain: ^10.5.0
+    lilconfig: ^2.1.0
+  checksum: c1f3d203823473d8beab4e1641d0f48420f474b218b8555b0ca0b65762bea19466f810cd06eea07e7b8077c2d7cc7e903f88910b3041eb3379f98f8ddb5b09d2
   languageName: node
   linkType: hard
 
