@@ -6,10 +6,6 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
-/**
- * Unified response format for workflow variable substitution.
- * Normalized from both booking form responses and routing form responses.
- */
 export type WorkflowVariableResponses = Record<
   string,
   {
