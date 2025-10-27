@@ -223,6 +223,37 @@ export class CreditService {
     });
   }
 
+  /**
+   * Separates memberships into organization and team memberships.
+   * Organizations take precedence - if user belongs to any organization,
+   * only organization memberships are returned.
+   *
+   * @param memberships - User's accepted team memberships
+   * @param teams - Team data including isOrganization and parentId
+   * @returns Memberships to check (org memberships if any exist, otherwise team memberships)
+   */
+  private static filterMembershipsForCreditCheck<T extends { teamId: number }>(
+    memberships: T[],
+    teams: Array<{ id: number; isOrganization: boolean; parentId: number | null }>
+  ): T[] {
+    const teamMap = new Map(teams.map((t) => [t.id, t]));
+
+    const orgMemberships: T[] = [];
+    const teamMemberships: T[] = [];
+
+    for (const membership of memberships) {
+      const team = teamMap.get(membership.teamId);
+      if (team?.isOrganization && !team.parentId) {
+        orgMemberships.push(membership);
+      } else {
+        teamMemberships.push(membership);
+      }
+    }
+
+    // If user belongs to any organization, ONLY check organization credits
+    return orgMemberships.length > 0 ? orgMemberships : teamMemberships;
+  }
+
   /*
     If user has memberships, it always returns a team, even if all have limit reached. In that case, limitReached: true is returned
     If user belongs to any organization, ONLY organization credits are checked (team memberships are ignored)
@@ -235,27 +266,12 @@ export class CreditService {
       return null;
     }
 
-    const teams = await tx.team.findMany({
-      where: { id: { in: memberships.map((m) => m.teamId) } },
-      select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
+    const teamRepository = new TeamRepository(prisma);
+    const teams = await teamRepository.findTeamsForCreditCheck({
+      teamIds: memberships.map((m) => m.teamId),
     });
 
-    const teamMap = new Map(teams.map((t) => [t.id, t]));
-
-    const orgMemberships: typeof memberships = [];
-    const teamMemberships: typeof memberships = [];
-
-    for (const membership of memberships) {
-      const team = teamMap.get(membership.teamId);
-      if (team?.isOrganization && !team.parentId) {
-        orgMemberships.push(membership);
-      } else {
-        teamMemberships.push(membership);
-      }
-    }
-
-    // If user belongs to any organization, ONLY check organization credits
-    const membershipsToCheck = orgMemberships.length > 0 ? orgMemberships : teamMemberships;
+    const membershipsToCheck = CreditService.filterMembershipsForCreditCheck(memberships, teams);
 
     for (const membership of membershipsToCheck) {
       const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
@@ -471,7 +487,7 @@ export class CreditService {
         creditBalance?.limitReachedAt &&
         (!teamId || dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month")))
       ) {
-        log.info("User or team has limit already reached or team has already reached limit this month", {
+        log.info("User or team has limit already reached this month", {
           teamId,
           userId,
           creditBalance,

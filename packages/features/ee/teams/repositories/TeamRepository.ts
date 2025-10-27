@@ -493,4 +493,11 @@ export class TeamRepository {
       select: { id: true },
     });
   }
+
+  async findTeamsForCreditCheck({ teamIds }: { teamIds: number[] }) {
+    return await this.prismaClient.team.findMany({
+      where: { id: { in: teamIds } },
+      select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
+    });
+  }
 }

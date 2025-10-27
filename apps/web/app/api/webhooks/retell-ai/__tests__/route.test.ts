@@ -240,6 +240,7 @@ describe("Retell AI Webhook Handler", () => {
         credits: 58, // 120 seconds = 2 minutes * $0.29 = $0.58 = 58 credits
         callDuration: 120,
         externalRef: "retell:test-call-id",
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
       })
     );
   });
@@ -297,6 +298,7 @@ describe("Retell AI Webhook Handler", () => {
         credits: 87, // 180 seconds = 3 minutes * $0.29 = $0.87 = 87 credits
         callDuration: 180,
         externalRef: "retell:test-call-id",
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
       })
     );
   });
@@ -480,6 +482,7 @@ describe("Retell AI Webhook Handler", () => {
           credits: expectedCredits,
           callDuration: durationSeconds,
           externalRef: expect.stringMatching(/^retell:test-call-/),
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     }
@@ -526,7 +529,12 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(createMockRequest(body, "valid-signature"));
     expect(response.status).toBe(200);
     expect(mockChargeCredits).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 42, credits: 61, callDuration: 125 }) // 125s = 2.083 minutes * $0.29 = $0.604 = 61 credits (rounded up)
+      expect.objectContaining({
+        userId: 42,
+        credits: 61,
+        callDuration: 125,
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
+      }) // 125s = 2.083 minutes * $0.29 = $0.604 = 61 credits (rounded up)
     );
   });
 
@@ -583,6 +591,7 @@ describe("Retell AI Webhook Handler", () => {
           credits: 29, // 60 seconds = 1 minute * $0.29 = $0.29 = 29 credits
           callDuration: 60,
           externalRef: "retell:test-idempotency-call",
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     });
@@ -769,6 +778,7 @@ describe("Retell AI Webhook Handler", () => {
           credits: 4, // 7 seconds = 0.117 minutes * $0.29 = $0.034 = 4 credits (rounded up)
           callDuration: 7,
           externalRef: "retell:call_bcd94f5a50832873a5fd68cb1aa",
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     });
@@ -803,6 +813,7 @@ describe("Retell AI Webhook Handler", () => {
           teamId: 10,
           credits: 29, // 60 seconds = 1 minute * $0.29 = 29 credits
           callDuration: 60,
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     });
@@ -883,369 +894,6 @@ describe("Retell AI Webhook Handler", () => {
         providerAgentId: "non-existent-agent",
       });
       expect(mockChargeCredits).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("Cal.ai Credit Type", () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-      vi.mocked(Retell.verify).mockReturnValue(true);
-    });
-
-    it("should pass CAL_AI_PHONE_CALL creditFor when charging credits for web call", async () => {
-      const mockAgent: Pick<
-        Agent,
-        "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt"
-      > = {
-        id: "agent-123",
-        name: "Test Agent",
-        providerAgentId: "agent_cal_ai_test",
-        enabled: true,
-        userId: 1,
-        teamId: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockFindByProviderAgentId.mockResolvedValue(mockAgent);
-      mockChargeCredits.mockResolvedValue(undefined);
-
-      const body: RetellWebhookBody = {
-        event: "call_analyzed",
-        call: {
-          call_id: "web-call-credit-type",
-          call_type: "web_call",
-          agent_id: "agent_cal_ai_test",
-          call_status: "ended",
-          start_timestamp: 1757673314024,
-          call_cost: {
-            total_duration_seconds: 120,
-            combined_cost: 2.0,
-          },
-        },
-      };
-
-      const request = createMockRequest(body, "valid-signature");
-      const response = await callPOST(request);
-
-      expect(response.status).toBe(200);
-      expect(mockChargeCredits).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: 1,
-          credits: 58,
-          callDuration: 120,
-          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-          externalRef: "retell:web-call-credit-type",
-        })
-      );
-    });
-
-    it("should pass CAL_AI_PHONE_CALL creditFor when charging credits for phone call", async () => {
-      const mockPhoneNumber: MockPhoneNumberWithUser = {
-        id: 1,
-        phoneNumber: "+1234567890",
-        userId: 1,
-        teamId: null,
-        provider: "test-provider",
-        providerPhoneNumberId: "test-provider-id",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        subscriptionStatus: null,
-        inboundAgentId: null,
-        outboundAgentId: null,
-        user: { id: 1, email: "test@example.com", name: "Test User" },
-        team: null,
-      };
-
-      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
-      mockChargeCredits.mockResolvedValue(undefined);
-
-      const body: RetellWebhookBody = {
-        event: "call_analyzed",
-        call: {
-          call_id: "phone-call-credit-type",
-          from_number: "+1234567890",
-          to_number: "+0987654321",
-          direction: "outbound",
-          call_status: "completed",
-          start_timestamp: 1234567890,
-          call_cost: {
-            combined_cost: 100,
-            total_duration_seconds: 180,
-          },
-        },
-      };
-
-      const request = createMockRequest(body, "valid-signature");
-      const response = await callPOST(request);
-
-      expect(response.status).toBe(200);
-      expect(mockChargeCredits).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: 1,
-          credits: 87,
-          callDuration: 180,
-          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-          externalRef: "retell:phone-call-credit-type",
-        })
-      );
-    });
-
-    it("should pass CAL_AI_PHONE_CALL creditFor for team-based calls", async () => {
-      const mockPhoneNumber: MockPhoneNumberWithTeam = {
-        id: 2,
-        phoneNumber: "+1234567890",
-        userId: null,
-        teamId: 5,
-        provider: "test-provider",
-        providerPhoneNumberId: "test-provider-id-2",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        subscriptionStatus: null,
-        inboundAgentId: null,
-        outboundAgentId: null,
-        team: { id: 5, name: "Test Team" },
-        user: null,
-      };
-
-      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
-      mockChargeCredits.mockResolvedValue(undefined);
-
-      const body: RetellWebhookBody = {
-        event: "call_analyzed",
-        call: {
-          call_id: "team-call-credit-type",
-          from_number: "+1234567890",
-          to_number: "+0987654321",
-          direction: "outbound",
-          call_status: "completed",
-          start_timestamp: 1234567890,
-          call_cost: {
-            combined_cost: 50,
-            total_duration_seconds: 60,
-          },
-        },
-      };
-
-      const request = createMockRequest(body, "valid-signature");
-      const response = await callPOST(request);
-
-      expect(response.status).toBe(200);
-      expect(mockChargeCredits).toHaveBeenCalledWith(
-        expect.objectContaining({
-          teamId: 5,
-          credits: 29,
-          callDuration: 60,
-          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-          externalRef: "retell:team-call-credit-type",
-        })
-      );
-    });
-  });
-
-  describe("Cal.ai Credit Email Integration", () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-      vi.mocked(Retell.verify).mockReturnValue(true);
-      mockSendCreditBalanceLimitReachedEmails.mockResolvedValue(undefined);
-      mockSendCreditBalanceLowWarningEmails.mockResolvedValue(undefined);
-    });
-
-    it("should trigger email with CAL_AI_PHONE_CALL creditFor when credits run out", async () => {
-      const mockPhoneNumber: MockPhoneNumberWithUser = {
-        id: 1,
-        phoneNumber: "+1234567890",
-        userId: 1,
-        teamId: null,
-        provider: "test-provider",
-        providerPhoneNumberId: "test-provider-id",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        subscriptionStatus: null,
-        inboundAgentId: null,
-        outboundAgentId: null,
-        user: { id: 1, email: "test@example.com", name: "Test User" },
-        team: null,
-      };
-
-      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
-
-      mockChargeCredits.mockImplementation(async (params) => {
-        if (params.creditFor === CreditUsageType.CAL_AI_PHONE_CALL) {
-          await mockSendCreditBalanceLimitReachedEmails({
-            user: {
-              id: params.userId,
-              name: "Test User",
-              email: "test@example.com",
-              t: (key: string) => key,
-            },
-            creditFor: params.creditFor,
-          });
-        }
-        return { userId: params.userId };
-      });
-
-      const body: RetellWebhookBody = {
-        event: "call_analyzed",
-        call: {
-          call_id: "call-trigger-email",
-          from_number: "+1234567890",
-          to_number: "+0987654321",
-          direction: "outbound",
-          call_status: "completed",
-          start_timestamp: 1234567890,
-          call_cost: {
-            combined_cost: 100,
-            total_duration_seconds: 120,
-          },
-        },
-      };
-
-      const request = createMockRequest(body, "valid-signature");
-      const response = await callPOST(request);
-
-      expect(response.status).toBe(200);
-
-      expect(mockChargeCredits).toHaveBeenCalledWith(
-        expect.objectContaining({
-          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-        })
-      );
-
-      expect(mockSendCreditBalanceLimitReachedEmails).toHaveBeenCalledWith(
-        expect.objectContaining({
-          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-        })
-      );
-    });
-
-    it("should trigger warning email with CAL_AI_PHONE_CALL creditFor when credits are low", async () => {
-      const mockAgent: Pick<
-        Agent,
-        "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt"
-      > = {
-        id: "agent-123",
-        name: "Test Agent",
-        providerAgentId: "agent_warning_test",
-        enabled: true,
-        userId: 1,
-        teamId: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockFindByProviderAgentId.mockResolvedValue(mockAgent);
-
-      mockChargeCredits.mockImplementation(async (params) => {
-        if (params.creditFor === CreditUsageType.CAL_AI_PHONE_CALL) {
-          await mockSendCreditBalanceLowWarningEmails({
-            user: {
-              id: params.userId,
-              name: "Test User",
-              email: "test@example.com",
-              t: (key: string) => key,
-            },
-            balance: 100,
-            creditFor: params.creditFor,
-          });
-        }
-        return { userId: params.userId };
-      });
-
-      const body: RetellWebhookBody = {
-        event: "call_analyzed",
-        call: {
-          call_id: "call-trigger-warning",
-          call_type: "web_call",
-          agent_id: "agent_warning_test",
-          call_status: "ended",
-          start_timestamp: 1757673314024,
-          call_cost: {
-            total_duration_seconds: 60,
-            combined_cost: 1.0,
-          },
-        },
-      };
-
-      const request = createMockRequest(body, "valid-signature");
-      const response = await callPOST(request);
-
-      expect(response.status).toBe(200);
-
-      expect(mockChargeCredits).toHaveBeenCalledWith(
-        expect.objectContaining({
-          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-        })
-      );
-
-      expect(mockSendCreditBalanceLowWarningEmails).toHaveBeenCalledWith(
-        expect.objectContaining({
-          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-          balance: 100,
-        })
-      );
-    });
-
-    it("should not pass SMS creditFor for Cal.ai calls", async () => {
-      const mockPhoneNumber: MockPhoneNumberWithTeam = {
-        id: 2,
-        phoneNumber: "+1234567890",
-        userId: null,
-        teamId: 5,
-        provider: "test-provider",
-        providerPhoneNumberId: "test-provider-id-2",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        subscriptionStatus: null,
-        inboundAgentId: null,
-        outboundAgentId: null,
-        team: { id: 5, name: "Test Team" },
-        user: null,
-      };
-
-      mockFindByPhoneNumber.mockResolvedValue(mockPhoneNumber);
-      mockChargeCredits.mockResolvedValue({ teamId: 5 });
-
-      const body: RetellWebhookBody = {
-        event: "call_analyzed",
-        call: {
-          call_id: "call-not-sms",
-          from_number: "+1234567890",
-          to_number: "+0987654321",
-          direction: "outbound",
-          call_status: "completed",
-          start_timestamp: 1234567890,
-          call_cost: {
-            combined_cost: 50,
-            total_duration_seconds: 30,
-          },
-        },
-      };
-
-      const request = createMockRequest(body, "valid-signature");
-      const response = await callPOST(request);
-
-      expect(response.status).toBe(200);
-
-      expect(mockChargeCredits).toHaveBeenCalledWith(
-        expect.objectContaining({
-          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
-        })
-      );
-
-      expect(mockChargeCredits).not.toHaveBeenCalledWith(
-        expect.objectContaining({
-          creditFor: CreditUsageType.SMS,
-        })
-      );
     });
   });
 });
