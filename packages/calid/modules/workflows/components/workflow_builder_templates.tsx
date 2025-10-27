@@ -62,7 +62,7 @@ export const WorkflowBuilderTemplates = ({ templates, teamId }: WorkflowBuilderT
     switch (actionType) {
       case WorkflowActions.EMAIL_ATTENDEE:
       case WorkflowActions.EMAIL_HOST:
-        return "black";
+        return "turquoise";
       case WorkflowActions.SMS_ATTENDEE:
         return "orange";
       case WorkflowActions.WHATSAPP_ATTENDEE:
@@ -79,6 +79,21 @@ export const WorkflowBuilderTemplates = ({ templates, teamId }: WorkflowBuilderT
         heading={t("workflows")}
         subtitle={t("workflows_to_automate_notifications")}>
         <div className="mx-auto justify-center text-center">
+          <div className="flex w-full flex-row">
+            <div className="flex-1" />
+            <div className="flex-1" />
+            <Button
+              onClick={() => {
+                handleWorkflowCreate(null);
+              }}
+              className="my-6 flex-1 items-center justify-center md:hidden"
+              StartIcon="plus"
+              variant="button"
+              color="primary">
+              {t("add_custom")}
+            </Button>
+          </div>
+
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 ">
             {templates.map((template: WorkflowTemplate) => (
               <div
@@ -105,16 +120,17 @@ export const WorkflowBuilderTemplates = ({ templates, teamId }: WorkflowBuilderT
               </div>
             ))}
           </div>
-          <Button
-            onClick={() => {
-              handleWorkflowCreate(null);
-            }}
-            className="mt-10"
-            StartIcon="plus"
-            variant="fab"
-            color="primary">
-            {t("use_template")}
-          </Button>
+          <div className="w-full text-center">
+            <div className="flex-1" />
+            <Button
+              onClick={() => handleWorkflowCreate(null)}
+              className="mx-auto mt-10 hidden items-center justify-center md:flex"
+              StartIcon="plus"
+              variant="button"
+              color="primary">
+              {t("add_custom")}
+            </Button>
+          </div>
         </div>
       </ShellMain>
     </Shell>

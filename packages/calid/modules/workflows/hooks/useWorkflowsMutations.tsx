@@ -205,11 +205,11 @@ export const useWorkflowMutations = (filters: any, onCreateSuccess?: () => void)
         id: workflow.id,
         name: template.name,
         activeOn: [],
+        isActiveOnAll: true,
         steps: [newStep],
         trigger: template.triggerEvent,
         time: template.time,
         timeUnit: "MINUTE",
-        isActiveOnAll: false,
       };
       console.log("Update mutation params: ", updateParams);
 

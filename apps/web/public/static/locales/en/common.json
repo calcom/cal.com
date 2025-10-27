@@ -1,5 +1,7 @@
 {
+  "workflow_filter_text": "{{filter}} and {{count}} more",
   "use_template": "Use Template",
+  "add_custom": "Add custom",
   "book_members": "Book Members",
   "view_schedule": "View Schedule",
   "members_bookings": "Member's bookings",
