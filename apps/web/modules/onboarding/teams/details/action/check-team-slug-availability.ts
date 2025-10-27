@@ -30,6 +30,7 @@ export async function checkTeamSlugAvailability(slug: string): Promise<{
   const existingTeam = await prisma.team.findFirst({
     where: {
       slug,
+      parentId: null,
     },
     select: {
       id: true,
