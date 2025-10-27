@@ -136,6 +136,8 @@ export class BookingsController_2024_08_13 {
 
       For event types that have sms reminders workflow, you need to pass the phone number via the attendee phone number property. 
 
+      For event types that have SMS reminders workflow, you need to pass the attendee's phone number in the request body via \`attendee.phoneNumber\` (e.g., "+19876543210" in international format). This is an optional field, but becomes required when SMS reminders are enabled for the event type. For the complete attendee object structure, see the [attendee object](https://cal.com/docs/api-reference/v2/bookings/create-a-booking#body-attendee) documentation.
+
       <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
       `,
   })
