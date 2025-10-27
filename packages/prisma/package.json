@@ -18,7 +18,6 @@
     "post-install": "yarn generate-schemas",
     "seed-app-store": "ts-node --transpile-only ../../scripts/seed-app-store.ts",
     "delete-app": "ts-node --transpile-only ./delete-app.ts",
-    "seed-all": "yarn seed-basic && yarn seed-insights && yarn seed-pbac",
     "seed-basic": "ts-node --transpile-only ../../scripts/seed.ts",
     "seed-insights": "ts-node --transpile-only ../../scripts/seed-insights.ts",
     "seed-pbac": "ts-node --transpile-only ../../scripts/seed-pbac-organization.ts"
@@ -47,6 +46,6 @@
     "zod-utils.ts"
   ],
   "prisma": {
-    "seed": "yarn seed-all"
+    "seed": "yarn seed-basic"
   }
 }
