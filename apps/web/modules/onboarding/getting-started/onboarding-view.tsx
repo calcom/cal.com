@@ -48,7 +48,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       badge: t("onboarding_plan_personal_badge"),
       description: t("onboarding_plan_personal_description"),
       icon: planIconByType.personal,
-      variant: "single",
+      variant: "single" as const,
     },
     {
       id: "team" as PlanType,
@@ -56,7 +56,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       badge: t("onboarding_plan_team_badge"),
       description: t("onboarding_plan_team_description"),
       icon: planIconByType.team,
-      variant: "single",
+      variant: "single" as const,
     },
     {
       id: "organization" as PlanType,
@@ -64,7 +64,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       badge: t("onboarding_plan_organization_badge"),
       description: t("onboarding_plan_organization_description"),
       icon: planIconByType.organization,
-      variant: "double",
+      variant: "double" as const,
     },
   ];
 
