@@ -48,7 +48,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
           </Button>
         }>
         <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
-          {queryIntegrations.data?.items.map((app) => (
+          {queryIntegrations.data?.items?.map((app) => (
             <InstallableAppCard
               key={app.slug}
               app={app}
