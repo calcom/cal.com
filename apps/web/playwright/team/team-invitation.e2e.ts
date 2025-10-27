@@ -89,7 +89,9 @@ test.describe("Team", () => {
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
       await inviteLinkPage.goto(inviteLink);
-      await inviteLinkPage.waitForLoadState("domcontentloaded");
+      const img = inviteLinkPage.locator('[data-testid="google"] img');
+      await expect(img).toBeVisible();
+      await expect(img).toHaveAttribute("src", /google-icon-colored\.svg/);
 
       await inviteLinkPage.locator("button[type=submit]").click();
       await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
