@@ -31,7 +31,7 @@ export function useCreateTeam() {
       }
 
       if (result.team) {
-        router.push("/getting-started");
+        router.push("/onboarding/getting-started");
       }
     } catch (error) {
       console.error("Failed to create team:", error);
