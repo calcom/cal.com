@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
@@ -253,7 +252,6 @@ export class AvailableSlotsService {
     );
     const eventTypeId =
       input.eventTypeId ||
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       (await this.getEventTypeId({
         slug: usernameList?.[0],
         eventTypeSlug: eventTypeSlug,
