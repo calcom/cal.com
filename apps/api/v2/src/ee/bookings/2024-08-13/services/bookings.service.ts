@@ -410,6 +410,48 @@ export class BookingsService_2024_08_13 {
               }
             }
             break;
+          case "date":
+            expectedBookingFieldResponseValueType = "string";
+            isValidType = bookingFieldResponseValueType === "string";
+
+            // Additional date format validation
+            if (isValidType) {
+              const dateString = bookingFieldResponseValue as string;
+
+              // Validate YYYY-MM-DD format
+              const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+              if (!dateRegex.test(dateString)) {
+                throw new BadRequestException(
+                  `Invalid date format for booking field '${eventTypeBookingField.name}'. Expected format YYYY-MM-DD, but received '${dateString}'.`
+                );
+              }
+
+              // Parse date components directly instead of using new Date(dateString)
+              // Note: We avoid new Date(dateString) because it parses the string as UTC midnight
+              // and then converts to the server's local timezone, which can shift the date
+              const [year, month, day] = dateString.split("-").map(Number);
+
+              // Validate month range
+              if (month < 1 || month > 12) {
+                throw new BadRequestException(
+                  `Invalid date value for booking field '${eventTypeBookingField.name}'. Month must be between 1-12, but received ${month}.`
+                );
+              }
+
+              // Validate day exists in the given month/year (handles leap years and month lengths)
+              const daysInMonth = new Date(year, month, 0).getDate();
+              if (day < 1 || day > daysInMonth) {
+                throw new BadRequestException(
+                  `Invalid date value for booking field '${
+                    eventTypeBookingField.name
+                  }'. Day ${day} does not exist in ${year}-${String(month).padStart(
+                    2,
+                    "0"
+                  )} (month has ${daysInMonth} days).`
+                );
+              }
+            }
+            break;
           case "url":
             expectedBookingFieldResponseValueType = "string";
             isValidType = bookingFieldResponseValueType === "string";
