@@ -32,7 +32,6 @@ type CalIdUpdateOptions = {
   input: TCalIdUpdateInputSchema;
 };
 
-
 // This requires work to be made usable even inside of create so we can avoid the 2 calls when creating workflow from builder templates
 
 export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => {

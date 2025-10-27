@@ -5,7 +5,7 @@ import LegacyPage from "@calid/features/modules/workflows/pages/workflow";
 import type { PageProps } from "app/_types";
 import { z } from "zod";
 
-import { WorkflowBuilderTemplateFields } from "../config/workflow_templates";
+import type { WorkflowBuilderTemplateFields } from "../config/workflow_templates";
 
 // import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
 

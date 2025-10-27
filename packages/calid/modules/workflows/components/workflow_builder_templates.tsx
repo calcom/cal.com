@@ -2,16 +2,15 @@
 
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
-import Link from "next/link";
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions } from "@calcom/prisma/enums";
 
-import { templates, WorkflowTemplate } from "../config/workflow_templates";
+import type { templates, WorkflowTemplate } from "../config/workflow_templates";
 import { useWorkflowMutations } from "../hooks/useWorkflowsMutations";
 
 type WorkflowBuilderTemplatesProps = {
@@ -103,7 +102,7 @@ export const WorkflowBuilderTemplates = ({ templates, teamId }: WorkflowBuilderT
                   <Icon
                     name={getIcon(template.actionType)}
                     style={{ color: iconColor(template.actionType) }}
-                    className={`h-10 w-10 p-2`}
+                    className="h-10 w-10 p-2"
                   />
                 </div>
                 <h3 className="mb-2 text-center text-sm font-medium">{template.name}</h3>
