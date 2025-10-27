@@ -44,30 +44,72 @@ async function postHandler(request: NextRequest) {
     // Check if user has locked default availability before updating default schedule timezone
     const hasLockedAvailability = await hasLockedDefaultAvailabilityRestriction(user.id);
 
-    if (!hasLockedAvailability) {
-      const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
 
-      if (!user.defaultScheduleId) {
-        // set default schedule if not already set
-        await prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            defaultScheduleId,
-          },
-        });
-      }
-
-      await prisma.schedule.update({
+    if (!user.defaultScheduleId) {
+      // set default schedule if not already set
+      await prisma.user.update({
         where: {
-          id: defaultScheduleId,
+          id: user.id,
+        },
+        data: {
+          defaultScheduleId,
+        },
+      });
+    }
+
+    // Get all user schedules
+    const allSchedules = await prisma.schedule.findMany({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    // Update all schedules to the new timezone (excluding default if locked)
+    const schedulesToUpdate = hasLockedAvailability
+      ? allSchedules.filter((schedule) => schedule.id !== defaultScheduleId).map((s) => s.id)
+      : allSchedules.map((schedule) => schedule.id);
+
+    if (schedulesToUpdate.length > 0) {
+      await prisma.schedule.updateMany({
+        where: {
+          id: {
+            in: schedulesToUpdate,
+          },
         },
         data: {
           timeZone: timeZone,
         },
       });
     }
+
+    // Handle default schedule separately if locked
+    if (hasLockedAvailability) {
+      const defaultSchedule = await prisma.schedule.findUnique({
+        where: {
+          id: defaultScheduleId,
+        },
+        select: {
+          timeZone: true,
+        },
+      });
+
+      if (!defaultSchedule?.timeZone) {
+        // Set the schedule timezone to preserve it when locked
+        await prisma.schedule.update({
+          where: {
+            id: defaultScheduleId,
+          },
+          data: {
+            timeZone: timeZone,
+          },
+        });
+      }
+    }
+
     timeZonesChanged++;
   };
 
