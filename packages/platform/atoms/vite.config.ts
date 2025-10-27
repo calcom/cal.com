@@ -43,6 +43,12 @@ export default defineConfig(({ mode }) => {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
       "process.env.NEXT_PUBLIC_CALCOM_VERSION": `"${calcomVersion}"`,
       "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": `"${vercelCommitSha}"`,
+      "process.env.NODE_ENV": `"${mode}"`,
+      "process.env.__NEXT_ROUTER_BASEPATH": `""`,
+      "process.env.__NEXT_I18N_SUPPORT": `false`,
+      "process.env.__NEXT_MANUAL_TRAILING_SLASH": `false`,
+      "process.env.__NEXT_TRAILING_SLASH": `false`,
+      "process.env": "{}",
     },
     ssr: {
       noExternal: ["turndown"], // Example if you want to disable SSR for your library
