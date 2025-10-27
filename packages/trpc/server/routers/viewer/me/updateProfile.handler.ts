@@ -1,4 +1,3 @@
- 
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
@@ -281,18 +280,29 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
 
-    if (!hasLockedAvailability) {
-      await prisma.schedule.update({
+    // Update all schedules to the new timezone
+    const allScheduleIds = updatedUser.schedules.map((schedule) => schedule.id);
+    const schedulesToUpdate = hasLockedAvailability
+      ? allScheduleIds.filter((id) => id !== defaultScheduleId)
+      : allScheduleIds;
+
+    // Update all schedules (excluding default if locked)
+    if (schedulesToUpdate.length > 0) {
+      await prisma.schedule.updateMany({
         where: {
-          id: defaultScheduleId,
+          id: {
+            in: schedulesToUpdate,
+          },
         },
         data: {
           timeZone: data.timeZone,
         },
       });
-    } else {
-      // If user has locked default availability, ensure the schedule has a timezone set
-      // (for existing schedules that might have null timezone)
+    }
+
+    // Handle default schedule separately if locked
+    if (hasLockedAvailability) {
+      // Ensure the default schedule has a timezone set (for existing schedules that might have null timezone)
       const defaultSchedule = await prisma.schedule.findUnique({
         where: {
           id: defaultScheduleId,
@@ -341,7 +351,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
           username: updatedUser.username ?? "Nameless User",
           emailFrom: user.email,
           // We know email has been changed here so we can use input
-           
+
           emailTo: input.email!,
         },
       });
