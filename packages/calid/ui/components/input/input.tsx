@@ -120,10 +120,81 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     t: __t,
     dataTestid,
     size,
+    min,
+    max,
+    onChange,
+    value,
     ...passThrough
   } = props;
 
   const [inputValue, setInputValue] = useState<string>("");
+
+  // Enhanced change handler that enforces min/max for number inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+
+    if (type === "number" && (min !== undefined || max !== undefined)) {
+      const numValue = parseFloat(newValue);
+
+      // Allow empty string for clearing the field
+      if (newValue === "") {
+        onChange?.(e);
+        return;
+      }
+
+      // Check if it's a valid number
+      if (!isNaN(numValue)) {
+        let clampedValue = numValue;
+
+        // Clamp the value between min and max
+        if (min !== undefined && numValue < Number(min)) {
+          clampedValue = Number(min);
+        }
+        if (max !== undefined && numValue > Number(max)) {
+          clampedValue = Number(max);
+        }
+
+        // If the value was clamped, update the event target value
+        if (clampedValue !== numValue) {
+          e.target.value = String(clampedValue);
+        }
+      }
+    }
+
+    // Call the original onChange handler
+    onChange?.(e);
+  };
+
+  // Handle blur event to enforce min/max when user leaves the field
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (type === "number" && (min !== undefined || max !== undefined)) {
+      const numValue = parseFloat(e.target.value);
+
+      if (!isNaN(numValue)) {
+        let clampedValue = numValue;
+
+        if (min !== undefined && numValue < Number(min)) {
+          clampedValue = Number(min);
+        }
+        if (max !== undefined && numValue > Number(max)) {
+          clampedValue = Number(max);
+        }
+
+        if (clampedValue !== numValue) {
+          // Create a synthetic event with the clamped value
+          const syntheticEvent = {
+            ...e,
+            target: { ...e.target, value: String(clampedValue) },
+          } as React.ChangeEvent<HTMLInputElement>;
+
+          onChange?.(syntheticEvent);
+        }
+      }
+    }
+
+    // Call original onBlur if it exists
+    passThrough.onBlur?.(e);
+  };
 
   return (
     <div className={cn(containerClassName)}>
@@ -159,6 +230,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             id={id}
             type={type}
             placeholder={placeholder}
+            min={min}
+            max={max}
             className={cn(
               "w-full min-w-0 truncate border-0 bg-transparent focus:outline-none focus:ring-0",
               "text-default rounded-md text-sm font-medium leading-none",
@@ -174,6 +247,11 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
                 props.onChange && props.onChange(e);
               },
               value: inputValue,
+            })}
+            {...(type === "number" && {
+              onChange: handleChange,
+              onBlur: handleBlur,
+              value: value,
             })}
             disabled={readOnly || disabled}
             ref={ref}
@@ -204,11 +282,16 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           type={type}
           placeholder={placeholder}
           size={size}
+          min={min}
+          max={max}
           className={cn(
             className,
             "disabled:bg-subtle disabled:hover:border-subtle focus:ring-brand-default focus:border-none focus:ring-2 disabled:cursor-not-allowed"
           )}
           {...passThrough}
+          onChange={type === "number" ? handleChange : onChange}
+          onBlur={type === "number" ? handleBlur : passThrough.onBlur}
+          value={value}
           readOnly={readOnly}
           ref={ref}
           isFullWidth={inputIsFullWidth}

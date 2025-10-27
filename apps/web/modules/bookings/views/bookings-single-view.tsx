@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  generateRecurringInstances,
+  getActualRecurringStartTime,
+} from "@calid/features/modules/teams/lib/recurrenceUtil";
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
@@ -18,7 +22,6 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -47,6 +50,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { EmailInput, TextArea } from "@calcom/ui/components/form";
@@ -292,8 +296,10 @@ export default function Success(props: PageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const recurringEvent = bookingWithParsedMetadata.metadata?.recurringEvent;
+  const isRecurringBooking = !!recurringEvent;
   function getTitle(): string {
-    const titleSuffix = props.recurringBookings ? "_recurring" : "";
+    const titleSuffix = isRecurringBooking ? "_recurring" : "";
     const titlePrefix = isRoundRobin ? "round_robin_" : "";
     if (isCancelled) {
       return "";
@@ -367,7 +373,6 @@ export default function Success(props: PageProps) {
     eventType,
   };
 
-  const isRecurringBooking = props.recurringBookings;
   const needsConfirmationAndReschedulable = needsConfirmation && isReschedulable;
   const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
@@ -447,7 +452,7 @@ export default function Success(props: PageProps) {
       {isLoggedIn && !isEmbed && !isFeedbackMode && (
         <div className="-mb-4 ml-4 mt-2">
           <Link
-            href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
+            href={isRecurringBooking ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
             className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex rounded-md px-2 py-2 text-sm transition dark:hover:bg-transparent">
             <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
@@ -607,8 +612,8 @@ export default function Success(props: PageProps) {
                               <RecurringBookings
                                 eventType={eventType}
                                 duration={calculatedDuration}
-                                recurringBookings={props.recurringBookings}
-                                allRemainingBookings={allRemainingBookings}
+                                recurringEvent={recurringEvent}
+                                allRemainingBookings={isRecurringBooking ? true : allRemainingBookings}
                                 date={dayjs(formerTime)}
                                 is24h={is24h}
                                 isCancelled={isCancelled}
@@ -619,8 +624,8 @@ export default function Success(props: PageProps) {
                           <RecurringBookings
                             eventType={eventType}
                             duration={calculatedDuration}
-                            recurringBookings={props.recurringBookings}
-                            allRemainingBookings={allRemainingBookings}
+                            recurringEvent={recurringEvent}
+                            allRemainingBookings={isRecurringBooking ? true : allRemainingBookings}
                             date={date}
                             is24h={is24h}
                             isCancelled={isCancelled}
@@ -841,7 +846,7 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
-                              {!props.recurringBookings &&
+                              {!isRecurringBooking &&
                                 (!isBookingInPast || eventType.allowReschedulingPastBookings) &&
                                 canReschedule && (
                                   <span className="text-default inline">
@@ -867,7 +872,7 @@ export default function Success(props: PageProps) {
                                   data-testid="cancel"
                                   className={classNames(
                                     "text-default underline",
-                                    props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                    isRecurringBooking && "ltr:mr-2 rtl:ml-2"
                                   )}
                                   onClick={() => setIsCancellationMode(true)}>
                                   {t("cancel")}
@@ -887,12 +892,12 @@ export default function Success(props: PageProps) {
                               isPaid: props.paymentStatus !== null,
                             }}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
-                            recurringEvent={eventType.recurringEvent}
+                            recurringEvent={recurringEvent}
                             team={eventType?.team?.name}
                             teamId={eventType?.team?.id}
                             setIsCancellationMode={setIsCancellationMode}
                             theme={isSuccessBookingPage ? props.profile.theme : "light"}
-                            allRemainingBookings={allRemainingBookings}
+                            allRemainingBookings={isRecurringBooking ? true : allRemainingBookings}
                             seatReferenceUid={seatReferenceUid}
                             bookingCancelledEventProps={bookingCancelledEventProps}
                             currentUserEmail={currentUserEmail}
@@ -1068,7 +1073,7 @@ export default function Success(props: PageProps) {
                         headline={t("host_no_show")}
                         description={t("no_show_description")}
                         buttonRaw={
-                          !props.recurringBookings ? (
+                          !isRecurringBooking ? (
                             <Button href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}>
                               {t("reschedule")}
                             </Button>
@@ -1233,7 +1238,7 @@ const DisplayLocation = ({
 
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];
-  recurringBookings: PageProps["recurringBookings"];
+  recurringEvent: RecurringEvent | undefined;
   date: dayjs.Dayjs;
   duration: number | undefined;
   is24h: boolean;
@@ -1244,7 +1249,7 @@ type RecurringBookingsProps = {
 
 function RecurringBookings({
   eventType,
-  recurringBookings,
+  recurringEvent,
   duration,
   date,
   allRemainingBookings,
@@ -1257,25 +1262,74 @@ function RecurringBookings({
     t,
     i18n: { language },
   } = useLocale();
+  // Generate recurring instances from recurringEvent if present
+  const recurringBookings = recurringEvent && date ? generateRecurringInstances(recurringEvent, date) : null;
+
   const recurringBookingsSorted = recurringBookings
-    ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
+    ? recurringBookings
+        .map((dateObj) => dateObj.toISOString())
+        .sort((a: string, b: string) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
   if (!duration) return null;
 
+  // Show summary format for more than 10 instances
+  if (recurringBookingsSorted && recurringBookingsSorted.length > 2 && allRemainingBookings) {
+    const firstDate = (() => {
+      // If we have a recurring event, compute the actual first occurrence
+      if (recurringEvent) {
+        const actualStart = getActualRecurringStartTime(recurringEvent, new Date(recurringBookingsSorted[0]));
+        return actualStart;
+      }
+      return recurringBookingsSorted[0];
+    })();
+    return (
+      <div className={classNames(isCancelled ? "line-through" : "")}>
+        {recurringEvent?.count && (
+          <div className="mb-2">
+            <span className="font-medium">
+              {getEveryFreqFor({
+                t,
+                recurringEvent,
+                recurringCount: recurringEvent?.count ?? undefined,
+              })}
+            </span>
+          </div>
+        )}
+
+        <div>
+          <span className="font-medium">{t("starting")} </span>
+          {formatToLocalizedDate(dayjs.tz(firstDate, tz), language, "full", tz)}
+          <br />
+          {formatToLocalizedTime(dayjs(firstDate), language, undefined, !is24h, tz)} -{" "}
+          {formatToLocalizedTime(dayjs(firstDate).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
+          <span className="text-bookinglight">
+            ({formatToLocalizedTimezone(dayjs(firstDate), language, tz)})
+          </span>
+          {recurringEvent?.rDates && recurringEvent.rDates.length > 0 && (
+            <span className="text-subtle ml-1">
+              <br />+ {t("additional_dates", { count: recurringEvent.rDates.length })}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Show detailed list for 10 or fewer instances
   if (recurringBookingsSorted && allRemainingBookings) {
     return (
       <>
-        {eventType.recurringEvent?.count && (
+        {recurringEvent?.count && (
           <span className="font-medium">
             {getEveryFreqFor({
               t,
-              recurringEvent: eventType.recurringEvent,
-              recurringCount: recurringBookings?.length ?? undefined,
+              recurringEvent,
+              recurringCount: recurringEvent?.count ?? undefined,
             })}
           </span>
         )}
-        {eventType.recurringEvent?.count &&
+        {recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
               {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
@@ -1295,7 +1349,7 @@ function RecurringBookings({
               + {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
             </CollapsibleTrigger>
             <CollapsibleContent>
-              {eventType.recurringEvent?.count &&
+              {recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
                     {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
@@ -1320,6 +1374,7 @@ function RecurringBookings({
     );
   }
 
+  // Single booking fallback
   return (
     <div className={classNames(isCancelled ? "line-through" : "")}>
       {formatToLocalizedDate(date, language, "full", tz)}

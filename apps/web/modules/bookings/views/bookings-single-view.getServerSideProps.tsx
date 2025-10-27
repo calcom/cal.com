@@ -42,9 +42,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // usually functions that are used in getServerSideProps are tree shaken from client bundle
   // but not in case when they are exported. So we have to dynamically load them, or to copy paste them to the /future/page.
 
-  const { getRecurringBookings, handleSeatsEventTypeOnBooking, getEventTypesFromDB } = await import(
-    "@lib/booking"
-  );
+  const { handleSeatsEventTypeOnBooking, getEventTypesFromDB } = await import("@lib/booking");
 
   const session = await getServerSession({ req: context.req });
   let tz: string | null = null;
@@ -246,7 +244,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       }),
       profile,
       eventType,
-      recurringBookings: await getRecurringBookings(bookingInfo.recurringEventId),
       dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
       previousBooking: sanitizedPreviousBooking,

@@ -21,10 +21,6 @@ type BookingItem = RouterOutputs["viewer"]["bookings"]["calid_get"]["bookings"][
 export type BookingItemProps = BookingItem & {
   isHost: boolean;
   showExpandedActions: boolean;
-  setSelectedMeeting: (booking: BookingItemProps | null) => void;
-  setShowMeetingNotes: (show: boolean) => void;
-  handleMarkNoShow: () => void;
-  isCurrentTime: (time: Date) => boolean;
 };
 
 export function BookingExpandedCard(props: BookingItemProps) {
@@ -73,8 +69,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
   });
 
   const { copyToClipboard } = useCopy();
-  const setSelectedMeeting = (booking: BookingItemProps | null) => {};
-  const setShowMeetingNotes = (show: boolean) => {};
 
   const handleMarkNoShow = () => {
     if (attendeeList.length === 1) {
@@ -87,8 +81,6 @@ export function BookingExpandedCard(props: BookingItemProps) {
     }
     setIsNoShowDialogOpen(true);
   };
-
-  const isCurrentTime = (time: Date) => true;
 
   const firstAttendee = props.attendees[0];
 

@@ -455,11 +455,13 @@ export const deleteEvent = async ({
   bookingRefUid,
   event,
   externalCalendarId,
+  isInstanceCancellation,
 }: {
   credential: CredentialForCalendarService;
   bookingRefUid: string;
   event: CalendarEvent;
   externalCalendarId?: string | null;
+  isInstanceCancellation?: boolean;
 }): Promise<unknown> => {
   const calendar = await getCalendar(credential);
   log.debug(
@@ -470,7 +472,7 @@ export const deleteEvent = async ({
     })
   );
   if (calendar) {
-    return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
+    return calendar.deleteEvent(bookingRefUid, event, externalCalendarId, isInstanceCancellation);
   } else {
     log.error(
       "Could not do deleteEvent - No calendar adapter found",

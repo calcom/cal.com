@@ -84,8 +84,6 @@ export const BookEventForm = ({
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
 
-  console.log("Billing address required: ", billingAddressRequired);
-
   useEffect(() => {
     if (eventType && billingAddressRequired) {
       const appended = eventType.bookingFields.some((field) => field.name === "_line1");

@@ -68,13 +68,13 @@ async function handleAppRevoked(accountId: string) {
     });
   }
 
-  const teamId = credential.teamId;
-  if (teamId) {
+  const calIdTeamId = credential.calIdTeamId;
+  if (calIdTeamId) {
     await detachAppFromEvents({
       metadata: {
         not: undefined,
       },
-      teamId: teamId,
+      calIdTeamId,
     });
   }
 

@@ -3,7 +3,7 @@ import type { ErrorOption, FieldPath } from "react-hook-form";
 
 import type { BookingCreateBody } from "@calcom/prisma/zod/custom/booking";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { AppsStatus } from "@calcom/types/Calendar";
+import type { AppsStatus, RecurringEvent } from "@calcom/types/Calendar";
 
 import type { DatePickerProps } from "../calendars/DatePicker";
 
@@ -92,6 +92,7 @@ export type RecurringBookingCreateBody = BookingCreateBody & {
   allRecurringDates?: Record<string, string>[];
   currentRecurringIndex?: number;
   schedulingType?: SchedulingType;
+  recurringEvent?: RecurringEvent;
 };
 
 export type BookingResponse = Awaited<

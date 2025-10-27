@@ -1,5 +1,6 @@
-import { SchedulingType } from "@calcom/prisma/enums";
 import React from "react";
+
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { BaseScheduledEmail } from "./BaseScheduledEmail";

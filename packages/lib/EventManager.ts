@@ -1,4 +1,4 @@
-import type { DestinationCalendar, BookingReference } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
@@ -39,7 +39,7 @@ import type {
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
 import { isDelegationCredential } from "./delegationCredential/clientAndServer";
-import { createMeeting, updateMeeting, deleteMeeting } from "./videoClient";
+import { createMeeting, updateMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
@@ -447,23 +447,25 @@ export default class EventManager {
     reference,
     event,
     isBookingInRecurringSeries,
+    isInstanceCancellation = false,
   }: {
     reference: PartialReference;
     event: CalendarEvent;
     isBookingInRecurringSeries?: boolean;
+    isInstanceCancellation?: boolean;
   }) {
     log.debug(
       "deleteCalendarEventForBookingReference",
-      safeStringify({ bookingCalendarReference: reference, event: getPiiFreeCalendarEvent(event) })
+      safeStringify({
+        bookingCalendarReference: reference,
+        event: getPiiFreeCalendarEvent(event),
+        isInstanceCancellation,
+      })
     );
 
-    const {
-      // uid: bookingRefUid,
-      externalCalendarId: bookingExternalCalendarId,
-      credentialId,
-      type: credentialType,
-    } = reference;
+    const { externalCalendarId: bookingExternalCalendarId, credentialId, type: credentialType } = reference;
 
+    // // For recurring bookings, use thirdPartyRecurringEventId if available
     const bookingRefUid =
       isBookingInRecurringSeries && reference?.thirdPartyRecurringEventId
         ? reference.thirdPartyRecurringEventId
@@ -482,22 +484,43 @@ export default class EventManager {
         bookingRefUid,
         event,
         externalCalendarId: bookingExternalCalendarId,
+        isInstanceCancellation,
       });
     }
   }
 
-  private async deleteVideoEventForBookingReference({ reference }: { reference: PartialReference }) {
-    log.debug("deleteVideoEventForBookingReference", safeStringify({ bookingVideoReference: reference }));
-    const { uid: bookingRefUid, credentialId } = reference;
+  private async deleteVideoEventForBookingReference({
+    reference,
+    event,
+    isInstanceCancellation = false,
+  }: {
+    reference: PartialReference;
+    event: ExtendedCalendarEvent;
+    isInstanceCancellation?: boolean;
+  }) {
+    log.debug(
+      "deleteVideoEventForBookingReference",
+      safeStringify({
+        videoReference: reference,
+        isInstanceCancellation,
+      })
+    );
+
+    const { credentialId, type: credentialType, uid: bookingRefUid } = reference;
 
     const videoCredential = await this.getCredentialAndWarnIfNotFound(
       credentialId,
       this.videoCredentials,
-      reference.type
+      credentialType
     );
 
     if (videoCredential) {
-      await deleteMeeting(videoCredential, bookingRefUid);
+      // Full deletion for complete booking cancellation
+      await deleteMeeting(
+        videoCredential,
+        bookingRefUid
+        // isInstanceCancellation
+      );
     }
   }
 
@@ -696,33 +719,39 @@ export default class EventManager {
 
   public async cancelEvent(
     event: CalendarEvent,
-    bookingReferences: Pick<
-      BookingReference,
-      "uid" | "type" | "externalCalendarId" | "credentialId" | "thirdPartyRecurringEventId"
-    >[],
+    bookingReferences: PartialReference[],
     isBookingInRecurringSeries?: boolean
   ) {
+    // Determine if this is an instance cancellation or full deletion
+    const isInstanceCancellation = !!(event.cancelledDates && event.cancelledDates.length > 0);
+
     await this.deleteEventsAndMeetings({
       event,
       bookingReferences,
       isBookingInRecurringSeries,
+      isInstanceCancellation,
     });
   }
 
+  /**
+   * Orchestrates deletion of calendar events, video meetings, and CRM events
+   */
   private async deleteEventsAndMeetings({
     event,
     bookingReferences,
     isBookingInRecurringSeries,
+    isInstanceCancellation = false,
   }: {
     event: CalendarEvent;
     bookingReferences: PartialReference[];
     isBookingInRecurringSeries?: boolean;
+    isInstanceCancellation?: boolean;
   }) {
-    const log = logger.getSubLogger({ prefix: [`[deleteEventsAndMeetings]: ${event?.uid}`] });
-    const calendarReferences = [],
-      videoReferences = [],
-      crmReferences = [],
-      allPromises = [];
+    const eventLog = logger.getSubLogger({ prefix: [`[deleteEventsAndMeetings]: ${event?.uid}`] });
+    const calendarReferences: PartialReference[] = [];
+    const videoReferences: PartialReference[] = [];
+    const crmReferences: PartialReference[] = [];
+    const allPromises: Promise<unknown>[] = [];
 
     for (const reference of bookingReferences) {
       if (reference.type.includes("_calendar") && !reference.type.includes("other_calendar")) {
@@ -732,6 +761,7 @@ export default class EventManager {
             reference,
             event,
             isBookingInRecurringSeries,
+            isInstanceCancellation,
           })
         );
       }
@@ -741,32 +771,52 @@ export default class EventManager {
         allPromises.push(
           this.deleteVideoEventForBookingReference({
             reference,
+            event,
+            // isInstanceCancellation,
           })
         );
       }
 
       if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
         crmReferences.push(reference);
-        allPromises.push(this.deleteCRMEvent({ reference, event }));
+        allPromises.push(
+          this.deleteCRMEvent({
+            reference,
+            event,
+            // isInstanceCancellation,
+          })
+        );
       }
     }
 
-    log.debug("deleteEventsAndMeetings", safeStringify({ calendarReferences, videoReferences }));
+    eventLog.debug(
+      "deleteEventsAndMeetings",
+      safeStringify({
+        calendarReferences,
+        videoReferences,
+        crmReferences,
+        isInstanceCancellation,
+      })
+    );
 
     // Using allSettled to ensure that if one of the promises rejects, the others will still be executed.
-    // Because we are just cleaning up the events and meetings, we don't want to throw an error if one of them fails.
-    (await Promise.allSettled(allPromises)).some((result) => {
+    const results = await Promise.allSettled(allPromises);
+
+    results.forEach((result, index) => {
       if (result.status === "rejected") {
-        // Make it a soft error because in case a PENDING booking is rescheduled there would be no calendar events or video meetings.
-        log.warn(
-          "Error deleting calendar event or video meeting for booking",
-          safeStringify({ error: result.reason })
+        eventLog.warn(
+          "Error deleting event or meeting",
+          safeStringify({
+            error: result.reason,
+            referenceIndex: index,
+            isInstanceCancellation,
+          })
         );
       }
     });
 
     if (!allPromises.length) {
-      log.warn("No calendar or video references found for booking - Couldn't delete events or meetings");
+      eventLog.warn("No references found for booking - Couldn't delete events or meetings");
     }
   }
 
@@ -860,6 +910,7 @@ export default class EventManager {
                   delegatedToId: credentialFromDB.delegatedToId,
                   delegatedTo: credentialFromDB.delegatedTo,
                   delegationCredentialId: credentialFromDB.delegationCredentialId,
+                  calIdTeamId: credentialFromDB.calIdTeamId,
                 };
               }
             } else if (destination.delegationCredentialId) {
@@ -1076,6 +1127,7 @@ export default class EventManager {
                 delegatedToId: credentialFromDB.delegatedToId,
                 delegatedTo: credentialFromDB.delegatedTo,
                 delegationCredentialId: credentialFromDB.delegationCredentialId,
+                calIdTeamId: credentialFromDB.calIdTeamId,
               };
             }
           }

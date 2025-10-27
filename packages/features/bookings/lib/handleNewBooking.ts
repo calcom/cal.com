@@ -92,7 +92,13 @@ import {
 } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  AppsStatus,
+  CalendarEvent,
+  Person,
+  RecurringEvent,
+} from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
@@ -415,6 +421,36 @@ async function handler(
     areCalendarEventsEnabled = true,
   } = input;
 
+  /* 
+rawBookingData: {
+  responses: {
+    name: 'Arjun OH',
+    email: 'arjun@onehash.ai',
+    location: { value: 'integrations:google:meet', optionValue: '' },
+    guests: []
+  },
+  user: 'arjun',
+  start: '2025-10-19T20:00:00+05:30',
+  end: '2025-10-19T20:15:00+05:30',
+  eventTypeId: 3827,
+  eventTypeSlug: 'test',
+  timeZone: 'Asia/Calcutta',
+  language: 'en',
+  metadata: {},
+  hasHashedBookingLink: false,
+  routedTeamMemberIds: null,
+  skipContactOwner: false,
+  _isDryRun: false,
+  dub_id: null,
+  appsStatus: undefined,
+  allRecurringDates: undefined,
+  isFirstRecurringSlot: true,
+  thirdPartyRecurringEventId: null,
+  numSlotsToCheckForAvailability: 1,
+  currentRecurringIndex: 0,
+  noEmail: false
+}
+*/
   const isPlatformBooking = !!platformClientId;
 
   const eventType = await getEventType({
@@ -432,6 +468,68 @@ async function handler(
     eventType,
     schema: bookingDataSchema,
   });
+
+  /*
+
+  bookingData__ {
+  end: '2025-10-19T20:15:00+05:30',
+  eventTypeId: 3827,
+  eventTypeSlug: 'test',
+  start: '2025-10-19T20:00:00+05:30',
+  timeZone: 'Asia/Calcutta',
+  user: 'arjun',
+  language: 'en',
+  metadata: {},
+  hasHashedBookingLink: false,
+  routedTeamMemberIds: null,
+  skipContactOwner: false,
+  _isDryRun: false,
+  dub_id: null,
+  noEmail: false,
+  allRecurringDates: undefined,
+  currentRecurringIndex: 0,
+  appsStatus: undefined,
+  recurringEvent: { freq: 2, count: 10, interval: 10 },
+  responses: {
+    email: 'arjun@onehash.ai',
+    name: 'Arjun OH',
+    guests: [],
+    location: { optionValue: '', value: 'integrations:google:meet' }
+  },
+  name: 'Arjun OH',
+  email: 'arjun@onehash.ai',
+  attendeePhoneNumber: undefined,
+  guests: [],
+  location: 'integrations:google:meet',
+  smsReminderNumber: undefined,
+  notes: '',
+  calEventUserFieldsResponses: {},
+  rescheduleReason: undefined,
+  calEventResponses: {
+    name: { label: 'your_name', value: 'Arjun OH', isHidden: false },
+    email: {
+      label: 'email_address',
+      value: 'arjun@onehash.ai',
+      isHidden: false
+    },
+    attendeePhoneNumber: { label: 'Phone Number', value: undefined, isHidden: true },
+    location: { label: 'location', value: [Object], isHidden: false },
+    title: {
+      label: 'what_is_this_meeting_about',
+      value: undefined,
+      isHidden: true
+    },
+    notes: { label: 'additional_notes', value: undefined, isHidden: false },
+    guests: { label: 'additional_guests', value: [], isHidden: false },
+    rescheduleReason: {
+      label: 'reason_for_reschedule',
+      value: undefined,
+      isHidden: false
+    }
+  },
+  customInputs: undefined
+}
+   */
 
   const {
     recurringCount,
@@ -455,6 +553,7 @@ async function handler(
     routingFormResponseId,
     _isDryRun: isDryRun = false,
     _shouldServeCache,
+    recurringEvent,
     ...reqBody
   } = bookingData;
 
@@ -1072,7 +1171,8 @@ async function handler(
     eventType: eventType.title,
     eventName: evtName,
     // we send on behalf of team if >1 round robin attendee | collective
-    teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.calIdTeam?.name : null,
+    teamName:
+      eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.calIdTeam?.name : null,
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
@@ -1324,11 +1424,25 @@ async function handler(
     }
   }
 
-  if (reqBody.recurringEventId && eventType.recurringEvent) {
-    // Overriding the recurring event configuration count to be the actual number of events booked for
-    // the recurring event (equal or less than recurring event configuration count)
-    eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
-    evt.recurringEvent = eventType.recurringEvent;
+  // if (reqBody.recurringEventId && eventType.recurringEvent) {
+  //   // Overriding the recurring event configuration count to be the actual number of events booked for
+  //   // the recurring event (equal or less than recurring event configuration count)
+  // eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
+  //   evt.recurringEvent = eventType.recurringEvent;
+  // }
+
+  //APPENDING RECURRENCE RULE TO BOOKING METADATA AND CALENDAR EVENT if recurring booking
+  if (eventType.recurringEvent) {
+    //no need to pass in the startTime because google/outlook will take the DTSTART from the event startTime
+
+    const recurringEvent: RecurringEvent = Object.assign({}, eventType.recurringEvent, {
+      count: recurringCount,
+    });
+    evt.recurringEvent = recurringEvent;
+    reqBody.metadata = {
+      ...reqBody.metadata,
+      recurringEvent: recurringEvent,
+    };
   }
 
   const changedOrganizer =
