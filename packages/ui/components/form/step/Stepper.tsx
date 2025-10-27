@@ -26,13 +26,17 @@ function Stepper<T extends DefaultStep>(props: {
           <ol role="list" className="ml-8 flex items-center space-x-5" ref={stepperRef}>
             {steps.map((mapStep, index) => (
               <li key={mapStep.title}>
-                <Link href={props.disableSteps ? "#" : `${href}?step=${index + 1}`} shallow replace>
+                <Link
+                  href={props.disableSteps ? "#" : `${href}?step=${index + 1}`}
+                  shallow
+                  replace
+                  {...(index + 1 === props.step ? { "aria-current": "step" } : {})}>
                   {index + 1 < props.step ? (
                     <span className="hover:bg-inverted block h-2.5 w-2.5 rounded-full bg-gray-600">
                       <span className="sr-only">{mapStep.title}</span>
                     </span>
                   ) : index + 1 === props.step ? (
-                    <span className="relative flex items-center justify-center" aria-current="step">
+                    <span className="relative flex items-center justify-center">
                       <span className="absolute flex h-5 w-5 p-px" aria-hidden="true">
                         <span className="bg-emphasis h-full w-full rounded-full" />
                       </span>

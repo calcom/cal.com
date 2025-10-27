@@ -334,6 +334,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
 
   return props.href ? (
     <Link
+      ref={forwardedRef as React.Ref<HTMLAnchorElement>}
       data-testid="link-component"
       href={props.href}
       shallow={shallow && shallow}

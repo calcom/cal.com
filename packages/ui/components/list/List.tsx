@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createElement } from "react";
+import { AnchorHTMLAttributes, createElement } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -51,7 +51,11 @@ export function ListItem(props: ListItemProps) {
   };
 
   return href ? (
-    <Link href={href} className={elementProps.className} data-testid={elementProps["data-testid"]}>
+    <Link
+      href={href}
+      className={elementProps.className}
+      data-testid={elementProps["data-testid"]}
+      {...(passThroughProps as AnchorHTMLAttributes<HTMLAnchorElement>)}>
       {props.children}
     </Link>
   ) : (
