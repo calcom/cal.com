@@ -4,7 +4,6 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
-import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -66,7 +65,7 @@ export const useHandleBookEvent = ({
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
-  const [slotReservationId] = useSlotReservationId();
+  const reservedSlotUid = useBookerStoreContext((state) => state.reservedSlotUid);
 
   const handleError = (err: ApiErrorResponse | Error) => {
     const errorMessage = err instanceof Error ? err.message : err.error?.message;
@@ -119,7 +118,7 @@ export const useHandleBookEvent = ({
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,
         verificationCode: verificationCode || undefined,
-        reservedSlotUid: slotReservationId || undefined,
+        reservedSlotUid: reservedSlotUid || undefined,
       };
 
       const tracking = getUtmTrackingParameters(searchParams);

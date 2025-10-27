@@ -153,7 +153,9 @@ export type BookerStore = {
    * forth between timeslots and form. Gets cleared on submit
    * to prevent sticky data.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formValues: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setFormValues: (values: Record<string, any>) => void;
   /**
    * Force event being a team event, so we only query for team events instead
@@ -178,6 +180,8 @@ export type BookerStore = {
   crmRecordId?: string | null;
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
+  reservedSlotUid: string | null;
+  setReservedSlotUid: (reservedSlotUid: string | null) => void;
 };
 
 /**
@@ -438,12 +442,17 @@ export const createBookerStore = () =>
       }
     },
     formValues: {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     setFormValues: (formValues: Record<string, any>) => {
       set({ formValues });
     },
     org: null,
     setOrg: (org: string | null | undefined) => {
       set({ org });
+    },
+    reservedSlotUid: null,
+    setReservedSlotUid: (reservedSlotUid: string | null) => {
+      set({ reservedSlotUid });
     },
     isPlatform: false,
     allowUpdatingUrlParams: true,
