@@ -2737,7 +2737,7 @@ model CalendarCacheEvent {
 
   selectedCalendar SelectedCalendar @relation(fields: [selectedCalendarId], references: [id], onDelete: Cascade)
 
-  @@unique([selectedCalendarId, externalId])
+  // @@unique([selectedCalendarId, externalId])
   @@index([start, end, status])
   @@index([selectedCalendarId, iCalUID])
 }
