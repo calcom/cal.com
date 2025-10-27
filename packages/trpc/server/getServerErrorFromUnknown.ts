@@ -3,11 +3,13 @@ import { ZodError } from "zod";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
+import { redactError } from "@calcom/lib/redactError";
+import { stripeInvalidRequestErrorSchema } from "@calcom/lib/stripe-error";
 import { Prisma } from "@calcom/prisma/client";
 
-import { HttpError } from "../http-error";
-import { redactError } from "../redactError";
-import { stripeInvalidRequestErrorSchema } from "../stripe-error";
+import { TRPCError } from "@trpc/server";
+import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 function hasName(cause: unknown): cause is { name: string } {
   return !!cause && typeof cause === "object" && "name" in cause;
@@ -33,7 +35,15 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
     .join("; ");
 }
 
+/**
+ * Get server error from unknown cause - tRPC version
+ * This version handles TRPCError and should only be used in tRPC layers
+ */
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
+  if (cause instanceof TRPCError) {
+    const statusCode = getHTTPStatusCodeFromError(cause);
+    return new HttpError({ statusCode, message: cause.message });
+  }
   if (isZodError(cause)) {
     return new HttpError({
       statusCode: 400,

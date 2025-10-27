@@ -11,12 +11,12 @@ import {
 import { HashedLinkRepository } from "@calcom/features/hashedLink/repositories/hashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
-import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -599,13 +599,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
         update: {
           ...aiPhoneCallConfig,
-          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
         },
         create: {
           ...aiPhoneCallConfig,
-          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
           eventTypeId: id,
         },
       });
