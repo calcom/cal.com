@@ -16,6 +16,7 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { type TraceContext } from "@calcom/lib/tracing";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -64,6 +65,7 @@ type ProcessWorkflowStepParams = (
 export type ScheduleWorkflowRemindersArgs = ProcessWorkflowStepParams & {
   workflows: Workflow[];
   isDryRun?: boolean;
+  traceContext?: TraceContext;
 };
 
 const processWorkflowStep = async (

@@ -1,23 +1,23 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import prisma from "@calcom/prisma";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
+import { prisma } from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
 import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import type { Booking } from "../../../handleNewBooking/createBooking";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
-import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
 
 const moveSeatedBookingToNewTimeSlot = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
   seatedBooking: SeatedBooking,
   eventManager: EventManager,
-  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
+  traceContext: TraceContext
 ) => {
   const {
     rescheduleReason,
@@ -29,6 +29,14 @@ const moveSeatedBookingToNewTimeSlot = async (
     isConfirmedByDefault,
     additionalNotes,
   } = rescheduleSeatedBookingObject;
+
+  const spanContext = distributedTracing.createSpan(traceContext, "move_seated_booking_to_new_time_slot", {
+    bookingId: seatedBooking.id.toString(),
+    rescheduleUid: rescheduleUid || "null",
+    eventTypeId: rescheduleSeatedBookingObject.eventType.id.toString(),
+  });
+  const tracingLogger = distributedTracing.getTracingLogger(spanContext);
+
   let { evt } = rescheduleSeatedBookingObject;
 
   const newBooking: (Booking & { appsStatus?: AppsStatus[] }) | null = await prisma.booking.update({
@@ -70,7 +78,7 @@ const moveSeatedBookingToNewTimeSlot = async (
       errorCode: "BookingReschedulingMeetingFailed",
       message: "Booking Rescheduling failed",
     };
-    loggerWithEventDetails.error(`Booking ${organizerUser.name} failed`, JSON.stringify({ error, results }));
+    tracingLogger.error(`Booking ${organizerUser.name} failed`, JSON.stringify({ error, results }));
   } else {
     const metadata: AdditionalInformation = {};
     if (results.length) {
@@ -89,7 +97,7 @@ const moveSeatedBookingToNewTimeSlot = async (
 
   if (noEmail !== true && isConfirmedByDefault) {
     const copyEvent = cloneDeep(evt);
-    loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
+    tracingLogger.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,

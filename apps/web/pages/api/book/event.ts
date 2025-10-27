@@ -10,11 +10,22 @@ import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import type { TraceContext } from "@calcom/lib/tracing";
+import { distributedTracing } from "@calcom/lib/tracing/factory";
+import { prisma } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number; traceContext: TraceContext }) {
   const userIp = getIP(req);
+
+  const traceContext = distributedTracing.updateTrace(req.traceContext, {
+    eventTypeId: req.body?.eventTypeId?.toString() || "null",
+  });
+  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
+
+  tracingLogger.info("API book event request started", {
+    eventTypeId: req.body?.eventTypeId,
+  });
 
   if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
     await checkCfTurnstileToken({
@@ -52,7 +63,12 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       userId: session?.user?.id || -1,
       hostname: req.headers.host || "",
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+      traceContext,
     },
+  });
+
+  tracingLogger.info("API book event request completed successfully", {
+    bookingUid: booking?.uid,
   });
   // const booking = await createBookingThroughFactory();
   return booking;
