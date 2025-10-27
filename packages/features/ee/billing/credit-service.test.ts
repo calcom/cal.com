@@ -70,7 +70,10 @@ vi.mock("@calcom/prisma/enums", async (importOriginal) => {
 vi.mock("@calcom/lib/server/repository/credits");
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
-vi.mock("@calcom/emails/email-manager");
+vi.mock("@calcom/emails/email-manager", () => ({
+  sendCreditBalanceLimitReachedEmails: vi.fn().mockResolvedValue(undefined),
+  sendCreditBalanceLowWarningEmails: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock("../workflows/lib/reminders/reminderScheduler", () => ({
   cancelScheduledMessagesAndScheduleEmails: vi.fn().mockResolvedValue(undefined),
 }));
@@ -173,8 +176,8 @@ describe("CreditService", () => {
           },
         ]);
 
-        vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
-          { id: 1, isOrganization: false, parentId: null },
+        vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
+          { id: 1, isOrganization: false, parentId: null, parent: null },
         ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
@@ -203,8 +206,8 @@ describe("CreditService", () => {
           },
         ]);
 
-        vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
-          { id: 1, isOrganization: false, parentId: null },
+        vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
+          { id: 1, isOrganization: false, parentId: null, parent: null },
         ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
@@ -790,8 +793,8 @@ describe("CreditService", () => {
         { teamId: 2 },
       ]);
 
-      vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
-        { id: 2, isOrganization: false, parentId: null },
+      vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
+        { id: 2, isOrganization: false, parentId: null, parent: null },
       ]);
 
       vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
@@ -825,9 +828,9 @@ describe("CreditService", () => {
           { teamId: 2 },
         ]);
 
-        vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
-          { id: 1, isOrganization: true, parentId: null },
-          { id: 2, isOrganization: false, parentId: null },
+        vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
+          { id: 1, isOrganization: true, parentId: null, parent: null },
+          { id: 2, isOrganization: false, parentId: null, parent: null },
         ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
@@ -859,9 +862,9 @@ describe("CreditService", () => {
           { teamId: 2 },
         ]);
 
-        vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
-          { id: 1, isOrganization: true, parentId: null },
-          { id: 2, isOrganization: false, parentId: null },
+        vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
+          { id: 1, isOrganization: true, parentId: null, parent: null },
+          { id: 2, isOrganization: false, parentId: null, parent: null },
         ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
@@ -893,8 +896,8 @@ describe("CreditService", () => {
           { teamId: 2 },
         ]);
 
-        vi.mocked(MOCK_TX.team.findMany).mockResolvedValue([
-          { id: 2, isOrganization: false, parentId: null },
+        vi.spyOn(TeamRepository.prototype, "findTeamsForCreditCheck").mockResolvedValue([
+          { id: 2, isOrganization: false, parentId: null, parent: null },
         ]);
 
         vi.mocked(CreditsRepository.findCreditBalance).mockResolvedValue({
