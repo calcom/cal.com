@@ -43,7 +43,6 @@ export default function JoinCall(props: PageProps) {
     showTranscriptionButton,
     rediectAttendeeToOnExit,
     requireEmailForGuests,
-    guestSessionId,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
   const [guestCredentials, setGuestCredentials] = useState<{
@@ -53,8 +52,7 @@ export default function JoinCall(props: PageProps) {
   } | null>(null);
 
   const userNameForCall = overrideName ?? loggedInUserName ?? undefined;
-  const hideLoginModal =
-    !!userNameForCall && (requireEmailForGuests ? guestSessionId || loggedInUserName : true);
+  const hideLoginModal = !!userNameForCall && (requireEmailForGuests ? loggedInUserName : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
   const activeMeetingPassword = guestCredentials?.meetingPassword ?? meetingPassword;
@@ -136,8 +134,7 @@ export default function JoinCall(props: PageProps) {
     let callFrame: DailyCall | null = null;
 
     try {
-      callFrame =
-        createCallFrame(activeUserName, activeMeetingPassword, activeMeetingUrl) ?? null;
+      callFrame = createCallFrame(activeUserName, activeMeetingPassword, activeMeetingUrl) ?? null;
       setDaily(callFrame);
       setIsCallFrameReady(true);
 

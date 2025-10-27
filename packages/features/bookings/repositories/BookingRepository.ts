@@ -559,7 +559,7 @@ export class BookingRepository {
     });
   }
 
-  async findBookingForMeetingPage({ bookingUid }: { bookingUid: string }) {
+  async findBookingIncludeCalVideoSettingsAndReferences({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
         uid: bookingUid,

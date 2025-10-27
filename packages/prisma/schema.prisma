@@ -119,6 +119,7 @@ model VideoCallGuest {
   name       String
   joinedAt   DateTime?
   createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@unique([bookingUid, email])
   @@index([bookingUid])

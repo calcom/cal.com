@@ -1,5 +1,5 @@
+import { validateCsrfToken } from "app/api/csrf/utils";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
@@ -8,7 +8,9 @@ import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
+import { VideoCallGuestRepository } from "@calcom/features/video-call-guest/repositories/VideoCallGuestRepository";
 import prisma from "@calcom/prisma";
 
 const videoCallGuestWithCsrfSchema = z.object({
@@ -27,38 +29,26 @@ async function handler(req: NextRequest) {
   }
 
   const guestData = videoCallGuestWithCsrfSchema.parse(appDirRequestBody);
-  const cookieStore = await cookies();
-  const cookieToken = cookieStore.get("calcom.csrf_token")?.value;
 
-  if (!cookieToken || cookieToken !== guestData.csrfToken) {
-    return NextResponse.json({ success: false, message: "Invalid CSRF token" }, { status: 403 });
+  const csrfError = await validateCsrfToken(guestData.csrfToken);
+  if (csrfError) {
+    return csrfError;
   }
-  cookieStore.delete("calcom.csrf_token");
 
-  const booking = await prisma.booking.findUnique({
-    where: { uid: guestData.bookingUid },
-    include: {
-      references: true,
-    },
+  const bookingRepo = new BookingRepository(prisma);
+  const booking = await bookingRepo.findBookingIncludeCalVideoSettingsAndReferences({
+    bookingUid: guestData.bookingUid,
   });
 
   if (!booking) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
 
-  const guestSession = await prisma.videoCallGuest.upsert({
-    where: {
-      bookingUid_email: {
-        bookingUid: guestData.bookingUid,
-        email: guestData.email,
-      },
-    },
-    update: { name: guestData.name },
-    create: {
-      bookingUid: guestData.bookingUid,
-      email: guestData.email,
-      name: guestData.name,
-    },
+  const videoCallGuestRepo = new VideoCallGuestRepository(prisma);
+  const guestSession = await videoCallGuestRepo.upsertVideoCallGuest({
+    bookingUid: guestData.bookingUid,
+    email: guestData.email,
+    name: guestData.name,
   });
 
   const videoReference = getCalVideoReference(booking.references);

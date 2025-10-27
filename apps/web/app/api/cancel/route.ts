@@ -1,4 +1,5 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { validateCsrfToken } from "app/api/csrf/utils";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -17,13 +18,11 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
   const bookingData = bookingCancelWithCsrfSchema.parse(appDirRequestBody);
-  const cookieStore = await cookies();
-  const cookieToken = cookieStore.get("calcom.csrf_token")?.value;
 
-  if (!cookieToken || cookieToken !== bookingData.csrfToken) {
-    return NextResponse.json({ success: false, message: "Invalid CSRF token" }, { status: 403 });
+  const csrfError = await validateCsrfToken(bookingData.csrfToken);
+  if (csrfError) {
+    return csrfError;
   }
-  cookieStore.delete("calcom.csrf_token");
 
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 

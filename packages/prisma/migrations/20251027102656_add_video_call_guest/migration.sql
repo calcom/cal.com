@@ -9,6 +9,7 @@ CREATE TABLE "public"."VideoCallGuest" (
     "name" TEXT NOT NULL,
     "joinedAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "VideoCallGuest_pkey" PRIMARY KEY ("id")
 );

@@ -26,7 +26,7 @@ export type Host = {
 export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
-type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
+type ParticipantsWithEmail = (Participants[number] & { email?: string; isLoggedIn?: boolean })[];
 
 export function getHosts(booking: Booking): Host[] {
   const hostMap = new Map<number, Host>();
@@ -110,11 +110,10 @@ export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: T
     .unix();
 }
 
-export function checkIfUserOrGuestJoinedTheCall(
-  email: string,
-  allParticipants: ParticipantsWithEmail
-): boolean {
-  return allParticipants.some((participant) => participant.email && participant.email === email);
+function checkIfHostJoinedTheCall(email: string, allParticipants: ParticipantsWithEmail): boolean {
+  return allParticipants.some(
+    (participant) => participant.email && participant.isLoggedIn && participant.email === email
+  );
 }
 
 const getUserOrGuestById = async (id: string) => {
@@ -124,7 +123,7 @@ const getUserOrGuestById = async (id: string) => {
       where: { id: parseInt(id) },
       select: { email: true },
     });
-    if (user) return user;
+    if (user) return { email: user.email, isLoggedIn: true };
   }
 
   // Try VideoCallGuest table (UUID)
@@ -135,7 +134,7 @@ const getUserOrGuestById = async (id: string) => {
     })
     .catch(() => null);
 
-  return guestSession;
+  return { email: guestSession.email, isLoggedIn: false };
 };
 
 export async function getParticipantsWithEmail(
@@ -145,8 +144,8 @@ export async function getParticipantsWithEmail(
     allParticipants.map(async (participant) => {
       if (!participant.user_id) return participant;
 
-      const userOrGuest = await getUserOrGuestById(participant.user_id);
-      return { ...participant, email: userOrGuest?.email };
+      const { email, isLoggedIn } = await getUserOrGuestById(participant.user_id);
+      return { ...participant, email, isLoggedIn };
     })
   );
 
@@ -221,7 +220,7 @@ export const prepareNoShowTrigger = async (
   const hostsThatDidntJoinTheCall: Host[] = [];
 
   for (const host of hosts) {
-    if (checkIfUserOrGuestJoinedTheCall(host.email, participantsWithEmail)) {
+    if (checkIfHostJoinedTheCall(host.email, participantsWithEmail)) {
       hostsThatJoinedTheCall.push(host);
     } else {
       hostsThatDidntJoinTheCall.push(host);

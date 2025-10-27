@@ -122,10 +122,9 @@ const checkIfUserIsHost = async ({
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { req } = context;
-  let guestSessionId = null;
 
   const bookingRepo = new BookingRepository(prisma);
-  const booking = await bookingRepo.findBookingForMeetingPage({
+  const booking = await bookingRepo.findBookingIncludeCalVideoSettingsAndReferences({
     bookingUid: context.query.uid as string,
   });
 
@@ -222,9 +221,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // set meetingPassword for guests
   if (!isOrganizer) {
-    guestSessionId = Array.isArray(context.query.guestId) ? context.query.guestId[0] : context.query.guestId;
-
-    const userIdForToken = sessionUserId || guestSessionId;
+    const userIdForToken = sessionUserId;
 
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken({
       meetingToken: videoReferencePassword,
@@ -302,7 +299,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
       overrideName: Array.isArray(context.query.name) ? context.query.name[0] : context.query.name,
       requireEmailForGuests: bookingObj.eventType?.calVideoSettings?.requireEmailForGuests ?? false,
-      guestSessionId,
     },
   };
 }
