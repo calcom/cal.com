@@ -11,6 +11,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { totpRawCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const querySchema = z.object({
@@ -55,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const credentials = await getUsersCredentialsIncludeServiceAccountKey(booking.user);
-      const apps = eventTypeAppMetadataOptionalSchema.parse(booking.eventType?.metadata?.apps);
+      const apps = eventTypeAppMetadataOptionalSchema.parse((booking.eventType?.metadata as EventTypeMetadata)?.apps);
       const eventManager = new EventManager({ ...booking.user, credentials }, apps);
 
       const tOrganizer = await getTranslation(booking.user.locale ?? "en", "common");
