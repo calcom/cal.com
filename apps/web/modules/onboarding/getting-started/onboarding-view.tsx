@@ -25,7 +25,9 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       router.push("/onboarding/organization/details");
     } else if (selectedPlan === "team") {
       router.push("/onboarding/teams/details");
-    } // TODO: Handle other plan types
+    } else if (selectedPlan === "personal") {
+      router.push("/onboarding/personal/settings");
+    }
   };
 
   const allPlans = [
