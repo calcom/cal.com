@@ -3094,6 +3094,7 @@ __metadata:
   resolution: "@calcom/config@workspace:packages/config"
   dependencies:
     "@calcom/eslint-plugin-eslint": "workspace:*"
+    "@tailwindcss/forms": ^0.5.10
     "@tailwindcss/typography": ^0.5.4
     "@todesktop/tailwind-variants": ^1.0.0
     "@trivago/prettier-plugin-sort-imports": 4.1.1
@@ -17248,6 +17249,17 @@ __metadata:
   dependencies:
     "@swc/counter": ^0.1.3
   checksum: e564d0e37b0e28546973c6d50c7a179395912a97168d695cfe9cf1051199c8b828680cdafcb8d43948f76d3703873bafb88dfb5bc2dfe0596b4ad18fcaf90c80
+  languageName: node
+  linkType: hard
+
+"@tailwindcss/forms@npm:^0.5.10":
+  version: 0.5.10
+  resolution: "@tailwindcss/forms@npm:0.5.10"
+  dependencies:
+    mini-svg-data-uri: ^1.2.3
+  peerDependencies:
+    tailwindcss: ">=3.0.0 || >= 3.0.0-alpha.1 || >= 4.0.0-alpha.20 || >= 4.0.0-beta.1"
+  checksum: 4526d02edccc4e44599d9588f83e4ac3e9435d137da5638653de2e74d5b612ade449a8c26d075be21692c1ac00a514aaffdb6723e526e3c8314c9a75a9f45979
   languageName: node
   linkType: hard
 
@@ -36529,6 +36541,15 @@ __metadata:
   version: 1.0.1
   resolution: "min-indent@npm:1.0.1"
   checksum: bfc6dd03c5eaf623a4963ebd94d087f6f4bbbfd8c41329a7f09706b0cb66969c4ddd336abeb587bc44bc6f08e13bf90f0b374f9d71f9f01e04adc2cd6f083ef1
+  languageName: node
+  linkType: hard
+
+"mini-svg-data-uri@npm:^1.2.3":
+  version: 1.4.4
+  resolution: "mini-svg-data-uri@npm:1.4.4"
+  bin:
+    mini-svg-data-uri: cli.js
+  checksum: 997f1fbd8d59a70f03761e18626d335197a3479cb9d1ff75678e4b64b864d32a0b8fc18115eabde035e5299b8b4a354a78e57dd6ac10f9d604162a6170898d09
   languageName: node
   linkType: hard
 

@@ -320,7 +320,7 @@ module.exports = {
   // plugins: [
   //   // Temporarily disabled for v4 upgrade - will re-enable after migration
   //   require("@todesktop/tailwind-variants"), // added variants to tokens.css
-  //   require("@tailwindcss/forms"), // we can definitely add it but... are we using it? can't find any "form-*" classes, need to double check
+  //   require("@tailwindcss/forms"), // added in tokens.css
   //   require("@tailwindcss/typography"), // added in tokens.css
   //   require("tailwind-scrollbar")({ nocompatible: true }), // moved to tokens.css - need to double check if it works
   //   require("tailwindcss-radix")(), // updated and moved to tokens.css - need to double check if it works

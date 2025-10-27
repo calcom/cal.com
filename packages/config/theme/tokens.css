@@ -1,5 +1,6 @@
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/forms";
 @plugin "tailwindcss-radix";
 @plugin 'tailwind-scrollbar' {
   nocompatible: true;
@@ -121,6 +122,9 @@
   --text-color-attention: var(--cal-text-attention);
   --text-color-error: var(--cal-text-error);
   --text-color-brand: var(--cal-brand-text);
+
+  /* Default Ring Color */
+  --default-ring-color: rgb(59 130 246 / 0.5);
 
   /* Cal.com Box Shadows */
   --shadow-dropdown: var(--shadow-dropdown);
