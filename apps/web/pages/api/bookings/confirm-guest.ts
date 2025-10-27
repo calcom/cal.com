@@ -49,6 +49,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.redirect(`${WEBAPP_URL}/booking/guest-confirmation-failed?reason=booking_not_found`);
     }
 
+    if (!booking.user) {
+      return res.redirect(`${WEBAPP_URL}/booking/guest-confirmation-failed?reason=user_not_found`);
+    }
+
     try {
       const credentials = await getUsersCredentialsIncludeServiceAccountKey({
         userId: booking.user.id,
