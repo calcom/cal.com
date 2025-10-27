@@ -39,7 +39,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const defaultFields = [
     "name",
     "email",
-    "attendeePhoneNumber",
+    // "attendeePhoneNumber",
     "location",
     "title",
     "notes",
@@ -50,8 +50,12 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const bookingFields = props.eventType.bookingFields;
 
   const customFields = {};
+
+  if (responses["attendeePhoneNumber"] !== undefined) {
+    customFields["Phone Number"] = responses["attendeePhoneNumber"];
+  }
   for (const key in bookingFields) {
-    if (bookingFields[key].label && !defaultFields.includes(key)) {
+    if (bookingFields[key]?.label && !defaultFields.includes(key)) {
       // @ts-ignore
       if (responses[bookingFields[key].name] !== undefined) {
         customFields[bookingFields[key].label] = responses[bookingFields[key].name];
