@@ -191,7 +191,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
-    team: !!bookingToReschedule.eventType?.team
+    team: bookingToReschedule.eventType?.team
       ? {
           name: bookingToReschedule.eventType.team.name,
           id: bookingToReschedule.eventType.team.id,
