@@ -1,4 +1,6 @@
 import dayjs from "@calcom/dayjs";
+import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -18,41 +20,10 @@ type OriginalRescheduledBooking =
   | null
   | undefined;
 
-export type Host = {
-  id: number;
-  email: string;
-};
-
 export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
 type ParticipantsWithEmail = (Participants[number] & { email?: string; isLoggedIn?: boolean })[];
-
-export function getHosts(booking: Booking): Host[] {
-  const hostMap = new Map<number, Host>();
-
-  const addHost = (id: number, email: string) => {
-    if (!hostMap.has(id)) {
-      hostMap.set(id, { id, email });
-    }
-  };
-
-  booking?.eventType?.hosts?.forEach((host) => addHost(host.userId, host.user.email));
-  booking?.eventType?.users?.forEach((user) => addHost(user.id, user.email));
-
-  // Add booking.user if not already included
-  if (booking?.user?.id && booking?.user?.email) {
-    addHost(booking.user.id, booking.user.email);
-  }
-
-  // Filter hosts to only include those who are also attendees
-  const attendeeEmails = new Set(booking.attendees?.map((attendee) => attendee.email));
-  const filteredHosts = Array.from(hostMap.values()).filter(
-    (host) => attendeeEmails.has(host.email) || host.id === booking.user?.id
-  );
-
-  return filteredHosts;
-}
 
 export function sendWebhookPayload(
   webhook: Webhook,
@@ -212,7 +183,7 @@ export const prepareNoShowTrigger = async (
   }
   const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
 
-  const hosts = getHosts(booking);
+  const { hosts } = getHostsAndGuests(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
   const participantsWithEmail = await getParticipantsWithEmail(allParticipants);

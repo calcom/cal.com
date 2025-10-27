@@ -365,7 +365,9 @@ export function LogInOverlay(props: LogInOverlayProps) {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to create guest session");
+          const errorData = await response.json();
+          const errorKey = errorData.error;
+          throw new Error(errorKey || "Failed to create guest session");
         }
 
         const { meetingPassword, meetingUrl } = await response.json();
@@ -393,7 +395,8 @@ export function LogInOverlay(props: LogInOverlayProps) {
       }
     } catch (error) {
       console.error("Error joining as guest:", error);
-      const errorMessage = error instanceof Error ? error.message : t("failed_to_join_call");
+      const errorKey = error instanceof Error ? error.message : "failed_to_join_call";
+      const errorMessage = t(errorKey) || errorKey;
       setError(errorMessage);
       setIsLoading(false);
     }
@@ -501,7 +504,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
+            <div className="mt-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
               <div className="flex">
                 <div className="ml-3">
                   <p className="text-sm font-medium text-red-800 dark:text-red-200">{error}</p>

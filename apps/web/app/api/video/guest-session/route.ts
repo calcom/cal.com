@@ -8,6 +8,7 @@ import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
   updateMeetingTokenIfExpired,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { VideoCallGuestRepository } from "@calcom/features/video-call-guest/repositories/VideoCallGuestRepository";
@@ -42,6 +43,13 @@ async function handler(req: NextRequest) {
 
   if (!booking) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+  }
+
+  const { hosts } = getHostsAndGuests(booking);
+  const isHost = hosts.some((host) => host.email.toLowerCase() === guestData.email.trim().toLowerCase());
+
+  if (isHost) {
+    return NextResponse.json({ error: "hosts_must_use_login" }, { status: 403 });
   }
 
   const videoCallGuestRepo = new VideoCallGuestRepository(prisma);

@@ -573,6 +573,22 @@ export class BookingRepository {
           select: {
             id: true,
             hideOrganizerEmail: true,
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
             calVideoSettings: {
               select: {
                 disableRecordingForGuests: true,
