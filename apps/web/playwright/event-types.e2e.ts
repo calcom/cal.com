@@ -131,7 +131,7 @@ test.describe("Event Types tests", () => {
       expect(formTitle).toBe(firstTitle);
       expect(formSlug).toContain(firstSlug);
 
-      const submitPromise = page.waitForResponse("/api/trpc/eventTypes/heavy/duplicate?batch=1");
+      const submitPromise = page.waitForResponse("/api/trpc/eventTypesHeavy/duplicate?batch=1");
       await page.getByTestId("continue").click();
       const response = await submitPromise;
       expect(response.status()).toBe(200);
@@ -144,7 +144,7 @@ test.describe("Event Types tests", () => {
       await page.waitForURL((url) => {
         return !!url.pathname.match(/\/event-types\/.+/);
       });
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
     });
@@ -167,7 +167,7 @@ test.describe("Event Types tests", () => {
       await page.locator("[data-testid=add-location]").click();
       await fillLocation(page, locationData[2], 2);
 
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
 
@@ -314,7 +314,7 @@ test.describe("Event Types tests", () => {
         const locationAddress = "New Delhi";
 
         await fillLocation(page, locationAddress, 0, false);
-        await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+        await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
           action: () => page.locator("[data-testid=update-eventtype]").click(),
         });
 
@@ -429,7 +429,7 @@ test.describe("Event Types tests", () => {
       await page.locator('[aria-label="Timezone Select"]').fill("New York");
       await page.keyboard.press("Enter");
 
-      await submitAndWaitForResponse(page, "/api/trpc/eventTypes/heavy/update?batch=1", {
+      await submitAndWaitForResponse(page, "/api/trpc/eventTypesHeavy/update?batch=1", {
         action: () => page.locator("[data-testid=update-eventtype]").click(),
       });
       await page.goto("/event-types");

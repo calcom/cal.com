@@ -1,6 +1,6 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import mapKeys from "lodash/mapKeys";
-// eslint-disable-next-line no-restricted-imports
+ 
 import startCase from "lodash/startCase";
 
 import {
@@ -9,8 +9,8 @@ import {
 } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
+import type { InsightsRoutingBaseService } from "@calcom/features/insights/services/InsightsRoutingBaseService";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import type { InsightsRoutingBaseService } from "@calcom/lib/server/service/InsightsRoutingBaseService";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
