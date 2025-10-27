@@ -380,6 +380,16 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   @IsString()
   emailVerificationCode?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "Reserved slot uid for the booking. If passed will prevent double bookings by checking that someone else has not reserved the same slot. If there is another reserved slot for the same time we will check if it is not expired and which one was reserved first. If the other reserved slot is expired we will allow the booking to proceed. If there are no reserved slots for the same time we will allow the booking to proceed.",
+    example: "430a2525-08e4-456d-a6b7-95ec2b0d22fb",
+  })
+  @IsOptional()
+  @IsString()
+  reservedSlotUid?: string;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {

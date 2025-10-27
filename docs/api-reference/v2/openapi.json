@@ -21516,7 +21516,7 @@
             "type": "string",
             "description": "Action to perform",
             "example": "email_host",
-            "enum": ["email_attendee", "email_address"]
+            "enum": ["email_attendee", "email_address", "sms_attendee", "sms_number"]
           }
         },
         "required": ["id", "stepNumber", "recipient", "template", "sender", "message", "action"]
@@ -22537,7 +22537,7 @@
           },
           "steps": {
             "type": "array",
-            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address",
+            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address,sms_attendee,sms_number",
             "items": {
               "oneOf": [
                 {
@@ -22545,6 +22545,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/WorkflowEmailAttendeeStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/WorkflowPhoneAttendeeStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/WorkflowPhoneNumberStepDto"
                 }
               ]
             }
@@ -23136,7 +23142,7 @@
           },
           "steps": {
             "type": "array",
-            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address",
+            "description": "Steps to execute as part of the routing-form workflow, allowed steps are email_attendee,email_address,sms_attendee,sms_number",
             "items": {
               "oneOf": [
                 {
@@ -23144,6 +23150,12 @@
                 },
                 {
                   "$ref": "#/components/schemas/UpdateEmailAttendeeWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdatePhoneAttendeeWorkflowStepDto"
+                },
+                {
+                  "$ref": "#/components/schemas/UpdatePhoneNumberWorkflowStepDto"
                 }
               ]
             }
@@ -25381,6 +25393,11 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "reservedSlotUid": {
+            "type": "string",
+            "description": "Reserved slot uid for the booking. If passes will prevent double bookings by checking that someone else has not reserved ",
+            "example": "430a2525-08e4-456d-a6b7-95ec2b0d22fb"
           }
         },
         "required": ["start", "attendee"]
@@ -25504,6 +25521,11 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "reservedSlotUid": {
+            "type": "string",
+            "description": "Reserved slot uid for the booking. If passes will prevent double bookings by checking that someone else has not reserved ",
+            "example": "430a2525-08e4-456d-a6b7-95ec2b0d22fb"
           },
           "instant": {
             "type": "boolean",
@@ -25632,6 +25654,11 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "reservedSlotUid": {
+            "type": "string",
+            "description": "Reserved slot uid for the booking. If passes will prevent double bookings by checking that someone else has not reserved ",
+            "example": "430a2525-08e4-456d-a6b7-95ec2b0d22fb"
           },
           "recurrenceCount": {
             "type": "number",

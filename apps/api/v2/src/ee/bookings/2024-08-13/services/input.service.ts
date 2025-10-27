@@ -31,6 +31,7 @@ import { z } from "zod";
 
 import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
+import { getReservedSlotUidFromRequest } from "@calcom/platform-libraries/slots";
 import type {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -50,6 +51,7 @@ import type { EventType } from "@calcom/prisma/client";
 type BookingRequest = NextApiRequest & {
   userId: number | undefined;
   noEmail: boolean | undefined;
+  reservedSlotUid: string | undefined;
 } & OAuthRequestParams;
 
 type OAuthRequestParams = {
@@ -107,7 +109,7 @@ export class InputBookingsService_2024_08_13 {
       eventType,
       oAuthClientParams?.platformClientId
     );
-
+    const reservedSlotUid = getReservedSlotUidFromRequest(request);
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
 
@@ -123,10 +125,16 @@ export class InputBookingsService_2024_08_13 {
         ...bodyTransformed,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
         creationSource: CreationSource.API_V2,
+        reservedSlotUid,
       };
     } else {
       Object.assign(newRequest, { userId });
-      newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
+      newRequest.body = {
+        ...bodyTransformed,
+        noEmail: false,
+        creationSource: CreationSource.API_V2,
+        reservedSlotUid,
+      };
     }
 
     return newRequest as unknown as BookingRequest;
@@ -247,6 +255,7 @@ export class InputBookingsService_2024_08_13 {
       oAuthClientParams?.platformClientId
     );
 
+    const reservedSlotUid = getReservedSlotUidFromRequest(request);
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
 
@@ -255,9 +264,10 @@ export class InputBookingsService_2024_08_13 {
         userId,
         ...oAuthClientParams,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
+        reservedSlotUid,
       });
     } else {
-      Object.assign(newRequest, { userId });
+      Object.assign(newRequest, { userId, reservedSlotUid });
     }
 
     newRequest.body = bodyTransformed.map((event) => ({
@@ -554,7 +564,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return "seatUid" in body;
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -770,7 +780,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return "seatUid" in body;
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {

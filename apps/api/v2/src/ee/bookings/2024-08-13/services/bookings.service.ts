@@ -499,6 +499,7 @@ export class BookingsService_2024_08_13 {
         platformBookingLocation: bookingRequest.platformBookingLocation,
         noEmail: bookingRequest.noEmail,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        reservedSlotUid: bookingRequest.reservedSlotUid,
       },
     });
     const ids = bookings.map((booking) => booking.id || 0);
@@ -523,6 +524,7 @@ export class BookingsService_2024_08_13 {
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        reservedSlotUid: bookingRequest.reservedSlotUid,
       },
     });
     return this.outputService.getOutputCreateRecurringSeatedBookings(
@@ -548,6 +550,7 @@ export class BookingsService_2024_08_13 {
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        reservedSlotUid: bookingRequest.reservedSlotUid,
       },
     });
 
@@ -582,6 +585,7 @@ export class BookingsService_2024_08_13 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+          reservedSlotUid: bookingRequest.reservedSlotUid,
         },
       });
 
@@ -779,6 +783,7 @@ export class BookingsService_2024_08_13 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+          reservedSlotUid: bookingRequest.reservedSlotUid,
         },
       });
       if (!booking.uid) {

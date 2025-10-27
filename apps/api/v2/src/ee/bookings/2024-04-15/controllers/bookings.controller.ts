@@ -59,6 +59,7 @@ import {
 } from "@calcom/platform-libraries";
 import { CreationSource } from "@calcom/platform-libraries";
 import { type InstantBookingCreateResult } from "@calcom/platform-libraries/bookings";
+import { getReservedSlotUidFromRequest } from "@calcom/platform-libraries/slots";
 import {
   GetBookingsInput_2024_04_15,
   CancelBookingInput_2024_04_15,
@@ -191,6 +192,7 @@ export class BookingsController_2024_04_15 {
     const { orgSlug, locationUrl } = body;
     try {
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
+      const reservedSlotUid = getReservedSlotUidFromRequest(req);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
@@ -203,6 +205,7 @@ export class BookingsController_2024_04_15 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+          reservedSlotUid,
         },
       });
       if (booking.userId && booking.uid && booking.startTime) {
@@ -502,7 +505,10 @@ export class BookingsController_2024_04_15 {
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
-  async setPlatformAttendeesEmails(requestBody: any, oAuthClientId: string): Promise<void> {
+  async setPlatformAttendeesEmails(
+    requestBody: BookingRequest["body"],
+    oAuthClientId: string
+  ): Promise<void> {
     if (requestBody?.responses?.email) {
       requestBody.responses.email = await this.platformBookingsService.getPlatformAttendeeEmail(
         requestBody.responses.email,

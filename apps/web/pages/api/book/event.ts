@@ -12,6 +12,7 @@ import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken"
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
+import { getReservedSlotUidFromRequest } from "@calcom/trpc/server/routers/viewer/slots/reserveSlot.handler";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
@@ -46,12 +47,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   };
 
   const regularBookingService = getRegularBookingService();
+  const reservedSlotUid = getReservedSlotUidFromRequest(req);
   const booking = await regularBookingService.createBooking({
     bookingData: req.body,
     bookingMeta: {
       userId: session?.user?.id || -1,
       hostname: req.headers.host || "",
       forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+      reservedSlotUid,
     },
   });
   // const booking = await createBookingThroughFactory();
