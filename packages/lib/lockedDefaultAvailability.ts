@@ -1,4 +1,5 @@
-import prisma from "@calcom/prisma";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
@@ -9,27 +10,15 @@ import { TRPCError } from "@trpc/server";
  * AND is not an admin/owner of any team (which would give them permission to override restrictions).
  */
 export async function hasLockedDefaultAvailabilityRestriction(userId: number): Promise<boolean> {
-  const userTeams = await prisma.membership.findMany({
-    where: {
-      userId,
-      accepted: true,
-    },
-    select: {
-      team: {
-        select: {
-          lockDefaultAvailability: true,
-        },
-      },
-      role: true,
-    },
-  });
+  const membershipRepository = new MembershipRepository(prisma);
+  const userTeams = await membershipRepository.findUserTeamMembershipsWithLockStatus({ userId });
 
   const hasLockedTeamMembership = userTeams.some(
-    (membership: any) => membership.team.lockDefaultAvailability && membership.role === MembershipRole.MEMBER
+    (membership) => membership.team.lockDefaultAvailability && membership.role === MembershipRole.MEMBER
   );
 
   const hasAdminOrOwnerRole = userTeams.some(
-    (membership: any) => membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER
+    (membership) => membership.role === MembershipRole.ADMIN || membership.role === MembershipRole.OWNER
   );
 
   // Only block if user has locked team membership AND is not an admin/owner of any team
