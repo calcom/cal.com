@@ -3,8 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
@@ -132,7 +132,6 @@ async function seedBookingAssignments() {
   });
 }
 
-const prisma = new PrismaClient();
 async function main() {
   // First find the organization we want to add insights to
   const organization = await prisma.team.findFirst({
@@ -366,29 +365,29 @@ async function main() {
 
   await seedBookingAssignments();
 }
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          in: ["insights@example", "insightsuser@example.com"],
+
+async function runMain() {
+  await main()
+    .catch(async (e) => {
+      console.error(e);
+      await prisma.user.deleteMany({
+        where: {
+          email: {
+            in: ["insights@example", "insightsuser@example.com"],
+          },
         },
-      },
-    });
+      });
 
-    await prisma.team.deleteMany({
-      where: {
-        slug: "insights",
-      },
-    });
+      await prisma.team.deleteMany({
+        where: {
+          slug: "insights",
+        },
+      });
 
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+      await prisma.$disconnect();
+      process.exit(1);
+    });
+}
 
 /**
  * This will create many users in insights teams with bookings 1y in the past
@@ -525,19 +524,34 @@ async function createPerformanceData() {
   }
 }
 
-createPerformanceData()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.user.deleteMany({
-      where: {
-        username: {
-          contains: "insights-user-",
+async function runPerformanceData() {
+  await createPerformanceData()
+    .catch(async (e) => {
+      console.error(e);
+      await prisma.user.deleteMany({
+        where: {
+          username: {
+            contains: "insights-user-",
+          },
         },
-      },
+      });
+      await prisma.$disconnect();
+      process.exit(1);
     });
-    await prisma.$disconnect();
+}
+
+async function runEverything() {
+  await prisma.$connect();
+
+  await runMain();
+  await runPerformanceData();
+}
+
+runEverything()
+  .catch((e) => {
+    console.error(e);
     process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
   });
