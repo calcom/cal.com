@@ -2,8 +2,7 @@ import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/reposito
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundException } from "@nestjs/common";
+import { Injectable, Logger, HttpException, NotFoundException } from "@nestjs/common";
 
 import { addGuestsHandler } from "@calcom/platform-libraries/bookings";
 import type { AddGuestsInput_2024_08_13 } from "@calcom/platform-types";
@@ -38,7 +37,10 @@ export class BookingGuestsService_2024_08_13 {
     if (res.message === "Guests added") {
       return await this.bookingsService.getBooking(bookingUid, user);
     } else {
-      throw new Error("Failed to add guests");
+      throw new HttpException(
+        "Failed to add guests to the booking",
+        500
+      );
     }
   }
 }
