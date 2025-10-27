@@ -47,7 +47,7 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
   });
 
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
-  const createEventType = trpc.viewer.eventTypes.heavy.create.useMutation();
+  const createEventType = trpc.viewer.eventTypesHeavy.create.useMutation();
 
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.me.updateProfile.useMutation({
@@ -152,15 +152,15 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
                               {t("connected")}
                             </span>
                           )}
-                          {app.logo && (
-                            <img src={app.logo} alt={app.name} className="h-9 w-9 rounded-md" />
-                          )}
+                          {app.logo && <img src={app.logo} alt={app.name} className="h-9 w-9 rounded-md" />}
                           <p
-                            className="text-default line-clamp-1 max-w- break-words text-left text-sm font-medium leading-none"
+                            className="text-default max-w- line-clamp-1 break-words text-left text-sm font-medium leading-none"
                             title={app.name}>
                             {app.name}
                           </p>
-                          <p className="text-subtle line-clamp-2 text-left text-xs leading-tight">{app.description}</p>
+                          <p className="text-subtle line-clamp-2 text-left text-xs leading-tight">
+                            {app.description}
+                          </p>
                           <Button
                             color="secondary"
                             href={`/apps/${app.slug}`}
