@@ -32,6 +32,29 @@ const usePersistedExpansionState = (itemName: string) => {
   return [isExpanded, setPersistedExpansion] as const;
 };
 
+const useBuildHref = () => {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const prevPathnameRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    prevPathnameRef.current = pathname;
+  }, [pathname]);
+
+  const buildHref = (childItem: NavigationItemType) => {
+    if (
+      childItem.preserveQueryParams &&
+      childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current ?? pathname })
+    ) {
+      const params = searchParams.toString();
+      return params ? `${childItem.href}?${params}` : childItem.href;
+    }
+    return childItem.href;
+  };
+
+  return buildHref;
+};
+
 export type NavigationItemType = {
   name: string;
   href: string;
@@ -69,30 +92,14 @@ export const NavigationItem: React.FC<{
   const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const prevPathnameRef = useRef<string | null>(null);
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
+  const buildHref = useBuildHref();
 
   const isTablet = useMediaQuery("(max-width: 1024px)");
   const [isTooltipOpen, setIsTooltipOpen] = useState(false);
-
-  useEffect(() => {
-    prevPathnameRef.current = pathname;
-  }, [pathname]);
-
-  const buildHref = (childItem: NavigationItemType) => {
-    if (
-      childItem.preserveQueryParams &&
-      childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current ?? pathname })
-    ) {
-      const params = searchParams.toString();
-      return params ? `${childItem.href}?${params}` : childItem.href;
-    }
-    return childItem.href;
-  };
 
   if (!shouldDisplayNavigationItem) return null;
 
@@ -285,26 +292,9 @@ export const MobileNavigationMoreItem: React.FC<{
 }> = (props) => {
   const { item } = props;
   const { t, isLocaleReady } = useLocale();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const prevPathnameRef = useRef<string | null>(null);
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
-
-  useEffect(() => {
-    prevPathnameRef.current = pathname;
-  }, [pathname]);
-
-  const buildHref = (childItem: NavigationItemType) => {
-    if (
-      childItem.preserveQueryParams &&
-      childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current })
-    ) {
-      const params = searchParams.toString();
-      return params ? `${childItem.href}?${params}` : childItem.href;
-    }
-    return childItem.href;
-  };
+  const buildHref = useBuildHref();
 
   if (!shouldDisplayNavigationItem) return null;
 
