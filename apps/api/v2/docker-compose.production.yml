@@ -74,15 +74,15 @@ services:
       JWT_SECRET: ${JWT_SECRET:-${NEXTAUTH_SECRET}}
 
       # API Configuration
-      API_URL: ${API_URL:-https://api.yourdomain.com}
+      API_URL: ${API_URL:-https://api.collegecontactcalendar.com}
       API_KEY_PREFIX: ${API_KEY_PREFIX:-cal_}
       
       # License (optional for self-hosted)
       CALCOM_LICENSE_KEY: ${CALCOM_LICENSE_KEY:-}
       
       # Web App URL
-      WEB_APP_URL: ${WEB_APP_URL:-http://api-internal}
-      NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL:-http://api-internal}
+      WEB_APP_URL: ${WEB_APP_URL:-https://api.collegecontactcalendar.com}
+      NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL:-https://api.collegecontactcalendar.com}
 
       # RESEND
       EMAIL_FROM: ${EMAIL_FROM:-noreply@collegecontactcalendar.com}

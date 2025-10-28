@@ -1,10 +1,5 @@
 # Cal.com API v2 Deployment Guide
 
-# Force restart docker container
-```sh
-docker-compose -f apps/api/v2/docker-compose.production.yml up -d --force-recreate --no-deps api-v2
-```
-
 ## Prerequisites
 
 - AWS CLI configured with ECR access
@@ -77,6 +72,17 @@ curl http://localhost/health
 
 # Monitor logs for errors
 docker-compose -f docker-compose.production.yml logs -f api-v2
+```
+
+## Check API LOGS
+
+```sh
+docker logs --tail 200 --timestamps calcom-api-v2
+```
+
+## Force restart docker container
+```sh
+docker-compose -f apps/api/v2/docker-compose.production.yml up -d --force-recreate --no-deps api-v2
 ```
 
 ## Rollback
