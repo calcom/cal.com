@@ -1,5 +1,6 @@
 export type Schedule = {
   isDefault: boolean;
+  lockedDefaultAvailability: boolean;
   id: number;
   name: string;
   timeZone: string | null;
