@@ -28,6 +28,7 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
+import { createInstantBookingWithReservedSlot } from "../handleNewBooking/createInstantBookingWithReservedSlot";
 
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
@@ -276,7 +277,17 @@ export async function handler(
     data: newBookingData,
   };
 
-  const newBooking = await prisma.booking.create(createBookingObj);
+  const newBooking = await (async () => {
+    if (bookingMeta?.reservedSlotUid) {
+      return createInstantBookingWithReservedSlot(createBookingObj, {
+        eventTypeId: reqBody.eventTypeId,
+        slotUtcStart: reqBody.start,
+        slotUtcEnd: reqBody.end,
+        reservedSlotUid: bookingMeta.reservedSlotUid!,
+      });
+    }
+    return prisma.booking.create(createBookingObj);
+  })();
 
   // Create Instant Meeting Token
 

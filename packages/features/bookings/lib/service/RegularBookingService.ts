@@ -102,7 +102,9 @@ import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToE
 import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
 import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "../handleNewBooking/createBooking";
+import type { CreateBookingParams } from "../handleNewBooking/createBooking";
 import type { Booking } from "../handleNewBooking/createBooking";
+import { createBookingWithReservedSlot } from "../handleNewBooking/createBookingWithReservedSlot";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "../handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
@@ -1691,7 +1693,7 @@ async function handler(
 
   try {
     if (!isDryRun) {
-      booking = await createBooking({
+      const createArgs: CreateBookingParams = {
         uid,
         rescheduledBy: reqBody.rescheduledBy,
         routingFormResponseId: routingFormResponseId,
@@ -1719,7 +1721,18 @@ async function handler(
         originalRescheduledBooking,
         creationSource: input.bookingData.creationSource,
         tracking: reqBody.tracking,
-      });
+      };
+
+      if (input.reservedSlotUid && !eventType.seatsPerTimeSlot) {
+        booking = await createBookingWithReservedSlot(createArgs, {
+          eventTypeId,
+          slotUtcStart: reqBody.start,
+          slotUtcEnd: reqBody.end,
+          reservedSlotUid: input.reservedSlotUid,
+        });
+      } else {
+        booking = await createBooking(createArgs);
+      }
 
       if (booking?.userId) {
         const usersRepository = new UsersRepository();

@@ -60,6 +60,7 @@ export const handleNewRecurringBooking = async (
         hostname: input.hostname || "",
         forcedSlug: input.forcedSlug as string | undefined,
         ...handleBookingMeta,
+        reservedSlotUid: input.reservedSlotUid,
       },
     });
     luckyUsers = firstBookingResult.luckyUsers;
@@ -103,6 +104,7 @@ export const handleNewRecurringBooking = async (
         hostname: input.hostname || "",
         forcedSlug: input.forcedSlug as string | undefined,
         ...handleBookingMeta,
+        reservedSlotUid: undefined,
       },
     });
 
