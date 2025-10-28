@@ -22,9 +22,9 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
     <div
       ref={containerNavRef}
       className={classNames(
-        "bg-default dark:bg-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none sm:pr-8",
-        borderColor === "subtle" ? "border-b-subtle border-b" : "border-b-default border-b",
-        showBorder && (borderColor === "subtle" ? "border-r-subtle border-r" : "border-r-default border-r")
+        "bg-default dark:bg-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b border-r sm:pr-8",
+        borderColor === "subtle" ? "border-b-subtle" : "border-b-default",
+        showBorder && (borderColor === "subtle" ? "border-r-subtle" : "border-r-default")
       )}>
       <div className="text-subtle flex text-sm leading-6 sm:hidden" data-dayslength={days.length}>
         {days.map((day) => {
