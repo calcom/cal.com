@@ -94,6 +94,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { BookingRepository } from "../../repositories/BookingRepository";
+import { BookingCreatedLogRepository } from "../../repositories/BookingCreatedLogRepository";
 import { BookingActionMap, BookingEmailSmsHandler } from "../BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -1738,13 +1739,16 @@ async function handler(
           availabilitySnapshot,
         });
 
-        await prisma.bookingCreatedLog.create({
-          data: {
+        try {
+          const bookingCreatedLogRepository = new BookingCreatedLogRepository(prisma);
+          await bookingCreatedLogRepository.create({
             bookingUid: booking.uid,
-            selectedCalendarIds: { set: selectedCalendarIds },
-            availabilitySnapshot: availabilitySnapshot ?? undefined,
-          },
-        });
+            selectedCalendarIds,
+            availabilitySnapshot,
+          });
+        } catch (error) {
+          log.error("Failed to create booking log", { error, bookingUid: booking.uid });
+        }
       }
 
       // If it's a round robin event, record the reason for the host assignment
