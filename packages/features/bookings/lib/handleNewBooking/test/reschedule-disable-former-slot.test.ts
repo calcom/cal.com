@@ -26,6 +26,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
+import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 
 const timeout = process.env.CI ? 5000 : 20000;
 
@@ -266,6 +267,145 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
             }),
           })
         ).rejects.toThrow();
+      },
+      timeout
+    );
+
+    test(
+      "verifies getBusyTimes includes rescheduled former slot in busy times calculation",
+      async () => {
+        const handleNewBooking = getNewBookingHandler();
+        const booker = getBooker({
+          name: "Booker",
+          email: "booker@example.com",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const uidOfBookingToBeRescheduled = "busy-times-test-uid";
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 2,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            bookings: [
+              {
+                uid: uidOfBookingToBeRescheduled,
+                eventTypeId: 2,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T10:00:00.000Z`,
+                endTime: `${plus1DateString}T10:30:00.000Z`,
+                userId: 101,
+                references: [
+                  {
+                    type: appStoreMetadata.dailyvideo.type,
+                    uid: "MOCK_ID",
+                    meetingId: "MOCK_ID",
+                    meetingPassword: "MOCK_PASS",
+                    meetingUrl: "http://mock-dailyvideo.example.com",
+                    credentialId: null,
+                  },
+                ],
+                attendees: [
+                  {
+                    email: booker.email,
+                    timeZone: "Asia/Kolkata",
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["daily-video"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+        });
+
+        await mockCalendarToHaveNoBusySlots("googlecalendar");
+
+        await handleNewBooking({
+          bookingData: getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 2,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T11:00:00.000Z`,
+              end: `${plus1DateString}T11:30:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: "Booker",
+                location: { optionValue: "", value: BookingLocations.CalVideo },
+              },
+            },
+          }),
+        });
+
+        const cancelledBooking = await prismaMock.booking.findUnique({
+          where: { uid: uidOfBookingToBeRescheduled },
+        });
+        expect(cancelledBooking?.status).toBe(BookingStatus.CANCELLED);
+        expect(cancelledBooking?.rescheduled).toBe(true);
+
+        const busyTimesService = getBusyTimesService();
+        const busyTimes = await busyTimesService.getBusyTimes({
+          credentials: organizer.credentials,
+          startTime: `${plus1DateString}T09:00:00.000Z`,
+          endTime: `${plus1DateString}T12:00:00.000Z`,
+          eventTypeId: 2,
+          userId: organizer.id,
+          userEmail: organizer.email,
+          username: organizer.username || "example.username",
+          beforeEventBuffer: 0,
+          afterEventBuffer: 0,
+          selectedCalendars: organizer.selectedCalendars,
+          seatedEvent: false,
+          rescheduleUid: null,
+          duration: 30,
+          bypassBusyCalendarTimes: false,
+        });
+
+        // Verify that the former slot (10:00-10:30) is marked as busy
+        const hasFormerSlotBusy = busyTimes.some((busyTime) => {
+          const busyStart = new Date(busyTime.start).toISOString();
+          const busyEnd = new Date(busyTime.end).toISOString();
+          return (
+            busyStart === `${plus1DateString}T10:00:00.000Z` &&
+            busyEnd === `${plus1DateString}T10:30:00.000Z`
+          );
+        });
+
+        expect(hasFormerSlotBusy).toBe(true);
+
+        const hasNewSlotBusy = busyTimes.some((busyTime) => {
+          const busyStart = new Date(busyTime.start).toISOString();
+          const busyEnd = new Date(busyTime.end).toISOString();
+          return (
+            busyStart === `${plus1DateString}T11:00:00.000Z` &&
+            busyEnd === `${plus1DateString}T11:30:00.000Z`
+          );
+        });
+
+        expect(hasNewSlotBusy).toBe(true);
+        expect(busyTimes.length).toBeGreaterThanOrEqual(2);
       },
       timeout
     );
