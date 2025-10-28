@@ -3,6 +3,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useState } from "react";
 import { createPortal } from "react-dom";
@@ -22,12 +23,12 @@ import {
 } from "@calcom/features/data-table";
 import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import {
-  downloadAsCsv,
   generateCsvRawForMembersTable,
   generateHeaderFromReactTable,
-} from "@calcom/lib/csvUtils";
+} from "@calcom/features/users/lib/UserListTableUtils";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -126,8 +127,10 @@ export type UserListTableProps = {
 };
 
 export function UserListTable(props: UserListTableProps) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
       <UserListTableContent {...props} />
     </DataTableProvider>
   );
@@ -168,8 +171,6 @@ function UserListTableContent({
     }
   );
 
-  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const totalRowCount = data?.meta?.totalRowCount ?? 0;
   const adminOrOwner = checkAdminOrOwner(org?.user?.role);
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
@@ -514,7 +515,7 @@ function UserListTableContent({
                 value: team.name,
               }))
             );
-          default:
+          default: {
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
               return convertFacetedValuesToMap(
@@ -525,6 +526,7 @@ function UserListTableContent({
               );
             }
             return new Map();
+          }
         }
       }
       return new Map();

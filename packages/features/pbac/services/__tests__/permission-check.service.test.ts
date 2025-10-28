@@ -3,7 +3,7 @@ import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
 
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type { IPermissionRepository } from "../../domain/repositories/IPermissionRepository";
@@ -14,7 +14,7 @@ import type { PermissionService } from "../permission.service";
 
 vi.mock("../../infrastructure/repositories/PermissionRepository");
 vi.mock("@calcom/features/flags/features.repository");
-vi.mock("@calcom/lib/server/repository/membership");
+vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("../permission.service");
 
 vi.mock("@calcom/prisma", () => ({
@@ -123,9 +123,10 @@ describe("PermissionCheckService", () => {
       expect(mockRepository.checkRolePermission).not.toHaveBeenCalled();
     });
 
-    it("should return false if membership not found when PBAC disabled", async () => {
+    it("should return false if no team or org membership found when PBAC disabled", async () => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
-      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValueOnce(null);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock).mockResolvedValue(null);
+      mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 100 });
 
       const result = await service.checkPermission({
         userId: 1,
@@ -135,6 +136,45 @@ describe("PermissionCheckService", () => {
       });
 
       expect(result).toBe(false);
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenCalledTimes(2);
+    });
+
+    it("should use org membership when team membership not found (PBAC disabled)", async () => {
+      const orgMembership = {
+        id: 2,
+        teamId: 100,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock)
+        .mockResolvedValueOnce(null) // No team membership
+        .mockResolvedValueOnce(orgMembership); // Has org membership
+      mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 100 });
+
+      const result = await service.checkPermission({
+        userId: 1,
+        teamId: 1,
+        permission: "eventType.create",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(true);
+      expect(mockRepository.getTeamById).toHaveBeenCalledWith(1);
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(1, {
+        userId: 1,
+        teamId: 1,
+      });
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(2, {
+        userId: 1,
+        teamId: 100,
+      });
     });
 
     it("should check org-level permissions when user has no team membership but PBAC is enabled", async () => {
@@ -250,6 +290,44 @@ describe("PermissionCheckService", () => {
       expect(mockRepository.checkRolePermissions).not.toHaveBeenCalled();
     });
 
+    it("should use org membership for checkPermissions when team membership not found (PBAC disabled)", async () => {
+      const orgMembership = {
+        id: 2,
+        teamId: 100,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock)
+        .mockResolvedValueOnce(null) // No team membership
+        .mockResolvedValueOnce(orgMembership); // Has org membership
+      mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 100 });
+
+      const result = await service.checkPermissions({
+        userId: 1,
+        teamId: 1,
+        permissions: ["eventType.create", "team.invite"],
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(true);
+      expect(mockRepository.getTeamById).toHaveBeenCalledWith(1);
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(1, {
+        userId: 1,
+        teamId: 1,
+      });
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(2, {
+        userId: 1,
+        teamId: 100,
+      });
+    });
+
     it("should return false when permissions array is empty", async () => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
@@ -327,10 +405,18 @@ describe("PermissionCheckService", () => {
       const expectedTeamIds = [1, 2, 3];
       mockRepository.getTeamIdsWithPermission.mockResolvedValueOnce(expectedTeamIds);
 
-      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual(expectedTeamIds);
-      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith(1, "eventType.read");
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
     });
 
     it("should return empty array when permission validation fails", async () => {
@@ -339,7 +425,11 @@ describe("PermissionCheckService", () => {
         error: "Invalid permissions",
       });
 
-      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual([]);
       expect(mockRepository.getTeamIdsWithPermission).not.toHaveBeenCalled();
@@ -348,10 +438,18 @@ describe("PermissionCheckService", () => {
     it("should return empty array and log error when repository throws", async () => {
       mockRepository.getTeamIdsWithPermission.mockRejectedValueOnce(new Error("Database error"));
 
-      const result = await service.getTeamIdsWithPermission(1, "eventType.read");
+      const result = await service.getTeamIdsWithPermission({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual([]);
-      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith(1, "eventType.read");
+      expect(mockRepository.getTeamIdsWithPermission).toHaveBeenCalledWith({
+        userId: 1,
+        permission: "eventType.read",
+        fallbackRoles: [],
+      });
     });
   });
 
@@ -361,10 +459,14 @@ describe("PermissionCheckService", () => {
       const permissions: PermissionString[] = ["eventType.read", "eventType.create"];
       mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce(expectedTeamIds);
 
-      const result = await service.getTeamIdsWithPermissions(1, permissions);
+      const result = await service.getTeamIdsWithPermissions({ userId: 1, permissions, fallbackRoles: [] });
 
       expect(result).toEqual(expectedTeamIds);
-      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, permissions);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions,
+        fallbackRoles: [],
+      });
     });
 
     it("should return empty array when permissions validation fails", async () => {
@@ -373,7 +475,11 @@ describe("PermissionCheckService", () => {
         error: "Invalid permissions",
       });
 
-      const result = await service.getTeamIdsWithPermissions(1, ["eventType.read"] as PermissionString[]);
+      const result = await service.getTeamIdsWithPermissions({
+        userId: 1,
+        permissions: ["eventType.read"] as PermissionString[],
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual([]);
       expect(mockRepository.getTeamIdsWithPermissions).not.toHaveBeenCalled();
@@ -382,20 +488,32 @@ describe("PermissionCheckService", () => {
     it("should return empty array when permissions array is empty", async () => {
       mockRepository.getTeamIdsWithPermissions.mockResolvedValueOnce([]);
 
-      const result = await service.getTeamIdsWithPermissions(1, []);
+      const result = await service.getTeamIdsWithPermissions({
+        userId: 1,
+        permissions: [],
+        fallbackRoles: [],
+      });
 
       expect(result).toEqual([]);
-      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, []);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions: [],
+        fallbackRoles: [],
+      });
     });
 
     it("should return empty array and log error when repository throws", async () => {
       const permissions: PermissionString[] = ["eventType.read", "eventType.create"];
       mockRepository.getTeamIdsWithPermissions.mockRejectedValueOnce(new Error("Database error"));
 
-      const result = await service.getTeamIdsWithPermissions(1, permissions);
+      const result = await service.getTeamIdsWithPermissions({ userId: 1, permissions, fallbackRoles: [] });
 
       expect(result).toEqual([]);
-      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith(1, permissions);
+      expect(mockRepository.getTeamIdsWithPermissions).toHaveBeenCalledWith({
+        userId: 1,
+        permissions,
+        fallbackRoles: [],
+      });
     });
   });
 
