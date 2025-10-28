@@ -1,0 +1,172 @@
+"use client";
+
+import { format } from "date-fns";
+import { Controller, useForm } from "react-hook-form";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { WatchlistType } from "@calcom/prisma/enums";
+import { Button } from "@calcom/ui/components/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
+import { Icon } from "@calcom/ui/components/icon";
+import { ToggleGroup } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+
+type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
+
+interface BookingReportEntryDetailsModalProps {
+  entry: BookingReport | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+interface FormData {
+  blockType: WatchlistType;
+}
+
+export function BookingReportEntryDetailsModal({
+  entry,
+  isOpen,
+  onClose,
+}: BookingReportEntryDetailsModalProps) {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<FormData>({
+    defaultValues: {
+      blockType: WatchlistType.EMAIL,
+    },
+  });
+
+  const addToWatchlist = trpc.viewer.organizations.addToWatchlist.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.organizations.listBookingReports.invalidate();
+      await utils.viewer.organizations.listWatchlistEntries.invalidate();
+      showToast(t("blocklist_entry_created"), "success");
+      onClose();
+      reset();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const onSubmit = (data: FormData) => {
+    if (!entry) return;
+
+    addToWatchlist.mutate({
+      reportIds: [entry.id],
+      type: data.blockType,
+    });
+  };
+
+  const reasonMap: Record<string, string> = {
+    SPAM: t("spam"),
+    DONT_KNOW_PERSON: t("dont_know_person"),
+    OTHER: t("other"),
+  };
+
+  if (!entry) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent enableOverflow>
+        <DialogHeader title={t("review_report") + ` - ${entry.bookerEmail}`} />
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mt-6 space-y-6">
+            <div className="bg-subtle rounded-lg p-6">
+              <h2 className="text-emphasis mb-6 text-base font-semibold">{t("details")}</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-emphasis mb-1 block text-sm font-semibold">{t("email")}</label>
+                  <p className="text-subtle text-sm">{entry.bookerEmail}</p>
+                </div>
+
+                <div>
+                  <label className="text-emphasis mb-1 block text-sm font-semibold">{t("reason")}</label>
+                  <p className="text-subtle text-sm">{reasonMap[entry.reason] || entry.reason}</p>
+                </div>
+
+                <div>
+                  <label className="text-emphasis mb-1 block text-sm font-semibold">
+                    {t("reported_by")}
+                  </label>
+                  <p className="text-subtle text-sm">{entry.reporter?.email || "—"}</p>
+                </div>
+
+                <div>
+                  <label className="text-emphasis mb-1 block text-sm font-semibold">
+                    {t("description")}
+                  </label>
+                  <p className="text-subtle text-sm">
+                    {entry.description || t("no_description_provided")}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-emphasis mb-1 block text-sm font-semibold">
+                    {t("related_booking")}
+                  </label>
+                  <p className="text-subtle text-sm">
+                    {entry.booking.title || t("untitled")} -{" "}
+                    {format(new Date(entry.booking.startTime), "MMM d, h:mm a")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-subtle rounded-lg p-6">
+              <h2 className="text-emphasis mb-6 text-base font-semibold">{t("block")}</h2>
+              <Controller
+                name="blockType"
+                control={control}
+                render={({ field }) => (
+                  <ToggleGroup
+                    value={field.value}
+                    onValueChange={(value) => {
+                      if (value) field.onChange(value);
+                    }}
+                    options={[
+                      {
+                        value: WatchlistType.EMAIL,
+                        label: t("block_this_email"),
+                        iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                      },
+                      {
+                        value: WatchlistType.DOMAIN,
+                        label: t("block_all_from_domain"),
+                        iconLeft: <Icon name="globe" className="h-4 w-4" />,
+                      },
+                    ]}
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="mt-6">
+            <Button
+              type="button"
+              color="secondary"
+              onClick={onClose}
+              disabled={isSubmitting || addToWatchlist.isPending}>
+              {t("dont_block")}
+            </Button>
+            <Button
+              type="submit"
+              loading={isSubmitting || addToWatchlist.isPending}
+              disabled={isSubmitting || addToWatchlist.isPending}>
+              {t("add_to_blocklist")}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

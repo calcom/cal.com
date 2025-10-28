@@ -18,6 +18,7 @@ export class WatchlistRepository implements IWatchlistRepository {
       type: params.type,
       value: params.value,
       organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
     });
 
     if (existing) {
@@ -33,7 +34,7 @@ export class WatchlistRepository implements IWatchlistRepository {
           action: params.action,
           description: params.description,
           source: WatchlistSource.MANUAL,
-          isGlobal: false,
+          isGlobal: params.isGlobal ?? false,
         },
       });
 
@@ -60,7 +61,7 @@ export class WatchlistRepository implements IWatchlistRepository {
         type_value_organizationId: {
           type: params.type,
           value: params.value,
-          organizationId: params.organizationId,
+          organizationId: params.organizationId ?? null,
         },
       },
     });

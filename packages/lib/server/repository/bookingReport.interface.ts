@@ -68,4 +68,13 @@ export interface IBookingReportRepository {
     rows: BookingReportWithDetails[];
     meta: { totalRowCount: number };
   }>;
+
+  findReportsByIds(params: {
+    reportIds: string[];
+    organizationId?: number;
+  }): Promise<BookingReportWithDetails[]>;
+
+  linkWatchlistToReport(params: { reportId: string; watchlistId: string }): Promise<void>;
+
+  deleteReport(params: { reportId: string; organizationId?: number }): Promise<void>;
 }

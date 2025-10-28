@@ -28,16 +28,18 @@ export interface WatchlistAuditEntry {
 export interface CreateWatchlistInput {
   type: WatchlistType;
   value: string;
-  organizationId: number;
+  organizationId: number | null;
   action: WatchlistAction;
   description?: string;
   userId: number;
+  isGlobal?: boolean;
 }
 
 export interface CheckWatchlistInput {
   type: WatchlistType;
   value: string;
-  organizationId: number;
+  organizationId?: number | null;
+  isGlobal?: boolean;
 }
 
 export interface FindAllEntriesInput {

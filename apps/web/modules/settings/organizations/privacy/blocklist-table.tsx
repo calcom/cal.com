@@ -11,6 +11,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui/components/dialog";
+import { DialogClose } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -23,6 +24,7 @@ import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { BlocklistEntryDetailsSheet } from "./components/blocklist-entry-details-sheet";
+import { BookingReportEntryDetailsModal } from "./components/booking-report-entry-details-modal";
 import { CreateBlocklistEntryModal } from "./components/create-blocklist-entry-modal";
 
 type BlocklistEntry = RouterOutputs["viewer"]["organizations"]["listWatchlistEntries"]["rows"][number];
@@ -44,7 +46,9 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
   const [activeView, setActiveView] = useState<ViewType>("blocked");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDetailsSheet, setShowDetailsSheet] = useState(false);
-  const [selectedEntry, setSelectedEntry] = useState<BlocklistEntry | BookingReport | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<BlocklistEntry | null>(null);
+  const [selectedReport, setSelectedReport] = useState<BookingReport | null>(null);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<BlocklistEntry | BookingReport | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -90,6 +94,18 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     },
   });
 
+  const deleteBookingReport = trpc.viewer.organizations.deleteBookingReport.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.organizations.listBookingReports.invalidate();
+      showToast(t("booking_report_deleted"), "success");
+      setShowDeleteDialog(false);
+      setEntryToDelete(null);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   const handleDelete = (entry: BlocklistEntry | BookingReport) => {
     setEntryToDelete(entry);
     setShowDeleteDialog(true);
@@ -99,13 +115,20 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     if (entryToDelete) {
       if (activeView === "blocked" && "value" in entryToDelete) {
         deleteWatchlistEntry.mutate({ id: entryToDelete.id });
+      } else if (activeView === "pending" && "bookerEmail" in entryToDelete) {
+        deleteBookingReport.mutate({ reportId: entryToDelete.id });
       }
     }
   };
 
-  const handleViewDetails = (entry: BlocklistEntry | BookingReport) => {
+  const handleViewDetails = (entry: BlocklistEntry) => {
     setSelectedEntry(entry);
     setShowDetailsSheet(true);
+  };
+
+  const handleBookingReportViewDetails = (entry: BookingReport) => {
+    setSelectedReport(entry);
+    setShowReviewDialog(true);
   };
 
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
@@ -195,31 +218,12 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         header: t("email_slash_domain"),
         accessorKey: "bookerEmail",
         enableHiding: false,
-        size: 300,
+        size: 250,
         cell: ({ row }) => {
           const email = row.original.bookerEmail;
-          const domain = email.split("@")[1];
           return (
             <div className="flex flex-col">
               <span className="text-emphasis font-medium">{email}</span>
-              <span className="text-subtle text-xs">@{domain}</span>
-            </div>
-          );
-        },
-      },
-      {
-        id: "type",
-        header: t("type"),
-        size: 200,
-        cell: ({ row }) => {
-          const email = row.original.bookerEmail;
-          const domain = email.split("@")[1];
-          return (
-            <div className="flex flex-col gap-1">
-              <Badge variant="blue">{t("email")}</Badge>
-              <Badge variant="gray">
-                {t("domain")}: {domain}
-              </Badge>
             </div>
           );
         },
@@ -231,6 +235,19 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         size: 250,
         cell: ({ row }) => <span className="text-default">{row.original.reporter?.email ?? "-"}</span>,
       },
+      {
+        id: "reason",
+        header: t("reason"),
+        size: 150,
+        cell: ({ row }) => {
+          console.log("repw", row.original);
+          const reason = row.original.reason.toLowerCase();
+          const capitalizedReason = reason.charAt(0).toUpperCase() + reason.slice(1);
+
+          return <Badge variant="blue">{capitalizedReason}</Badge>;
+        },
+      },
+
       {
         id: "actions",
         header: "",
@@ -248,8 +265,11 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem>
-                    <DropdownItem type="button" StartIcon="eye" onClick={() => handleViewDetails(entry)}>
-                      {t("view")}
+                    <DropdownItem
+                      type="button"
+                      StartIcon="eye"
+                      onClick={() => handleBookingReportViewDetails(entry)}>
+                      {t("view_details")}
                     </DropdownItem>
                   </DropdownMenuItem>
                   {permissions?.canDelete && (
@@ -292,7 +312,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         variant="default"
         paginationMode="standard"
         EmptyView={
-          <div>
+          activeView === "blocked" ? (
             <EmptyScreen
               Icon="phone"
               headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_entries")}
@@ -301,7 +321,15 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
               iconWrapperClassName="bg-default"
               dashedBorder={false}
             />
-          </div>
+          ) : (
+            <EmptyScreen
+              Icon="ban"
+              headline={t("no_pending_reports")}
+              className="bg-muted mb-16"
+              iconWrapperClassName="bg-default"
+              dashedBorder={false}
+            />
+          )
         }
         totalRowCount={totalRowCount}>
         <div className="flex items-center justify-between">
@@ -337,16 +365,33 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
           setShowDetailsSheet(false);
           setSelectedEntry(null);
         }}
+        handleDeleteBlocklistEntry={(entry) => handleDelete(entry)}
+      />
+
+      <BookingReportEntryDetailsModal
+        entry={selectedReport}
+        isOpen={showReviewDialog}
+        onClose={() => {
+          setShowReviewDialog(false);
+          setSelectedReport(null);
+        }}
       />
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <ConfirmationDialogContent
           variety="danger"
-          title={activeView === "blocked" ? t("delete_blocklist_entry") : t("delete_booking_report")}
-          confirmBtnText={t("delete")}
-          onConfirm={confirmDelete}>
-          {activeView === "blocked" && entryToDelete && "value" in entryToDelete
-            ? t("delete_blocklist_entry_confirmation", { value: entryToDelete.value })
+          title={
+            entryToDelete && "value" in entryToDelete
+              ? t("remove_value_from_blocklist", { value: entryToDelete.value })
+              : t("delete_booking_report")
+          }
+          confirmBtn={
+            <DialogClose color="destructive" onClick={confirmDelete}>
+              {t("remove")}
+            </DialogClose>
+          }>
+          {entryToDelete && "value" in entryToDelete
+            ? t("remove_value_from_blocklist_description")
             : t("delete_booking_report_confirmation")}
         </ConfirmationDialogContent>
       </Dialog>
