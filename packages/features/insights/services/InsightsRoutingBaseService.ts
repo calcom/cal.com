@@ -710,8 +710,15 @@ export class InsightsRoutingBaseService {
     // Extract booking status order filter
     const bookingStatusOrder = filtersMap["bookingStatusOrder"];
     if (bookingStatusOrder && isMultiSelectFilterValue(bookingStatusOrder.value)) {
-      const statusOrders = bookingStatusOrder.value.data.map((order) => Number(order));
-      conditions.push(Prisma.sql`rfrd."bookingStatusOrder" = ANY(${statusOrders})`);
+      // Convert string values to numbers for integer column
+      const integerFilterValue = {
+        ...bookingStatusOrder.value,
+        data: bookingStatusOrder.value.data.map((order) => Number(order)),
+      };
+      const statusCondition = makeSqlCondition(integerFilterValue);
+      if (statusCondition) {
+        conditions.push(Prisma.sql`rfrd."bookingStatusOrder" ${statusCondition}`);
+      }
     }
 
     // Extract booking assignment reason filter
@@ -762,8 +769,15 @@ export class InsightsRoutingBaseService {
     // Extract member user IDs filter (multi-select)
     const memberUserIds = filtersMap["bookingUserId"];
     if (memberUserIds && isMultiSelectFilterValue(memberUserIds.value)) {
-      const userIds = memberUserIds.value.data.map((id) => Number(id));
-      conditions.push(Prisma.sql`rfrd."bookingUserId" = ANY(${userIds})`);
+      // Convert string values to numbers for integer column
+      const integerFilterValue = {
+        ...memberUserIds.value,
+        data: memberUserIds.value.data.map((id) => Number(id)),
+      };
+      const userIdCondition = makeSqlCondition(integerFilterValue);
+      if (userIdCondition) {
+        conditions.push(Prisma.sql`rfrd."bookingUserId" ${userIdCondition}`);
+      }
     }
 
     // Extract form ID filter (single-select)
