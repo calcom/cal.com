@@ -1,9 +1,10 @@
-import type { PrismaClient } from "@calcom/prisma";
+import type { PrismaClient, Prisma } from "@calcom/prisma";
 
 import type {
   IBookingReportRepository,
   CreateBookingReportInput,
-  BookingReportSummary,
+  BookingReportWithDetails,
+  ListBookingReportsFilters,
 } from "./bookingReport.interface";
 
 export class PrismaBookingReportRepository implements IBookingReportRepository {
@@ -25,19 +26,99 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     return report;
   }
 
-  async findAllReportedBookings(params: { skip?: number; take?: number }): Promise<BookingReportSummary[]> {
-    const reports = await this.prismaClient.bookingReport.findMany({
-      skip: params.skip,
-      take: params.take,
-      select: {
-        id: true,
-        reportedById: true,
-        reason: true,
-        description: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
-    return reports;
+  async findAllReportedBookings(params: {
+    organizationId?: number;
+    skip?: number;
+    take?: number;
+    searchTerm?: string;
+    filters?: ListBookingReportsFilters;
+  }): Promise<{
+    rows: BookingReportWithDetails[];
+    meta: { totalRowCount: number };
+  }> {
+    const where: Prisma.BookingReportWhereInput = {};
+
+    if (params.organizationId) {
+      where.organizationId = params.organizationId;
+    }
+
+    if (params.searchTerm) {
+      where.OR = [
+        { bookerEmail: { contains: params.searchTerm, mode: "insensitive" } },
+        {
+          reportedBy: {
+            email: { contains: params.searchTerm, mode: "insensitive" },
+          },
+        },
+      ];
+    }
+
+    if (params.filters?.hasWatchlist !== undefined) {
+      where.watchlistId = params.filters.hasWatchlist ? { not: null } : null;
+    }
+
+    if (params.filters?.reason && params.filters.reason.length > 0) {
+      where.reason = { in: params.filters.reason };
+    }
+
+    if (params.filters?.cancelled !== undefined) {
+      where.cancelled = params.filters.cancelled;
+    }
+
+    const [reports, totalCount] = await Promise.all([
+      this.prismaClient.bookingReport.findMany({
+        where,
+        skip: params.skip,
+        take: params.take,
+        select: {
+          id: true,
+          bookingUid: true,
+          bookerEmail: true,
+          reportedById: true,
+          reason: true,
+          description: true,
+          cancelled: true,
+          createdAt: true,
+          watchlistId: true,
+          reportedBy: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
+          booking: {
+            select: {
+              id: true,
+              uid: true,
+              title: true,
+              startTime: true,
+              endTime: true,
+            },
+          },
+          watchlist: {
+            select: {
+              id: true,
+              type: true,
+              value: true,
+              action: true,
+              description: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      this.prismaClient.bookingReport.count({ where }),
+    ]);
+
+    const rows = reports.map((report) => ({
+      ...report,
+      reporter: report.reportedBy,
+    }));
+
+    return {
+      rows,
+      meta: { totalRowCount: totalCount },
+    };
   }
 }
