@@ -301,11 +301,9 @@ function DataTableBody<TData>({
 }: DataTableBodyProps<TData> & { paginationMode?: "infinite" | "standard" }) {
   const { t } = useLocale();
 
-  // Check if sorting or filtering is active
   const hasActiveSorting = table.getState().sorting.length > 0;
   const hasActiveFilters = table.getState().columnFilters.length > 0;
 
-  // Filter out separator rows from the data before processing
   const filteredRows = useMemo(() => {
     if ((hideSeparatorsOnSort && hasActiveSorting) || (hideSeparatorsOnFilter && hasActiveFilters)) {
       return rows.filter((row) => !isSeparatorRow(row.original));
@@ -313,7 +311,6 @@ function DataTableBody<TData>({
     return rows;
   }, [rows, hideSeparatorsOnSort, hideSeparatorsOnFilter, hasActiveSorting, hasActiveFilters]);
 
-  // Update virtualizer to use filtered rows count
   const filteredRowVirtualizer = useVirtualizer({
     count: filteredRows.length,
     estimateSize: () => 100,
@@ -377,12 +374,11 @@ function DataTableBody<TData>({
           );
         }
 
-        // Regular row rendering
         return (
           <TableRow
             ref={virtualItem ? (node) => filteredRowVirtualizer.measureElement(node) : undefined}
             key={row.id}
-            data-index={virtualItem?.index} //needed for dynamic row height measurement
+            data-index={virtualItem?.index} // needed for dynamic row height measurement
             data-state={row.getIsSelected() && "selected"}
             onClick={() => onRowMouseclick && onRowMouseclick(row)}
             style={{
