@@ -79,14 +79,18 @@ export const AvailableTimeSlots = ({
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
 
   const setSeatedEventData = useBookerStoreContext((state) => state.setSeatedEventData);
+  const bookingData = useBookerStoreContext((state) => state.bookingData);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
   const [layout] = useBookerStoreContext((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStoreContext((state) => ({
-    setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
-    tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
-  }));
+  // Keep tentativeSelectedTimeslots in the destructure to preserve state shape
+  // but prefix it with an underscore to satisfy the linter for unused vars.
+  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots: _tentativeSelectedTimeslots } =
+    useBookerStoreContext((state) => ({
+      setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
+      tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
+    }));
 
   const onTentativeTimeSelect = ({
     time,
@@ -129,6 +133,15 @@ export const AvailableTimeSlots = ({
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
 
+  const updatedUnavailableTimeSlots = useMemo(() => {
+    // This ensures that the currently booked time slot is treated as unavailable while rescheduling.
+    if (bookingData?.startTime) {
+      const bookingTime = dayjs(bookingData.startTime).utc().format();
+      if (!unavailableTimeSlots.includes(bookingTime)) unavailableTimeSlots.push(bookingTime);
+    }
+    return unavailableTimeSlots;
+  }, [unavailableTimeSlots, bookingData]);
+
   const onTimeSelect = useCallback(
     (time: string, attendees: number, seatsPerTimeSlot?: number | null, bookingUid?: string) => {
       // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
@@ -150,7 +163,7 @@ export const AvailableTimeSlots = ({
 
       onAvailableTimeSlotSelect(time);
 
-      const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
+      const isTimeSlotAvailable = !updatedUnavailableTimeSlots.includes(time);
       if (skipConfirmStep && isTimeSlotAvailable) {
         onSubmit(time);
       }
@@ -161,7 +174,7 @@ export const AvailableTimeSlots = ({
       setSeatedEventData,
       skipConfirmStep,
       showAvailableSeatsCount,
-      unavailableTimeSlots,
+      updatedUnavailableTimeSlots,
       schedule,
       setTentativeSelectedTimeslots,
       onAvailableTimeSlotSelect,
@@ -230,7 +243,7 @@ export const AvailableTimeSlots = ({
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
                 onTentativeTimeSelect={onTentativeTimeSelect}
-                unavailableTimeSlots={unavailableTimeSlots}
+                unavailableTimeSlots={updatedUnavailableTimeSlots}
                 slots={slots.slots}
                 showAvailableSeatsCount={showAvailableSeatsCount}
                 skipConfirmStep={skipConfirmStep}

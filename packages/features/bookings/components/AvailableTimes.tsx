@@ -94,7 +94,7 @@ const SlotItem = ({
   watchedCfToken,
   handleSlotClick,
   onTentativeTimeSelect,
-  unavailableTimeSlots = [],
+  unavailableTimeSlots,
   confirmButtonDisabled,
   confirmStepClassNames,
 }: SlotItemProps) => {
@@ -148,7 +148,10 @@ const SlotItem = ({
     }
   };
 
-  const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
+  const slotTime = dayjs.utc(slot.time).toISOString();
+  const isTimeslotUnavailable = (unavailableTimeSlots || []).some(
+    (t) => dayjs.utc(t).toISOString() === slotTime
+  );
   return (
     <AnimatePresence>
       <div className="flex gap-2">
