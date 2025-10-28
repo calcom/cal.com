@@ -3890,5 +3890,16 @@
   "onboarding_skip_for_now": "Skip for now",
   "onboarding_or_divider": "or",
   "onboarding_team_required": "Team is required",
+  "onboarding_welcome_message": "Hey {{userName}}",
+  "onboarding_welcome_question": "To personalize your experience, what do you plan to use Cal.com for?",
+  "onboarding_plan_personal_title": "For personal use",
+  "onboarding_plan_personal_badge": "Free",
+  "onboarding_plan_personal_description": "Good for individuals who are just starting out and simply want the essentials.",
+  "onboarding_plan_team_title": "With my team",
+  "onboarding_plan_team_description": "Highly recommended for small teams who seek to upgrade their time and perform better as a unit.",
+  "onboarding_plan_organization_title": "For my organization",
+  "onboarding_plan_team_badge": "$15/user/mo",
+  "onboarding_plan_organization_badge": "$37/user/mo",
+  "onboarding_plan_organization_description": "Robust scheduling for larger teams looking to have more control, privacy, and security.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
