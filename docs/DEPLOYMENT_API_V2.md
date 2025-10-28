@@ -1,5 +1,10 @@
 # Cal.com API v2 Deployment Guide
 
+# Force restart docker container
+```sh
+docker-compose -f apps/api/v2/docker-compose.production.yml up -d --force-recreate --no-deps api-v2
+```
+
 ## Prerequisites
 
 - AWS CLI configured with ECR access
