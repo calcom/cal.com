@@ -1317,15 +1317,15 @@ class CalApi {
    * cal("on", {
    *   action: "bookingSuccessful",
    *   callback: () => {
-   *     cal("close");
+   *     cal("closeModal");
    *   }
    * });
    * ```
    */
-  close() {
+  closeModal() {
     if (this.cal.inlineEl && !this.cal.modalBox) {
       throw new Error(
-        "close() is only supported for modal-based embeds (ModalBox and FloatingButton). It cannot be used with inline embeds."
+        "closeModal() is only supported for modal-based embeds (ModalBox and FloatingButton). It cannot be used with inline embeds."
       );
     }
     this.cal.actionManager.fire("__closeIframe", {});
