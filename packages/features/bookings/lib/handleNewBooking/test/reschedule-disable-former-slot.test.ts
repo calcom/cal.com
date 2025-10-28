@@ -2,7 +2,6 @@ import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import {
   createBookingScenario,
-  getDate,
   getGoogleCalendarCredential,
   TestData,
   getOrganizer,
@@ -19,7 +18,7 @@ import {
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
-import { describe, expect } from "vitest";
+import { describe, expect, vi } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -27,16 +26,241 @@ import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 
 const timeout = process.env.CI ? 5000 : 20000;
 
 describe("Rescheduling Individual Events - Former Slot Disabled", () => {
   setupAndTeardown();
 
+  describe("BookingRepository Query Verification", () => {
+    test(
+      "verifies findAllExistingBookingsForEventTypeBetween includes CANCELLED bookings with rescheduled=true",
+      async () => {
+        vi.setSystemTime(new Date("2025-01-01T00:00:00.000Z"));
+        const plus1DateString = "2025-01-02";
+
+        const booker = getBooker({
+          name: "Booker",
+          email: "booker@example.com",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            bookings: [
+              {
+                uid: "accepted-booking-uid",
+                eventTypeId: 1,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T09:00:00.000Z`,
+                endTime: `${plus1DateString}T09:30:00.000Z`,
+                userId: 101,
+                references: [],
+                attendees: [
+                  {
+                    email: booker.email,
+                    timeZone: "Asia/Kolkata",
+                  },
+                ],
+              },
+              {
+                uid: "rescheduled-former-slot-uid",
+                eventTypeId: 1,
+                status: BookingStatus.CANCELLED,
+                rescheduled: true, // This should be included in the query
+                startTime: `${plus1DateString}T10:00:00.000Z`,
+                endTime: `${plus1DateString}T10:30:00.000Z`,
+                userId: 101,
+                references: [],
+                attendees: [
+                  {
+                    email: booker.email,
+                    timeZone: "Asia/Kolkata",
+                  },
+                ],
+              },
+              {
+                uid: "cancelled-not-rescheduled-uid",
+                eventTypeId: 1,
+                status: BookingStatus.CANCELLED,
+                rescheduled: false, // This should NOT be included
+                startTime: `${plus1DateString}T11:00:00.000Z`,
+                endTime: `${plus1DateString}T11:30:00.000Z`,
+                userId: 101,
+                references: [],
+                attendees: [
+                  {
+                    email: booker.email,
+                    timeZone: "Asia/Kolkata",
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [],
+          })
+        );
+
+        const bookingRepo = new BookingRepository(prismaMock);
+        const retrievedBookings = (await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+          userIdAndEmailMap: new Map([[organizer.id, organizer.email]]),
+          eventTypeId: 1,
+          startDate: new Date(`${plus1DateString}T08:00:00.000Z`),
+          endDate: new Date(`${plus1DateString}T12:00:00.000Z`),
+          seatedEvent: false, // For individual events
+        })) as Array<{ uid: string; status: BookingStatus; rescheduled?: boolean | null }>;
+
+        expect(retrievedBookings).toHaveLength(2);
+
+        const acceptedBooking = retrievedBookings.find((b) => b.uid === "accepted-booking-uid");
+        const rescheduledFormerSlot = retrievedBookings.find((b) => b.uid === "rescheduled-former-slot-uid");
+        const cancelledNotRescheduled = retrievedBookings.find(
+          (b) => b.uid === "cancelled-not-rescheduled-uid"
+        );
+
+        expect(acceptedBooking).toBeDefined();
+        expect(acceptedBooking?.status).toBe(BookingStatus.ACCEPTED);
+
+        expect(rescheduledFormerSlot).toBeDefined();
+        expect(rescheduledFormerSlot?.status).toBe(BookingStatus.CANCELLED);
+        expect(rescheduledFormerSlot?.rescheduled).toBe(true);
+
+        expect(cancelledNotRescheduled).toBeUndefined();
+      },
+      timeout
+    );
+
+    test(
+      "verifies findAllExistingBookingsForEventTypeBetween does NOT include rescheduled bookings for seated events",
+      async () => {
+        vi.setSystemTime(new Date("2025-01-01T00:00:00.000Z"));
+        const plus1DateString = "2025-01-02";
+
+        const booker = getBooker({
+          name: "Booker",
+          email: "booker@example.com",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+
+        // Create bookings for a seated event
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 2,
+                slotInterval: 30,
+                length: 30,
+                seatsPerTimeSlot: 5, // Seated event
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            bookings: [
+              {
+                uid: "seated-accepted-uid",
+                eventTypeId: 2,
+                status: BookingStatus.ACCEPTED,
+                startTime: `${plus1DateString}T09:00:00.000Z`,
+                endTime: `${plus1DateString}T09:30:00.000Z`,
+                userId: 101,
+                references: [],
+                attendees: [
+                  {
+                    email: booker.email,
+                    timeZone: "Asia/Kolkata",
+                  },
+                ],
+              },
+              {
+                uid: "seated-rescheduled-former-uid",
+                eventTypeId: 2,
+                status: BookingStatus.CANCELLED,
+                rescheduled: true, // For seated events, this should NOT block the slot
+                startTime: `${plus1DateString}T10:00:00.000Z`,
+                endTime: `${plus1DateString}T10:30:00.000Z`,
+                userId: 101,
+                references: [],
+                attendees: [
+                  {
+                    email: booker.email,
+                    timeZone: "Asia/Kolkata",
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [],
+          })
+        );
+
+        // Call the repository with seatedEvent=true
+        const bookingRepo = new BookingRepository(prismaMock);
+        const retrievedBookings = (await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+          userIdAndEmailMap: new Map([[organizer.id, organizer.email]]),
+          eventTypeId: 2,
+          startDate: new Date(`${plus1DateString}T08:00:00.000Z`),
+          endDate: new Date(`${plus1DateString}T12:00:00.000Z`),
+          seatedEvent: true, // For seated events
+        })) as Array<{ uid: string; status: BookingStatus; rescheduled?: boolean | null }>;
+
+        // For seated events, the query should ONLY return ACCEPTED bookings
+        // It should NOT include CANCELLED bookings, even with rescheduled=true
+        expect(retrievedBookings).toHaveLength(1);
+
+        const acceptedBooking = retrievedBookings.find((b) => b.uid === "seated-accepted-uid");
+        const rescheduledFormerSlot = retrievedBookings.find((b) => b.uid === "seated-rescheduled-former-uid");
+
+        // Verify only the ACCEPTED booking is included
+        expect(acceptedBooking).toBeDefined();
+        expect(acceptedBooking?.status).toBe(BookingStatus.ACCEPTED);
+
+        // Verify the CANCELLED + rescheduled booking is NOT included for seated events
+        expect(rescheduledFormerSlot).toBeUndefined();
+      },
+      timeout
+    );
+  });
+
   describe("End-to-End Reschedule Flow", () => {
     test(
       "documents that rescheduling marks original booking as cancelled with rescheduled=true",
       async () => {
+        vi.setSystemTime(new Date("2025-01-01T00:00:00.000Z"));
+        const plus1DateString = "2025-01-02";
+
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           name: "Booker",
@@ -52,7 +276,6 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
           selectedCalendars: [TestData.selectedCalendars.google],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "original-booking-uid";
 
         // Create the initial booking
@@ -152,6 +375,9 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
     test(
       "should block the original time slot after rescheduling an individual event",
       async () => {
+        vi.setSystemTime(new Date("2025-01-01T00:00:00.000Z"));
+        const plus1DateString = "2025-01-02";
+
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           name: "",
@@ -167,7 +393,6 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
           selectedCalendars: [TestData.selectedCalendars.google],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "test-booking-uid";
 
         await createBookingScenario(
@@ -221,7 +446,6 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
 
         await mockCalendarToHaveNoBusySlots("googlecalendar");
 
-        // Reschedule to different time
         await handleNewBooking({
           bookingData: getMockRequestDataForBooking({
             data: {
@@ -238,7 +462,6 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
           }),
         });
 
-        // Verify the original booking is CANCELLED with rescheduled=true
         await expectBookingToBeInDatabase({
           uid: uidOfBookingToBeRescheduled,
           status: BookingStatus.CANCELLED,
@@ -249,8 +472,6 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
         });
         expect(cancelledBooking?.rescheduled).toBe(true);
 
-        // Attempt to book the original time slot - this should FAIL
-        // because the former slot is now blocked (CANCELLED booking with rescheduled=true)
         await expect(
           handleNewBooking({
             bookingData: getMockRequestDataForBooking({
@@ -274,6 +495,9 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
     test(
       "verifies getBusyTimes includes rescheduled former slot in busy times calculation",
       async () => {
+        vi.setSystemTime(new Date("2025-01-01T00:00:00.000Z"));
+        const plus1DateString = "2025-01-02";
+
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           name: "Booker",
@@ -289,7 +513,6 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
           selectedCalendars: [TestData.selectedCalendars.google],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "busy-times-test-uid";
 
         await createBookingScenario(
@@ -366,7 +589,7 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
         expect(cancelledBooking?.rescheduled).toBe(true);
 
         const busyTimesService = getBusyTimesService();
-        const busyTimes = await busyTimesService.getBusyTimes({
+        const busyTimes = (await busyTimesService.getBusyTimes({
           credentials: organizer.credentials,
           startTime: `${plus1DateString}T09:00:00.000Z`,
           endTime: `${plus1DateString}T12:00:00.000Z`,
@@ -381,9 +604,8 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
           rescheduleUid: null,
           duration: 30,
           bypassBusyCalendarTimes: false,
-        });
+        })) as Array<{ start: Date | string; end: Date | string }>;
 
-        // Verify that the former slot (10:00-10:30) is marked as busy
         const hasFormerSlotBusy = busyTimes.some((busyTime) => {
           const busyStart = new Date(busyTime.start).toISOString();
           const busyEnd = new Date(busyTime.end).toISOString();
@@ -413,6 +635,9 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
     test(
       "allows rescheduling to the same time slot",
       async () => {
+        vi.setSystemTime(new Date("2025-01-01T00:00:00.000Z"));
+        const plus1DateString = "2025-01-02";
+
         const handleNewBooking = getNewBookingHandler();
         const booker = getBooker({
           name: "Booker",
@@ -428,7 +653,6 @@ describe("Rescheduling Individual Events - Former Slot Disabled", () => {
           selectedCalendars: [TestData.selectedCalendars.google],
         });
 
-        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
         const uidOfBookingToBeRescheduled = "same-time-booking-uid";
 
         await createBookingScenario(
