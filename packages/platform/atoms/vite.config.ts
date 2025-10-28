@@ -7,6 +7,9 @@ import dts from "vite-plugin-dts";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms
   const webAppUrl = env.NEXT_PUBLIC_WEBAPP_URL ?? "https://app.cal.com";
+  const calcomVersion = env.NEXT_PUBLIC_CALCOM_VERSION ?? "";
+  const vercelCommitSha = env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "";
+
   return {
     optimizeDeps: {
       include: [
@@ -38,9 +41,9 @@ export default defineConfig(({ mode }) => {
     ],
     define: {
       "process.env.NEXT_PUBLIC_WEBAPP_URL": `"${webAppUrl}"`,
+      "process.env.NEXT_PUBLIC_CALCOM_VERSION": `"${calcomVersion}"`,
+      "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": `"${vercelCommitSha}"`,
       "process.env.NODE_ENV": `"${mode}"`,
-      "process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": `"${env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? ""}"`,
-      "process.env.NEXT_PUBLIC_CALCOM_VERSION": `"${env.NEXT_PUBLIC_CALCOM_VERSION ?? ""}"`,
       "process.env.__NEXT_ROUTER_BASEPATH": `""`,
       "process.env.__NEXT_I18N_SUPPORT": `false`,
       "process.env.__NEXT_MANUAL_TRAILING_SLASH": `false`,
@@ -67,12 +70,14 @@ export default defineConfig(({ mode }) => {
           "react-dom",
           "react-dom/client",
           "@prisma/client",
+          "react/jsx-dev-runtime",
         ],
         output: {
           format: "esm",
           globals: {
             react: "React",
             "react-dom": "ReactDOM",
+            "react/jsx-runtime": "ReactJsxRuntime",
           },
         },
       },
