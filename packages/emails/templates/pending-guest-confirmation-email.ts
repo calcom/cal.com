@@ -42,11 +42,11 @@ export default class PendingGuestConfirmationEmail extends BaseEmail {
         confirmationUrl,
         code,
       }),
-      text: this.getTextBody(confirmationUrl, code),
+      text: this.getTextBody(confirmationUrl),
     };
   }
 
-  protected getTextBody(confirmationUrl: string, code: string): string {
+  protected getTextBody(confirmationUrl: string): string {
     return `
 ${this.confirmationInput.language("hi_user_name", {
   name: this.confirmationInput.guest.name || "Guest",
@@ -57,11 +57,9 @@ ${this.confirmationInput.language("pending_guest_confirmation_body", {
   eventName: this.confirmationInput.booking.title,
 })}
 
-${this.confirmationInput.language("confirmation_code")}: ${code}
+${confirmationUrl}
 
-${this.confirmationInput.language("or_click_link")}: ${confirmationUrl}
-
-${this.confirmationInput.language("code_expires_in", { minutes: 15 })}
+${this.confirmationInput.language("link_expires_in_hours", { hours: 48 })}
 `.trim();
   }
 }

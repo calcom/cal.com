@@ -28,7 +28,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
       .digest("hex");
 
-    const isValidToken = totpRawCheck(code, secret, { step: 172800 });
+    const isValidToken = totpRawCheck(code, secret, {
+      step: 900,
+      window: [192, 0], // Accept codes from 192 past intervals = 48 hours (192 * 900 seconds)
+    });
 
     if (!isValidToken) {
       return res.redirect(`${WEBAPP_URL}/booking/guest-confirmation-failed?reason=invalid_code`);
@@ -56,7 +59,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const credentials = await getUsersCredentialsIncludeServiceAccountKey(booking.user);
-      const apps = eventTypeAppMetadataOptionalSchema.parse((booking.eventType?.metadata as EventTypeMetadata)?.apps);
+      const apps = eventTypeAppMetadataOptionalSchema.parse(
+        (booking.eventType?.metadata as EventTypeMetadata)?.apps
+      );
       const eventManager = new EventManager({ ...booking.user, credentials }, apps);
 
       const tOrganizer = await getTranslation(booking.user.locale ?? "en", "common");
