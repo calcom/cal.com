@@ -1174,7 +1174,14 @@ export class EventTypeRepository {
           select: {
             id: true,
             parentId: true,
+            isOrganization: true,
             members: {
+              where: {
+                accepted: true,
+                role: {
+                  in: ["ADMIN", "OWNER"],
+                },
+              },
               select: {
                 userId: true,
                 role: true,

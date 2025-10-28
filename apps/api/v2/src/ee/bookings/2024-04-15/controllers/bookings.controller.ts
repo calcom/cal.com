@@ -470,9 +470,7 @@ export class BookingsController_2024_04_15 {
     const isEventTypeOwner = eventType.userId === userId;
     const isHost = eventType.hosts.some((host) => host.userId === userId);
     const isTeamAdminOrOwner =
-      eventType.team?.members.some(
-        (member) => member.userId === userId && (member.role === "ADMIN" || member.role === "OWNER")
-      ) ?? false;
+      eventType.team?.members.some((member) => member.userId === userId) ?? false;
 
     let isOrgAdminOrOwner = false;
     if (eventType.team?.parentId) {
@@ -481,6 +479,8 @@ export class BookingsController_2024_04_15 {
         teamId: eventType.team.parentId,
       });
       isOrgAdminOrOwner = !!orgTeam;
+    } else if (eventType.team?.isOrganization) {
+      isOrgAdminOrOwner = isTeamAdminOrOwner;
     }
 
     const isAuthorized = isEventTypeOwner || isHost || isTeamAdminOrOwner || isOrgAdminOrOwner;
