@@ -1,13 +1,9 @@
 import type dayjs from "@calcom/dayjs";
 import classNames from "@calcom/ui/classNames";
 
-export const VerticalLines = ({
-  days,
-  borderColor,
-}: {
-  days: dayjs.Dayjs[];
-  borderColor: "default" | "subtle";
-}) => {
+import type { BorderColor } from "../../types/common";
+
+export const VerticalLines = ({ days, borderColor }: { days: dayjs.Dayjs[]; borderColor: BorderColor }) => {
   const isRTL = () => {
     let userLanguage = "en"; // Default to 'en' if navigator is not defined
 

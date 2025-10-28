@@ -4,9 +4,11 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 
+import type { BorderColor } from "../../types/common";
+
 type Props = {
   showBorder: boolean;
-  borderColor: "default" | "subtle";
+  borderColor: BorderColor;
   days: dayjs.Dayjs[];
   containerNavRef: React.RefObject<HTMLDivElement>;
 };

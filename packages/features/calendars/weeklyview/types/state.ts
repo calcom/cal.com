@@ -1,6 +1,7 @@
 import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import type { TimeRange } from "@calcom/types/schedule";
 
+import type { BorderColor } from "./common";
 import type { CalendarEvent } from "./events";
 
 export type View = "month" | "week" | "day";
@@ -145,7 +146,7 @@ export type CalendarState = {
    * Border color for calendar cells
    * @default "default"
    */
-  borderColor?: "default" | "subtle";
+  borderColor?: BorderColor;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };
