@@ -320,6 +320,9 @@ export class BookingsController_2024_08_13 {
     summary: "Cancel a booking",
     description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
     
+    \nCancelling normal bookings:
+    If the booking is not seated and not recurring, simply pass :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and optionally cancellationReason in the request body \`{"cancellationReason": "Will travel"}\`.
+
     \nCancelling seated bookings:
     It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.
     \n1. As an attendee - provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and seatUid in the request body \`{"seatUid": "123-123-123"}\` . This will remove this particular attendance from the booking.
@@ -343,7 +346,7 @@ export class BookingsController_2024_08_13 {
       ],
     },
     description:
-      "Accepts different types of cancel booking input: Cancel Booking (Option 1) or Cancel Seated Booking (Option 2)",
+      "Accepts different types of cancel booking input: Cancel Booking (Option 1 which is for normal or recurring bookings) or Cancel Seated Booking (Option 2 which is for seated bookings)",
   })
   @ApiExtraModels(CancelBookingInput_2024_08_13, CancelSeatedBookingInput_2024_08_13)
   async cancelBooking(
