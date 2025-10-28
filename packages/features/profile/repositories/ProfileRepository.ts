@@ -762,15 +762,7 @@ export class ProfileRepository implements IProfileRepository {
       where: {
         userId,
       },
-      select: {
-        id: true,
-        uid: true,
-        userId: true,
-        organizationId: true,
-        username: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: profileSelect,
     });
   }
 }

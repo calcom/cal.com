@@ -34,7 +34,6 @@ import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookin
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
-import type { PrismaClient } from "@calcom/prisma";
 import type { WorkflowMethods } from "@calcom/prisma/enums";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -82,7 +81,7 @@ type Dependencies = {
 };
 
 async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
-  const prismaClient = prisma as PrismaClient;
+  const prismaClient = prisma;
   const {
     userRepository,
     bookingRepository,
