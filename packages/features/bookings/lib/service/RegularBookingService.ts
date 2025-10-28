@@ -1727,12 +1727,23 @@ async function handler(
         await usersRepository.updateLastActiveAt(booking.userId);
         const organizerUserAvailability = availableUsers.find((user) => user.id === booking?.userId);
 
+        const selectedCalendarIds = organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [];
+        const availabilitySnapshot = organizerUserAvailability?.availabilityData
+          ? formatAvailabilitySnapshot(organizerUserAvailability.availabilityData)
+          : null;
+
         criticalLogger.info(`Booking created`, {
           bookingUid: booking.uid,
-          selectedCalendarIds: organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
-          availabilitySnapshot: organizerUserAvailability?.availabilityData
-            ? formatAvailabilitySnapshot(organizerUserAvailability.availabilityData)
-            : null,
+          selectedCalendarIds,
+          availabilitySnapshot,
+        });
+
+        await prisma.bookingCreatedLog.create({
+          data: {
+            bookingUid: booking.uid,
+            selectedCalendarIds: { set: selectedCalendarIds },
+            availabilitySnapshot: availabilitySnapshot ?? undefined,
+          },
         });
       }
 
