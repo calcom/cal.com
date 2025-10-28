@@ -104,7 +104,7 @@ function preprocess<T extends z.ZodType>({
           try {
             parsedValue = JSON.parse(value);
           } catch {
-            console.warn("Failed to parse radioInput JSON; using safe fallback value.");
+            console.warn("Failed to parse radioInput JSON");
           }
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
