@@ -87,7 +87,7 @@ initializeGlobalCalProps();
 
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 type ValidationSchemaPropType = string | Function;
 
 type ValidationSchema = {
@@ -471,7 +471,7 @@ export class Cal {
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
       if (top < 0 && Math.abs(top / height) >= 0.25) {
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Intentionally done
+         
         this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
@@ -1295,6 +1295,42 @@ class CalApi {
   }) {
     this.cal.actionManager.off(action, callback);
   }
+
+  /**
+   * Closes modal-based embeds programmatically (ModalBox and FloatingButton only).
+   * 
+   * This is the proper public API to close modal embeds, replacing the need to use
+   * the internal `cal.instance.actionManager.fire("__closeIframe")` hack.
+   * 
+   * **Important:** This method only works for modal-based embeds:
+   * - ModalBox (created with `cal("modal", ...)`)
+   * - FloatingButton (created with `cal("floatingButton", ...)`)
+   * 
+   * It does NOT work for inline embeds (created with `cal("inline", ...)`).
+   * Calling this method on an inline embed will throw an error.
+   * 
+   * @throws {Error} If called on an inline embed (only works for modal-based embeds)
+   * 
+   * @example
+   * ```javascript
+   * // Close the modal after a successful booking
+   * cal("on", {
+   *   action: "bookingSuccessful",
+   *   callback: () => {
+   *     cal("close");
+   *   }
+   * });
+   * ```
+   */
+  close() {
+    if (this.cal.inlineEl && !this.cal.modalBox) {
+      throw new Error(
+        "close() is only supported for modal-based embeds (ModalBox and FloatingButton). It cannot be used with inline embeds."
+      );
+    }
+    this.cal.actionManager.fire("__closeIframe", {});
+  }
+
   /**
    *
    * type is provided and prerenderIframe not set. We would assume prerenderIframe to be true
@@ -1536,7 +1572,7 @@ document.addEventListener("click", (e) => {
   let config;
   try {
     config = JSON.parse(configString);
-  } catch (e) {
+  } catch {
     config = {};
   }
 
