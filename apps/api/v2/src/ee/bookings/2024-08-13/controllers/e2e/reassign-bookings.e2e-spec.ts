@@ -59,6 +59,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let teamRoundRobinFixedHostEventTypeId: number;
     let teamRoundRobinNonFixedEventTypeId: number;
 
+    let teamRoundRobinNonFixedEventTypeTitle: string;
+    let teamRoundRobinFixedHostEventTypeTitle: string;
+
     let roundRobinBooking: Booking;
 
     beforeAll(async () => {
@@ -296,6 +299,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       teamRoundRobinNonFixedEventTypeId = teamNonFixedEventType.id;
+      teamRoundRobinNonFixedEventTypeTitle = teamNonFixedEventType.title;
 
       await hostsRepositoryFixture.create({
         isFixed: false,
@@ -341,6 +345,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       teamRoundRobinFixedHostEventTypeId = team2EventType.id;
+      teamRoundRobinFixedHostEventTypeTitle = team2EventType.title;
 
       await hostsRepositoryFixture.create({
         isFixed: true,
@@ -480,9 +485,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       expect(booking).toBeDefined();
       expect(booking?.userId).toEqual(teamUser2.id);
 
-      expect(booking?.title).toContain(teamUser2.name);
-      expect(booking?.title).toContain("Charlie");
-      expect(booking?.title).not.toContain(team.name);
+      const expectedInitialTitle = `${teamRoundRobinNonFixedEventTypeTitle} tra ${teamUser2.name} e Charlie`;
+      expect(booking?.title).toEqual(expectedInitialTitle);
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign`)
@@ -499,9 +503,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
           const reassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
           expect(reassigned?.userId).toEqual(teamUser3.id);
-          expect(reassigned?.title).toContain(teamUser3.name);
-          expect(reassigned?.title).toContain("Charlie");
-          expect(reassigned?.title).not.toContain(team.name);
+
+          const expectedReassignedTitle = `${teamRoundRobinNonFixedEventTypeTitle} tra ${teamUser3.name} e Charlie`;
+          expect(reassigned?.title).toEqual(expectedReassignedTitle);
         });
     });
 
@@ -530,11 +534,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       expect(booking).toBeDefined();
       expect(booking?.userId).toEqual(teamUser1.id);
 
-      expect(booking?.title).toContain(team.name);
-      expect(booking?.title).toContain("Alice");
-      expect(booking?.title).not.toContain(teamUser1.name);
-      expect(booking?.title).not.toContain(teamUser2.name);
-      expect(booking?.title).not.toContain(teamUser3.name);
+      const expectedInitialTitle = `${teamRoundRobinFixedHostEventTypeTitle} tra ${team.name} e Alice`;
+      expect(booking?.title).toEqual(expectedInitialTitle);
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign/${teamUser3.id}`)
@@ -552,10 +553,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
           const reassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
           expect(reassigned?.userId).toEqual(teamUser1.id);
 
-          expect(reassigned?.title).toContain(team.name);
-          expect(reassigned?.title).toContain("Alice");
-          expect(reassigned?.title).not.toContain(teamUser2.name);
-          expect(reassigned?.title).not.toContain(teamUser3.name);
+          const expectedReassignedTitle = `${teamRoundRobinFixedHostEventTypeTitle} tra ${team.name} e Alice`;
+          expect(reassigned?.title).toEqual(expectedReassignedTitle);
         });
     });
 
