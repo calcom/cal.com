@@ -509,6 +509,8 @@ describe("Bookings Endpoints 2024-04-15", () => {
 
     describe("event type booking requires authentication", () => {
       let eventTypeRequiringAuthenticationId: number;
+      let unauthorizedUser: User;
+      let unauthorizedUserApiKeyString: string;
 
       beforeAll(async () => {
         const eventTypeRequiringAuthentication = await eventTypesRepositoryFixture.create(
@@ -522,6 +524,19 @@ describe("Bookings Endpoints 2024-04-15", () => {
           user.id
         );
         eventTypeRequiringAuthenticationId = eventTypeRequiringAuthentication.id;
+
+        const unauthorizedUserEmail = `unauthorized-user-${randomString()}@api.com`;
+        unauthorizedUser = await userRepositoryFixture.create({
+          email: unauthorizedUserEmail,
+        });
+        const { keyString } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+        unauthorizedUserApiKeyString = keyString;
+      });
+
+      afterAll(async () => {
+        if (unauthorizedUser) {
+          await userRepositoryFixture.deleteByEmail(unauthorizedUser.email);
+        }
       });
 
       it("can't be booked without credentials", async () => {
@@ -544,6 +559,32 @@ describe("Bookings Endpoints 2024-04-15", () => {
         };
 
         await request(app.getHttpServer()).post("/v2/bookings").send(body).expect(401);
+      });
+
+      it("can't be booked with unauthorized user credentials", async () => {
+        const body: CreateBookingInput_2024_04_15 = {
+          start: "2040-05-23T10:30:00.000Z",
+          end: "2040-05-23T11:30:00.000Z",
+          eventTypeId: eventTypeRequiringAuthenticationId,
+          timeZone: "Europe/London",
+          language: "en",
+          metadata: {},
+          hashedLink: "",
+          responses: {
+            name: "External Attendee",
+            email: "external@example.com",
+            location: {
+              value: "link",
+              optionValue: "",
+            },
+          },
+        };
+
+        await request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set({ Authorization: `Bearer cal_test_${unauthorizedUserApiKeyString}` })
+          .expect(403);
       });
 
       it("can be booked with event type owner credentials", async () => {
