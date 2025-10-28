@@ -38,6 +38,8 @@ import {
   NotFoundException,
   UseGuards,
   BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
@@ -190,6 +192,7 @@ export class BookingsController_2024_04_15 {
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
     try {
+      await this.checkBookingRequiresAuthentication(req, body.eventTypeId);
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -443,6 +446,83 @@ export class BookingsController_2024_04_15 {
     return oAuthClientParams.platformClientId;
   }
 
+  private async checkBookingRequiresAuthentication(req: Request, eventTypeId: number): Promise<void> {
+    const eventType = await this.prismaReadService.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: {
+        id: true,
+        bookingRequiresAuthentication: true,
+        userId: true,
+        teamId: true,
+        hosts: {
+          select: {
+            userId: true,
+          },
+        },
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+            members: {
+              select: {
+                userId: true,
+                role: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!eventType?.bookingRequiresAuthentication) {
+      return;
+    }
+
+    const userId = await this.getOwnerId(req);
+
+    if (!userId) {
+      throw new UnauthorizedException(
+        "This event type requires authentication. Please provide valid credentials."
+      );
+    }
+
+    const isEventTypeOwner = eventType.userId === userId;
+    const isHost = eventType.hosts.some((host) => host.userId === userId);
+    const isTeamAdminOrOwner =
+      eventType.team?.members.some(
+        (member) => member.userId === userId && (member.role === "ADMIN" || member.role === "OWNER")
+      ) ?? false;
+
+    let isOrgAdminOrOwner = false;
+    if (eventType.team?.parentId) {
+      const orgTeam = await this.prismaReadService.prisma.team.findUnique({
+        where: { id: eventType.team.parentId },
+        select: {
+          members: {
+            where: {
+              userId: userId,
+              role: {
+                in: ["ADMIN", "OWNER"],
+              },
+            },
+            select: {
+              userId: true,
+            },
+          },
+        },
+      });
+      isOrgAdminOrOwner = (orgTeam?.members.length ?? 0) > 0;
+    }
+
+    const isAuthorized = isEventTypeOwner || isHost || isTeamAdminOrOwner || isOrgAdminOrOwner;
+
+    if (!isAuthorized) {
+      throw new ForbiddenException(
+        "You are not authorized to book this event type. You must be the event type owner, a host, a team admin/owner, or an organization admin/owner."
+      );
+    }
+  }
+
   private async getOAuthClientsParams(clientId: string, isEmbed = false): Promise<OAuthRequestParams> {
     const res = { ...DEFAULT_PLATFORM_PARAMS };
 
@@ -502,7 +582,10 @@ export class BookingsController_2024_04_15 {
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
-  async setPlatformAttendeesEmails(requestBody: any, oAuthClientId: string): Promise<void> {
+  async setPlatformAttendeesEmails(
+    requestBody: { responses?: { email?: string; guests?: string[] } },
+    oAuthClientId: string
+  ): Promise<void> {
     if (requestBody?.responses?.email) {
       requestBody.responses.email = await this.platformBookingsService.getPlatformAttendeeEmail(
         requestBody.responses.email,
