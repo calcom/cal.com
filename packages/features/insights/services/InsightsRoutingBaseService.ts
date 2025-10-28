@@ -710,10 +710,8 @@ export class InsightsRoutingBaseService {
     // Extract booking status order filter
     const bookingStatusOrder = filtersMap["bookingStatusOrder"];
     if (bookingStatusOrder && isMultiSelectFilterValue(bookingStatusOrder.value)) {
-      const statusCondition = makeSqlCondition(bookingStatusOrder.value);
-      if (statusCondition) {
-        conditions.push(Prisma.sql`rfrd."bookingStatusOrder" ${statusCondition}`);
-      }
+      const statusOrders = bookingStatusOrder.value.data.map((order) => Number(order));
+      conditions.push(Prisma.sql`rfrd."bookingStatusOrder" = ANY(${statusOrders})`);
     }
 
     // Extract booking assignment reason filter
@@ -764,7 +762,8 @@ export class InsightsRoutingBaseService {
     // Extract member user IDs filter (multi-select)
     const memberUserIds = filtersMap["bookingUserId"];
     if (memberUserIds && isMultiSelectFilterValue(memberUserIds.value)) {
-      conditions.push(Prisma.sql`rfrd."bookingUserId" = ANY(${memberUserIds.value.data})`);
+      const userIds = memberUserIds.value.data.map((id) => Number(id));
+      conditions.push(Prisma.sql`rfrd."bookingUserId" = ANY(${userIds})`);
     }
 
     // Extract form ID filter (single-select)
