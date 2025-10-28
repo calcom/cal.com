@@ -78,6 +78,7 @@ export type OOOEntryPayloadType = {
 export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
+    uid?: string | null;
     metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
     status?: string;
@@ -130,6 +131,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
   const location = getHumanReadableLocationValue(data.location || "", t);
 
   const body = {
+    uid: data.uid,
     title: data.title,
     description: data.description,
     customInputs: data.customInputs,
@@ -159,6 +161,9 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     },
     attendees: attendees,
     createdAt: data.createdAt,
+    metadata: {
+      videoCallUrl: data.metadata?.videoCallUrl,
+    },
   };
   return JSON.stringify(body);
 }
@@ -175,7 +180,7 @@ function applyTemplate(template: string, data: WebhookDataType, contentType: Con
 export function jsonParse(jsonString: string) {
   try {
     return JSON.parse(jsonString);
-  } catch (e) {
+  } catch {
     // don't do anything.
   }
   return false;

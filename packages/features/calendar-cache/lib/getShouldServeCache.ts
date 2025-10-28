@@ -9,7 +9,7 @@ export class CacheService {
 
   async getShouldServeCache(shouldServeCache?: boolean | undefined, teamId?: number) {
     if (typeof shouldServeCache === "boolean") return shouldServeCache;
-    if (!teamId) return undefined;
+    if (!teamId) return false;
     return await this.dependencies.featuresRepository.checkIfTeamHasFeature(teamId, "calendar-cache-serve");
   }
 }

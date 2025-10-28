@@ -39,9 +39,11 @@ export class EventTypesService_2024_06_14 {
     }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const { eventType: eventTypeCreated } = await createEventType({
       input: rest,
       ctx: {
