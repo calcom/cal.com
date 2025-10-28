@@ -7,6 +7,8 @@ import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ma
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
+import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
+import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
 import { RegularBookingService } from "@/lib/services/regular-booking.service";
@@ -115,7 +117,9 @@ export class BookingsController_2024_04_15 {
     private readonly usersService: UsersService,
     private readonly regularBookingService: RegularBookingService,
     private readonly recurringBookingService: RecurringBookingService,
-    private readonly instantBookingCreateService: InstantBookingCreateService
+    private readonly instantBookingCreateService: InstantBookingCreateService,
+    private readonly eventTypeRepository: PrismaEventTypeRepository,
+    private readonly teamRepository: PrismaTeamRepository
   ) {}
 
   @Get("/")
@@ -447,31 +451,8 @@ export class BookingsController_2024_04_15 {
   }
 
   private async checkBookingRequiresAuthentication(req: Request, eventTypeId: number): Promise<void> {
-    const eventType = await this.prismaReadService.prisma.eventType.findUnique({
-      where: { id: eventTypeId },
-      select: {
-        id: true,
-        bookingRequiresAuthentication: true,
-        userId: true,
-        teamId: true,
-        hosts: {
-          select: {
-            userId: true,
-          },
-        },
-        team: {
-          select: {
-            id: true,
-            parentId: true,
-            members: {
-              select: {
-                userId: true,
-                role: true,
-              },
-            },
-          },
-        },
-      },
+    const eventType = await this.eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
+      id: eventTypeId,
     });
 
     if (!eventType?.bookingRequiresAuthentication) {
@@ -495,23 +476,11 @@ export class BookingsController_2024_04_15 {
 
     let isOrgAdminOrOwner = false;
     if (eventType.team?.parentId) {
-      const orgTeam = await this.prismaReadService.prisma.team.findUnique({
-        where: { id: eventType.team.parentId },
-        select: {
-          members: {
-            where: {
-              userId: userId,
-              role: {
-                in: ["ADMIN", "OWNER"],
-              },
-            },
-            select: {
-              userId: true,
-            },
-          },
-        },
+      const orgTeam = await this.teamRepository.getTeamByIdIfUserIsAdmin({
+        userId,
+        teamId: eventType.team.parentId,
       });
-      isOrgAdminOrOwner = (orgTeam?.members.length ?? 0) > 0;
+      isOrgAdminOrOwner = !!orgTeam;
     }
 
     const isAuthorized = isEventTypeOwner || isHost || isTeamAdminOrOwner || isOrgAdminOrOwner;
