@@ -2,35 +2,61 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import { PrismaClient } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ name: "hideBranding" });
-const teamRepository = new TeamRepository(prisma);
-const userRepository = new UserRepository(prisma);
-type Team = {
+export type TeamWithBranding = {
   hideBranding: boolean | null;
   parent: {
     hideBranding: boolean | null;
   } | null;
 };
 
-type Profile = {
+export type ProfileWithBranding = {
   organization: {
     hideBranding: boolean | null;
   } | null;
 };
 
-type UserWithoutProfile = {
+export type UserWithBranding = {
   id: number;
   hideBranding: boolean | null;
 };
 
-type UserWithProfile = UserWithoutProfile & {
-  profile: Profile | null;
+export type UserWithProfileAndBranding = UserWithBranding & {
+  profile: ProfileWithBranding | null;
 };
 
+// Internal type aliases for backward compatibility
+type Team = TeamWithBranding;
+type UserWithoutProfile = UserWithBranding;
+type UserWithProfile = UserWithProfileAndBranding;
+
 /**
- * Determines if branding should be hidden by checking entity and organization settings
+ * Determines if branding should be hidden by checking entity and organization settings.
+ *
+ * This function implements the branding hierarchy: organization settings override entity settings.
+ * If the organization has branding hidden, the entity's branding setting is ignored.
+ *
+ * @param options - Object containing entity and organization branding settings
+ * @param options.entityHideBranding - Whether the entity (user/team) has branding hidden
+ * @param options.organizationHideBranding - Whether the organization has branding hidden
+ * @returns boolean - true if branding should be hidden, false otherwise
+ *
+ * @example
+ * ```typescript
+ * // Organization overrides entity setting
+ * resolveHideBranding({
+ *   entityHideBranding: false,
+ *   organizationHideBranding: true
+ * }); // Returns true (organization setting wins)
+ *
+ * // Entity setting is used when organization doesn't hide branding
+ * resolveHideBranding({
+ *   entityHideBranding: true,
+ *   organizationHideBranding: false
+ * }); // Returns true (entity setting is used)
+ * ```
  */
 function resolveHideBranding(options: {
   entityHideBranding: boolean | null;
@@ -50,9 +76,13 @@ function resolveHideBranding(options: {
 export async function getHideBranding({
   userId,
   teamId,
+  teamRepository,
+  userRepository,
 }: {
   userId?: number;
   teamId?: number;
+  teamRepository: TeamRepository;
+  userRepository: UserRepository;
 }): Promise<boolean> {
   if (teamId) {
     // Get team data with parent organization
@@ -80,7 +110,20 @@ export async function getHideBranding({
 }
 
 /**
- * Determines if branding should be hidden for an event that could be a team event or user event
+ * Determines if branding should be hidden for an event using pre-fetched profile data.
+ *
+ * This function is used when you already have the user's profile data and don't need to fetch it.
+ * It's more efficient than shouldHideBrandingForEvent when profile data is already available.
+ *
+ * @param eventTypeId - The event type ID for the event
+ * @param owner - User with profile data including organization.hideBranding, or null for team events
+ * @param team - Team with hideBranding and parent.hideBranding fields, or null for user events
+ * @returns boolean - true if branding should be hidden, false otherwise
+ *
+ * @note Data Requirements:
+ * - For team events: team.hideBranding and team.parent.hideBranding must be present
+ * - For user events: owner.hideBranding and owner.profile.organization.hideBranding must be present
+ * - Either team or owner must be provided, but not both
  */
 export function shouldHideBrandingForEventUsingProfile({
   eventTypeId,
@@ -110,8 +153,43 @@ export function shouldHideBrandingForEventUsingProfile({
 }
 
 /**
- * A wrapper over shouldHideBrandingForEventUsingProfile that fetches the profile itself
- * Use it when you don't have user's profile
+ * Determines if branding should be hidden for an event based on team, user, and organization settings.
+ *
+ * This function handles both team events and user events, with different data requirements for each:
+ * - Team events: Requires team.hideBranding and team.parent.hideBranding fields
+ * - User events: Requires owner.hideBranding and may fetch organization profile if needed
+ *
+ * @param eventTypeId - The event type ID for the event
+ * @param team - Team object with hideBranding and parent.hideBranding fields, or null for user events
+ * @param owner - User object with hideBranding field, or null for team events
+ * @param organizationId - Organization ID for profile lookup (only needed for user events without team)
+ * @returns Promise<boolean> - true if branding should be hidden, false otherwise
+ *
+ * @example
+ * ```typescript
+ * // Team event
+ * const hideBranding = await shouldHideBrandingForEvent({
+ *   eventTypeId: 123,
+ *   team: { hideBranding: true, parent: { hideBranding: false } },
+ *   owner: null,
+ *   organizationId: null
+ * });
+ *
+ * // User event
+ * const hideBranding = await shouldHideBrandingForEvent({
+ *   eventTypeId: 456,
+ *   team: null,
+ *   owner: { id: 789, hideBranding: false },
+ *   organizationId: 101
+ * });
+ * ```
+ *
+ * @note Data Requirements:
+ * - For team events: team.hideBranding and team.parent.hideBranding must be present
+ * - For user events: owner.hideBranding must be present
+ * - organizationId is only used for user events to fetch organization profile
+ * - If team is provided, owner and organizationId are ignored
+ * - If owner is provided without team, organizationId is used to fetch profile
  */
 export async function shouldHideBrandingForEvent({
   eventTypeId,
@@ -177,5 +255,53 @@ export function shouldHideBrandingForUserEvent({
     owner,
     team: null,
     eventTypeId,
+  });
+}
+
+/**
+ * Convenience function that creates repositories with a PrismaClient instance
+ * This maintains backward compatibility for existing code
+ */
+export async function getHideBrandingWithPrisma({
+  userId,
+  teamId,
+  prisma,
+}: {
+  userId?: number;
+  teamId?: number;
+  prisma: PrismaClient;
+}): Promise<boolean> {
+  const teamRepository = new TeamRepository(prisma);
+  const userRepository = new UserRepository(prisma);
+
+  return getHideBranding({
+    userId,
+    teamId,
+    teamRepository,
+    userRepository,
+  });
+}
+
+/**
+ * Convenience function that creates repositories with a PrismaClient instance
+ * This maintains backward compatibility for existing code
+ */
+export async function shouldHideBrandingForEventWithPrisma({
+  eventTypeId,
+  team,
+  owner,
+  organizationId,
+}: {
+  eventTypeId: number;
+  team: Team | null;
+  owner: UserWithoutProfile | null;
+  organizationId: number | null;
+}) {
+  // ProfileRepository is a static class, so we don't need to instantiate it
+  return shouldHideBrandingForEvent({
+    eventTypeId,
+    team,
+    owner,
+    organizationId,
   });
 }

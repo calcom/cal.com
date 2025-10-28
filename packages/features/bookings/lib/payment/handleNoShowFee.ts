@@ -5,6 +5,7 @@ import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -26,16 +27,29 @@ export const handleNoShowFee = async ({
     endTime: Date;
     userPrimaryEmail: string | null;
     userId: number | null;
+    eventTypeId: number | null;
     user?: {
+      id: number;
       email: string;
       name?: string | null;
       locale: string | null;
       timeZone: string;
+      hideBranding: boolean;
+      organizationId: number | null;
     } | null;
     eventType: {
       title: string;
       hideOrganizerEmail: boolean;
       teamId: number | null;
+      team?: {
+        id: number;
+        hideBranding: boolean;
+        parentId: number | null;
+        parent: { hideBranding: boolean | null } | null;
+      } | null;
+      parent?: {
+        teamId: number | null;
+      } | null;
       metadata?: Prisma.JsonValue;
     } | null;
     attendees: {
@@ -156,7 +170,16 @@ export const handleNoShowFee = async ({
       throw new Error("Payment processing failed");
     }
 
-    await sendNoShowFeeChargedEmail(attendee, evt, eventTypeMetdata);
+    const organizationId = booking.eventType?.team?.parentId ?? booking.user?.organizationId ?? null;
+
+    const hideBranding = await shouldHideBrandingForEventWithPrisma({
+      eventTypeId: booking.eventTypeId ?? 0,
+      team: booking.eventType?.team ?? null,
+      owner: booking.user ?? null,
+      organizationId: organizationId,
+    });
+
+    await sendNoShowFeeChargedEmail(attendee, { ...evt, hideBranding }, eventTypeMetdata);
 
     return paymentData;
   } catch (err) {

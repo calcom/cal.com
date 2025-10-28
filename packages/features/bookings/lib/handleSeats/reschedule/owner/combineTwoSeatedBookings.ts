@@ -1,9 +1,9 @@
-// eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -30,6 +30,7 @@ const combineTwoSeatedBookings = async (
     isConfirmedByDefault,
     additionalNotes,
     rescheduleReason,
+    organizerUser,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
   // Merge two bookings together
@@ -134,6 +135,12 @@ const combineTwoSeatedBookings = async (
     : calendarResult?.updatedEvent?.iCalUID || undefined;
 
   if (noEmail !== true && isConfirmedByDefault) {
+    const hideBranding = await shouldHideBrandingForEventWithPrisma({
+      eventTypeId: eventType.id,
+      team: eventType.team ?? null,
+      owner: organizerUser ?? null,
+      organizationId: eventType.team?.parentId ?? null,
+    });
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
@@ -141,6 +148,7 @@ const combineTwoSeatedBookings = async (
         ...copyEvent,
         additionalNotes, // Resets back to the additionalNote input and not the override value
         cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+        hideBranding,
       },
       eventType.metadata
     );
