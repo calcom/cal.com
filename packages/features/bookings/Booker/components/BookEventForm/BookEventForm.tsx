@@ -22,6 +22,7 @@ import { useBookerTime } from "../hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
+import { GuestVerificationAlert } from "./GuestVerificationAlert";
 import { FormSkeleton } from "./Skeleton";
 
 type BookEventFormProps = {
@@ -39,6 +40,9 @@ type BookEventFormProps = {
   isTimeslotUnavailable: boolean;
   shouldRenderCaptcha?: boolean;
   confirmButtonDisabled?: boolean;
+  guestsRequireVerification?: boolean;
+  guestsRequiringCount?: number;
+  emailsRequiringVerification?: string[];
   classNames?: {
     confirmButton?: string;
     backButton?: string;
@@ -62,6 +66,9 @@ export const BookEventForm = ({
   isTimeslotUnavailable,
   shouldRenderCaptcha,
   confirmButtonDisabled,
+  guestsRequireVerification = false,
+  guestsRequiringCount = 0,
+  emailsRequiringVerification = [],
   classNames,
   timeslot,
 }: Omit<BookEventFormProps, "event"> & {
@@ -137,6 +144,14 @@ export const BookEventForm = ({
           isPaidEvent={isPaidEvent}
           paymentCurrency={paymentCurrency}
         />
+
+        <GuestVerificationAlert
+          guestsRequireVerification={guestsRequireVerification}
+          guestsRequiringCount={guestsRequiringCount}
+          emailsRequiringVerification={emailsRequiringVerification}
+          className="my-2"
+        />
+
         {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">
             <Alert

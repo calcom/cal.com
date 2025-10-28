@@ -1,5 +1,6 @@
 import publicProcedure from "../../procedures/publicProcedure";
 import { router } from "../../trpc";
+import { ZGuestEmailsVerificationRequiredSchema } from "./checkIfGuestEmailsVerificationRequired.schema";
 import { ZUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
 import { event } from "./procedures/event";
@@ -43,6 +44,13 @@ export const publicViewerRouter = router({
     .input(ZUserEmailVerificationRequiredSchema)
     .query(async (opts) => {
       const { default: handler } = await import("./checkIfUserEmailVerificationRequired.handler");
+      return handler(opts);
+    }),
+
+  checkIfGuestEmailsVerificationRequired: publicProcedure
+    .input(ZGuestEmailsVerificationRequiredSchema)
+    .query(async (opts) => {
+      const { default: handler } = await import("./checkIfGuestEmailsVerificationRequired.handler");
       return handler(opts);
     }),
 });

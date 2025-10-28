@@ -39,6 +39,7 @@ import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMee
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./components/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
+import { useVerifyGuestEmails } from "./components/hooks/useVerifyGuestEmails";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import framerFeatures from "./framer-features";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -163,6 +164,12 @@ const BookerComponent = ({
     isVerificationCodeSending,
   } = verifyEmail;
 
+  const guestEmails = bookingForm.watch("responses.guests") || [];
+  const { guestsRequireVerification, guestsRequiringCount, emailsRequiringVerification } =
+    useVerifyGuestEmails({
+      guestEmails,
+    });
+
   const {
     overlayBusyDates,
     isOverlayCalendarEnabled,
@@ -267,6 +274,9 @@ const BookerComponent = ({
         extraOptions={extraOptions}
         isVerificationCodeSending={isVerificationCodeSending}
         confirmButtonDisabled={confirmButtonDisabled}
+        guestsRequireVerification={guestsRequireVerification}
+        guestsRequiringCount={guestsRequiringCount}
+        emailsRequiringVerification={emailsRequiringVerification}
         classNames={{
           confirmButton: customClassNames?.confirmStep?.confirmButton,
           backButton: customClassNames?.confirmStep?.backButton,
@@ -312,6 +322,9 @@ const BookerComponent = ({
     shouldRenderCaptcha,
     isVerificationCodeSending,
     unavailableTimeSlots,
+    guestsRequireVerification,
+    guestsRequiringCount,
+    emailsRequiringVerification,
   ]);
 
   /**
