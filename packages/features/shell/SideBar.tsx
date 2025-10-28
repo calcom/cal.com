@@ -85,12 +85,12 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 <Link href="/settings/organizations/profile" className="w-full px-1.5">
                   <div className="flex items-center gap-2 font-medium">
                     <Avatar
-                      alt={`${user.org.name} logo`}
-                      imageSrc={getPlaceholderAvatar(user.org.logoUrl, user.org.name)}
+                      alt={`${user.org.slug} logo`}
+                      imageSrc={getPlaceholderAvatar(null, user.org.slug)}
                       size="xsm"
                     />
                     <p className="text line-clamp-1 text-sm">
-                      <span>{user.org.name}</span>
+                      <span>{user.org.slug}</span>
                     </p>
                   </div>
                 </Link>
