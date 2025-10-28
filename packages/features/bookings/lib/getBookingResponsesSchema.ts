@@ -186,9 +186,12 @@ function preprocess<T extends z.ZodType>({
             }
 
             // validate the excluded emails
-            const bookerEmail = String(value).toLowerCase();
+            const bookerEmail = String(value).trim().toLowerCase();
             const excludedEmails =
-              bookingField.excludeEmails?.split(",").map((domain) => domain.trim().toLowerCase()) || [];
+              bookingField.excludeEmails
+                ?.split(",")
+                .map((domain) => domain.trim().toLowerCase())
+                .filter(Boolean) || [];
 
             const match = excludedEmails.find((email) => bookerEmail.includes(email));
             if (match) {
