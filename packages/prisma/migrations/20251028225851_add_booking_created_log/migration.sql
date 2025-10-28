@@ -2,7 +2,7 @@
 CREATE TABLE "public"."BookingCreatedLog" (
     "id" TEXT NOT NULL,
     "bookingUid" TEXT NOT NULL,
-    "selectedCalendarIds" INTEGER[],
+    "selectedCalendarIds" TEXT[],
     "availabilitySnapshot" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
