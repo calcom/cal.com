@@ -775,7 +775,6 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
-    return "seatUid" in body;
     return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
