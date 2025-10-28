@@ -418,7 +418,8 @@ export const NavigationItem: React.FC<{
 export const MobileNavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
-}> = ({ item, isChild }) => {
+}> = (props) => {
+  const { item, isChild } = props;
   const pathname = usePathname();
   const { t, isLocaleReady } = useLocale();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
@@ -448,71 +449,12 @@ export const MobileNavigationItem: React.FC<{
   );
 };
 
-function MobileMoreItemWithChildren({
-  item,
-  isExpanded,
-  onToggle,
-  buildHref,
-}: {
-  item: NavigationItemType;
-  isExpanded: boolean;
-  onToggle: () => void;
-  buildHref: (item: NavigationItemType) => string;
-}) {
-  const { t, isLocaleReady } = useLocale();
-
-  return (
-    <>
-      <button
-        onClick={onToggle}
-        className="hover:bg-subtle flex w-full items-center justify-between p-5 text-left transition">
-        <span className="text-default flex items-center font-semibold">
-          {item.icon && (
-            <Icon name={item.icon} className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
-          )}
-          {isLocaleReady ? t(item.name) : <SkeletonText />}
-        </span>
-        <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="text-subtle h-5 w-5" />
-      </button>
-      {isExpanded && item.child && (
-        <ul className="bg-subtle">
-          {item.child.map((childItem) => (
-            <li key={childItem.name} className="border-subtle border-t">
-              <Link
-                href={buildHref(childItem)}
-                className="hover:bg-muted flex items-center p-4 pl-12 transition">
-                <span className="text-default font-medium">
-                  {isLocaleReady ? t(childItem.name) : <SkeletonText />}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
-  );
-}
-
-function MobileMoreItemSimple({ item }: { item: NavigationItemType }) {
-  const { t, isLocaleReady } = useLocale();
-
-  return (
-    <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
-      <span className="text-default flex items-center font-semibold ">
-        {item.icon && (
-          <Icon name={item.icon} className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
-        )}
-        {isLocaleReady ? t(item.name) : <SkeletonText />}
-      </span>
-      <Icon name="arrow-right" className="text-subtle h-5 w-5" />
-    </Link>
-  );
-}
-
 export const MobileNavigationMoreItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
-}> = ({ item }) => {
+}> = (props) => {
+  const { item } = props;
+  const { t, isLocaleReady } = useLocale();
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
   const buildHref = useBuildHref();
@@ -524,14 +466,48 @@ export const MobileNavigationMoreItem: React.FC<{
   return (
     <li className="border-subtle border-b last:border-b-0" key={item.name}>
       {hasChildren ? (
-        <MobileMoreItemWithChildren
-          item={item}
-          isExpanded={isExpanded}
-          onToggle={() => setIsExpanded(!isExpanded)}
-          buildHref={buildHref}
-        />
+        <>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="hover:bg-subtle flex w-full items-center justify-between p-5 text-left transition">
+            <span className="text-default flex items-center font-semibold">
+              {item.icon && (
+                <Icon
+                  name={item.icon}
+                  className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3"
+                  aria-hidden="true"
+                />
+              )}
+              {isLocaleReady ? t(item.name) : <SkeletonText />}
+            </span>
+            <Icon name={isExpanded ? "chevron-up" : "chevron-down"} className="text-subtle h-5 w-5" />
+          </button>
+          {isExpanded && item.child && (
+            <ul className="bg-subtle">
+              {item.child.map((childItem) => (
+                <li key={childItem.name} className="border-subtle border-t">
+                  <Link
+                    href={buildHref(childItem)}
+                    className="hover:bg-muted flex items-center p-4 pl-12 transition">
+                    <span className="text-default font-medium">
+                      {isLocaleReady ? t(childItem.name) : <SkeletonText />}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       ) : (
-        <MobileMoreItemSimple item={item} />
+        <Link href={item.href} className="hover:bg-subtle flex items-center justify-between p-5 transition">
+          <span className="text-default flex items-center font-semibold ">
+            {item.icon && (
+              <Icon name={item.icon} className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+            )}
+            {isLocaleReady ? t(item.name) : <SkeletonText />}
+          </span>
+          <Icon name="arrow-right" className="text-subtle h-5 w-5" />
+        </Link>
       )}
     </li>
   );
