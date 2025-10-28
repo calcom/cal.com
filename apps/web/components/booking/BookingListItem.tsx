@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -556,10 +555,8 @@ function BookingListItem(booking: BookingItemProps) {
                             className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                             <div className="flex items-center gap-2">
                               {provider?.iconUrl && (
-                                <Image
+                                <img
                                   src={provider.iconUrl}
-                                  width={16}
-                                  height={16}
                                   className="h-4 w-4 rounded-sm"
                                   alt={`${provider?.label} logo`}
                                 />
