@@ -2,7 +2,6 @@ import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { RedisService } from "@/modules/redis/redis.service";
-import { RolesPermissionsCacheService } from "@/modules/roles/permissions/services/roles-permissions-cache.service";
 import {
   Injectable,
   CanActivate,
@@ -21,20 +20,18 @@ export const REDIS_PBAC_CACHE_KEY = (teamId: number) => `apiv2:team:${teamId}:ha
 export const REDIS_REQUIRED_PERMISSIONS_CACHE_KEY = (
   userId: number,
   teamId: number,
-  requiredPermissions: PermissionString[],
-  version: number
+  requiredPermissions: PermissionString[]
 ) =>
   `apiv2:user:${userId}:team:${teamId}:requiredPermissions:${requiredPermissions
     .sort()
-    .join(",")}:guard:pbac:version${version}`;
+    .join(",")}:guard:pbac`;
 
 @Injectable()
 export class PbacGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private prismaReadService: PrismaReadService,
-    private readonly redisService: RedisService,
-    private readonly rolesPermissionsCacheService: RolesPermissionsCacheService
+    private readonly redisService: RedisService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -103,8 +100,7 @@ export class PbacGuard implements CanActivate {
     teamId: number,
     requiredPermissions: PermissionString[]
   ) {
-    const version = await this.rolesPermissionsCacheService.getTeamPermissionsVersion(teamId);
-    const cachedAccess = await this.getCacheRequiredPermissions(userId, teamId, requiredPermissions, version);
+    const cachedAccess = await this.getCacheRequiredPermissions(userId, teamId, requiredPermissions);
 
     if (cachedAccess) {
       return cachedAccess;
@@ -119,13 +115,7 @@ export class PbacGuard implements CanActivate {
     });
 
     if (hasRequiredPermissions) {
-      await this.setCacheRequiredPermissions(
-        userId,
-        teamId,
-        requiredPermissions,
-        hasRequiredPermissions,
-        version
-      );
+      await this.setCacheRequiredPermissions(userId, teamId, requiredPermissions, hasRequiredPermissions);
     }
 
     return hasRequiredPermissions;
@@ -134,11 +124,10 @@ export class PbacGuard implements CanActivate {
   private async getCacheRequiredPermissions(
     userId: number,
     teamId: number,
-    requiredPermissions: PermissionString[],
-    version: number
+    requiredPermissions: PermissionString[]
   ): Promise<boolean | null> {
     return this.redisService.get<boolean>(
-      REDIS_REQUIRED_PERMISSIONS_CACHE_KEY(userId, teamId, requiredPermissions, version)
+      REDIS_REQUIRED_PERMISSIONS_CACHE_KEY(userId, teamId, requiredPermissions)
     );
   }
 
@@ -146,11 +135,10 @@ export class PbacGuard implements CanActivate {
     userId: number,
     teamId: number,
     requiredPermissions: PermissionString[],
-    hasRequired: boolean,
-    version: number
+    hasRequired: boolean
   ): Promise<void> {
     await this.redisService.set<boolean>(
-      REDIS_REQUIRED_PERMISSIONS_CACHE_KEY(userId, teamId, requiredPermissions, version),
+      REDIS_REQUIRED_PERMISSIONS_CACHE_KEY(userId, teamId, requiredPermissions),
       hasRequired,
       { ttl: 300_000 }
     );

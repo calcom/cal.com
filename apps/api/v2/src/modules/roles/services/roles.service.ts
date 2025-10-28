@@ -27,7 +27,7 @@ export class RolesService {
     try {
       const role = await this.rolesService.createRole(createRoleData);
 
-      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+      await this.rolesPermissionsCacheService.deleteTeamPermissionsCache(teamId);
 
       return role;
     } catch (error) {
@@ -87,7 +87,7 @@ export class RolesService {
       const role = await this.rolesService.update(updateData);
 
       if (data.permissions) {
-        await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+        await this.rolesPermissionsCacheService.deleteTeamPermissionsCache(teamId);
       }
 
       return role;
@@ -124,7 +124,7 @@ export class RolesService {
     try {
       await this.rolesService.deleteRole(roleId);
 
-      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+      await this.rolesPermissionsCacheService.deleteTeamPermissionsCache(teamId);
 
       return role;
     } catch (error) {

@@ -45,7 +45,7 @@ export class RolesPermissionsService {
     try {
       const updatedRole = await this.roleService.update(updateData);
 
-      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+      await this.rolesPermissionsCacheService.deleteTeamPermissionsCache(teamId);
 
       return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
@@ -79,7 +79,7 @@ export class RolesPermissionsService {
     try {
       const updatedRole = await this.roleService.update(updateData);
 
-      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+      await this.rolesPermissionsCacheService.deleteTeamPermissionsCache(teamId);
 
       return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
@@ -123,7 +123,7 @@ export class RolesPermissionsService {
     try {
       const updatedRole = await this.roleService.update(updateData);
 
-      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+      await this.rolesPermissionsCacheService.deleteTeamPermissionsCache(teamId);
 
       return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {
@@ -154,7 +154,7 @@ export class RolesPermissionsService {
     try {
       const updatedRole = await this.roleService.update(updateData);
 
-      await this.rolesPermissionsCacheService.incrementTeamPermissionsVersion(teamId);
+      await this.rolesPermissionsCacheService.deleteTeamPermissionsCache(teamId);
 
       return this.rolesPermissionsOutputService.getPermissionsFromRole(updatedRole);
     } catch (error) {

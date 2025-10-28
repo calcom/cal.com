@@ -78,6 +78,30 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
+  async getKeys(pattern: string): Promise<string[]> {
+    if (!this.isReady) {
+      return [];
+    }
+    try {
+      return this.redis.keys(pattern);
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis getKeys failed: ${err.message}`);
+      return [];
+    }
+  }
+
+  async delMany(keys: string[]): Promise<number> {
+    if (!this.isReady || keys.length === 0) {
+      return 0;
+    }
+    try {
+      return this.redis.del(...keys);
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis delMany failed: ${err.message}`);
+      return 0;
+    }
+  }
+
   async set<TData>(key: string, value: TData, opts?: { ttl?: number }): Promise<"OK" | TData | null> {
     if (!this.isReady) {
       return null;
