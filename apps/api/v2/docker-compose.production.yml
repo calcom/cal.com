@@ -71,7 +71,8 @@ services:
       
       # Auth
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-generate_a_secure_random_32_char_string}
-      
+      JWT_SECRET: ${JWT_SECRET:-${NEXTAUTH_SECRET}}
+
       # API Configuration
       API_URL: ${API_URL:-https://api.yourdomain.com}
       API_KEY_PREFIX: ${API_KEY_PREFIX:-cal_}
@@ -80,8 +81,13 @@ services:
       CALCOM_LICENSE_KEY: ${CALCOM_LICENSE_KEY:-}
       
       # Web App URL
-      WEB_APP_URL: ${WEB_APP_URL:-https://app.cal.com}
-      
+      WEB_APP_URL: ${WEB_APP_URL:-http://api-internal}
+      NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL:-http://api-internal}
+
+      # RESEND
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@collegecontactcalendar.com}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+
       # Stripe (optional)
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
