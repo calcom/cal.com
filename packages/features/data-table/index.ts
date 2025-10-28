@@ -5,3 +5,4 @@ export * from "./lib/serializers";
 export * from "./DataTableProvider";
 export * from "./hooks/useColumnResizing";
 export * from "./hooks";
+export * from "./types";
