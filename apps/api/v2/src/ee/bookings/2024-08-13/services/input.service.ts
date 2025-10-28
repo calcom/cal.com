@@ -1,4 +1,4 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import {
   eventTypeBookingFieldsSchema,
   EventTypeWithOwnerAndTeam,
@@ -556,7 +556,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return "seatUid" in body;
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -776,6 +776,7 @@ export class InputBookingsService_2024_08_13 {
 
   isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
     return "seatUid" in body;
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
