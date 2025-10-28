@@ -22,11 +22,11 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
     <div
       ref={containerNavRef}
       className={classNames(
-        "bg-default dark:bg-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b border-r sm:pr-8",
+        "bg-default dark:bg-default sticky top-[var(--calendar-dates-sticky-offset,0px)] z-[80] flex-none border-b sm:pr-8",
         borderColor === "subtle" ? "border-b-subtle" : "border-b-default",
-        showBorder && (borderColor === "subtle" ? "border-r-subtle" : "border-r-default")
+        showBorder && (borderColor === "subtle" ? "border-r-subtle border-r" : "border-r-default border-r")
       )}>
-      <div className="text-subtle flex text-sm leading-6 sm:hidden" data-dayslength={days.length}>
+      <div className="text-subtle flex leading-6 sm:hidden" data-dayslength={days.length}>
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (
@@ -37,8 +37,8 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
               {day.format("dd")}{" "}
               <span
                 className={classNames(
-                  "text-emphasis mt-1 flex h-8 w-8 items-center justify-center font-semibold",
-                  isToday && "bg-inverted text-inverted rounded-full"
+                  "text-emphasis mt-1 flex h-8 w-8 items-center justify-center font-medium",
+                  isToday && "bg-inverted text-inverted rounded-sm"
                 )}>
                 {day.format("D")}
               </span>
@@ -46,10 +46,10 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
           );
         })}
       </div>
-      <div className="text-subtle -mr-px hidden  auto-cols-fr text-sm leading-6 sm:flex ">
+      <div className="text-subtle -mr-px hidden auto-cols-fr leading-6 sm:flex">
         <div
           className={classNames(
-            "col-end-1 w-14",
+            "col-end-1 w-16",
             showBorder &&
               (borderColor === "subtle" ? "border-l-subtle border-l" : "border-l-default border-l")
           )}
@@ -61,14 +61,14 @@ export function DateValues({ showBorder, borderColor, days, containerNavRef }: P
               key={day.toString()}
               className={classNames(
                 "flex flex-1 items-center justify-center py-3 text-xs font-medium uppercase",
-                isToday && "font-bold"
+                isToday && "text-default"
               )}>
               <span>
                 {formatDate(day)}{" "}
                 <span
                   className={classNames(
                     "items-center justify-center p-1",
-                    isToday && "bg-brand-default text-brand rounded-full"
+                    isToday && "bg-brand-default text-brand rounded-md"
                   )}>
                   {day.format("DD")}
                 </span>

@@ -19,11 +19,11 @@ const eventClasses = cva(
   {
     variants: {
       status: {
-        ACCEPTED: "bg-subtle hover:bg-emphasis text-emphasis border-[1px] border-gray-900",
-        PENDING: "bg-default text-emphasis border-[1px] border-dashed border-gray-900",
-        REJECTED: "bg-default border-[1px] text-subtle line-through",
-        CANCELLED: "bg-default border-[1px] text-subtle line-through",
-        AWAITING_HOST: "bg-default text-emphasis border-[1px] border-dashed border-gray-900",
+        ACCEPTED: "bg-subtle hover:bg-emphasis text-emphasis border-[1px] border-default",
+        PENDING: "bg-muted text-emphasis border-[1px] border-dashed border-default",
+        REJECTED: "bg-muted border-[1px] text-subtle line-through",
+        CANCELLED: "bg-muted border-[1px] text-subtle line-through",
+        AWAITING_HOST: "bg-muted text-emphasis border-[1px] border-dashed border-default",
       },
       disabled: {
         true: "hover:cursor-default",
@@ -34,11 +34,11 @@ const eventClasses = cva(
         false: "",
       },
       borderColor: {
-        ACCEPTED: "border-gray-900",
-        PENDING: "border-gray-900",
-        REJECTED: "border-gray-900",
-        CANCELLED: "border-gray-900",
-        AWAITING_HOST: "",
+        ACCEPTED: "border-default",
+        PENDING: "border-default",
+        REJECTED: "border-default",
+        CANCELLED: "border-default",
+        AWAITING_HOST: "border-default",
         custom: "",
       },
     },
