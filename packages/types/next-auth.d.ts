@@ -28,11 +28,7 @@ declare module "next-auth" {
     belongsToActiveTeam?: boolean;
     org?: {
       id: number;
-      name?: string;
       slug: string;
-      logoUrl?: string | null;
-      fullDomain: string;
-      domainSuffix: string;
       role: MembershipRole;
     };
     username?: PrismaUser["username"];
@@ -61,11 +57,7 @@ declare module "next-auth/jwt" {
     belongsToActiveTeam?: boolean;
     org?: {
       id: number;
-      name?: string;
       slug: string;
-      logoUrl?: string | null;
-      fullDomain: string;
-      domainSuffix: string;
       role: MembershipRole;
     };
     orgAwareUsername?: PrismaUser["username"];

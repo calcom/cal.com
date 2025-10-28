@@ -15,7 +15,6 @@ import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService"
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -407,7 +406,7 @@ if (isSAMLLoginEnabled) {
           }
           if (!user) throw new Error(ErrorCode.UserNotFound);
         }
-        const [userProfile] = user?.allProfiles;
+        const [userProfile] = user.allProfiles;
         return {
           id: id as unknown as number,
           firstName,
@@ -583,18 +582,11 @@ export const getOptions = ({
           upId,
           belongsToActiveTeam,
           orgAwareUsername: profileOrg ? profile.username : existingUser.username,
-          // All organizations in the token would be too big to store. It breaks the sessions request.
-          // So, we just set the currently switched organization only here.
-          // platform org user don't need profiles nor domains
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
                   id: profileOrg.id,
-                  name: profileOrg.name,
                   slug: profileOrg.slug ?? profileOrg.requestedSlug ?? "",
-                  logoUrl: profileOrg.logoUrl,
-                  fullDomain: getOrgFullOrigin(profileOrg.slug ?? profileOrg.requestedSlug ?? ""),
-                  domainSuffix: subdomainSuffix(),
                   role: orgRole as MembershipRole, // It can't be undefined if we have a profileOrg
                 }
               : null,
