@@ -616,6 +616,9 @@ export class BookingsController_2024_04_15 {
 
     if (err instanceof Error) {
       const error = err as Error;
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       if (Object.values(ErrorCode).includes(error.message as unknown as ErrorCode)) {
         throw new HttpException(error.message, 400);
       }
