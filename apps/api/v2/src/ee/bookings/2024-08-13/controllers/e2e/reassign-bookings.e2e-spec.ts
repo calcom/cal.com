@@ -23,6 +23,8 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
+
+
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import type { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { Booking, User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
@@ -47,10 +49,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     const teamUserEmail = `reassign-bookings-2024-08-13-user1-${randomString()}@api.com`;
     const teamUserEmail2 = `reassign-bookings-2024-08-13-user2-${randomString()}@api.com`;
+    const teamUserEmail3 = `reassign-bookings-2024-08-13-user3-${randomString()}@api.com`;
     let teamUser1: User;
     let teamUser2: User;
+    let teamUser3: User;
 
     let teamRoundRobinEventTypeId: number;
+    let teamRoundRobinFixedHostEventTypeId: number;
+    let teamRoundRobinNonFixedEventTypeId: number;
 
     let roundRobinBooking: Booking;
 
@@ -106,13 +112,27 @@ describe("Bookings Endpoints 2024-08-13", () => {
         name: `reassign-bookings-2024-08-13-user2-${randomString()}`,
       });
 
+      teamUser3 = await userRepositoryFixture.create({
+        email: teamUserEmail3,
+        locale: "it",
+        name: `reassign-bookings-2024-08-13-user3-${randomString()}`,
+      });
+
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `reassign-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
+        availabilities: [
+          {
+            days: [0, 1, 2, 3, 4, 5, 6], // All days of the week
+            startTime: new Date(Date.UTC(2024, 0, 1, 0, 0, 0)), // 00:00 UTC
+            endTime: new Date(Date.UTC(2024, 0, 1, 23, 59, 0)), // 23:59 UTC
+          },
+        ],
       };
       await schedulesService.createUserSchedule(teamUser1.id, userSchedule);
       await schedulesService.createUserSchedule(teamUser2.id, userSchedule);
+      await schedulesService.createUserSchedule(teamUser3.id, userSchedule);
 
       await profileRepositoryFixture.create({
         uid: `usr-${teamUser1.id}`,
@@ -144,6 +164,21 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
+      await profileRepositoryFixture.create({
+        uid: `usr-${teamUser3.id}`,
+        username: teamUserEmail3,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: teamUser3.id,
+          },
+        },
+      });
+
       await membershipsRepositoryFixture.create({
         role: "MEMBER",
         team: { connect: { id: team.id } },
@@ -155,6 +190,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
         role: "MEMBER",
         team: { connect: { id: team.id } },
         user: { connect: { id: teamUser2.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        team: { connect: { id: team.id } },
+        user: { connect: { id: teamUser3.id } },
         accepted: true,
       });
 
@@ -236,6 +278,111 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
+      const teamNonFixedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team.id },
+        },
+        users: {
+          connect: [{ id: teamUser2.id }, { id: teamUser3.id }],
+        },
+        title: `reassign-bookings-2024-08-13-non-fixed-event-type-${randomString()}`,
+        slug: `reassign-bookings-2024-08-13-non-fixed-event-type-${randomString()}`,
+        length: 60,
+        assignAllTeamMembers: false,
+        bookingFields: [],
+        locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+      });
+
+      teamRoundRobinNonFixedEventTypeId = teamNonFixedEventType.id;
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser2.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: teamNonFixedEventType.id,
+          },
+        },
+      });
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser3.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: teamNonFixedEventType.id,
+          },
+        },
+      });
+      const team2EventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team.id },
+        },
+        users: {
+          connect: [{ id: teamUser1.id }, { id: teamUser2.id }, { id: teamUser3.id }],
+        },
+        title: `reassign-bookings-2024-08-13-fixed-event-type-${randomString()}`,
+        slug: `reassign-bookings-2024-08-13-fixed-event-type-${randomString()}`,
+        length: 60,
+        assignAllTeamMembers: false,
+        bookingFields: [],
+        locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+      });
+
+      teamRoundRobinFixedHostEventTypeId = team2EventType.id;
+
+      await hostsRepositoryFixture.create({
+        isFixed: true,
+        user: {
+          connect: {
+            id: teamUser1.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: team2EventType.id,
+          },
+        },
+      });
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser2.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: team2EventType.id,
+          },
+        },
+      });
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser3.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: team2EventType.id,
+          },
+        },
+      });
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -307,6 +454,110 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
     });
 
+    it("should have correct title when reassigning round robin booking with non-fixed host", async () => {
+      const nonFixedHostBookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2050, 0, 9, 13, 0, 0)).toISOString(),
+        eventTypeId: teamRoundRobinNonFixedEventTypeId,
+        attendee: {
+          name: "Charlie",
+          email: "charlie@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        meetingUrl: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(nonFixedHostBookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingUid = createResponse.body.data.uid;
+      const booking = await bookingsRepositoryFixture.getByUid(bookingUid);
+
+      expect(booking).toBeDefined();
+      expect(booking?.userId).toEqual(teamUser2.id);
+
+      expect(booking?.title).toContain(teamUser2.name);
+      expect(booking?.title).toContain("Charlie");
+      expect(booking?.title).not.toContain(team.name);
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reassign`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ReassignBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+
+          const data: ReassignBookingOutput_2024_08_13["data"] = responseBody.data;
+          expect(data.bookingUid).toEqual(bookingUid);
+          expect(data.reassignedTo.id).toEqual(teamUser3.id);
+
+          const reassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
+          expect(reassigned?.userId).toEqual(teamUser3.id);
+          expect(reassigned?.title).toContain(teamUser3.name);
+          expect(reassigned?.title).toContain("Charlie");
+          expect(reassigned?.title).not.toContain(team.name);
+        });
+    });
+
+    it("should have correct title when reassigning round robin booking with fixed host", async () => {
+      const fixedHostBookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2050, 0, 8, 13, 0, 0)).toISOString(),
+        eventTypeId: teamRoundRobinFixedHostEventTypeId,
+        attendee: {
+          name: "Alice",
+          email: "alice@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        meetingUrl: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(fixedHostBookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingUid = createResponse.body.data.uid;
+      const booking = await bookingsRepositoryFixture.getByUid(bookingUid);
+
+      expect(booking).toBeDefined();
+      expect(booking?.userId).toEqual(teamUser1.id);
+
+      expect(booking?.title).toContain(team.name);
+      expect(booking?.title).toContain("Alice");
+      expect(booking?.title).not.toContain(teamUser1.name);
+      expect(booking?.title).not.toContain(teamUser2.name);
+      expect(booking?.title).not.toContain(teamUser3.name);
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reassign/${teamUser3.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ReassignBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+
+          const data: ReassignBookingOutput_2024_08_13["data"] = responseBody.data;
+          expect(data.bookingUid).toEqual(bookingUid);
+          expect(data.reassignedTo.id).toEqual(teamUser1.id);
+
+          const reassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
+          expect(reassigned?.userId).toEqual(teamUser1.id);
+
+          expect(reassigned?.title).toContain(team.name);
+          expect(reassigned?.title).toContain("Alice");
+          expect(reassigned?.title).not.toContain(teamUser2.name);
+          expect(reassigned?.title).not.toContain(teamUser3.name);
+        });
+    });
+
     async function createOAuthClient(organizationId: number) {
       const data = {
         logo: "logo-url",
@@ -325,8 +576,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await teamRepositoryFixture.delete(organization.id);
       await userRepositoryFixture.deleteByEmail(teamUser1.email);
       await userRepositoryFixture.deleteByEmail(teamUserEmail2);
+      await userRepositoryFixture.deleteByEmail(teamUserEmail3);
       await bookingsRepositoryFixture.deleteAllBookings(teamUser1.id, teamUser1.email);
       await bookingsRepositoryFixture.deleteAllBookings(teamUser2.id, teamUser2.email);
+      await bookingsRepositoryFixture.deleteAllBookings(teamUser3.id, teamUser3.email);
       await app.close();
     });
   });
