@@ -257,6 +257,38 @@ export function BookingExpandedCard(props: BookingItemProps) {
                 />
               </div>
             )}
+            {/* Custom Booking Questions */}
+            {props.responses && (() => {
+              const systemFieldsToSkip = ['name', 'email', 'guests', 'notes', 'location', 'rescheduleReason','attendeePhoneNumber'];
+
+              return Object.entries(props.responses)
+                .filter(([name, response]) => {
+
+                  if (!response) return false;
+                  if (systemFieldsToSkip.includes(name)) return false;
+                  if (Array.isArray(response)) return false;
+
+                  return true;
+                })
+                .map(([name, response]) => {
+                  // Format the field name for display
+                  const label = name
+                    .split(/(?=[A-Z])/)
+                    .join(' ')
+                    .replace(/^\w/, (c) => c.toUpperCase()); 
+
+                  return (
+                    <div key={name}>
+                      <div className="text-foreground text-sm font-medium">{label}</div>
+                      <div className="text-muted-foreground text-sm">
+                        {typeof response === 'boolean'
+                          ? (response ? t("yes") : t("no"))
+                          : String(response)}
+                      </div>
+                    </div>
+                  );
+                });
+            })()}             
           </div>
 
           {props.showExpandedActions && (
