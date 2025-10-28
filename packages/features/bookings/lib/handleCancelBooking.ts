@@ -28,7 +28,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isLoggedInUserOrgAdminOfBookingUser } from "@calcom/lib/server/queries/organisations";
+import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
@@ -146,7 +146,11 @@ async function handler(input: CancelBookingInput) {
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
     const userIsOrgAdminOfBookingUser =
-      userId && (await isLoggedInUserOrgAdminOfBookingUser(userId, bookingToDelete.userId));
+      userId &&
+      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+        userId,
+        bookingToDelete.userId
+      ));
 
     if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
       throw new HttpError({

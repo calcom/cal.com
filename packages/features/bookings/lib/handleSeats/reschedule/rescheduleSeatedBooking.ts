@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { HttpError } from "@calcom/lib/http-error";
-import { isLoggedInUserOrgAdminOfBookingUser } from "@calcom/lib/server/queries/organisations";
+import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
@@ -101,7 +101,10 @@ const rescheduleSeatedBooking = async (
     const isOrgAdmin =
       reqUserId &&
       seatedBooking.user &&
-      (await isLoggedInUserOrgAdminOfBookingUser(reqUserId, seatedBooking.user?.id));
+      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+        reqUserId,
+        seatedBooking.user?.id
+      ));
     // if no bookingSeat is given and the userId != owner, 401.
     // if no bookingSeat is given, also check if the request user is an org admin of the booking user
     // TODO: Next step; Evaluate ownership, what about teams?

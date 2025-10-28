@@ -8,4 +8,4 @@ export type {
   InstantBookingCreateResult,
   RegularBookingCreateResult,
 } from "@calcom/features/bookings/lib/dto/types";
-export { isLoggedInUserOrgAdminOfBookingUser } from "@calcom/lib/server/queries/organisations";
+export { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";

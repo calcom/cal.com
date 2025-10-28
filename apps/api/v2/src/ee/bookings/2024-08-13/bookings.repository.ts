@@ -56,12 +56,10 @@ export class BookingsRepository_2024_08_13 {
         uid: bookingUid,
       },
       select: {
-        _count: {
-          select: {
-            seatsReferences: true,
-          },
-        },
         userId: true,
+        seatsReferences: {
+          take: 1,
+        },
       },
     });
   }

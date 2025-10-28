@@ -49,7 +49,7 @@ import {
   confirmBookingHandler,
   getCalendarLinks,
 } from "@calcom/platform-libraries";
-import { isLoggedInUserOrgAdminOfBookingUser } from "@calcom/platform-libraries/bookings";
+import { PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
@@ -457,18 +457,6 @@ export class BookingsService_2024_08_13 {
     );
   }
 
-  private ensureIdsPresent(bookingUserId?: number | null, authUserId?: number | null) {
-    if (!authUserId) {
-      throw new Error(`No auth user found`);
-    }
-
-    if (!bookingUserId) {
-      throw new Error(`No user found for booking`);
-    }
-
-    return { bookingUserId, authUserId };
-  }
-
   async createInstantBooking(
     request: Request,
     body: CreateInstantBookingInput_2024_08_13,
@@ -874,7 +862,7 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const hasSeatsPresent = booking._count.seatsReferences > 0;
+    const hasSeatsPresent = booking.seatsReferences.length > 0;
 
     if (!hasSeatsPresent) return false;
 
@@ -894,12 +882,18 @@ export class BookingsService_2024_08_13 {
       return true;
     }
 
-    const { authUserId: authenticatedUserId, bookingUserId: bookingOwnerId } = this.ensureIdsPresent(
-      bookingUserId,
-      authUserId
-    );
+    if (!authUserId) {
+      throw new Error(`No auth user found`);
+    }
 
-    const isOrgAdmin = await isLoggedInUserOrgAdminOfBookingUser(authenticatedUserId, bookingOwnerId);
+    if (!bookingUserId) {
+      throw new Error(`No user found for booking`);
+    }
+
+    const isOrgAdmin = await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+      authUserId,
+      bookingUserId
+    );
 
     return isOrgAdmin;
   }
