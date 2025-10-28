@@ -54,7 +54,7 @@ export const buttonClasses = cva(
           "bg-brand-default",
           "text-brand",
           // Hover state
-          "enabled:hover:bg-brand-emphasis",
+          "not-disabled:hover:bg-brand-emphasis",
           // Focus state
           "focus-visible:outline-none",
           "focus-visible:ring-0",
@@ -65,8 +65,8 @@ export const buttonClasses = cva(
           "disabled:opacity-30",
           // Shadows and effects
           "shadow-button-solid-brand-default",
-          "enabled:active:shadow-button-solid-brand-active",
-          "enabled:hover:shadow-button-solid-brand-hover",
+          "not-disabled:active:shadow-button-solid-brand-active",
+          "not-disabled:hover:shadow-button-solid-brand-hover",
           "transition-shadow",
           "transition-transform",
           "duration-100",
@@ -79,8 +79,8 @@ export const buttonClasses = cva(
           "border",
           "border-default",
           // Hover state
-          "enabled:hover:bg-cal-muted",
-          "enabled:hover:text-emphasis",
+          "not-disabled:hover:bg-cal-muted",
+          "not-disabled:hover:text-emphasis",
           // Disabled
           "disabled:opacity-30",
           // Focus state
@@ -90,8 +90,8 @@ export const buttonClasses = cva(
           "focus-visible:shadow-outline-gray-focused",
           // Shadows and effects
           "shadow-outline-gray-rested",
-          "enabled:hover:shadow-outline-gray-hover",
-          "enabled:active:shadow-outline-gray-active",
+          "not-disabled:hover:shadow-outline-gray-hover",
+          "not-disabled:active:shadow-outline-gray-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -101,9 +101,9 @@ export const buttonClasses = cva(
           "text-subtle",
           "border border-transparent",
           // Hover
-          "enabled:hover:bg-subtle",
-          "enabled:hover:text-emphasis",
-          "enabled:hover:border-subtle hover:border",
+          "not-disabled:hover:bg-subtle",
+          "not-disabled:hover:text-emphasis",
+          "not-disabled:hover:border-subtle hover:border",
           // Disabled
           "disabled:opacity-30",
           // Focus
@@ -114,7 +114,7 @@ export const buttonClasses = cva(
           "focus-visible:shadow-button-outline-gray-focused",
 
           // Shadows and effects
-          "enabled:active:shadow-outline-gray-active",
+          "not-disabled:active:shadow-outline-gray-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -142,8 +142,8 @@ export const buttonClasses = cva(
           "disabled:opacity-30",
           // Shadows and effects
           "shadow-outline-red-rested",
-          "enabled:hover:shadow-outline-red-hover",
-          "enabled:active:shadow-outline-red-active",
+          "not-disabled:hover:shadow-outline-red-hover",
+          "not-disabled:active:shadow-outline-red-active",
           "transition-shadow",
           "duration-200",
         ],
