@@ -1,13 +1,30 @@
-import { createContext, useContext, createElement } from "react";
+import { createContext, useContext, createElement, useMemo } from "react";
 import type z from "zod";
 
 import type { MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getOrgFullOrigin } from "../lib/orgDomains";
+
 /**
- * Organization branding
+ * Minimal organization data from session (stored in JWT)
+ */
+type MinimalOrg =
+  | ({
+      /** 1 */
+      id: number;
+      /** acme */
+      slug: string;
+      role: MembershipRole;
+    } & z.infer<typeof teamMetadataSchema>)
+  | null
+  | undefined;
+
+/**
+ * Organization branding with computed fields
  *
  * Entries consist of the different properties that constitute a brand for an organization.
+ * The fullDomain field is computed from the slug at runtime to keep JWT tokens small.
  */
 export type OrganizationBranding =
   | ({
@@ -15,6 +32,8 @@ export type OrganizationBranding =
       id: number;
       /** acme */
       slug: string;
+      /** https://acme.cal.com */
+      fullDomain: string;
       role: MembershipRole;
     } & z.infer<typeof teamMetadataSchema>)
   | null
@@ -61,9 +80,23 @@ export function useOrgBranding() {
  * `YourOwnComponent` or further down.
  *
  */
-export function OrgBrandingProvider<F extends { orgBrand: OrganizationBranding }>(props: {
+export function OrgBrandingProvider<F extends { orgBrand: MinimalOrg }>(props: {
   value: F;
   children: React.ReactNode;
 }) {
-  return createElement(OrganizationBrandingContext.Provider, { value: props.value }, props.children);
+  const enrichedOrgBrand = useMemo<OrganizationBranding>(() => {
+    if (!props.value.orgBrand) {
+      return props.value.orgBrand;
+    }
+    return {
+      ...props.value.orgBrand,
+      fullDomain: getOrgFullOrigin(props.value.orgBrand.slug),
+    };
+  }, [props.value.orgBrand]);
+
+  return createElement(
+    OrganizationBrandingContext.Provider,
+    { value: { orgBrand: enrichedOrgBrand } },
+    props.children
+  );
 }
