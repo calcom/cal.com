@@ -121,7 +121,15 @@ function useBuildHref() {
   return buildHref;
 }
 
-const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
+const defaultIsCurrent = ({
+  isChild,
+  item,
+  pathname,
+}: {
+  item: Pick<NavigationItemType, "href">;
+  isChild?: boolean;
+  pathname: string | null;
+}): boolean => {
   return isChild ? item.href === pathname : item.href ? pathname?.startsWith(item.href) ?? false : false;
 };
 
@@ -225,10 +233,8 @@ function TooltipChildrenList({
       <span className="text-subtle px-2 text-xs font-semibold uppercase tracking-wide">{t(parentName)}</span>
       <div className="flex flex-col">
         {children.map((childItem) => {
-          const childIsCurrent =
-            typeof childItem.isCurrent === "function"
-              ? childItem.isCurrent({ isChild: true, item: childItem, pathname })
-              : defaultIsCurrent({ isChild: true, item: childItem, pathname });
+          const isCurrentFn = childItem.isCurrent ?? defaultIsCurrent;
+          const childIsCurrent = isCurrentFn({ isChild: true, item: childItem, pathname });
 
           return (
             <Link
@@ -363,7 +369,7 @@ export const NavigationItem: React.FC<{
 
   if (!shouldDisplayNavigationItem) return null;
 
-  const hasChildren = item.child && item.child.length > 0;
+  const hasChildren = Boolean(item.child && item.child.length > 0);
   const hasActiveChild =
     hasChildren && item.child?.some((child) => isCurrent({ isChild: true, item: child, pathname }));
   const shouldShowChildren = isExpanded || hasActiveChild || current;
