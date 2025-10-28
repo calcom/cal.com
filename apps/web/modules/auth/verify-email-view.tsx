@@ -11,6 +11,7 @@ import useEmailVerifyCheck from "@calcom/trpc/react/hooks/useEmailVerifyCheck";
 import { showToast } from "@calcom/ui/components/toast";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { useFlagMap } from "@calcom/features/flags/context/provider";
 
 function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
@@ -18,13 +19,15 @@ function VerifyEmailPage() {
   const router = useRouter();
   const { t, isLocaleReady } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
+  const flags = useFlagMap();
 
   useEffect(() => {
     if (data?.isVerified) {
-      router.replace("/getting-started");
+      const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
+      router.replace(gettingStartedPath);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.isVerified]);
+  }, [data?.isVerified, flags]);
   if (!isLocaleReady) {
     return null;
   }
