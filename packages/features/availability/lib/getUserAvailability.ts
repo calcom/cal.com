@@ -4,26 +4,26 @@ import { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import {
+  getBusyTimesFromLimits,
+  getBusyTimesFromTeamLimits,
+} from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
+import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";
 import { getWorkingHours } from "@calcom/lib/availability";
-import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
-import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
-import {
-  getBusyTimesFromLimits,
-  getBusyTimesFromTeamLimits,
-} from "@calcom/lib/intervalLimits/server/getBusyTimesFromLimits";
 import { getPeriodStartDatesBetween as getPeriodStartDatesBetweenUtil } from "@calcom/lib/intervalLimits/utils/getPeriodStartDatesBetween";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { EventTypeRepository } from "@calcom/lib/server/repository/eventTypeRepository";
 import type { PrismaOOORepository } from "@calcom/lib/server/repository/ooo";
 import type {
   Booking,
@@ -641,9 +641,9 @@ export class UserAvailabilityService {
           // you can obtain that from user availability defined outside of here
           fromUser: { id: user.id, displayName: user.name },
           // optional chaining destructuring toUser
-          toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
-          reason: !!reason ? reason.reason : null,
-          emoji: !!reason ? reason.emoji : null,
+          toUser: toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+          reason: reason ? reason.reason : null,
+          emoji: reason ? reason.emoji : null,
         };
       }
 
