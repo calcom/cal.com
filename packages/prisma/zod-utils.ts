@@ -795,11 +795,11 @@ export type FieldType = z.infer<typeof fieldTypeEnum>;
 export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
   const allDomains = val.split(",").map((dom) => dom.trim());
 
-  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
+  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/i;
 
   /*
-  Valid patterns - [ example, example.anything, anyone@example.anything ]
-  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
+  Valid patterns - [ example, example.anything, anyone@example.anything, EXAMPLE.COM, Example.com ]
+  Note: Validation is case-insensitive; values are normalized to lowercase for matching
 */
 
   const isValid = !allDomains.some((domain) => !regex.test(domain));

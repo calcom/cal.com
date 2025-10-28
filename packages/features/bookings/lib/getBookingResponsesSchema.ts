@@ -7,7 +7,6 @@ import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type CommonParams = { bookingFields: BookingFields; view: View };
@@ -104,7 +103,9 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch (e) {}
+          } catch {
+            console.warn("Failed to parse radioInput JSON; using safe fallback value.");
+          }
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
@@ -185,9 +186,9 @@ function preprocess<T extends z.ZodType>({
             }
 
             // validate the excluded emails
-            const bookerEmail = value;
+            const bookerEmail = String(value).toLowerCase();
             const excludedEmails =
-              bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
+              bookingField.excludeEmails?.split(",").map((domain) => domain.trim().toLowerCase()) || [];
 
             const match = excludedEmails.find((email) => bookerEmail.includes(email));
             if (match) {
@@ -199,7 +200,7 @@ function preprocess<T extends z.ZodType>({
             const requiredEmails =
               bookingField.requireEmails
                 ?.split(",")
-                .map((domain) => domain.trim())
+                .map((domain) => domain.trim().toLowerCase())
                 .filter(Boolean) || [];
             const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
             if (requiredEmails.length > 0 && !requiredEmailsMatch) {
