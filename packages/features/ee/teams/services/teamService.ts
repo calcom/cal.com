@@ -103,7 +103,7 @@ export class TeamService {
     if (!isOrgContext) {
       return teamInviteLink;
     }
-    const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
+    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
     const orgInviteLink = `${WEBAPP_URL}/signup?token=${token}&callbackUrl=${gettingStartedPath}`;
     return orgInviteLink;
   }
