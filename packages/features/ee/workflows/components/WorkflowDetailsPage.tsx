@@ -3,9 +3,9 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { WorkflowPermissions } from "@calcom/lib/server/repository/workflow-permissions";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
@@ -79,6 +79,8 @@ export default function WorkflowDetailsPage(props: Props) {
           if (isFormTrigger(form.getValues("trigger"))) {
             if (option.value === WorkflowActions.EMAIL_ATTENDEE) {
               label = t("email_attendee_action_form");
+            } else if (option.value === WorkflowActions.SMS_ATTENDEE) {
+              label = t("sms_attendee_action_form");
             }
           }
 
@@ -167,11 +169,11 @@ export default function WorkflowDetailsPage(props: Props) {
     <>
       <div>
         <FormCard
-          className="border-muted mb-0"
+          className="mb-0 border-muted"
           collapsible={false}
           label={
-            <div className="flex items-center gap-2 pb-2 pt-1">
-              <div className="border-subtle text-subtle ml-1 rounded-lg border p-1">
+            <div className="flex gap-2 items-center pt-1 pb-2">
+              <div className="p-1 ml-1 rounded-lg border border-subtle text-subtle">
                 <Icon name="zap" size="16" />
               </div>
               <div className="text-sm font-medium leading-none">{t("trigger")}</div>
@@ -208,11 +210,11 @@ export default function WorkflowDetailsPage(props: Props) {
                 <div key={index}>
                   <FormCard
                     key={step.id}
-                    className="bg-muted border-muted mb-0"
+                    className="mb-0 bg-muted border-muted"
                     collapsible={false}
                     label={
-                      <div className="flex items-center gap-2 pb-2 pt-1">
-                        <div className="border-subtle text-subtle rounded-lg border p-1">
+                      <div className="flex gap-2 items-center pt-1 pb-2">
+                        <div className="p-1 rounded-lg border border-subtle text-subtle">
                           <Icon name="arrow-right" size="16" />
                         </div>
                         <div className="text-sm font-medium leading-none">{t("action")}</div>
