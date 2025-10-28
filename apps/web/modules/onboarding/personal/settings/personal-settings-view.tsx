@@ -15,10 +15,10 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";
 
-import { OnboardingCard } from "../_components/OnboardingCard";
-import { OnboardingLayout } from "../_components/OnboardingLayout";
 import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
 import { useOnboardingStore } from "../../store/onboarding-store";
+import { OnboardingCard } from "../_components/OnboardingCard";
+import { OnboardingLayout } from "../_components/OnboardingLayout";
 
 type PersonalSettingsViewProps = {
   userEmail: string;
@@ -128,7 +128,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
                       <TimezoneSelect
                         value={selectedTimeZone}
                         onChange={({ value }) => setSelectedTimeZone(value)}
-                        className="rounded-[10px] text-sm"
+                        size="sm"
                       />
                       <p className="text-subtle text-xs font-normal leading-3">
                         {t("current_time")}{" "}
