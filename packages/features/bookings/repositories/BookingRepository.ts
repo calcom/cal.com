@@ -307,7 +307,6 @@ export class BookingRepository {
   }: {
     startDate: Date;
     endDate: Date;
-    eventTypeId?: number | null;
     seatedEvent?: boolean;
     userIdAndEmailMap: Map<number, string>;
   }) {
@@ -351,7 +350,7 @@ export class BookingRepository {
       }),
     } satisfies Prisma.BookingSelect;
 
-    const currentBookingsAllUsersQueryOne = this.prismaClient.booking.findMany({
+    const bookingsWhereUserIsOrganizer = this.prismaClient.booking.findMany({
       where: {
         ...sharedQuery,
         userId: {
@@ -361,7 +360,7 @@ export class BookingRepository {
       select: bookingsSelect,
     });
 
-    const currentBookingsAllUsersQueryTwo = this.prismaClient.booking.findMany({
+    const bookingsWhereUserIsAttendee = this.prismaClient.booking.findMany({
       where: {
         ...sharedQuery,
         attendees: {
@@ -376,7 +375,7 @@ export class BookingRepository {
     });
 
     // host-owned PENDING bookings
-    const currentBookingsAllUsersQueryThree = this.prismaClient.booking.findMany({
+    const pendingAndBlockingBookingsWhereUserIsOrganizer = this.prismaClient.booking.findMany({
       where: {
         startTime: { lte: endDate },
         endTime: { gte: startDate },
@@ -395,7 +394,7 @@ export class BookingRepository {
     });
 
     // when organizer is an attendee on a PENDING booking.
-    const currentBookingsAllUsersQueryFour = this.prismaClient.booking.findMany({
+    const pendingAndBlockingBookingsWhereUserIsAttendee = this.prismaClient.booking.findMany({
       where: {
         startTime: { lte: endDate },
         endTime: { gte: startDate },
@@ -418,10 +417,10 @@ export class BookingRepository {
     });
 
     const [resultOne, resultTwo, resultThree, resultFour] = await Promise.all([
-      currentBookingsAllUsersQueryOne,
-      currentBookingsAllUsersQueryTwo,
-      currentBookingsAllUsersQueryThree,
-      currentBookingsAllUsersQueryFour,
+      bookingsWhereUserIsOrganizer,
+      bookingsWhereUserIsAttendee,
+      pendingAndBlockingBookingsWhereUserIsOrganizer,
+      pendingAndBlockingBookingsWhereUserIsAttendee,
     ]);
     // Prevent duplicate booking records when the organizer books his own event type.
     //

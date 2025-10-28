@@ -262,7 +262,8 @@ describe("_findAllExistingBookingsForEventTypeBetween", () => {
   });
 
   describe("Cross-event-type PENDING bookings with requiresConfirmationWillBlockSlot", () => {
-    it("PENDING booking from Event Type A should block slots for Event Type B", async () => {
+    it("PENDING booking with block slot enabled should block slots globally for all event types", async () => {
+      // Create Event Type A
       await prismaMock.eventType.create({
         data: {
           id: 1,
@@ -290,6 +291,7 @@ describe("_findAllExistingBookingsForEventTypeBetween", () => {
         },
       });
 
+      // create a PENDING booking for Event Type A
       await prismaMock.booking.create({
         data: {
           userId: 1,
@@ -313,7 +315,7 @@ describe("_findAllExistingBookingsForEventTypeBetween", () => {
       const bookingRepo = new BookingRepository(prismaMock);
       const userIdAndEmailMap = new Map([[1, "test1@example.com"]]);
 
-      // Check availability for Event Type B (any event type) - should find the PENDING booking from Event Type A
+      // finding PENDING bookings that has blocked slots globally for all event types
       const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: new Date("2025-05-01T13:00:00.000Z"),
         endDate: new Date("2025-05-01T16:00:00.000Z"),
@@ -367,6 +369,131 @@ describe("_findAllExistingBookingsForEventTypeBetween", () => {
       });
 
       expect(bookings).toHaveLength(0);
+    });
+
+    it("should remove duplicate PENDING bookings when organizer books their own event type", async () => {
+      // Create event type with slot blocking
+      await prismaMock.eventType.create({
+        data: {
+          id: 4,
+          title: "Self-Booking Event Type",
+          slug: "self-booking-event-type",
+          description: "Event type for self-booking scenario",
+          userId: 1,
+          length: 60,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+      });
+
+      // Create a PENDING booking where organizer is also an attendee (self-booking)
+      await prismaMock.booking.create({
+        data: {
+          userId: 1,
+          uid: "pending-self-booking",
+          eventTypeId: 4,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "organizer@example.com",
+              noShow: false,
+              name: "Organizer",
+              timeZone: "America/Toronto",
+            },
+          },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "PENDING Self-Booking",
+        },
+      });
+
+      const bookingRepo = new BookingRepository(prismaMock);
+      const userIdAndEmailMap = new Map([[1, "organizer@example.com"]]);
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T13:00:00.000Z"),
+        endDate: new Date("2025-05-01T16:00:00.000Z"),
+        userIdAndEmailMap,
+      });
+
+      // Should return only 1 booking, not 2 (duplicate removed)
+      // The booking appears in both pendingAndBlockingBookingsWhereUserIsOrganizer
+      // and pendingAndBlockingBookingsWhereUserIsAttendee queries
+      expect(bookings).toHaveLength(1);
+      expect(bookings[0].uid).toBe("pending-self-booking");
+      expect(bookings[0].status).toBe(BookingStatus.PENDING);
+    });
+
+    it("should include separate PENDING bookings when organizer and attendee are different people", async () => {
+      // Create event type with slot blocking
+      await prismaMock.eventType.create({
+        data: {
+          id: 5,
+          title: "Multi-User Event Type",
+          slug: "multi-user-event-type",
+          description: "Event type for multi-user scenario",
+          userId: 1,
+          length: 60,
+          requiresConfirmation: true,
+          requiresConfirmationWillBlockSlot: true,
+        },
+      });
+
+      // Create a PENDING booking where organizer hosts for a different attendee
+      await prismaMock.booking.create({
+        data: {
+          userId: 1,
+          uid: "pending-organizer-booking",
+          eventTypeId: 5,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "attendee@example.com",
+              noShow: false,
+              name: "Attendee",
+              timeZone: "America/Toronto",
+            },
+          },
+          startTime: new Date("2025-05-01T14:00:00.000Z"),
+          endTime: new Date("2025-05-01T15:00:00.000Z"),
+          title: "PENDING Organizer Booking",
+        },
+      });
+
+      // Create another PENDING booking where organizer is an attendee on someone else's event
+      await prismaMock.booking.create({
+        data: {
+          userId: 2,
+          uid: "pending-attendee-booking",
+          eventTypeId: 5,
+          status: BookingStatus.PENDING,
+          attendees: {
+            create: {
+              email: "organizer@example.com",
+              noShow: false,
+              name: "Organizer as Attendee",
+              timeZone: "America/Toronto",
+            },
+          },
+          startTime: new Date("2025-05-01T16:00:00.000Z"),
+          endTime: new Date("2025-05-01T17:00:00.000Z"),
+          title: "PENDING Attendee Booking",
+        },
+      });
+
+      const bookingRepo = new BookingRepository(prismaMock);
+      const userIdAndEmailMap = new Map([[1, "organizer@example.com"]]);
+
+      const bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+        startDate: new Date("2025-05-01T13:00:00.000Z"),
+        endDate: new Date("2025-05-01T18:00:00.000Z"),
+        userIdAndEmailMap,
+      });
+
+      // Should return both bookings (2 distinct bookings, no duplicates)
+      expect(bookings).toHaveLength(2);
+      expect(bookings.map((b) => b.uid)).toContain("pending-organizer-booking");
+      expect(bookings.map((b) => b.uid)).toContain("pending-attendee-booking");
     });
   });
 });

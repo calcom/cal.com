@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import { subtract } from "@calcom/lib/date-ranges";
@@ -9,7 +10,6 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import prisma from "@calcom/prisma";
 import type { Booking, EventType } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -24,6 +24,27 @@ export interface IBusyTimesService {
 
 export class BusyTimesService {
   constructor(public readonly dependencies: IBusyTimesService) {}
+
+  /**
+   * Appends "(unconfirmed but still blocking)" to the booking title if the booking is in PENDING status and the event type of that booking has requiresConfirmation and requiresConfirmationWillBlockSlot set to true.
+   */
+  private buildBookingTitle(
+    title: string,
+    status: BookingStatus,
+    eventType?: {
+      requiresConfirmation?: boolean;
+      requiresConfirmationWillBlockSlot?: boolean;
+    } | null
+  ): string {
+    if (
+      status === BookingStatus.PENDING &&
+      eventType?.requiresConfirmation &&
+      eventType?.requiresConfirmationWillBlockSlot
+    ) {
+      return `${title} (unconfirmed but still blocking)`;
+    }
+    return title;
+  }
 
   async _getBusyTimes(params: {
     credentials: CredentialForCalendarService[];
@@ -126,7 +147,6 @@ export class BusyTimesService {
       const bookingRepo = this.dependencies.bookingRepo;
       bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
         userIdAndEmailMap: new Map([[userId, userEmail]]),
-        eventTypeId,
         startDate: startTimeAdjustedWithMaxBuffer,
         endDate: endTimeAdjustedWithMaxBuffer,
         seatedEvent,
@@ -140,18 +160,7 @@ export class BusyTimesService {
       const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
       const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
 
-      /*
-       * requiresConfirmationWillBlockSlot enabled events blocks slot for all eventTypes for PENDING bookings .
-       */
-      let bookingTitle = title;
-      if (
-        status === BookingStatus.PENDING &&
-        eventType?.requiresConfirmation &&
-        eventType?.requiresConfirmationWillBlockSlot
-      ) {
-        // we can add ${eventType.title} in future for more explicit titles in troubleshooter
-        bookingTitle += " " + "(unconfirmed but still blocking)";
-      }
+      const bookingTitle = this.buildBookingTitle(title, status, eventType);
 
       if (rest._count?.seatsReferences) {
         const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
@@ -404,10 +413,7 @@ export class BusyTimesService {
     });
 
     busyTimes = bookings.map(({ id, startTime, endTime, eventType, title, userId, status }) => {
-      let bookingTitle = title;
-      if (status === BookingStatus.PENDING && eventType?.requiresConfirmation) {
-        bookingTitle += " " + "(unconfirmed but still blocking)";
-      }
+      const bookingTitle = this.buildBookingTitle(title, status, eventType);
 
       return {
         start: dayjs(startTime).toDate(),
