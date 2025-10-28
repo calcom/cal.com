@@ -135,7 +135,7 @@ export const AvailableTimeSlots = ({
     // This ensures that the currently booked time slot is treated as unavailable while rescheduling.
     if (bookingData?.startTime) {
       const bookingTime = dayjs(bookingData.startTime).utc().format();
-      if (!unavailableTimeSlots.includes(bookingTime)) unavailableTimeSlots.push(bookingTime);
+      if (!unavailableTimeSlots.includes(bookingTime)) return [...unavailableTimeSlots, bookingTime];
     }
     return unavailableTimeSlots;
   }, [unavailableTimeSlots, bookingData]);
