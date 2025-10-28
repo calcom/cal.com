@@ -1,12 +1,14 @@
-import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
-import { captureException } from "@sentry/nextjs";
 import type { Params } from "app/_types";
 import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { performance } from "@calcom/lib/server/perfObserver";
+
+import { TRPCError } from "@trpc/server";
+import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 type Handler<T extends NextResponse | Response = NextResponse> = (
   req: NextRequest,
@@ -21,10 +23,13 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
     let ok = false;
     try {
       performance.mark("Start");
-
-      const result = endpointRoute
-        ? await wrapApiHandlerWithSentry(async () => await handler(req, { params }), endpointRoute)()
-        : await handler(req, { params });
+      let result: T | undefined;
+      if (process.env.NODE_ENV === "development" || !endpointRoute) {
+        result = await handler(req, { params });
+      } else {
+        const { wrapApiHandlerWithSentry } = await import("@sentry/nextjs");
+        result = await wrapApiHandlerWithSentry(async () => await handler(req, { params }), endpointRoute)();
+      }
 
       ok = true;
       if (result) {
@@ -33,15 +38,18 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
 
       return NextResponse.json({});
     } catch (error) {
-      let serverError;
+      let serverError: HttpError;
 
-      if (error instanceof ApiError) {
-        serverError = {
+      if (error instanceof TRPCError) {
+        const statusCode = getHTTPStatusCodeFromError(error);
+        serverError = new HttpError({ statusCode, message: error.message });
+      } else if (error instanceof ApiError) {
+        serverError = new HttpError({
           message: error.message,
           statusCode: error.statusCode,
           url: req.url,
           method: req.method,
-        };
+        });
       } else {
         serverError = getServerErrorFromUnknown(error);
       }
@@ -49,6 +57,7 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
       // Don't report 400-499 errors to Sentry/console
       if (!(serverError.statusCode >= 400 && serverError.statusCode < 500)) {
         console.error(serverError);
+        const { captureException } = await import("@sentry/nextjs");
         captureException(error);
       }
 

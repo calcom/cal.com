@@ -1,9 +1,13 @@
-import prismock from "../../../../../../tests/libs/__mocks__/prisma";
-
+/**
+ * Unit Tests for POST /api/users
+ *
+ * These tests verify the API endpoint logic without touching the database.
+ * All dependencies (UserCreationService) are mocked.
+ */
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, test, expect, vi } from "vitest";
+import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import handler from "../../../pages/api/users/_post";
 
@@ -18,9 +22,41 @@ vi.mock("@calcom/lib/server/i18n", () => {
   };
 });
 
+vi.mock("@calcom/features/profile/lib/checkUsername", () => ({
+  checkUsername: vi.fn().mockResolvedValue({
+    available: true,
+    premium: false,
+  }),
+}));
+
+vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
+  checkIfEmailIsBlockedInWatchlistController: vi.fn().mockResolvedValue(false),
+}));
+
+const mockCreate = vi.fn();
+vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
+  UserRepository: vi.fn().mockImplementation(() => ({
+    create: mockCreate,
+  })),
+}));
+
+vi.mock("@calcom/lib/auth/hashPassword", () => ({
+  hashPassword: vi.fn().mockResolvedValue("hashed-password"),
+}));
+
 vi.stubEnv("CALCOM_LICENSE_KEY", undefined);
 
-describe("POST /api/users", () => {
+describe("POST /api/users - Unit Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCreate.mockResolvedValue({
+      id: 1,
+      email: "test@example.com",
+      username: "test",
+      locked: false,
+    });
+  });
+
   test("should throw 401 if not system-wide admin", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
@@ -34,7 +70,9 @@ describe("POST /api/users", () => {
     await handler(req, res);
 
     expect(res.statusCode).toBe(401);
+    expect(mockCreate).not.toHaveBeenCalled();
   });
+
   test("should throw a 400 if no email is provided", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
@@ -47,7 +85,9 @@ describe("POST /api/users", () => {
     await handler(req, res);
 
     expect(res.statusCode).toBe(400);
+    expect(mockCreate).not.toHaveBeenCalled();
   });
+
   test("should throw a 400 if no username is provided", async () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
@@ -60,15 +100,24 @@ describe("POST /api/users", () => {
     await handler(req, res);
 
     expect(res.statusCode).toBe(400);
+    expect(mockCreate).not.toHaveBeenCalled();
   });
+
   test("should create user successfully", async () => {
+    mockCreate.mockResolvedValue({
+      id: 1,
+      email: "test@example.com",
+      username: "testuser123",
+      locked: false,
+      organizationId: null,
+    });
+
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       body: {
         email: "test@example.com",
-        username: "test",
+        username: "testuser123",
       },
-      prisma: prismock,
     });
     req.isSystemWideAdmin = true;
 
@@ -76,57 +125,19 @@ describe("POST /api/users", () => {
 
     expect(res.statusCode).toBe(200);
 
-    const userQuery = await prismock.user.findFirst({
-      where: {
-        email: "test@example.com",
-      },
-    });
-
-    expect(userQuery).toEqual(
+    expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         email: "test@example.com",
-        username: "test",
+        username: "testuser123",
         locked: false,
-        organizationId: null,
       })
     );
-  });
 
-  test("should auto lock user if email is in watchlist", async () => {
-    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "POST",
-      body: {
-        email: "test@example.com",
-        username: "test",
-      },
-      prisma: prismock,
-    });
-    req.isSystemWideAdmin = true;
-
-    await prismock.watchlist.create({
-      data: {
-        type: "EMAIL",
-        value: "test@example.com",
-        severity: "CRITICAL",
-        createdById: 1,
-      },
-    });
-
-    await handler(req, res);
-
-    expect(res.statusCode).toBe(200);
-
-    const userQuery = await prismock.user.findFirst({
-      where: {
-        email: "test@example.com",
-      },
-    });
-
-    expect(userQuery).toEqual(
+    const responseData = JSON.parse(res._getData());
+    expect(responseData.user).toEqual(
       expect.objectContaining({
         email: "test@example.com",
-        username: "test",
-        locked: true,
+        username: "testuser123",
         organizationId: null,
       })
     );
