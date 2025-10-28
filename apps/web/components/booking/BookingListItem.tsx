@@ -1226,7 +1226,7 @@ const NoShowAttendeesDialog = ({
               });
             }}>
             <div
-              className={`bg-muted flex items-center justify-between px-4 py-2 ${
+              className={`bg-cal-muted flex items-center justify-between px-4 py-2 ${
                 index === 0 ? "rounded-t-md" : ""
               } ${index === noShowAttendees.length - 1 ? "rounded-b-md" : "border-subtle border-b"}`}>
               <span className="text-emphasis flex flex-col text-sm">
