@@ -2494,7 +2494,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .expect(400);
 
         expect(response.body.error.message).toEqual(
-          `Missing attendee phone number - it is required by the event type. Pass it as \"attendee.phoneNumber\" string in the request.`
+          `Missing attendee phone number - it is required by the event type. Pass it as "attendee.phoneNumber" string in the request.`
         );
       });
 
@@ -3026,13 +3026,154 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
           });
         });
+
+        describe("event type with max bookings count per booker", () => {
+          it("should not allow booking more than maximumActiveBookings per attendee", async () => {
+            const eventTypeIdWithMaxBookerBookings = await eventTypesRepositoryFixture.create(
+              {
+                slug: `max-bookings-count-per-booker-${randomString(10)}`,
+                length: 60,
+                title: "Event Type with max bookings count per booker",
+                maxActiveBookingsPerBooker: 1,
+              },
+              user.id
+            );
+
+            const body: CreateBookingInput_2024_08_13 = {
+              start: new Date(Date.UTC(2040, 0, 13, 10, 0, 0)).toISOString(),
+              eventTypeId: eventTypeIdWithMaxBookerBookings.id,
+              attendee: {
+                name: "alice",
+                email: "alice@gmail.com",
+                timeZone: "Europe/Rome",
+                language: "it",
+              },
+            };
+
+            const response = await request(app.getHttpServer())
+              .post("/v2/bookings")
+              .send(body)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(201);
+
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+
+            const response2 = await request(app.getHttpServer())
+              .post("/v2/bookings")
+              .send(body)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(400);
+
+            expect(response2.body.error.message).toBe(
+              "Attendee with this email can't book because the maximum number of active bookings has been reached."
+            );
+
+            const body2: CreateBookingInput_2024_08_13 = {
+              start: new Date(Date.UTC(2040, 0, 13, 12, 0, 0)).toISOString(),
+              eventTypeId: eventTypeIdWithMaxBookerBookings.id,
+              attendee: {
+                name: "bob",
+                email: "bob@gmail.com",
+                timeZone: "Europe/Rome",
+                language: "it",
+              },
+            };
+
+            const response3 = await request(app.getHttpServer())
+              .post("/v2/bookings")
+              .send(body2)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(201);
+
+            const responseBody2: CreateBookingOutput_2024_08_13 = response3.body;
+            expect(responseBody2.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody2.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody2.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody2.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody2.data;
+              expect(data.id).toBeDefined();
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+          });
+
+          it("should not allow booking more than maximumActiveBookings per attendee and offer rescheduling", async () => {
+            const eventTypeIdWithMaxBookerBookings = await eventTypesRepositoryFixture.create(
+              {
+                slug: `max-bookings-count-per-booker-with-reschedule-${randomString(10)}`,
+                length: 60,
+                title: "Event Type with max bookings count per booker with reschedule",
+                maxActiveBookingsPerBooker: 1,
+                maxActiveBookingPerBookerOfferReschedule: true,
+              },
+              user.id
+            );
+
+            const body: CreateBookingInput_2024_08_13 = {
+              start: new Date(Date.UTC(2040, 0, 13, 14, 0, 0)).toISOString(),
+              eventTypeId: eventTypeIdWithMaxBookerBookings.id,
+              attendee: {
+                name: "charlie",
+                email: "charlie@gmail.com",
+                timeZone: "Europe/Rome",
+                language: "it",
+              },
+            };
+
+            const response = await request(app.getHttpServer())
+              .post("/v2/bookings")
+              .send(body)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(201);
+
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibly recurring bookings"
+              );
+            }
+
+            const response2 = await request(app.getHttpServer())
+              .post("/v2/bookings")
+              .send(body)
+              .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+              .expect(400);
+
+            expect(response2.body.error.message).toBe(
+              `Attendee with this email can't book because the maximum number of active bookings has been reached. You can reschedule your existing booking (${responseBody.data.uid}) to a new timeslot instead.`
+            );
+          });
+        });
       });
     });
 
-    function responseDataIsRecurranceBooking(data: any): data is RecurringBookingOutput_2024_08_13 {
+    function responseDataIsRecurranceBooking(data: unknown): data is RecurringBookingOutput_2024_08_13 {
       return (
         !Array.isArray(data) &&
         typeof data === "object" &&
+        data !== null &&
         data &&
         "id" in data &&
         "recurringBookingUid" in data
@@ -3048,11 +3189,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
   });
 
-  function responseDataIsBooking(data: any): data is BookingOutput_2024_08_13 {
-    return !Array.isArray(data) && typeof data === "object" && data && "id" in data;
+  function responseDataIsBooking(data: unknown): data is BookingOutput_2024_08_13 {
+    return !Array.isArray(data) && typeof data === "object" && data !== null && data && "id" in data;
   }
 
-  function responseDataIsRecurringBooking(data: any): data is RecurringBookingOutput_2024_08_13[] {
+  function responseDataIsRecurringBooking(data: unknown): data is RecurringBookingOutput_2024_08_13[] {
     return Array.isArray(data);
   }
 });
