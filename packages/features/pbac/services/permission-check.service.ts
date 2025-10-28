@@ -1,6 +1,6 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 
@@ -118,14 +118,30 @@ export class PermissionCheckService {
         return this.hasPermission({ userId, teamId }, permission);
       }
 
-      // Fallback to role-based check only if user has team membership
+      // Fallback to role-based check - check both team and org membership
       const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
 
-      if (!membership) return false;
-      return this.checkFallbackRoles(membership.role, fallbackRoles);
+      // If user has team membership, check their role
+      if (membership) {
+        return this.checkFallbackRoles(membership.role, fallbackRoles);
+      }
+
+      // No team membership - check if team has parent org and user is org member
+      const team = await this.repository.getTeamById(teamId);
+      if (team?.parentId) {
+        const orgMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+          userId,
+          teamId: team.parentId,
+        });
+        if (orgMembership) {
+          return this.checkFallbackRoles(orgMembership.role, fallbackRoles);
+        }
+      }
+
+      return false;
     } catch (error) {
       this.logger.error(error);
       return false;
@@ -163,14 +179,30 @@ export class PermissionCheckService {
         return this.hasPermissions({ userId, teamId }, permissions);
       }
 
-      // Fallback to role-based check only if user has team membership
+      // Fallback to role-based check - check both team and org membership
       const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
 
-      if (!membership) return false;
-      return this.checkFallbackRoles(membership.role, fallbackRoles);
+      // If user has team membership, check their role
+      if (membership) {
+        return this.checkFallbackRoles(membership.role, fallbackRoles);
+      }
+
+      // No team membership - check if team has parent org and user is org member
+      const team = await this.repository.getTeamById(teamId);
+      if (team?.parentId) {
+        const orgMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+          userId,
+          teamId: team.parentId,
+        });
+        if (orgMembership) {
+          return this.checkFallbackRoles(orgMembership.role, fallbackRoles);
+        }
+      }
+
+      return false;
     } catch (error) {
       this.logger.error(error);
       return false;
