@@ -1172,4 +1172,163 @@ export class BookingRepository {
       },
     });
   }
+
+  async getBookingForCalEventBuilder(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        // Basic details
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        description: true, // Used as additionalNotes
+        // Responses & Metadata
+        customInputs: true,
+        responses: true,
+        metadata: true, // For platformClientId
+        // Location
+        location: true,
+        // Identifiers
+        iCalUID: true,
+        iCalSequence: true,
+        // Confirmation/Security
+        oneTimePassword: true,
+        // Relations
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+          },
+        },
+        user: {
+          // Organizer
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
+            timeZone: true,
+            locale: true,
+            timeFormat: true,
+            destinationCalendar: true, // Selects fields needed for the relation
+          },
+        },
+        destinationCalendar: true, // Selects fields needed for the relation
+        eventType: {
+          // --- Event Type ---
+          select: {
+            id: true,
+            slug: true, // Used as 'type'
+            description: true,
+            // Display flags
+            hideCalendarNotes: true,
+            hideCalendarEventDetails: true,
+            hideOrganizerEmail: true,
+            // Scheduling details
+            schedulingType: true,
+            seatsPerTimeSlot: true,
+            seatsShowAttendees: true,
+            seatsShowAvailabilityCount: true,
+            // Config flags
+            customReplyToEmail: true,
+            disableRescheduling: true,
+            disableCancelling: true,
+            requiresConfirmation: true,
+            // Features
+            recurringEvent: true,
+            metadata: true, // For handler's eventType.metadata
+            eventName: true, // Needed for eventNameObject
+            // Relations within EventType
+            team: {
+              select: {
+                id: true,
+                name: true,
+                members: {
+                  select: {
+                    user: {
+                      // Team Member User fields
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        username: true,
+                        timeZone: true,
+                        locale: true,
+                        timeFormat: true,
+                        // No destinationCalendar needed for members here based on usage
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            users: {
+              // Direct users on EventType (for reschedule 'users' list)
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                username: true,
+                timeZone: true,
+                locale: true,
+                timeFormat: true,
+                destinationCalendar: true,
+              },
+            },
+            hosts: {
+              // Hosts on EventType (for reschedule 'users' list)
+              select: {
+                userId: true, // Needed for mapping
+                isFixed: true,
+                user: {
+                  // Host User fields
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    username: true,
+                    timeZone: true,
+                    locale: true,
+                    timeFormat: true,
+                    destinationCalendar: true,
+                  },
+                },
+              },
+            },
+            workflows: {
+              // For handler's workflows list
+              select: {
+                workflow: {
+                  select: {
+                    id: true, // Assuming only ID needed
+                    // Add other workflow fields if needed by WorkflowType in handler
+                  },
+                },
+              },
+            },
+            // bookingFields: true, // Uncomment if needed for strict CalEventResponses reconstruction
+          },
+        },
+        references: {
+          // For Video Call Data
+          select: {
+            type: true,
+            meetingId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+          },
+          // Ensure we only fetch video-related references if possible
+          where: {
+            type: {
+              endsWith: "_video",
+            },
+          },
+        },
+        // seatsReferences: true, // Only needed if builder logic auto-deduces attendeeSeatId
+      },
+    });
+  }
 }

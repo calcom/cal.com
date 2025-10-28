@@ -1,10 +1,53 @@
+import { BookingRepository } from "bookings/repositories/BookingRepository";
 import type { TFunction } from "i18next";
 
-import type { TimeFormat } from "@calcom/lib/timeFormat";
-import type { Prisma } from "@calcom/prisma/client";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
+import type { Attendee, Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
+import { BookingResponses } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
+
+type BookingForCalEventBuilder = NonNullable<
+  Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
+>;
+type MetaOptions = {
+  bookerUrl?: string;
+  attendeeSeatId?: string;
+  conferenceCredentialId?: number;
+  platformRescheduleUrl?: string;
+  platformCancelUrl?: string;
+  platformBookingUrl?: string;
+  // Add other fields here if needed in the future
+};
+
+// --- Helper Functions ---
+async function _buildPersonFromUser(
+  user: Pick<User, "id" | "name" | "locale" | "username" | "email" | "timeFormat" | "timeZone">
+) {
+  const translate = await getTranslation(user.locale ?? "en", "common");
+  return {
+    id: user.id,
+    name: user.name || "Nameless",
+    email: user.email,
+    username: user.username || undefined,
+    timeZone: user.timeZone,
+    language: { translate, locale: user.locale ?? "en" },
+    timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),
+  } satisfies Person;
+}
+
+async function _buildPersonFromAttendee(attendee: Pick<Attendee, "locale" | "name" | "timeZone" | "email">) {
+  const translate = await getTranslation(attendee.locale ?? "en", "common");
+
+  return {
+    name: attendee.name ?? "",
+    email: attendee.email,
+    timeZone: attendee.timeZone,
+    language: { translate, locale: attendee.locale ?? "en" },
+  } satisfies Person;
+}
 
 export class CalendarEventBuilder {
   private event: Partial<CalendarEvent>;
@@ -15,6 +58,139 @@ export class CalendarEventBuilder {
 
   static fromEvent(event: Partial<CalendarEvent>) {
     return new CalendarEventBuilder(event);
+  }
+
+  /**
+   * Static factory method to create and populate a builder from a booking object.
+   * @param booking - The fully fetched booking object.
+   * @param meta - Optional object containing supplementary data or overrides.
+   * @returns A promise resolving to the configured CalendarEventBuilder instance.
+   */
+  static async fromBooking(
+    booking: BookingForCalEventBuilder,
+    meta?: MetaOptions
+  ): Promise<CalendarEventBuilder> {
+    if (!booking.user) throw new Error(`Booking ${booking.uid} is missing an organizer.`);
+    if (!booking.eventType) throw new Error(`Booking ${booking.uid} eventType not found.`);
+
+    const builder = new CalendarEventBuilder();
+    const { eventType, user: organizerUser } = booking;
+    const additionalNotes = booking.description || undefined;
+
+    // Prepare data
+    if (!organizerUser.id) {
+      throw new Error("Organizer user does not have an id");
+    }
+    const organizerPerson = await _buildPersonFromUser(organizerUser);
+    const attendeesList = await Promise.all(booking.attendees.map((att) => _buildPersonFromAttendee(att)));
+    const videoRef = booking.references.find((r) => r.type.endsWith("_video"));
+    const videoCallData = videoRef
+      ? {
+          type: videoRef.type,
+          id: videoRef.meetingId,
+          password: videoRef.meetingPassword,
+          url: videoRef.meetingUrl,
+        }
+      : undefined;
+
+    // Use values from meta or defaults
+    const bookerUrl = meta?.bookerUrl ?? "https://cal.com"; // Default bookerUrl
+    const attendeeSeatId = meta?.attendeeSeatId;
+    const conferenceCredentialId = meta?.conferenceCredentialId;
+    const platformRescheduleUrl = meta?.platformRescheduleUrl ?? "";
+    const platformCancelUrl = meta?.platformCancelUrl ?? "";
+    const platformBookingUrl = meta?.platformBookingUrl ?? "";
+
+    // Call chain using extracted data and meta values
+    builder
+      .withBasicDetails({
+        bookerUrl: bookerUrl, // Use derived/default value
+        title: booking.title,
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+        additionalNotes,
+      })
+      .withEventType({
+        slug: eventType.slug,
+        description: eventType.description,
+        id: eventType.id,
+        hideCalendarNotes: eventType.hideCalendarNotes,
+        hideCalendarEventDetails: eventType.hideCalendarEventDetails,
+        hideOrganizerEmail: eventType.hideOrganizerEmail,
+        schedulingType: eventType.schedulingType,
+        seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+        seatsShowAttendees: !!eventType.seatsShowAttendees,
+        seatsShowAvailabilityCount: !!eventType.seatsShowAvailabilityCount,
+        customReplyToEmail: eventType.customReplyToEmail,
+        disableRescheduling: eventType.disableRescheduling ?? false,
+        disableCancelling: eventType.disableCancelling ?? false,
+      })
+      .withOrganizer(organizerPerson)
+      .withAttendees(attendeesList)
+      .withMetadataAndResponses({
+        additionalNotes,
+        customInputs: (booking.customInputs as Prisma.JsonObject) || null,
+        // TODO: format responses and userFieldsResponses using booking responses and eventtype booker fields
+        responses: booking.responses as BookingResponses,
+        userFieldsResponses: {}, // Keep default empty
+      })
+      .withLocation({
+        location: booking.location,
+        conferenceCredentialId: conferenceCredentialId, // Use value from meta
+      })
+      //TODO: handle multiple destination calendars
+      .withDestinationCalendar(booking.destinationCalendar)
+      .withIdentifiers({ iCalUID: booking.iCalUID || undefined, iCalSequence: booking.iCalSequence })
+      .withConfirmation({
+        requiresConfirmation: !!eventType.requiresConfirmation,
+        isConfirmedByDefault: !eventType.requiresConfirmation,
+      })
+      .withPlatformVariables({
+        platformClientId: (booking.metadata as Prisma.JsonObject)?.platformClientId as string | undefined,
+        platformRescheduleUrl: platformRescheduleUrl, // Use derived/default value
+        platformCancelUrl: platformCancelUrl, // Use derived/default value
+        platformBookingUrl: platformBookingUrl, // Use derived/default value
+      })
+      // todo double check this
+      .withRecurring(
+        eventType.recurringEvent
+          ? (eventType.recurringEvent as {
+              count: number;
+              freq: number;
+              interval: number;
+            })
+          : undefined
+      )
+      .withUid(booking.uid)
+      .withOneTimePassword(booking.oneTimePassword);
+
+    // Handle optional fields/relations based on booking and meta
+    if (attendeeSeatId) {
+      builder.withAttendeeSeatId(attendeeSeatId); // Use value from meta
+    }
+
+    if (videoCallData?.id && videoCallData.password && videoCallData.url) {
+      builder.withVideoCallData({
+        ...videoCallData,
+        id: videoCallData.id,
+        password: videoCallData.password,
+        url: videoCallData.url,
+      });
+      builder.withAppsStatus([
+        { appName: videoCallData.type, type: videoCallData.type, success: 1, failures: 0, errors: [] },
+      ]);
+    } else {
+      builder.withAppsStatus([]);
+    }
+
+    if (eventType.team) {
+      const members = await Promise.all(
+        eventType.team.members.map(async (m) => await _buildPersonFromUser(m.user))
+      );
+      builder.withTeam({ id: eventType.team.id, name: eventType.team.name || "", members: members });
+    }
+
+    return builder;
   }
 
   withBasicDetails({
