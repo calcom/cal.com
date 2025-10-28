@@ -697,6 +697,48 @@ export const sendAddGuestsEmails = async (calEvent: CalendarEvent, newGuests: st
 
   await Promise.all(emailsToSend);
 };
+
+export const sendAddGuestsEmailsAndSMS = async (args: {
+  calEvent: CalendarEvent;
+  newGuests: string[];
+  eventTypeMetadata?: EventTypeMetadata;
+}) => {
+  const { calEvent, newGuests, eventTypeMetadata } = args;
+  const calendarEvent = formatCalEvent(calEvent);
+
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsAndSMSToSend.push(sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent })));
+
+    if (calendarEvent.team?.members) {
+      for (const teamMember of calendarEvent.team.members) {
+        emailsAndSMSToSend.push(
+          sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
+    }
+  }
+
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+    const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
+
+    for (const attendee of calendarEvent.attendees) {
+      if (newGuests.includes(attendee.email)) {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeScheduledEmail(calendarEvent, attendee)));
+
+        if (attendee.phoneNumber) {
+          emailsAndSMSToSend.push(eventScheduledSMS.sendSMSToAttendee(attendee));
+        }
+      } else {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeAddGuestsEmail(calendarEvent, attendee)));
+      }
+    }
+  }
+
+  await Promise.all(emailsAndSMSToSend);
+};
+
 export const sendFeedbackEmail = async (feedback: Feedback) => {
   await sendEmail(() => new FeedbackEmail(feedback));
 };
