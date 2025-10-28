@@ -52,7 +52,7 @@ function getOrgConnectionInfoGroupedByUsernameOrEmail({
   return uniqueInvitations.reduce((acc, invitation) => {
     return {
       ...acc,
-      [invitation.usernameOrEmail]: getOrgConnectionInfo({
+      [invitation.usernameOrEmail.toLowerCase()]: getOrgConnectionInfo({
         orgVerified: orgState.orgVerified,
         orgAutoAcceptDomain: orgState.autoAcceptEmailDomain,
         email: invitation.usernameOrEmail,
