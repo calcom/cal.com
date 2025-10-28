@@ -1,6 +1,7 @@
 "use client";
 
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
 import {
@@ -62,8 +63,10 @@ function reducer(state: CallDetailsState, action: CallDetailsAction): CallDetail
 }
 
 function CallHistoryTable(props: CallHistoryProps) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
       <CallHistoryContent {...props} />
     </DataTableProvider>
   );
