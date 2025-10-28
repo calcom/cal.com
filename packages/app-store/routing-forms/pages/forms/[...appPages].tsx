@@ -13,10 +13,11 @@ import { useFormContext } from "react-hook-form";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
+import { getTeamsFiltersFromQuery, filterQuerySchema } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { List } from "@calcom/ui/components/list";
@@ -66,6 +67,13 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const filters = getTeamsFiltersFromQuery(routerQuery);
+
+  // Wire TeamsFilter selection to URL query params
+  const { data: query, setQuery: setTypedQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue } =
+    useTypedQuery(filterQuerySchema);
+
+  const selectedTeamIds = query.calIdTeamIds ?? [];
+  const selectedUserId = (query.userIds && query.userIds[0]) ?? null;
 
   const queryRes = trpc.viewer.appRoutingForms.calid_forms.useQuery({
     filters,
@@ -151,7 +159,30 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
         setSelectTeamDialogState={setSelectTeamDialogState}>
         <div className="mb-10 w-full">
           <div className="mb-2 flex flex-row justify-between">
-            {teams && teams.length > 0 && <TeamsFilter />}
+            {teams && teams.length > 0 && (
+              <TeamsFilter
+                selectedTeamIds={selectedTeamIds}
+                selectedUserId={selectedUserId}
+                onAllChange={() => {
+                  removeByKey("calIdTeamIds");
+                  removeByKey("userIds");
+                }}
+                onUserChange={(userId) => {
+                  if (userId) {
+                    setTypedQuery("userIds", [userId]);
+                  } else {
+                    removeByKey("userIds");
+                  }
+                }}
+                onTeamChange={(teamIds) => {
+                  if (teamIds.length > 0) {
+                    setTypedQuery("calIdTeamIds", teamIds);
+                  } else {
+                    removeByKey("calIdTeamIds");
+                  }
+                }}
+              />
+            )}
             {forms?.length && <NewFormButton setSelectTeamDialogState={setSelectTeamDialogState} />}
           </div>
           <FilterResults
