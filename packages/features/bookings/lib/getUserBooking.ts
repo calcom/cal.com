@@ -47,6 +47,16 @@ const getUserBooking = async (uid: string) => {
           id: "asc",
         },
       },
+      pendingGuests: {
+        select: {
+          email: true,
+          name: true,
+          timeZone: true,
+        },
+        orderBy: {
+          id: "asc",
+        },
+      },
       eventTypeId: true,
       eventType: {
         select: {

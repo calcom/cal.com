@@ -641,6 +641,22 @@ export default function Success(props: PageProps) {
                                   )}
                                 </div>
                               ))}
+                              {bookingInfo?.pendingGuests?.map((guest) => (
+                                <div key={guest.email} className="mb-3 last:mb-0">
+                                  <div className="flex items-center gap-2">
+                                    {guest.name && <span>{guest.name}</span>}
+                                    {!guest.name && <span>{guest.email}</span>}
+                                    <Badge variant="gray">{t("awaiting_confirmation")}</Badge>
+                                  </div>
+                                  {guest.name && (
+                                    <p
+                                      className="text-default"
+                                      data-testid={`pending-guest-email-${guest.email}`}>
+                                      {guest.email}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
                             </div>
                           </>
                         )}
