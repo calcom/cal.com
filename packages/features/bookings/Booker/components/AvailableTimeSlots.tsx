@@ -84,8 +84,6 @@ export const AvailableTimeSlots = ({
   const [layout] = useBookerStoreContext((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-  // Keep tentativeSelectedTimeslots in the destructure to preserve state shape
-  // but prefix it with an underscore to satisfy the linter for unused vars.
   const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots: _tentativeSelectedTimeslots } =
     useBookerStoreContext((state) => ({
       setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
