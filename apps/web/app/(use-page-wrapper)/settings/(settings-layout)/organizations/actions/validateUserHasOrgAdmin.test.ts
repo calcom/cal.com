@@ -48,11 +48,7 @@ describe("validateUserHasOrgAdmin", () => {
       name: "Test User",
       org: {
         id: 456,
-        name: "Test Org",
         slug: "test-org",
-        logoUrl: null,
-        fullDomain: "test-org.cal.com",
-        domainSuffix: "cal.com",
         role: MembershipRole.ADMIN,
       },
       profile: {
@@ -99,11 +95,7 @@ describe("validateUserHasOrgAdmin", () => {
           name: "Test User",
           org: {
             id: 456,
-            name: "Test Org",
             slug: "test-org",
-            logoUrl: null,
-            fullDomain: "test-org.cal.com",
-            domainSuffix: "cal.com",
             role: MembershipRole.OWNER,
           },
           profile: {
@@ -220,11 +212,7 @@ describe("validateUserHasOrgAdmin", () => {
           name: "Test User",
           org: {
             id: 456,
-            name: "Test Org",
             slug: "test-org",
-            logoUrl: null,
-            fullDomain: "test-org.cal.com",
-            domainSuffix: "cal.com",
             role: MembershipRole.MEMBER,
           },
           profile: {
@@ -328,11 +316,7 @@ describe("validateUserHasOrgAdmin", () => {
           name: "Test User",
           org: {
             id: 456,
-            name: "Test Org",
             slug: "test-org",
-            logoUrl: null,
-            fullDomain: "test-org.cal.com",
-            domainSuffix: "cal.com",
             role: MembershipRole.OWNER, // This should be preferred
           },
           profile: {

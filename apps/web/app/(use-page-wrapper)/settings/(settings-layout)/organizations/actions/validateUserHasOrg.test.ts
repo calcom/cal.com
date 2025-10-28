@@ -42,11 +42,7 @@ describe("validateUserHasOrg", () => {
       name: "Test User",
       org: {
         id: 456,
-        name: "Test Org",
         slug: "test-org",
-        logoUrl: null,
-        fullDomain: "test-org.cal.com",
-        domainSuffix: "cal.com",
         role: MembershipRole.ADMIN,
       },
       profile: {
@@ -163,11 +159,7 @@ describe("validateUserHasOrg", () => {
           name: "Test User",
           org: {
             id: 456,
-            name: "Test Org",
             slug: "test-org",
-            logoUrl: null,
-            fullDomain: "test-org.cal.com",
-            domainSuffix: "cal.com",
             role: MembershipRole.ADMIN,
           },
           profile: {

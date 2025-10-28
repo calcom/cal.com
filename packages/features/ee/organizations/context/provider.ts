@@ -13,16 +13,8 @@ export type OrganizationBranding =
   | ({
       /** 1 */
       id: number;
-      /** Acme */
-      name?: string;
       /** acme */
       slug: string;
-      /** logo url */
-      logoUrl?: string | null;
-      /** https://acme.cal.com */
-      fullDomain: string;
-      /** cal.com */
-      domainSuffix: string;
       role: MembershipRole;
     } & z.infer<typeof teamMetadataSchema>)
   | null
