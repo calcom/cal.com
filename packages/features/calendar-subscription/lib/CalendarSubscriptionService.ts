@@ -18,6 +18,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarSubscriptionService"] });
 
 export class CalendarSubscriptionService {
   static CALENDAR_SUBSCRIPTION_CACHE_FEATURE = "calendar-subscription-cache" as const;
+  static CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE = "calendar-subscription-cache-read" as const;
   static CALENDAR_SUBSCRIPTION_SYNC_FEATURE = "calendar-subscription-sync" as const;
 
   constructor(

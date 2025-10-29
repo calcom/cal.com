@@ -57,6 +57,10 @@ export const getCalendar = async (
           credential.userId as number,
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),
+        featuresRepository.checkIfUserHasFeature(
+          credential.userId as number,
+          CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
+        ),
       ]
     );
 
