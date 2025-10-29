@@ -22,12 +22,7 @@ import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
 import { CreationSource, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
-import {
-  userMetadata,
-  orgOnboardingInvitedMembersSchema,
-  orgOnboardingTeamsSchema,
-  teamMetadataStrictSchema,
-} from "@calcom/prisma/zod-utils";
+import { userMetadata, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
@@ -47,10 +42,6 @@ import type {
 } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["BaseOnboardingService"] });
-const _invitedMembersSchema = orgOnboardingInvitedMembersSchema;
-const _teamsSchema = orgOnboardingTeamsSchema;
-
-type _OrgOwner = Awaited<ReturnType<typeof findUserToBeOrgOwner>>;
 
 export abstract class BaseOnboardingService implements IOrganizationOnboardingService {
   protected user: OnboardingUser;
