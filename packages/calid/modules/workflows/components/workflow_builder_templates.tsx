@@ -51,7 +51,8 @@ export const WorkflowBuilderTemplates = ({ templates, teamId }: WorkflowBuilderT
       case WorkflowActions.SMS_ATTENDEE:
         return "message-square";
       case WorkflowActions.WHATSAPP_ATTENDEE:
-        return "message-circle";
+        return "message-square";
+        // return "message-circle";
       default:
         return "workflow";
     }
@@ -61,11 +62,11 @@ export const WorkflowBuilderTemplates = ({ templates, teamId }: WorkflowBuilderT
     switch (actionType) {
       case WorkflowActions.EMAIL_ATTENDEE:
       case WorkflowActions.EMAIL_HOST:
-        return "turquoise";
+        return "green";
       case WorkflowActions.SMS_ATTENDEE:
         return "orange";
       case WorkflowActions.WHATSAPP_ATTENDEE:
-        return "green";
+        return "orange";
       default:
         return "blue";
     }
@@ -105,8 +106,8 @@ export const WorkflowBuilderTemplates = ({ templates, teamId }: WorkflowBuilderT
                     className="h-10 w-10 p-2"
                   />
                 </div>
-                <h3 className="mb-2 text-center text-sm font-medium">{template.name}</h3>
-                <p className="text-subtle text-center text-xs font-semibold">{template.description}</p>
+                <h3 className="mb-2 text-center text-md font-medium">{template.name}</h3>
+                <p className="text-subtle text-center text-sm font-normal">{template.description}</p>
                 <Button
                   onClick={() => {
                     handleWorkflowCreate(template);
@@ -123,7 +124,7 @@ export const WorkflowBuilderTemplates = ({ templates, teamId }: WorkflowBuilderT
             <div className="flex-1" />
             <Button
               onClick={() => handleWorkflowCreate(null)}
-              className="mx-auto mt-10 hidden items-center justify-center md:flex"
+              className="mx-auto px-12 text-sm mt-10 hidden items-center justify-center md:flex"
               StartIcon="plus"
               variant="button"
               color="primary">
