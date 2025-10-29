@@ -45,26 +45,43 @@ export const getCalendar = async (
   // check if Calendar Cache is supported and enabled
   if (CalendarCacheEventService.isCalendarTypeSupported(calendarType)) {
     log.debug(
-      `Using regular CalendarService for credential ${credential.id} (not Google or Office365 Calendar)`
+      `Calendar Cache is supported for credential ${credential.id}, checking feature flags`
     );
     const featuresRepository = new FeaturesRepository(prisma);
-    const [
-      isCalendarSubscriptionCacheEnabled,
-      isCalendarSubscriptionCacheEnabledForUser,
-      isCalendarSubscriptionCacheEnabledReadForUser,
-    ] = await Promise.all([
-      featuresRepository.checkIfFeatureIsEnabledGlobally(
+    
+    let isCalendarSubscriptionCacheEnabledForUser: boolean;
+    let isCalendarSubscriptionCacheEnabledReadForUser: boolean;
+    
+    if (credential.teamId) {
+      [isCalendarSubscriptionCacheEnabledForUser, isCalendarSubscriptionCacheEnabledReadForUser] =
+        await Promise.all([
+          featuresRepository.checkIfTeamHasFeatureDirect(
+            credential.teamId,
+            CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+          ),
+          featuresRepository.checkIfTeamHasFeatureDirect(
+            credential.teamId,
+            CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
+          ),
+        ]);
+    } else {
+      [isCalendarSubscriptionCacheEnabledForUser, isCalendarSubscriptionCacheEnabledReadForUser] =
+        await Promise.all([
+          featuresRepository.checkIfUserHasFeature(
+            credential.userId as number,
+            CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+          ),
+          featuresRepository.checkIfUserHasFeature(
+            credential.userId as number,
+            CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
+          ),
+        ]);
+    }
+
+    const isCalendarSubscriptionCacheEnabled =
+      await featuresRepository.checkIfFeatureIsEnabledGlobally(
         CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-      ),
-      featuresRepository.checkIfUserHasFeature(
-        credential.userId as number,
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-      ),
-      featuresRepository.checkIfUserHasFeature(
-        credential.userId as number,
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
-      ),
-    ]);
+      );
 
     if (
       isCalendarSubscriptionCacheEnabled &&

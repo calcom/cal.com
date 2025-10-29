@@ -283,4 +283,29 @@ export class FeaturesRepository implements IFeaturesRepository {
       throw err;
     }
   }
+
+  /**
+   * Checks if a specific team has access to a feature (non-hierarchical).
+   * Only checks the team itself, not its ancestors or descendants.
+   * @param teamId - The ID of the team to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the team has the feature directly assigned, false otherwise
+   * @throws Error if the database query fails
+   */
+  async checkIfTeamHasFeatureDirect(teamId: number, slug: string): Promise<boolean> {
+    try {
+      const teamHasFeature = await this.prismaClient.teamFeatures.findUnique({
+        where: {
+          teamId_featureId: {
+            teamId,
+            featureId: slug,
+          },
+        },
+      });
+      return Boolean(teamHasFeature);
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }
