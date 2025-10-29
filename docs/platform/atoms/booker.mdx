@@ -122,6 +122,342 @@ For a demonstration of the booker atom along with calendar overlay, please refer
 
 <p></p>
 
+## Advanced usage patterns
+
+### Prefilling booking form data
+
+You can prefill booking form fields using the `defaultFormValues` prop:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  defaultFormValues={{
+    firstName: "Jane",
+    lastName: "Doe",
+    email: "jane@example.com",
+    guests: ["guest1@example.com", "guest2@example.com"],
+    notes: "Looking forward to our meeting",
+    // Any custom field can be prefilled
+    customField: "custom value"
+  }}
+/>
+```
+
+### Rescheduling bookings
+
+To enable rescheduling, pass the `rescheduleUid` or `bookingUid`:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  rescheduleUid="abc123"
+  onCreateBookingSuccess={(data) => {
+    console.log("Booking rescheduled:", data);
+  }}
+/>
+```
+
+### Custom start time
+
+Control the first available date shown to users with the `startTime` prop:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  startTime="2025-08-20"
+  // or startTime={new Date("2025-08-20")}
+/>
+```
+
+### Handling booking state changes
+
+Monitor the booker's internal state with `onBookerStateChange`:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  onBookerStateChange={(state) => {
+    console.log("Current state:", state.state); // "loading" | "selecting_date" | "selecting_time" | "booking"
+    console.log("Selected date:", state.selectedDate);
+    console.log("Selected timeslot:", state.selectedTimeslot);
+    console.log("Form values:", state.formValues);
+  }}
+/>
+```
+
+### Custom metadata
+
+Pass custom metadata to track booking sources or additional context:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  metadata={{
+    bookingSource: "website",
+    userRole: "admin",
+    campaignId: "summer-2024",
+    referrer: "google-ads"
+  }}
+/>
+```
+
+### Timezone restrictions
+
+Limit available timezones for the booker:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  timeZones={["Asia/Kolkata", "Europe/London", "America/New_York"]}
+/>
+```
+
+### Handling slot reservation
+
+Monitor slot reservation events:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  onReserveSlotSuccess={(data) => {
+    console.log("Slot reserved:", data);
+  }}
+  onReserveSlotError={(error) => {
+    console.error("Failed to reserve slot:", error);
+  }}
+  onDeleteSlotSuccess={() => {
+    console.log("Slot released");
+  }}
+  onDeleteSlotError={(error) => {
+    console.error("Failed to release slot:", error);
+  }}
+/>
+```
+
+### Custom location URL
+
+Override the default meeting link with a custom URL:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  locationUrl="https://custom-meeting-platform.com/room/abc123"
+/>
+```
+
+### Instant meetings
+
+Enable instant meeting mode:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  isInstantMeeting={true}
+  onCreateInstantBookingSuccess={(data) => {
+    console.log("Instant meeting created:", data);
+  }}
+/>
+```
+
+### Dry run mode
+
+Test booking flows without creating actual bookings:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  isBookingDryRun={true}
+  onDryRunSuccess={() => {
+    console.log("Dry run completed successfully");
+  }}
+/>
+```
+
+### Handling timeslot loading
+
+Execute logic when available timeslots are loaded:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  onTimeslotsLoaded={(slots) => {
+    console.log("Available slots:", slots);
+    // slots is a Record<string, Slot[]> where keys are dates
+  }}
+/>
+```
+
+### CRM integration
+
+Integrate with CRM systems for routing and tracking:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  teamMemberEmail="assigned-rep@company.com"
+  crmAppSlug="salesforce"
+  crmOwnerRecordType="Lead"
+  crmRecordId="00Q5e00000ABC123"
+/>
+```
+
+### Routing form integration
+
+Pass routing form parameters for advanced routing:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  routingFormSearchParams="?field1=value1&field2=value2"
+/>
+```
+
+### Controlling URL parameters
+
+By default, the booker doesn't update URL parameters in platform mode. Enable this behavior:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  allowUpdatingUrlParams={true}
+/>
+```
+
+### Disabling the confirm button
+
+Conditionally disable the booking confirmation button:
+
+```js
+const [isProcessing, setIsProcessing] = useState(false);
+
+<Booker
+  eventSlug="30min"
+  username="john"
+  confirmButtonDisabled={isProcessing}
+/>
+```
+
+### Hiding event metadata
+
+Hide the left sidebar containing event details:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  hideEventMetadata={true}
+/>
+```
+
+### Round robin configuration
+
+For round robin team events, hide organization and team information:
+
+```js
+<Booker
+  eventSlug="30min"
+  isTeamEvent={true}
+  teamId={123}
+  roundRobinHideOrgAndTeam={true}
+/>
+```
+
+### Handling calendar failures silently
+
+Display slots even when third-party calendar credentials are invalid:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  silentlyHandleCalendarFailures={true}
+/>
+```
+
+<Note>
+When `silentlyHandleCalendarFailures` is enabled, the booker may show stale availability if calendar credentials are expired or invalid.
+</Note>
+
+### Custom event meta children
+
+Inject custom React components into the event metadata section:
+
+```js
+<Booker
+  eventSlug="30min"
+  username="john"
+  eventMetaChildren={
+    <div className="custom-meta">
+      <p>Custom information here</p>
+    </div>
+  }
+/>
+```
+
+### Complete example with all callbacks
+
+```js
+import { Booker } from "@calcom/atoms";
+import { useState } from "react";
+
+export default function CompleteBookerExample() {
+  const [bookingData, setBookingData] = useState(null);
+
+  return (
+    <Booker
+      eventSlug="30min"
+      username="john"
+      view="WEEK_VIEW"
+      defaultFormValues={{
+        firstName: "Jane",
+        lastName: "Doe",
+        email: "jane@example.com"
+      }}
+      metadata={{
+        source: "website",
+        campaign: "summer-2024"
+      }}
+      onCreateBookingSuccess={(data) => {
+        console.log("Booking created:", data);
+        setBookingData(data);
+      }}
+      onCreateBookingError={(error) => {
+        console.error("Booking failed:", error);
+      }}
+      onReserveSlotSuccess={(data) => {
+        console.log("Slot reserved:", data);
+      }}
+      onBookerStateChange={(state) => {
+        console.log("Booker state changed:", state);
+      }}
+      onTimeslotsLoaded={(slots) => {
+        console.log("Timeslots loaded:", Object.keys(slots).length, "days");
+      }}
+      customClassNames={{
+        bookerContainer: "rounded-lg shadow-lg",
+        datePickerCustomClassNames: {
+          datePickerDatesActive: "bg-blue-500"
+        }
+      }}
+    />
+  )
+}
+```
+
 We offer all kinds of customizations to the booker atom via props and customClassNames.
 
 Below is a list of props that can be passed to the booker atom.
