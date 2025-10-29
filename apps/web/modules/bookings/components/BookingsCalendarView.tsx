@@ -77,7 +77,7 @@ export function BookingsCalendarView({
           end: new Date(booking.endTime),
           options: {
             status: booking.status,
-            ...(eventTypeColor && { borderColor: eventTypeColor }),
+            ...(eventTypeColor && { color: eventTypeColor }),
           },
         };
       });

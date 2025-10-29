@@ -61,10 +61,10 @@ export function Event({
           }),
           options?.className
         )}>
-        {options?.borderColor && (
+        {options?.color && (
           <div
             className="-ml-1.5 mr-1.5 h-full w-[3px] shrink-0"
-            style={{ backgroundColor: options.borderColor }}></div>
+            style={{ backgroundColor: options.color }}></div>
         )}
         <div className={classNames("flex", eventDuration > 30 && "flex-col py-1")}>
           <div
