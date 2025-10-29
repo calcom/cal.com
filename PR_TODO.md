@@ -5,9 +5,6 @@ This PR resolves authentication and calendar synchronization issues with Exchang
 
 ## Related Issues
 - [ ] **TODO: Link this PR to all relevant issue numbers for bounty consideration**
-- Issue #XXX: Exchange authentication error with delegation credentials
-- Issue #YYY: Calendar cache not working with delegation
-- Issue #ZZZ: Batch processing fails for new delegated members
 
 ## Key Fixes Implemented
 1. **Exchange Delegation Credential Handling**: Fixed authentication flow to properly handle delegation credentials
@@ -21,6 +18,7 @@ This PR resolves authentication and calendar synchronization issues with Exchang
 
 ### 1. Exchange Delegation Authentication
 **Test Scenario**: Verify delegation credentials authenticate correctly
+
 - [ ] Enable Exchange calendar integration with delegation credentials
 - [ ] Verify successful authentication without errors
 - [ ] Check that delegated calendars appear in available calendars list
@@ -49,55 +47,43 @@ This PR resolves authentication and calendar synchronization issues with Exchang
 ### 3. Credential Enabling/Disabling
 **Test Scenario**: Test credential lifecycle management
 
-#### 3a. Disabling Delegation
-- [ ] Start with active delegation credential
-- [ ] Disable delegation credential in settings
-- [ ] Verify associated credentials are deleted from database
-- [ ] Confirm related SelectedCalendar entries are cleaned up
-- [ ] Check that calendar cache entries are invalidated/removed
+- [ ] Enable delegation for a calendar
+- [ ] Verify credential is stored correctly with delegation settings
+- [ ] Disable delegation
+- [ ] Confirm credential is properly removed/cleaned up
+- [ ] Re-enable and verify credential is recreated correctly
 
-#### 3b. Re-enabling Delegation
-- [ ] Re-enable delegation after disabling
-- [ ] Verify fresh credential creation
-- [ ] Confirm new CalendarCache entries with correct userId
-- [ ] Test that calendars sync properly after re-enabling
+**Expected Result**: Credentials are properly managed through enable/disable cycles
 
-**Expected Result**: Credentials are properly created/deleted based on delegation state
+### 4. Batch Member Processing
+**Test Scenario**: Verify all delegated members are processed beyond batch size
 
-### 4. Batch Processing for Delegated Calendars
-**Test Scenario**: Verify all members are processed regardless of batch size
+- [ ] Add >25 members to a delegated calendar (beyond typical batch size)
+- [ ] Trigger batch processing
+- [ ] Verify ALL members are processed, not just first batch
+- [ ] Check logs for continuation of batch processing
+- [ ] Confirm no members are left unprocessed
 
-#### Setup
-- Create Exchange calendar with delegation enabled
-- Add members exceeding the batch size limit (typically 50+)
+**Expected Result**: All members are processed regardless of batch size limits
 
-#### Tests
-- [ ] Process initial batch of members
-- [ ] Verify second batch is triggered automatically
-- [ ] Confirm all members beyond batch size are processed
-- [ ] Check logs for batch processing completion messages
-- [ ] Verify no members are skipped or missed
-- [ ] Test with varying member counts: 49, 50, 51, 100, 150
+### 5. Multi-User Scenarios
+**Test Scenario**: Test delegation with multiple users
 
-**Expected Result**: All members are processed successfully, including those beyond the initial batch size
+- [ ] Set up delegation for User A
+- [ ] Set up delegation for User B using same Exchange account
+- [ ] Verify cache entries are user-specific (userId populated)
+- [ ] Confirm no cache collision between users
+- [ ] Test calendar sync for both users independently
 
-### 5. Integration & Regression Tests
-**Test Scenario**: Ensure fixes don't break existing functionality
+**Expected Result**: Each user's delegation works independently without interference
 
-- [ ] Test non-delegated Exchange calendars still work
-- [ ] Verify Google Calendar integration unaffected
-- [ ] Test Outlook/Office 365 calendar integration
-- [ ] Confirm calendar sync for regular (non-delegated) accounts
-- [ ] Check that existing calendar cache continues working
-- [ ] Test multi-calendar scenarios (mixed delegation and non-delegation)
+### 6. Edge Cases
+**Test Scenario**: Validate handling of edge cases
 
-### 6. Edge Cases & Error Handling
-**Test Scenarios**: Validate robustness
-
-- [ ] Test with invalid/expired delegation credentials
-- [ ] Verify graceful handling of network timeouts
-- [ ] Test rapid enable/disable toggling of delegation
-- [ ] Check behavior with missing/corrupted cache entries
+- [ ] Test with invalid delegation credentials
+- [ ] Verify graceful error handling
+- [ ] Test with expired tokens
+- [ ] Confirm token refresh works correctly
 - [ ] Test with zero members in delegated calendar
 - [ ] Verify handling of partially failed batch processing
 
@@ -117,10 +103,12 @@ This PR resolves authentication and calendar synchronization issues with Exchang
 
 ### Issue: Exchange Auth Error with Delegation
 **Root Cause**: Authentication flow didn't properly handle delegation-specific token management
+
 **Resolution**: Updated auth flow to use delegation-aware token handling and proper scope management
 
 ### Issue: Calendar Cache Not Working with Delegation
 **Root Cause**: CalendarCache entries lacked userId, causing cache misses/collisions with delegation
+
 **Resolution**: 
 - Always use SelectedCalendar.credentialId for CalendarCache
 - Populate userId in cache entries to prevent cross-user conflicts
@@ -128,6 +116,7 @@ This PR resolves authentication and calendar synchronization issues with Exchang
 
 ### Issue: Batch Processing Incomplete
 **Root Cause**: Batch processing logic stopped after first batch without processing remaining members
+
 **Resolution**: Implemented continuation logic to process all batches until all members are handled
 
 ---
