@@ -764,8 +764,6 @@ export class BookingsService_2024_08_13 {
     authUser: AuthOptionalUser
   ) {
     try {
-      await this.canRescheduleBooking(bookingUid);
-
       const isIndividualSeatRequest = this.isRescheduleSeatedBody(body);
       const isIndividualSeatReschedule = await this.shouldRescheduleIndividualSeat(
         bookingUid,
@@ -779,6 +777,9 @@ export class BookingsService_2024_08_13 {
         body,
         isIndividualSeatReschedule
       );
+
+      await this.canRescheduleBooking(bookingUid);
+
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
