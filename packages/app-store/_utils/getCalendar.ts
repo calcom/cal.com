@@ -48,23 +48,29 @@ export const getCalendar = async (
       `Using regular CalendarService for credential ${credential.id} (not Google or Office365 Calendar)`
     );
     const featuresRepository = new FeaturesRepository(prisma);
-    const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
-      [
-        featuresRepository.checkIfFeatureIsEnabledGlobally(
-          CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-        ),
-        featuresRepository.checkIfUserHasFeature(
-          credential.userId as number,
-          CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-        ),
-        featuresRepository.checkIfUserHasFeature(
-          credential.userId as number,
-          CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
-        ),
-      ]
-    );
+    const [
+      isCalendarSubscriptionCacheEnabled,
+      isCalendarSubscriptionCacheEnabledForUser,
+      isCalendarSubscriptionCacheEnabledReadForUser,
+    ] = await Promise.all([
+      featuresRepository.checkIfFeatureIsEnabledGlobally(
+        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+      ),
+      featuresRepository.checkIfUserHasFeature(
+        credential.userId as number,
+        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+      ),
+      featuresRepository.checkIfUserHasFeature(
+        credential.userId as number,
+        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
+      ),
+    ]);
 
-    if (isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser) {
+    if (
+      isCalendarSubscriptionCacheEnabled &&
+      isCalendarSubscriptionCacheEnabledForUser &&
+      isCalendarSubscriptionCacheEnabledReadForUser
+    ) {
       log.debug(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalCalendar = new CalendarService(credential as any);
