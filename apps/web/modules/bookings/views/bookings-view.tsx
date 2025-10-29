@@ -41,6 +41,7 @@ type BookingsProps = {
   permissions: {
     canReadOthersBookings: boolean;
   };
+  isCalendarViewEnabled: boolean;
 };
 
 function useSystemSegments(userId?: number) {
@@ -90,8 +91,10 @@ const viewParser = createParser({
   serialize: (value: "list" | "calendar") => value,
 });
 
-function BookingsContent({ status, permissions }: BookingsProps) {
-  const [view] = useQueryState("view", viewParser.withDefault("list"));
+function BookingsContent({ status, permissions, isCalendarViewEnabled }: BookingsProps) {
+  const [_view] = useQueryState("view", viewParser.withDefault("list"));
+  // Force view to be "list" if calendar view is disabled
+  const view = isCalendarViewEnabled ? _view : "list";
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
