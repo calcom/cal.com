@@ -25,6 +25,11 @@ export type AppFlags = {
   "restriction-schedule": boolean;
   "team-booking-page-cache": boolean;
   "cal-ai-voice-agents": boolean;
+  "tiered-support-chat": boolean;
+  "calendar-subscription-cache": boolean;
+  "calendar-subscription-sync": boolean;
+  "onboarding-v3": boolean;
+  "booker-botid": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

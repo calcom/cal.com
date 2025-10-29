@@ -16,6 +16,7 @@ export const ENDPOINTS = [
   "deploymentSetup",
   "dsync",
   "eventTypes",
+  "eventTypesHeavy",
   "features",
   "i18n",
   "insights",

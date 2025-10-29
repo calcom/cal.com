@@ -24,6 +24,11 @@ const initialData: AppFlags = {
   "restriction-schedule": false,
   "team-booking-page-cache": false,
   "cal-ai-voice-agents": false,
+  "tiered-support-chat": false,
+  "calendar-subscription-cache": false,
+  "calendar-subscription-sync": false,
+  "onboarding-v3": false,
+  "booker-botid": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

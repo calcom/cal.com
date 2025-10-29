@@ -13,6 +13,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import {
@@ -21,17 +22,13 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import {
-  SMS_REMINDER_NUMBER_FIELD,
-  SystemField,
-  TITLE_FIELD,
-} from "@calcom/features/bookings/lib/SystemField";
+import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
-import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
+import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE_FIELD } from "@calcom/lib/bookings/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
-import type { nameObjectSchema } from "@calcom/lib/event";
-import { getEventName } from "@calcom/lib/event";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -45,7 +42,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -142,6 +139,7 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
+  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
 
   const attendees = bookingInfo?.attendees;
 
@@ -299,6 +297,12 @@ export default function Success(props: PageProps) {
     if (isCancelled) {
       return "";
     }
+    if (isAwaitingPayment && !isCancelled) {
+      return t("complete_your_booking_subject", {
+        title: eventName,
+        date: formatToLocalizedDate(date, undefined, "long", tz),
+      });
+    }
     if (needsConfirmation) {
       if (props.profile.name !== null) {
         return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
@@ -377,12 +381,18 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
+  const _canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
+    if (isAwaitingPayment && !isCancelled) {
+      return props.paymentStatus?.paymentOption === "HOLD"
+        ? t("meeting_awaiting_payment_method")
+        : t("meeting_awaiting_payment");
+    }
+
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
     }
@@ -481,14 +491,18 @@ export default function Success(props: PageProps) {
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
-                          !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
+                          !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
+                            ? "bg-success"
+                            : "",
+                          !giphyImage && isReschedulable && (needsConfirmation || isAwaitingPayment)
+                            ? "bg-subtle"
+                            : "",
                           isCancelled ? "bg-error" : ""
                         )}>
-                        {!giphyImage && !needsConfirmation && isReschedulable && (
+                        {!giphyImage && !needsConfirmation && !isAwaitingPayment && isReschedulable && (
                           <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
-                        {needsConfirmation && isReschedulable && (
+                        {(needsConfirmation || isAwaitingPayment) && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
                         )}
                         {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
@@ -555,7 +569,9 @@ export default function Success(props: PageProps) {
                             <div className="font-medium">
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
-                            <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                            <div className="col-span-2 mb-6 last:mb-0">
+                              <p className="break-words">{cancellationReason}</p>
+                            </div>
                           </>
                         )}
                         {isCancelled && bookingInfo?.cancelledBy && (
@@ -578,7 +594,7 @@ export default function Success(props: PageProps) {
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
-                        <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
+                        <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
                           {isRoundRobin ? bookingInfo.title : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
@@ -695,7 +711,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="break-words">{bookingInfo.description}</p>
+                              <p className="whitespace-pre-line break-words">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -768,7 +784,6 @@ export default function Success(props: PageProps) {
                             <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
-                                // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
@@ -867,7 +882,10 @@ export default function Success(props: PageProps) {
                               uid: bookingInfo?.uid,
                               title: bookingInfo?.title,
                               id: bookingInfo?.id,
+                              startTime: bookingInfo?.startTime,
+                              payment: props.paymentStatus,
                             }}
+                            eventTypeMetadata={eventType.metadata}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
                             team={eventType?.team?.name}
@@ -1078,7 +1096,8 @@ export default function Success(props: PageProps) {
                       <span className="underline">
                         <a
                           target="_blank"
-                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations">
+                          href="https://cal.com/blog/google-s-new-spam-policy-may-be-affecting-your-invitations"
+                          rel="noreferrer">
                           {t("resolve")}
                         </a>
                       </span>

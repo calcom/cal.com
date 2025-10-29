@@ -11,7 +11,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
@@ -34,13 +33,13 @@ import {
   OrganizerRescheduledEmail,
   OrganizerScheduledEmail,
 } from "@calcom/platform-libraries/emails";
-import {
+import type {
   BookingOutput_2024_08_13,
   CancelBookingInput_2024_08_13,
   CreateBookingInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { User, Team } from "@calcom/prisma/client";
 
 // Mock all email sending prototypes
 jest

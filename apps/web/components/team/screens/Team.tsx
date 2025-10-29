@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { TeamWithMembers } from "@calcom/lib/server/queries/teams";
+import type { TeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 

@@ -20,4 +20,5 @@ export interface IRoleRepository {
     }
   ): Promise<Role>;
   getPermissions(roleId: string): Promise<RolePermission[]>;
+  reassignUsersToRole(fromRoleId: string, toRoleId: string): Promise<void>;
 }

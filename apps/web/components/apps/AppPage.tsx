@@ -3,9 +3,10 @@ import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 
+import { AppDependencyComponent } from "@calcom/app-store/AppDependencyComponent";
+import { InstallAppButton } from "@calcom/app-store/InstallAppButton";
 import { isRedirectApp } from "@calcom/app-store/_utils/redirectApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
 import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
@@ -159,13 +160,21 @@ export const AppPage = ({
     function refactorMeWithoutEffect() {
       const data = appDbQuery.data;
 
-      const credentialsCount = data?.credentials.length || 0;
-      setExistingCredentials(data?.credentials || []);
+      const credentials = data?.credentials || [];
+      setExistingCredentials(credentials);
+
+      const hasPersonalInstall = credentials.some((c) => !!c.userId && !c.teamId);
+      const installedTeamIds = new Set<number>();
+      for (const cred of credentials) {
+        if (cred.teamId) installedTeamIds.add(cred.teamId);
+      }
+
+      const totalInstalledTargets = (hasPersonalInstall ? 1 : 0) + installedTeamIds.size;
 
       const appInstalledForAllTargets =
         availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
-          ? credentialsCount >= data.userAdminTeams.length
-          : credentialsCount > 0;
+          ? totalInstalledTargets >= data.userAdminTeams.length + 1
+          : credentials.length > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
     [appDbQuery.data, availableForTeams]
@@ -243,7 +252,14 @@ export const AppPage = ({
               loading: isLoading,
             };
           }
-          return <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />;
+
+          return (
+            <InstallAppButtonChild
+              credentials={availableForTeams ? undefined : appDbQuery.data?.credentials}
+              paid={paid}
+              {...props}
+            />
+          );
         }}
       />
     );

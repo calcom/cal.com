@@ -1,7 +1,10 @@
+/* eslint-disable */
 require("dotenv").config({ path: "../../.env" });
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
+const { withBotId } = require("botid/next/config");
 const { version } = require("./package.json");
+const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const {
   i18n: { locales },
 } = require("./next-i18next.config");
@@ -116,6 +119,11 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+
+if (process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1") {
+  plugins.push(withBotId);
+}
+
 const orgDomainMatcherConfig = {
   root: nextJsOrgRewriteConfig.disableRootPathRewrite
     ? null
@@ -216,8 +224,6 @@ const nextConfig = (phase) => {
       "@calcom/dayjs",
       "@calcom/emails",
       "@calcom/embed-core",
-      "@calcom/embed-react",
-      "@calcom/embed-snippet",
       "@calcom/features",
       "@calcom/lib",
       "@calcom/prisma",
@@ -253,6 +259,8 @@ const nextConfig = (phase) => {
               /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
           })
         );
+
+        config.plugins = [...config.plugins, new PrismaPlugin()];
 
         config.externals.push("formidable");
       }
@@ -397,7 +405,7 @@ const nextConfig = (phase) => {
       }, */
       ];
 
-      if (Boolean(process.env.NEXT_PUBLIC_API_V2_URL)) {
+      if (process.env.NEXT_PUBLIC_API_V2_URL) {
         afterFiles.push({
           source: "/api/v2/:path*",
           destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
@@ -642,7 +650,7 @@ const nextConfig = (phase) => {
               value: nextJsOrgRewriteConfig.orgHostPath,
             },
           ],
-          destination: "/event-types?openPlain=true",
+          destination: "/event-types?openSupport=true",
           permanent: true,
         },
         {

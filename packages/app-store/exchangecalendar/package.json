@@ -6,12 +6,12 @@
   "main": "./index.ts",
   "description": "Fetch Microsoft Exchange calendars and availabilities using Exchange Web Services (EWS).",
   "dependencies": {
-    "@calcom/lib": "*",
-    "@calcom/prisma": "*",
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*",
     "@ewsjs/xhr": "^3.1.2",
     "ews-javascript-api": "^0.11.0"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "workspace:*"
   }
 }

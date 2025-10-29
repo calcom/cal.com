@@ -1,11 +1,36 @@
 import { v4 as uuidv4 } from "uuid";
 
 import { generateUniqueAPIKey as generateHashedApiKey } from "@calcom/ee/api-keys/lib/apiKeys";
-import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 export class PrismaApiKeyRepository {
-  static async findApiKeysFromUserId({ userId }: { userId: number }) {
-    const apiKeys = await prisma.apiKey.findMany({
+  constructor(private prismaClient: PrismaClient) {}
+
+  static async withGlobalPrisma() {
+    return new PrismaApiKeyRepository((await import("@calcom/prisma")).prisma);
+  }
+
+  async findByHashedKey(hashedKey: string) {
+    return this.prismaClient.apiKey.findUnique({
+      where: { hashedKey },
+      select: {
+        id: true,
+        hashedKey: true,
+        userId: true,
+        expiresAt: true,
+        user: {
+          select: {
+            role: true,
+            locked: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findApiKeysFromUserId({ userId }: { userId: number }) {
+    const apiKeys = await this.prismaClient.apiKey.findMany({
       where: {
         userId,
         OR: [
@@ -29,7 +54,7 @@ export class PrismaApiKeyRepository {
     });
   }
 
-  static async createApiKey({
+  async createApiKey({
     userId,
     teamId,
     note,
@@ -41,7 +66,7 @@ export class PrismaApiKeyRepository {
     expiresAt?: Date | null;
   }) {
     const [hashedApiKey, apiKey] = generateHashedApiKey();
-    await prisma.apiKey.create({
+    await this.prismaClient.apiKey.create({
       data: {
         id: uuidv4(),
         userId,

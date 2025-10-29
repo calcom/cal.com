@@ -2,7 +2,7 @@ import { AtomsWrapper } from "@/components/atoms-wrapper";
 
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import CreateEventTypeForm from "@calcom/features/eventtypes/components/CreateEventTypeForm";
-import { useCreateEventTypeForm } from "@calcom/lib/hooks/useCreateEventType";
+import { useCreateEventTypeForm } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
@@ -77,12 +77,16 @@ export const CreateEventTypePlatformWrapper = ({
   const team = teams?.find((t) => t.id === teamId);
   const { t } = useLocale();
 
+  const permissions = {
+    canCreateEventType: team?.role === "ADMIN" || team?.role === "OWNER",
+  };
+
   return teamId && team ? (
     <AtomsWrapper customClassName={customClassNames?.atomsWrapper}>
       <TeamEventTypeForm
         teamSlug={team?.slug}
         teamId={teamId}
-        isTeamAdminOrOwner={team.role === "ADMIN" || team.role === "OWNER"}
+        permissions={permissions}
         urlPrefix=""
         isPending={createTeamEventTypeQuery.isPending}
         form={form}
