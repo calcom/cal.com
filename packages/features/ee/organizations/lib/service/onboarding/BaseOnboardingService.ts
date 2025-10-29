@@ -219,52 +219,37 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     return this.user.role === UserPermissionRole.ADMIN && this.user.email === input.orgOwnerEmail;
   }
 
+  private async processImageField(
+    value: string | null | undefined,
+    opts?: { maxSize?: number }
+  ): Promise<string | null | undefined> {
+    if (value === undefined) return undefined; // don't touch on update
+    if (value === null) return null; // explicit clear
+
+    const isDataUri = /^data:image\/(png|jpe?g);base64,/i.test(value);
+    if (isDataUri) {
+      const resized = await resizeBase64Image(value, opts);
+      return uploadAvatar({ userId: this.user.id, avatar: resized });
+    }
+
+    const isUrl = /^https?:\/\//i.test(value) || value.startsWith("/api/");
+    if (isUrl) return value;
+
+    return undefined; // invalid string -> don't touch
+  }
+
   protected async processOnboardingBrandAssets(input: {
     logo?: string | null;
     bannerUrl?: string | null;
   }): Promise<{ logo?: string | null; bannerUrl?: string | null }> {
+    const [logo, bannerUrl] = await Promise.all([
+      "logo" in input ? this.processImageField(input.logo) : Promise.resolve(undefined),
+      "bannerUrl" in input ? this.processImageField(input.bannerUrl, { maxSize: 1500 }) : Promise.resolve(undefined),
+    ]);
+
     const result: { logo?: string | null; bannerUrl?: string | null } = {};
-
-    if (input.logo !== undefined) {
-      if (input.logo === null) {
-        result.logo = null;
-      } else if (
-        input.logo.startsWith("data:image/png;base64,") ||
-        input.logo.startsWith("data:image/jpeg;base64,") ||
-        input.logo.startsWith("data:image/jpg;base64,")
-      ) {
-        const resizedLogo = await resizeBase64Image(input.logo);
-        result.logo = await uploadAvatar({
-          userId: this.user.id,
-          avatar: resizedLogo,
-        });
-      } else if (input.logo.startsWith("http") || input.logo.startsWith("/api/")) {
-        result.logo = input.logo;
-      } else {
-        result.logo = undefined;
-      }
-    }
-
-    if (input.bannerUrl !== undefined) {
-      if (input.bannerUrl === null) {
-        result.bannerUrl = null;
-      } else if (
-        input.bannerUrl.startsWith("data:image/png;base64,") ||
-        input.bannerUrl.startsWith("data:image/jpeg;base64,") ||
-        input.bannerUrl.startsWith("data:image/jpg;base64,")
-      ) {
-        const resizedBanner = await resizeBase64Image(input.bannerUrl, { maxSize: 1500 });
-        result.bannerUrl = await uploadAvatar({
-          userId: this.user.id,
-          avatar: resizedBanner,
-        });
-      } else if (input.bannerUrl.startsWith("http") || input.bannerUrl.startsWith("/api/")) {
-        result.bannerUrl = input.bannerUrl;
-      } else {
-        result.bannerUrl = undefined;
-      }
-    }
-
+    if (logo !== undefined) result.logo = logo;
+    if (bannerUrl !== undefined) result.bannerUrl = bannerUrl;
     return result;
   }
 

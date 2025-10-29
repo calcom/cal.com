@@ -1,12 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+vi.mock("@calcom/lib/server/avatar", () => ({
+  uploadAvatar: vi.fn(),
+}));
+vi.mock("@calcom/lib/server/resizeBase64Image", () => ({
+  resizeBase64Image: vi.fn(),
+}));
 
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
+import { uploadAvatar } from "@calcom/lib/server/avatar";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { BaseOnboardingService } from "../BaseOnboardingService";
-import type { CreateOnboardingIntentInput } from "../types";
+import type { CreateOnboardingIntentInput, OnboardingUser, OnboardingIntentResult } from "../types";
 
 class TestableBaseOnboardingService extends BaseOnboardingService {
-  async createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<any> {
+  async createOnboardingIntent(_input: CreateOnboardingIntentInput): Promise<OnboardingIntentResult> {
     throw new Error("Not implemented");
   }
 
@@ -15,6 +24,10 @@ class TestableBaseOnboardingService extends BaseOnboardingService {
     invitedMembers: CreateOnboardingIntentInput["invitedMembers"]
   ) {
     return this.filterTeamsAndInvites(teams, invitedMembers);
+  }
+
+  public testProcessOnboardingBrandAssets(input: { logo?: string | null; bannerUrl?: string | null }) {
+    return this.processOnboardingBrandAssets(input);
   }
 }
 
@@ -28,7 +41,7 @@ const mockUser = {
 describe("BaseOnboardingService", () => {
   describe("filterTeamsAndInvites", () => {
     it("should filter out invites with empty emails", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const invites = [
         { email: "valid@example.com", teamName: "Marketing", role: "MEMBER" },
@@ -59,7 +72,7 @@ describe("BaseOnboardingService", () => {
     });
 
     it("should preserve all fields from invites including role", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const invites = [
         {
@@ -99,7 +112,7 @@ describe("BaseOnboardingService", () => {
     });
 
     it("should handle invites without optional fields", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const invites = [
         { email: "minimal@example.com" },
@@ -127,7 +140,7 @@ describe("BaseOnboardingService", () => {
     });
 
     it("should filter out teams with empty names", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const teams = [
         { id: 1, name: "Marketing", isBeingMigrated: false, slug: null },
@@ -146,7 +159,7 @@ describe("BaseOnboardingService", () => {
     });
 
     it("should preserve team properties including migration status", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const teams = [
         { id: -1, name: "New Team", isBeingMigrated: false, slug: null },
@@ -162,7 +175,7 @@ describe("BaseOnboardingService", () => {
     });
 
     it("should handle empty teams and invites arrays", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const { teamsData, invitedMembersData } = service.testFilterTeamsAndInvites([], []);
 
@@ -171,7 +184,7 @@ describe("BaseOnboardingService", () => {
     });
 
     it("should handle undefined teams and invites", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const { teamsData, invitedMembersData } = service.testFilterTeamsAndInvites(undefined, undefined);
 
@@ -180,7 +193,7 @@ describe("BaseOnboardingService", () => {
     });
 
     it("should preserve invites with teamId=-1 for new teams", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const teams = [
         { id: -1, name: "Marketing", isBeingMigrated: false, slug: null },
@@ -203,7 +216,7 @@ describe("BaseOnboardingService", () => {
     });
 
     it("should handle mixed scenarios with both org-level and team-specific invites", () => {
-      const service = new TestableBaseOnboardingService(mockUser as any);
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
 
       const teams = [
         { id: -1, name: "Marketing", isBeingMigrated: false, slug: null },
@@ -244,6 +257,57 @@ describe("BaseOnboardingService", () => {
         teamName: "Engineering",
         role: "ADMIN",
       });
+    });
+  });
+
+  describe("processOnboardingBrandAssets", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("converts base64 logo and banner to uploaded URLs with correct resize options", async () => {
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
+
+      const logoDataUri = "data:image/jpeg;base64,AAA";
+      const bannerDataUri = "data:image/png;base64,BBB";
+
+      vi.mocked(resizeBase64Image).mockResolvedValueOnce("RESIZED_LOGO");
+      vi.mocked(resizeBase64Image).mockResolvedValueOnce("RESIZED_BANNER");
+      vi.mocked(uploadAvatar).mockResolvedValueOnce("/api/avatar/logo.png");
+      vi.mocked(uploadAvatar).mockResolvedValueOnce("/api/avatar/banner.png");
+
+      const result = await service.testProcessOnboardingBrandAssets({
+        logo: logoDataUri,
+        bannerUrl: bannerDataUri,
+      });
+
+      expect(resizeBase64Image).toHaveBeenCalledTimes(2);
+      expect(resizeBase64Image).toHaveBeenCalledWith(logoDataUri, undefined);
+      expect(resizeBase64Image).toHaveBeenCalledWith(bannerDataUri, { maxSize: 1500 });
+
+      expect(uploadAvatar).toHaveBeenCalledTimes(2);
+      expect(uploadAvatar).toHaveBeenCalledWith({ userId: mockUser.id, avatar: "RESIZED_LOGO" });
+      expect(uploadAvatar).toHaveBeenCalledWith({ userId: mockUser.id, avatar: "RESIZED_BANNER" });
+
+      expect(result).toEqual({
+        logo: "/api/avatar/logo.png",
+        bannerUrl: "/api/avatar/banner.png",
+      });
+    });
+
+    it("respects undefined vs null semantics (no-op vs explicit clear)", async () => {
+      const service = new TestableBaseOnboardingService(mockUser as OnboardingUser);
+
+      const result = await service.testProcessOnboardingBrandAssets({
+        logo: undefined,
+        bannerUrl: null,
+      });
+
+      expect(resizeBase64Image).not.toHaveBeenCalled();
+      expect(uploadAvatar).not.toHaveBeenCalled();
+
+      expect(result).toEqual({ bannerUrl: null });
+      expect(Object.prototype.hasOwnProperty.call(result, "logo")).toBe(false);
     });
   });
 });
