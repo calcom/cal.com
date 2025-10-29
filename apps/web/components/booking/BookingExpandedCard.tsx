@@ -297,7 +297,13 @@ export function BookingExpandedCard(props: BookingItemProps) {
                   <div className="flex flex-col justify-between" key={index}>
                     <div className="text-foreground text-sm font-medium">{label}</div>
                     <div className="text-muted-foreground text-sm">
-                      {Array.isArray(value) ? value.join(", ") : value.toString()}
+                      {Array.isArray(value)
+                        ? value.join(", ")
+                        : typeof value === "boolean"
+                        ? value
+                          ? "Yes"
+                          : "No"
+                        : value.toString()}
                     </div>
                   </div>
                 ))}
