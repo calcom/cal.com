@@ -90,7 +90,6 @@ test.describe("Organization", () => {
 
     // This test is already covered by booking.e2e.ts where existing user is invited and his booking links are tested.
     // We can re-test here when we want to test some more scenarios.
-
     test("existing user invited to an organization", () => {});
 
     test("nonexisting user invited to a Team inside organization", async ({
@@ -460,7 +459,7 @@ test.describe("Organization", () => {
       await page.locator('[data-testid="fixed-hosts-select"]').click();
       await page.locator(`text="${invitedUserEmail}"`).click();
       await page.locator('[data-testid="update-eventtype"]').click();
-      await page.waitForResponse("/api/trpc/eventTypes/heavy/update?batch=1");
+      await page.waitForResponse("/api/trpc/eventTypesHeavy/update?batch=1");
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
       await doOnOrgDomain(

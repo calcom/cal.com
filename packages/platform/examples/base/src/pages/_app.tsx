@@ -83,7 +83,11 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <div className={`${poppins.className} text-black`}>
       {options.length > 0 && (
-        <Select defaultValue={selectedUser} onChange={setSelectedUser} options={options} />
+        <Select
+          defaultValue={options.find((opt: TUser | null) => opt?.email.includes("lauris"))}
+          onChange={(opt: TUser | null) => setSelectedUser(opt)}
+          options={options}
+        />
       )}
       <CalProvider
         accessToken={accessToken}

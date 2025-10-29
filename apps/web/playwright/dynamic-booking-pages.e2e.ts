@@ -113,7 +113,7 @@ test("multiple duration selection updates event length correctly", async ({ page
     await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     await page.fill('[name="eventName"]', "{Event duration} event btwn {Organiser} {Scheduler}");
     await page.locator('[data-testid="update-eventtype"]').click();
-    await page.waitForResponse("/api/trpc/eventTypes/heavy/update?batch=1");
+    await page.waitForResponse("/api/trpc/eventTypesHeavy/update?batch=1");
   });
 
   await page.goto(`/${user.username}/multiple-duration`);
@@ -193,9 +193,7 @@ test.describe("Organization:", () => {
         });
         await expect(page.getByTestId("success-page")).toBeVisible();
         // All the teammates should be in the booking
-
         await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
-
         await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
       }
     );

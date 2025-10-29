@@ -94,11 +94,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       workflows,
       hashedLink,
       destinationCalendar,
-
       id: _id,
-
       webhooks: _webhooks,
-
       schedule: _schedule,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema

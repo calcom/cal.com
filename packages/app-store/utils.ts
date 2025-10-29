@@ -57,7 +57,6 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
       const credential = {
         id: 0,
         type: appMeta.type,
-
         key: appMeta.key!,
         userId: 0,
         user: { email: "" },

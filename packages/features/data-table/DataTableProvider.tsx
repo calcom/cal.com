@@ -3,7 +3,6 @@
 import type { SortingState, OnChangeFn, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
 import debounce from "lodash/debounce";
 import isEqual from "lodash/isEqual";
-import { usePathname } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useState, createContext, useCallback, useEffect, useRef, useMemo } from "react";
 
@@ -77,9 +76,9 @@ export type DataTableContextType = {
 export const DataTableContext = createContext<DataTableContextType | null>(null);
 
 interface DataTableProviderProps {
-  useSegments?: UseSegments;
-  tableIdentifier?: string;
+  tableIdentifier: string;
   children: React.ReactNode;
+  useSegments?: UseSegments;
   ctaContainerClassName?: string;
   defaultPageSize?: number;
   segments?: FilterSegmentOutput[];
@@ -89,7 +88,7 @@ interface DataTableProviderProps {
 }
 
 export function DataTableProvider({
-  tableIdentifier: _tableIdentifier,
+  tableIdentifier,
   children,
   useSegments = useSegmentsNoop,
   defaultPageSize = DEFAULT_PAGE_SIZE,
@@ -99,10 +98,8 @@ export function DataTableProvider({
   preferredSegmentId,
   systemSegments,
 }: DataTableProviderProps) {
-  const pathname = usePathname() as string | null;
-  const tableIdentifier = _tableIdentifier ?? pathname ?? undefined;
-  if (!tableIdentifier) {
-    throw new Error("tableIdentifier is required");
+  if (!tableIdentifier.trim()) {
+    throw new Error("tableIdentifier is required and cannot be empty");
   }
 
   const filterToOpen = useRef<string | undefined>(undefined);
