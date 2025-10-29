@@ -72,7 +72,7 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const { data: query, setQuery: setTypedQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue } =
     useTypedQuery(filterQuerySchema);
 
-  const selectedTeamIds = query.calIdTeamIds ?? [];
+  const selectedTeamIds = query.teamIds ?? [];
   const selectedUserId = (query.userIds && query.userIds[0]) ?? null;
 
   const queryRes = trpc.viewer.appRoutingForms.calid_forms.useQuery({
@@ -86,6 +86,9 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
   const [selectTeamDialogState, setSelectTeamDialogState] = useState<SelectTeamDialogState>(null);
+
+  // Force remount of TeamsFilter on hard resets to immediately reflect UI state
+  const [teamsFilterKey, setTeamsFilterKey] = useState(0);
 
   const forms = queryRes.data?.filtered;
   const _features = [
@@ -161,11 +164,16 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
           <div className="mb-2 flex flex-row justify-between">
             {teams && teams.length > 0 && (
               <TeamsFilter
+                key={teamsFilterKey}
                 selectedTeamIds={selectedTeamIds}
                 selectedUserId={selectedUserId}
                 onAllChange={() => {
-                  removeByKey("calIdTeamIds");
+                  // Reset all supported filter keys to truly show "all"
+                  removeByKey("teamIds");
                   removeByKey("userIds");
+                  removeByKey("upIds");
+                  removeByKey("calIdTeamIds");
+                  setTeamsFilterKey((k) => k + 1);
                 }}
                 onUserChange={(userId) => {
                   if (userId) {
@@ -176,9 +184,9 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
                 }}
                 onTeamChange={(teamIds) => {
                   if (teamIds.length > 0) {
-                    setTypedQuery("calIdTeamIds", teamIds);
+                    setTypedQuery("teamIds", teamIds);
                   } else {
-                    removeByKey("calIdTeamIds");
+                    removeByKey("teamIds");
                   }
                 }}
               />

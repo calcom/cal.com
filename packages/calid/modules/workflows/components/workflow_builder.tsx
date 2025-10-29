@@ -187,9 +187,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
       { enabled: !isPendingWorkflow }
     );
 
+  const prevEventTypeDataRef = useRef();
+  useEffect(() => {
+    prevEventTypeDataRef.current = eventTypeData;
+  }, [eventTypeData]);
+
   // Process event type options
   const allEventTypeOptions = useMemo(() => {
-    let options = eventTypeData?.eventTypeOptions ?? [];
+    let options = [...(eventTypeData?.eventTypeOptions ?? [])];
 
     if (!teamId && isMixedEventType && isInitialLoadRef.current) {
       const distinctEventTypes = new Set(options.map((opt) => opt.value));
@@ -198,7 +203,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     }
 
     return options;
-  }, [eventTypeData?.eventTypeOptions, teamId, isMixedEventType, selectedOptions]);
+  }, [eventTypeData, teamId, isMixedEventType, selectedOptions]);
+
+  useEffect(() => {
+    if (eventTypeData?.eventTypeOptions) {
+      dataLoadedRef.current = false;
+      setFormData();
+    }
+  }, [eventTypeData?.eventTypeOptions]);
 
   const teamOptions = useMemo(() => eventTypeData?.teamOptions ?? [], [eventTypeData?.teamOptions]);
 
@@ -438,6 +450,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           }) || [];
 
         // Use form.reset to set all values at once
+
         form.reset({
           name: workflowDataInput.name,
           steps: processedSteps,
@@ -502,23 +515,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   // Watch the activeOn field
   const activeOnValue = form.watch("activeOn");
 
-  // Store previous value in useRef
-  const prevActiveOnRef = useRef(activeOnValue);
-
-  useEffect(() => {
-    if (prevActiveOnRef.current !== activeOnValue) {
-      // Values differ, run your logic here
-      console.log("activeOn changed from", prevActiveOnRef.current, "to", activeOnValue);
-
-      if (prevActiveOnRef.current?.length === 0 && activeOnValue?.length > 0) {
-        handleSaveWorkflow();
-      }
-
-      // Update previous value
-      prevActiveOnRef.current = activeOnValue;
-    }
-  }, [activeOnValue]);
-
   // Load initial data only once
   useEffect(() => {
     if (!isPendingWorkflow && workflowData && !dataLoadedRef.current) {
@@ -534,11 +530,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   }, [workflowName]);
 
   useEffect(() => {
-    if (selectedOptions.length > 0) {
+    if (selectedOptions?.length > 0) {
       setShowTriggerSection(true);
       setShowActionsSection(true);
     }
-  }, [selectedOptions]);
+  }, [selectedOptions, isPendingEventTypes]);
 
   // useEffect(() => {
   //   if (trigger && (triggerTiming === "immediately" || (triggerTiming === "custom" && customTime))) {
@@ -585,7 +581,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         return newOptions;
       });
     },
-    [allEventTypeOptions, form]
+    [allEventTypeOptions, form, isPendingEventTypes]
   );
 
   const getNewStep = useCallback(
@@ -805,7 +801,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             triggerTemplateUpdate(stepId);
           }
 
-          console.log("Updated_reminderBody:", updatedStep.reminderBody);
           return updatedStep;
         }
         return step;
@@ -853,10 +848,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     // Get the latest form values - this now has the correct HTML
     const formValues = form.getValues();
     const formSteps = formValues.steps || [];
-    console.log(
-      "formSteps_reminderbody",
-      formSteps.map((s) => s.reminderBody)
-    );
     // Validate and prepare steps
     const validatedSteps = formSteps.map((step, index) => {
       const processedStep = {
@@ -1629,7 +1620,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             setText={(text: string) => {
                                               const stepIndex = steps.findIndex((s) => s.id === step.id);
                                               if (stepIndex !== -1) {
-                                                console.log("Updating step body:", text);
                                                 form.setValue(`steps.${stepIndex}.reminderBody`, text, {
                                                   shouldDirty: true,
                                                   shouldValidate: false,
