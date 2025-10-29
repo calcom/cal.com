@@ -24,9 +24,12 @@ function ConnectAndJoin() {
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
 
   const session = useSession();
-  const isUserPartOfOrg = session.status === "authenticated" && !!session.data.user?.org;
+  console.log("Sessions : ", session);
+  // const isUserPartOfOrg = session.status === "authenticated" && !!session.data.user?.org;
+  const isUserPartOfOrg = session.status === "authenticated";
 
-  const mutation = trpc.viewer.loggedInViewerRouter.connectAndJoin.useMutation({
+  // const mutation = trpc.viewer.loggedInViewerRouter.connectAndJoin.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.calid_connectAndJoin.useMutation({
     onSuccess: (res) => {
       if (res.meetingUrl && !res.isBookingAlreadyAcceptedBySomeoneElse) {
         router.push(res.meetingUrl);
@@ -49,44 +52,47 @@ function ConnectAndJoin() {
   if (!token) return <p>{t("token_not_found")}</p>;
 
   return (
-    <div className="mx-8 mt-12 block items-start sm:flex">
+    // <div className="mx-8 mt-12 block items-start sm:flex">
+    <div className="mx-auto mt-12 flex w-full max-w-4xl items-center justify-center px-4">
       {session ? (
-        <EmptyScreen
-          headline={t("instant_tab_title")}
-          Icon="phone-call"
-          description={t("uprade_to_create_instant_bookings")}
-          buttonRaw={
-            <div className="flex flex-col items-center justify-center	gap-4">
-              {meetingUrl ? (
-                <div className="text-default flex flex-col items-center gap-2 text-center text-sm font-normal">
-                  <ServerTrans
-                    t={t}
-                    i18nKey="some_other_host_already_accepted_the_meeting"
-                    components={[
-                      <Link
-                        key="continue-to-meeting-link"
-                        className="inline-block cursor-pointer underline"
-                        href={meetingUrl}>
-                        Continue to Meeting
-                      </Link>,
-                    ]}
-                  />
-                </div>
-              ) : (
-                <Button
-                  loading={mutation.isPending}
-                  tooltip={isUserPartOfOrg ? t("join_meeting") : t("not_part_of_org")}
-                  disabled={!isUserPartOfOrg}
-                  onClick={() => {
-                    mutation.mutate({ token });
-                  }}>
-                  {t("join_meeting")}
-                </Button>
-              )}
-              {errorMessage && <Alert severity="error" message={errorMessage} />}
-            </div>
-          }
-        />
+        <div className="w-full">
+          <EmptyScreen
+            headline={t("instant_tab_title")}
+            Icon="phone-call"
+            // description={t("uprade_to_create_instant_bookings")}
+            buttonRaw={
+              <div className="flex flex-col items-center justify-center	gap-4">
+                {meetingUrl ? (
+                  <div className="text-default flex flex-col items-center gap-2 text-center text-sm font-normal">
+                    <ServerTrans
+                      t={t}
+                      i18nKey="some_other_host_already_accepted_the_meeting"
+                      components={[
+                        <Link
+                          key="continue-to-meeting-link"
+                          className="inline-block cursor-pointer underline"
+                          href={meetingUrl}>
+                          Continue to Meeting
+                        </Link>,
+                      ]}
+                    />
+                  </div>
+                ) : (
+                  <Button
+                    loading={mutation.isPending}
+                    tooltip={isUserPartOfOrg ? t("join_meeting") : t("not_part_of_org")}
+                    disabled={!isUserPartOfOrg}
+                    onClick={() => {
+                      mutation.mutate({ token });
+                    }}>
+                    {t("join_meeting")}
+                  </Button>
+                )}
+                {errorMessage && <Alert severity="error" message={errorMessage} />}
+              </div>
+            }
+          />
+        </div>
       ) : (
         <div>{t("you_must_be_logged_in_to", { url: WEBAPP_URL })}</div>
       )}

@@ -18,6 +18,17 @@ const WebPushContext = createContext<WebPushContextProps | null>(null);
 interface ProviderProps {
   children: React.ReactNode;
 }
+//check if the user is useing Brave Browser
+export const isBraveBrowser = async (): Promise<boolean> => {
+  if ((navigator as any).brave) {
+    try {
+      return await (navigator as any).brave.isBrave();
+    } catch {
+      return false;
+    }
+  }
+  return false;
+};
 
 export function WebPushProvider({ children }: ProviderProps) {
   const [permission, setPermission] = useState<NotificationPermission>(() =>
@@ -57,6 +68,20 @@ export function WebPushProvider({ children }: ProviderProps) {
       subscribe: async () => {
         try {
           setIsLoading(true);
+          // Check if user is on Brave browser
+          const isBrave = await isBraveBrowser();
+          if (isBrave) {
+            triggerToast("Brave Detected!", "warning");
+            setTimeout(() => {
+              triggerToast(
+                "Enable notifications →Settings →Privacy and security →Site and Shields Settings →Notifications",
+                "warning"
+              );
+            }, 1000);
+            setIsLoading(false);
+            return;
+          }
+
           const newPermission = await Notification.requestPermission();
           setPermission(newPermission);
 
@@ -112,7 +137,7 @@ export function useWebPush() {
 
 const urlB64ToUint8Array = (base64String: string) => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; ++i) {
