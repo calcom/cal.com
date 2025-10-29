@@ -44,7 +44,7 @@ const useBuildHref = () => {
   const buildHref = (childItem: NavigationItemType) => {
     if (
       childItem.preserveQueryParams &&
-      childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current ?? pathname })
+      childItem.preserveQueryParams({ prevPathname: prevPathnameRef.current, nextPathname: childItem.href })
     ) {
       const params = searchParams.toString();
       return params ? `${childItem.href}?${params}` : childItem.href;
@@ -77,7 +77,7 @@ export type NavigationItemType = {
     isChild?: boolean;
     pathname: string | null;
   }) => boolean;
-  preserveQueryParams?: (context: { prevPathname: string | null }) => boolean;
+  preserveQueryParams?: (context: { prevPathname: string | null; nextPathname: string }) => boolean;
 };
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, pathname }) => {
