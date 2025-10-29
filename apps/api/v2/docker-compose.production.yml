@@ -85,7 +85,7 @@ services:
       NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL:-https://api.collegecontactcalendar.com}
 
       LOG_LEVEL: ${LOG_LEVEL:-info} 
-      
+
       # RESEND
       EMAIL_FROM: ${EMAIL_FROM}
       EMAIL_SERVER_HOST: ${EMAIL_SERVER_HOST}
@@ -105,7 +105,11 @@ services:
       # Web Push VAPID Keys (required)
       NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
-      
+    
+      # Logging
+      AXIOM_TOKEN: ${AXIOM_TOKEN}
+      AXIOM_DATASET: ${AXIOM_DATASET}
+
     ports:
       - "127.0.0.1:5555:80"
     networks:
