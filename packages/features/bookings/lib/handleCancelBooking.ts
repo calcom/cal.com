@@ -244,7 +244,6 @@ async function handler(input: CancelBookingInput) {
     autoRefund,
     fromApi,
     cancelledDates, //  Array of ISO date strings for specific instances to cancel
-    // deleteType, //  "instance" or "series"
   } = bookingCancelInput.parse(body);
   const bookingToDelete = await getBookingToDelete(id, uid);
   const deleteType = cancelledDates && cancelledDates.length > 0 ? "instance" : "series";

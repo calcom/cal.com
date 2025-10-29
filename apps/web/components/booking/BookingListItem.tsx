@@ -35,6 +35,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
@@ -49,6 +50,7 @@ import { showToast } from "@calcom/ui/toast";
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
 import { CancelInstancesDialog } from "@components/booking/CancelInstancesDialog";
+import { RescheduleInstanceDialog } from "@components/booking/RescheduleInstanceDialog";
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { BookingCancelDialog } from "@components/dialog/BookingCancelDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -316,6 +318,7 @@ export default function BookingListItem(booking: BookingItemProps) {
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
   const [isCancelInstanceDialogOpen, setIsCancelInstanceDialogOpen] = useState(false);
+  const [isRescheduleInstanceDialogOpen, setIsRescheduleInstanceDialogOpen] = useState(false);
 
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
@@ -462,7 +465,7 @@ export default function BookingListItem(booking: BookingItemProps) {
     }
   };
 
-  const showCancelInstanceAction =
+  const showCancelOrModifyInstanceAction =
     isRecurring &&
     isConfirmed &&
     isTabRecurring &&
@@ -519,7 +522,7 @@ export default function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenAddGuestsDialog}
         bookingId={booking.id}
       />
-      {showCancelInstanceAction && (
+      {showCancelOrModifyInstanceAction && (
         <CancelInstancesDialog
           isOpenDialog={isCancelInstanceDialogOpen}
           setIsOpenDialog={setIsCancelInstanceDialogOpen}
@@ -529,6 +532,18 @@ export default function BookingListItem(booking: BookingItemProps) {
           userTimeFormat={userTimeFormat ?? 24}
           onSubmitCancelInstances={handleCancelInstances}
           recurringEvent={parsedBooking.metadata?.recurringEvent as RecurringEvent}
+        />
+      )}
+      {showCancelOrModifyInstanceAction && (
+        <RescheduleInstanceDialog
+          isOpen={isRescheduleInstanceDialogOpen}
+          setIsOpen={setIsRescheduleInstanceDialogOpen}
+          recurringEvent={parsedBooking.metadata?.recurringEvent as RecurringEvent}
+          eventStartTime={new Date(booking.startTime)}
+          eventType={booking.eventType}
+          bookingUid={booking.uid}
+          userTimeZone={userTimeZone ?? "UTC"}
+          userTimeFormat={userTimeFormat ?? 24}
         />
       )}
       {booking.paid && booking.payment[0] && (
@@ -734,12 +749,21 @@ export default function BookingListItem(booking: BookingItemProps) {
                       </Button>
                     )}
 
-                    {showCancelInstanceAction && (
+                    {showCancelOrModifyInstanceAction && (
                       <Button
                         color="secondary"
                         onClick={() => setIsCancelInstanceDialogOpen(true)}
                         className="flex items-center space-x-2">
                         <span>{t("cancel_instances")}</span>
+                      </Button>
+                    )}
+
+                    {showCancelOrModifyInstanceAction && (
+                      <Button
+                        color="secondary"
+                        onClick={() => setIsRescheduleInstanceDialogOpen(true)}
+                        className="flex items-center space-x-2">
+                        <span>{t("reschedule_instance")}</span>
                       </Button>
                     )}
 

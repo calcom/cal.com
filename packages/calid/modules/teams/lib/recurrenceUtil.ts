@@ -6,8 +6,8 @@
  *
  * @module recurrenceUtils
  */
-import type { Frequency, Weekday, Options } from "rrule";
-import { RRule, RRuleSet, rrulestr } from "rrule";
+import type { Weekday, Options } from "rrule";
+import { RRule, RRuleSet, rrulestr, Frequency } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import type { RecurringEvent } from "@calcom/types/Calendar";
@@ -111,39 +111,6 @@ export const validateAndParseDate = (dateInput: string | Date): Date | null => {
     return null;
   }
 };
-
-// ============================================================================
-// OCCURRENCE GENERATION
-// ============================================================================
-
-/**
- * Generate occurrences within a specific date range
- *
- * @param recurrencePattern - RFC 5545 recurrence pattern
- * @param startTime - Base start time
- * @param rangeStart - Start of the date range
- * @param rangeEnd - End of the date range
- * @returns Array of dates within the specified range
- *
- * @example
- * const pattern = { RRULE: "FREQ=WEEKLY;COUNT=52" };
- * const occurrences = generateRecurringDatesInRange(
- *   pattern,
- *   new Date("2025-01-01"),
- *   new Date("2025-01-01"),
- *   new Date("2025-02-01")
- * );
- * // Returns only occurrences in January 2025
- */
-export function generateRecurringDatesInRange(
-  recurrencePattern: RecurrencePattern,
-  startTime: Date,
-  rangeStart: Date,
-  rangeEnd: Date
-): Date[] {
-  const allDates = generateRecurringDates(recurrencePattern, startTime);
-  return allDates.filter((date) => date >= rangeStart && date <= rangeEnd);
-}
 
 // ============================================================================
 // OCCURRENCE COMPARISON
@@ -627,11 +594,19 @@ export function normalizeDateForComparison(date: Date, timeZone: string): string
  * Generate all recurring instances from an RFC 5545 recurringEvent object
  */
 
-export function generateRecurringInstances(recurringEvent: RecurringEvent, bookingStartTime: Date): Date[] {
+export function generateRecurringInstances(
+  recurringEvent: RecurringEvent,
+  bookingStartTime: Date | string
+): Date[] {
   try {
+    const MAX_OCCURRENCES = 730; // 2 years of daily occurrences
     if (!recurringEvent || typeof recurringEvent.freq === "undefined") {
       console.warn("No valid recurringEvent provided");
       return [];
+    }
+
+    if (typeof bookingStartTime === "string") {
+      bookingStartTime = new Date(bookingStartTime);
     }
     // Map numeric frequency to RRule constants
     const freqMap = getFreqMap();
@@ -652,6 +627,9 @@ export function generateRecurringInstances(recurringEvent: RecurringEvent, booki
       rruleOptions.count = recurringEvent.count;
     } else if (recurringEvent.until) {
       rruleOptions.until = new Date(recurringEvent.until);
+    } else {
+      // Default to MAX_OCCURRENCES if neither count nor until is specified
+      rruleOptions.count = MAX_OCCURRENCES;
     }
 
     const rrule = new RRule(rruleOptions);
@@ -699,4 +677,183 @@ export function formatRecurrenceDate(date: Date): string {
   const second = String(date.getUTCSeconds()).padStart(2, "0");
 
   return `${year}${month}${day}T${hour}${minute}${second}Z`;
+}
+
+/**
+ * Converts your Frequency enum to RRule frequency
+ */
+const frequencyToRRule = (freq: Frequency): RRuleFrequency => {
+  const freqMap: Record<number, RRuleFrequency> = {
+    [Frequency.YEARLY]: RRule.YEARLY,
+    [Frequency.MONTHLY]: RRule.MONTHLY,
+    [Frequency.WEEKLY]: RRule.WEEKLY,
+    [Frequency.DAILY]: RRule.DAILY,
+    [Frequency.HOURLY]: RRule.HOURLY,
+    [Frequency.MINUTELY]: RRule.MINUTELY,
+    [Frequency.SECONDLY]: RRule.SECONDLY,
+  };
+  return freqMap[freq] || RRule.WEEKLY;
+};
+
+/**
+ * Converts weekday strings to RRule weekday objects
+ */
+const weekdayToRRule = (day: string) => {
+  const dayMap: Record<string, any> = {
+    MO: RRule.MO,
+    TU: RRule.TU,
+    WE: RRule.WE,
+    TH: RRule.TH,
+    FR: RRule.FR,
+    SA: RRule.SA,
+    SU: RRule.SU,
+  };
+  return dayMap[day.toUpperCase()];
+};
+
+/**
+ * Ensures the input is a valid Date object
+ */
+const toDate = (date: Date | string | dayjs.Dayjs): Date => {
+  if (date instanceof Date) {
+    return date;
+  }
+  if (dayjs.isDayjs(date)) {
+    return date.toDate();
+  }
+  return dayjs(date).toDate();
+};
+
+/**
+ * Gets the actual first occurrence start time for a recurring event
+ * @param recurringEvent - The recurring event configuration
+ * @param masterStartTime - The master booking start time
+ * @returns The actual first occurrence date/time
+ */
+export const getActualRecurringStartTime = (
+  recurringEvent: RecurringEvent,
+  masterStartTime: Date | string | dayjs.Dayjs
+): Date => {
+  const dtstart = recurringEvent.dtstart ? toDate(recurringEvent.dtstart) : toDate(masterStartTime);
+
+  // Build RRule options
+  const rruleOptions: any = {
+    freq: frequencyToRRule(recurringEvent.freq),
+    dtstart: dtstart,
+    interval: recurringEvent.interval || 1,
+  };
+
+  // Add optional parameters
+  if (recurringEvent.count) {
+    rruleOptions.count = recurringEvent.count;
+  }
+  if (recurringEvent.until) {
+    rruleOptions.until = toDate(recurringEvent.until);
+  }
+  if (recurringEvent.tzid) {
+    rruleOptions.tzid = recurringEvent.tzid;
+  }
+  if (recurringEvent.byDay && recurringEvent.byDay.length > 0) {
+    rruleOptions.byweekday = recurringEvent.byDay.map(weekdayToRRule).filter(Boolean);
+  }
+  if (recurringEvent.byMonthDay && recurringEvent.byMonthDay.length > 0) {
+    rruleOptions.bymonthday = recurringEvent.byMonthDay;
+  }
+  if (recurringEvent.byWeekNo && recurringEvent.byWeekNo.length > 0) {
+    rruleOptions.byweekno = recurringEvent.byWeekNo;
+  }
+  if (recurringEvent.byYearDay && recurringEvent.byYearDay.length > 0) {
+    rruleOptions.byyearday = recurringEvent.byYearDay;
+  }
+  if (recurringEvent.byMonth && recurringEvent.byMonth.length > 0) {
+    rruleOptions.bymonth = recurringEvent.byMonth;
+  }
+  if (recurringEvent.bySetPos && recurringEvent.bySetPos.length > 0) {
+    rruleOptions.bysetpos = recurringEvent.bySetPos;
+  }
+  if (recurringEvent.byHour && recurringEvent.byHour.length > 0) {
+    rruleOptions.byhour = recurringEvent.byHour;
+  }
+  if (recurringEvent.byMinute && recurringEvent.byMinute.length > 0) {
+    rruleOptions.byminute = recurringEvent.byMinute;
+  }
+  if (recurringEvent.bySecond && recurringEvent.bySecond.length > 0) {
+    rruleOptions.bysecond = recurringEvent.bySecond;
+  }
+
+  try {
+    const rrule = new RRule(rruleOptions);
+
+    // Get occurrences (limit to first 100 for performance)
+    let occurrences = rrule.all((date, i) => i < 100);
+
+    // Add rDates if they exist
+    if (recurringEvent.rDates && recurringEvent.rDates.length > 0) {
+      const additionalDates = recurringEvent.rDates.map(toDate);
+      occurrences = [...occurrences, ...additionalDates].sort((a, b) => a.getTime() - b.getTime());
+    }
+
+    // Filter out exDates
+    if (recurringEvent.exDates && recurringEvent.exDates.length > 0) {
+      const exDateTimes = recurringEvent.exDates.map((d) => dayjs(toDate(d)).startOf("day").valueOf());
+      occurrences = occurrences.filter(
+        (occurrence) =>
+          !exDateTimes.some((exDateTime) => dayjs(occurrence).startOf("day").valueOf() === exDateTime)
+      );
+    }
+
+    // Return the first valid occurrence or fallback to master start time
+    return occurrences[0] || toDate(masterStartTime);
+  } catch (error) {
+    console.error("Error generating recurring occurrences:", error);
+    return toDate(masterStartTime);
+  }
+};
+
+export function validateRecurringInstance(
+  recurringEvent: RecurringEvent,
+  instanceDate: Date,
+  bookingStartTime: Date
+): {
+  isValid: boolean;
+  error?: string;
+  isPast?: boolean;
+} {
+  try {
+    // Generate all occurrences
+    const occurrences = generateRecurringInstances(recurringEvent, bookingStartTime);
+
+    if (occurrences.length === 0) {
+      return { isValid: false, error: "No occurrences could be generated from recurring event" };
+    }
+
+    // Check if the instance date matches any occurrence (with 1 minute tolerance for timezone differences)
+    const instanceTime = instanceDate.getTime();
+    const matchingOccurrence = occurrences.find((occurrence) => {
+      const diff = Math.abs(occurrence.getTime() - instanceTime);
+      return diff < 60000; // 1 minute tolerance
+    });
+
+    if (!matchingOccurrence) {
+      return {
+        isValid: false,
+        error: "The specified instance date is not part of the recurring event series",
+      };
+    }
+
+    // Check if the instance is in the past
+    const now = new Date();
+    const isPast = instanceDate < now;
+
+    return {
+      isValid: true,
+      isPast,
+    };
+  } catch (error) {
+    console.error("Error validating recurring instance:", error);
+    return {
+      isValid: false,
+      error: "Failed to validate recurring instance",
+    };
+  }
 }

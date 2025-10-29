@@ -5,6 +5,7 @@
   "cancel_event_instance":"Cancel event instance",
   "cancel_instance_warning":"This will only cancel the selected instance of this recurring event.",
   "after_occurrences":"After a number of occurrences",
+  "reschedule_instance":"Reschedule Instances",
   "cancelled_occurrences": "Cancelled Occurrences",
   "on_specific_date":"On a specific date",
   "ends":"Ends",

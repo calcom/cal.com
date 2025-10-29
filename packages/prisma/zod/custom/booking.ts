@@ -4,6 +4,10 @@ import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 // TODO: Move this out of here. Importing from app-store is a circular package dependency.
 import { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
 
+const rescheduleInstanceSchema = z.object({
+      formerTime: z.string(),
+      newTime: z.string(),
+    });
 export const bookingCreateBodySchema = z.object({
   end: z.string().optional(),
   eventTypeId: z.number(),
@@ -47,11 +51,14 @@ export const bookingCreateBodySchema = z.object({
     utm_term: z.string().optional(),
     utm_content: z.string().optional(),
   }).optional(),
-  dub_id: z.string().nullish()
+  dub_id: z.string().nullish(),
+  //create rescheduleInstance schema from RescheduleInstance interface
+  rescheduleInstance: rescheduleInstanceSchema
+    .optional() 
 });
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
-
+export type RescheduleInstance = z.infer<typeof rescheduleInstanceSchema>;
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),

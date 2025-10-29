@@ -421,6 +421,8 @@ async function handler(
     areCalendarEventsEnabled = true,
   } = input;
 
+  console.log("input.rescheduleInstance", input.bookingData.rescheduleInstance);
+
   /* 
 rawBookingData: {
   responses: {
@@ -469,68 +471,6 @@ rawBookingData: {
     schema: bookingDataSchema,
   });
 
-  /*
-
-  bookingData__ {
-  end: '2025-10-19T20:15:00+05:30',
-  eventTypeId: 3827,
-  eventTypeSlug: 'test',
-  start: '2025-10-19T20:00:00+05:30',
-  timeZone: 'Asia/Calcutta',
-  user: 'arjun',
-  language: 'en',
-  metadata: {},
-  hasHashedBookingLink: false,
-  routedTeamMemberIds: null,
-  skipContactOwner: false,
-  _isDryRun: false,
-  dub_id: null,
-  noEmail: false,
-  allRecurringDates: undefined,
-  currentRecurringIndex: 0,
-  appsStatus: undefined,
-  recurringEvent: { freq: 2, count: 10, interval: 10 },
-  responses: {
-    email: 'arjun@onehash.ai',
-    name: 'Arjun OH',
-    guests: [],
-    location: { optionValue: '', value: 'integrations:google:meet' }
-  },
-  name: 'Arjun OH',
-  email: 'arjun@onehash.ai',
-  attendeePhoneNumber: undefined,
-  guests: [],
-  location: 'integrations:google:meet',
-  smsReminderNumber: undefined,
-  notes: '',
-  calEventUserFieldsResponses: {},
-  rescheduleReason: undefined,
-  calEventResponses: {
-    name: { label: 'your_name', value: 'Arjun OH', isHidden: false },
-    email: {
-      label: 'email_address',
-      value: 'arjun@onehash.ai',
-      isHidden: false
-    },
-    attendeePhoneNumber: { label: 'Phone Number', value: undefined, isHidden: true },
-    location: { label: 'location', value: [Object], isHidden: false },
-    title: {
-      label: 'what_is_this_meeting_about',
-      value: undefined,
-      isHidden: true
-    },
-    notes: { label: 'additional_notes', value: undefined, isHidden: false },
-    guests: { label: 'additional_guests', value: [], isHidden: false },
-    rescheduleReason: {
-      label: 'reason_for_reschedule',
-      value: undefined,
-      isHidden: false
-    }
-  },
-  customInputs: undefined
-}
-   */
-
   const {
     recurringCount,
     noEmail,
@@ -553,7 +493,6 @@ rawBookingData: {
     routingFormResponseId,
     _isDryRun: isDryRun = false,
     _shouldServeCache,
-    recurringEvent,
     ...reqBody
   } = bookingData;
 
