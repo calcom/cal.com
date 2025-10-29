@@ -294,6 +294,8 @@ const WebhookForm = (props: {
     },
   });
 
+  formMethods.register("version");
+
   const showTimeSection = formMethods
     .watch("eventTriggers")
     ?.find(
