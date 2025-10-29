@@ -1,3 +1,4 @@
+import { EmailModule } from "@/modules/email/email.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -9,9 +10,9 @@ import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-me
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, RedisModule, OrganizationsModule, MembershipsModule, TeamsEventTypesModule],
+  imports: [PrismaModule, RedisModule, OrganizationsModule, MembershipsModule, TeamsEventTypesModule, EmailModule],
   providers: [TeamsMembershipsRepository, TeamsMembershipsService],
   controllers: [TeamsMembershipsController],
   exports: [TeamsMembershipsService],
 })
-export class TeamsMembershipsModule {}
+export class TeamsMembershipsModule { }

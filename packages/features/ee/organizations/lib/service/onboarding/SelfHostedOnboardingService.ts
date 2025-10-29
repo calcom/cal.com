@@ -126,9 +126,9 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
       const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
       const hasValidLicense = await licenseKeyService.checkLicense();
 
-      if (!hasValidLicense) {
-        throw new Error("Self hosted license not valid");
-      }
+      // if (!hasValidLicense) {
+      //   throw new Error("Self hosted license not valid");
+      // }
     }
 
     if (

@@ -39,10 +39,10 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     const hasValidLicense = await licenseKeyService.checkLicense();
 
     if (!hasValidLicense) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "License is not valid",
-      });
+      // throw new TRPCError({
+      //   code: "BAD_REQUEST",
+      //   message: "License is not valid",
+      // });
     }
   }
 

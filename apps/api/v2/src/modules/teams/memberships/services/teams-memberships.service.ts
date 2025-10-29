@@ -1,9 +1,14 @@
+import { EmailService } from "@/modules/email/email.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { randomBytes } from "crypto";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TeamService } from "@calcom/platform-libraries";
 
 export const PLATFORM_USER_BEING_ADDED_TO_REGULAR_TEAM_ERROR = `Can't add user to team - the user is platform managed user but team is not because team probably was not created using OAuth credentials.`;
@@ -12,15 +17,107 @@ export const PLATFORM_USER_AND_PLATFORM_TEAM_CREATED_WITH_DIFFERENT_OAUTH_CLIENT
 
 @Injectable()
 export class TeamsMembershipsService {
+  private logger = new Logger("TeamsMembershipsService");
+
   constructor(
     private readonly teamsMembershipsRepository: TeamsMembershipsRepository,
-    private readonly oAuthClientsRepository: OAuthClientRepository
-  ) {}
+    private readonly oAuthClientsRepository: OAuthClientRepository,
+    private readonly prismaRead: PrismaReadService,
+    private readonly prismaWrite: PrismaWriteService,
+    private readonly emailService: EmailService
+  ) { }
 
   async createTeamMembership(teamId: number, data: CreateTeamMembershipInput) {
     await this.canUserBeAddedToTeam(data.userId, teamId);
     const teamMembership = await this.teamsMembershipsRepository.createTeamMembership(teamId, data);
+
+    // Send invitation email to the member
+    try {
+      await this.sendMembershipEmail(teamId, data.userId, data.accepted ?? false);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send membership email for userId ${data.userId} in teamId ${teamId}`,
+        error
+      );
+      // Don't fail the membership creation if email sending fails
+    }
+
     return teamMembership;
+  }
+
+  private async sendMembershipEmail(teamId: number, userId: number, accepted: boolean) {
+    // Fetch team and user information
+    const [team, user] = await Promise.all([
+      this.prismaRead.prisma.team.findUnique({
+        where: { id: teamId },
+        select: {
+          name: true,
+          slug: true,
+          parentId: true,
+          isOrganization: true,
+          parent: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      }),
+      this.prismaRead.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          locale: true,
+        },
+      }),
+    ]);
+
+    if (!team || !user) {
+      this.logger.warn(
+        `Cannot send membership email: team or user not found (teamId: ${teamId}, userId: ${userId})`
+      );
+      return;
+    }
+
+    const isOrg = team.isOrganization && !team.parentId;
+    const isAutoJoin = accepted;
+
+    // Generate join link
+    let joinLink = `${WEBAPP_URL}/auth/login?callbackUrl=/settings/teams`;
+
+    // If not auto-accepted, create a verification token
+    if (!isAutoJoin) {
+      const verificationToken = await this.createVerificationToken(user.email, teamId);
+      joinLink = `${WEBAPP_URL}/teams?token=${verificationToken.token}&autoAccept=true`;
+    }
+
+    // Send the email
+    await this.emailService.sendTeamInviteEmail({
+      to: user.email,
+      teamName: team.name,
+      from: `${team.name}'s admin`,
+      joinLink,
+      isCalcomMember: true,
+      isAutoJoin,
+      isOrg,
+      parentTeamName: team.parent?.name,
+      locale: user.locale,
+    });
+  }
+
+  private async createVerificationToken(identifier: string, teamId: number) {
+    const token = randomBytes(32).toString("hex");
+    return this.prismaWrite.prisma.verificationToken.create({
+      data: {
+        identifier,
+        token,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // +1 week
+        team: {
+          connect: {
+            id: teamId,
+          },
+        },
+      },
+    });
   }
 
   async getPaginatedTeamMemberships(teamId: number, emails?: string[], skip = 0, take = 250) {

@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { EmailService } from "@/modules/email/email.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
@@ -272,6 +273,99 @@ describe("Teams Memberships Endpoints", () => {
           expect(membershipCreatedViaApi.userId).toEqual(teammateInvitedViaApi.id);
           userHasCorrectEventTypes(membershipCreatedViaApi.userId);
         });
+    });
+
+    it("should send team invitation email when creating a membership", async () => {
+      const newInvitedUser = await userRepositoryFixture.create({
+        email: `new-team-member-${randomString()}@api.com`,
+        username: `new-team-member-${randomString()}`,
+      });
+
+      const createTeamMembershipBody: CreateTeamMembershipInput = {
+        userId: newInvitedUser.id,
+        accepted: false, // Not auto-accepted, so should create verification token
+        role: "MEMBER",
+      };
+
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendTeamInviteEmail")
+        .mockImplementation(() => Promise.resolve());
+
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/teams/${team.id}/memberships`)
+        .send(createTeamMembershipBody)
+        .expect(201);
+
+      const responseBody: CreateTeamMembershipOutput = body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+      // Verify email was sent with correct parameters
+      expect(emailSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: newInvitedUser.email,
+          teamName: team.name,
+          from: expect.stringContaining(team.name),
+          isCalcomMember: true,
+          isAutoJoin: false,
+          locale: newInvitedUser.locale,
+        })
+      );
+
+      // Verify joinLink contains a verification token
+      const emailCall = emailSpy.mock.calls[0][0];
+      expect(emailCall.joinLink).toContain("/teams?token=");
+      expect(emailCall.joinLink).toContain("&autoAccept=true");
+
+      emailSpy.mockRestore();
+
+      // Clean up: delete the created membership
+      await membershipsRepositoryFixture.delete(responseBody.data.id);
+    });
+
+    it("should send auto-join email when creating an accepted membership", async () => {
+      const newAutoJoinUser = await userRepositoryFixture.create({
+        email: `auto-join-member-${randomString()}@api.com`,
+        username: `auto-join-member-${randomString()}`,
+      });
+
+      const createTeamMembershipBody: CreateTeamMembershipInput = {
+        userId: newAutoJoinUser.id,
+        accepted: true, // Auto-accepted
+        role: "MEMBER",
+      };
+
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendTeamInviteEmail")
+        .mockImplementation(() => Promise.resolve());
+
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/teams/${team.id}/memberships`)
+        .send(createTeamMembershipBody)
+        .expect(201);
+
+      const responseBody: CreateTeamMembershipOutput = body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+      // Verify email was sent with auto-join flag
+      expect(emailSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: newAutoJoinUser.email,
+          teamName: team.name,
+          from: expect.stringContaining(team.name),
+          isCalcomMember: true,
+          isAutoJoin: true,
+          locale: newAutoJoinUser.locale,
+        })
+      );
+
+      // Verify joinLink for auto-join redirects to settings
+      const emailCall = emailSpy.mock.calls[0][0];
+      expect(emailCall.joinLink).toContain("/auth/login?callbackUrl=/settings/teams");
+
+      emailSpy.mockRestore();
+
+      // Clean up: delete the created membership
+      await membershipsRepositoryFixture.delete(responseBody.data.id);
     });
 
     async function userHasCorrectEventTypes(userId: number) {

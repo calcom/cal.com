@@ -15,6 +15,7 @@ import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-schedule
 import { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
 import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { verifyEmailCodeHandler } from "@calcom/trpc/server/routers/viewer/workflows/verifyEmailCode.handler";
+import { sendTeamInviteEmail } from "@calcom/emails/email-manager";
 
 export { AttendeeVerifyEmail };
 
@@ -49,3 +50,5 @@ export { sendSignupToOrganizationEmail };
 export { sendEmailVerificationByCode };
 
 export { verifyEmailCodeHandler };
+
+export { sendTeamInviteEmail };
