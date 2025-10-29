@@ -74,12 +74,12 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles }) => {
   );
 
   const UserFilterItem = ({ disabled = false }: { disabled?: boolean }) => (
-    <div className="item-center bg-muted  hover:bg-emphasis flex px-4 py-[6px] transition hover:cursor-pointer">
+    <div className="item-center bg-muted hover:bg-emphasis flex px-4 transition hover:cursor-pointer">
       <Avatar imageSrc={userAvatar || ""} size="sm" alt={`${user} Avatar`} className="self-center" asChild />
       <label
         htmlFor="yourWorkflows"
         className="text-default ml-2 mr-auto self-center truncate text-sm font-medium">
-        {(userName) ?? "Personal"}
+        {userName ?? "Personal"}
       </label>
       <input
         id="yourWorkflows"
@@ -113,7 +113,7 @@ export const TeamsFilter: React.FC<TeamsFilterProps> = ({ profiles }) => {
     : t("all");
 
   return (
-    <div className={classNames("-mb-2", hasActiveFilters ? "w-[100px]" : "w-16")}>
+    <div className={classNames(hasActiveFilters ? "w-[100px]" : "w-16")}>
       <AnimatedPopover text={hasActiveFilters ? filterValue : t("all")}>
         <UserFilterItem />
         {teams.map((profile) => (

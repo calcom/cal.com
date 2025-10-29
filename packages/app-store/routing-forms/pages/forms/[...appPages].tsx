@@ -13,10 +13,11 @@ import { useFormContext } from "react-hook-form";
 
 import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
-import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
+import { getTeamsFiltersFromQuery, filterQuerySchema } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import { ArrowButton } from "@calcom/ui/components/arrow-button";
 import { List } from "@calcom/ui/components/list";
@@ -67,6 +68,13 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   }, []);
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
+  // Wire TeamsFilter selection to URL query params
+  const { data: query, setQuery: setTypedQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue } =
+    useTypedQuery(filterQuerySchema);
+
+  const selectedTeamIds = query.teamIds ?? [];
+  const selectedUserId = (query.userIds && query.userIds[0]) ?? null;
+
   const queryRes = trpc.viewer.appRoutingForms.calid_forms.useQuery({
     filters,
   });
@@ -78,6 +86,9 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
   const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
   const [selectTeamDialogState, setSelectTeamDialogState] = useState<SelectTeamDialogState>(null);
+
+  // Force remount of TeamsFilter on hard resets to immediately reflect UI state
+  const [teamsFilterKey, setTeamsFilterKey] = useState(0);
 
   const forms = queryRes.data?.filtered;
   const _features = [
@@ -151,7 +162,35 @@ export default function RoutingForms({ appUrl }: { appUrl: string }) {
         setSelectTeamDialogState={setSelectTeamDialogState}>
         <div className="mb-10 w-full">
           <div className="mb-2 flex flex-row justify-between">
-            {teams && teams.length > 0 && <TeamsFilter />}
+            {teams && teams.length > 0 && (
+              <TeamsFilter
+                key={teamsFilterKey}
+                selectedTeamIds={selectedTeamIds}
+                selectedUserId={selectedUserId}
+                onAllChange={() => {
+                  // Reset all supported filter keys to truly show "all"
+                  removeByKey("teamIds");
+                  removeByKey("userIds");
+                  removeByKey("upIds");
+                  removeByKey("calIdTeamIds");
+                  setTeamsFilterKey((k) => k + 1);
+                }}
+                onUserChange={(userId) => {
+                  if (userId) {
+                    setTypedQuery("userIds", [userId]);
+                  } else {
+                    removeByKey("userIds");
+                  }
+                }}
+                onTeamChange={(teamIds) => {
+                  if (teamIds.length > 0) {
+                    setTypedQuery("teamIds", teamIds);
+                  } else {
+                    removeByKey("teamIds");
+                  }
+                }}
+              />
+            )}
             {forms?.length && <NewFormButton setSelectTeamDialogState={setSelectTeamDialogState} />}
           </div>
           <FilterResults

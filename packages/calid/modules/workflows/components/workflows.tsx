@@ -104,21 +104,21 @@ export const Workflows: React.FC<CalIdWorkflowsProps> = ({ setHeaderMeta, filter
             </div>
           )}
 
-          <BlankCard
+          {/* <BlankCard
             Icon="workflow"
             headline={t("workflows")}
             description={t("no_workflows_description")}
             buttonText={t("create_workflow")}
             buttonOnClick={handleOpenTeamSelectionDialog}
-            buttonRaw={
+            buttonRaw={ */}
               <Button
                 color="primary"
                 onClick={handleOpenTeamSelectionDialog}
                 loading={mutations.create.isPending}>
                 {t("create_workflow")}
               </Button>
-            }
-          />
+            {/* }
+          /> */}
         </div>
       ) : (
         // Workflows display

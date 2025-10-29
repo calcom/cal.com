@@ -32,6 +32,39 @@ export function BookingExpandedCard(props: BookingItemProps) {
   const utils = trpc.useUtils();
   const [showRTE, setShowRTE] = useState(false);
   const { description: additionalNotes, id, startTime, endTime, responses } = props;
+
+  console.log("Responses are: ", responses);
+  console.log("props are: ", props);
+
+  const defaultFields = [
+    "name",
+    "email",
+    // "attendeePhoneNumber",
+    "location",
+    "title",
+    "notes",
+    "guests",
+    "rescheduleReason",
+  ];
+
+  const bookingFields = props.eventType.bookingFields;
+
+  const customFields = {};
+
+  if (responses["attendeePhoneNumber"] !== undefined) {
+    customFields["Phone Number"] = responses["attendeePhoneNumber"];
+  }
+  for (const key in bookingFields) {
+    if (bookingFields[key]?.label && !defaultFields.includes(key)) {
+      // @ts-ignore
+      if (responses[bookingFields[key].name] !== undefined) {
+        customFields[bookingFields[key].label] = responses[bookingFields[key].name];
+      }
+    }
+  }
+
+  console.log("Custom fields are: ", customFields);
+
   const isBookingInPast = new Date(props.endTime) < new Date();
   const parsedMetadata = bookingMetadataSchema.safeParse(props.metadata ?? null);
   const meetingNote =
@@ -257,38 +290,25 @@ export function BookingExpandedCard(props: BookingItemProps) {
                 />
               </div>
             )}
-            {/* Custom Booking Questions */}
-            {props.responses && (() => {
-              const systemFieldsToSkip = ['name', 'email', 'guests', 'notes', 'location', 'rescheduleReason','attendeePhoneNumber'];
 
-              return Object.entries(props.responses)
-                .filter(([name, response]) => {
-
-                  if (!response) return false;
-                  if (systemFieldsToSkip.includes(name)) return false;
-                  if (Array.isArray(response)) return false;
-
-                  return true;
-                })
-                .map(([name, response]) => {
-                  // Format the field name for display
-                  const label = name
-                    .split(/(?=[A-Z])/)
-                    .join(' ')
-                    .replace(/^\w/, (c) => c.toUpperCase()); 
-
-                  return (
-                    <div key={name}>
-                      <div className="text-foreground text-sm font-medium">{label}</div>
-                      <div className="text-muted-foreground text-sm">
-                        {typeof response === 'boolean'
-                          ? (response ? t("yes") : t("no"))
-                          : String(response)}
-                      </div>
+            {Object.keys(customFields).length > 0 && (
+              <div className="mt-2 space-y-3">
+                {Object.entries(customFields).map(([label, value], index) => (
+                  <div className="flex flex-col justify-between" key={index}>
+                    <div className="text-foreground text-sm font-medium">{label}</div>
+                    <div className="text-muted-foreground text-sm">
+                      {Array.isArray(value)
+                        ? value.join(", ")
+                        : typeof value === "boolean"
+                        ? value
+                          ? "Yes"
+                          : "No"
+                        : value.toString()}
                     </div>
-                  );
-                });
-            })()}             
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {props.showExpandedActions && (
