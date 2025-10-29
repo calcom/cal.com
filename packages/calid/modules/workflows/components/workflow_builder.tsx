@@ -620,6 +620,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           timeFormat,
         }).emailSubject;
       }
+
+      return newStep;
     }
   );
 
@@ -644,7 +646,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
     form.setValue("steps", [...currentSteps, newStep], { shouldDirty: true });
 
-    triggerTemplateUpdate(newStep.id);
+    if (newStep.id) {
+      triggerTemplateUpdate(newStep.id);
+    }
   }, [workflowId, i18n.language, t, timeFormat, form, triggerTemplateUpdate]);
 
   const removeAction = useCallback(
@@ -1002,7 +1006,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
   if (isPending) {
-    return <WorkflowBuilderSkeleton />;
+    return (
+      <Shell withoutMain backPath="/workflows">
+        <ShellMain
+          backPath="/workflows"
+          title={t("untitled")}
+          subtitle={t("workflows_edit_description")}
+          heading={
+            <div className="flex">
+              <div className="text-muted">{t("untitled")}</div>
+            </div>
+          }
+          CTA={<div />}>
+          <WorkflowBuilderSkeleton />;
+        </ShellMain>
+      </Shell>
+    );
   }
 
   return (
@@ -1036,7 +1055,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           isAllDataLoaded && (
             <div className="flex">
               <div className={cn(workflowData && !workflowData.name ? "text-muted" : "")}>
-                {workflowData && workflowData.name ? workflowData.name : "untitled"}
+                {workflowData && workflowData.name ? workflowData.name : t("untitled")}
               </div>
               {workflowData && workflowData.calIdTeam && (
                 <Badge className="ml-4 mt-1" variant="default">
@@ -1054,7 +1073,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         {isError ? (
           <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
         ) : (
-          <div className="bg-card flex justify-center p-6 p-8">
+          <div className="bg-card flex justify-center p-0 md:p-14">
             <div className="bg-card mx-auto w-full p-6">
               <div className="mx-auto max-w-2xl space-y-6">
                 <div className="bg-card w-full space-y-6 rounded-lg border p-6">
