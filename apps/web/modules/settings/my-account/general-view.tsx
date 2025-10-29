@@ -2,9 +2,10 @@
 
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -60,8 +61,17 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     i18n: { language },
   } = useLocale();
   const { update } = useSession();
+  const { checkHavePreferedTimezone, removePreferedTimezone } = useTimePreferences();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
   const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
+
+  const initialTimezoneRef = useRef(user.timeZone);
+  useEffect(() => {
+    // Only set it the first time we get a real timezone
+    if (user.timeZone && !initialTimezoneRef.current) {
+      initialTimezoneRef.current = user.timeZone;
+    }
+  }, [user.timeZone]);
 
   const mutation = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async (res) => {
@@ -75,6 +85,18 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       if (res.locale) {
         window.calNewLocale = res.locale;
         document.cookie = `calNewLocale=${res.locale}; path=/`;
+      }
+
+      // when user updates timezone remove preferred timezone so default they see the timezone from user settings
+      if (res.timeZone && res.timeZone !== initialTimezoneRef.current) {
+        if (checkHavePreferedTimezone()) {
+          removePreferedTimezone();
+        }
+      }
+
+      // update the initial timezone ref to new timezone
+      if (res.timeZone) {
+        initialTimezoneRef.current = res.timeZone;
       }
     },
     onError: () => {
