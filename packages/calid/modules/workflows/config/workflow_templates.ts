@@ -92,7 +92,7 @@ export const templates: WorkflowTemplate[] = [
   },
   {
     name: "Email reminder for invitees",
-    description: "Automated attendee email alerts to cut down no-shows",
+    description: "Send Automated attendee email alerts to cut down no-shows",
     actionType: WorkflowActions.EMAIL_ATTENDEE,
     template: WorkflowTemplates.REMINDER,
     triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
@@ -119,7 +119,7 @@ export const templates: WorkflowTemplate[] = [
   },
   {
     name: "WhatsApp reminder for invitees",
-    description: "Automated event reminders sent directly via WhatsApp",
+    description: "Send Automated event reminders sent directly via WhatsApp",
     actionType: WorkflowActions.WHATSAPP_ATTENDEE,
     template: WorkflowTemplates.REMINDER,
     triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
@@ -127,8 +127,8 @@ export const templates: WorkflowTemplate[] = [
     icon: "mail",
   },
   {
-    name: "Cancellation SMS to attendees",
-    description: "SMS updates to notify invitees about event cancellations",
+    name: "Cancellation message for attendees",
+    description: "Send SMS updates to notify invitees about event cancellations",
     actionType: WorkflowActions.SMS_ATTENDEE,
     template: WorkflowTemplates.CANCELLED,
     triggerEvent: WorkflowTriggerEvents.EVENT_CANCELLED,
