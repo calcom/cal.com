@@ -3,6 +3,7 @@ import { captureException } from "@sentry/nextjs";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
+import { isTeamInRollout, isUserInRollout } from "./ab-testing";
 import type { AppFlags, TeamFeatures } from "./config";
 import type { IFeaturesRepository } from "./features.repository.interface";
 
@@ -280,6 +281,164 @@ export class FeaturesRepository implements IFeaturesRepository {
         `Recursive feature check failed for team ${teamId}, feature ${featureId}:`,
         err instanceof Error ? err.message : err
       );
+      throw err;
+    }
+  }
+
+  async checkIfUserIsInFeatureRollout(userId: number, slug: keyof AppFlags): Promise<boolean> {
+    try {
+      const features = await this.getAllFeatures();
+      const feature = features.find((f) => f.slug === slug);
+
+      if (!feature) {
+        // Feature doesn't exist, default to false
+        return false;
+      }
+
+      // If feature is not enabled globally, rollout doesn't apply
+      if (!feature.enabled) {
+        return false;
+      }
+
+      // Use the A/B testing utility with the feature's rollout percentage and salt
+      return isUserInRollout(userId, slug, feature.rolloutPercentage, feature.salt);
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async checkIfUserHasFeatureWithRollout(
+    userId: number,
+    slug: keyof AppFlags,
+    options: { skipRolloutCheck?: boolean } = {}
+  ): Promise<boolean> {
+    try {
+      // First check direct assignments (user or team)
+      const hasDirectAccess = await this.checkIfUserHasFeature(userId, slug);
+      if (hasDirectAccess) return true;
+
+      // If skipRolloutCheck is true, don't check A/B testing
+      if (options.skipRolloutCheck) return false;
+
+      // Check if user is in the A/B test rollout
+      return await this.checkIfUserIsInFeatureRollout(userId, slug);
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  async updateFeatureRollout(slug: keyof AppFlags, rolloutPercentage: number, salt?: string): Promise<void> {
+    try {
+      // Validate rollout percentage
+      if (rolloutPercentage < 0 || rolloutPercentage > 100) {
+        throw new Error("Rollout percentage must be between 0 and 100");
+      }
+
+      const updateData: { rolloutPercentage: number; salt?: string } = {
+        rolloutPercentage,
+      };
+
+      // Only update salt if provided
+      if (salt !== undefined) {
+        updateData.salt = salt;
+      }
+
+      await this.prismaClient.feature.update({
+        where: { slug },
+        data: updateData,
+      });
+
+      // Clear cache when features are modified
+      this.clearCache();
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a team is included in the A/B test rollout for a specific feature.
+   * This method respects the feature's rolloutPercentage and salt for deterministic bucketing.
+   * The same team will always get the same result unless the salt changes.
+   *
+   * @param teamId - The ID of the team to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the team is in the rollout group, false otherwise
+   * @throws Error if the feature check fails
+   *
+   * @example
+   * ```ts
+   * // Check if team 456 is in the rollout for "new-feature"
+   * const isInRollout = await repo.checkIfTeamIsInFeatureRollout(456, "new-feature");
+   * ```
+   */
+  async checkIfTeamIsInFeatureRollout(teamId: number, slug: keyof AppFlags): Promise<boolean> {
+    try {
+      const features = await this.getAllFeatures();
+      const feature = features.find((f) => f.slug === slug);
+
+      if (!feature) {
+        // Feature doesn't exist, default to false
+        return false;
+      }
+
+      // If feature is not enabled globally, rollout doesn't apply
+      if (!feature.enabled) {
+        return false;
+      }
+
+      // Use the A/B testing utility with the feature's rollout percentage and salt
+      return isTeamInRollout(teamId, slug, feature.rolloutPercentage, feature.salt);
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Checks if a team has access to a feature, including A/B test rollout logic.
+   * This is a comprehensive check that includes:
+   * 1. Direct team feature assignments
+   * 2. Parent team-based feature access (hierarchical)
+   * 3. A/B test rollout percentage
+   *
+   * @param teamId - The ID of the team to check
+   * @param slug - The feature identifier to check
+   * @param options - Optional configuration
+   * @param options.skipRolloutCheck - If true, skips the A/B test rollout check (default: false)
+   * @returns Promise<boolean> - True if the team has access to the feature, false otherwise
+   * @throws Error if the feature access check fails
+   *
+   * @example
+   * ```ts
+   * // Full check including rollout
+   * const hasAccess = await repo.checkIfTeamHasFeatureWithRollout(456, "new-feature");
+   *
+   * // Skip rollout check (only check direct/parent assignments)
+   * const hasDirectAccess = await repo.checkIfTeamHasFeatureWithRollout(456, "new-feature", {
+   *   skipRolloutCheck: true
+   * });
+   * ```
+   */
+  async checkIfTeamHasFeatureWithRollout(
+    teamId: number,
+    slug: keyof AppFlags,
+    options: { skipRolloutCheck?: boolean } = {}
+  ): Promise<boolean> {
+    try {
+      // First check direct assignments (team or parent team)
+      const hasDirectAccess = await this.checkIfTeamHasFeature(teamId, slug);
+      if (hasDirectAccess) return true;
+
+      // If skipRolloutCheck is true, don't check A/B testing
+      if (options.skipRolloutCheck) return false;
+
+      // Check if team is in the A/B test rollout
+      return await this.checkIfTeamIsInFeatureRollout(teamId, slug);
+    } catch (err) {
+      captureException(err);
       throw err;
     }
   }

@@ -23,6 +23,7 @@
     "class-variance-authority": "^0.7.1",
     "framer-motion": "^10.12.8",
     "lexical": "^0.9.0",
+    "murmurhash3js-revisited": "^3.0.0",
     "react-select": "^5.7.0",
     "react-sticky-box": "^2.0.4",
     "recharts": "^3.0.2",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@testing-library/react-hooks": "^8.0.1",
+    "@types/murmurhash3js-revisited": "^3.0.3",
     "@types/web-push": "^3.6.3"
   }
 }
