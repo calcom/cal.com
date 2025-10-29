@@ -85,9 +85,14 @@ services:
       NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL:-https://api.collegecontactcalendar.com}
 
       # RESEND
-      EMAIL_FROM: noreply@collegecontactcalendar.com
-      RESEND_API_KEY: ${RESEND_API_KEY}
-
+      EMAIL_FROM: ${EMAIL_FROM}
+      EMAIL_SERVER_HOST: ${EMAIL_SERVER_HOST}
+      EMAIL_SERVER_PORT: ${EMAIL_SERVER_PORT}
+      EMAIL_SERVER_USER: ${EMAIL_SERVER_USER}
+      EMAIL_SERVER_PASSWORD: ${EMAIL_SERVER_PASSWORD}
+      # Will override smtp server settings
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      
       # Stripe (optional)
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
