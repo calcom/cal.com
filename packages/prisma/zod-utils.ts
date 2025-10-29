@@ -798,8 +798,8 @@ export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => 
   const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/i;
 
   /*
-  Valid patterns - [ example, example.anything, anyone@example.anything, EXAMPLE.COM, Example.com ]
-  Note: Validation is case-insensitive; values are normalized to lowercase for matching
+  Valid patterns - [ example, example.anything, anyone@example.anything ]
+  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
 */
 
   const isValid = !allDomains.some((domain) => !regex.test(domain));

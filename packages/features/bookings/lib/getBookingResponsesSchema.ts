@@ -1,4 +1,4 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
@@ -7,6 +7,7 @@ import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
 type CommonParams = { bookingFields: BookingFields; view: View };
@@ -103,9 +104,7 @@ function preprocess<T extends z.ZodType>({
           };
           try {
             parsedValue = JSON.parse(value);
-          } catch {
-            console.warn("Failed to parse radioInput JSON");
-          }
+          } catch (e) {}
           const optionsInputs = field.optionsInputs;
           const optionInputField = optionsInputs?.[parsedValue.value];
           if (optionInputField && optionInputField.type === "phone") {
@@ -186,12 +185,9 @@ function preprocess<T extends z.ZodType>({
             }
 
             // validate the excluded emails
-            const bookerEmail = String(value).trim().toLowerCase();
+            const bookerEmail = value;
             const excludedEmails =
-              bookingField.excludeEmails
-                ?.split(",")
-                .map((domain) => domain.trim().toLowerCase())
-                .filter(Boolean) || [];
+              bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
 
             const match = excludedEmails.find((email) => bookerEmail.includes(email));
             if (match) {
@@ -203,7 +199,7 @@ function preprocess<T extends z.ZodType>({
             const requiredEmails =
               bookingField.requireEmails
                 ?.split(",")
-                .map((domain) => domain.trim().toLowerCase())
+                .map((domain) => domain.trim())
                 .filter(Boolean) || [];
             const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
             if (requiredEmails.length > 0 && !requiredEmailsMatch) {
