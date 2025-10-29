@@ -16,6 +16,7 @@ import {
   AverageEventDurationChart,
   BookingKPICards,
   BookingsByHourChart,
+  CSATOverTimeChart,
   EventTrendsChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
@@ -25,6 +26,7 @@ import {
   MostCancelledBookingsTables,
   MostCompletedTeamMembersTable,
   LeastCompletedTeamMembersTable,
+  NoShowHostsOverTimeChart,
   PopularEventsTable,
   RecentNoShowGuestsChart,
   RecentFeedbackTable,
@@ -102,6 +104,11 @@ function InsightsPageContent() {
         <BookingKPICards />
 
         <EventTrendsChart />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <NoShowHostsOverTimeChart />
+          <CSATOverTimeChart />
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">
