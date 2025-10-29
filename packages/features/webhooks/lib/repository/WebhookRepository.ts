@@ -105,6 +105,7 @@ export class WebhookRepository implements IWebhookRepository {
       time: webhook.time,
       timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers as WebhookTriggerEvents[],
+      version: webhook.version,
     }));
   }
 
@@ -225,6 +226,7 @@ export class WebhookRepository implements IWebhookRepository {
         time: true,
         timeUnit: true,
         eventTriggers: true,
+        version: true,
       },
     });
 
@@ -239,6 +241,7 @@ export class WebhookRepository implements IWebhookRepository {
       time: webhook.time,
       timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers,
+      version: webhook.version,
     };
   }
 
