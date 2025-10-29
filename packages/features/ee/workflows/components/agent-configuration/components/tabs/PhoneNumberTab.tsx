@@ -113,7 +113,7 @@ export function PhoneNumberTab({
     ).length > 0;
 
   const outboundEventTypeId =
-    form?.getValues("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null;
+    form?.watch("trigger") === "FORM_SUBMITTED" ? agentData?.outboundEventTypeId : null;
 
   if (hasActivePhoneNumbers) {
     const activePhoneNumbers = agentData.outboundPhoneNumbers.filter(
