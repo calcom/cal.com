@@ -6,6 +6,7 @@
 export const localStorage = {
   getItem(key: string) {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       return window.localStorage.getItem(key);
     } catch {
       // In case storage is restricted. Possible reasons
@@ -15,6 +16,7 @@ export const localStorage = {
   },
   setItem(key: string, value: string) {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       window.localStorage.setItem(key, value);
     } catch {
       // In case storage is restricted. Possible reasons
@@ -25,6 +27,7 @@ export const localStorage = {
   },
   removeItem: (key: string) => {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       window.localStorage.removeItem(key);
     } catch {
       return;
@@ -40,6 +43,7 @@ export const localStorage = {
 export const sessionStorage = {
   getItem(key: string) {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       return window.sessionStorage.getItem(key);
     } catch {
       // In case storage is restricted. Possible reasons
@@ -49,6 +53,7 @@ export const sessionStorage = {
   },
   setItem(key: string, value: string) {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       window.sessionStorage.setItem(key, value);
     } catch {
       // In case storage is restricted. Possible reasons
@@ -59,6 +64,7 @@ export const sessionStorage = {
   },
   removeItem: (key: string) => {
     try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       window.sessionStorage.removeItem(key);
     } catch {
       return;
