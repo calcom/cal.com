@@ -198,20 +198,6 @@ jobs:
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
-  e2e-reports:
-    name: E2E Test Reports
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store, e2e-atoms]
-    uses: ./.github/workflows/e2e-reports.yml
-    with:
-      pr-number: ${{ github.event.pull_request.number }}
-      head-ref: ${{ github.head_ref }}
-      run-e2e: ${{ needs.check-label.outputs.run-e2e == 'true' }}
-      has-files-requiring-all-checks: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-      pr-merged: ${{ github.event.pull_request.merged == true }}
-      pr-closed: ${{ github.event.pull_request.state == 'closed' }}
-    secrets: inherit
-
   required:
     needs:
       [
