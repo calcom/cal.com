@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 
 import {
@@ -48,12 +47,14 @@ export const roundRobinReassignment = async ({
   emailsEnabled = true,
   platformClientParams,
   reassignedById,
+  reassignReason,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   reassignedById: number;
+  reassignReason?: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
@@ -210,7 +211,7 @@ export const roundRobinReassignment = async ({
 
     const responseSchema = getBookingResponsesSchema({
       bookingFields: eventType.bookingFields,
-      view: "reschedule",
+      view: "booking",
     });
 
     const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
@@ -255,6 +256,8 @@ export const roundRobinReassignment = async ({
         userId: reassignedRRHost.id,
         userPrimaryEmail: reassignedRRHost.email,
         title: newBookingTitle,
+        reassignReason,
+        reassignById: reassignedById,
         idempotencyKey: IdempotencyKeyService.generate({
           startTime: booking.startTime,
           endTime: booking.endTime,
@@ -285,6 +288,7 @@ export const roundRobinReassignment = async ({
 
   await AssignmentReasonRecorder.roundRobinReassignment({
     bookingId,
+    reassignReason,
     reassignById: reassignedById,
     reassignmentType: RRReassignmentType.ROUND_ROBIN,
   });
@@ -341,7 +345,7 @@ export const roundRobinReassignment = async ({
     ...(platformClientParams ? platformClientParams : {}),
   };
 
-  if(hasOrganizerChanged){
+  if (hasOrganizerChanged) {
     // location might changed and will be new created in eventManager.create (organizer default location)
     evt.videoCallData = undefined;
     // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
@@ -416,7 +420,7 @@ export const roundRobinReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
   if (emailsEnabled) {
@@ -431,6 +435,12 @@ export const roundRobinReassignment = async ({
           language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
         },
       ],
+      reassigned: {
+        name: reassignedRRHost.name,
+        email: reassignedRRHost.email,
+        reason: reassignReason,
+        byUser: originalOrganizer.name || undefined,
+      },
     });
   }
 

@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
@@ -155,7 +154,7 @@ export const roundRobinManualReassignment = async ({
     const bookingResponses = booking.responses;
     const responseSchema = getBookingResponsesSchema({
       bookingFields: eventType.bookingFields,
-      view: "reschedule",
+      view: "booking",
     });
     const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
     const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
@@ -312,7 +311,7 @@ export const roundRobinManualReassignment = async ({
     conferenceCredentialId: conferenceCredentialId ?? undefined,
   };
 
-  if( hasOrganizerChanged ){
+  if (hasOrganizerChanged) {
     // location might changed and will be new created in eventManager.create (organizer default location)
     evt.videoCallData = undefined;
     // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
