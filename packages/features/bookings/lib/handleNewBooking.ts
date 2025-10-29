@@ -1118,7 +1118,7 @@ async function handler(
     } else if (organizationDefaultLocation) {
       locationBodyString = organizationDefaultLocation;
     } else {
-      locationBodyString = ""; // Removed
+      locationBodyString = "integrations:daily";
     }
   }
 
