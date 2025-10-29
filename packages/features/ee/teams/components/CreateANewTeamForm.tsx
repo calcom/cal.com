@@ -19,6 +19,8 @@ import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import type { NewTeamFormValues } from "../lib/types";
 
+const slugRegex = new RegExp("^[a-zA-Z0-9-]*$");
+
 interface CreateANewTeamFormProps {
   onCancel: () => void;
   submitLabel: string;
@@ -133,7 +135,13 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
           <Controller
             name="slug"
             control={newTeamFormMethods.control}
-            rules={{ required: t("team_url_required") }}
+            rules={{
+              required: t("team_url_required"),
+              pattern: {
+                value: slugRegex,
+                message: t("url_alphanumeric_invalid"),
+              },
+            }}
             render={({ field: { value } }) => (
               <TextField
                 name="slug"
