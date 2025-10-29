@@ -84,6 +84,8 @@ services:
       WEB_APP_URL: ${WEB_APP_URL:-https://api.collegecontactcalendar.com}
       NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL:-https://api.collegecontactcalendar.com}
 
+      LOG_LEVEL: ${LOG_LEVEL:-info} 
+      
       # RESEND
       EMAIL_FROM: ${EMAIL_FROM}
       EMAIL_SERVER_HOST: ${EMAIL_SERVER_HOST}
