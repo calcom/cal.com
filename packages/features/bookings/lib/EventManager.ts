@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import { cloneDeep, merge } from "lodash";
 import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
@@ -288,23 +288,23 @@ export default class EventManager {
     const evt = processLocation(event);
 
     // Fallback to cal video if no location is set
-    if (!evt.location) {
-      // See if cal video is enabled & has keys
-      const calVideo = await prisma.app.findUnique({
-        where: {
-          slug: "daily-video",
-        },
-        select: {
-          keys: true,
-          enabled: true,
-        },
-      });
+    // if (!evt.location) {
+    //   // See if cal video is enabled & has keys
+    //   const calVideo = await prisma.app.findUnique({
+    //     where: {
+    //       slug: "daily-video",
+    //     },
+    //     select: {
+    //       keys: true,
+    //       enabled: true,
+    //     },
+    //   });
 
-      const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
+    //   const calVideoKeys = calVideoKeysSchema.safeParse(calVideo?.keys);
 
-      if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
-      log.warn("Falling back to cal video as no location is set");
-    }
+    //   if (calVideo?.enabled && calVideoKeys.success) evt["location"] = "integrations:daily";
+    //   log.warn("Falling back to cal video as no location is set");
+    // }
 
     const [mainHostDestinationCalendar] =
       (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
