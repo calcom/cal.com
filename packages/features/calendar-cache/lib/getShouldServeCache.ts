@@ -1,5 +1,5 @@
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
-import { CalendarSubscriptionService } from "calendar-subscription/lib/CalendarSubscriptionService";
+import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 
 export interface ICacheService {
   featuresRepository: IFeaturesRepository;
