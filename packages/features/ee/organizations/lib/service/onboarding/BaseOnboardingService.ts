@@ -14,10 +14,10 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { uploadAvatar } from "@calcom/lib/server/avatar";
+import { uploadLogo } from "@calcom/lib/server/avatar";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
+import { isBase64Image, resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
@@ -228,8 +228,10 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
     const isDataUri = /^data:image\/(png|jpe?g);base64,/i.test(value);
     if (isDataUri) {
+      // Don't upload yet during onboarding - just resize and return base64
+      // Will be uploaded with uploadLogo when organization is created
       const resized = await resizeBase64Image(value, opts);
-      return uploadAvatar({ userId: this.user.id, avatar: resized });
+      return resized;
     }
 
     const isUrl = /^https?:\/\//i.test(value) || value.startsWith("/api/");
@@ -247,10 +249,65 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       "bannerUrl" in input ? this.processImageField(input.bannerUrl, { maxSize: 1500 }) : Promise.resolve(undefined),
     ]);
 
-    const result: { logo?: string | null; bannerUrl?: string | null } = {};
-    if (logo !== undefined) result.logo = logo;
-    if (bannerUrl !== undefined) result.bannerUrl = bannerUrl;
-    return result;
+    return { logo, bannerUrl };
+  }
+
+  private async uploadImageAsset({
+    image,
+    teamId,
+    isBanner = false,
+  }: {
+    image: string;
+    teamId: number;
+    isBanner?: boolean;
+  }): Promise<string> {
+    if (isBase64Image(image)) {
+      return await uploadLogo({
+        logo: image,
+        teamId,
+        isBanner,
+      });
+    }
+
+    return image;
+  }
+
+  protected async uploadOrganizationBrandAssets({
+    logoUrl,
+    bannerUrl,
+    organizationId: number,
+  }: {
+    logoUrl?: string | null;
+    bannerUrl?: string | null;
+    organizationId: number;
+  }): Promise<{
+    logoUrl?: string | null;
+    bannerUrl?: string | null;
+  }> {
+    const uploadedLogoUrl = !!logoUrl ? await this.uploadImageAsset({ image: logoUrl, teamId: organizationId }) : logoUrl;
+
+    const uploadedBannerUrl = !!bannerUrl
+      ? await this.uploadImageAsset({ image: bannerUrl, teamId: organizationId, isBanner: true })
+      : bannerUrl;
+
+    if (uploadedLogoUrl === undefined && uploadedBannerUrl === undefined) {
+      return {
+        logoUrl,
+        bannerUrl,
+      };
+    }
+
+    return await prisma.team.update({
+      where: { id: organizationId },
+      data: {
+        logoUrl: uploadedLogoUrl,
+        bannerUrl: uploadedBannerUrl,
+      },
+      select: {
+        logoUrl: true,
+        bannerUrl: true,
+      },
+    });
   }
 
   protected async createOrganizationWithExistingUserAsOwner({
@@ -290,9 +347,14 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
     try {
       const nonOrgUsername = owner.username || "";
+
+      // Create organization first to get the ID
       const orgCreationResult = await OrganizationRepository.createWithExistingUserAsOwner({
         orgData: {
           ...orgData,
+          // Don't pass brand assets yet - will be uploaded after org is created
+          logoUrl: null,
+          bannerUrl: null,
           ...(canSetSlug ? { slug: orgData.slug } : { slug: null, requestedSlug: orgData.slug }),
         },
         owner: {
@@ -301,9 +363,17 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
           nonOrgUsername,
         },
       });
-      organization = orgCreationResult.organization;
-      const ownerProfile = orgCreationResult.ownerProfile;
 
+      organization = {
+        ...orgCreationResult.organization,
+        ...await this.uploadOrganizationBrandAssets({
+          logoUrl: orgData.logoUrl,
+          bannerUrl: orgData.bannerUrl,
+          organizationId: orgCreationResult.organization.id,
+        })
+      };
+
+      const ownerProfile = orgCreationResult.ownerProfile;
       if (!orgData.isPlatform) {
         await sendOrganizationCreationEmail({
           language: orgOwnerTranslation,
@@ -362,13 +432,27 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     }
 
     const orgCreationResult = await OrganizationRepository.createWithNonExistentOwner({
-      orgData,
+      orgData: {
+        ...orgData,
+        // To be uploaded after org is created
+        logoUrl: null,
+        bannerUrl: null,
+      },
       owner: {
         email: email,
       },
       creationSource: CreationSource.WEBAPP,
     });
-    organization = orgCreationResult.organization;
+
+    organization = {
+      ...orgCreationResult.organization,
+      ...await this.uploadOrganizationBrandAssets({
+        logoUrl: orgData.logoUrl,
+        bannerUrl: orgData.bannerUrl,
+        organizationId: orgCreationResult.organization.id,
+      })
+    };
+
     const { ownerProfile, orgOwner: orgOwnerFromCreation } = orgCreationResult;
     const orgOwner = await findUserToBeOrgOwner(orgOwnerFromCreation.email);
     if (!orgOwner) {
@@ -506,8 +590,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       } else if (member.teamName) {
         targetTeamId = teamNameToId.get(member.teamName.toLowerCase());
         log.debug(
-          `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${
-            targetTeamId || "not found"
+          `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${targetTeamId || "not found"
           }`
         );
       }
@@ -647,3 +730,4 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     });
   }
 }
+
