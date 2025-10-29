@@ -1193,6 +1193,28 @@ export class BookingRepository {
     });
   }
 
+  async findByIdIncludeTracking(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        tracking: true,
+      },
+    });
+  }
+
+  async findByUidIncludeTracking(uid: string) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid,
+      },
+      include: {
+        tracking: true,
+      },
+    });
+  }
+
   async updateBookingAttendees({
     bookingId,
     newAttendees,
