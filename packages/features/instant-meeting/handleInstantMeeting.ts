@@ -319,11 +319,11 @@ async function handler(req: NextApiRequest) {
       token,
       // current time + offset Seconds
       expires: new Date(new Date().getTime() + 1000 * instantMeetingExpiryTimeOffsetInSeconds),
-      team: {
-        connect: {
-          id: eventType.calIdTeam.id || eventType.team.id,
-        },
-      },
+      // team: {
+      //   connect: {
+      //     id: eventType.calIdTeam.id || eventType.team.id,
+      //   },
+      // },
       calIdTeam: {
         connect: {
           id: eventType.calIdTeam.id,
