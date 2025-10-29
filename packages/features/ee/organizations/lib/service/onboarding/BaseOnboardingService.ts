@@ -275,7 +275,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
   protected async uploadOrganizationBrandAssets({
     logoUrl,
     bannerUrl,
-    organizationId: number,
+    organizationId,
   }: {
     logoUrl?: string | null;
     bannerUrl?: string | null;
