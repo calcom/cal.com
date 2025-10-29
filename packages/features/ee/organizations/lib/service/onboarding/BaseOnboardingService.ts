@@ -219,34 +219,13 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     return this.user.role === UserPermissionRole.ADMIN && this.user.email === input.orgOwnerEmail;
   }
 
-  private async processImageField(
-    value: string | null | undefined,
-    opts?: { maxSize?: number }
-  ): Promise<string | null | undefined> {
-    if (value === undefined) return undefined; // don't touch on update
-    if (value === null) return null; // explicit clear
-
-    const isDataUri = /^data:image\/(png|jpe?g);base64,/i.test(value);
-    if (isDataUri) {
-      // Don't upload yet during onboarding - just resize and return base64
-      // Will be uploaded with uploadLogo when organization is created
-      const resized = await resizeBase64Image(value, opts);
-      return resized;
-    }
-
-    const isUrl = /^https?:\/\//i.test(value) || value.startsWith("/api/");
-    if (isUrl) return value;
-
-    return undefined; // invalid string -> don't touch
-  }
-
-  protected async processOnboardingBrandAssets(input: {
+  private async processOnboardingBrandAssets(input: {
     logo?: string | null;
     bannerUrl?: string | null;
   }): Promise<{ logo?: string | null; bannerUrl?: string | null }> {
     const [logo, bannerUrl] = await Promise.all([
-      "logo" in input ? this.processImageField(input.logo) : Promise.resolve(undefined),
-      "bannerUrl" in input ? this.processImageField(input.bannerUrl, { maxSize: 1500 }) : Promise.resolve(undefined),
+      input.logo ? resizeBase64Image(input.logo) : Promise.resolve(input.logo),
+      input.bannerUrl ? resizeBase64Image(input.bannerUrl, { maxSize: 1500 }) : Promise.resolve(input.bannerUrl),
     ]);
 
     return { logo, bannerUrl };
@@ -275,7 +254,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
   protected async uploadOrganizationBrandAssets({
     logoUrl,
     bannerUrl,
-    organizationId: number,
+    organizationId,
   }: {
     logoUrl?: string | null;
     bannerUrl?: string | null;
