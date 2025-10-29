@@ -78,9 +78,10 @@ export function Calendar(props: CalendarComponentProps) {
               <div
                 className={classNames(
                   "bg-default dark:bg-muted ring-muted sticky left-0 z-10 w-16 flex-none ring-1",
-                  borderColor === "subtle" ? "border-subtle border-r" : "border-default border-r",
                   showBorder &&
-                    (borderColor === "subtle" ? "border-subtle border-l" : "border-default border-l")
+                    (borderColor === "subtle"
+                      ? "border-subtle border-l border-r"
+                      : "border-default border-l border-r")
                 )}
               />
               <div
