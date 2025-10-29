@@ -971,6 +971,7 @@ export class EventTypeRepository {
         select: {
           isFixed: true,
           userId: true,
+          groupId: true,
           priority: true,
           weight: true,
           scheduleId: true,
@@ -1132,6 +1133,7 @@ export class EventTypeRepository {
             },
             weight: true,
             priority: true,
+            groupId: true,
             createdAt: true,
           },
         },

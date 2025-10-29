@@ -8,6 +8,12 @@ export class OnboardingPathService {
     return onboardingV3Enabled ? "/onboarding/getting-started" : "/getting-started";
   }
 
+  static async getGettingStartedPathWhenInvited(prisma: PrismaClient): Promise<string> {
+    const featuresRepository = new FeaturesRepository(prisma);
+    const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
+    return onboardingV3Enabled ? "/onboarding/personal/settings" : "/getting-started";
+  }
+
   static async getGettingStartedPathWithParams(
     prisma: PrismaClient,
     queryParams?: Record<string, string>
