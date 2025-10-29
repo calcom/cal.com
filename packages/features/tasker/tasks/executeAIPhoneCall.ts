@@ -38,7 +38,7 @@ function getVariablesFromFormResponse({
   numberToCall,
 }: {
   responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
-  eventTypeId: number;
+  eventTypeId: number | null;
   numberToCall: string;
 }) {
   const submittedEmail = getSubmitterEmail(responses);
@@ -48,7 +48,7 @@ function getVariablesFromFormResponse({
     ATTENDEE_NAME: submittedName || "",
     ATTENDEE_EMAIL: submittedEmail || "",
     NUMBER_TO_CALL: numberToCall,
-    eventTypeId,
+    eventTypeId: eventTypeId?.toString() || "",
   };
 }
 
@@ -91,7 +91,7 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
       .tz(attendee?.timeZone || timeZone)
       .format("h:mm A"),
     // DO NOT REMOVE THIS FIELD. It is used for conditional tool routing in prompts
-    eventTypeId: booking.eventTypeId,
+    eventTypeId: booking.eventTypeId?.toString() || "",
     // Include any custom form responses
     ...Object.fromEntries(
       Object.entries(responses || {}).map(([key, value]) => [
@@ -197,7 +197,7 @@ export async function executeAIPhoneCall(payload: string) {
       ATTENDEE_EMAIL: string;
       ATTENDEE_NAME: string;
       NUMBER_TO_CALL: string;
-      eventTypeId: number | null;
+      eventTypeId: string;
     } & Partial<ReturnType<typeof getVariablesFromBooking>>;
 
     // Prefer response variables if present, else fall back to booking
@@ -229,7 +229,7 @@ export async function executeAIPhoneCall(payload: string) {
     const aiService = createDefaultAIPhoneServiceProvider();
 
     await aiService.updateToolsFromAgentId(data.providerAgentId, {
-      eventTypeId: dynamicVariables.eventTypeId,
+      eventTypeId: dynamicVariables.eventTypeId ? Number(dynamicVariables.eventTypeId) : null,
       timeZone: dynamicVariables.TIMEZONE || "UTC",
       userId: data.userId,
       teamId: data.teamId,
