@@ -143,6 +143,71 @@ export class FeaturesRepository implements IFeaturesRepository {
   }
 
   /**
+   * Checks if a specific user has access to a feature (non-hierarchical).
+   * Checks both direct user feature assignments and direct team membership (without traversing parent teams).
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user has access to the feature, false otherwise
+   * @throws Error if the feature access check fails
+   */
+  async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
+    try {
+      // First check if user has the feature directly assigned
+      const userHasFeature = await this.prismaClient.userFeatures.findFirst({
+        where: {
+          userId,
+          featureId: slug,
+        },
+      });
+      if (userHasFeature) return true;
+
+      // Check if user belongs to any team (directly) that has the feature
+      const userBelongsToTeamWithFeature = await this.checkIfUserBelongsToTeamWithFeatureDirect(
+        userId,
+        slug
+      );
+      if (userBelongsToTeamWithFeature) return true;
+
+      return false;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Private helper method to check if a user belongs to any team (directly) that has access to a feature.
+   * Only checks teams the user is directly a member of, does not traverse parent teams.
+   * @param userId - The ID of the user to check
+   * @param slug - The feature identifier to check
+   * @returns Promise<boolean> - True if the user belongs to a team with the feature, false otherwise
+   * @throws Error if the team feature check fails
+   * @private
+   */
+  private async checkIfUserBelongsToTeamWithFeatureDirect(
+    userId: number,
+    slug: string
+  ): Promise<boolean> {
+    try {
+      const query = Prisma.sql`
+        SELECT 1
+        FROM "Membership" m
+        JOIN "TeamFeatures" tf ON tf."teamId" = m."teamId"
+        WHERE m."userId" = ${userId}
+          AND m.accepted = true
+          AND tf."featureId" = ${slug}
+        LIMIT 1;
+      `;
+
+      const result = await this.prismaClient.$queryRaw<unknown[]>(query);
+      return result.length > 0;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
    * Private helper method to check if a user belongs to any team that has access to a feature.
    * @param userId - The ID of the user to check
    * @param slug - The feature identifier to check

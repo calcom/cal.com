@@ -48,40 +48,23 @@ export const getCalendar = async (
       `Calendar Cache is supported for credential ${credential.id}, checking feature flags`
     );
     const featuresRepository = new FeaturesRepository(prisma);
-    
-    let isCalendarSubscriptionCacheEnabledForUser: boolean;
-    let isCalendarSubscriptionCacheEnabledReadForUser: boolean;
-    
-    if (credential.teamId) {
-      [isCalendarSubscriptionCacheEnabledForUser, isCalendarSubscriptionCacheEnabledReadForUser] =
-        await Promise.all([
-          featuresRepository.checkIfTeamHasFeatureDirect(
-            credential.teamId,
-            CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-          ),
-          featuresRepository.checkIfTeamHasFeatureDirect(
-            credential.teamId,
-            CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
-          ),
-        ]);
-    } else {
-      [isCalendarSubscriptionCacheEnabledForUser, isCalendarSubscriptionCacheEnabledReadForUser] =
-        await Promise.all([
-          featuresRepository.checkIfUserHasFeature(
-            credential.userId as number,
-            CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-          ),
-          featuresRepository.checkIfUserHasFeature(
-            credential.userId as number,
-            CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
-          ),
-        ]);
-    }
-
-    const isCalendarSubscriptionCacheEnabled =
-      await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    const [
+      isCalendarSubscriptionCacheEnabled,
+      isCalendarSubscriptionCacheEnabledForUser,
+      isCalendarSubscriptionCacheEnabledReadForUser,
+    ] = await Promise.all([
+      featuresRepository.checkIfFeatureIsEnabledGlobally(
         CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-      );
+      ),
+      featuresRepository.checkIfUserHasFeatureNonHierarchical(
+        credential.userId as number,
+        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+      ),
+      featuresRepository.checkIfUserHasFeatureNonHierarchical(
+        credential.userId as number,
+        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
+      ),
+    ]);
 
     if (
       isCalendarSubscriptionCacheEnabled &&
