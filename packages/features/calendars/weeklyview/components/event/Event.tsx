@@ -69,7 +69,7 @@ export function Event({
         <div className={classNames("flex", eventDuration > 30 && "flex-col py-1")}>
           <div
             className={classNames(
-              "flex w-full gap-2 overflow-ellipsis whitespace-nowrap text-left leading-4",
+              "flex w-full gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
               eventDuration <= 30 && "items-center"
             )}>
             <span>{event.title}</span>
