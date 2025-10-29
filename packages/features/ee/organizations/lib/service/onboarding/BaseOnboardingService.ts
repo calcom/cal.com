@@ -240,15 +240,15 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     teamId: number;
     isBanner?: boolean;
   }): Promise<string> {
-    if (isBase64Image(image)) {
-      return await uploadLogo({
-        logo: image,
-        teamId,
-        isBanner,
-      });
+    if (!isBase64Image(image)) {
+      return image;
     }
 
-    return image;
+    return await uploadLogo({
+      logo: image,
+      teamId,
+      isBanner,
+    });
   }
 
   protected async uploadOrganizationBrandAssets({
