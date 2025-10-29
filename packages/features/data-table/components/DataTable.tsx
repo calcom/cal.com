@@ -23,8 +23,8 @@ import {
 
 import { useColumnSizingVars } from "../hooks";
 import { useColumnResizing } from "../hooks/useColumnResizing";
-import type { SeparatorRow } from "../types";
-import { isSeparatorRow } from "../types";
+import type { SeparatorRow } from "../lib/separator";
+import { isSeparatorRow } from "../lib/separator";
 
 export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
