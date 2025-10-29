@@ -129,43 +129,19 @@ const triggerBrowserNotifications = async (args: {
     },
   });
 
-  console.log("📋 Found subscribers:", subscribers.length);
-  console.log(
-    "👥 Subscriber details:",
-    JSON.stringify(
-      subscribers.map((s) => ({
-        userId: s.user?.id,
-        hasSubscription: !!s.user?.NotificationsSubscriptions?.[0],
-        subscriptionPreview: s.user?.NotificationsSubscriptions?.[0]?.subscription?.substring(0, 50),
-      })),
-      null,
-      2
-    )
-  );
-
   const promises = subscribers.map((sub) => {
     const subscription = sub.user?.NotificationsSubscriptions?.[0]?.subscription;
 
-    console.log(`📬 Processing notification for user ${sub.user?.id}:`, {
-      hasSubscription: !!subscription,
-    });
-
     if (!subscription) {
-      console.log(`⚠️ No subscription found for user ${sub.user?.id}`);
       return Promise.resolve();
     }
-
-    if (!subscription) return Promise.resolve();
 
     const parsedSubscription = subscriptionSchema.safeParse(JSON.parse(subscription));
 
     if (!parsedSubscription.success) {
       logger.error("Invalid subscription", parsedSubscription.error, JSON.stringify(sub.user));
-      console.log(`❌ Invalid subscription for user ${sub.user?.id}:`, parsedSubscription.error);
       return Promise.resolve();
     }
-
-    console.log(`✅ Sending notification to user ${sub.user?.id}`);
 
     return sendNotification({
       subscription: {
@@ -180,14 +156,7 @@ const triggerBrowserNotifications = async (args: {
       url: connectAndJoinUrl,
       type: "INSTANT_MEETING",
       requireInteraction: false,
-    })
-      .then(() => {
-        console.log(`✅ Notification sent successfully to user ${sub.user?.id}`);
-      })
-      .catch((err) => {
-        console.error(`❌ Failed to send notification to user ${sub.user?.email}:`, err);
-        throw err; // Re-throw to see in Promise.allSettled
-      });
+    });
   });
 
   await Promise.allSettled(promises);
@@ -205,10 +174,6 @@ export type HandleInstantMeetingResponse = {
 async function handler(req: NextApiRequest) {
   let eventType = await getEventTypesFromDB(req.body.eventTypeId);
   // const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
-  console.log("Raw eventType keys:", Object.keys(eventType));
-  console.log("eventType.calIdTeam:", eventType.calIdTeam);
-  console.log("eventType.team:", eventType.team);
-  console.log("parent Id : ", eventType.calIdTeam?.parentId);
 
   const isOrgTeamEvent = !!eventType?.calIdTeam && !!eventType?.calIdTeam?.parentId;
   eventType = {
@@ -278,10 +243,7 @@ async function handler(req: NextApiRequest) {
   //   },
   // ];
   const instantMeetingTitle = tAttendees("instant_meeting_with_title", { name: invitee[0].name });
-  console.log("About to create instant meeting with title:", instantMeetingTitle);
-
   const instantVideoMeeting = await createInstantMeetingWithJitsiVideo(instantMeetingTitle);
-  console.log("Instant video meeting result:", JSON.stringify(instantVideoMeeting));
 
   if (!instantVideoMeeting) {
     throw new Error("Instant Video Meeting Creation Failed");
