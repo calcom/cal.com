@@ -460,8 +460,75 @@ export default function CompleteBookerExample() {
 
 We offer all kinds of customizations to the booker atom via props and customClassNames.
 
-Below is a list of props that can be passed to the booker atom.
+## State management
 
+The Booker atom uses Zustand for internal state management. You can monitor state changes using the `onBookerStateChange` callback:
+
+### Booker states
+
+The booker progresses through several states during the booking flow:
+
+- `loading` - Initial state while event data is being fetched
+- `selecting_date` - User is viewing the calendar and selecting a date
+- `selecting_time` - User has selected a date and is choosing a time slot
+- `booking` - User is filling out the booking form
+- `success` - Booking has been successfully created
+- `error` - An error occurred during the booking process
+
+### Available state values
+
+When using `onBookerStateChange`, you receive an object containing:
+
+```typescript
+{
+  state: BookerState;           // Current state of the booker
+  username: string | null;      // Username being booked
+  eventSlug: string | null;     // Event type slug
+  eventId: number | null;       // Event type ID
+  month: string | null;         // Current month (YYYY-MM)
+  selectedDate: string | null;  // Selected date (YYYY-MM-DD)
+  selectedTimeslot: string | null; // Selected timeslot (ISO string)
+  selectedDuration: number | null; // Selected duration in minutes
+  formValues: Record<string, any>; // Current form field values
+  layout: BookerLayout;         // Current layout (month_view, week_view, column_view)
+  timezone: string | null;      // Current timezone
+  recurringEventCount: number | null; // Number of recurring events
+  // ... and more
+}
+```
+
+### Example: Tracking booking progress
+
+```js
+import { Booker } from "@calcom/atoms";
+import { useState } from "react";
+
+export default function TrackedBooker() {
+  const [progress, setProgress] = useState({
+    hasSelectedDate: false,
+    hasSelectedTime: false,
+    hasFilledForm: false
+  });
+
+  return (
+    <Booker
+      eventSlug="30min"
+      username="john"
+      onBookerStateChange={(state) => {
+        setProgress({
+          hasSelectedDate: !!state.selectedDate,
+          hasSelectedTime: !!state.selectedTimeslot,
+          hasFilledForm: Object.keys(state.formValues).length > 0
+        });
+      }}
+    />
+  )
+}
+```
+
+## Props reference
+
+Below is a comprehensive list of props that can be passed to the booker atom.
 <p></p>
 
 | Name                            | Required | Description                                                                                                                                                                                                    |
