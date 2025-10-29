@@ -182,6 +182,10 @@ export function getEventTypeIdForTest({
     if (!activeOnEventTypeId) {
       return { eventTypeId: null, error: t("choose_at_least_one_event_type_test_call") };
     }
-    return { eventTypeId: parseInt(activeOnEventTypeId, 10), error: null };
+    const parsedEventTypeId = parseInt(activeOnEventTypeId, 10);
+    if (isNaN(parsedEventTypeId)) {
+      return { eventTypeId: null, error: t("choose_at_least_one_event_type_test_call") };
+    }
+    return { eventTypeId: parsedEventTypeId, error: null };
   }
 }
