@@ -14,8 +14,10 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
@@ -45,10 +47,10 @@ import type {
 } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["BaseOnboardingService"] });
-const invitedMembersSchema = orgOnboardingInvitedMembersSchema;
-const teamsSchema = orgOnboardingTeamsSchema;
+const _invitedMembersSchema = orgOnboardingInvitedMembersSchema;
+const _teamsSchema = orgOnboardingTeamsSchema;
 
-type OrgOwner = Awaited<ReturnType<typeof findUserToBeOrgOwner>>;
+type _OrgOwner = Awaited<ReturnType<typeof findUserToBeOrgOwner>>;
 
 export abstract class BaseOnboardingService implements IOrganizationOnboardingService {
   protected user: OnboardingUser;
@@ -65,14 +67,18 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     this.permissionService = permissionService || new OrganizationPermissionService(user);
   }
 
-  abstract createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<any>;
+  abstract createOnboardingIntent(input: CreateOnboardingIntentInput): Promise<OnboardingIntentResult>;
   abstract createOrganization(
     organizationOnboarding: OrganizationOnboardingData,
     paymentDetails?: { subscriptionId: string; subscriptionItemId: string }
   ): Promise<{ organization: Team; owner: User }>;
 
   protected async createOnboardingRecord(input: CreateOnboardingIntentInput & { onboardingId?: string }) {
-    // If onboardingId exists, update the existing record (resume flow)
+    const processedAssets = await this.processOnboardingBrandAssets({
+      logo: input.logo,
+      bannerUrl: input.bannerUrl,
+    });
+
     if (input.onboardingId) {
       log.debug(
         "Updating existing organization onboarding record (resume flow)",
@@ -83,14 +89,28 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
         })
       );
 
-      await OrganizationOnboardingRepository.update(input.onboardingId, {
-        logo: input.logo ?? null,
+      const updateData: {
+        logo?: string | null;
+        bio?: string | null;
+        brandColor?: string | null;
+        bannerUrl?: string | null;
+        teams?: TeamData[];
+        invitedMembers?: InvitedMember[];
+      } = {
         bio: input.bio ?? null,
         brandColor: input.brandColor ?? null,
-        bannerUrl: input.bannerUrl ?? null,
         teams: input.teams ?? [],
         invitedMembers: input.invitedMembers ?? [],
-      });
+      };
+
+      if (processedAssets.logo !== undefined) {
+        updateData.logo = processedAssets.logo;
+      }
+      if (processedAssets.bannerUrl !== undefined) {
+        updateData.bannerUrl = processedAssets.bannerUrl;
+      }
+
+      await OrganizationOnboardingRepository.update(input.onboardingId, updateData);
 
       const updatedOnboarding = await OrganizationOnboardingRepository.findById(input.onboardingId);
       if (!updatedOnboarding) {
@@ -101,7 +121,6 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       return updatedOnboarding;
     }
 
-    // Create new onboarding record
     log.debug(
       "Creating organization onboarding record",
       safeStringify({
@@ -120,10 +139,10 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       pricePerSeat: input.pricePerSeat,
       billingPeriod: input.billingPeriod,
       createdByUserId: this.user.id,
-      logo: input.logo ?? null,
+      logo: processedAssets.logo ?? null,
       bio: input.bio ?? null,
       brandColor: input.brandColor ?? null,
-      bannerUrl: input.bannerUrl ?? null,
+      bannerUrl: processedAssets.bannerUrl ?? null,
       teams: input.teams ?? [],
       invitedMembers: input.invitedMembers ?? [],
     });
@@ -207,6 +226,55 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
   protected isAdminCreatingForSelf(input: { orgOwnerEmail: string }): boolean {
     return this.user.role === UserPermissionRole.ADMIN && this.user.email === input.orgOwnerEmail;
+  }
+
+  protected async processOnboardingBrandAssets(input: {
+    logo?: string | null;
+    bannerUrl?: string | null;
+  }): Promise<{ logo?: string | null; bannerUrl?: string | null }> {
+    const result: { logo?: string | null; bannerUrl?: string | null } = {};
+
+    if (input.logo !== undefined) {
+      if (input.logo === null) {
+        result.logo = null;
+      } else if (
+        input.logo.startsWith("data:image/png;base64,") ||
+        input.logo.startsWith("data:image/jpeg;base64,") ||
+        input.logo.startsWith("data:image/jpg;base64,")
+      ) {
+        const resizedLogo = await resizeBase64Image(input.logo);
+        result.logo = await uploadAvatar({
+          userId: this.user.id,
+          avatar: resizedLogo,
+        });
+      } else if (input.logo.startsWith("http") || input.logo.startsWith("/api/")) {
+        result.logo = input.logo;
+      } else {
+        result.logo = undefined;
+      }
+    }
+
+    if (input.bannerUrl !== undefined) {
+      if (input.bannerUrl === null) {
+        result.bannerUrl = null;
+      } else if (
+        input.bannerUrl.startsWith("data:image/png;base64,") ||
+        input.bannerUrl.startsWith("data:image/jpeg;base64,") ||
+        input.bannerUrl.startsWith("data:image/jpg;base64,")
+      ) {
+        const resizedBanner = await resizeBase64Image(input.bannerUrl, { maxSize: 1500 });
+        result.bannerUrl = await uploadAvatar({
+          userId: this.user.id,
+          avatar: resizedBanner,
+        });
+      } else if (input.bannerUrl.startsWith("http") || input.bannerUrl.startsWith("/api/")) {
+        result.bannerUrl = input.bannerUrl;
+      } else {
+        result.bannerUrl = undefined;
+      }
+    }
+
+    return result;
   }
 
   protected async createOrganizationWithExistingUserAsOwner({
