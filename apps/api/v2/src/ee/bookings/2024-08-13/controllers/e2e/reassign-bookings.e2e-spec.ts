@@ -106,19 +106,19 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       teamUser1 = await userRepositoryFixture.create({
         email: teamUserEmail,
-        locale: "it",
+        locale: "en",
         name: `reassign-bookings-2024-08-13-user1-${randomString()}`,
       });
 
       teamUser2 = await userRepositoryFixture.create({
         email: teamUserEmail2,
-        locale: "it",
+        locale: "en",
         name: `reassign-bookings-2024-08-13-user2-${randomString()}`,
       });
 
       teamUser3 = await userRepositoryFixture.create({
         email: teamUserEmail3,
-        locale: "it",
+        locale: "en",
         name: `reassign-bookings-2024-08-13-user3-${randomString()}`,
       });
 
@@ -276,7 +276,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           create: {
             email: "bob@gmail.com",
             name: "Bob",
-            locale: "it",
+            locale: "en",
             timeZone: "Europe/Rome",
           },
         },
@@ -468,7 +468,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           name: "Charlie",
           email: "charlie@gmail.com",
           timeZone: "Europe/Rome",
-          language: "it",
+          language: "en",
         },
         meetingUrl: "https://meet.google.com/abc-def-ghi",
       };
@@ -485,7 +485,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       expect(booking).toBeDefined();
       expect(booking?.userId).toEqual(teamUser2.id);
 
-      const expectedInitialTitle = `${teamRoundRobinNonFixedEventTypeTitle} tra ${teamUser2.name} e Charlie`;
+      const expectedInitialTitle = `${teamRoundRobinNonFixedEventTypeTitle} between ${teamUser2.name} and Charlie`;
       expect(booking?.title).toEqual(expectedInitialTitle);
 
       return request(app.getHttpServer())
@@ -504,7 +504,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           const reassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
           expect(reassigned?.userId).toEqual(teamUser3.id);
 
-          const expectedReassignedTitle = `${teamRoundRobinNonFixedEventTypeTitle} tra ${teamUser3.name} e Charlie`;
+          const expectedReassignedTitle = `${teamRoundRobinNonFixedEventTypeTitle} between ${teamUser3.name} and Charlie`;
           expect(reassigned?.title).toEqual(expectedReassignedTitle);
         });
     });
@@ -517,7 +517,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           name: "Alice",
           email: "alice@gmail.com",
           timeZone: "Europe/Rome",
-          language: "it",
+          language: "en",
         },
         meetingUrl: "https://meet.google.com/abc-def-ghi",
       };
@@ -534,7 +534,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       expect(booking).toBeDefined();
       expect(booking?.userId).toEqual(teamUser1.id);
 
-      const expectedInitialTitle = `${teamRoundRobinFixedHostEventTypeTitle} tra ${team.name} e Alice`;
+      const expectedInitialTitle = `${teamRoundRobinFixedHostEventTypeTitle} between ${team.name} and Alice`;
       expect(booking?.title).toEqual(expectedInitialTitle);
 
       return request(app.getHttpServer())
@@ -553,7 +553,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           const reassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
           expect(reassigned?.userId).toEqual(teamUser1.id);
 
-          const expectedReassignedTitle = `${teamRoundRobinFixedHostEventTypeTitle} tra ${team.name} e Alice`;
+          const expectedReassignedTitle = `${teamRoundRobinFixedHostEventTypeTitle} between ${team.name} and Alice`;
           expect(reassigned?.title).toEqual(expectedReassignedTitle);
         });
     });
