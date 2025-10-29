@@ -1,5 +1,4 @@
-import type { PrismaClient } from "@calcom/prisma";
-import prisma from "@calcom/prisma";
+import type { PrismaClient, Prisma } from "@calcom/prisma";
 
 export interface CreateBookingCreatedLogData {
   bookingUid: string;
@@ -11,7 +10,7 @@ export interface CreateBookingCreatedLogData {
 }
 
 export class BookingCreatedLogRepository {
-  constructor(private readonly prismaClient: PrismaClient = prisma) {}
+  constructor(private readonly prismaClient: PrismaClient | Prisma.TransactionClient) {}
 
   async create(data: CreateBookingCreatedLogData) {
     return await this.prismaClient.bookingCreatedLog.create({

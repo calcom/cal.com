@@ -1740,7 +1740,7 @@ async function handler(
         });
 
         try {
-          const bookingCreatedLogRepository = new BookingCreatedLogRepository();
+          const bookingCreatedLogRepository = new BookingCreatedLogRepository(prisma);
           await bookingCreatedLogRepository.create({
             bookingUid: booking.uid,
             selectedCalendarIds,
