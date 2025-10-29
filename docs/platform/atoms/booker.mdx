@@ -4,7 +4,9 @@ title: "Booker"
 
 The booker atom is a dynamic component that facilitates the booking process for users. It allows individuals to easily select available time slots and confirm their participation in various events, streamlining the scheduling experience. It is one of the most important atoms and a critical piece of our scheduling system.
 
-Below code snippet can be used to render the booker atom
+## Basic usage
+
+Below code snippet can be used to render the booker atom:
 
 ```js
 import { Booker } from "@calcom/atoms";
@@ -20,6 +22,49 @@ export default function Booker( props : BookerProps ) {
          }}
       />
     </>
+  )
+}
+```
+
+## Team events
+
+For team events, you must set `isTeamEvent` to `true` and provide a `teamId`:
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function TeamBooker( props : BookerProps ) {
+  return (
+    <Booker
+      eventSlug={props.eventTypeSlug}
+      isTeamEvent={true}
+      teamId={props.teamId}
+      onCreateBookingSuccess={(data) => {
+        console.log("Team booking created:", data);
+      }}
+    />
+  )
+}
+```
+
+## Dynamic bookings
+
+Dynamic bookings allow multiple users to be booked simultaneously. Pass multiple usernames as an array or a plus-separated string:
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function DynamicBooker() {
+  return (
+    <Booker
+      eventSlug="30min"
+      username={["user1", "user2", "user3"]}
+      // or username="user1+user2+user3"
+      allowsDynamicBooking={true}
+      onCreateBookingSuccess={(data) => {
+        console.log("Dynamic booking created:", data);
+      }}
+    />
   )
 }
 ```
