@@ -1,16 +1,16 @@
 "use client";
 
-import { format } from "date-fns";
+import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WatchlistType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { WatchlistType } from "@calcom/prisma/enums";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
 import { ToggleGroup } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
 type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
@@ -32,6 +32,7 @@ export function BookingReportEntryDetailsModal({
 }: BookingReportEntryDetailsModalProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  console.log("entry", entry);
 
   const {
     control,
@@ -79,10 +80,10 @@ export function BookingReportEntryDetailsModal({
       <DialogContent enableOverflow>
         <DialogHeader title={t("review_report") + ` - ${entry.bookerEmail}`} />
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="mt-6 space-y-6">
-            <div className="bg-subtle rounded-lg p-6">
-              <h2 className="text-emphasis mb-6 text-base font-semibold">{t("details")}</h2>
-              <div className="space-y-4">
+          <div className="space-y-5">
+            <div className="bg-subtle rounded-xl p-1">
+              <h2 className="text-emphasis px-5 py-4 text-base font-semibold">{t("details")}</h2>
+              <div className="bg-default space-y-4 rounded-xl p-5">
                 <div>
                   <label className="text-emphasis mb-1 block text-sm font-semibold">{t("email")}</label>
                   <p className="text-subtle text-sm">{entry.bookerEmail}</p>
@@ -94,35 +95,31 @@ export function BookingReportEntryDetailsModal({
                 </div>
 
                 <div>
-                  <label className="text-emphasis mb-1 block text-sm font-semibold">
-                    {t("reported_by")}
-                  </label>
+                  <label className="text-emphasis mb-1 block text-sm font-semibold">{t("reported_by")}</label>
                   <p className="text-subtle text-sm">{entry.reporter?.email || "—"}</p>
                 </div>
 
                 <div>
-                  <label className="text-emphasis mb-1 block text-sm font-semibold">
-                    {t("description")}
-                  </label>
-                  <p className="text-subtle text-sm">
-                    {entry.description || t("no_description_provided")}
-                  </p>
+                  <label className="text-emphasis mb-1 block text-sm font-semibold">{t("description")}</label>
+                  <p className="text-subtle text-sm">{entry.description || t("no_description_provided")}</p>
                 </div>
 
                 <div>
                   <label className="text-emphasis mb-1 block text-sm font-semibold">
                     {t("related_booking")}
                   </label>
-                  <p className="text-subtle text-sm">
-                    {entry.booking.title || t("untitled")} -{" "}
-                    {format(new Date(entry.booking.startTime), "MMM d, h:mm a")}
-                  </p>
+                  <Link href={`/booking/${entry.booking.uid}`}>
+                    <div className="text-subtle flex items-center gap-1 text-sm">
+                      {entry.booking.title}
+                      <Icon name="external-link" className="h-4 w-4" />
+                    </div>
+                  </Link>
                 </div>
               </div>
             </div>
 
-            <div className="bg-subtle rounded-lg p-6">
-              <h2 className="text-emphasis mb-6 text-base font-semibold">{t("block")}</h2>
+            <div>
+              <h2 className="text-emphasis text-base font-semibold">{t("block")}</h2>
               <Controller
                 name="blockType"
                 control={control}

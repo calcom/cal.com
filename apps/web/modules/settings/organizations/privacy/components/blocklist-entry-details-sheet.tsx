@@ -1,11 +1,13 @@
 "use client";
 
 import { format } from "date-fns";
+import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 import {
   Sheet,
   SheetContent,
@@ -88,6 +90,25 @@ export function BlocklistEntryDetailsSheet({
                       {data.entry.description || t("no_description_provided")}
                     </p>
                   </div>
+
+                  {data.entry.bookingReports.length > 0 && (
+                    <div>
+                      <label className="text-default block text-sm font-semibold">
+                        {t("related_booking")}
+                      </label>
+
+                      {data.entry.bookingReports.map((report) => {
+                        return (
+                          <Link key={report.booking.uid} href={`/booking/${report.booking.uid}`}>
+                            <div className="text-subtle flex items-center gap-1 text-sm">
+                              {report.booking.title}
+                              <Icon name="external-link" className="h-4 w-4" />
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 

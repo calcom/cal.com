@@ -49,8 +49,10 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
   const [selectedEntry, setSelectedEntry] = useState<BlocklistEntry | null>(null);
   const [selectedReport, setSelectedReport] = useState<BookingReport | null>(null);
   const [showReviewDialog, setShowReviewDialog] = useState(false);
-  const [entryToDelete, setEntryToDelete] = useState<BlocklistEntry | BookingReport | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<BlocklistEntry | null>(null);
+  const [reportToDelete, setReportToDelete] = useState<BookingReport | null>(null);
+  const [showDeleteEntryDialog, setShowDeleteEntryDialog] = useState(false);
+  const [showDeleteReportDialog, setShowDeleteReportDialog] = useState(false);
 
   const blockedQuery = trpc.viewer.organizations.listWatchlistEntries.useQuery(
     {
@@ -86,7 +88,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     onSuccess: async () => {
       await utils.viewer.organizations.listWatchlistEntries.invalidate();
       showToast(t("blocklist_entry_deleted"), "success");
-      setShowDeleteDialog(false);
+      setShowDeleteEntryDialog(false);
       setEntryToDelete(null);
     },
     onError: (error) => {
@@ -98,8 +100,8 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
     onSuccess: async () => {
       await utils.viewer.organizations.listBookingReports.invalidate();
       showToast(t("booking_report_deleted"), "success");
-      setShowDeleteDialog(false);
-      setEntryToDelete(null);
+      setShowDeleteReportDialog(false);
+      setReportToDelete(null);
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -107,17 +109,24 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
   });
 
   const handleDelete = (entry: BlocklistEntry | BookingReport) => {
-    setEntryToDelete(entry);
-    setShowDeleteDialog(true);
+    if ("value" in entry) {
+      setEntryToDelete(entry);
+      setShowDeleteEntryDialog(true);
+    } else {
+      setReportToDelete(entry);
+      setShowDeleteReportDialog(true);
+    }
   };
 
-  const confirmDelete = () => {
+  const confirmDeleteEntry = () => {
     if (entryToDelete) {
-      if (activeView === "blocked" && "value" in entryToDelete) {
-        deleteWatchlistEntry.mutate({ id: entryToDelete.id });
-      } else if (activeView === "pending" && "bookerEmail" in entryToDelete) {
-        deleteBookingReport.mutate({ reportId: entryToDelete.id });
-      }
+      deleteWatchlistEntry.mutate({ id: entryToDelete.id });
+    }
+  };
+
+  const confirmDeleteReport = () => {
+    if (reportToDelete) {
+      deleteBookingReport.mutate({ reportId: reportToDelete.id });
     }
   };
 
@@ -173,6 +182,8 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         id: "actions",
         header: "",
         size: 90,
+        minSize: 90,
+        maxSize: 90,
         enableHiding: false,
         enableSorting: false,
         enableResizing: false,
@@ -252,6 +263,8 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         id: "actions",
         header: "",
         size: 90,
+        minSize: 90,
+        maxSize: 90,
         enableHiding: false,
         enableSorting: false,
         enableResizing: false,
@@ -307,6 +320,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
   return (
     <>
       <DataTableWrapper
+        key={activeView}
         table={table}
         isPending={isPending}
         variant="default"
@@ -377,22 +391,29 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         }}
       />
 
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+      <Dialog open={showDeleteEntryDialog} onOpenChange={setShowDeleteEntryDialog}>
         <ConfirmationDialogContent
           variety="danger"
-          title={
-            entryToDelete && "value" in entryToDelete
-              ? t("remove_value_from_blocklist", { value: entryToDelete.value })
-              : t("delete_booking_report")
-          }
+          title={t("remove_value_from_blocklist", { value: entryToDelete?.value })}
           confirmBtn={
-            <DialogClose color="destructive" onClick={confirmDelete}>
+            <DialogClose color="destructive" onClick={confirmDeleteEntry}>
               {t("remove")}
             </DialogClose>
           }>
-          {entryToDelete && "value" in entryToDelete
-            ? t("remove_value_from_blocklist_description")
-            : t("delete_booking_report_confirmation")}
+          {t("remove_value_from_blocklist_description")}
+        </ConfirmationDialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteReportDialog} onOpenChange={setShowDeleteReportDialog}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_booking_report")}
+          confirmBtn={
+            <DialogClose color="destructive" onClick={confirmDeleteReport}>
+              {t("delete")}
+            </DialogClose>
+          }>
+          {t("delete_booking_report_confirmation")}
         </ConfirmationDialogContent>
       </Dialog>
     </>

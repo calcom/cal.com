@@ -124,7 +124,7 @@ export class WatchlistRepository implements IWatchlistRepository {
     };
   }
 
-  async findEntryWithAudit(id: string): Promise<{
+  async findEntryWithAuditAndReports(id: string): Promise<{
     entry: WatchlistEntry | null;
     auditHistory: WatchlistAuditEntry[];
   }> {
@@ -140,6 +140,16 @@ export class WatchlistRepository implements IWatchlistRepository {
         isGlobal: true,
         source: true,
         lastUpdatedAt: true,
+        bookingReports: {
+          select: {
+            booking: {
+              select: {
+                uid: true,
+                title: true,
+              },
+            },
+          },
+        },
         audits: {
           select: {
             id: true,
@@ -170,6 +180,7 @@ export class WatchlistRepository implements IWatchlistRepository {
             isGlobal: entry.isGlobal,
             source: entry.source,
             lastUpdatedAt: entry.lastUpdatedAt,
+            bookingReports: entry.bookingReports,
           }
         : null,
       auditHistory: entry?.audits || [],

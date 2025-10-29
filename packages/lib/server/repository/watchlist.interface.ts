@@ -61,7 +61,7 @@ export interface IWatchlistRepository {
     })[];
     meta: { totalRowCount: number };
   }>;
-  findEntryWithAudit(id: string): Promise<{
+  findEntryWithAuditAndReports(id: string): Promise<{
     entry: WatchlistEntry | null;
     auditHistory: WatchlistAuditEntry[];
   }>;
