@@ -1,10 +1,10 @@
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
@@ -971,6 +971,7 @@ export class EventTypeRepository {
         select: {
           isFixed: true,
           userId: true,
+          groupId: true,
           priority: true,
           weight: true,
           scheduleId: true,
@@ -1132,6 +1133,7 @@ export class EventTypeRepository {
             },
             weight: true,
             priority: true,
+            groupId: true,
             createdAt: true,
           },
         },
