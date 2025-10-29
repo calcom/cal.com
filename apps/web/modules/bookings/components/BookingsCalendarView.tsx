@@ -7,6 +7,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { Icon } from "@calcom/ui/components/icon";
@@ -26,6 +27,7 @@ export function BookingsCalendarView({
 }: BookingsCalendarViewProps) {
   const { t } = useLocale();
   const { timezone } = useTimePreferences();
+  const { resolvedTheme, forcedTheme } = useGetTheme();
 
   const goToPreviousWeek = () => {
     onWeekStartChange(currentWeekStart.subtract(1, "week"));
@@ -47,6 +49,8 @@ export function BookingsCalendarView({
   }, []);
 
   const events = useMemo<CalendarEvent[]>(() => {
+    const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+
     return bookings
       .filter((booking) => {
         const bookingStart = dayjs(booking.startTime);
@@ -61,6 +65,11 @@ export function BookingsCalendarView({
         return new Date(a.endTime).getTime() - new Date(b.endTime).getTime();
       })
       .map((booking, idx) => {
+        // Parse eventTypeColor and extract the appropriate color based on theme
+        const eventTypeColor =
+          booking.eventType?.eventTypeColor &&
+          booking.eventType.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
+
         return {
           id: idx,
           title: booking.title,
@@ -68,10 +77,11 @@ export function BookingsCalendarView({
           end: new Date(booking.endTime),
           options: {
             status: booking.status,
+            ...(eventTypeColor && { borderColor: eventTypeColor }),
           },
         };
       });
-  }, [bookings, currentWeekStart]);
+  }, [bookings, currentWeekStart, resolvedTheme, forcedTheme]);
 
   const weekStart = currentWeekStart;
   const weekEnd = currentWeekStart.add(6, "day");

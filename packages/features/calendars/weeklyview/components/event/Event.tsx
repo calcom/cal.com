@@ -15,7 +15,7 @@ type EventProps = {
 };
 
 const eventClasses = cva(
-  "group flex h-full w-full overflow-y-auto rounded-[6px] px-[6px] text-xs font-semibold leading-5 opacity-80",
+  "group flex h-full w-full overflow-x-hidden overflow-y-auto rounded-[6px] px-[6px] text-xs leading-5 opacity-80 border-default font-medium",
   {
     variants: {
       status: {
@@ -33,14 +33,6 @@ const eventClasses = cva(
         true: "bg-inverted text-inverted border-[1px] border-transparent",
         false: "",
       },
-      borderColor: {
-        ACCEPTED: "border-default",
-        PENDING: "border-default",
-        REJECTED: "border-default",
-        CANCELLED: "border-default",
-        AWAITING_HOST: "border-default",
-        custom: "",
-      },
     },
   }
 );
@@ -55,14 +47,6 @@ export function Event({
   const selected = currentlySelectedEventId === event.id;
   const { options } = event;
 
-  const borderColor = options?.borderColor ? "custom" : options?.status;
-
-  const styles = options?.borderColor
-    ? {
-        borderColor: options?.borderColor,
-      }
-    : {};
-
   const Component = onEventClick ? "button" : "div";
 
   return (
@@ -74,32 +58,36 @@ export function Event({
             status: options?.status,
             disabled,
             selected,
-            borderColor,
           }),
-          eventDuration > 30 && "flex-col py-1",
           options?.className
+        )}>
+        {options?.borderColor && (
+          <div
+            className="-ml-1.5 mr-1.5 h-full w-[3px] shrink-0"
+            style={{ backgroundColor: options.borderColor }}></div>
         )}
-        style={styles}>
-        <div
-          className={classNames(
-            "flex w-full gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
-            eventDuration <= 30 && "items-center"
-          )}>
-          <span>{event.title}</span>
-          {eventDuration <= 30 && !event.options?.hideTime && (
-            <p className="text-subtle w-full whitespace-nowrap text-left text-[10px] leading-none">
+        <div className={classNames("flex", eventDuration > 30 && "flex-col py-1")}>
+          <div
+            className={classNames(
+              "flex w-full gap-2 overflow-ellipsis whitespace-nowrap text-left leading-4",
+              eventDuration <= 30 && "items-center"
+            )}>
+            <span>{event.title}</span>
+            {eventDuration <= 30 && !event.options?.hideTime && (
+              <p className="text-subtle mt-1 w-full whitespace-nowrap text-left text-[10px] leading-none">
+                {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+              </p>
+            )}
+          </div>
+          {eventDuration > 30 && !event.options?.hideTime && (
+            <p className="text-subtle mt-1 text-left text-[10px] leading-none">
               {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
             </p>
           )}
+          {eventDuration > 45 && event.description && (
+            <p className="text-subtle mt-1 text-left text-[10px] leading-none">{event.description}</p>
+          )}
         </div>
-        {eventDuration > 30 && !event.options?.hideTime && (
-          <p className="text-subtle text-left text-[10px] leading-none">
-            {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
-          </p>
-        )}
-        {eventDuration > 45 && event.description && (
-          <p className="text-subtle text-left text-[10px] leading-none">{event.description}</p>
-        )}
       </Component>
     </Tooltip>
   );
