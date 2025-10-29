@@ -7,8 +7,11 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WebhookVersion } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { InfoBadge } from "@calcom/ui/components/badge";
+import { Select } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateWebhooksList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/webhooks/(with-loader)/actions";
 
@@ -77,17 +80,40 @@ export const NewWebhookView = ({ webhooks, installedApps }: Props) => {
   };
 
   return (
-    <SettingsHeader
-      title={t("add_webhook")}
-      description={t("add_webhook_description", { appName: APP_NAME })}
-      borderInShellHeader={true}
-      backButton={true}>
-      <WebhookForm
-        noRoutingFormTriggers={false}
-        onSubmit={onCreateWebhook}
-        apps={installedApps?.items.map((app) => app.slug)}
-      />
-    </SettingsHeader>
+    <WebhookForm
+      noRoutingFormTriggers={false}
+      onSubmit={onCreateWebhook}
+      apps={installedApps?.items.map((app) => app.slug)}
+      versionSelector={(formMethods) => (
+        <SettingsHeader
+          title={t("add_webhook")}
+          description={t("add_webhook_description", { appName: APP_NAME })}
+          borderInShellHeader={true}
+          backButton={true}
+          CTA={
+            <div className="flex items-center gap-2">
+              <Select
+                className="w-32"
+                options={[{ value: WebhookVersion.V_2021_10_20, label: "2021-10-20" }]}
+                value={{
+                  value: formMethods.watch("version"),
+                  label:
+                    formMethods.watch("version") === WebhookVersion.V_2021_10_20
+                      ? "2021-10-20"
+                      : formMethods.watch("version"),
+                }}
+                onChange={(option) => {
+                  if (option) {
+                    formMethods.setValue("version", option.value, { shouldDirty: true });
+                  }
+                }}
+              />
+              <InfoBadge content={t("webhook_version")} />
+            </div>
+          }
+        />
+      )}
+    />
   );
 };
 
