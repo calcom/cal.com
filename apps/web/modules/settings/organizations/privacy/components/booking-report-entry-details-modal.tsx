@@ -32,7 +32,6 @@ export function BookingReportEntryDetailsModal({
 }: BookingReportEntryDetailsModalProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  console.log("entry", entry);
 
   const {
     control,

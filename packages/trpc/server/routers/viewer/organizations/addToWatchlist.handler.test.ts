@@ -30,7 +30,7 @@ describe("addToWatchlistHandler (Organization)", () => {
     {
       id: "report-1",
       bookingUid: "booking-uid-1",
-      bookerEmail: "spammer@example.com",
+      bookerEmail: "Spammer@Example.com",
       reportedById: 1,
       reason: BookingReportReason.SPAM,
       description: null,
@@ -50,7 +50,7 @@ describe("addToWatchlistHandler (Organization)", () => {
     {
       id: "report-2",
       bookingUid: "booking-uid-2",
-      bookerEmail: "user@spammer.com",
+      bookerEmail: " User@Spammer.com ",
       reportedById: 1,
       reason: BookingReportReason.SPAM,
       description: null,

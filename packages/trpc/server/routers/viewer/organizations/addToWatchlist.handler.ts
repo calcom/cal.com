@@ -1,4 +1,8 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import {
+  normalizeEmail,
+  extractDomainFromEmail,
+} from "@calcom/features/watchlist/lib/utils/normalization";
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { WatchlistRepository } from "@calcom/lib/server/repository/watchlist.repository";
 import { prisma } from "@calcom/prisma";
@@ -73,8 +77,8 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
       reportsToAdd.map(async (report) => {
         const value =
           input.type === "EMAIL"
-            ? report.bookerEmail
-            : report.bookerEmail.split("@")[1] || report.bookerEmail;
+            ? normalizeEmail(report.bookerEmail)
+            : extractDomainFromEmail(report.bookerEmail);
 
         const existingWatchlist = await watchlistRepo.checkExists({
           type: input.type,

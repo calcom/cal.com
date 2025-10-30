@@ -43,6 +43,27 @@ export const dismissBookingReportHandler = async ({ ctx, input }: DismissBooking
 
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
 
+  const reports = await bookingReportRepo.findReportsByIds({
+    reportIds: [input.reportId],
+    organizationId,
+  });
+
+  if (reports.length === 0) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Booking report not found",
+    });
+  }
+
+  const report = reports[0];
+
+  if (report.watchlistId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Cannot dismiss a report that has already been added to the blocklist",
+    });
+  }
+
   await bookingReportRepo.updateReportStatus({
     reportId: input.reportId,
     status: "DISMISSED",
