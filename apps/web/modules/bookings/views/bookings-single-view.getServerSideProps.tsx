@@ -121,13 +121,22 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
-    if (!eventTypeRaw.owner)
-      return {
-        notFound: true,
-      } as const;
-    eventTypeRaw.users.push({
-      ...eventTypeRaw.owner,
-    });
+    if (!eventTypeRaw.owner) {
+      if (bookingInfoRaw.user) {
+        eventTypeRaw.users.push({
+          ...bookingInfoRaw.user,
+          hideBranding: false,
+          theme: null,
+          brandColor: null,
+          darkBrandColor: null,
+          isPlatformManaged: false,
+        });
+      } else {
+        return { notFound: true } as const;
+      }
+    } else {
+      eventTypeRaw.users.push({ ...eventTypeRaw.owner });
+    }
   }
 
   const eventType = {

@@ -4,6 +4,8 @@ import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { isNotACompanyEmail } from "@calcom/ee/organizations/lib/server/orgCreationUtils";
 import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import {
   RESERVED_SUBDOMAINS,
@@ -13,8 +15,6 @@ import {
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -183,6 +183,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     logoUrl: null,
     bio: null,
     paymentSubscriptionId: null,
+    brandColor: null,
+    bannerUrl: null,
   };
 
   // Create a new user and invite them as the owner of the organization

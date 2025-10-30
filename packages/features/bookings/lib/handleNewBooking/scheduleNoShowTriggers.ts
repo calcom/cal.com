@@ -1,10 +1,10 @@
 import { DailyLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
+import type { CalVideoSettings } from "@calcom/features/eventtypes/lib/types";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { CalVideoSettings } from "@calcom/prisma/client";
 
 type ScheduleNoShowTriggersArgs = {
   booking: {
@@ -76,28 +76,6 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
           return Promise.resolve();
         })
       );
-    } else {
-      const scheduledAt = dayjs(booking.startTime).add(15, "minutes").toDate();
-      noShowPromises.push(
-        tasker.create(
-          "triggerHostNoShowWebhook",
-          {
-            triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-            bookingId: booking.id,
-            webhook: {
-              id: "",
-              subscriberUrl: "",
-              payloadTemplate: null,
-              eventTriggers: [],
-              appId: null,
-              secret: null,
-              time: 15,
-              timeUnit: "MINUTE"
-            }
-          },
-          { scheduledAt, referenceUid: booking.uid }
-        )
-      );
     }
   }
 
@@ -135,28 +113,6 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
 
           return Promise.resolve();
         })
-      );
-    } else {
-      const scheduledAt = dayjs(booking.startTime).add(15, "minutes").toDate();
-      noShowPromises.push(
-        tasker.create(
-          "triggerGuestNoShowWebhook",
-          {
-            triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-            bookingId: booking.id,
-            webhook: {
-              id: "",
-              subscriberUrl: "",
-              payloadTemplate: null,
-              eventTriggers: [],
-              appId: null,
-              secret: null,
-              time: 15,
-              timeUnit: "MINUTE"
-            }
-          },
-          { scheduledAt, referenceUid: booking.uid }
-        )
       );
     }
   }

@@ -11,7 +11,6 @@ export const createWatchlistEntry = async (input: WatchlistInput) => {
   await prismock.watchlist.create({
     data: {
       ...input,
-      createdById: 0,
     },
   });
 };
