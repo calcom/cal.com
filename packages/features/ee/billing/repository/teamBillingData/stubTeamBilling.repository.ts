@@ -1,17 +1,17 @@
 import { ITeamBillingRepository, TeamBillingType } from "./teamBilling.repository.interface";
 
-export class StubTeamBillingRepository implements ITeamBillingRepository {
+export class StubTeamBillingDataRepository implements ITeamBillingRepository {
   stubTeam = { id: -1, metadata: {}, isOrganization: true, parentId: -1, name: "" };
 
-  async find(teamId: number) {
+  async find() {
     return this.stubTeam;
   }
 
-  async findBySubscriptionId(subscriptionId: string): Promise<TeamBillingType> {
+  async findBySubscriptionId(): Promise<TeamBillingType> {
     return this.stubTeam;
   }
 
-  async findMany(teamIds: number[]): Promise<TeamBillingType[]> {
+  async findMany(): Promise<TeamBillingType[]> {
     return [];
   }
 }
