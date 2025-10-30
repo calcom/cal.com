@@ -290,7 +290,7 @@ export class BookingsController_2024_08_13 {
         { $ref: getSchemaPath(RescheduleSeatedBookingInput_2024_08_13) },
       ],
     },
-    description: `Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2).
+    description: `Accepts different types of reschedule booking input: Reschedule Booking (Option 1) or Reschedule Seated Booking (Option 2). If you're rescheduling a seated booking as org admin of booking host, pass booking input for Reschedule Booking (Option 1) along with your access token in the request header.
 
       If you are rescheduling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or
       you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.`,
@@ -328,7 +328,7 @@ export class BookingsController_2024_08_13 {
     \nCancelling seated bookings:
     It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.
     \n1. As an attendee - provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and seatUid in the request body \`{"seatUid": "123-123-123"}\` . This will remove this particular attendance from the booking.
-    \n2. As the host - host can cancel booking for all attendees aka for every seat. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
+    \n2. As the host or org admin of host - host can cancel booking for all attendees aka for every seat, this also applies to org admins. Provide :bookingUid in the request URL \`/bookings/:bookingUid/cancel\` and cancellationReason in the request body \`{"cancellationReason": "Will travel"}\` and \`Authorization: Bearer token\` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.
     
     \nCancelling recurring seated bookings:
     For recurring seated bookings it is not possible to cancel all of them with 1 call
