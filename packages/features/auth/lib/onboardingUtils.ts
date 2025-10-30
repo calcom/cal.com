@@ -1,6 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import prisma from "@calcom/prisma";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { prisma } from "@calcom/prisma";
 
 const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
 
@@ -20,32 +22,20 @@ export async function checkOnboardingRedirect(
     organizationId?: number | null;
   }
 ): Promise<string | null> {
-  // Query minimal user data needed for onboarding check
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      completedOnboarding: true,
-      createdDate: true,
-      emailVerified: true,
-      identityProvider: true,
-    },
-  });
+  // Query user data needed for onboarding check using UserRepository
+  const userRepository = new UserRepository(prisma);
+  const user = await userRepository.findById({ id: userId });
 
   if (!user) {
     return null;
   }
 
-  // Use provided organizationId or query it
+  // Use provided organizationId or query it via ProfileRepository
   let organizationId: number | null;
   if (options?.organizationId !== undefined) {
     organizationId = options.organizationId;
   } else {
-    // Check if user has any profile with an organization
-    const profile = await prisma.profile.findFirst({
-      where: { userId },
-      select: { organizationId: true },
-      orderBy: { createdAt: "asc" },
-    });
+    const profile = await ProfileRepository.findFirstForUserId({ userId });
     organizationId = profile?.organizationId ?? null;
   }
 
