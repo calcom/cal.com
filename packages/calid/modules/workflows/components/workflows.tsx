@@ -3,7 +3,7 @@
 import { TeamSelectionDialog } from "@calid/features/modules/teams/components/TeamSelectionDialog";
 import { Button } from "@calid/features/ui/components/button";
 import { BlankCard } from "@calid/features/ui/components/card";
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

@@ -97,9 +97,7 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
             },
           },
         },
-        orderBy: {
-          id: "asc",
-        },
+        orderBy: [{ position: "desc" }, { id: "asc" }],
       },
     },
   });

@@ -70,6 +70,7 @@ export async function getCalIdConnectedApps({
 
   let credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
   let userCalIdTeams: CalIdTeamQuery[] = [];
+  let userRoleInCurrentTeam: string | undefined;
 
   if (includeCalIdTeamInstalledApps || calIdTeamId) {
     const calIdTeamsQuery = await prisma.calIdTeam.findMany({
@@ -101,20 +102,68 @@ export async function getCalIdConnectedApps({
 
     userCalIdTeams = calIdTeamsQuery;
 
+    // Get user's role in the current team
+    if (calIdTeamId) {
+      const currentTeam = userCalIdTeams.find((t) => t.id === calIdTeamId);
+      userRoleInCurrentTeam = currentTeam?.members[0]?.role;
+    }
+
     const calIdTeamAppCredentials = userCalIdTeams.flatMap((calIdTeamApp) => {
       return calIdTeamApp.credentials ? buildNonDelegationCredentials(calIdTeamApp.credentials.flat()) : [];
     });
 
+    // Get team owner credentials for payment apps
+    let teamOwnerCredentials: any[] = [];
+    if (calIdTeamId && extendsFeature === "EventType") {
+      const allTeamMembers = await prisma.calIdMembership.findMany({
+        where: {
+          calIdTeamId: calIdTeamId,
+          acceptedInvitation: true,
+        },
+        select: {
+          userId: true,
+          role: true,
+        },
+      });
+
+      const ownerUserIds = allTeamMembers
+        .filter((member) => member.role === "OWNER")
+        .map((member) => member.userId);
+
+      if (ownerUserIds.length > 0) {
+        const ownerCreds = await prisma.credential.findMany({
+          where: {
+            userId: {
+              in: ownerUserIds,
+            },
+            // appId: {
+            //   in: ['razorpay', 'stripe', 'paypal', 'alby'],
+            // },
+          },
+          select: credentialForCalendarServiceSelect,
+        });
+
+        teamOwnerCredentials = buildNonDelegationCredentials(ownerCreds);
+      }
+    }
+
+    //Allow all team members to see team apps, not just owners
     if (!includeCalIdTeamInstalledApps || calIdTeamId) {
-      const isOwnerOfEventCalIdTeam = userCalIdTeams.some(
-        (t) => t?.id === calIdTeamId && t.members.some((m) => m.role === "OWNER")
-      );
-      //BYPASS Razorpay for calIdTeam owner into the available app for event types
-      credentials = isOwnerOfEventCalIdTeam
-        ? credentials.filter((cr) => cr.appId === "razorpay").concat(calIdTeamAppCredentials)
-        : calIdTeamAppCredentials;
+      const isOwnerOfEventCalIdTeam = userRoleInCurrentTeam === "OWNER";
+
+      if (isOwnerOfEventCalIdTeam) {
+        // Owners can see their personal Razorpay + all team apps + owner credentials
+        credentials = credentials
+          .filter((cr) => cr.appId === "razorpay")
+          .concat(calIdTeamAppCredentials)
+          .concat(teamOwnerCredentials);
+      } else {
+        // Non-owners (ADMIN/MEMBER) can see all team apps + owner credentials
+        // They just can't modify them (handled in the frontend)
+        credentials = calIdTeamAppCredentials.concat(teamOwnerCredentials);
+      }
     } else {
-      credentials = credentials.concat(calIdTeamAppCredentials);
+      credentials = credentials.concat(calIdTeamAppCredentials).concat(teamOwnerCredentials);
     }
   }
 
@@ -125,7 +174,7 @@ export async function getCalIdConnectedApps({
 
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
-    enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
+    enabledApps.map(async ({ credentials: _, credential, key: _2, ...app }) => {
       const userCredentialIds = credentials
         .filter((c) => c.appId === app.slug && !c.calIdTeamId)
         .map((c) => c.id);
@@ -146,6 +195,7 @@ export async function getCalIdConnectedApps({
               logoUrl: calIdTeam.logoUrl,
               credentialId: c.id,
               isAdmin: checkIfMemberAdminorOwner(calIdTeam.members[0].role),
+              userRole: calIdTeam.members[0].role,
             };
           })
       );
@@ -196,10 +246,7 @@ export async function getCalIdConnectedApps({
   );
 
   if (variant) {
-    // `flatMap()` these work like `.filter()` but infers the types correctly
-    apps = apps
-      // variant check
-      .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
+    apps = apps.flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
   }
 
   if (exclude) {

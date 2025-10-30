@@ -8,7 +8,14 @@ export const updateUserMetadataAllowedKeys = z.object({
   sessionTimeout: z.number().optional(), // Minutes
   headerUrl: z.string().optional().nullable(),
   defaultBookerLayouts: bookerLayouts.optional(),
-  phoneNumber: z.string().optional().nullable(), //added so that phone number can be saved/deleted on profile page
+  phoneNumber: z.string().optional().nullable(),
+  isProUser: z
+    .object({
+      yearClaimed: z.number().optional(),
+      validTillDate: z.string().optional(),
+      verified: z.boolean().optional().default(false),
+    })
+    .optional(),
 });
 
 export const ZCalIdUpdateProfileInputSchema = z.object({

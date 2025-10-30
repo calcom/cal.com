@@ -1,4 +1,4 @@
-import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 export type WorkflowBuilderTemplateFields = {
   // actionType: WorkflowActions;

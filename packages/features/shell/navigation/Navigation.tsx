@@ -48,6 +48,18 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "clock-2",
   },
   {
+    name: "Claim Pro",
+    href: "/claim",
+    icon: "badge-percent",
+    onlyDesktop: true,
+    shouldDisplay: (user) => {
+      // Don't show if user data is not loaded yet
+      if (!user) return false;
+      const yearClaimed = user?.metadata?.isProUser?.yearClaimed || 0;
+      return yearClaimed < 2;
+    },
+  },
+  {
     name: "teams",
     href: "/teams",
     icon: "users",

@@ -17,6 +17,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
@@ -61,8 +62,8 @@ const EmptyScreen = ({
   return (
     <div className={classNames("flex flex-col items-center justify-center py-12 text-center", className)}>
       <Icon name="blocks" className="mb-4 h-12 w-12 text-gray-400" />
-      <h3 className="mb-2 text-lg font-medium text-gray-900">{headline}</h3>
-      <p className="mb-6 max-w-md text-sm text-gray-600">{description}</p>
+      <h3 className="dark:text-default mb-2 text-lg font-medium text-gray-900">{headline}</h3>
+      <p className="dark:text-default mb-6 max-w-md text-sm text-gray-600">{description}</p>
       {buttonRaw}
     </div>
   );
@@ -191,6 +192,7 @@ const useTeamAppCards = (
   eventTypeFormMetadata: any,
   disabled = false,
   isChildrenManaged = false
+  // isNonOwner = false
 ) => {
   return useMemo(() => {
     return appsWithTeamCredentials.map((app) => {
@@ -218,6 +220,7 @@ const useTeamAppCards = (
 
       app.calIdTeams?.forEach((team: any) => {
         if (team) {
+          const isOwner = team.userRole === "OWNER";
           appCards.push(
             <EventTypeAppCard
               key={`${app.slug}-team-${team.credentialId}`}
@@ -234,7 +237,7 @@ const useTeamAppCards = (
               }}
               eventType={eventType}
               eventTypeFormMetadata={eventTypeFormMetadata}
-              disabled={disabled}
+              disabled={!isOwner || disabled}
             />
           );
         }
@@ -250,6 +253,7 @@ const useTeamAppCards = (
     eventTypeFormMetadata,
     disabled,
     isChildrenManaged,
+    // isNonOwner,
   ]);
 };
 
@@ -273,6 +277,18 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
     calIdTeamId: (eventType as any).calIdTeamId || undefined,
     includeCalIdTeamInstalledApps: hasTeamContext || isChildrenManaged,
   });
+
+  const { data: currentUser } = useMeQuery();
+
+  const currentUserMembership =
+    (eventType as any).team?.members?.find((member: any) => member.userId === currentUser?.id) ||
+    (eventType as any).calIdTeam?.members?.find((member: any) => {
+      // Handle both direct userId and nested user.id
+      return member.userId === currentUser?.id || member.user?.id === currentUser?.id;
+    });
+
+  const isOwner = currentUserMembership?.role === "OWNER";
+  const isNonOwner = hasTeamContext && !isOwner;
 
   // Categorize apps based on installation status
   const { installedApps, notInstalledApps, appsWithTeamCredentials } = useAppCategorization(
@@ -362,7 +378,8 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
                 app={app}
                 eventType={eventType}
                 eventTypeFormMetadata={eventTypeFormMetadata}
-                disabled={false}
+                // disabled={false}
+                disabled={isNonOwner || appsDisableProps.isDisabled}
               />
             </div>
           ))}
@@ -398,6 +415,7 @@ export const EventApps = ({ eventType, customClassNames = {} }: EventAppsTabProp
                       app={app}
                       eventType={eventType}
                       eventTypeFormMetadata={eventTypeFormMetadata}
+                      disabled={isNonOwner}
                     />
                   </div>
                 ))}

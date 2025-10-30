@@ -50,7 +50,6 @@ import {
   shouldScheduleEmailReminder,
 } from "../config/utils";
 import { workflowFormSchema as formSchema } from "../config/validation";
-import { WorkflowTemplate } from "../config/workflow_templates";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";

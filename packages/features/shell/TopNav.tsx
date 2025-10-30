@@ -18,6 +18,7 @@ export function TopNavContainer() {
 function TopNav() {
   const isEmbed = useIsEmbed();
   const { t } = useLocale();
+
   return (
     <>
       <nav
