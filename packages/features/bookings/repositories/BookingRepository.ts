@@ -1177,30 +1177,25 @@ export class BookingRepository {
     return await this.prismaClient.booking.findUnique({
       where: { id: bookingId },
       select: {
-        // Basic details
         uid: true,
         title: true,
         startTime: true,
         endTime: true,
-        description: true, // Used as additionalNotes
-        // Responses & Metadata
+        description: true,
         customInputs: true,
         responses: true,
-        metadata: true, // For platformClientId
-        // Location
+        metadata: true,
         location: true,
-        // Identifiers
         iCalUID: true,
         iCalSequence: true,
-        // Confirmation/Security
         oneTimePassword: true,
-        // Relations
         attendees: {
           select: {
             name: true,
             email: true,
             timeZone: true,
             locale: true,
+            phoneNumber: true,
           },
         },
         user: {
@@ -1213,43 +1208,40 @@ export class BookingRepository {
             timeZone: true,
             locale: true,
             timeFormat: true,
-            destinationCalendar: true, // Selects fields needed for the relation
+            destinationCalendar: true,
+            profiles: { select: { organizationId: true } },
           },
         },
-        destinationCalendar: true, // Selects fields needed for the relation
+        // destination calendar of the Organizer
+        destinationCalendar: true,
         eventType: {
-          // --- Event Type ---
           select: {
             id: true,
-            slug: true, // Used as 'type'
+            slug: true,
             description: true,
-            // Display flags
             hideCalendarNotes: true,
             hideCalendarEventDetails: true,
             hideOrganizerEmail: true,
-            // Scheduling details
             schedulingType: true,
             seatsPerTimeSlot: true,
             seatsShowAttendees: true,
             seatsShowAvailabilityCount: true,
-            // Config flags
             customReplyToEmail: true,
             disableRescheduling: true,
             disableCancelling: true,
             requiresConfirmation: true,
-            // Features
             recurringEvent: true,
-            metadata: true, // For handler's eventType.metadata
-            eventName: true, // Needed for eventNameObject
-            // Relations within EventType
+            bookingFields: true,
+            metadata: true,
+            eventName: true,
             team: {
               select: {
                 id: true,
                 name: true,
+                parentId: true,
                 members: {
                   select: {
                     user: {
-                      // Team Member User fields
                       select: {
                         id: true,
                         name: true,
@@ -1258,7 +1250,6 @@ export class BookingRepository {
                         timeZone: true,
                         locale: true,
                         timeFormat: true,
-                        // No destinationCalendar needed for members here based on usage
                       },
                     },
                   },
@@ -1266,7 +1257,6 @@ export class BookingRepository {
               },
             },
             users: {
-              // Direct users on EventType (for reschedule 'users' list)
               select: {
                 id: true,
                 name: true,
@@ -1279,12 +1269,10 @@ export class BookingRepository {
               },
             },
             hosts: {
-              // Hosts on EventType (for reschedule 'users' list)
               select: {
-                userId: true, // Needed for mapping
+                userId: true,
                 isFixed: true,
                 user: {
-                  // Host User fields
                   select: {
                     id: true,
                     name: true,
@@ -1299,38 +1287,39 @@ export class BookingRepository {
               },
             },
             workflows: {
-              // For handler's workflows list
               select: {
                 workflow: {
                   select: {
-                    id: true, // Assuming only ID needed
-                    // Add other workflow fields if needed by WorkflowType in handler
+                    id: true,
                   },
                 },
               },
             },
-            // bookingFields: true, // Uncomment if needed for strict CalEventResponses reconstruction
           },
         },
         references: {
-          // For Video Call Data
           select: {
             type: true,
             meetingId: true,
             meetingPassword: true,
             meetingUrl: true,
           },
-          // Ensure we only fetch video-related references if possible
           where: {
             type: {
               endsWith: "_video",
             },
           },
         },
+        seatsReferences: {
+          select: {
+            id: true,
+            referenceUid: true,
+            attendee: { select: { id: true, email: true, phoneNumber: true } },
+          },
+        },
       },
     });
   }
-  // seatsReferences: true, // Only needed if builder logic auto-deduces attendeeSeatId
   async findByIdIncludeDestinationCalendar(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {

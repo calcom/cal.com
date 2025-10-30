@@ -1,28 +1,28 @@
+import { getCalEventResponses } from "bookings/lib/getCalEventResponses";
 import { BookingRepository } from "bookings/repositories/BookingRepository";
+import { getBookerBaseUrl } from "ee/organizations/lib/getBookerUrlServer";
 import type { TFunction } from "i18next";
 
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
-import type { Attendee, Prisma, User } from "@calcom/prisma/client";
+import type { Attendee, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import { BookingResponses } from "@calcom/prisma/zod-utils";
+import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
 >;
-type MetaOptions = {
-  bookerUrl?: string;
-  attendeeSeatId?: string;
+type BookingMetaOptions = {
   conferenceCredentialId?: number;
+  platformClientId?: string;
   platformRescheduleUrl?: string;
   platformCancelUrl?: string;
   platformBookingUrl?: string;
-  // Add other fields here if needed in the future
 };
 
-// --- Helper Functions ---
 async function _buildPersonFromUser(
   user: Pick<User, "id" | "name" | "locale" | "username" | "email" | "timeFormat" | "timeZone">
 ) {
@@ -61,29 +61,47 @@ export class CalendarEventBuilder {
   }
 
   /**
-   * Static factory method to create and populate a builder from a booking object.
-   * @param booking - The fully fetched booking object.
-   * @param meta - Optional object containing supplementary data or overrides.
-   * @returns A promise resolving to the configured CalendarEventBuilder instance.
+   * Builds a CalendarEventBuilder instance from a booking.
    */
   static async fromBooking(
     booking: BookingForCalEventBuilder,
-    meta?: MetaOptions
+    meta: BookingMetaOptions = {}
   ): Promise<CalendarEventBuilder> {
-    if (!booking.user) throw new Error(`Booking ${booking.uid} is missing an organizer.`);
-    if (!booking.eventType) throw new Error(`Booking ${booking.uid} eventType not found.`);
+    const { uid, user, eventType } = booking;
+
+    if (!user) throw new Error(`Booking ${uid} is missing an organizer — user may have been deleted.`);
+    if (!eventType) throw new Error(`Booking ${uid} is missing eventType — it may have been deleted.`);
 
     const builder = new CalendarEventBuilder();
-    const { eventType, user: organizerUser } = booking;
-    const additionalNotes = booking.description || undefined;
+    const {
+      description,
+      attendees,
+      references,
+      title,
+      startTime,
+      endTime,
+      location,
+      responses,
+      customInputs,
+      iCalUID,
+      iCalSequence,
+      oneTimePassword,
+      seatsReferences,
+    } = booking;
 
-    // Prepare data
-    if (!organizerUser.id) {
-      throw new Error("Organizer user does not have an id");
-    }
-    const organizerPerson = await _buildPersonFromUser(organizerUser);
-    const attendeesList = await Promise.all(booking.attendees.map((att) => _buildPersonFromAttendee(att)));
-    const videoRef = booking.references.find((r) => r.type.endsWith("_video"));
+    const {
+      conferenceCredentialId,
+      platformRescheduleUrl = "",
+      platformClientId = "",
+      platformCancelUrl = "",
+      platformBookingUrl = "",
+    } = meta;
+
+    const organizerPerson = await _buildPersonFromUser(user);
+    const attendeesList = await Promise.all(attendees.map(_buildPersonFromAttendee));
+    const additionalNotes = description || undefined;
+
+    const videoRef = references.find((r) => r.type.endsWith("_video"));
     const videoCallData = videoRef
       ? {
           type: videoRef.type,
@@ -93,27 +111,36 @@ export class CalendarEventBuilder {
         }
       : undefined;
 
-    // Use values from meta or defaults
-    const bookerUrl = meta?.bookerUrl ?? "https://cal.com"; // Default bookerUrl
-    const attendeeSeatId = meta?.attendeeSeatId;
-    const conferenceCredentialId = meta?.conferenceCredentialId;
-    const platformRescheduleUrl = meta?.platformRescheduleUrl ?? "";
-    const platformCancelUrl = meta?.platformCancelUrl ?? "";
-    const platformBookingUrl = meta?.platformBookingUrl ?? "";
+    const organizationId = user.profiles?.[0]?.organizationId ?? null;
+    const bookerUrl = await getBookerBaseUrl(eventType.team?.parentId ?? organizationId);
 
-    // Call chain using extracted data and meta values
+    const parsedBookingResponses = bookingResponsesSchema.safeParse(responses);
+    const bookingResponses = parsedBookingResponses.success ? parsedBookingResponses.data : null;
+
+    const calEventResponses = getCalEventResponses({
+      booking,
+      bookingFields: eventType.bookingFields,
+    });
+
+    // custom inputs are the old system to record booking responses
+    const parsedCustomInputs =
+      typeof customInputs === "object" ? (customInputs as Record<string, string>) : null;
+
+    const recurring = parseRecurringEvent(eventType.recurringEvent) ?? undefined;
+
+    // Base builder setup
     builder
       .withBasicDetails({
-        bookerUrl: bookerUrl, // Use derived/default value
-        title: booking.title,
-        startTime: booking.startTime.toISOString(),
-        endTime: booking.endTime.toISOString(),
+        bookerUrl,
+        title,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
         additionalNotes,
       })
       .withEventType({
+        id: eventType.id,
         slug: eventType.slug,
         description: eventType.description,
-        id: eventType.id,
         hideCalendarNotes: eventType.hideCalendarNotes,
         hideCalendarEventDetails: eventType.hideCalendarEventDetails,
         hideOrganizerEmail: eventType.hideOrganizerEmail,
@@ -129,65 +156,73 @@ export class CalendarEventBuilder {
       .withAttendees(attendeesList)
       .withMetadataAndResponses({
         additionalNotes,
-        customInputs: (booking.customInputs as Prisma.JsonObject) || null,
-        // TODO: format responses and userFieldsResponses using booking responses and eventtype booker fields
-        responses: booking.responses as BookingResponses,
-        userFieldsResponses: {}, // Keep default empty
+        customInputs: parsedCustomInputs,
+        responses: calEventResponses.responses,
+        userFieldsResponses: calEventResponses.userFieldsResponses,
       })
-      .withLocation({
-        location: booking.location,
-        conferenceCredentialId: conferenceCredentialId, // Use value from meta
-      })
-      //TODO: handle multiple destination calendars
-      .withDestinationCalendar(booking.destinationCalendar)
-      .withIdentifiers({ iCalUID: booking.iCalUID || undefined, iCalSequence: booking.iCalSequence })
+      .withLocation({ location, conferenceCredentialId })
+      .withIdentifiers({ iCalUID: iCalUID || undefined, iCalSequence })
       .withConfirmation({
         requiresConfirmation: !!eventType.requiresConfirmation,
         isConfirmedByDefault: !eventType.requiresConfirmation,
       })
       .withPlatformVariables({
-        platformClientId: (booking.metadata as Prisma.JsonObject)?.platformClientId as string | undefined,
-        platformRescheduleUrl: platformRescheduleUrl, // Use derived/default value
-        platformCancelUrl: platformCancelUrl, // Use derived/default value
-        platformBookingUrl: platformBookingUrl, // Use derived/default value
+        platformClientId,
+        platformRescheduleUrl,
+        platformCancelUrl,
+        platformBookingUrl,
       })
-      // todo double check this
-      .withRecurring(
-        eventType.recurringEvent
-          ? (eventType.recurringEvent as {
-              count: number;
-              freq: number;
-              interval: number;
-            })
-          : undefined
-      )
-      .withUid(booking.uid)
-      .withOneTimePassword(booking.oneTimePassword);
+      .withRecurring(recurring)
+      .withUid(uid)
+      .withOneTimePassword(oneTimePassword);
 
-    // Handle optional fields/relations based on booking and meta
-    if (attendeeSeatId) {
-      builder.withAttendeeSeatId(attendeeSeatId); // Use value from meta
+    // Seats
+    if (seatsReferences?.length && bookingResponses) {
+      const currentSeat = seatsReferences.find(
+        (s) =>
+          s.attendee.email === bookingResponses.email ||
+          (bookingResponses.attendeePhoneNumber &&
+            s.attendee.phoneNumber === bookingResponses.attendeePhoneNumber)
+      );
+      if (currentSeat) builder.withAttendeeSeatId(currentSeat.referenceUid);
     }
 
-    if (videoCallData?.id && videoCallData.password && videoCallData.url) {
-      builder.withVideoCallData({
-        ...videoCallData,
-        id: videoCallData.id,
-        password: videoCallData.password,
-        url: videoCallData.url,
-      });
-      builder.withAppsStatus([
-        { appName: videoCallData.type, type: videoCallData.type, success: 1, failures: 0, errors: [] },
-      ]);
+    // Video
+    if (videoCallData && videoCallData.id && videoCallData.password && videoCallData.url) {
+      builder
+        .withVideoCallData({
+          ...videoCallData,
+          id: videoCallData.id,
+          password: videoCallData.password,
+          url: videoCallData.url,
+        })
+        .withAppsStatus([
+          { appName: videoCallData.type, type: videoCallData.type, success: 1, failures: 0, errors: [] },
+        ]);
     } else {
       builder.withAppsStatus([]);
     }
 
+    // Team & calendars
     if (eventType.team) {
-      const members = await Promise.all(
-        eventType.team.members.map(async (m) => await _buildPersonFromUser(m.user))
+      const hostsWithoutOrganizer = await Promise.all(
+        eventType.hosts.filter((h) => h.user.email !== user.email).map((h) => _buildPersonFromUser(h.user))
       );
-      builder.withTeam({ id: eventType.team.id, name: eventType.team.name || "", members: members });
+
+      const hostCalendars = [
+        ...eventType.hosts.map((h) => h.user.destinationCalendar).filter(Boolean),
+        user.destinationCalendar,
+      ].filter(Boolean) as NonNullable<DestinationCalendar>[];
+
+      builder
+        .withTeam({
+          id: eventType.team.id,
+          name: eventType.team.name || "",
+          members: hostsWithoutOrganizer,
+        })
+        .withDestinationCalendar(hostCalendars);
+    } else if (user.destinationCalendar) {
+      builder.withDestinationCalendar([user.destinationCalendar]);
     }
 
     return builder;
