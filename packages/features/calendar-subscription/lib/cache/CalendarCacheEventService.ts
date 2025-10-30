@@ -120,13 +120,13 @@ export class CalendarCacheEventService {
       return false;
     }
 
-    const [isCalendarSubscriptionCacheEnabled, isCacheReady] = await Promise.all([
+    const [isCalendarSubscriptionCacheReadEnabled, isCacheReady] = await Promise.all([
       featuresRepository.checkIfFeatureIsEnabledGlobally(
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
       ),
       selectedCalendarRepository.isCacheReadyForCredential(credentialId),
     ]);
 
-    return isCalendarSubscriptionCacheEnabled && isCacheReady;
+    return isCalendarSubscriptionCacheReadEnabled && isCacheReady;
   }
 }
