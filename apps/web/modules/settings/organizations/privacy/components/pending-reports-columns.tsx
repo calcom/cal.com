@@ -16,17 +16,10 @@ type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReport
 
 interface UsePendingReportsColumnsProps {
   t: (key: string) => string;
-  canDelete?: boolean;
   onViewDetails: (entry: BookingReport) => void;
-  onDelete: (entry: BookingReport) => void;
 }
 
-export function usePendingReportsColumns({
-  t,
-  canDelete,
-  onViewDetails,
-  onDelete,
-}: UsePendingReportsColumnsProps) {
+export function usePendingReportsColumns({ t, onViewDetails }: UsePendingReportsColumnsProps) {
   return useMemo<ColumnDef<BookingReport>[]>(
     () => [
       {
@@ -85,17 +78,6 @@ export function usePendingReportsColumns({
                       {t("view_details")}
                     </DropdownItem>
                   </DropdownMenuItem>
-                  {canDelete && (
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        color="destructive"
-                        StartIcon="trash"
-                        onClick={() => onDelete(entry)}>
-                        {t("delete")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  )}
                 </DropdownMenuContent>
               </Dropdown>
             </div>
@@ -103,6 +85,6 @@ export function usePendingReportsColumns({
         },
       },
     ],
-    [t, canDelete, onViewDetails, onDelete]
+    [t, onViewDetails]
   );
 }

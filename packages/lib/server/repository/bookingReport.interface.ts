@@ -83,6 +83,4 @@ export interface IBookingReportRepository {
     status: BookingReportStatus;
     organizationId?: number;
   }): Promise<void>;
-
-  deleteReport(params: { reportId: string; organizationId?: number }): Promise<void>;
 }

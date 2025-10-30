@@ -212,23 +212,4 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
       data: { status: params.status },
     });
   }
-
-  async deleteReport(params: { reportId: string; organizationId?: number }): Promise<void> {
-    const where: Prisma.BookingReportWhereUniqueInput = {
-      id: params.reportId,
-    };
-
-    if (params.organizationId) {
-      await this.prismaClient.bookingReport.deleteMany({
-        where: {
-          id: params.reportId,
-          organizationId: params.organizationId,
-        },
-      });
-    } else {
-      await this.prismaClient.bookingReport.delete({
-        where,
-      });
-    }
-  }
 }

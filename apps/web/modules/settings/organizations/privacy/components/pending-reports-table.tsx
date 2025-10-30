@@ -8,31 +8,19 @@ import { DataTableWrapper, useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { ConfirmationDialogContent, Dialog, DialogClose } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { showToast } from "@calcom/ui/components/toast";
 
 import { BookingReportEntryDetailsModal } from "./booking-report-entry-details-modal";
 import { usePendingReportsColumns } from "./pending-reports-columns";
 
 type BookingReport = RouterOutputs["viewer"]["organizations"]["listBookingReports"]["rows"][number];
 
-interface PendingReportsTableProps {
-  permissions?: {
-    canRead: boolean;
-    canCreate: boolean;
-    canDelete: boolean;
-  };
-}
-
-export function PendingReportsTable({ permissions }: PendingReportsTableProps) {
+export function PendingReportsTable() {
   const { t } = useLocale();
   const { limit, offset, searchTerm } = useDataTable();
 
   const [showReviewDialog, setShowReviewDialog] = useState(false);
   const [selectedReport, setSelectedReport] = useState<BookingReport | null>(null);
-  const [reportToDelete, setReportToDelete] = useState<BookingReport | null>(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const { data, isPending } = trpc.viewer.organizations.listBookingReports.useQuery(
     {
@@ -46,41 +34,14 @@ export function PendingReportsTable({ permissions }: PendingReportsTableProps) {
     }
   );
 
-  const utils = trpc.useUtils();
-
-  const deleteBookingReport = trpc.viewer.organizations.deleteBookingReport.useMutation({
-    onSuccess: async () => {
-      await utils.viewer.organizations.listBookingReports.invalidate();
-      showToast(t("booking_report_deleted"), "success");
-      setShowDeleteDialog(false);
-      setReportToDelete(null);
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
-
   const handleViewDetails = (entry: BookingReport) => {
     setSelectedReport(entry);
     setShowReviewDialog(true);
   };
 
-  const handleDelete = (entry: BookingReport) => {
-    setReportToDelete(entry);
-    setShowDeleteDialog(true);
-  };
-
-  const confirmDelete = () => {
-    if (reportToDelete) {
-      deleteBookingReport.mutate({ reportId: reportToDelete.id });
-    }
-  };
-
   const columns = usePendingReportsColumns({
     t,
-    canDelete: permissions?.canDelete,
     onViewDetails: handleViewDetails,
-    onDelete: handleDelete,
   });
 
   const totalRowCount = data?.meta?.totalRowCount ?? 0;
@@ -122,19 +83,6 @@ export function PendingReportsTable({ permissions }: PendingReportsTableProps) {
           setSelectedReport(null);
         }}
       />
-
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <ConfirmationDialogContent
-          variety="danger"
-          title={t("delete_booking_report")}
-          confirmBtn={
-            <DialogClose color="destructive" onClick={confirmDelete}>
-              {t("delete")}
-            </DialogClose>
-          }>
-          {t("delete_booking_report_confirmation")}
-        </ConfirmationDialogContent>
-      </Dialog>
     </>
   );
 }
