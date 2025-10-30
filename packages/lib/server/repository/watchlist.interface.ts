@@ -11,6 +11,12 @@ export interface WatchlistEntry {
   source: WatchlistSource;
   createdAt?: Date;
   lastUpdatedAt?: Date;
+  bookingReports?: Array<{
+    id: string;
+    bookerEmail: string;
+    reason: string;
+    createdAt: Date;
+  }>;
 }
 
 export interface WatchlistAuditEntry {

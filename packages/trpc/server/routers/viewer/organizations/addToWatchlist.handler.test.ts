@@ -76,6 +76,7 @@ describe("addToWatchlistHandler (Organization)", () => {
   const mockReportRepo = {
     findReportsByIds: vi.fn(),
     linkWatchlistToReport: vi.fn(),
+    updateReportStatus: vi.fn(),
   };
 
   const mockWatchlistRepo = {
@@ -139,6 +140,7 @@ describe("addToWatchlistHandler (Organization)", () => {
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
+      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
 
       await addToWatchlistHandler({
         ctx: { user: mockUser },
@@ -231,6 +233,7 @@ describe("addToWatchlistHandler (Organization)", () => {
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
+      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
 
       const result = await addToWatchlistHandler({
         ctx: { user: mockUser },
@@ -260,6 +263,11 @@ describe("addToWatchlistHandler (Organization)", () => {
         reportId: "report-1",
         watchlistId: "watchlist-new",
       });
+      expect(mockReportRepo.updateReportStatus).toHaveBeenCalledWith({
+        reportId: "report-1",
+        status: "BLOCKED",
+        organizationId: 100,
+      });
     });
 
     it("should create new organization watchlist entry for DOMAIN type and link report", async () => {
@@ -267,6 +275,7 @@ describe("addToWatchlistHandler (Organization)", () => {
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-domain" });
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
+      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
 
       const result = await addToWatchlistHandler({
         ctx: { user: mockUser },
@@ -285,12 +294,18 @@ describe("addToWatchlistHandler (Organization)", () => {
         description: undefined,
         userId: 1,
       });
+      expect(mockReportRepo.updateReportStatus).toHaveBeenCalledWith({
+        reportId: "report-1",
+        status: "BLOCKED",
+        organizationId: 100,
+      });
     });
 
     it("should reuse existing organization watchlist entry when value already exists", async () => {
       mockReportRepo.findReportsByIds.mockResolvedValue([mockReports[0]]);
       mockWatchlistRepo.checkExists.mockResolvedValue({ id: "existing-watchlist" } as WatchlistEntry);
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
+      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
 
       const result = await addToWatchlistHandler({
         ctx: { user: mockUser },
@@ -306,6 +321,11 @@ describe("addToWatchlistHandler (Organization)", () => {
         reportId: "report-1",
         watchlistId: "existing-watchlist",
       });
+      expect(mockReportRepo.updateReportStatus).toHaveBeenCalledWith({
+        reportId: "report-1",
+        status: "BLOCKED",
+        organizationId: 100,
+      });
     });
   });
 
@@ -319,6 +339,7 @@ describe("addToWatchlistHandler (Organization)", () => {
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
+      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
 
       await addToWatchlistHandler({
         ctx: { user: mockUser },
@@ -339,6 +360,7 @@ describe("addToWatchlistHandler (Organization)", () => {
       mockWatchlistRepo.checkExists.mockResolvedValue(null);
       mockWatchlistRepo.createEntry.mockResolvedValue({ id: "watchlist-new" });
       mockReportRepo.linkWatchlistToReport.mockResolvedValue(undefined);
+      mockReportRepo.updateReportStatus.mockResolvedValue(undefined);
 
       await addToWatchlistHandler({
         ctx: { user: mockUser },

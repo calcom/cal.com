@@ -61,7 +61,7 @@ export class WatchlistRepository implements IWatchlistRepository {
         type_value_organizationId: {
           type: params.type,
           value: params.value,
-          organizationId: params.organizationId ?? null,
+          organizationId: params.organizationId ?? undefined,
         },
       },
     });

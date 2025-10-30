@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
-import { MembershipRole, BookingReportReason } from "@calcom/prisma/enums";
+import { MembershipRole, BookingReportReason, BookingReportStatus } from "@calcom/prisma/enums";
 
 import { listBookingReportsHandler } from "./listBookingReports.handler";
 
@@ -28,6 +28,7 @@ describe("listBookingReportsHandler (Organization)", () => {
         description: null,
         cancelled: false,
         createdAt: new Date("2025-01-01"),
+        status: BookingReportStatus.PENDING,
         watchlistId: null,
         reporter: { id: 1, name: "Admin", email: "admin@example.com" },
         booking: {
@@ -48,6 +49,7 @@ describe("listBookingReportsHandler (Organization)", () => {
         description: "Unknown person",
         cancelled: true,
         createdAt: new Date("2025-01-02"),
+        status: BookingReportStatus.BLOCKED,
         watchlistId: "watchlist-123",
         reporter: { id: 1, name: "Admin", email: "admin@example.com" },
         booking: {

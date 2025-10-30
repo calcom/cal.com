@@ -1,4 +1,5 @@
-import type { PrismaClient, Prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/generated/prisma/client";
 
 import type {
   IBookingReportRepository,

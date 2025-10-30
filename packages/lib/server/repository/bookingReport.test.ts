@@ -19,6 +19,8 @@ describe("PrismaBookingReportRepository", () => {
       findUnique: vi.fn(),
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      updateMany: vi.fn(),
+      count: vi.fn(),
     },
   } as unknown as PrismaClient;
 
@@ -124,6 +126,60 @@ describe("PrismaBookingReportRepository", () => {
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
+      });
+    });
+  });
+
+  describe("updateReportStatus", () => {
+    it("should update report status with organizationId", async () => {
+      mockPrisma.bookingReport.updateMany.mockResolvedValue({ count: 1 });
+
+      await repository.updateReportStatus({
+        reportId: "report-123",
+        status: "BLOCKED",
+        organizationId: 100,
+      });
+
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: "report-123",
+          organizationId: 100,
+        },
+        data: { status: "BLOCKED" },
+      });
+    });
+
+    it("should update report status without organizationId", async () => {
+      mockPrisma.bookingReport.updateMany.mockResolvedValue({ count: 1 });
+
+      await repository.updateReportStatus({
+        reportId: "report-456",
+        status: "DISMISSED",
+      });
+
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: "report-456",
+        },
+        data: { status: "DISMISSED" },
+      });
+    });
+
+    it("should update report status to PENDING", async () => {
+      mockPrisma.bookingReport.updateMany.mockResolvedValue({ count: 1 });
+
+      await repository.updateReportStatus({
+        reportId: "report-789",
+        status: "PENDING",
+        organizationId: 200,
+      });
+
+      expect(mockPrisma.bookingReport.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: "report-789",
+          organizationId: 200,
+        },
+        data: { status: "PENDING" },
       });
     });
   });
