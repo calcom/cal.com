@@ -51,10 +51,7 @@ export class TeamBillingService implements ITeamBillingService {
   }
   private async getOrgIfNeeded() {
     if (!this.team.parentId) return;
-    const parentTeam = await prisma.team.findUniqueOrThrow({
-      where: { id: this.team.parentId },
-      select: { metadata: true, id: true, parentId: true, isOrganization: true },
-    });
+    const parentTeam = await this.teamBillingDataRepository.find(this.team.parentId);
     this.team = parentTeam;
   }
   private logErrorFromUnknown(error: unknown) {
