@@ -269,6 +269,32 @@ export const createSalesforceMock = () => {
   // @ts-ignore
   const mockConnection = {
     query: vi.fn().mockImplementation(handleQuery),
+    search: vi.fn().mockImplementation((searchQuery: string) => {
+      const emailMatch = searchQuery.match(/FIND \{([^}]+)\}/i);
+      if (!emailMatch) return { searchRecords: [] };
+
+      const email = emailMatch[1];
+      const searchRecords = [];
+
+      const matchingContacts = records.contacts.filter((c) => c.Email === email);
+      searchRecords.push(...matchingContacts);
+
+      const matchingLeads = records.leads.filter((l) => l.Email === email);
+      searchRecords.push(...matchingLeads);
+
+      if (searchQuery.includes("Owner.Email")) {
+        searchRecords.forEach((record) => {
+          if (record.OwnerId) {
+            const owner = records.users.find((u) => u.Id === record.OwnerId);
+            record.Owner = {
+              Email: owner ? owner.Email : undefined,
+            };
+          }
+        });
+      }
+
+      return { searchRecords };
+    }),
     sobject: vi.fn().mockReturnValue({
       create: vi.fn().mockImplementation(async (data) => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -362,6 +388,7 @@ export const createSalesforceMock = () => {
       records.users = [];
       records.events = [];
       mockConnection.query.mockClear();
+      mockConnection.search.mockClear();
       mockConnection.sobject.mockClear();
       mockConnection.describe.mockClear();
     },

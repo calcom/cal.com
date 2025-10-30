@@ -1,6 +1,6 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { addPermissionsToWorkflows } from "@calcom/lib/server/repository/workflow-permissions";
+import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -44,17 +44,6 @@ export const getAllActiveWorkflowsHandler = async ({ input, ctx }: GetAllActiveW
     const hasPermissionToViewWorkflows = await permissionCheckService.checkPermission({
       userId: ctx.user.id,
       teamId: eventType.teamId,
-      permission: "workflow.read",
-      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-    });
-
-    if (!hasPermissionToViewWorkflows) throw new TRPCError({ code: "UNAUTHORIZED" });
-  }
-
-  if (eventType.parent?.teamId) {
-    const hasPermissionToViewWorkflows = await permissionCheckService.checkPermission({
-      userId: ctx.user.id,
-      teamId: eventType.parent?.teamId,
       permission: "workflow.read",
       fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
     });
