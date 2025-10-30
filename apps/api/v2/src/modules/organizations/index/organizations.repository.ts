@@ -12,7 +12,7 @@ export class OrganizationsRepository {
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
     private readonly stripeService: StripeService
-  ) {}
+  ) { }
 
   async findById(organizationId: number) {
     return this.dbRead.prisma.team.findUnique({
@@ -183,5 +183,21 @@ export class OrganizationsRepository {
         },
       },
     });
+  }
+
+  async getOrganizationAutoAcceptSettings(organizationId: number) {
+    const org = await this.dbRead.prisma.team.findUnique({
+      where: { id: organizationId, isOrganization: true },
+      select: {
+        organizationSettings: {
+          select: {
+            orgAutoAcceptEmail: true,
+            isOrganizationVerified: true,
+          },
+        },
+      },
+    });
+
+    return org?.organizationSettings ?? null;
   }
 }

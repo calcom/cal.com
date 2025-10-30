@@ -12,6 +12,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
@@ -58,8 +59,9 @@ export class OrganizationsTeamsMembershipsController {
 
   constructor(
     private organizationsTeamsMembershipsService: OrganizationsTeamsMembershipsService,
-    private readonly organizationsRepository: OrganizationsRepository
-  ) {}
+    private readonly organizationsRepository: OrganizationsRepository,
+    private readonly orgMembershipService: OrganizationMembershipService
+  ) { }
 
   @Get("/")
   @ApiOperation({ summary: "Get all memberships" })
@@ -184,7 +186,22 @@ export class OrganizationsTeamsMembershipsController {
       throw new UnprocessableEntityException("User is not part of the Organization");
     }
 
-    const membership = await this.organizationsTeamsMembershipsService.createOrgTeamMembership(teamId, data);
+    // TODO: Refactor to use inviteMembersWithNoInviterPermissionCheck from TRPC
+    // See: packages/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler.ts
+    const shouldAutoAccept = await this.orgMembershipService.shouldAutoAccept({
+      organizationId: orgId,
+      userEmail: user.email,
+    });
+
+    // ALWAYS override when email matches - prevents pending memberships
+    const acceptedStatus = shouldAutoAccept ? true : (data.accepted ?? false);
+
+    const membershipData = { ...data, accepted: acceptedStatus };
+    const membership = await this.organizationsTeamsMembershipsService.createOrgTeamMembership(
+      teamId,
+      membershipData
+    );
+
     if (membership.accepted) {
       try {
         await updateNewTeamMemberEventTypes(user.id, teamId);
