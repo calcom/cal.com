@@ -32,8 +32,6 @@ interface BookingDetailsSheetProps {
   hasNext?: boolean;
 }
 
-const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-
 export function BookingDetailsSheet({
   booking,
   isOpen,
@@ -54,13 +52,13 @@ export function BookingDetailsSheet({
   const getStatusBadge = () => {
     switch (booking.status) {
       case "ACCEPTED":
-        return { variant: "green" as const, label: capitalize(t("confirmed")) };
+        return { variant: "green" as const, label: t("confirmed") };
       case "PENDING":
-        return { variant: "orange" as const, label: capitalize(t("pending")) };
+        return { variant: "orange" as const, label: t("pending") };
       case "CANCELLED":
-        return { variant: "red" as const, label: capitalize(t("cancelled")) };
+        return { variant: "red" as const, label: t("cancelled") };
       case "REJECTED":
-        return { variant: "red" as const, label: capitalize(t("rejected")) };
+        return { variant: "red" as const, label: t("rejected") };
       default:
         return { variant: "gray" as const, label: booking.status };
     }
@@ -116,10 +114,7 @@ export function BookingDetailsSheet({
         if (SystemField.safeParse(question).success) {
           const translationKey = question.toLowerCase();
           const translated = t(translationKey);
-          translatedQuestion =
-            translated && translated !== translationKey ? translated : capitalize(question);
-        } else {
-          translatedQuestion = capitalize(question);
+          translatedQuestion = translated && translated !== translationKey ? translated : question;
         }
         return [translatedQuestion, answer] as [string, unknown];
       })
@@ -155,7 +150,9 @@ export function BookingDetailsSheet({
             </div>
           }>
           <div className="flex items-center gap-2">
-            <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+            <Badge variant={statusBadge.variant} className="capitalize">
+              {statusBadge.label}
+            </Badge>
             {booking.eventType.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
             {recurringInfo && (
               <Badge variant="gray">
@@ -263,7 +260,7 @@ export function BookingDetailsSheet({
               <div className="space-y-4">
                 {customResponses.map(([question, answer], idx) => (
                   <div key={idx} className="space-y-1">
-                    <h3 className="text-subtle text-xs font-semibold">{question}</h3>
+                    <h3 className="text-subtle text-xs font-semibold capitalize">{question}</h3>
                     <p className="text-default text-sm">{String(answer)}</p>
                   </div>
                 ))}
