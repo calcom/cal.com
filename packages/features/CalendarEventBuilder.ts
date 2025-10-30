@@ -1,6 +1,6 @@
-import { getCalEventResponses } from "bookings/lib/getCalEventResponses";
-import { BookingRepository } from "bookings/repositories/BookingRepository";
-import { getBookerBaseUrl } from "ee/organizations/lib/getBookerUrlServer";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import type { TFunction } from "i18next";
 
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
