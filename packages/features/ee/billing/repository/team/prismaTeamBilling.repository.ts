@@ -1,20 +1,15 @@
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
-import type { ITeamBillingRepository } from "../../teams/team-billing.repository.interface";
-import { teamBillingSelect } from "../../teams/team-billing.repository.interface";
-
-const stubTeam = { id: -1, metadata: {}, isOrganization: true, parentId: -1, name: "" };
+import type { ITeamBillingRepository } from "./teamBilling.repository.interface";
+import { teamBillingSelect } from "./teamBilling.repository.interface";
 
 export class PrismaTeamBillingRepository implements ITeamBillingRepository {
   /** Fetch a single team with minimal data needed for billing */
   async find(teamId: number) {
-    if (!IS_TEAM_BILLING_ENABLED) return stubTeam;
     return prisma.team.findUniqueOrThrow({ where: { id: teamId }, select: teamBillingSelect });
   }
   /** Fetch a single team with minimal data needed for billing */
   async findBySubscriptionId(subscriptionId: string) {
-    if (!IS_TEAM_BILLING_ENABLED) return stubTeam;
     const team = await prisma.team.findFirstOrThrow({
       where: {
         metadata: {
@@ -28,7 +23,6 @@ export class PrismaTeamBillingRepository implements ITeamBillingRepository {
   }
   /** Fetch multiple teams with minimal data needed for billing */
   async findMany(teamIds: number[]) {
-    if (!IS_TEAM_BILLING_ENABLED) return [];
     return prisma.team.findMany({ where: { id: { in: teamIds } }, select: teamBillingSelect });
   }
 }
