@@ -83,6 +83,30 @@ const shuffle = (
   booking.ratingFeedback = getRandomRatingFeedback(); // Random feedback from a predefined list
   booking.noShowHost = Math.random() < 0.5;
 
+  // Add random video call links to 40% of bookings
+  const random = Math.random();
+  if (random < 0.2) {
+    // 20% Google Meet
+    const randomMeetId = Math.random().toString(36).substring(2, 15);
+    booking.metadata = {
+      videoCallUrl: `https://meet.google.com/${randomMeetId}`,
+    };
+    booking.location = "integrations:google:meet";
+  } else if (random < 0.35) {
+    // 15% Zoom
+    const randomZoomId = Math.floor(Math.random() * 1000000000);
+    booking.metadata = {
+      videoCallUrl: `https://zoom.us/j/${randomZoomId}`,
+    };
+    booking.location = "integrations:zoom";
+  } else if (random < 0.4) {
+    // 5% Cal Video
+    booking.metadata = {
+      videoCallUrl: `https://cal.com/video/${uuidv4()}`,
+    };
+    booking.location = "integrations:daily";
+  }
+
   return booking;
 };
 
@@ -367,26 +391,25 @@ async function main() {
 }
 
 async function runMain() {
-  await main()
-    .catch(async (e) => {
-      console.error(e);
-      await prisma.user.deleteMany({
-        where: {
-          email: {
-            in: ["insights@example", "insightsuser@example.com"],
-          },
+  await main().catch(async (e) => {
+    console.error(e);
+    await prisma.user.deleteMany({
+      where: {
+        email: {
+          in: ["insights@example", "insightsuser@example.com"],
         },
-      });
-
-      await prisma.team.deleteMany({
-        where: {
-          slug: "insights",
-        },
-      });
-
-      await prisma.$disconnect();
-      process.exit(1);
+      },
     });
+
+    await prisma.team.deleteMany({
+      where: {
+        slug: "insights",
+      },
+    });
+
+    await prisma.$disconnect();
+    process.exit(1);
+  });
 }
 
 /**
@@ -525,19 +548,18 @@ async function createPerformanceData() {
 }
 
 async function runPerformanceData() {
-  await createPerformanceData()
-    .catch(async (e) => {
-      console.error(e);
-      await prisma.user.deleteMany({
-        where: {
-          username: {
-            contains: "insights-user-",
-          },
+  await createPerformanceData().catch(async (e) => {
+    console.error(e);
+    await prisma.user.deleteMany({
+      where: {
+        username: {
+          contains: "insights-user-",
         },
-      });
-      await prisma.$disconnect();
-      process.exit(1);
+      },
     });
+    await prisma.$disconnect();
+    process.exit(1);
+  });
 }
 
 async function runEverything() {

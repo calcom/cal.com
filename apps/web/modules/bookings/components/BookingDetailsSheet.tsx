@@ -1,9 +1,11 @@
 "use client";
 
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -66,40 +68,19 @@ export function BookingDetailsSheet({
 
   const statusBadge = getStatusBadge();
 
-  const getMeetingLocation = () => {
-    if (!booking.location) return null;
+  const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
+  const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
+  const locationVideoCallUrl = bookingMetadata?.videoCallUrl;
 
-    const videoRef = booking.references?.find((ref) => ref.type.includes("_video"));
+  const locationToDisplay = booking.location
+    ? getSuccessPageLocationMessage(
+        locationVideoCallUrl ? locationVideoCallUrl : booking.location,
+        t,
+        booking.status
+      )
+    : null;
 
-    if (videoRef?.meetingUrl) {
-      let platform = "Meeting";
-      if (videoRef.type.includes("zoom")) platform = "Zoom";
-      else if (videoRef.type.includes("google_meet")) platform = "Google Meet";
-      else if (videoRef.type.includes("teams")) platform = "Teams";
-
-      return {
-        type: "video",
-        platform,
-        url: videoRef.meetingUrl,
-      };
-    }
-
-    if (booking.location.startsWith("http")) {
-      return {
-        type: "link",
-        platform: "Link",
-        url: booking.location,
-      };
-    }
-
-    return {
-      type: "text",
-      platform: null,
-      text: booking.location,
-    };
-  };
-
-  const location = getMeetingLocation();
+  const provider = guessEventLocationType(booking.location);
 
   const recurringInfo = booking.recurringEventId
     ? {
@@ -210,22 +191,32 @@ export function BookingDetailsSheet({
               </div>
             </div>
 
-            {location && (
+            {locationToDisplay && (
               <div className="space-y-1">
                 <h3 className="text-subtle text-xs font-semibold">{t("where")}</h3>
-                {location.type === "video" || location.type === "link" ? (
-                  <div className="flex items-baseline gap-1 text-sm">
-                    <span className="text-default">{location.platform}:</span>
-                    <a
-                      href={location.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="truncate text-blue-600 hover:underline">
-                      {location.url}
-                    </a>
+                {typeof locationToDisplay === "string" && locationToDisplay.startsWith("http") ? (
+                  <div className="flex items-center gap-2 text-sm">
+                    {provider?.iconUrl && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={provider.iconUrl}
+                        className="h-4 w-4 flex-shrink-0 rounded-sm"
+                        alt={`${provider?.label} logo`}
+                      />
+                    )}
+                    <div className="flex min-w-0 items-baseline gap-1">
+                      <span className="text-default flex-shrink-0">{provider?.label}:</span>
+                      <a
+                        href={locationToDisplay}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="truncate text-blue-600 hover:underline">
+                        {locationToDisplay}
+                      </a>
+                    </div>
                   </div>
                 ) : (
-                  <p className="text-default text-sm">{location.text}</p>
+                  <p className="text-default text-sm">{locationToDisplay}</p>
                 )}
               </div>
             )}
