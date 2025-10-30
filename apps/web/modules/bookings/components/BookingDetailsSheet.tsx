@@ -5,6 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
@@ -82,12 +83,13 @@ export function BookingDetailsSheet({
 
   const provider = guessEventLocationType(booking.location);
 
-  const recurringInfo = booking.recurringEventId
-    ? {
-        count: 0, // TODO: Get actual count from recurring data
-        frequency: "weekly", // TODO: Get actual frequency
-      }
-    : null;
+  const recurringInfo =
+    booking.recurringEventId && booking.eventType?.recurringEvent
+      ? {
+          count: booking.eventType.recurringEvent.count,
+          recurringEvent: booking.eventType.recurringEvent,
+        }
+      : null;
 
   const customResponses = booking.responses
     ? Object.entries(booking.responses as Record<string, unknown>).map(([question, answer]) => {
@@ -225,10 +227,10 @@ export function BookingDetailsSheet({
               <div className="space-y-1">
                 <h3 className="text-subtle text-xs font-semibold">{t("recurring_event")}</h3>
                 <p className="text-default text-sm">
-                  {/* TODO: Get actual recurring pattern text */}
-                  {t("recurring_booking_description", {
-                    frequency: recurringInfo.frequency,
-                    count: recurringInfo.count,
+                  {getEveryFreqFor({
+                    t,
+                    recurringEvent: recurringInfo.recurringEvent,
+                    recurringCount: recurringInfo.count,
                   })}
                 </p>
               </div>

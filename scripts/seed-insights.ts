@@ -107,6 +107,11 @@ const shuffle = (
     booking.location = "integrations:daily";
   }
 
+  // Add recurring event ID to 10% of bookings from recurring events
+  if (randomEvent.recurringEvent && Math.random() < 0.1) {
+    booking.recurringEventId = uuidv4();
+  }
+
   return booking;
 };
 
@@ -242,6 +247,7 @@ async function main() {
       teamId: true,
       userId: true,
       assignAllTeamMembers: true,
+      recurringEvent: true,
     },
   });
 
@@ -275,6 +281,20 @@ async function main() {
           schedulingType: "ROUND_ROBIN",
           assignAllTeamMembers: true,
         },
+        {
+          title: "Weekly Standup",
+          slug: "weekly-standup",
+          description: "Weekly team standup meeting",
+          length: 30,
+          teamId: insightsTeam.id,
+          schedulingType: "ROUND_ROBIN",
+          assignAllTeamMembers: true,
+          recurringEvent: {
+            freq: 2, // Weekly (RRULE freq: WEEKLY = 2)
+            count: 10,
+            interval: 1,
+          },
+        },
       ],
     });
 
@@ -291,6 +311,7 @@ async function main() {
         teamId: true,
         userId: true,
         assignAllTeamMembers: true,
+        recurringEvent: true,
       },
     });
 
