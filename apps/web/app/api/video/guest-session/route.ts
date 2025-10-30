@@ -1,4 +1,3 @@
-import { validateCsrfToken } from "app/api/csrf/utils";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -12,6 +11,7 @@ import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGues
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { VideoCallGuestRepository } from "@calcom/features/video-call-guest/repositories/VideoCallGuestRepository";
+import { validateCsrfToken } from "@calcom/lib/validateCsrfToken";
 import prisma from "@calcom/prisma";
 
 const videoCallGuestWithCsrfSchema = z.object({
@@ -45,11 +45,14 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
 
-  const { hosts } = getHostsAndGuests(booking);
+  const { hosts, guests } = getHostsAndGuests(booking);
   const isHost = hosts.some((host) => host.email.toLowerCase() === guestData.email.trim().toLowerCase());
+  const isGuest = guests.some((guest) => guest.email.toLowerCase() === guestData.email.trim().toLowerCase());
 
   if (isHost) {
     return NextResponse.json({ error: "hosts_must_use_login" }, { status: 403 });
+  } else if (!isGuest) {
+    return NextResponse.json({ error: "invalid_guest_email" }, { status: 403 });
   }
 
   const videoCallGuestRepo = new VideoCallGuestRepository(prisma);
