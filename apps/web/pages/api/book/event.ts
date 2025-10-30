@@ -1,12 +1,16 @@
 import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
+import { BotDetectionService } from "@calcom/features/bot-detection";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
@@ -18,6 +22,16 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       remoteIp: userIp,
     });
   }
+
+  // Check for bot detection using feature flag
+  const featuresRepository = new FeaturesRepository(prisma);
+  const eventTypeRepository = new EventTypeRepository(prisma);
+  const botDetectionService = new BotDetectionService(featuresRepository, eventTypeRepository);
+
+  await botDetectionService.checkBotDetection({
+    eventTypeId: req.body.eventTypeId,
+    headers: req.headers,
+  });
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
@@ -31,11 +45,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     creationSource: CreationSource.WEBAPP,
   };
 
-  const booking = await handleNewBooking({
+  const regularBookingService = getRegularBookingService();
+  const booking = await regularBookingService.createBooking({
     bookingData: req.body,
-    userId: session?.user?.id || -1,
-    hostname: req.headers.host || "",
-    forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+    bookingMeta: {
+      userId: session?.user?.id || -1,
+      hostname: req.headers.host || "",
+      forcedSlug: req.headers["x-cal-force-slug"] as string | undefined,
+    },
   });
   // const booking = await createBookingThroughFactory();
   return booking;
