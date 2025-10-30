@@ -1724,7 +1724,8 @@ async function handler(
         tracking: reqBody.tracking,
       };
 
-      if (input.reservedSlotUid && !eventType.seatsPerTimeSlot) {
+      const isTeamEvent = eventType.schedulingType;
+      if (input.reservedSlotUid && !eventType.seatsPerTimeSlot && !isTeamEvent) {
         booking = await createBookingWithReservedSlot(createArgs, {
           eventTypeId,
           slotUtcStart: reqBody.start,
