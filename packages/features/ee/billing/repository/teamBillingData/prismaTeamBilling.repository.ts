@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 
-import type { ITeamBillingRepository } from "./teamBilling.repository.interface";
-import { teamBillingSelect } from "./teamBilling.repository.interface";
+import type { ITeamBillingRepository } from "./ITeamBillingDataRepository";
+import { teamBillingSelect } from "./ITeamBillingDataRepository";
 
 export class PrismaTeamBillingDataRepository implements ITeamBillingRepository {
   /** Fetch a single team with minimal data needed for billing */

@@ -1,4 +1,4 @@
-import { ITeamBillingRepository, TeamBillingType } from "./teamBilling.repository.interface";
+import { ITeamBillingRepository, TeamBillingType } from "./ITeamBillingDataRepository";
 
 export class StubTeamBillingDataRepository implements ITeamBillingRepository {
   stubTeam = { id: -1, metadata: {}, isOrganization: true, parentId: -1, name: "" };

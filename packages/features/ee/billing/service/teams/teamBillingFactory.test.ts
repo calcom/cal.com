@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as constants from "@calcom/lib/constants";
 
-import { InternalTeamBilling } from "./internal-team-billing";
-import { StubTeamBilling } from "./stub-team-billing";
+import { StubTeamBillingService } from "./stubTeamBillingService";
+import { TeamBillingService } from "./teamBillingService";
 import { TeamBillingServiceFactory } from "./teamBillingServiceFactory";
 
 vi.mock("@calcom/lib/constants", async () => {
@@ -34,7 +34,7 @@ describe("TeamBilling", () => {
       // @ts-expect-error - IS_TEAM_BILLING_ENABLED is not writable
       constants.IS_TEAM_BILLING_ENABLED = true;
       const result = TeamBillingServiceFactory.init(mockTeam);
-      expect(result).toBeInstanceOf(InternalTeamBilling);
+      expect(result).toBeInstanceOf(TeamBillingService);
     });
 
     it("should return StubTeamBillingService when team billing is disabled", () => {
@@ -42,7 +42,7 @@ describe("TeamBilling", () => {
       constants.IS_TEAM_BILLING_ENABLED = false;
 
       const result = TeamBillingServiceFactory.init(mockTeam);
-      expect(result).toBeInstanceOf(StubTeamBilling);
+      expect(result).toBeInstanceOf(StubTeamBillingService);
     });
   });
 
@@ -50,8 +50,8 @@ describe("TeamBilling", () => {
     it("should initialize multiple TeamBillingServices", () => {
       const result = TeamBillingServiceFactory.initMany(mockTeams);
       expect(result).toHaveLength(2);
-      expect(result[0]).toBeInstanceOf(StubTeamBilling);
-      expect(result[1]).toBeInstanceOf(StubTeamBilling);
+      expect(result[0]).toBeInstanceOf(StubTeamBillingService);
+      expect(result[1]).toBeInstanceOf(StubTeamBillingService);
     });
   });
 
@@ -63,7 +63,7 @@ describe("TeamBilling", () => {
       prismaMock.team.findUniqueOrThrow.mockResolvedValue(mockTeam);
 
       const result = await TeamBillingServiceFactory.findAndInit(1);
-      expect(result).toBeInstanceOf(InternalTeamBilling);
+      expect(result).toBeInstanceOf(TeamBillingService);
     });
   });
 
@@ -76,8 +76,8 @@ describe("TeamBilling", () => {
 
       const result = await TeamBillingServiceFactory.findAndInitMany([1, 2]);
       expect(result).toHaveLength(2);
-      expect(result[0]).toBeInstanceOf(InternalTeamBilling);
-      expect(result[1]).toBeInstanceOf(InternalTeamBilling);
+      expect(result[0]).toBeInstanceOf(TeamBillingService);
+      expect(result[1]).toBeInstanceOf(TeamBillingService);
     });
   });
 });

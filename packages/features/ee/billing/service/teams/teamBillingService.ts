@@ -1,3 +1,4 @@
+import { ITeamBillingDataRepository } from "ee/billing/repository/teamBillingData/ITeamBillingDataRepository";
 import type { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
@@ -11,23 +12,35 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
-import billing from "..";
-import { IBillingRepository, IBillingRepositoryCreateArgs } from "../repository/billing/IBillingRepository";
-import { BillingRepositoryFactory } from "../repository/billing/billingRepositoryFactory";
-import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
+import billing from "../..";
+import {
+  IBillingRepository,
+  IBillingRepositoryCreateArgs,
+} from "../../repository/billing/IBillingRepository";
+import {
+  TeamBillingPublishResponseStatus,
+  type ITeamBillingService,
+  type TeamBillingInput,
+} from "./ITeamBillingService";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
 
 const teamPaymentMetadataSchema = teamMetadataStrictSchema.unwrap();
 
-export class TeamBillingService implements TeamBilling {
+export class TeamBillingService implements ITeamBillingService {
   private _team!: Omit<TeamBillingInput, "metadata"> & {
     metadata: NonNullable<z.infer<typeof teamPaymentMetadataSchema>>;
   };
   private billingRepository: IBillingRepository;
-  constructor(team: TeamBillingInput) {
+  private teamBillingDataRepository: ITeamBillingDataRepository;
+  constructor(
+    team: TeamBillingInput,
+    teamBillingDataRepository: ITeamBillingDataRepository,
+    billingRepository: IBillingRepository
+  ) {
     this.team = team;
-    this.billingRepository = BillingRepositoryFactory.getRepository(team.isOrganization);
+    this.teamBillingDataRepository = teamBillingDataRepository;
+    this.billingRepository = billingRepository;
   }
   set team(team: TeamBillingInput) {
     const metadata = teamPaymentMetadataSchema.parse(team.metadata || {});

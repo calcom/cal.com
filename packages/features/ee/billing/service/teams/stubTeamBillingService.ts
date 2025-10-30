@@ -1,11 +1,11 @@
-import { TeamBillingPublishResponseStatus } from "./teamBillingService.interface";
+import { TeamBillingPublishResponseStatus } from "./ITeamBillingService";
 import type {
-  TeamBillingService,
+  ITeamBillingService,
   TeamBillingInput,
   TeamBillingPublishResponse,
-} from "./teamBillingService.interface";
+} from "./ITeamBillingService";
 
-export class StubTeamBillingService implements TeamBillingService {
+export class StubTeamBillingService implements ITeamBillingService {
   constructor(private team: TeamBillingInput) {}
 
   async cancel(): Promise<void> {
