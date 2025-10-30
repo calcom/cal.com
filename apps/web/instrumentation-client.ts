@@ -50,7 +50,12 @@ export function onRouterTransitionStart(url: string, navigationType: "push" | "r
   }
 }
 
-process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
+if (
+  process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
+  typeof globalThis.crypto !== "undefined" &&
+  typeof globalThis.crypto.getRandomValues === "function" &&
+  !globalThis.ReactNativeWebView
+) {
   initBotId({
     protect: [
       {
@@ -59,3 +64,4 @@ process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
       },
     ],
   });
+}
