@@ -151,7 +151,7 @@ export function hasCalAIAction(steps: WorkflowStep[]) {
   return steps.some((step) => isCalAIAction(step.action));
 }
 
-export function getEventTypeIdForTest({
+export function getEventTypeIdForCalAiTest({
   trigger,
   outboundEventTypeId,
   eventTypeIds,
