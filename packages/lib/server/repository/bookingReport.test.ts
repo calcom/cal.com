@@ -96,37 +96,59 @@ describe("PrismaBookingReportRepository", () => {
       const mockReports = [
         {
           id: "report-1",
+          bookingUid: "booking-1",
+          bookerEmail: "user1@example.com",
           reportedById: 1,
           reason: BookingReportReason.SPAM,
           description: "Spam",
+          cancelled: false,
           createdAt: new Date("2025-01-01T10:00:00Z"),
+          status: "PENDING",
+          watchlistId: null,
+          reportedBy: null,
+          booking: {
+            id: 1,
+            uid: "booking-1",
+            title: "Test Booking",
+            startTime: new Date(),
+            endTime: new Date(),
+          },
+          watchlist: null,
         },
         {
           id: "report-2",
+          bookingUid: "booking-2",
+          bookerEmail: "user2@example.com",
           reportedById: 2,
           reason: BookingReportReason.DONT_KNOW_PERSON,
           description: null,
+          cancelled: false,
           createdAt: new Date("2025-01-01T11:00:00Z"),
+          status: "PENDING",
+          watchlistId: null,
+          reportedBy: null,
+          booking: {
+            id: 2,
+            uid: "booking-2",
+            title: "Test Booking 2",
+            startTime: new Date(),
+            endTime: new Date(),
+          },
+          watchlist: null,
         },
       ];
 
       mockPrisma.bookingReport.findMany.mockResolvedValue(mockReports);
+      mockPrisma.bookingReport.count.mockResolvedValue(2);
 
       const result = await repository.findAllReportedBookings({ skip: 0, take: 10 });
 
-      expect(result).toEqual(mockReports);
-      expect(mockPrisma.bookingReport.findMany).toHaveBeenCalledWith({
-        skip: 0,
-        take: 10,
-        select: {
-          id: true,
-          reportedById: true,
-          reason: true,
-          description: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: "desc" },
+      expect(result).toEqual({
+        rows: mockReports.map((r) => ({ ...r, reporter: r.reportedBy })),
+        meta: { totalRowCount: 2 },
       });
+      expect(mockPrisma.bookingReport.findMany).toHaveBeenCalled();
+      expect(mockPrisma.bookingReport.count).toHaveBeenCalled();
     });
   });
 
