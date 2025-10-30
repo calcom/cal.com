@@ -1198,8 +1198,28 @@ export class BookingRepository {
       where: {
         id: bookingId,
       },
-      include: {
-        tracking: true,
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        cancellationReason: true,
+        customInputs: true,
+        userPrimaryEmail: true,
+        metadata: true,
+        attendees: true,
+        tracking: {
+          select: {
+            utm_source: true,
+            utm_medium: true,
+            utm_campaign: true,
+            utm_term: true,
+            utm_content: true,
+          },
+        },
       },
     });
   }
@@ -1209,8 +1229,28 @@ export class BookingRepository {
       where: {
         uid,
       },
-      include: {
-        tracking: true,
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        cancellationReason: true,
+        customInputs: true,
+        userPrimaryEmail: true,
+        metadata: true,
+        attendees: true,
+        tracking: {
+          select: {
+            utm_source: true,
+            utm_medium: true,
+            utm_campaign: true,
+            utm_term: true,
+            utm_content: true,
+          },
+        },
       },
     });
   }
