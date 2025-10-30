@@ -41,9 +41,11 @@ describe("getCalendar", () => {
     teamId: null,
     appId: "google-calendar",
     invalid: false,
+    delegationCredentialId: null,
     user: {
       email: "test@example.com",
     },
+    delegatedTo: null,
   };
 
   beforeEach(async () => {
@@ -82,16 +84,12 @@ describe("getCalendar", () => {
     const { CalendarCacheWrapper } = await import(
       "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper"
     );
-    vi.mocked(CalendarCacheWrapper).mockImplementation(
-      mockCalendarCacheWrapper as unknown as typeof CalendarCacheWrapper
-    );
+    vi.mocked(CalendarCacheWrapper).mockImplementation(mockCalendarCacheWrapper);
 
     const { CalendarCacheEventRepository } = await import(
       "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository"
     );
-    vi.mocked(CalendarCacheEventRepository).mockImplementation(
-      mockCalendarCacheEventRepository as unknown as typeof CalendarCacheEventRepository
-    );
+    vi.mocked(CalendarCacheEventRepository).mockImplementation(mockCalendarCacheEventRepository);
   });
 
   afterEach(() => {
