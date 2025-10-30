@@ -20,7 +20,7 @@ import { Booker } from "../Booker";
 import { render, screen } from "./test-utils";
 
 vi.mock("framer-motion", async (importOriginal) => {
-  const actual = (await importOriginal()) as any;
+  const actual = (await importOriginal()) as Record<string, unknown>;
   return {
     ...actual,
   };
@@ -84,6 +84,14 @@ vi.mock("@calcom/atoms/hooks/useIsPlatformBookerEmbed", () => ({
 
 vi.mock("@calcom/atoms/hooks/useIsPlatform", () => ({
   useIsPlatform: () => false,
+}));
+
+vi.mock("../components/hooks/useVerifyGuestEmails", () => ({
+  useVerifyGuestEmails: () => ({
+    guestsRequireVerification: false,
+    guestsRequiringCount: 0,
+    emailsRequiringVerification: [],
+  }),
 }));
 
 // Update defaultProps to include missing required props
