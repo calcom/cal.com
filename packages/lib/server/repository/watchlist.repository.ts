@@ -61,7 +61,7 @@ export class WatchlistRepository implements IWatchlistRepository {
         type_value_organizationId: {
           type: params.type,
           value: params.value,
-          organizationId: params.organizationId ?? null,
+          organizationId: params.organizationId ?? undefined,
         },
       },
     });
@@ -125,14 +125,16 @@ export class WatchlistRepository implements IWatchlistRepository {
   }
 
   async findEntryWithAuditAndReports(id: string): Promise<{
-    entry: (WatchlistEntry & {
-      bookingReports?: Array<{
-        booking: {
-          uid: string;
-          title: string | null;
-        };
-      }>;
-    }) | null;
+    entry:
+      | (WatchlistEntry & {
+          bookingReports?: Array<{
+            booking: {
+              uid: string;
+              title: string | null;
+            };
+          }>;
+        })
+      | null;
     auditHistory: WatchlistAuditEntry[];
   }> {
     const entry = await this.prismaClient.watchlist.findUnique({

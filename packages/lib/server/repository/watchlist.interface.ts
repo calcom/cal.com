@@ -11,12 +11,6 @@ export interface WatchlistEntry {
   source: WatchlistSource;
   createdAt?: Date;
   lastUpdatedAt?: Date;
-  bookingReports?: Array<{
-    id: string;
-    bookerEmail: string;
-    reason: string;
-    createdAt: Date;
-  }>;
 }
 
 export interface WatchlistAuditEntry {
@@ -68,14 +62,16 @@ export interface IWatchlistRepository {
     meta: { totalRowCount: number };
   }>;
   findEntryWithAuditAndReports(id: string): Promise<{
-    entry: (WatchlistEntry & {
-      bookingReports?: Array<{
-        booking: {
-          uid: string;
-          title: string | null;
-        };
-      }>;
-    }) | null;
+    entry:
+      | (WatchlistEntry & {
+          bookingReports?: Array<{
+            booking: {
+              uid: string;
+              title: string | null;
+            };
+          }>;
+        })
+      | null;
     auditHistory: WatchlistAuditEntry[];
   }>;
   deleteEntry(id: string, userId: number): Promise<void>;
