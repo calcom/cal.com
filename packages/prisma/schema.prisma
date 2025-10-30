@@ -855,7 +855,6 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
-  createdLogs                  BookingCreatedLog[]
 
   // @@partial_index([reassignById])
 
@@ -2554,12 +2553,9 @@ model BookingInternalNote {
 model BookingCreatedLog {
   id                   String   @id @default(uuid())
   bookingUid           String
-  booking              Booking  @relation(fields: [bookingUid], references: [uid], onDelete: Cascade)
   selectedCalendarIds  String[]
   availabilitySnapshot Json?
   createdAt            DateTime @default(now())
-
-  @@index([bookingUid])
 }
 
 enum WorkflowContactType {
