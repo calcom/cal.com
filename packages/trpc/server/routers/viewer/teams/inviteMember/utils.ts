@@ -4,7 +4,6 @@ import type { TFunction } from "i18next";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { getOrganizationMembershipService } from "@calcom/features/ee/organizations/di/OrganizationMembershipService.container";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
@@ -276,9 +275,7 @@ export function getOrgConnectionInfo({
 
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
-    const emailDomain = email.split("@")[1]?.trim().toLowerCase();
-    const autoAcceptDomain = orgAutoAcceptDomain?.trim().toLowerCase();
-    if (emailDomain && autoAcceptDomain && emailDomain === autoAcceptDomain) {
+    if (email.split("@")[1] == orgAutoAcceptDomain) {
       // We discourage self-served organizations from being able to use auto-accept feature by having a barrier of a fixed number of paying teams in the account for creating the organization
       // We can't put restriction of a published organization here because when we move teams during the onboarding of the organization, it isn't published at the moment and we really need those members to be auto-added
       // Further, sensitive operations like member editing and impersonating are disabled by default, unless reviewed by the ADMIN team
@@ -321,23 +318,6 @@ export async function createNewUsersConnectToOrgIfExists({
 }) {
   // fail if we have invalid emails
   invitations.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
-  
-  const organizationMembershipService = getOrganizationMembershipService();
-  const autoAcceptByEmail = new Map<string, boolean>();
-  
-  if (parentId || isOrg) {
-    const orgId = parentId || teamId;
-    await Promise.all(
-      invitations.map(async (invitation) => {
-        const shouldAutoAccept = await organizationMembershipService.shouldAutoAccept({
-          organizationId: orgId,
-          userEmail: invitation.usernameOrEmail,
-        });
-        autoAcceptByEmail.set(invitation.usernameOrEmail, shouldAutoAccept);
-      })
-    );
-  }
-  
   // from this point we know usernamesOrEmails contains only emails
   const createdUsers = await prisma.$transaction(
     async (tx) => {
@@ -345,8 +325,7 @@ export async function createNewUsersConnectToOrgIfExists({
       for (let index = 0; index < invitations.length; index++) {
         const invitation = invitations[index];
         // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
-        const { orgId } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
-        const autoAccept = autoAcceptByEmail.get(invitation.usernameOrEmail) ?? false;
+        const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
         const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
         const [domainName, TLD] = emailDomain.split(".");
 
@@ -1021,20 +1000,10 @@ export async function handleNewUsersInvites({
 
   // Add auto-accepted users to team event types with assignAllTeamMembers immediately
   // Only teams have event types with assignAllTeamMembers, not organizations
-  if (!isOrg && (team.parentId || isOrg)) {
-    const organizationMembershipService = getOrganizationMembershipService();
-    const orgId = team.parentId || teamId;
-    
-    const autoAcceptedUserIds = [];
-    for (const user of createdUsers) {
-      const shouldAutoAccept = await organizationMembershipService.shouldAutoAccept({
-        organizationId: orgId,
-        userEmail: user.email,
-      });
-      if (shouldAutoAccept) {
-        autoAcceptedUserIds.push(user.id);
-      }
-    }
+  if (!isOrg) {
+    const autoAcceptedUserIds = createdUsers
+      .filter((user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept)
+      .map((user) => user.id);
 
     if (autoAcceptedUserIds.length > 0) {
       const results = await Promise.allSettled(
