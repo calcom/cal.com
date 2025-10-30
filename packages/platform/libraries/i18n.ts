@@ -12,7 +12,7 @@ const translationsPath = path.resolve(__dirname, "../../../../apps/web/public/st
 const englishTranslations: Record<string, string> = require(translationsPath);
 /* eslint-enable @typescript-eslint/no-require-imports */
 
-const translationCache = new Map<string, Record<string, string>>();
+const translationCache = new Map<string, Record<string, string>>([["en-common", englishTranslations]]);
 const i18nInstanceCache = new Map<string, I18nInstance>();
 const SUPPORTED_NAMESPACES = ["common"];
 
@@ -32,13 +32,6 @@ export async function loadTranslations(_locale: string, _ns: string) {
     return translationCache.get(cacheKey);
   }
 
-  // Return bundled English translations immediately for English locale
-  if (locale === "en") {
-    translationCache.set(cacheKey, englishTranslations);
-    return englishTranslations;
-  }
-
-  // For non-English locales, try to fetch via HTTP
   const url = `${WEBAPP_URL}/static/locales/${locale}/${ns}.json`;
   try {
     const response = await fetchWithTimeout(
@@ -59,7 +52,6 @@ export async function loadTranslations(_locale: string, _ns: string) {
     return translations;
   } catch (err) {
     logger.warn(`Failed to load translations for ${locale}, falling back to English:`, err);
-    // Fall back to English translations instead of returning empty object
     return englishTranslations;
   }
 }
@@ -72,8 +64,9 @@ export async function loadTranslations(_locale: string, _ns: string) {
  */
 export const getTranslation = async (locale: string, ns: string) => {
   const cacheKey = `${locale}-${ns}`;
-  if (i18nInstanceCache.has(cacheKey)) {
-    return i18nInstanceCache.get(cacheKey)!.getFixedT(locale, ns);
+  const cachedInstance = i18nInstanceCache.get(cacheKey);
+  if (cachedInstance) {
+    return cachedInstance.getFixedT(locale, ns);
   }
 
   const resources = await loadTranslations(locale, ns);
