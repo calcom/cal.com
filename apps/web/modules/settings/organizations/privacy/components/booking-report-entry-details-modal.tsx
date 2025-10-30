@@ -86,6 +86,11 @@ export function BookingReportEntryDetailsModal({
     });
   };
 
+  const handleGoBack = () => {
+    onClose();
+    reset();
+  };
+
   const reasonMap: Record<string, string> = {
     SPAM: t("spam"),
     DONT_KNOW_PERSON: t("dont_know_person"),
@@ -167,20 +172,32 @@ export function BookingReportEntryDetailsModal({
           </div>
 
           <DialogFooter className="mt-6">
-            <Button
-              type="button"
-              color="secondary"
-              onClick={handleDismiss}
-              loading={dismissBookingReport.isPending}
-              disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
-              {t("dont_block")}
-            </Button>
-            <Button
-              type="submit"
-              loading={isSubmitting || addToWatchlist.isPending}
-              disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
-              {t("add_to_blocklist")}
-            </Button>
+            <div className="flex w-full items-center justify-between">
+              <Button
+                type="button"
+                color="minimal"
+                onClick={handleGoBack}
+                disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
+                {t("go_back")}
+              </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  color="secondary"
+                  onClick={handleDismiss}
+                  loading={dismissBookingReport.isPending}
+                  disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
+                  {t("dont_block")}
+                </Button>
+                <Button
+                  type="submit"
+                  loading={isSubmitting || addToWatchlist.isPending}
+                  disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
+                  {t("add_to_blocklist")}
+                </Button>
+              </div>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>
