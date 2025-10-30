@@ -13,7 +13,8 @@ import { CalendarServiceMap } from "../calendar.services.generated";
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendar = async (
-  credential: CredentialForCalendarService | null
+  credential: CredentialForCalendarService | null,
+  shouldServeCache?: boolean,
 ): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
@@ -42,11 +43,8 @@ export const getCalendar = async (
     return null;
   }
 
-  // check if Calendar Cache is supported and enabled
-  if (CalendarCacheEventService.isCalendarTypeSupported(calendarType)) {
-    log.debug(
-      `Calendar Cache is supported for credential ${credential.id}, checking feature flags`
-    );
+  // if shouldServeCache is not supplied, determine on the fly.
+  if (typeof shouldServeCache === "undefined") {
     const featuresRepository = new FeaturesRepository(prisma);
     const [
       isCalendarSubscriptionCacheEnabled,
@@ -65,23 +63,22 @@ export const getCalendar = async (
         CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
       ),
     ]);
-
-    if (
+    shouldServeCache =
       isCalendarSubscriptionCacheEnabled &&
       isCalendarSubscriptionCacheEnabledForUser &&
-      isCalendarSubscriptionCacheEnabledReadForUser
-    ) {
-      log.debug(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const originalCalendar = new CalendarService(credential as any);
-      if (originalCalendar) {
-        // return cacheable calendar
-        const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
-        return new CalendarCacheWrapper({
-          originalCalendar,
-          calendarCacheEventRepository,
-        });
-      }
+      isCalendarSubscriptionCacheEnabledReadForUser;
+  }
+  if (CalendarCacheEventService.isCalendarTypeSupported(calendarType) && shouldServeCache) {
+    log.debug(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const originalCalendar = new CalendarService(credential as any);
+    if (originalCalendar) {
+      // return cacheable calendar
+      const calendarCacheEventRepository = new CalendarCacheEventRepository(prisma);
+      return new CalendarCacheWrapper({
+        originalCalendar,
+        calendarCacheEventRepository,
+      });
     }
   }
 
