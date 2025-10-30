@@ -1189,4 +1189,51 @@ export class BookingRepository {
       },
     });
   }
+
+  async findByIdIncludeDestinationCalendar(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        attendees: true,
+        eventType: true,
+        destinationCalendar: true,
+        references: true,
+        user: {
+          include: {
+            destinationCalendar: true,
+            credentials: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateBookingAttendees({
+    bookingId,
+    newAttendees,
+    updatedResponses,
+  }: {
+    bookingId: number;
+    newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+    updatedResponses: Prisma.InputJsonValue;
+  }) {
+    return await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        attendees: true,
+      },
+      data: {
+        attendees: {
+          createMany: {
+            data: newAttendees,
+          },
+        },
+        responses: updatedResponses,
+      },
+    });
+  }
 }
