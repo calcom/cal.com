@@ -3582,7 +3582,5 @@
   "create_new_team_event_type_description": "Create a new event type for people to book times with.",
   "username_required": "Username is required",
   "username_available": "Username available",
-  "checking_username_availability": "Checking username availability",
-  "avail_offer": "Avail Offer",
-  "avail_offer_description": "Special offers for your account"
+  "checking_username_availability": "Checking username availability"
 }
