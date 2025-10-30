@@ -12,8 +12,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import billing from "..";
-import { IBillingRepository, IBillingRepositoryCreateArgs } from "../repository/IBillingRepository";
-import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
+import { IBillingRepository, IBillingRepositoryCreateArgs } from "../repository/billing/IBillingRepository";
+import { BillingRepositoryFactory } from "../repository/billing/billingRepositoryFactory";
 import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });

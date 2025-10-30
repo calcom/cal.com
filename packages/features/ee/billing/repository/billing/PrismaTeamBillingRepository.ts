@@ -6,7 +6,7 @@ import {
   BillingRecord,
   Plan,
   SubscriptionStatus,
-} from "./billing/IBillingRepository";
+} from "./IBillingRepository";
 
 export class PrismaTeamBillingRepository implements IBillingRepository {
   constructor(private readonly prismaClient: PrismaClient) {}

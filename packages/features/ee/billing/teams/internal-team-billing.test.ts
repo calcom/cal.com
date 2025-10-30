@@ -6,7 +6,7 @@ import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/pay
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import * as billingModule from "..";
-import { BillingRepositoryFactory } from "../repository/billingRepositoryFactory";
+import { BillingRepositoryFactory } from "../repository/billing/billingRepositoryFactory";
 import { InternalTeamBilling } from "./internal-team-billing";
 import { TeamBillingPublishResponseStatus } from "./team-billing";
 
@@ -30,7 +30,7 @@ vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
   purchaseTeamOrOrgSubscription: vi.fn(),
 }));
 
-vi.mock("../repository/billingRepositoryFactory");
+vi.mock("../repository/billing/billingRepositoryFactory");
 const mockTeam = {
   id: 1,
   metadata: {
