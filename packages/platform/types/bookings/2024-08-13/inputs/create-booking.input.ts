@@ -19,7 +19,7 @@ import {
   Validate,
   IsDefined,
 } from "class-validator";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
