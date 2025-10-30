@@ -12,7 +12,7 @@ export type TeamBillingPublishResponse = {
   status: (typeof TeamBillingPublishResponseStatus)[keyof typeof TeamBillingPublishResponseStatus];
 };
 
-export interface TeamBilling {
+export interface TeamBillingService {
   cancel(): Promise<void>;
   publish(): Promise<TeamBillingPublishResponse>;
   downgrade(): Promise<void>;
