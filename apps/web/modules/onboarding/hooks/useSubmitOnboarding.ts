@@ -16,7 +16,11 @@ export const useSubmitOnboarding = () => {
 
   const intentToCreateOrg = trpc.viewer.organizations.intentToCreateOrg.useMutation();
 
-  const submitOnboarding = async (store: OnboardingState, userEmail: string) => {
+  const submitOnboarding = async (
+    store: OnboardingState,
+    userEmail: string,
+    invitesToSubmit: OnboardingState["invites"]
+  ) => {
     setIsSubmitting(true);
     setError(null);
 
@@ -26,7 +30,6 @@ export const useSubmitOnboarding = () => {
         organizationDetails,
         organizationBrand,
         teams,
-        invites,
         inviteRole,
         resetOnboarding,
       } = store;
@@ -46,7 +49,7 @@ export const useSubmitOnboarding = () => {
         }));
 
       // Prepare invites data
-      const invitedMembersData = invites
+      const invitedMembersData = invitesToSubmit
         .filter((invite) => invite.email.trim().length > 0)
         .map((invite) => ({
           email: invite.email,

@@ -1,5 +1,9 @@
 import jimp from "jimp";
 
+export function isBase64Image(value: string): boolean {
+  return /^data:image\/(png|jpe?g);base64,/i.test(value);
+}
+
 export async function resizeBase64Image(
   base64OrUrl: string,
   opts?: {
