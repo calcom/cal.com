@@ -195,7 +195,6 @@ const customTemplate = (
           const response = variables.responses[customInput];
           if (response?.value !== undefined) {
             const responseValue = response.value;
-            // Handle arrays (e.g., multi-select fields) by joining with commas, otherwise convert to string
             const valueString = Array.isArray(responseValue)
               ? responseValue.join(", ")
               : String(responseValue);

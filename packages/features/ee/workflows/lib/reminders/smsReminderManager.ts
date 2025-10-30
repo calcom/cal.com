@@ -322,7 +322,6 @@ const scheduleSMSReminderForForm = async (
 
   let smsMessage = message;
 
-  // Process variables in the SMS message using routing form responses
   if (smsMessage && formData.responses) {
     const timeFormat = getTimeFormatStringFromUserTimeFormat(formData.user.timeFormat);
 
