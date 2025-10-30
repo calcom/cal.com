@@ -275,11 +275,17 @@ export async function getInviteLink(page: Page) {
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
+  waitForEmailMs = 5000,
 }: {
   emails?: ReturnType<typeof createEmailsFixture>;
   userEmail: string;
+  waitForEmailMs?: number;
 }): Promise<Messages | null> {
   if (!emails) return null;
+
+  // Wait for email to be sent/received
+  await new Promise((resolve) => setTimeout(resolve, waitForEmailMs));
+
   const matchingEmails = await emails.search(userEmail, "to");
   if (!matchingEmails?.total) {
     console.log(
