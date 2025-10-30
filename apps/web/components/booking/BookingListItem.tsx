@@ -83,6 +83,7 @@ export type BookingItemProps = BookingItem & {
     userEmail: string | undefined;
   };
   isToday: boolean;
+  onClick?: () => void;
 };
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -124,6 +125,7 @@ function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { onClick } = booking;
   const {
     t,
     i18n: { language },
@@ -526,138 +528,273 @@ function BookingListItem(booking: BookingItemProps) {
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
               )}
-              <Link href={bookingLink} className="ml-3">
-                <div className="cursor-pointer py-4">
-                  <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                  <div className="text-subtle text-sm">
-                    {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                    {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                    <MeetingTimeInTimezones
-                      timeFormat={userTimeFormat}
-                      userTimezone={userTimeZone}
-                      startTime={booking.startTime}
-                      endTime={booking.endTime}
-                      attendees={booking.attendees}
-                    />
+              {onClick ? (
+                <div className="ml-3" onClick={onClick}>
+                  <div className="cursor-pointer py-4">
+                    <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                    <div className="text-subtle text-sm">
+                      {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                      {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                      <MeetingTimeInTimezones
+                        timeFormat={userTimeFormat}
+                        userTimezone={userTimeZone}
+                        startTime={booking.startTime}
+                        endTime={booking.endTime}
+                        attendees={booking.attendees}
+                      />
+                    </div>
+                    {!isPending && (
+                      <div>
+                        {(provider?.label ||
+                          (typeof locationToDisplay === "string" &&
+                            locationToDisplay?.startsWith("https://"))) &&
+                          locationToDisplay.startsWith("http") && (
+                            <a
+                              href={locationToDisplay}
+                              onClick={(e) => e.stopPropagation()}
+                              target="_blank"
+                              title={locationToDisplay}
+                              rel="noreferrer"
+                              className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                              <div className="flex items-center gap-2">
+                                {provider?.iconUrl && (
+                                  <img
+                                    src={provider.iconUrl}
+                                    className="h-4 w-4 rounded-sm"
+                                    alt={`${provider?.label} logo`}
+                                  />
+                                )}
+                                {provider?.label
+                                  ? t("join_event_location", { eventLocationType: provider?.label })
+                                  : t("join_meeting")}
+                              </div>
+                            </a>
+                          )}
+                      </div>
+                    )}
                   </div>
-                  {!isPending && (
-                    <div>
-                      {(provider?.label ||
-                        (typeof locationToDisplay === "string" &&
-                          locationToDisplay?.startsWith("https://"))) &&
-                        locationToDisplay.startsWith("http") && (
-                          <a
-                            href={locationToDisplay}
-                            onClick={(e) => e.stopPropagation()}
-                            target="_blank"
-                            title={locationToDisplay}
-                            rel="noreferrer"
-                            className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
-                            <div className="flex items-center gap-2">
-                              {provider?.iconUrl && (
-                                <img
-                                  src={provider.iconUrl}
-                                  className="h-4 w-4 rounded-sm"
-                                  alt={`${provider?.label} logo`}
-                                />
-                              )}
-                              {provider?.label
-                                ? t("join_event_location", { eventLocationType: provider?.label })
-                                : t("join_meeting")}
-                            </div>
-                          </a>
-                        )}
+                </div>
+              ) : (
+                <Link href={bookingLink} className="ml-3">
+                  <div className="cursor-pointer py-4">
+                    <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                    <div className="text-subtle text-sm">
+                      {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                      {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                      <MeetingTimeInTimezones
+                        timeFormat={userTimeFormat}
+                        userTimezone={userTimeZone}
+                        startTime={booking.startTime}
+                        endTime={booking.endTime}
+                        attendees={booking.attendees}
+                      />
+                    </div>
+                    {!isPending && (
+                      <div>
+                        {(provider?.label ||
+                          (typeof locationToDisplay === "string" &&
+                            locationToDisplay?.startsWith("https://"))) &&
+                          locationToDisplay.startsWith("http") && (
+                            <a
+                              href={locationToDisplay}
+                              onClick={(e) => e.stopPropagation()}
+                              target="_blank"
+                              title={locationToDisplay}
+                              rel="noreferrer"
+                              className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                              <div className="flex items-center gap-2">
+                                {provider?.iconUrl && (
+                                  <img
+                                    src={provider.iconUrl}
+                                    className="h-4 w-4 rounded-sm"
+                                    alt={`${provider?.label} logo`}
+                                  />
+                                )}
+                                {provider?.label
+                                  ? t("join_event_location", { eventLocationType: provider?.label })
+                                  : t("join_meeting")}
+                              </div>
+                            </a>
+                          )}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              )}
+            </div>
+          </div>
+          <div data-testid="title-and-attendees" className={`w-full px-4${isRejected ? "line-through" : ""}`}>
+            {onClick ? (
+              <div onClick={onClick}>
+                {/* Time and Badges for mobile */}
+                <div className="w-full pb-2 pt-4 sm:hidden">
+                  <div className="flex w-full items-center justify-between sm:hidden">
+                    <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                    <div className="text-subtle pr-2 text-sm">
+                      {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                      {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                      <MeetingTimeInTimezones
+                        timeFormat={userTimeFormat}
+                        userTimezone={userTimeZone}
+                        startTime={booking.startTime}
+                        endTime={booking.endTime}
+                        attendees={booking.attendees}
+                      />
+                    </div>
+                  </div>
+
+                  {isPending && (
+                    <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                      {t("unconfirmed")}
+                    </Badge>
+                  )}
+                  {booking.eventType?.team && (
+                    <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                      {booking.eventType.team.name}
+                    </Badge>
+                  )}
+                  {showPendingPayment && (
+                    <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                      {t("pending_payment")}
+                    </Badge>
+                  )}
+                  {recurringDates !== undefined && (
+                    <div className="text-muted text-sm sm:hidden">
+                      <RecurringBookingsTooltip
+                        userTimeFormat={userTimeFormat}
+                        userTimeZone={userTimeZone}
+                        booking={booking}
+                        recurringDates={recurringDates}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="cursor-pointer py-4">
+                  <div
+                    title={title}
+                    className={classNames(
+                      "max-w-10/12 sm:max-w-56 text-emphasis break-words text-sm font-medium leading-6 md:max-w-full",
+                      isCancelled ? "line-through" : ""
+                    )}>
+                    {title}
+                    <span> </span>
+
+                    {showPendingPayment && (
+                      <Badge className="hidden sm:inline-flex" variant="orange">
+                        {t("pending_payment")}
+                      </Badge>
+                    )}
+                  </div>
+                  {booking.description && (
+                    <div
+                      className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
+                      title={booking.description}>
+                      &quot;{booking.description}&quot;
+                    </div>
+                  )}
+                  {booking.attendees.length !== 0 && (
+                    <DisplayAttendees
+                      attendees={attendeeList}
+                      user={booking.user}
+                      currentEmail={userEmail}
+                      bookingUid={booking.uid}
+                      isBookingInPast={isBookingInPast}
+                    />
+                  )}
+                  {isCancelled && booking.rescheduled && (
+                    <div className="mt-2 inline-block md:hidden">
+                      <RequestSentMessage />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <Link href={bookingLink}>
+                {/* Time and Badges for mobile */}
+                <div className="w-full pb-2 pt-4 sm:hidden">
+                  <div className="flex w-full items-center justify-between sm:hidden">
+                    <div className="text-emphasis text-sm leading-6">{startTime}</div>
+                    <div className="text-subtle pr-2 text-sm">
+                      {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                      {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                      <MeetingTimeInTimezones
+                        timeFormat={userTimeFormat}
+                        userTimezone={userTimeZone}
+                        startTime={booking.startTime}
+                        endTime={booking.endTime}
+                        attendees={booking.attendees}
+                      />
+                    </div>
+                  </div>
+
+                  {isPending && (
+                    <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                      {t("unconfirmed")}
+                    </Badge>
+                  )}
+                  {booking.eventType?.team && (
+                    <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                      {booking.eventType.team.name}
+                    </Badge>
+                  )}
+                  {showPendingPayment && (
+                    <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                      {t("pending_payment")}
+                    </Badge>
+                  )}
+                  {recurringDates !== undefined && (
+                    <div className="text-muted text-sm sm:hidden">
+                      <RecurringBookingsTooltip
+                        userTimeFormat={userTimeFormat}
+                        userTimeZone={userTimeZone}
+                        booking={booking}
+                        recurringDates={recurringDates}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="cursor-pointer py-4">
+                  <div
+                    title={title}
+                    className={classNames(
+                      "max-w-10/12 sm:max-w-56 text-emphasis break-words text-sm font-medium leading-6 md:max-w-full",
+                      isCancelled ? "line-through" : ""
+                    )}>
+                    {title}
+                    <span> </span>
+
+                    {showPendingPayment && (
+                      <Badge className="hidden sm:inline-flex" variant="orange">
+                        {t("pending_payment")}
+                      </Badge>
+                    )}
+                  </div>
+                  {booking.description && (
+                    <div
+                      className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
+                      title={booking.description}>
+                      &quot;{booking.description}&quot;
+                    </div>
+                  )}
+                  {booking.attendees.length !== 0 && (
+                    <DisplayAttendees
+                      attendees={attendeeList}
+                      user={booking.user}
+                      currentEmail={userEmail}
+                      bookingUid={booking.uid}
+                      isBookingInPast={isBookingInPast}
+                    />
+                  )}
+                  {isCancelled && booking.rescheduled && (
+                    <div className="mt-2 inline-block md:hidden">
+                      <RequestSentMessage />
                     </div>
                   )}
                 </div>
               </Link>
-            </div>
-          </div>
-          <div data-testid="title-and-attendees" className={`w-full px-4${isRejected ? "line-through" : ""}`}>
-            <Link href={bookingLink}>
-              {/* Time and Badges for mobile */}
-              <div className="w-full pb-2 pt-4 sm:hidden">
-                <div className="flex w-full items-center justify-between sm:hidden">
-                  <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                  <div className="text-subtle pr-2 text-sm">
-                    {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                    {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                    <MeetingTimeInTimezones
-                      timeFormat={userTimeFormat}
-                      userTimezone={userTimeZone}
-                      startTime={booking.startTime}
-                      endTime={booking.endTime}
-                      attendees={booking.attendees}
-                    />
-                  </div>
-                </div>
-
-                {isPending && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                    {t("unconfirmed")}
-                  </Badge>
-                )}
-                {booking.eventType?.team && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
-                    {booking.eventType.team.name}
-                  </Badge>
-                )}
-                {showPendingPayment && (
-                  <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
-                    {t("pending_payment")}
-                  </Badge>
-                )}
-                {recurringDates !== undefined && (
-                  <div className="text-muted text-sm sm:hidden">
-                    <RecurringBookingsTooltip
-                      userTimeFormat={userTimeFormat}
-                      userTimeZone={userTimeZone}
-                      booking={booking}
-                      recurringDates={recurringDates}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="cursor-pointer py-4">
-                <div
-                  title={title}
-                  className={classNames(
-                    "max-w-10/12 sm:max-w-56 text-emphasis break-words text-sm font-medium leading-6 md:max-w-full",
-                    isCancelled ? "line-through" : ""
-                  )}>
-                  {title}
-                  <span> </span>
-
-                  {showPendingPayment && (
-                    <Badge className="hidden sm:inline-flex" variant="orange">
-                      {t("pending_payment")}
-                    </Badge>
-                  )}
-                </div>
-                {booking.description && (
-                  <div
-                    className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 text-default truncate text-sm"
-                    title={booking.description}>
-                    &quot;{booking.description}&quot;
-                  </div>
-                )}
-                {booking.attendees.length !== 0 && (
-                  <DisplayAttendees
-                    attendees={attendeeList}
-                    user={booking.user}
-                    currentEmail={userEmail}
-                    bookingUid={booking.uid}
-                    isBookingInPast={isBookingInPast}
-                  />
-                )}
-                {isCancelled && booking.rescheduled && (
-                  <div className="mt-2 inline-block md:hidden">
-                    <RequestSentMessage />
-                  </div>
-                )}
-              </div>
-            </Link>
+            )}
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}

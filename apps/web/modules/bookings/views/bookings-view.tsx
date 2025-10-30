@@ -3,7 +3,7 @@
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams, usePathname } from "next/navigation";
 import { createParser, useQueryState } from "nuqs";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -31,6 +31,7 @@ import BookingListItem from "@components/booking/BookingListItem";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
+import { BookingDetailsSheet } from "../components/BookingDetailsSheet";
 import { BookingsCalendar } from "../components/BookingsCalendar";
 import { BookingsList } from "../components/BookingsList";
 import type { RowData, BookingOutput } from "../types";
@@ -95,6 +96,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
+  const [selectedBooking, setSelectedBooking] = useState<BookingOutput | null>(null);
 
   // Generate dynamic tabs that preserve query parameters
   const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
@@ -274,6 +276,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
                 }}
                 listingStatus={status}
                 recurringInfo={recurringInfo}
+                onClick={() => setSelectedBooking(booking)}
                 {...booking}
               />
             );
@@ -366,6 +369,38 @@ function BookingsContent({ status, permissions }: BookingsProps) {
     return merged;
   }, [bookingsToday, flatData, status]);
 
+  const bookingNavigation = useMemo(() => {
+    const bookingRows = finalData.filter((row) => row.type === "data") as Array<{
+      type: "data";
+      booking: BookingOutput;
+      isToday: boolean;
+      recurringInfo?: import("../types").RecurringInfo;
+    }>;
+
+    const currentIndex = bookingRows.findIndex(
+      (row) => selectedBooking && row.booking.id === selectedBooking.id
+    );
+
+    const onPrevious = () => {
+      if (currentIndex > 0) {
+        setSelectedBooking(bookingRows[currentIndex - 1].booking);
+      }
+    };
+
+    const onNext = () => {
+      if (currentIndex < bookingRows.length - 1) {
+        setSelectedBooking(bookingRows[currentIndex + 1].booking);
+      }
+    };
+
+    return {
+      onPrevious,
+      onNext,
+      hasPrevious: currentIndex > 0,
+      hasNext: currentIndex < bookingRows.length - 1 && currentIndex >= 0,
+    };
+  }, [finalData, selectedBooking]);
+
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
   const table = useReactTable<RowData>({
@@ -424,6 +459,17 @@ function BookingsContent({ status, permissions }: BookingsProps) {
           )}
         </div>
       </main>
+      <BookingDetailsSheet
+        booking={selectedBooking}
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        userTimeZone={user?.timeZone}
+        userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
+        onPrevious={bookingNavigation.onPrevious}
+        hasPrevious={bookingNavigation.hasPrevious}
+        onNext={bookingNavigation.onNext}
+        hasNext={bookingNavigation.hasNext}
+      />
     </div>
   );
 }
