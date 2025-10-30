@@ -1290,6 +1290,128 @@ export class InsightsBookingBaseService {
     };
   }
 
+  async getNoShowHostsOverTimeStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        COUNT(*) as "count"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "noShowHost" = true
+      GROUP BY 1
+      ORDER BY 1
+    `;
+
+    const data = await this.prisma.$queryRaw<
+      {
+        date: Date;
+        count: number;
+      }[]
+    >(query);
+
+    // Initialize aggregate object with zero counts for all date ranges
+    const aggregate: { [date: string]: number } = {};
+
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = 0;
+    });
+
+    // Process the raw data and aggregate by date ranges
+    data.forEach(({ date, count }) => {
+      // Find which date range this date belongs to using native Date comparison
+      const dateRange = dateRanges.find((range) => {
+        const bookingDate = new Date(date);
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
+      });
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      aggregate[formattedDate] += Number(count);
+    });
+
+    // Transform aggregate data into the expected format
+    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => ({
+      formattedDateFull: formattedDateFull,
+      Month: formattedDate,
+      Count: aggregate[formattedDate] || 0,
+    }));
+
+    return result;
+  }
+
+  async getCSATOverTimeStats({ timeZone, dateRanges }: { timeZone: string; dateRanges: DateRange[] }) {
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT
+        DATE("createdAt" AT TIME ZONE ${timeZone}) as "date",
+        COUNT(*) FILTER (WHERE "rating" >= 3) as "ratings_above_3",
+        COUNT(*) FILTER (WHERE "rating" IS NOT NULL) as "total_ratings"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions} AND "rating" IS NOT NULL
+      GROUP BY 1
+      ORDER BY 1
+    `;
+
+    const data = await this.prisma.$queryRaw<
+      {
+        date: Date;
+        ratings_above_3: number;
+        total_ratings: number;
+      }[]
+    >(query);
+
+    // Initialize aggregate object with zero counts for all date ranges
+    const aggregate: { [date: string]: { ratingsAbove3: number; totalRatings: number } } = {};
+
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = { ratingsAbove3: 0, totalRatings: 0 };
+    });
+
+    // Process the raw data and aggregate by date ranges
+    data.forEach(({ date, ratings_above_3, total_ratings }) => {
+      // Find which date range this date belongs to using native Date comparison
+      const dateRange = dateRanges.find((range) => {
+        const bookingDate = new Date(date);
+        const rangeStart = new Date(range.startDate);
+        const rangeEnd = new Date(range.endDate);
+        return bookingDate >= rangeStart && bookingDate <= rangeEnd;
+      });
+
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      aggregate[formattedDate].ratingsAbove3 += Number(ratings_above_3);
+      aggregate[formattedDate].totalRatings += Number(total_ratings);
+    });
+
+    // Transform aggregate data into the expected format and calculate CSAT percentage
+    const result = dateRanges.map(({ formattedDate, formattedDateFull }) => {
+      const counts = aggregate[formattedDate];
+      const csat = counts.totalRatings > 0 ? (counts.ratingsAbove3 / counts.totalRatings) * 100 : 0;
+
+      return {
+        formattedDateFull: formattedDateFull,
+        Month: formattedDate,
+        CSAT: parseFloat(csat.toFixed(1)),
+      };
+    });
+
+    return result;
+  }
+
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
     const permissionCheckService = new PermissionCheckService();
     return await permissionCheckService.checkPermission({
