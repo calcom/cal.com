@@ -23,7 +23,7 @@ export function getiCalEventAsString(
   let recurrenceRule: string | undefined = undefined;
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEvent?.count) {
-    const { exDates, ...rruleOptionsWithoutExDates } = recurringEvent;
+    const { exDates, rDates, ...rruleOptionsWithoutExDates } = recurringEvent;
 
     recurrenceRule = new RRule(rruleOptionsWithoutExDates).toString().replace("RRULE:", "");
   }

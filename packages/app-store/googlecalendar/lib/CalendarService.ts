@@ -338,7 +338,26 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+  async updateEvent(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId: string,
+    isRecurringInstanceReschedule?: boolean
+  ): Promise<any> {
+    //  Handle recurring instance reschedule
+    if (isRecurringInstanceReschedule && event.rescheduleInstance) {
+      this.log.info("Detected recurring instance reschedule request", {
+        uid,
+        formerTime: event.rescheduleInstance.formerTime,
+        newTime: event.rescheduleInstance.newTime,
+      });
+
+      return await this.updateSpecificRecurringInstance(uid, event, externalCalendarId);
+    }
+
+    //  Normal event update logic
+    this.log.debug("Updating normal event (not a recurring instance)");
+
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -447,7 +466,7 @@ export default class GoogleCalendarService implements Calendar {
           cancelledDatesCount: event.cancelledDates.length,
         });
 
-        await this.cancelSpecificInstances(calendar, selectedCalendar, uid, event, event.cancelledDates);
+        await this.cancelSpecificInstances(calendar, selectedCalendar, uid, event.cancelledDates);
 
         return;
       }
@@ -1167,7 +1186,6 @@ export default class GoogleCalendarService implements Calendar {
     calendar: any,
     calendarId: string,
     eventId: string,
-    event: ExtendedCalendarEvent,
     cancelledDates: string[]
   ): Promise<void> {
     try {
@@ -1275,6 +1293,181 @@ export default class GoogleCalendarService implements Calendar {
       if (err.code === 410) {
         this.log.warn("Event already deleted, cannot update EXDATEs", { eventId });
         return;
+      }
+
+      throw error;
+    }
+  }
+
+  private async updateSpecificRecurringInstance(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId: string
+  ): Promise<NewCalendarEventType> {
+    this.log.info("Updating specific recurring instance", {
+      instanceUid: uid,
+      formerTime: event.rescheduleInstance?.formerTime,
+      newTime: event.rescheduleInstance?.newTime,
+    });
+
+    const calendar = await this.authedCalendar();
+    const selectedCalendar = externalCalendarId || "primary";
+
+    try {
+      // 1. Parsing the instance UID to get the master event ID and instance date
+      // Instance UIDs are formatted as: {masterEventId}_{instanceDateTimeInFormat}
+      const uidParts = uid.split("_");
+      if (uidParts.length < 3) {
+        throw new Error(`Invalid recurring instance UID format: ${uid}`);
+      }
+
+      // Reconstruct the master event ID (everything except the last part which is the timestamp)
+      const masterEventId = uidParts.slice(0, -1).join("_");
+
+      this.log.debug("Parsed recurring instance UID", {
+        originalUid: uid,
+        masterEventId,
+        instanceDateTime: uidParts[uidParts.length - 1],
+      });
+
+      // 2. First, fetch the specific instance to get its current state
+      let instanceEvent: calendar_v3.Schema$Event;
+      try {
+        const instanceResponse = await calendar.events.get({
+          calendarId: selectedCalendar,
+          eventId: uid,
+        });
+        instanceEvent = instanceResponse.data;
+
+        this.log.debug("Fetched instance event", {
+          instanceId: instanceEvent.id,
+          currentStart: instanceEvent.start?.dateTime,
+          currentEnd: instanceEvent.end?.dateTime,
+        });
+      } catch (error) {
+        this.log.error("Failed to fetch instance event", safeStringify({ error, uid }));
+        throw new Error(`Could not fetch recurring instance: ${uid}`);
+      }
+
+      // 3. Calculate event duration to maintain it after reschedule
+      const eventDurationMs = new Date(event.endTime).getTime() - new Date(event.startTime).getTime();
+      const newStartTime = new Date(event.rescheduleInstance!.newTime);
+      const newEndTime = new Date(newStartTime.getTime() + eventDurationMs);
+
+      // 4. Build the update payload - IMPORTANT: Only include fields that should change
+      // Don't include conferenceData in the initial update as it can cause conflicts
+      const payload: calendar_v3.Schema$Event = {
+        summary: event.title,
+        description: event.calendarDescription,
+        start: {
+          dateTime: newStartTime.toISOString(),
+          timeZone: event.organizer.timeZone,
+        },
+        end: {
+          dateTime: newEndTime.toISOString(),
+          timeZone: event.organizer.timeZone,
+        },
+        attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
+        reminders: {
+          useDefault: true,
+        },
+        guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      };
+
+      if (event.hideCalendarEventDetails) {
+        payload.visibility = "private";
+      }
+
+      if (event.location) {
+        payload.location = getLocation(event);
+      }
+
+      // Don't include conferenceData in PATCH for existing instances
+      // The conference link should already exist and will be preserved
+
+      // 5. Update the specific instance
+      this.log.info("Patching recurring instance", {
+        instanceUid: uid,
+        newStart: newStartTime.toISOString(),
+        newEnd: newEndTime.toISOString(),
+        selectedCalendar,
+      });
+
+      const patchResponse = await calendar.events.patch({
+        calendarId: selectedCalendar,
+        eventId: uid,
+        requestBody: payload,
+        sendUpdates: "none",
+        // Don't use conferenceDataVersion for instance updates
+      });
+
+      this.log.info("Successfully updated recurring instance", {
+        instanceId: patchResponse.data.id,
+        newStart: patchResponse.data.start?.dateTime,
+        newEnd: patchResponse.data.end?.dateTime,
+      });
+
+      // 6. If there's a hangout link and we need to update the description
+      if (patchResponse.data.id && patchResponse.data.hangoutLink && event.location === MeetLocationType) {
+        try {
+          await calendar.events.patch({
+            calendarId: selectedCalendar,
+            eventId: patchResponse.data.id,
+            requestBody: {
+              description: getRichDescription({
+                ...event,
+                additionalInformation: { hangoutLink: patchResponse.data.hangoutLink },
+              }),
+            },
+            sendUpdates: "none",
+          });
+
+          this.log.debug("Updated instance description with hangout link");
+        } catch (descError) {
+          // Don't fail the entire operation if description update fails
+          this.log.warn("Failed to update description with hangout link", safeStringify(descError));
+        }
+      }
+
+      return {
+        uid: "",
+        ...patchResponse.data,
+        id: patchResponse.data.id || "",
+        type: "google_calendar",
+        password: "",
+        url: "",
+        iCalUID: patchResponse.data.iCalUID,
+        additionalInfo: {
+          hangoutLink: patchResponse.data.hangoutLink || "",
+        },
+      };
+    } catch (error) {
+      this.log.error(
+        "Error updating specific recurring instance",
+        safeStringify({
+          error,
+          instanceUid: uid,
+          formerTime: event.rescheduleInstance?.formerTime,
+          newTime: event.rescheduleInstance?.newTime,
+          selectedCalendar,
+        })
+      );
+
+      const err = error as GoogleCalError;
+
+      // Provide more helpful error messages
+      if (err.code === 400) {
+        throw new Error(
+          `Bad request when updating recurring instance. This might be due to invalid attendee data or conference settings. UID: ${uid}`
+        );
+      }
+
+      if (err.code === 404) {
+        throw new Error(`Recurring instance not found: ${uid}`);
+      }
+
+      if (err.code === 410) {
+        throw new Error(`Recurring instance has been deleted: ${uid}`);
       }
 
       throw error;

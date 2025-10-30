@@ -54,7 +54,7 @@ const generateIcsString = ({
   if (event.recurringEvent?.count) {
     // ics appends "RRULE:" already, so removing it from RRule generated string
     // Exclude exDates from RRule options as it's not a valid RRule property
-    const { exDates, ...rruleOptions } = event.recurringEvent;
+    const { exDates, rDates, ...rruleOptions } = event.recurringEvent;
     recurrenceRule = new RRule(rruleOptions).toString().replace("RRULE:", "");
   }
 

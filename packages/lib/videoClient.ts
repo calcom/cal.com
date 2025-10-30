@@ -196,7 +196,11 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = async (credential: CredentialPayload | null, uid: string): Promise<unknown> => {
+const deleteMeeting = async (
+  credential: CredentialPayload | null,
+  uid: string,
+  isInstanceCancellation = false
+): Promise<unknown> => {
   if (credential) {
     const videoAdapter = (await getVideoAdapters([credential]))[0];
     log.debug(

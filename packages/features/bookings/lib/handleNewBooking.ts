@@ -1,3 +1,4 @@
+import { toDate } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { CalIdWorkflow } from "@calid/features/modules/workflows/config/types";
 import {
   canDisableParticipantNotifications,
@@ -98,6 +99,7 @@ import type {
   CalendarEvent,
   Person,
   RecurringEvent,
+  RescheduleInstance,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -157,6 +159,55 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
 
   // If rescheduling then increment sequence by 1
   return originalRescheduledBooking.iCalSequence + 1;
+}
+
+/**
+ * Helper function to process recurring instance reschedule
+ * Updates exDates and rDates in the recurring event metadata
+ */
+function processRecurringInstanceReschedule({
+  recurringEvent,
+  rescheduleInstance,
+}: {
+  recurringEvent: RecurringEvent;
+  rescheduleInstance: RescheduleInstance;
+}): RecurringEvent {
+  const formerTime = toDate(dayjs(rescheduleInstance.formerTime).utc().format());
+  const newTime = toDate(dayjs(rescheduleInstance.newTime).utc().format());
+
+  // Defensive copies with fallback
+  let exDates = Array.isArray(recurringEvent.exDates) ? [...recurringEvent.exDates] : [];
+  let rDates = Array.isArray(recurringEvent.rDates) ? [...recurringEvent.rDates] : [];
+
+  // 1. Remove any accidental duplicates or overlaps
+  // - If newTime exists in exDates → remove it (since it’s now included)
+  exDates = exDates.filter((d) => !isSameUTC(d, newTime));
+  // - If formerTime exists in rDates → remove it (since it’s now excluded)
+  rDates = rDates.filter((d) => !isSameUTC(d, formerTime));
+
+  // 2. Add formerTime to exDates if not already present
+  if (!exDates.some((d) => isSameUTC(d, formerTime))) {
+    exDates.push(formerTime);
+  }
+
+  // 3. Add newTime to rDates if not already present
+  if (!rDates.some((d) => isSameUTC(d, newTime))) {
+    rDates.push(newTime);
+  }
+
+  // 4. Return updated recurring event with cleaned arrays
+  return {
+    ...recurringEvent,
+    exDates,
+    rDates,
+  };
+}
+
+/**
+ * Helper: Safely compare two Date objects in UTC (ignores ms differences)
+ */
+function isSameUTC(a: Date, b: Date): boolean {
+  return dayjs(a).utc().isSame(dayjs(b).utc(), "second");
 }
 
 type BookingDataSchemaGetter =
@@ -421,38 +472,8 @@ async function handler(
     areCalendarEventsEnabled = true,
   } = input;
 
-  console.log("input.rescheduleInstance", input.bookingData.rescheduleInstance);
+  const rescheduleInstance: RescheduleInstance | undefined = input.bookingData.rescheduleInstance;
 
-  /* 
-rawBookingData: {
-  responses: {
-    name: 'Arjun OH',
-    email: 'arjun@onehash.ai',
-    location: { value: 'integrations:google:meet', optionValue: '' },
-    guests: []
-  },
-  user: 'arjun',
-  start: '2025-10-19T20:00:00+05:30',
-  end: '2025-10-19T20:15:00+05:30',
-  eventTypeId: 3827,
-  eventTypeSlug: 'test',
-  timeZone: 'Asia/Calcutta',
-  language: 'en',
-  metadata: {},
-  hasHashedBookingLink: false,
-  routedTeamMemberIds: null,
-  skipContactOwner: false,
-  _isDryRun: false,
-  dub_id: null,
-  appsStatus: undefined,
-  allRecurringDates: undefined,
-  isFirstRecurringSlot: true,
-  thirdPartyRecurringEventId: null,
-  numSlotsToCheckForAvailability: 1,
-  currentRecurringIndex: 0,
-  noEmail: false
-}
-*/
   const isPlatformBooking = !!platformClientId;
 
   const eventType = await getEventType({
@@ -616,6 +637,12 @@ rawBookingData: {
         currency: paymentAppData.currency,
         appId: paymentAppData.appId,
       },
+      rescheduleInstance: rescheduleInstance
+        ? {
+            formerTime: rescheduleInstance.formerTime,
+            newTime: rescheduleInstance.newTime,
+          }
+        : undefined,
     })
   );
 
@@ -1220,6 +1247,7 @@ rawBookingData: {
       platformCancelUrl,
       platformBookingUrl,
     })
+    .withRescheduleInstance(rescheduleInstance) // Add rescheduleInstance to the calendar event if present
     .build();
 
   if (input.bookingData.thirdPartyRecurringEventId) {
@@ -1363,24 +1391,32 @@ rawBookingData: {
     }
   }
 
-  // if (reqBody.recurringEventId && eventType.recurringEvent) {
-  //   // Overriding the recurring event configuration count to be the actual number of events booked for
-  //   // the recurring event (equal or less than recurring event configuration count)
-  // eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
-  //   evt.recurringEvent = eventType.recurringEvent;
-  // }
-
-  //APPENDING RECURRENCE RULE TO BOOKING METADATA AND CALENDAR EVENT if recurring booking
+  // Handle recurring event metadata
   if (eventType.recurringEvent) {
-    //no need to pass in the startTime because google/outlook will take the DTSTART from the event startTime
+    let recurringEvent: RecurringEvent;
 
-    const recurringEvent: RecurringEvent = Object.assign({}, eventType.recurringEvent, {
-      count: recurringCount,
-    });
+    if (!rescheduleInstance) {
+      // New booking — derive recurring info from event type
+      recurringEvent = {
+        ...eventType.recurringEvent,
+        ...(recurringCount !== undefined && { count: recurringCount }),
+      };
+    } else {
+      // Rescheduling an instance of a recurring event
+      const originalBookingRecurringEvent = isPrismaObjOrUndefined(originalRescheduledBooking?.metadata)
+        ?.recurringEvent as RecurringEvent | undefined;
+
+      recurringEvent = processRecurringInstanceReschedule({
+        recurringEvent: originalBookingRecurringEvent ?? eventType.recurringEvent,
+        rescheduleInstance,
+      });
+    }
+
+    // Apply recurring event metadata to event and request body
     evt.recurringEvent = recurringEvent;
     reqBody.metadata = {
       ...reqBody.metadata,
-      recurringEvent: recurringEvent,
+      recurringEvent,
     };
   }
 
@@ -2030,6 +2066,15 @@ rawBookingData: {
     smsReminderNumber: bookerPhoneNumber || undefined,
     rescheduledBy: reqBody.rescheduledBy,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
+    // Include rescheduleInstance in webhook payload if present
+    ...(rescheduleInstance
+      ? {
+          rescheduleInstance: {
+            formerTime: rescheduleInstance.formerTime,
+            newTime: rescheduleInstance.newTime,
+          },
+        }
+      : {}),
   };
 
   if (bookingRequiresPayment) {

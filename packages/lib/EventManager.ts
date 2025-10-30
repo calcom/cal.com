@@ -39,7 +39,7 @@ import type {
 import { createEvent, updateEvent, deleteEvent } from "./CalendarManager";
 import CrmManager from "./crmManager/crmManager";
 import { isDelegationCredential } from "./delegationCredential/clientAndServer";
-import { createMeeting, updateMeeting } from "./videoClient";
+import { createMeeting, deleteMeeting, updateMeeting } from "./videoClient";
 
 const log = logger.getSubLogger({ prefix: ["EventManager"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
@@ -495,7 +495,7 @@ export default class EventManager {
     isInstanceCancellation = false,
   }: {
     reference: PartialReference;
-    event: ExtendedCalendarEvent;
+    event: CalendarEvent;
     isInstanceCancellation?: boolean;
   }) {
     log.debug(
@@ -580,6 +580,11 @@ export default class EventManager {
       throw new Error("You called eventManager.update without an `rescheduleUid`. This should never happen.");
     }
 
+    // Detect if this is a recurring instance reschedule
+    const isRecurringInstanceReschedule = !!(
+      evt.rescheduleInstance?.formerTime && evt.rescheduleInstance?.newTime
+    );
+
     // Get details of existing booking.
     const booking = await prisma.booking.findUnique({
       where: {
@@ -595,8 +600,6 @@ export default class EventManager {
           where: {
             deleted: null,
           },
-          // NOTE: id field removed from select as we don't require for deletingMany
-          // but was giving error on recreate for reschedule, probably because promise.all() didn't finished
           select: {
             type: true,
             uid: true,
@@ -637,7 +640,11 @@ export default class EventManager {
     }
 
     const shouldUpdateBookingReferences =
-      !!changedOrganizer || isLocationChanged || !!isBookingRequestedReschedule || isDailyVideoRoomExpired;
+      !!changedOrganizer ||
+      isLocationChanged ||
+      !!isBookingRequestedReschedule ||
+      isDailyVideoRoomExpired ||
+      isRecurringInstanceReschedule; //  Include instance reschedules
 
     if (evt.requiresConfirmation) {
       log.debug("RescheduleRequiresConfirmation: Deleting Event and Meeting for previous booking");
@@ -660,40 +667,62 @@ export default class EventManager {
         results.push(...createdEvent.results);
         updatedBookingReferences.push(...createdEvent.referencesToCreate);
       } else {
-        // If the reschedule doesn't require confirmation, we can "update" the events and meetings to new time.
-        if (isLocationChanged || isBookingRequestedReschedule || isDailyVideoRoomExpired) {
-          const updatedLocation = await this.updateLocation(evt, booking);
-          results.push(...updatedLocation.results);
-          updatedBookingReferences.push(...updatedLocation.referencesToCreate);
-        } else {
-          const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-          // If and only if event type is a dedicated meeting, update the dedicated video meeting.
-          if (isDedicated) {
-            const result = await this.updateVideoEvent(evt, booking);
-            const [updatedEvent] = Array.isArray(result.updatedEvent)
-              ? result.updatedEvent
-              : [result.updatedEvent];
-
-            if (updatedEvent) {
-              evt.videoCallData = updatedEvent;
-              evt.location = updatedEvent.url;
-            }
-            results.push(result);
-          }
+        //  For recurring instance reschedule, skip deletion and location change logic
+        if (isRecurringInstanceReschedule) {
+          log.debug("RecurringInstanceReschedule: Updating specific instance without deletion");
 
           const bookingCalendarReference = booking.references.find((reference) =>
             reference.type.includes("_calendar")
           );
-          // There was a case that booking didn't had any reference and we don't want to throw error on function
-          if (bookingCalendarReference) {
-            // Update all calendar events.
-            results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
-          }
-        }
 
-        results.push(...(await this.updateAllCRMEvents(evt, booking)));
+          if (bookingCalendarReference) {
+            // Update calendar events with the instance reschedule flag
+            results.push(
+              ...(await this.updateAllCalendarEvents(
+                evt,
+                booking,
+                newBookingId,
+                isRecurringInstanceReschedule
+              ))
+            );
+          }
+        } else {
+          // Existing logic for normal reschedules
+          if (isLocationChanged || isBookingRequestedReschedule || isDailyVideoRoomExpired) {
+            const updatedLocation = await this.updateLocation(evt, booking);
+            results.push(...updatedLocation.results);
+            updatedBookingReferences.push(...updatedLocation.referencesToCreate);
+          } else {
+            const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+            // If and only if event type is a dedicated meeting, update the dedicated video meeting.
+            if (isDedicated) {
+              const result = await this.updateVideoEvent(evt, booking);
+              const [updatedEvent] = Array.isArray(result.updatedEvent)
+                ? result.updatedEvent
+                : [result.updatedEvent];
+
+              if (updatedEvent) {
+                evt.videoCallData = updatedEvent;
+                evt.location = updatedEvent.url;
+              }
+              results.push(result);
+            }
+
+            const bookingCalendarReference = booking.references.find((reference) =>
+              reference.type.includes("_calendar")
+            );
+            // There was a case that booking didn't had any reference and we don't want to throw error on function
+            if (bookingCalendarReference) {
+              // Update all calendar events.
+              results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
+            }
+          }
+
+          results.push(...(await this.updateAllCRMEvents(evt, booking)));
+        }
       }
     }
+
     const bookingPayment = booking?.payment;
 
     // Updating all payment to new
@@ -1070,11 +1099,15 @@ export default class EventManager {
   private async updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking,
-    newBookingId?: number
+    newBookingId?: number,
+    isRecurringInstanceReschedule?: boolean
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
     let calendarReference: PartialReference[] | undefined = undefined,
       credential;
-    log.silly("updateAllCalendarEvents", JSON.stringify({ event, booking, newBookingId }));
+    log.silly(
+      "updateAllCalendarEvents",
+      JSON.stringify({ event, booking, newBookingId, isRecurringInstanceReschedule })
+    );
     try {
       // If a newBookingId is given, update that calendar event
       let newBooking;
@@ -1131,14 +1164,20 @@ export default class EventManager {
               };
             }
           }
-          result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
+          // NEW: Pass the isRecurringInstanceReschedule flag to updateEvent
+          result.push(
+            updateEvent(credential, event, bookingRefUid, calenderExternalId, isRecurringInstanceReschedule)
+          );
         } else {
           const credentials = this.calendarCredentials.filter(
             (credential) => credential.type === reference?.type
           );
           for (const credential of credentials) {
             log.silly("updateAllCalendarEvents-credential", JSON.stringify({ credentials }));
-            result.push(updateEvent(credential, event, bookingRefUid, calenderExternalId));
+            //  Pass the isRecurringInstanceReschedule flag to updateEvent
+            result.push(
+              updateEvent(credential, event, bookingRefUid, calenderExternalId, isRecurringInstanceReschedule)
+            );
           }
         }
       }
@@ -1174,7 +1213,14 @@ export default class EventManager {
             }
             const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
               calendarReference;
-            return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
+            //  Pass the isRecurringInstanceReschedule flag to updateEvent
+            return await updateEvent(
+              cred,
+              event,
+              bookingRefUid ?? null,
+              bookingExternalCalendarId ?? null,
+              isRecurringInstanceReschedule
+            );
           })
       );
 

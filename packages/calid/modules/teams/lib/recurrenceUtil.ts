@@ -520,14 +520,14 @@ export function generateOccurrencesFromRRule(
       byDay,
       byMonthDay,
       byMonth,
-      rDates,
-      exDates,
+      rDates = [],
+      exDates = [],
     } = recurringEvent;
 
     // Map string weekdays to RRule Weekday objects if provided
     const byweekday = byDay?.map((day) => RRule[day as keyof typeof RRule]) as Weekday[] | undefined;
 
-    // **FIX: Ensure startTime is treated as UTC**
+    // Ensure startTime is treated as UTC
     const utcStartTime = new Date(
       Date.UTC(
         startTime.getUTCFullYear(),
@@ -548,42 +548,44 @@ export function generateOccurrencesFromRRule(
       byweekday,
       bymonthday: byMonthDay,
       bymonth: byMonth,
-      tzid: "UTC", // **FIX: Explicitly set timezone to UTC**
+      tzid: "UTC",
     };
 
     const rule = new RRule(rruleOptions);
 
-    // Generate initial occurrences
-    let allDates = rule.all();
+    // Generate occurrences from RRule
+    const generatedDates = rule.all();
 
-    // Add additional dates (rDates)
-    if (rDates?.length) {
-      allDates = allDates.concat(rDates.map((d) => new Date(d)));
+    // Convert rDates & exDates to Date objects
+    const rDateObjs = rDates.map((d) => new Date(d));
+    const exDateSet = new Set(exDates.map((d) => new Date(d).getTime()));
+
+    // Combine generated + rDates, remove duplicates & exDates
+    const uniqueTimestamps = new Set<number>();
+    const occurrences: Date[] = [];
+
+    for (const date of [...generatedDates, ...rDateObjs]) {
+      const time = date.getTime();
+      if (!exDateSet.has(time) && !uniqueTimestamps.has(time)) {
+        uniqueTimestamps.add(time);
+        occurrences.push(date);
+      }
     }
 
-    // Separate cancelled dates (exDates)
-    const cancelledDates: Date[] = [];
-    if (exDates?.length) {
-      const exDateSet = new Set(exDates.map((d) => new Date(d).getTime()));
-      allDates = allDates.filter((date) => {
-        if (exDateSet.has(date.getTime())) {
-          cancelledDates.push(date);
-          return false;
-        }
-        return true;
-      });
-    }
+    // Extract cancelledDates (actual excluded instances)
+    const cancelledDates = [...exDateSet].map((t) => new Date(t));
 
-    // Sort occurrences and cancelled dates
-    return {
-      occurrences: allDates.sort((a, b) => a.getTime() - b.getTime()),
-      cancelledDates: cancelledDates.sort((a, b) => a.getTime() - b.getTime()),
-    };
+    // Sort both lists for consistency
+    occurrences.sort((a, b) => a.getTime() - b.getTime());
+    cancelledDates.sort((a, b) => a.getTime() - b.getTime());
+
+    return { occurrences, cancelledDates };
   } catch (error) {
     console.error("Failed to generate occurrences from RRule", { error, recurringEvent });
     return { occurrences: [], cancelledDates: [] };
   }
 }
+
 /**
  * Normalize date to start of day in given timezone for comparison
  */
@@ -608,9 +610,9 @@ export function generateRecurringInstances(
     if (typeof bookingStartTime === "string") {
       bookingStartTime = new Date(bookingStartTime);
     }
+
     // Map numeric frequency to RRule constants
     const freqMap = getFreqMap();
-
     const freq = freqMap[recurringEvent.freq];
     if (freq === undefined) throw new Error(`Invalid freq: ${recurringEvent.freq}`);
 
@@ -639,11 +641,26 @@ export function generateRecurringInstances(
     const exdates = (recurringEvent.exDates || []).map((d) => new Date(d));
     const exdateTimestamps = new Set(exdates.map((d) => d.getTime()));
 
-    //Handle rDates (if any)
+    // Handle rDates (if any)
     const rdates = (recurringEvent.rDates || []).map((d) => new Date(d));
-    allInstances.push(...rdates);
 
-    return allInstances.filter((instance) => !exdateTimestamps.has(instance.getTime()));
+    // Combine and remove duplicates using timestamps
+    const combined = [...allInstances, ...rdates];
+    const uniqueTimestamps = new Set<number>();
+    const uniqueInstances: Date[] = [];
+
+    for (const date of combined) {
+      const time = date.getTime();
+      if (!exdateTimestamps.has(time) && !uniqueTimestamps.has(time)) {
+        uniqueTimestamps.add(time);
+        uniqueInstances.push(date);
+      }
+    }
+
+    // Sort by ascending date order
+    uniqueInstances.sort((a, b) => a.getTime() - b.getTime());
+
+    return uniqueInstances;
   } catch (error) {
     console.error("Error generating recurring instances", { error, recurringEvent });
     throw new Error("Failed to generate recurring instances");
@@ -714,7 +731,7 @@ const weekdayToRRule = (day: string) => {
 /**
  * Ensures the input is a valid Date object
  */
-const toDate = (date: Date | string | dayjs.Dayjs): Date => {
+export const toDate = (date: Date | string | dayjs.Dayjs): Date => {
   if (date instanceof Date) {
     return date;
   }
@@ -795,10 +812,9 @@ export const getActualRecurringStartTime = (
 
     // Filter out exDates
     if (recurringEvent.exDates && recurringEvent.exDates.length > 0) {
-      const exDateTimes = recurringEvent.exDates.map((d) => dayjs(toDate(d)).startOf("day").valueOf());
+      const exDateTimes = recurringEvent.exDates.map((d) => dayjs(toDate(d)).valueOf());
       occurrences = occurrences.filter(
-        (occurrence) =>
-          !exDateTimes.some((exDateTime) => dayjs(occurrence).startOf("day").valueOf() === exDateTime)
+        (occurrence) => !exDateTimes.some((exDateTime) => dayjs(occurrence).valueOf() === exDateTime)
       );
     }
 

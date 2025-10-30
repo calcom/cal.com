@@ -185,6 +185,11 @@ export interface RecurringEvent {
   uid?: string;
 }
 
+export interface RescheduleInstance {
+  formerTime: string; // ISO 8601 date string
+  newTime: string; // ISO 8601 date string
+}
+
 export type { IntervalLimit, IntervalLimitUnit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
 export type AppsStatus = {
@@ -273,9 +278,10 @@ export interface CalendarEvent {
   domainWideDelegationCredentialId?: string | null;
   customReplyToEmail?: string | null;
   rescheduledBy?: string;
-
-  deleteType?: "instance" | "series" | null; //for deleting new recurring booking
+  bannerUrl?: string | null;
+  // deleteType?: "instance" | "series" | null; //for deleting new recurring booking
   cancelledDates?: string[] | null; //for deleting new recurring booking
+  rescheduleInstance?: RescheduleInstance;
 }
 
 export interface EntryPoint {
@@ -326,7 +332,8 @@ export interface Calendar {
   updateEvent(
     uid: string,
     event: CalendarServiceEvent,
-    externalCalendarId?: string | null
+    externalCalendarId?: string | null,
+    isRecurringInstanceReschedule?: boolean
   ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 
   deleteEvent(
@@ -367,7 +374,7 @@ export interface Calendar {
     eventTypeIds: SelectedCalendarEventTypeIds;
   }): Promise<void>;
 
-  mapRecurrenceToPayload?(recurringEvent: RecurringEvent): unknown;
+  // mapRecurrenceToPayload?(recurringEvent: RecurringEvent): unknown;
 }
 
 /**

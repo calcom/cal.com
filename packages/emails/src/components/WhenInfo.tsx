@@ -22,7 +22,7 @@ export function getRecurringWhen({
 }) {
   if (recurringEvent) {
     const t = attendee.language.translate;
-    const { exDates, ...rruleOptionsWithoutExDates } = recurringEvent;
+    const { exDates, rDates, ...rruleOptionsWithoutExDates } = recurringEvent;
     const rruleOptions = new RRule(rruleOptionsWithoutExDates).options;
     const recurringEventConfig: RecurringEvent = {
       freq: rruleOptions.freq,

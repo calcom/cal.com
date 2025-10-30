@@ -607,7 +607,7 @@ export default function Success(props: PageProps) {
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
-                          {reschedule && !!formerTime && (
+                          {!isRecurringBooking && reschedule && !!formerTime && (
                             <p className="line-through">
                               <RecurringBookings
                                 eventType={eventType}
@@ -1263,8 +1263,8 @@ function RecurringBookings({
     i18n: { language },
   } = useLocale();
   // Generate recurring instances from recurringEvent if present
-  const recurringBookings = recurringEvent && date ? generateRecurringInstances(recurringEvent, date) : null;
-
+  const recurringBookings =
+    recurringEvent && date ? generateRecurringInstances(recurringEvent, date.toDate()) : null;
   const recurringBookingsSorted = recurringBookings
     ? recurringBookings
         .map((dateObj) => dateObj.toISOString())
@@ -1274,11 +1274,12 @@ function RecurringBookings({
   if (!duration) return null;
 
   // Show summary format for more than 10 instances
-  if (recurringBookingsSorted && recurringBookingsSorted.length > 2 && allRemainingBookings) {
+  if (recurringBookingsSorted && recurringBookingsSorted.length > 10 && allRemainingBookings) {
     const firstDate = (() => {
       // If we have a recurring event, compute the actual first occurrence
       if (recurringEvent) {
         const actualStart = getActualRecurringStartTime(recurringEvent, new Date(recurringBookingsSorted[0]));
+        console.log("actualStart", actualStart);
         return actualStart;
       }
       return recurringBookingsSorted[0];
