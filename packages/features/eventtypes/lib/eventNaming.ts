@@ -25,13 +25,25 @@ export type EventNameObjectType = {
   location?: string | null;
   eventDuration: number;
   bookingFields?: Prisma.JsonObject | null;
+  seatsPerTimeSlot?: number | null;
   t: TFunction;
 };
 
 export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
   const attendeeName = parseName(eventNameObj.attendeeName);
 
-  if (!eventNameObj.eventName)
+  const isSeated = !!(eventNameObj.seatsPerTimeSlot && eventNameObj.seatsPerTimeSlot > 1);
+
+  if (!eventNameObj.eventName) {
+    if (isSeated)
+      return eventNameObj.t("event_group_title_default", {
+        eventName: eventNameObj.eventType,
+        host: eventNameObj.teamName || eventNameObj.host,
+        interpolation: {
+          escapeValue: false,
+        },
+      });
+
     return eventNameObj.t("event_between_users", {
       eventName: eventNameObj.eventType,
       host: eventNameObj.teamName || eventNameObj.host,
@@ -40,6 +52,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
         escapeValue: false,
       },
     });
+  }
 
   let eventName = eventNameObj.eventName;
   let locationString = eventNameObj.location || "";

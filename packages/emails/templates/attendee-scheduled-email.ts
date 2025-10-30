@@ -57,18 +57,21 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     });
   }
 
-  protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {
+  protected getTextBody(title = "", subtitle?: string): string {
+    const isSeated = !!(this.calEvent.seatsPerTimeSlot && this.calEvent.seatsPerTimeSlot > 1);
+    const subtitleKey =
+      subtitle ?? (isSeated ? "group_event_emailed_you_and_others" : "emailed_you_and_any_other_attendees");
     return `
-${this.t(
-  title
-    ? title
-    : this.calEvent.recurringEvent?.count
-    ? "your_event_has_been_scheduled_recurring"
-    : "your_event_has_been_scheduled"
-)}
-${this.t(subtitle)}
+:${this.t(
+      title
+        ? title
+        : this.calEvent.recurringEvent?.count
+        ? "your_event_has_been_scheduled_recurring"
+        : "your_event_has_been_scheduled"
+    )}
+:${this.t(subtitleKey)}
 
-${getRichDescription(this.calEvent, this.t)}
+:${getRichDescription(this.calEvent, this.t)}
 `.trim();
   }
 

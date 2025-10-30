@@ -79,7 +79,17 @@ export const BaseScheduledEmail = (
           ? null
           : props.callToAction || <ManageLink attendee={props.attendee} calEvent={props.calEvent} />
       }
-      subtitle={props.subtitle || <>{t("emailed_you_and_any_other_attendees")}</>}>
+      subtitle={
+        props.subtitle || (
+          <>
+            {t(
+              props.calEvent.seatsPerTimeSlot && props.calEvent.seatsPerTimeSlot > 1
+                ? "group_event_emailed_you_and_others"
+                : "emailed_you_and_any_other_attendees"
+            )}
+          </>
+        )
+      }>
       {props.calEvent.rejectionReason && (
         <>
           <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
