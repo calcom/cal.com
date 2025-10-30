@@ -1,5 +1,7 @@
 import { cloneDeep } from "lodash";
 
+
+
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
@@ -36,11 +38,14 @@ import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+
+
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
 import type { BookingSelectResult } from "./utils/bookingSelect";
 import { bookingSelect } from "./utils/bookingSelect";
 import { getDestinationCalendar } from "./utils/getDestinationCalendar";
 import { getTeamMembers } from "./utils/getTeamMembers";
+
 
 enum ErrorCode {
   InvalidRoundRobinHost = "invalid_round_robin_host",
@@ -150,6 +155,17 @@ export const roundRobinManualReassignment = async ({
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
   let bookingLocation = booking.location;
   let conferenceCredentialId: number | null = null;
+
+  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
+
+  const teamMembers = await getTeamMembers({
+    eventTypeHosts,
+    attendees: booking.attendees,
+    organizer,
+    previousHost: previousRRHost || null,
+    reassignedHost: newUser,
+  });
+
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
     const responseSchema = getBookingResponsesSchema({
@@ -179,7 +195,8 @@ export const roundRobinManualReassignment = async ({
       attendeeName: responses?.name || "Nameless",
       eventType: eventType.title,
       eventName: eventType.eventName,
-      teamName: eventType.team?.name,
+      // we send on behalf of team if >1 round robin attendee | collective
+      teamName: teamMembers.length > 1 ? eventType.team?.name : null,
       host: newUser.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
@@ -243,17 +260,7 @@ export const roundRobinManualReassignment = async ({
     hasOrganizerChanged,
   });
 
-  const organizer = hasOrganizerChanged ? newUser : booking.user ?? newUser;
-
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
-
-  const teamMembers = await getTeamMembers({
-    eventTypeHosts,
-    attendees: booking.attendees,
-    organizer,
-    previousHost: previousRRHost || null,
-    reassignedHost: newUser,
-  });
 
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
