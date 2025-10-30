@@ -27,6 +27,7 @@ export type AppFlags = {
   "cal-ai-voice-agents": boolean;
   "tiered-support-chat": boolean;
   "calendar-subscription-cache": boolean;
+  "calendar-subscription-cache-read": boolean;
   "calendar-subscription-sync": boolean;
   "onboarding-v3": boolean;
   "booker-botid": boolean;
