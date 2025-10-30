@@ -23,7 +23,6 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
-import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import BookingListItem from "@components/booking/BookingListItem";
@@ -74,11 +73,9 @@ function useSystemSegments(userId?: number) {
 export default function Bookings(props: BookingsProps) {
   const pathname = usePathname();
   const systemSegments = useSystemSegments(props.userId);
+  if (!pathname) return null;
   return (
-    <DataTableProvider
-      useSegments={useSegments}
-      systemSegments={systemSegments}
-      tableIdentifier={pathname || undefined}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} systemSegments={systemSegments}>
       <BookingsContent {...props} />
     </DataTableProvider>
   );
@@ -98,8 +95,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
 
-  // Generate dynamic tabs that preserve query parameters
-  const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
+  const tabs: HorizontalTabItemProps[] = useMemo(() => {
     const queryString = searchParams?.toString() || "";
 
     const baseTabConfigs = [
@@ -394,7 +390,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row flex-wrap justify-between">
+      <div className="flex flex-row flex-wrap justify-between lg:hidden">
         <HorizontalTabs
           tabs={tabs.map((tab) => ({
             ...tab,

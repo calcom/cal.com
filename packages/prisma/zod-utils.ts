@@ -686,6 +686,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   periodCountCalendarDays: true,
   bookingLimits: true,
   onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
   slotInterval: true,
   scheduleId: true,
   workflows: true,
