@@ -37,9 +37,11 @@ describe("getCalendar", () => {
     teamId: null,
     appId: "google-calendar",
     invalid: false,
+    delegationCredentialId: null,
     user: {
       email: "test@example.com",
     },
+    delegatedTo: null,
   };
 
   beforeEach(async () => {
