@@ -62,16 +62,16 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     const subtitleKey =
       subtitle ?? (isSeated ? "group_event_emailed_you_and_others" : "emailed_you_and_any_other_attendees");
     return `
-:${this.t(
-      title
-        ? title
-        : this.calEvent.recurringEvent?.count
-        ? "your_event_has_been_scheduled_recurring"
-        : "your_event_has_been_scheduled"
-    )}
-:${this.t(subtitleKey)}
+${this.t(
+  title
+    ? title
+    : this.calEvent.recurringEvent?.count
+    ? "your_event_has_been_scheduled_recurring"
+    : "your_event_has_been_scheduled"
+)}
+${this.t(subtitleKey)}
 
-:${getRichDescription(this.calEvent, this.t)}
+${getRichDescription(this.calEvent, this.t)}
 `.trim();
   }
 
