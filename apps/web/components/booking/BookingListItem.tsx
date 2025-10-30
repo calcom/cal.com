@@ -121,6 +121,31 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
   return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 };
 
+const ConditionalLink = ({
+  children,
+  onClick,
+  bookingLink,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  bookingLink: string;
+  className?: string;
+}) => {
+  if (onClick) {
+    return (
+      <div onClick={onClick} className={className}>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <Link href={bookingLink} className={className}>
+      {children}
+    </Link>
+  );
+};
+
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
@@ -289,31 +314,6 @@ function BookingListItem(booking: BookingItemProps) {
       <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
-    );
-  };
-
-  const ConditionalLink = ({
-    children,
-    onClick,
-    bookingLink,
-    className,
-  }: {
-    children: React.ReactNode;
-    onClick?: () => void;
-    bookingLink: string;
-    className?: string;
-  }) => {
-    if (onClick) {
-      return (
-        <div onClick={onClick} className={className}>
-          {children}
-        </div>
-      );
-    }
-    return (
-      <Link href={bookingLink} className={className}>
-        {children}
-      </Link>
     );
   };
 
