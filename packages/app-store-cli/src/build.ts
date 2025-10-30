@@ -21,7 +21,7 @@ const formatOutput = (source: string) =>
     ...prettierConfig,
   });
 
-const getVariableName = (appName: string) => appName.replace(/[-.]/g, "_");
+const getVariableName = (appName: string) => appName.replace(/[-./]/g, "_");
 
 // INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
 const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
@@ -128,10 +128,12 @@ function generateFiles() {
       lazyImport = false,
       importConfig,
       entryObjectKeyGetter = (app) => app.name,
+      skipHelper = false,
     }: {
       lazyImport?: boolean;
       importConfig: ImportConfig;
       entryObjectKeyGetter?: (arg: App, importName?: string) => string;
+      skipHelper?: boolean;
     },
     filter?: (arg: App) => boolean
   ) {
@@ -153,26 +155,8 @@ function generateFiles() {
     return output;
 
     function addImportStatements() {
-      if (lazyImport) {
-        // Create the lazy loading helper function
-        output.push(`
-// Function to create lazy-loaded metadata
-const createLazyMetadata = (importPath: string, isMetadata = false) => {
-  return async () => {
-    try {
-      if (isMetadata) {
-        const module = await import(importPath);
-        return module.metadata;
-      }
-      return import(importPath);
-    } catch (error) {
-      console.warn(\`Failed to load metadata for \${importPath}:\`, error);
-      return null;
-    }
-  };
-};
-`);
-      }
+      // Helper is now added at the file level, not per export object
+      // This function only adds the specific import statements for apps
 
       forEachAppDir((app) => {
         const chosenConfig = getChosenImportConfig(importConfig, app);
@@ -246,12 +230,37 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
     }
   }
 
+  // Add lazy loading helper to outputs that need it (once per file)
+  const lazyLoadingHelper = `
+// Function to create lazy-loaded metadata
+const createLazyMetadata = (importPath: string, isMetadata = false) => {
+  return async () => {
+    try {
+      if (isMetadata) {
+        const module = await import(importPath);
+        return module.metadata;
+      }
+      return import(importPath);
+    } catch (error) {
+      console.warn(\`Failed to load metadata for \${importPath}:\`, error);
+      return null;
+    }
+  };
+};
+`;
+
+  browserOutput.push(lazyLoadingHelper);
+  serverOutput.push(lazyLoadingHelper);
+  metadataOutput.push(lazyLoadingHelper);
+  crmOutput.push(lazyLoadingHelper);
+
   serverOutput.push(
     ...getExportedObject("apiHandlers", {
       importConfig: {
         fileToBeImported: "api/index.ts",
       },
       lazyImport: true,
+      skipHelper: true,
     })
   );
 
@@ -269,6 +278,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         },
       ],
       lazyImport: true,
+      skipHelper: true,
     })
   );
 
@@ -322,6 +332,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         fileToBeImported: "components/InstallAppButton.tsx",
       },
       lazyImport: true,
+      skipHelper: true,
     })
   );
 
@@ -333,6 +344,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         fileToBeImported: "components/AppSettingsInterface.tsx",
       },
       lazyImport: true,
+      skipHelper: true,
     })
   );
 
@@ -342,6 +354,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         fileToBeImported: "components/EventTypeAppCardInterface.tsx",
       },
       lazyImport: true,
+      skipHelper: true,
     })
   );
   browserOutput.push(
@@ -350,6 +363,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         fileToBeImported: "components/EventTypeAppSettingsInterface.tsx",
       },
       lazyImport: true,
+      skipHelper: true,
     })
   );
 
@@ -362,6 +376,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
           importName: "default",
         },
         lazyImport: true,
+        skipHelper: true,
       },
       isCrmApp
     )
