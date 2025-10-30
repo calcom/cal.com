@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import prisma from "@calcom/prisma";
 
 const ONBOARDING_INTRODUCED_AT = dayjs("September 1 2021").toISOString();
@@ -57,22 +58,20 @@ export async function checkOnboardingRedirect(
   }
 
   // Check email verification if needed
+  const featuresRepository = new FeaturesRepository(prisma);
+
   if (options?.checkEmailVerification) {
-    const { FeaturesRepository } = await import("@calcom/features/flags/features.repository");
-    const featuresRepository = new FeaturesRepository(prisma);
     const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
       "email-verification"
     );
 
     if (!user.emailVerified && user.identityProvider === "CAL" && emailVerificationEnabled) {
-      // User needs email verification, don't redirect to onboarding yet
-      return null;
+      // User needs email verification, redirect to verification page
+      return "/auth/verify-email";
     }
   }
 
   // Determine which onboarding path to use
-  const { FeaturesRepository } = await import("@calcom/features/flags/features.repository");
-  const featuresRepository = new FeaturesRepository(prisma);
   const onboardingV3Enabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("onboarding-v3");
 
   return onboardingV3Enabled ? "/onboarding/getting-started" : "/getting-started";
