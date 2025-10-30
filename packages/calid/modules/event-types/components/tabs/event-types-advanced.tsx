@@ -131,7 +131,7 @@ const SettingsToggle = ({
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div className="flex-1 pr-8">
           <CardTitle
-            className={classNames("flex items-center text-sm font-medium text-gray-700", labelClassName)}>
+            className={classNames("text-default flex items-center text-sm font-medium", labelClassName)}>
             {title}
             {lockedIcon}
             {tooltip && (
@@ -595,7 +595,6 @@ const RequiresConfirmationController = ({
           control={formMethods.control}
           render={() => (
             <SettingsToggle
-              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(requiresConfirmation && "rounded-b-none")}
               childrenClassName="lg:ml-0"
@@ -783,7 +782,6 @@ const DisableAllEmailsSetting = ({
       </Dialog>
 
       <SettingsToggle
-        labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
         title={title}
         description={t("disable_all_emails_description")}
@@ -1028,7 +1026,6 @@ export const EventAdvanced = ({
             name="disableCancelling"
             render={({ field: { value, onChange } }) => (
               <SettingsToggle
-                labelClassName="text-sm text-default"
                 toggleSwitchAtTheEnd={true}
                 title={t("disable_cancelling")}
                 data-testid="disable-cancelling-toggle"
@@ -1052,7 +1049,6 @@ export const EventAdvanced = ({
             name="disableRescheduling"
             render={({ field: { value, onChange } }) => (
               <SettingsToggle
-                labelClassName="text-sm text-default"
                 toggleSwitchAtTheEnd={true}
                 title={t("disable_rescheduling")}
                 data-testid="disable-rescheduling-toggle"
@@ -1079,7 +1075,6 @@ export const EventAdvanced = ({
         name="requiresBookerEmailVerification"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             title={t("requires_booker_email_verification")}
             data-testid="requires-booker-email-verification"
@@ -1104,7 +1099,6 @@ export const EventAdvanced = ({
         name="hideCalendarNotes"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             data-testid="disable-notes"
             title={t("disable_notes")}
@@ -1128,7 +1122,6 @@ export const EventAdvanced = ({
         name="hideCalendarEventDetails"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             title={t("hide_calendar_event_details")}
             description={t("description_hide_calendar_event_details")}
@@ -1162,7 +1155,6 @@ export const EventAdvanced = ({
         }}
         render={({ field, fieldState }) => (
           <SettingsToggle
-            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(redirectUrlVisible && "rounded-b-none")}
             childrenClassName="lg:ml-0"
@@ -1237,7 +1229,6 @@ export const EventAdvanced = ({
           name="multiplePrivateLinks"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(multiplePrivateLinksVisible && "rounded-b-none")}
               childrenClassName="lg:ml-0"
@@ -1282,7 +1273,6 @@ export const EventAdvanced = ({
         render={({ field: { value, onChange } }) => (
           <>
             <SettingsToggle
-              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(value && "rounded-b-none")}
               childrenClassName="lg:ml-0"
@@ -1388,7 +1378,6 @@ export const EventAdvanced = ({
         name="hideOrganizerEmail"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             title={t("hide_organizer_email")}
             description={t("hide_organizer_email_description")}
@@ -1420,7 +1409,6 @@ export const EventAdvanced = ({
 
           return (
             <SettingsToggle
-              labelClassName="text-sm text-default "
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(showSelector && "rounded-b-none")}
               title={t("lock_timezone_toggle_on_booking_page")}
@@ -1473,7 +1461,6 @@ export const EventAdvanced = ({
         name="allowReschedulingPastBookings"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm text-default "
             toggleSwitchAtTheEnd={true}
             title={t("allow_rescheduling_past_events")}
             description={t("allow_rescheduling_past_events_description")}
@@ -1496,7 +1483,6 @@ export const EventAdvanced = ({
         name="allowReschedulingCancelledBookings"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName="text-sm text-default"
             toggleSwitchAtTheEnd={true}
             title={t("allow_rescheduling_cancelled_bookings")}
             data-testid="allow-rescheduling-cancelled-bookings-toggle"
@@ -1522,7 +1508,6 @@ export const EventAdvanced = ({
           name="customReplyToEmail"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(customReplyToEmailVisible && "rounded-b-none")}
               childrenClassName="lg:ml-0"
@@ -1576,7 +1561,6 @@ export const EventAdvanced = ({
           name="rescheduleWithSameRoundRobinHost"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               title={t("reschedule_with_same_round_robin_host_title")}
               description={t("reschedule_with_same_round_robin_host_description")}
@@ -1602,7 +1586,6 @@ export const EventAdvanced = ({
           name="metadata.disableStandardEmails.confirmation.attendee"
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm text-default"
               toggleSwitchAtTheEnd={true}
               title={t("disable_attendees_confirmation_emails")}
               description={t("disable_attendees_confirmation_emails_description")}
@@ -1628,7 +1611,6 @@ export const EventAdvanced = ({
           defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
-              labelClassName="text-sm"
               toggleSwitchAtTheEnd={true}
               title={t("disable_host_confirmation_emails")}
               description={t("disable_host_confirmation_emails_description")}

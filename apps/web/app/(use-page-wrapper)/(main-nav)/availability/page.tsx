@@ -13,7 +13,11 @@ import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availabil
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
+import {
+  AvailabilityList,
+  AvailabilityCTA,
+  MobileAvailabilityButton,
+} from "~/availability/availability-view";
 
 import { ShellMainAppDir } from "../ShellMainAppDir";
 
@@ -35,7 +39,8 @@ const getCachedAvailabilities = unstable_cache(
     );
     return await availabilityCaller.list();
   },
-  ["viewer.availability.list"],
+  // ["viewer.availability.list"],
+  ["viewer.calidTeams.calidListTeam"],
   { revalidate: 3600 } // Cache for 1 hour
 );
 
@@ -79,6 +84,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
     <ShellMainAppDir
       heading={t("availability")}
       subtitle={t("configure_availability")}
+      MobileCTA={<MobileAvailabilityButton />}
       CTA={
         <AvailabilityCTA
           toggleGroupOptions={[

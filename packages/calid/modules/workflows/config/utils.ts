@@ -8,6 +8,7 @@ import type { CalIdWorkflowType } from "../config/types";
 import emailRatingTemplate from "../templates/email/ratingTemplate";
 import emailReminderTemplate from "../templates/email/reminder";
 import emailThankYouTemplate from "../templates/email/thankYouTemplate";
+import smsCancellationTemplate from "../templates/sms/cancellation";
 import smsReminderTemplate from "../templates/sms/reminder";
 import { whatsappEventCancelledTemplate } from "../templates/whatsapp/cancelled";
 import { whatsappEventCompletedTemplate } from "../templates/whatsapp/completed";
@@ -16,6 +17,7 @@ import { whatsappEventRescheduledTemplate } from "../templates/whatsapp/reschedu
 import {
   ATTENDEE_WORKFLOW_TEMPLATES,
   BASIC_WORKFLOW_TEMPLATES,
+  SMS_WORKFLOW_TEMPLATES,
   DYNAMIC_TEXT_VARIABLES,
   FORMATTED_DYNAMIC_TEXT_VARIABLES,
   TIME_UNITS,
@@ -91,6 +93,15 @@ function determineEmailTemplateHandler(template?: WorkflowTemplates) {
     default:
       return emailReminderTemplate;
   }
+}
+
+function determinSMSTemplateHandler(template?: WorkflowTemplates) {
+  const templateHandlerRegistry = {
+    CANCELLED: smsCancellationTemplate,
+    REMINDER: smsReminderTemplate,
+  };
+
+  return templateHandlerRegistry[template as keyof typeof templateHandlerRegistry] || smsReminderTemplate;
 }
 
 function getWhatsappTemplateContent(
@@ -222,6 +233,8 @@ function getWorkflowTemplateOptions(
       ? WHATSAPP_WORKFLOW_TEMPLATES
       : action && action === WorkflowActions.EMAIL_ATTENDEE
       ? ATTENDEE_WORKFLOW_TEMPLATES
+      : isSMSAction(action)
+      ? SMS_WORKFLOW_TEMPLATES
       : BASIC_WORKFLOW_TEMPLATES;
 
   // Helper to convert string to Title Case
@@ -258,7 +271,9 @@ function getTemplateBodyForAction({
   timeFormat: TimeFormat;
 }): string | null {
   if (isSMSAction(action)) {
-    return smsReminderTemplate(true, locale, action, timeFormat);
+    // return smsReminderTemplate();
+    const templateFunction = determinSMSTemplateHandler(template);
+    return templateFunction(true, locale, action, timeFormat);
   }
 
   if (isWhatsappAction(action)) {
@@ -286,6 +301,7 @@ const compareReminderBodyToTemplate = ({
   return stripedReminderBody === stripedTemplate;
 };
 export {
+  determineEmailTemplateHandler,
   validateSenderIdFormat,
   isSMSAction,
   isWhatsappAction,

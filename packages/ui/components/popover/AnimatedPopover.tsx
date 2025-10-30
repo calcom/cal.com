@@ -64,7 +64,7 @@ export const AnimatedPopover = ({
           {Trigger ? (
             Trigger
           ) : (
-            <div className="flex max-w-36 items-center">
+            <div className="flex max-w-40 items-center">
               <Tooltip content={prefix ? `${prefix}${text}` : text}>
                 <div className="flex select-none items-center truncate font-medium leading-none">
                   {PrefixComponent ? PrefixComponent : null}

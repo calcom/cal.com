@@ -10,6 +10,7 @@ import CacheProvider from "react-inlinesvg/provider";
 import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
+import CustomerEngagementProvider from "@lib/customerEngagementProvider";
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 
 import { queryClient } from "./_trpc/query-client";
@@ -42,7 +43,9 @@ export function Providers({ isEmbed, children, nonce: _nonce }: ProvidersProps) 
           {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
           <CacheProvider>
             <WebPushProvider>
-              {!isBookingPage ? <OneHashChatProvider>{children}</OneHashChatProvider> : children}
+              <CustomerEngagementProvider>
+                {!isBookingPage ? <OneHashChatProvider>{children}</OneHashChatProvider> : children}
+              </CustomerEngagementProvider>
             </WebPushProvider>
           </CacheProvider>
         </TrpcProvider>

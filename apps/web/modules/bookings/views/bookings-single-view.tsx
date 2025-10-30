@@ -409,6 +409,19 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
+  window.dataLayer = window.dataLayer || [];
+
+  const gtmEvent = {
+    event: "booking_success",
+    booker_email_address: bookingInfo.user?.name,
+    booker_team_id: eventType?.teamId,
+    booker_id: bookingInfo.user?.id,
+    booking_id: bookingInfo.uid,
+  };
+
+  console.log("Sent gtm event: ", gtmEvent);
+  window.dataLayer.push(gtmEvent);
+
   useEffect(() => {
     if (faviconUrl) {
       const defaultFavicons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
@@ -486,7 +499,7 @@ export default function Success(props: PageProps) {
                         className={classNames(
                           "mx-auto flex h-14 w-14 items-center justify-center rounded-full",
                           isRoundRobin &&
-                            "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
+                          "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation ? "bg-green-600" : "",
                           !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
                           isCancelled ? "bg-error" : ""
@@ -727,7 +740,7 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
-                                  0 ? (
+                                    0 ? (
                                     <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
@@ -745,8 +758,47 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {eventType.bookingFields.map((field) => {
+                          if (!field) return null;
+
+                          if (!bookingInfo.responses[field.name]) return null;
+
+                          const response = bookingInfo.responses[field.name];
+
+                          const isSystemField = SystemField.safeParse(field.name);
+                          if (
+                            isSystemField.success &&
+                            field.name !== TITLE_FIELD
+                          )
+                            return null;
+
+                          const label = field.label || t(field.defaultLabel);
+
+                          return (
+                            <Fragment key={field.name}>
+                              <div
+                                className="mt-3 font-medium"
+                                dangerouslySetInnerHTML={{
+                                  __html: markdownToSafeHTML(label),
+                                }}
+                              />
+                              <div className="col-span-2 mt-3 mb-6 last:mb-0">
+                                <p
+                                  className="text-default break-words"
+                                  data-testid="field-response"
+                                  data-fob-field={field.name}>
+                                  {field.type === "boolean"
+                                    ? response
+                                      ? t("yes")
+                                      : t("no")
+                                    : response.toString()}
+                                </p>
+                              </div>
+                            </Fragment>
+                          );
+                        })}
                       </div>
-                      <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
+                      {/* <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300 bg-red-900">
                         {eventType.bookingFields.map((field) => {
                           if (!field) return null;
 
@@ -792,7 +844,7 @@ export default function Success(props: PageProps) {
                             </Fragment>
                           );
                         })}
-                      </div>
+                      </div> */}
                     </div>
                     {requiresLoginToUpdate && (
                       <>
@@ -834,11 +886,10 @@ export default function Success(props: PageProps) {
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                          currentUserEmail
-                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                            : ""
-                                        }`}
+                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${currentUserEmail
+                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                          : ""
+                                          }`}
                                         legacyBehavior>
                                         {t("reschedule")}
                                       </Link>

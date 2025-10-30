@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+// eslint-disable-next-line no-restricted-imports
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
@@ -7,7 +8,7 @@ import type { AppProps as NextAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
+// import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
@@ -134,7 +135,9 @@ const AppProviders = (props: PageWrapperProps) => {
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
+        {/* <DynamicPostHogProvider> */}
+        {RemainingProviders}
+        {/* /DynamicPostHogProvider> */}
       </DynamicHelpscoutProvider>
     </>
   );
