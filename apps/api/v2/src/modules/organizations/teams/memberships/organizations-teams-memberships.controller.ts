@@ -170,6 +170,9 @@ export class OrganizationsTeamsMembershipsController {
     };
   }
 
+
+  // TODO: Refactor to use inviteMembersWithNoInviterPermissionCheck when it is moved to a Service
+  // See: packages/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler.ts
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/")
@@ -186,14 +189,13 @@ export class OrganizationsTeamsMembershipsController {
       throw new UnprocessableEntityException("User is not part of the Organization");
     }
 
-    // TODO: Refactor to use inviteMembersWithNoInviterPermissionCheck from TRPC
-    // See: packages/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler.ts
     const shouldAutoAccept = await this.orgMembershipService.shouldAutoAccept({
       organizationId: orgId,
       userEmail: user.email,
     });
 
     // ALWAYS override when email matches - prevents pending memberships
+    // Remember organizations expect added team member to automatically start receiving bookings for the team event
     const acceptedStatus = shouldAutoAccept ? true : (data.accepted ?? false);
 
     const membershipData = { ...data, accepted: acceptedStatus };

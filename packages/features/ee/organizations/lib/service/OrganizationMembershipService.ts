@@ -1,18 +1,13 @@
-export interface IOrganizationRepository {
-    getOrganizationAutoAcceptSettings(organizationId: number): Promise<{
-        orgAutoAcceptEmail: string | null;
-        isOrganizationVerified: boolean | null;
-    } | null>;
+import type { IOrganizationRepository } from "../repository/IOrganizationRepository";
+export interface IOrganizationMembershipServiceDependencies {
+    organizationRepository: IOrganizationRepository;
 }
 
 export class OrganizationMembershipService {
-    constructor(private readonly organizationRepository: IOrganizationRepository) { }
+    constructor(private readonly deps: IOrganizationMembershipServiceDependencies) { }
 
     /**
-     * Determines if user should be auto-accepted based on email domain
-     * Extracted from TRPC inviteMember/utils.ts getOrgConnectionInfo (lines 278-282)
-     *
-     * Uses case-insensitive comparison per RFC 5321 (email domains are case-insensitive)
+     * Determines if user should be auto-accepted to an organization or its sub-teams based on email domain
      */
     async shouldAutoAccept({
         organizationId,
@@ -21,7 +16,9 @@ export class OrganizationMembershipService {
         organizationId: number;
         userEmail: string;
     }): Promise<boolean> {
-        const orgSettings = await this.organizationRepository.getOrganizationAutoAcceptSettings(organizationId);
+        const orgSettings = await this.deps.organizationRepository.getOrganizationAutoAcceptSettings(
+            organizationId
+        );
 
         if (!orgSettings) return false;
 
@@ -31,10 +28,10 @@ export class OrganizationMembershipService {
 
         // Case-insensitive comparison (email domains are case-insensitive per RFC)
         const emailDomain = userEmail.split("@")[1]?.trim().toLowerCase();
-        const orgDomain = orgAutoAcceptEmail.trim().toLowerCase();
+        const autoAcceptEmailDomain = orgAutoAcceptEmail.trim().toLowerCase();
 
         if (!emailDomain) return false;
 
-        return emailDomain === orgDomain;
+        return emailDomain === autoAcceptEmailDomain;
     }
 }

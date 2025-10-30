@@ -37,7 +37,14 @@ export class OrganizationRepositoryFixture {
     });
   }
 
-  async updateSettings(teamId: Team["id"], settings: Partial<Prisma.OrganizationSettingsUpdateInput>) {
+  async updateSettings(
+    teamId: Team["id"],
+    settings: {
+      orgAutoAcceptEmail?: string;
+      isOrganizationVerified?: boolean;
+      isOrganizationConfigured?: boolean;
+    }
+  ) {
     return this.prismaWriteClient.organizationSettings.update({
       where: { organizationId: teamId },
       data: settings,

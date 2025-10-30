@@ -13,7 +13,9 @@ const loadModule = bindModuleToClassOnToken({
     moduleToken,
     token,
     classs: OrganizationMembershipService,
-    dep: organizationRepositoryModuleLoader,
+    depsMap: {
+        organizationRepository: organizationRepositoryModuleLoader,
+    },
 });
 
 export const moduleLoader = {

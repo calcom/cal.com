@@ -4,4 +4,3 @@ export const ORGANIZATION_DI_TOKENS = {
     ORGANIZATION_MEMBERSHIP_SERVICE: Symbol("OrganizationMembershipService"),
     ORGANIZATION_MEMBERSHIP_SERVICE_MODULE: Symbol("OrganizationMembershipServiceModule"),
 };
-

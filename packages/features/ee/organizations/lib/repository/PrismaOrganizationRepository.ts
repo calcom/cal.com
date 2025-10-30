@@ -1,4 +1,4 @@
-import type { IOrganizationRepository } from "@calcom/features/ee/organizations/lib/service/OrganizationMembershipService";
+import type { IOrganizationRepository } from "./IOrganizationRepository";
 import type { PrismaClient } from "@calcom/prisma";
 
 export class PrismaOrganizationRepository implements IOrganizationRepository {
