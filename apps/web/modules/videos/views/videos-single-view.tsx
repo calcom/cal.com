@@ -43,6 +43,7 @@ export default function JoinCall(props: PageProps) {
     showTranscriptionButton,
     rediectAttendeeToOnExit,
     requireEmailForGuests,
+    isLoggedInUserPartOfMeeting,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
   const [guestCredentials, setGuestCredentials] = useState<{
@@ -52,7 +53,8 @@ export default function JoinCall(props: PageProps) {
   } | null>(null);
 
   const userNameForCall = overrideName ?? loggedInUserName ?? undefined;
-  const hideLoginModal = !!userNameForCall && (requireEmailForGuests ? loggedInUserName : true);
+  const hideLoginModal =
+    !!userNameForCall && (requireEmailForGuests ? !!loggedInUserName && isLoggedInUserPartOfMeeting : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
   const activeMeetingPassword = guestCredentials?.meetingPassword ?? meetingPassword;
@@ -125,9 +127,8 @@ export default function JoinCall(props: PageProps) {
     },
     [meetingUrl, meetingPassword, hasTeamPlan, showRecordingButton, showTranscriptionButton, t]
   );
-
   useEffect(() => {
-    if (!loggedInUserName && !overrideName && !hideLoginModal && !guestCredentials) {
+    if (!hideLoginModal && !guestCredentials) {
       return;
     }
 

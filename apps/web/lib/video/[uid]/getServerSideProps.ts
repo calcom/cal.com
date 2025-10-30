@@ -211,6 +211,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const sessionUserId = session?.user?.impersonatedBy ? session.user.impersonatedBy.id : session?.user.id;
+  const sessionUserEmail = session?.user?.email;
   const isOrganizer = await checkIfUserIsHost({
     booking: {
       eventTypeId: bookingObj.eventType?.id,
@@ -218,6 +219,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
     sessionUserId,
   });
+
+  const isAttendee = sessionUserEmail
+    ? bookingObj.attendees?.some((attendee) => attendee.email === sessionUserEmail) ?? false
+    : false;
 
   // set meetingPassword for guests
   if (!isOrganizer) {
@@ -299,6 +304,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         : bookingObj.eventType?.calVideoSettings?.redirectUrlOnExit,
       overrideName: Array.isArray(context.query.name) ? context.query.name[0] : context.query.name,
       requireEmailForGuests: bookingObj.eventType?.calVideoSettings?.requireEmailForGuests ?? false,
+      isLoggedInUserPartOfMeeting: isAttendee || isOrganizer,
     },
   };
 }
