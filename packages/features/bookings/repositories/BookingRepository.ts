@@ -3,7 +3,7 @@ import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
-import { RRTimestampBasis, BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
 import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -216,12 +216,7 @@ export class BookingRepository {
     // If the booking doesn't belong to the user and there's no team then return early
     if (!booking.eventType) return false;
 
-    let teamId = booking.eventType.teamId;
-
-    // For managed event types, get teamId from parent event type
-    if (booking.eventType.schedulingType === SchedulingType.MANAGED && booking.eventType.parentId) {
-      teamId = booking.eventType.parent?.teamId || teamId;
-    }
+    const teamId = booking.eventType.teamId || booking.eventType.parent?.teamId;
 
     if (!teamId) return false;
 

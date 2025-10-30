@@ -175,7 +175,8 @@ export const ReassignDialog = ({
   const watchedTeamMemberId = form.watch("teamMemberId");
 
   // Determine if this is a managed event type
-  const isManaged = eventTypeSchedulingType === SchedulingType.MANAGED && allowManagedEventReassignment;
+  const isReassignabeManagedEvent =
+    eventTypeSchedulingType === SchedulingType.MANAGED && allowManagedEventReassignment;
 
   return (
     <>
@@ -185,8 +186,14 @@ export const ReassignDialog = ({
           setIsOpenDialog(open);
         }}>
         <DialogContent
-          title={isManaged ? t("reassign_managed_event_host") : t("reassign_round_robin_host")}
-          description={isManaged ? t("reassign_to_another_managed_host") : t("reassign_to_another_rr_host")}
+          title={
+            isReassignabeManagedEvent ? t("reassign_managed_event_host") : t("reassign_round_robin_host")
+          }
+          description={
+            isReassignabeManagedEvent
+              ? t("reassign_to_another_managed_host")
+              : t("reassign_to_another_rr_host")
+          }
           enableOverflow>
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
@@ -196,7 +203,7 @@ export const ReassignDialog = ({
               }}
               defaultValue={bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.ROUND_ROBIN}
               className="mt-1 flex flex-col gap-4">
-              {!isManaged && !bookingFromRoutingForm ? (
+              {!isReassignabeManagedEvent && !bookingFromRoutingForm ? (
                 <RadioArea.Item
                   value={ReassignType.ROUND_ROBIN}
                   className="w-full text-sm"
@@ -211,12 +218,12 @@ export const ReassignDialog = ({
                 className="text-sm"
                 classNames={{ container: "w-full" }}>
                 <strong className="mb-1 block">
-                  {isManaged
+                  {isReassignabeManagedEvent
                     ? t("team_member_managed_event_reassign")
                     : t("team_member_round_robin_reassign")}
                 </strong>
                 <p>
-                  {isManaged
+                  {isReassignabeManagedEvent
                     ? t("team_member_managed_event_reassign_description")
                     : t("team_member_round_robin_reassign_description")}
                 </p>
