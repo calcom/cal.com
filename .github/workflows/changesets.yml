@@ -41,8 +41,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           VITE_BOOKER_EMBED_OAUTH_CLIENT_ID: ${{ secrets.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID }}
           VITE_BOOKER_EMBED_API_URL: ${{ secrets.VITE_BOOKER_EMBED_API_URL }}
           NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}
