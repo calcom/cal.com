@@ -123,6 +123,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     isBookingInPast,
     isDisabledRescheduling,
     isBookingFromRoutingForm,
+    isRecurring,
     getSeatReferenceUid,
     t,
   } = context;
@@ -138,7 +139,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
     //   disabled:
     //     (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
     // },
-    {
+    !isRecurring && {
       id: "reschedule_request",
       icon: "send",
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
