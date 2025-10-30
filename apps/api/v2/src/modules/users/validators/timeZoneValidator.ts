@@ -1,6 +1,6 @@
 import type { ValidatorConstraintInterface } from "class-validator";
 import { ValidatorConstraint } from "class-validator";
-import tzdata from "tzdata";
+import * as tzdata from "tzdata";
 
 @ValidatorConstraint({ name: "timezoneValidator", async: false })
 export class TimeZoneValidator implements ValidatorConstraintInterface {

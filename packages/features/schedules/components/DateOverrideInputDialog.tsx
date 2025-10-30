@@ -26,6 +26,7 @@ const DateOverrideForm = ({
   onChange,
   userTimeFormat,
   weekStart,
+  isDryRun = false,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
@@ -34,6 +35,7 @@ const DateOverrideForm = ({
   onClose?: () => void;
   userTimeFormat: number | null;
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  isDryRun?: boolean;
 }) => {
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
@@ -109,6 +111,11 @@ const DateOverrideForm = ({
 
         if (selectedDates.length === 0) return;
 
+        if (isDryRun) {
+          setSelectedDates([]);
+          return;
+        }
+
         if (datesUnavailable) {
           selectedDates.map((date) => {
             datesInRanges.push({
@@ -116,6 +123,7 @@ const DateOverrideForm = ({
               end: date.utc(true).startOf("day").toDate(),
             });
           });
+          onChange(datesInRanges);
         } else {
           selectedDates.map((date) => {
             values.range.map((item) => {
@@ -129,9 +137,9 @@ const DateOverrideForm = ({
               });
             });
           });
+          onChange(datesInRanges);
         }
 
-        onChange(datesInRanges);
         setSelectedDates([]);
       }}
       className="p-6 sm:flex sm:p-0 xl:flex-row">
@@ -215,6 +223,7 @@ const DateOverrideInputDialog = ({
   userTimeFormat: number | null;
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   className?: string;
+  isDryRun?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   return (

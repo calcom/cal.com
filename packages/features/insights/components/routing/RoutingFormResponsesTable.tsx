@@ -105,7 +105,7 @@ export function RoutingFormResponsesTable() {
       // this also prevents user from clearing the routing form filter
       updateFilter("formId", { type: ColumnFilterType.SINGLE_SELECT, data: newRoutingFormId });
     }
-  }, [table, getInsightsFacetedUniqueValues, routingFormId]);
+  }, [table, getInsightsFacetedUniqueValues, routingFormId, updateFilter]);
 
   return (
     <>

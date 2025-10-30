@@ -1,7 +1,7 @@
 import type { User as UserAuth } from "next-auth";
 
+import { useHasActiveTeamPlanAsOwner } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
-import { useHasActiveTeamPlanAsOwner } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";

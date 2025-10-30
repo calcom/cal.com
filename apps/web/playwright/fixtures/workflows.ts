@@ -24,6 +24,10 @@ export function createWorkflowPageFixture(page: Page) {
     } else {
       await page.getByTestId("create-button").click();
     }
+
+    await page.getByTestId(`workflow-option-card-scratch`).click();
+    await page.getByTestId("continue-button").click();
+
     if (name) {
       await fillNameInput(name);
     }

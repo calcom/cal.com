@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
-import { getUserAvailabilityService } from "@calcom/lib/di/containers/GetUserAvailability";
+import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";

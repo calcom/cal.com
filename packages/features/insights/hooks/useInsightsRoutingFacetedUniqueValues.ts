@@ -60,52 +60,55 @@ export const useInsightsRoutingFacetedUniqueValues = ({
   );
 
   return useCallback(
-    (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
-      if (!headers) {
-        return new Map<FacetedValue, number>();
-      }
+    <TData>(_: Table<TData>, columnId: string) =>
+      (): Map<FacetedValue, number> => {
+        if (!headers) {
+          return new Map<FacetedValue, number>();
+        }
 
-      const fieldHeader = headers.find((h) => h.id === columnId);
-      if (fieldHeader?.options) {
-        return convertFacetedValuesToMap(
-          fieldHeader.options
-            .filter((option): option is { id: string; label: string } => option.id !== null)
-            .map((option) => ({
-              label: option.label,
-              value: option.id,
+        const fieldHeader = headers.find((h) => h.id === columnId);
+        if (fieldHeader?.options) {
+          return convertFacetedValuesToMap(
+            fieldHeader.options
+              .filter((option): option is { id: string; label: string } => option.id !== null)
+              .map((option) => ({
+                label: option.label,
+                value: option.id,
+              }))
+          );
+        } else if (columnId === "bookingStatusOrder") {
+          return convertFacetedValuesToMap(
+            Object.keys(statusOrder).map((status) => ({
+              value: statusOrder[status as BookingStatus],
+              label: bookingStatusToText(status as BookingStatus),
             }))
-        );
-      } else if (columnId === "bookingStatusOrder") {
-        return convertFacetedValuesToMap(
-          Object.keys(statusOrder).map((status) => ({
-            value: statusOrder[status as BookingStatus],
-            label: bookingStatusToText(status as BookingStatus),
-          }))
-        );
-      } else if (columnId === "formId") {
-        return convertFacetedValuesToMap(
-          forms?.map((form) => ({
-            label: form.name,
-            value: form.id,
-          })) ?? []
-        );
-      } else if (columnId === "bookingUserId") {
-        return convertFacetedValuesToMap(
-          users?.map((user) => ({
-            label: user.name ?? user.email,
-            value: user.id,
-          })) ?? []
-        );
-      } else if (columnId === "eventTypeId") {
-        return convertFacetedValuesToMap(
-          eventTypes?.map((eventType) => ({
-            value: eventType.id,
-            label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
-          })) ?? []
-        );
-      }
-      return new Map<FacetedValue, number>();
-    },
+          );
+        } else if (columnId === "formId") {
+          return convertFacetedValuesToMap(
+            forms?.map((form) => ({
+              label: form.name,
+              value: form.id,
+            })) ?? []
+          );
+        } else if (columnId === "bookingUserId") {
+          return convertFacetedValuesToMap(
+            users
+              ?.map((user) => ({
+                label: user.name ?? user.email,
+                value: user.id,
+              }))
+              .sort((a, b) => a.label.localeCompare(b.label)) ?? []
+          );
+        } else if (columnId === "eventTypeId") {
+          return convertFacetedValuesToMap(
+            eventTypes?.map((eventType) => ({
+              value: eventType.id,
+              label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
+            })) ?? []
+          );
+        }
+        return new Map<FacetedValue, number>();
+      },
     [headers, forms, users, eventTypes]
   );
 };

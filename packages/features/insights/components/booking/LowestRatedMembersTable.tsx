@@ -27,11 +27,9 @@ export const LowestRatedMembersTable = () => {
 
   if (!isSuccess || !data) return null;
 
-  return data && data.length > 0 ? (
+  return (
     <ChartCard title={t("lowest_rated")}>
       <UserStatsTable data={data} />
     </ChartCard>
-  ) : (
-    <></>
   );
 };

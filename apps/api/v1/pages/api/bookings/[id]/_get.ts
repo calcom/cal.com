@@ -102,8 +102,11 @@ export async function getHandler(req: NextApiRequest) {
   const booking = await prisma.booking.findUnique({
     where: { id },
     include: {
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       attendees: true,
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       user: true,
+      // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
       payment: true,
       eventType: expand.includes("team") ? { include: { team: true } } : false,
     },

@@ -35,8 +35,6 @@ import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
 const LowPriority = 1;
 
-const supportedBlockTypes = new Set(["paragraph", "h1", "h2", "ul", "ol"]);
-
 interface BlockType {
   [key: string]: string;
 }
@@ -56,8 +54,31 @@ function positionEditorElement(editor: HTMLInputElement, rect: DOMRect | null) {
     editor.style.left = "-1000px";
   } else {
     editor.style.opacity = "1";
-    editor.style.top = `${rect.top + rect.height + window.pageYOffset + 10}px`;
-    editor.style.left = `${rect.left + window.pageXOffset - editor.offsetWidth / 2 + rect.width / 2}px`;
+
+    let top = rect.top + rect.height + window.pageYOffset + 10;
+    let left = rect.left + window.pageXOffset - editor.offsetWidth / 2 + rect.width / 2;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const editorWidth = editor.offsetWidth || 300;
+    const editorHeight = editor.offsetHeight || 100;
+
+    if (left < 10) {
+      left = 10;
+    } else if (left + editorWidth > viewportWidth - 10) {
+      left = viewportWidth - editorWidth - 10;
+    }
+
+    if (top + editorHeight > window.pageYOffset + viewportHeight - 10) {
+      top = rect.top + window.pageYOffset - editorHeight - 10;
+
+      if (top < window.pageYOffset + 10) {
+        top = window.pageYOffset + 10;
+      }
+    }
+
+    editor.style.top = `${top}px`;
+    editor.style.left = `${left}px`;
   }
 }
 
@@ -360,13 +381,16 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         }
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.updateTemplate]);
 
   useEffect(() => {
     if (props.setFirstRender) {
       props.setFirstRender(false);
       editor.update(() => {
+        const currentContent = $getRoot().getTextContent().trim();
+        if (currentContent) {
+          return;
+        }
         const parser = new DOMParser();
         const dom = parser.parseFromString(props.getText(), "text/html");
 
@@ -375,7 +399,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         $getRoot().select();
         try {
           $insertNodes(nodes);
-        } catch (e: unknown) {
+        } catch {
           // resolves: "topLevelElement is root node at RangeSelection.insertNodes"
           // @see https://stackoverflow.com/questions/73094258/setting-editor-from-html
           const paragraphNode = $createParagraphNode();
@@ -397,7 +421,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         });
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -430,7 +453,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   return (
     <div className="toolbar flex" ref={toolbarRef}>
       <>
-        {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
+        {!props.excludedToolbarItems?.includes("blockType") && (
           <>
             <Dropdown>
               <DropdownMenuTrigger className="text-subtle">
@@ -467,7 +490,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           </>
         )}
 
-        <>
+        <div className="flex gap-1">
           {!props.excludedToolbarItems?.includes("bold") && (
             <Button
               aria-label="Bold"
@@ -508,7 +531,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
             </>
           )}
-        </>
+        </div>
         {props.variables && (
           <div className={`${props.addVariableButtonTop ? "-mt-10" : ""} ml-auto`}>
             <AddVariablesDropdown

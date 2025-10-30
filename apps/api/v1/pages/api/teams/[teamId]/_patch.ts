@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -61,23 +62,24 @@ export async function patchHandler(req: NextApiRequest) {
   const { teamId } = schemaQueryTeamId.parse(req.query);
 
   /** Only OWNERS and ADMINS can edit teams */
-  const _team = await prisma.team.findFirst({
+  const team = await prisma.team.findFirst({
+    // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
     include: { members: true },
     where: { id: teamId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
   });
-  if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
+  if (!team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
 
-  const slugAlreadyExists = await prisma.team.findFirst({
-    where: {
-      slug: {
-        mode: "insensitive",
-        equals: data.slug,
-      },
-    },
-  });
-
-  if (slugAlreadyExists && data.slug !== _team.slug)
-    throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+  if (data.slug) {
+    const teamRepository = new TeamRepository(prisma);
+    const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({
+      slug: data.slug,
+      teamId: team.id,
+      parentId: team.parentId,
+    });
+    if (!isSlugAvailable) {
+      throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+    }
+  }
 
   // Check if parentId is related to this user
   if (data.parentId && data.parentId === teamId) {
@@ -98,16 +100,16 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   let paymentUrl;
-  if (_team.slug === null && data.slug) {
+  if (team.slug === null && data.slug) {
     data.metadata = {
-      ...(_team.metadata as Prisma.JsonObject),
+      ...(team.metadata as Prisma.JsonObject),
       requestedSlug: data.slug,
     };
     delete data.slug;
     if (IS_TEAM_BILLING_ENABLED) {
       const checkoutSession = await purchaseTeamOrOrgSubscription({
-        teamId: _team.id,
-        seatsUsed: _team.members.length,
+        teamId: team.id,
+        seatsUsed: team.members.length,
         userId,
         pricePerSeat: null,
       });
@@ -130,9 +132,9 @@ export async function patchHandler(req: NextApiRequest) {
     bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
-  const team = await prisma.team.update({ where: { id: teamId }, data: cloneData });
+  const updatedTeam = await prisma.team.update({ where: { id: teamId }, data: cloneData });
   const result = {
-    team: schemaTeamReadPublic.parse(team),
+    team: schemaTeamReadPublic.parse(updatedTeam),
     paymentUrl,
   };
   if (!paymentUrl) {

@@ -6,8 +6,11 @@ import { ZCreateWebCallInputSchema } from "./createWebCall.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZListInputSchema } from "./list.schema";
+import { ZListCallsInputSchema } from "./listCalls.schema";
+import { ZSetupInboundAgentInputSchema } from "./setupInboundAgent.schema";
 import { ZTestCallInputSchema } from "./testCall.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateInboundAgentEventTypeInputSchema } from "./updateInboundAgentEventType.schema";
 
 export const aiVoiceAgentRouter = router({
   list: authedProcedure.input(ZListInputSchema).query(async ({ ctx, input }) => {
@@ -64,6 +67,15 @@ export const aiVoiceAgentRouter = router({
     });
   }),
 
+  listCalls: authedProcedure.input(ZListCallsInputSchema).query(async ({ ctx, input }) => {
+    const { listCallsHandler } = await import("./listCalls.handler");
+
+    return listCallsHandler({
+      ctx,
+      input,
+    });
+  }),
+
   createWebCall: eventOwnerProcedure.input(ZCreateWebCallInputSchema).mutation(async ({ ctx, input }) => {
     const { createWebCallHandler } = await import("./createWebCall.handler");
 
@@ -72,4 +84,32 @@ export const aiVoiceAgentRouter = router({
       input,
     });
   }),
+
+  listVoices: authedProcedure.query(async ({ ctx }) => {
+    const { listVoicesHandler } = await import("./listVoices.handler");
+
+    return listVoicesHandler({
+      ctx,
+    });
+  }),
+
+  setupInboundAgent: authedProcedure.input(ZSetupInboundAgentInputSchema).mutation(async ({ ctx, input }) => {
+    const { setupInboundAgentHandler } = await import("./setupInboundAgent.handler");
+
+    return setupInboundAgentHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  updateInboundAgentEventType: eventOwnerProcedure
+    .input(ZUpdateInboundAgentEventTypeInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { updateInboundAgentEventTypeHandler } = await import("./updateInboundAgentEventType.handler");
+
+      return updateInboundAgentEventTypeHandler({
+        ctx,
+        input,
+      });
+    }),
 });

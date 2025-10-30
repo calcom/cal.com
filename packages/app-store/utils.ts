@@ -102,7 +102,7 @@ async function getApps(credentials: CredentialDataWithTeamName[], filterOnCreden
       const credential = {
         id: 0,
         type: appMeta.type,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         key: appMeta.key!,
         userId: 0,
         user: { email: "" },
@@ -113,7 +113,7 @@ async function getApps(credentials: CredentialDataWithTeamName[], filterOnCreden
         delegatedToId: null,
         delegationCredentialId: null,
         team: {
-          name: "Global",
+          name: "Default",
         },
       };
       logger.debug(

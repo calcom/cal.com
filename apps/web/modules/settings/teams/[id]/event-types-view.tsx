@@ -4,15 +4,19 @@ import { useRouter } from "next/navigation";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
+import { useCreateEventType } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { WizardLayout } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
-import { Button } from "@calcom/ui/components/button";
 
-export const CreateTeamEventType = () => {
+type CreateTeamEventTypeProps = {
+  permissions: { canCreateEventType: boolean };
+};
+
+export const CreateTeamEventType = ({ permissions }: CreateTeamEventTypeProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -53,7 +57,7 @@ export const CreateTeamEventType = () => {
     <TeamEventTypeForm
       teamSlug={team?.slug}
       teamId={teamId}
-      isTeamAdminOrOwner={true}
+      permissions={permissions}
       urlPrefix={urlPrefix}
       isPending={createMutation.isPending}
       form={form}
@@ -82,5 +86,3 @@ export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
     </WizardLayout>
   );
 };
-
-export default CreateTeamEventType;

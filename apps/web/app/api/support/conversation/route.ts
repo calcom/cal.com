@@ -3,13 +3,15 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { BillingPlanService } from "@calcom/features/ee/billing/domain/billing-plans";
 import type { Contact } from "@calcom/features/ee/support/lib/intercom/intercom";
 import { intercom } from "@calcom/features/ee/support/lib/intercom/intercom";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -43,6 +45,11 @@ export async function POST(req: NextRequest) {
 
   const { user } = session;
 
+  const membershipRepository = new MembershipRepository(prisma);
+  const memberships = await membershipRepository.findAllMembershipsByUserIdForBilling({ userId: user.id });
+  const billingPlanService = new BillingPlanService();
+  const plan = await billingPlanService.getUserPlanByMemberships(memberships);
+
   if (!existingContact.data) {
     const additionalUserInfo = await new UserRepository(prisma).getUserStats({ userId: session.user.id });
     const sumOfTeamEventTypes = additionalUserInfo?.teams.reduce(
@@ -72,6 +79,7 @@ export async function POST(req: NextRequest) {
         sum_of_teams: additionalUserInfo?._count?.teams,
         sum_of_event_types: additionalUserInfo?._count?.eventTypes,
         sum_of_team_event_types: sumOfTeamEventTypes,
+        Plan: plan,
       },
     });
 

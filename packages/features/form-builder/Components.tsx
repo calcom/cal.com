@@ -8,6 +8,7 @@ import type {
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { fieldSchema, variantsConfigSchema, FieldType } from "@calcom/prisma/zod-utils";
 import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -18,7 +19,6 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
-import type { fieldSchema, FieldType, variantsConfigSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
@@ -145,6 +145,7 @@ export const Components: Record<FieldType, Component> = {
             value={value}
             required={variantField.required}
             type="text"
+            autoComplete="name"
             onChange={(e) => {
               props.setValue(e.target.value);
             }}
@@ -174,6 +175,13 @@ export const Components: Record<FieldType, Component> = {
               value={value[variantField.name as keyof typeof value]}
               required={variantField.required}
               type="text"
+              autoComplete={
+                variantField.name === "firstName"
+                  ? "given-name"
+                  : variantField.name === "lastName"
+                  ? "family-name"
+                  : undefined
+              }
               onChange={(e) => onChange(variantField.name, e.target.value)}
             />
           ))}
@@ -211,6 +219,7 @@ export const Components: Record<FieldType, Component> = {
           type="email"
           id={props.name}
           noLabel={true}
+          autoComplete="email"
           {...props}
           onChange={(e) => props.setValue(e.target.value)}
         />
@@ -543,7 +552,7 @@ export const Components: Record<FieldType, Component> = {
   url: {
     propsType: propsTypes.url,
     factory: (props) => {
-      return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
+      return <Widgets.TextWidget type="url" autoComplete="url" noLabel={true} {...props} />;
     },
   },
 } as const;

@@ -22,6 +22,6 @@
     "post-install": "yarn build"
   },
   "dependencies": {
-    "@calcom/platform-constants": "*"
+    "@calcom/platform-constants": "workspace:*"
   }
 }

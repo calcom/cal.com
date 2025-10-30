@@ -1,10 +1,15 @@
 name: "Release Docker"
 
-on: # yamllint disable-line rule:truthy
-  release:
-    types:
-      - created
-      - published
+env:
+  POSTGRES_USER: "unicorn_user"
+  POSTGRES_PASSWORD: "magical_password"
+  POSTGRES_DB: "calendso"
+  DATABASE_HOST: "database:5432"
+
+on:
+  push:
+    tags:
+      - "v*"
   # in case manual trigger is needed
   workflow_dispatch:
     inputs:
@@ -12,11 +17,9 @@ on: # yamllint disable-line rule:truthy
         description: "v{Major}.{Minor}.{Patch}"
 
 jobs:
-  release:
-    name: "Remote Release"
-
-    runs-on: "ubuntu-latest"
-
+  release-amd64:
+    name: "Release AMD64"
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -24,25 +27,84 @@ jobs:
       - name: "Determine tag"
         run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
 
-      - name: "Run remote release workflow"
-        uses: "actions/github-script@v6"
+      - name: Build and test Docker image
+        uses: ./.github/actions/docker-build-and-test
         with:
-          # Requires a personal access token with Actions Read and write permissions on calcom/docker.
-          github-token: "${{ secrets.DOCKER_REPO_ACCESS_TOKEN }}"
-          script: |
-            try {
-              const response = await github.rest.actions.createWorkflowDispatch({
-                owner: context.repo.owner,
-                repo: 'docker',
-                workflow_id: 'create-release.yaml',
-                ref: 'main',
-                inputs: {
-                  "RELEASE_TAG": process.env.RELEASE_TAG
-                },
-              });
+          platform: "linux/amd64"
+          platform-suffix: ""
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          postgres-user: ${{ env.POSTGRES_USER }}
+          postgres-password: ${{ env.POSTGRES_PASSWORD }}
+          postgres-db: ${{ env.POSTGRES_DB }}
+          database-host: ${{ env.DATABASE_HOST }}
+          push-image: "true"
 
-              console.log(response);
-            } catch (error) {
-              console.error(error);
-              core.setFailed(error.message);
+      - name: Notify Slack on Success
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":large_green_circle: Workflow *${{ github.workflow }}* (AMD64) succeeded in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on Failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":red_circle: Workflow *${{ github.workflow }}* (AMD64) failed in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
+
+  release-arm:
+    name: "Release ARM"
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: "Determine tag"
+        run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
+
+      - name: Build and test Docker image
+        uses: ./.github/actions/docker-build-and-test
+        with:
+          platform: "arm64"
+          platform-suffix: "-arm"
+          dockerhub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          dockerhub-token: ${{ secrets.DOCKERHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          postgres-user: ${{ env.POSTGRES_USER }}
+          postgres-password: ${{ env.POSTGRES_PASSWORD }}
+          postgres-db: ${{ env.POSTGRES_DB }}
+          database-host: ${{ env.DATABASE_HOST }}
+          push-image: "true"
+
+      - name: Notify Slack on Success
+        if: success()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":large_green_circle: Workflow *${{ github.workflow }}* (ARM) succeeded in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack on Failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": ":red_circle: Workflow *${{ github.workflow }}* (ARM) failed in job *${{ github.job }}*.\nSee: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}

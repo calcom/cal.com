@@ -6,6 +6,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, expect, test } from "vitest";
 
 import { HttpError } from "@calcom/lib/http-error";
+import type { User } from "@calcom/prisma/client";
 
 import handler from "../../../pages/api/selected-calendars/_post";
 
@@ -72,7 +73,7 @@ describe("POST /api/selected-calendars", () => {
 
       prismaMock.user.findFirstOrThrow.mockResolvedValue({
         id: 444444,
-      } as any);
+      } as User);
 
       prismaMock.selectedCalendar.create.mockResolvedValue({
         credentialId: 1,
@@ -95,6 +96,16 @@ describe("POST /api/selected-calendars", () => {
         unwatchAttempts: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
+        channelId: null,
+        channelKind: null,
+        channelResourceId: null,
+        channelResourceUri: null,
+        channelExpiration: null,
+        syncSubscribedAt: null,
+        syncToken: null,
+        syncedAt: null,
+        syncErrorAt: null,
+        syncErrorCount: null,
       });
 
       await handler(req, res);
@@ -140,6 +151,16 @@ describe("POST /api/selected-calendars", () => {
         unwatchAttempts: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
+        channelId: null,
+        channelKind: null,
+        channelResourceId: null,
+        channelResourceUri: null,
+        channelExpiration: null,
+        syncSubscribedAt: null,
+        syncToken: null,
+        syncedAt: null,
+        syncErrorAt: null,
+        syncErrorCount: null,
       });
 
       await handler(req, res);

@@ -2,7 +2,7 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,7 +27,8 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
     return;
   }
 
-  const agent = await PrismaAgentRepository.findByIdWithCallAccess({
+  const agentRepo = new PrismaAgentRepository(prisma);
+  const agent = await agentRepo.findByIdWithCallAccess({
     id: input.agentId,
     userId: ctx.user.id,
   });

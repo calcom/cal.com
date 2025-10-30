@@ -1,8 +1,7 @@
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
-import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, User, AppCategories } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -11,6 +10,7 @@ import type { TDependencyData } from "../_appRegistry";
 import { PaymentServiceMap } from "../payment.services.generated";
 import type { CredentialOwner } from "../types";
 import { getAppFromSlug } from "../utils";
+import getEnabledAppsFromCredentials from "./getEnabledAppsFromCredentials";
 
 export type ConnectedApps = Awaited<ReturnType<typeof getConnectedApps>>;
 type InputSchema = {

@@ -1,10 +1,12 @@
 import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 
 import { hitpayCredentialKeysSchema } from "../../lib/hitpayCredentialKeysSchema";
-import type { IHitPaySetupProps } from "./index";
+
+export type IHitPaySetupProps = z.infer<typeof hitpayCredentialKeysSchema>;
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const notFound = { notFound: true } as const;

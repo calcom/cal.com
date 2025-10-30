@@ -10,6 +10,19 @@ const RECENT_PERIOD_IN_MINUTES = 5;
 
 const createPasswordReset = async (email: string): Promise<string> => {
   const expiry = dayjs().add(PASSWORD_RESET_EXPIRY_HOURS, "hours").toDate();
+
+  await prisma.resetPasswordRequest.updateMany({
+    where: {
+      email,
+      expires: {
+        gt: new Date(),
+      },
+    },
+    data: {
+      expires: new Date(),
+    },
+  });
+
   const createdResetPasswordRequest = await prisma.resetPasswordRequest.create({
     data: {
       email,

@@ -1,8 +1,8 @@
-import AttendeeScheduledEmailClass from "../../templates/attendee-rescheduled-email";
+import { getFormattedDate } from "../../lib/utils/date-formatting";
 import { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 
 export const AttendeeRequestEmail = (props: React.ComponentProps<typeof AttendeeScheduledEmail>) => {
-  const date = new AttendeeScheduledEmailClass(props.calEvent, props.attendee).getFormattedDate();
+  const date = getFormattedDate(props.calEvent, props.attendee);
 
   return (
     <AttendeeScheduledEmail

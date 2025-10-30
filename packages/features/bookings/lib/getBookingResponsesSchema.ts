@@ -1,8 +1,9 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import z from "zod";
 
 import type { ALL_VIEWS } from "@calcom/features/form-builder/schema";
-import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
+import { fieldTypesSchemaMap } from "@calcom/features/form-builder/schema";
+import { dbReadResponseSchema } from "@calcom/lib/dbReadResponseSchema";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
@@ -174,7 +175,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          if (!bookingField.hidden && checkOptional ? true : bookingField.required) {
+          if (!bookingField.hidden && (checkOptional || bookingField.required)) {
             // Email RegExp to validate if the input is a valid email
             if (!emailSchema.safeParse(value).success) {
               ctx.addIssue({

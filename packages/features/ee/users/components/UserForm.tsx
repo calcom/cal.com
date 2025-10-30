@@ -3,6 +3,7 @@ import { noop } from "lodash";
 import { Controller, useForm } from "react-hook-form";
 
 import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { formatToLocalizedDate } from "@calcom/lib/dayjs";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { defaultLocaleOption, localeOptions } from "@calcom/lib/i18n";
@@ -30,7 +31,11 @@ type OptionValues = {
   identityProvider: Option;
 };
 
-type FormValues = Pick<User, "avatarUrl" | "name" | "username" | "email" | "bio"> & OptionValues;
+type FormValues = Pick<
+  User,
+  "avatarUrl" | "name" | "username" | "email" | "bio" | "createdDate" | "theme" | "defaultScheduleId" | "allowDynamicBooking"
+> &
+  OptionValues;
 
 export const UserForm = ({
   defaultValues,
@@ -74,11 +79,14 @@ export const UserForm = ({
 
   const form = useForm<FormValues>({
     defaultValues: {
-      avatarUrl: defaultValues?.avatarUrl,
+      avatarUrl: defaultValues?.avatarUrl || null,
       name: defaultValues?.name,
       username: defaultValues?.username,
       email: defaultValues?.email,
       bio: defaultValues?.bio,
+      theme: defaultValues?.theme || null,
+      defaultScheduleId: defaultValues?.defaultScheduleId || null,
+      allowDynamicBooking: defaultValues?.allowDynamicBooking ?? true,
       locale: {
         value: defaultLocale,
         label: new Intl.DisplayNames(defaultLocale, { type: "language" }).of(defaultLocale) || "",
@@ -139,6 +147,14 @@ export const UserForm = ({
           )}
         />
       </div>
+      {defaultValues?.createdDate && (
+        <div>
+          <Label className="text-default font-medium">{t("member_since")}</Label>
+          <div className="text-default mt-1 text-sm">
+            {formatToLocalizedDate(new Date(defaultValues.createdDate), localeProp)}
+          </div>
+        </div>
+      )}
       <Controller
         name="role"
         control={form.control}

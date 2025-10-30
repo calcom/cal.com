@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { VerifyCodeDialog } from "@calcom/features/bookings/components/VerifyCodeDialog";
+import { isValidEmail } from "@calcom/features/isValidEmail";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -21,7 +22,6 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
   const { t } = useLocale();
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [isEmailVerificationModalVisible, setIsEmailVerificationModalVisible] = useState(false);
-  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const { refetch: refetchVerifiedEmails } = useGetVerifiedEmails();
   const { mutateAsync: addVerifiedEmail } = useAddVerifiedEmail({

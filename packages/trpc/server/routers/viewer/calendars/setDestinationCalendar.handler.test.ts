@@ -12,7 +12,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, it, vi, expect } from "vitest";
 
-import { getConnectedCalendars } from "@calcom/lib/CalendarManager";
+import { getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +20,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import { setDestinationCalendarHandler } from "./setDestinationCalendar.handler";
 
-vi.mock("@calcom/lib/CalendarManager", () => ({
+vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
   getConnectedCalendars: vi.fn(),
   getCalendarCredentials: vi.fn().mockImplementation((creds) => creds),
 }));

@@ -232,3 +232,19 @@ export async function expectActualFormResponseConnectedToQueuedFormResponse({
   // TODO: We should be able to verify the exact response values by correlating the form field identifiers with the actual Form from DB
   expect(valuesSetInResponse.length).toBe(numberOfExpectedSetFieldValues);
 }
+
+export async function cancelBookingThroughEmbed(bookingUid: string, frame: Frame, page: Page) {
+  await frame.waitForSelector('[data-testid="cancel_reason"]');
+
+  await frame.fill('[data-testid="cancel_reason"]', "Test cancellation from embed");
+
+  const responsePromise = page.waitForResponse("**/api/cancel");
+  await frame.click('[data-testid="confirm_cancel"]');
+
+  const response = await responsePromise;
+  expect(response.status()).toBe(200);
+
+  await expect(frame.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+
+  return response;
+}

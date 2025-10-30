@@ -3,7 +3,7 @@ import { components as reactSelectComponents } from "react-select";
 
 import classNames from "@calcom/ui/classNames";
 
-import { CreditsBadge, UpgradeTeamsBadge } from "../../badge";
+import { Badge, CreditsBadge, UpgradeTeamsBadge } from "../../badge";
 import { Icon } from "../../icon";
 import type { SelectProps } from "./types";
 
@@ -32,6 +32,7 @@ type ExtendedOption = {
   label: string;
   needsTeamsUpgrade?: boolean;
   needsCredits?: boolean;
+  isCalAi?: boolean;
   creditsTeamId?: number;
   isOrganization?: boolean;
 };
@@ -48,6 +49,13 @@ export const OptionComponent = <
     <reactSelectComponents.Option {...props}>
       <div className="flex items-center justify-between">
         <span className="w-full" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
+          {(props.data as unknown as ExtendedOption).isCalAi ? (
+            <Badge startIcon="sparkles" variant="purple" className="mr-1 hidden md:inline-flex">
+              Cal.ai
+            </Badge>
+          ) : (
+            <></>
+          )}
           {props.label || <>&nbsp;</>}
         </span>
         {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (

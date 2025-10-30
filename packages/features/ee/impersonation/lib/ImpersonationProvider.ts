@@ -3,14 +3,15 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
+import { getOrgFullOrigin, subdomainSuffix } from "@calcom/ee/organizations/lib/orgDomains";
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { Membership } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import type { OrgProfile, PersonalProfile, UserAsPersonalProfile } from "@calcom/types/UserProfile";
 
 import { Resource, CustomAction } from "../../../pbac/domain/types/permission-registry";
@@ -53,6 +54,8 @@ const auditAndReturnNextUser = async (
     },
   });
 
+  const profileOrg = impersonatedUser.profile?.organization;
+
   const obj = {
     id: impersonatedUser.id,
     username: impersonatedUser.username,
@@ -63,6 +66,18 @@ const auditAndReturnNextUser = async (
     organizationId: impersonatedUser.organizationId,
     locale: impersonatedUser.locale,
     profile: impersonatedUser.profile,
+    // Add org object if the user belongs to an organization
+    ...(profileOrg && {
+      org: {
+        id: profileOrg.id,
+        name: profileOrg.name,
+        slug: profileOrg.slug || "",
+        logoUrl: profileOrg.logoUrl,
+        fullDomain: getOrgFullOrigin(profileOrg.slug || ""),
+        domainSuffix: subdomainSuffix(),
+        role: profileOrg.members?.[0]?.role || MembershipRole.MEMBER,
+      },
+    }),
   };
 
   if (!isReturningToSelf) {
@@ -110,7 +125,8 @@ export function checkUserIdentifier(creds: Partial<Credentials>) {
 
 export function checkGlobalPermission(session: Session | null) {
   if (
-    (session?.user.role !== "ADMIN" && process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
+    (session?.user.role !== UserPermissionRole.ADMIN &&
+      process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "false") ||
     !session?.user
   ) {
     throw new Error("You do not have permission to do this.");
@@ -199,7 +215,11 @@ async function getImpersonatedUser({
 
   // If you are an admin we dont need to follow this flow -> We can just follow the usual flow
   // If orgId and teamId are the same we can follow the same flow
-  if (session?.user.org?.id && session.user.org.id !== teamId && session?.user.role !== "ADMIN") {
+  if (
+    session?.user.org?.id &&
+    session.user.org.id !== teamId &&
+    session?.user.role !== UserPermissionRole.ADMIN
+  ) {
     TeamWhereClause = {
       disableImpersonation: false,
       accepted: true,
@@ -285,7 +305,7 @@ async function isReturningToSelf({ session, creds }: { session: Session | null; 
     const inOrg =
       returningUser.organizationId || // Keep for backwards compatibility
       returningUser.profiles.some((profile) => profile.organizationId !== undefined); // New way of seeing if the user has a profile in orgs.
-    if (returningUser.role !== "ADMIN" && !inOrg) return;
+    if (returningUser.role !== UserPermissionRole.ADMIN && !inOrg) return;
 
     const hasTeams = returningUser.teams.length >= 1;
 
@@ -338,7 +358,7 @@ const ImpersonationProvider = CredentialsProvider({
     checkGlobalPermission(session);
 
     const impersonatedUser = await getImpersonatedUser({ session, teamId, creds });
-    if (session?.user.role === "ADMIN") {
+    if (session?.user.role === UserPermissionRole.ADMIN) {
       if (impersonatedUser.disableImpersonation) {
         throw new Error("This user has disabled Impersonation.");
       }
@@ -394,7 +414,10 @@ const ImpersonationProvider = CredentialsProvider({
 
     // Legacy role check as additional safeguard (PBAC should handle this but keeping for backwards compatibility)
     // We find team by ID so we know there is only one team in the array
-    if (sessionUserFromDb?.teams[0].role === "ADMIN" && impersonatedUser.teams[0].role === "OWNER") {
+    if (
+      sessionUserFromDb?.teams[0].role === MembershipRole.ADMIN &&
+      impersonatedUser.teams[0].role === MembershipRole.OWNER
+    ) {
       throw new Error("You do not have permission to do this.");
     }
 

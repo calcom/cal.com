@@ -2,11 +2,12 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { eventTypeSelect } from "~/lib/selects/event-type";
+import { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 import { canUserAccessTeamWithRole } from "~/pages/api/teams/[teamId]/_auth-middleware";
 
 import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
@@ -306,10 +307,10 @@ async function postHandler(req: NextApiRequest) {
     data.hosts = { createMany: { data: hosts } };
   }
 
-  const eventType = await prisma.eventType.create({ data, include: { hosts: true } });
+  const eventType = await prisma.eventType.create({ data, select: eventTypeSelect });
 
   return {
-    event_type: schemaEventTypeReadPublic.parse(eventType),
+    event_type: eventType,
     message: "Event type created successfully",
   };
 }

@@ -27,6 +27,15 @@ export class RescheduleBookingInput_2024_08_13 {
     description: "Reason for rescheduling the booking",
   })
   reschedulingReason?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: String,
+    description: "Email verification code required when event type has email verification enabled.",
+    example: "123456",
+  })
+  emailVerificationCode?: string;
 }
 
 export class RescheduleSeatedBookingInput_2024_08_13 {
@@ -51,4 +60,13 @@ export class RescheduleSeatedBookingInput_2024_08_13 {
   })
   @IsString()
   seatUid!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: String,
+    description: "Email verification code required when event type has email verification enabled.",
+    example: "123456",
+  })
+  emailVerificationCode?: string;
 }

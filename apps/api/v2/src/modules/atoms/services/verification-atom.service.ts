@@ -1,10 +1,10 @@
-import { AtomsRepository } from "@/modules/atoms/atoms.repository";
+import { AtomsSecondaryEmailsRepository } from "@/modules/atoms/atoms-secondary-emails.repository";
 import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
 import { GetVerifiedEmailsInput } from "@/modules/atoms/inputs/get-verified-emails-params";
 import { SendVerificationEmailInput } from "@/modules/atoms/inputs/send-verification-email.input";
 import { VerifyEmailCodeInput } from "@/modules/atoms/inputs/verify-email-code.input";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException, UnauthorizedException } from "@nestjs/common";
 
 import {
@@ -17,8 +17,8 @@ import {
 @Injectable()
 export class VerificationAtomsService {
   constructor(
-    private readonly atomsRepository: AtomsRepository,
-    private readonly teamsRepository: TeamsRepository
+    private readonly atomsSecondaryEmailsRepository: AtomsSecondaryEmailsRepository,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async checkEmailVerificationRequired(input: CheckEmailVerificationRequiredParams) {
@@ -27,7 +27,7 @@ export class VerificationAtomsService {
 
   async verifyEmailCodeUnAuthenticated(input: VerifyEmailCodeInput) {
     try {
-      return await verifyCodeUnAuthenticated(input);
+      return await verifyCodeUnAuthenticated(input.email, input.code);
     } catch (error) {
       if (error instanceof Error) {
         if (error.message === "invalid_code") {
@@ -76,7 +76,8 @@ export class VerificationAtomsService {
 
     if (teamId) {
       const verifiedEmails: string[] = [];
-      const teamMembers = await this.teamsRepository.getTeamMemberEmails(teamId);
+
+      const teamMembers = await this.usersRepository.getUserEmailsVerifiedForTeam(teamId);
 
       if (teamMembers.length === 0) {
         return verifiedEmails;
@@ -96,7 +97,7 @@ export class VerificationAtomsService {
 
     let verifiedEmails = [userEmailWithoutOauthClientId];
 
-    const secondaryEmails = await this.atomsRepository.getSecondaryEmails(userId);
+    const secondaryEmails = await this.atomsSecondaryEmailsRepository.getSecondaryEmailsVerified(userId);
     verifiedEmails = verifiedEmails.concat(
       secondaryEmails.map((secondaryEmail) => this.removeClientIdFromEmail(secondaryEmail.email))
     );
@@ -113,11 +114,9 @@ export class VerificationAtomsService {
     existingPrimaryEmail: string;
     email: string;
   }): Promise<boolean> {
-    const existingSecondaryEmail = await this.atomsRepository.getExistingSecondaryEmailByUserAndEmail(
-      userId,
-      email
-    );
-    const alreadyExistingEmail = await this.atomsRepository.getExistingSecondaryEmail(email);
+    const existingSecondaryEmail =
+      await this.atomsSecondaryEmailsRepository.getExistingSecondaryEmailByUserAndEmail(userId, email);
+    const alreadyExistingEmail = await this.atomsSecondaryEmailsRepository.getExistingSecondaryEmail(email);
 
     if (alreadyExistingEmail) {
       throw new BadRequestException("Email already exists");
@@ -127,7 +126,7 @@ export class VerificationAtomsService {
       return true;
     }
 
-    await this.atomsRepository.addSecondaryEmail(userId, email);
+    await this.atomsSecondaryEmailsRepository.addSecondaryEmailVerified(userId, email);
 
     return true;
   }

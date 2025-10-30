@@ -1,4 +1,5 @@
 import { Client, cacheExchange, fetchExchange } from "@urql/core";
+import { retryExchange } from "@urql/exchange-retry";
 
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -17,9 +18,27 @@ export class SalesforceGraphQLClient {
 
   constructor({ accessToken, instanceUrl }: { accessToken: string; instanceUrl: string }) {
     this.accessToken = accessToken;
+
+    const exchanges = [cacheExchange, fetchExchange];
+
+    if (
+      process.env.SALESFORCE_GRAPHQL_DELAY_MS &&
+      process.env.SALESFORCE_GRAPHQL_MAX_DELAY_MS &&
+      process.env.SALESFORCE_GRAPHQL_MAX_RETRIES
+    ) {
+      const retryOptions = {
+        maxRetries: 3,
+        initialDelayMs: Number(process.env.SALESFORCE_GRAPHQL_DELAY_MS),
+        maxDelayMs: Number(process.env.SALESFORCE_GRAPHQL_MAX_DELAY_MS),
+        randomDelay: true,
+        maxNumberAttempts: Number(process.env.SALESFORCE_GRAPHQL_MAX_RETRIES),
+      };
+      exchanges.push(retryExchange(retryOptions));
+    }
+
     this.client = new Client({
       url: `${instanceUrl}/services/data/${this.version}/graphql`,
-      exchanges: [cacheExchange, fetchExchange],
+      exchanges,
       fetchOptions: () => {
         return {
           headers: { authorization: `Bearer ${this.accessToken}` },
@@ -54,15 +73,15 @@ export class SalesforceGraphQLClient {
     if (query?.error) {
       const errors = query.error;
       if (errors.graphQLErrors.length) {
-        log.error("GraphQL error", safeStringify({ errors }));
+        log.error("GraphQL error", errors.graphQLErrors);
       }
       if (errors.networkError) {
-        log.error("Network error", safeStringify({ errors }));
+        log.error("Network error", errors.networkError);
       }
     }
 
     if (!queryData) {
-      log.error("No query data found", safeStringify({ error: query?.error }));
+      log.error("No query data found", query?.error);
       return [];
     }
 

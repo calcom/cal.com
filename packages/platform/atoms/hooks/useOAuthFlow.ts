@@ -42,7 +42,7 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
 
               setIsRefreshing(false);
             }
-            return Promise.reject(err.response);
+            return Promise.reject(err);
           })
         : "";
 

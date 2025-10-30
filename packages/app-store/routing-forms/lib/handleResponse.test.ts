@@ -2,11 +2,9 @@ import "@calcom/lib/__mocks__/logger";
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { z } from "zod";
 
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
-import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import isRouter from "../lib/isRouter";
 import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
@@ -14,7 +12,7 @@ import type { TargetRoutingFormForResponse } from "./formSubmissionUtils";
 import { onSubmissionOfFormResponse } from "./formSubmissionUtils";
 import { handleResponse } from "./handleResponse";
 
-vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+vi.mock("@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   findTeamMembersMatchingAttributeLogic: vi.fn(),
 }));
 
@@ -86,6 +84,8 @@ const mockForm: TargetRoutingFormForResponse = {
   user: {
     id: 1,
     email: "test@example.com",
+    timeFormat: null,
+    locale: null,
   },
   team: {
     parentId: 2,
@@ -104,7 +104,14 @@ const mockForm: TargetRoutingFormForResponse = {
   updatedById: null,
 };
 
-const mockResponse: z.infer<typeof ZResponseInputSchema>["response"] = {
+const mockResponse: Record<
+  string,
+  {
+    value: (string | number | string[]) & (string | number | string[] | undefined);
+    label: string;
+    identifier?: string | undefined;
+  }
+> = {
   name: { value: "John Doe", label: "Name" },
   email: { value: "john.doe@example.com", label: "Email" },
 };
@@ -118,7 +125,7 @@ describe("handleResponse", () => {
     );
   });
 
-  it("should throw a TRPCError for missing required fields", async () => {
+  it("should throw an Error for missing required fields", async () => {
     await expect(
       handleResponse({
         response: { email: { value: "test@test.com", label: "Email" } }, // Name is missing
@@ -131,7 +138,7 @@ describe("handleResponse", () => {
     ).rejects.toThrow(/Missing required fields Name/);
   });
 
-  it("should throw a TRPCError for invalid email", async () => {
+  it("should throw an Error for invalid email", async () => {
     await expect(
       handleResponse({
         response: {

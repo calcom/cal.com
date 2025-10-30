@@ -28,7 +28,11 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
-import { validateCustomEventName, EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
+import {
+  validateCustomEventName,
+  EventTypeMetaDataSchema,
+  EventTypeMetadata,
+} from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
@@ -67,11 +71,13 @@ export class InputEventTypesService_2024_06_14 {
       eventName: transformedBody.eventName,
     });
 
-    transformedBody.destinationCalendar &&
-      (await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar));
+    if (transformedBody.destinationCalendar) {
+      await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar);
+    }
 
-    transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.validateInputUseDestinationCalendarEmail(user.id));
+    if (transformedBody.useEventTypeDestinationCalendarEmail) {
+      await this.validateInputUseDestinationCalendarEmail(user.id);
+    }
 
     return transformedBody;
   }
@@ -93,11 +99,13 @@ export class InputEventTypesService_2024_06_14 {
       eventName: transformedBody.eventName,
     });
 
-    transformedBody.destinationCalendar &&
-      (await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar));
+    if (transformedBody.destinationCalendar) {
+      await this.validateInputDestinationCalendar(user.id, transformedBody.destinationCalendar);
+    }
 
-    transformedBody.useEventTypeDestinationCalendarEmail &&
-      (await this.validateInputUseDestinationCalendarEmail(user.id));
+    if (transformedBody.useEventTypeDestinationCalendarEmail) {
+      await this.validateInputUseDestinationCalendarEmail(user.id);
+    }
 
     return transformedBody;
   }
@@ -119,6 +127,7 @@ export class InputEventTypesService_2024_06_14 {
       customName,
       useDestinationCalendarEmail,
       disableGuests,
+      bookerActiveBookingsLimit,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -130,6 +139,17 @@ export class InputEventTypesService_2024_06_14 {
         ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
         : bookingFields;
 
+    const maxActiveBookingsPerBooker = bookerActiveBookingsLimit
+      ? this.transformInputBookerActiveBookingsLimit(bookerActiveBookingsLimit)
+      : {};
+
+    const metadata: EventTypeMetadata = {
+      bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    };
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
@@ -140,12 +160,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
-      metadata: {
-        bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
-        requiresConfirmationThreshold:
-          confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-        multipleDuration: lengthInMinutesOptions,
-      },
+      metadata,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
         confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
@@ -154,9 +169,25 @@ export class InputEventTypesService_2024_06_14 {
       ...this.transformInputSeatOptions(seats),
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+      ...maxActiveBookingsPerBooker,
     };
 
     return eventType;
+  }
+
+  transformInputBookerActiveBookingsLimit(
+    bookerActiveBookingsLimit: CreateEventTypeInput_2024_06_14["bookerActiveBookingsLimit"]
+  ) {
+    if (!bookerActiveBookingsLimit || bookerActiveBookingsLimit.disabled) {
+      return {
+        maxActiveBookingsPerBooker: null,
+        maxActiveBookingPerBookerOfferReschedule: false,
+      };
+    }
+    return {
+      maxActiveBookingsPerBooker: bookerActiveBookingsLimit?.maximumActiveBookings,
+      maxActiveBookingPerBookerOfferReschedule: bookerActiveBookingsLimit?.offerReschedule,
+    };
   }
 
   async transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14, eventTypeId: number) {
@@ -176,10 +207,11 @@ export class InputEventTypesService_2024_06_14 {
       customName,
       useDestinationCalendarEmail,
       disableGuests,
+      bookerActiveBookingsLimit,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
-    const metadataTransformed = !!eventTypeDb?.metadata
+    const metadataTransformed = eventTypeDb?.metadata
       ? EventTypeMetaDataSchema.parse(eventTypeDb.metadata)
       : {};
 
@@ -189,6 +221,18 @@ export class InputEventTypesService_2024_06_14 {
       disableGuests !== undefined
         ? this.getBookingFieldsWithGuestsToggled(bookingFields, disableGuests)
         : bookingFields;
+
+    const maxActiveBookingsPerBooker = bookerActiveBookingsLimit
+      ? this.transformInputBookerActiveBookingsLimit(bookerActiveBookingsLimit)
+      : {};
+
+    const metadata: EventTypeMetadata = {
+      ...metadataTransformed,
+      bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    };
 
     const eventType = {
       ...rest,
@@ -202,13 +246,7 @@ export class InputEventTypesService_2024_06_14 {
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
       ...this.transformInputBookingWindow(bookingWindow),
-      metadata: {
-        ...metadataTransformed,
-        bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
-        requiresConfirmationThreshold:
-          confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
-        multipleDuration: lengthInMinutesOptions,
-      },
+      metadata,
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
@@ -217,6 +255,7 @@ export class InputEventTypesService_2024_06_14 {
       ...this.transformInputSeatOptions(seats),
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+      ...maxActiveBookingsPerBooker,
     };
 
     return eventType;
@@ -319,7 +358,7 @@ export class InputEventTypesService_2024_06_14 {
 
   transformInputBookingWindow(inputBookingWindow: CreateEventTypeInput_2024_06_14["bookingWindow"]) {
     const res = transformFutureBookingLimitsApiToInternal(inputBookingWindow);
-    return !!res ? res : {};
+    return res ? res : {};
   }
 
   transformInputBookerLayouts(inputBookerLayouts: CreateEventTypeInput_2024_06_14["bookerLayouts"]) {
@@ -369,7 +408,7 @@ export class InputEventTypesService_2024_06_14 {
       requiresConfirmationDb = eventTypeDb?.requiresConfirmation ?? false;
     }
 
-    const seatsPerTimeSlotFinal = !!seatsPerTimeSlot ? seatsPerTimeSlot : seatsPerTimeSlotDb;
+    const seatsPerTimeSlotFinal = seatsPerTimeSlot ? seatsPerTimeSlot : seatsPerTimeSlotDb;
     const seatsEnabledFinal = !!seatsPerTimeSlotFinal && seatsPerTimeSlotFinal > 0;
 
     const locationsFinal = locations !== undefined ? locations : locationsDb;
@@ -394,6 +433,7 @@ export class InputEventTypesService_2024_06_14 {
       );
     }
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   transformLocations(locations: any) {
     if (!locations) return [];
 

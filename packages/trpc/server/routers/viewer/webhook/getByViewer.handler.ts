@@ -1,4 +1,4 @@
-import { WebhookRepository } from "@calcom/lib/server/repository/webhook";
+import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import type { Webhook } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -33,7 +33,9 @@ export type WebhooksByViewer = {
 };
 
 export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
-  return await WebhookRepository.getAllWebhooksByUserId({
+  // Use the singleton instance to avoid creating new instances repeatedly
+  const webhookRepository = WebhookRepository.getInstance();
+  return await webhookRepository.getFilteredWebhooksForUser({
     userId: ctx.user.id,
     userRole: ctx.user.role,
   });

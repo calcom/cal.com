@@ -30,25 +30,7 @@ async function verifyMembershipExists(userId: number, teamId: number): Promise<M
   });
 }
 
-async function verifyUserOrganizationConsistency(userId: number): Promise<{
-  profileCount: number;
-  acceptedMembershipCount: number;
-  pendingMembershipCount: number;
-}> {
-  const profiles = await prisma.profile.count({ where: { userId } });
-  const acceptedMemberships = await prisma.membership.count({
-    where: { userId, accepted: true },
-  });
-  const pendingMemberships = await prisma.membership.count({
-    where: { userId, accepted: false },
-  });
 
-  return {
-    profileCount: profiles,
-    acceptedMembershipCount: acceptedMemberships,
-    pendingMembershipCount: pendingMemberships,
-  };
-}
 
 // Test data creation helpers with unique identifiers
 function generateUniqueId() {
@@ -67,7 +49,9 @@ async function createTestUser(data: { email: string; username: string; name?: st
     await prisma.user.deleteMany({
       where: { OR: [{ email: uniqueEmail }, { username: uniqueUsername }] },
     });
-  } catch {}
+  } catch {
+    // Ignore cleanup errors
+  }
 
   return await prisma.user.create({
     data: {
@@ -83,7 +67,7 @@ async function createTestTeam(data: {
   slug: string;
   isOrganization?: boolean;
   parentId?: number;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   organizationSettings?: {
     orgAutoAcceptEmail: string;
     isOrganizationVerified?: boolean;
@@ -329,8 +313,7 @@ describe("inviteMember.handler Integration Tests", () => {
       await inviteMemberHandler({
         ctx: {
           user: createUserContext(inviterUser, organization.id),
-          session: {} as any,
-        } as any,
+        },
         input: {
           teamId: organization.id,
           usernameOrEmail: nonMatchingUser.email,
@@ -418,7 +401,7 @@ describe("inviteMember.handler Integration Tests", () => {
         ],
       });
 
-      const orgMembership = await verifyMembershipExists(
+      await verifyMembershipExists(
         unverifiedUserWithUnacceptedMembership.id,
         organization.id
       );
@@ -433,6 +416,117 @@ describe("inviteMember.handler Integration Tests", () => {
         regularTeam.id
       );
       expect(originalMembership?.accepted).toBe(true);
+    });
+  });
+
+  describe("Subteam Direct Invite Flow", () => {
+    it("should immediately add auto-accepted new users to event types with assignAllTeamMembers=true", async () => {
+      // Setup: Create organization and team
+      const organization = trackTeam(
+        await createTestTeam({
+          name: "Test Organization",
+          slug: "test-org",
+          isOrganization: true,
+          metadata: {},
+          organizationSettings: {
+            orgAutoAcceptEmail: "company.com",
+            isOrganizationVerified: true,
+          },
+        })
+      );
+
+      const team = trackTeam(
+        await createTestTeam({
+          name: "Sales Team",
+          slug: "sales-team",
+          isOrganization: false,
+          parentId: organization.id,
+        })
+      );
+
+      // Create inviter user
+      const inviterUser = trackUser(
+        await createTestUser({
+          email: "inviter@company.com",
+          username: "inviter",
+        })
+      );
+
+      await prisma.membership.create({
+        data: {
+          userId: inviterUser.id,
+          teamId: organization.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      await prisma.membership.create({
+        data: {
+          userId: inviterUser.id,
+          teamId: team.id,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        },
+      });
+
+      // Create event type with assignAllTeamMembers enabled
+      const eventType = await prisma.eventType.create({
+        data: {
+          title: "Team Event",
+          slug: "team-event",
+          length: 30,
+          teamId: team.id,
+          assignAllTeamMembers: true,
+        },
+      });
+
+      // Act: Invite a new user (non-existing) with auto-accept domain
+      const newUserEmail = `newuser-${generateUniqueId()}@company.com`;
+
+      await inviteMembersWithNoInviterPermissionCheck({
+        inviterName: inviterUser.name,
+        teamId: team.id,
+        language: "en",
+        creationSource: "WEBAPP" as const,
+        orgSlug: organization.slug,
+        invitations: [
+          {
+            usernameOrEmail: newUserEmail,
+            role: MembershipRole.MEMBER,
+          },
+        ],
+      });
+
+      // Assert: Verify user was created
+      const createdUser = await prisma.user.findUnique({
+        where: { email: newUserEmail },
+      });
+      expect(createdUser).toBeTruthy();
+      
+      if (createdUser) {
+        trackUser(createdUser);
+
+        // Verify membership is auto-accepted
+        const membership = await verifyMembershipExists(createdUser.id, team.id);
+        expect(membership).toBeTruthy();
+        expect(membership?.accepted).toBe(true);
+
+        // Verify user is immediately added as host to the event type
+        const host = await prisma.host.findFirst({
+          where: {
+            userId: createdUser.id,
+            eventTypeId: eventType.id,
+          },
+        });
+
+        expect(host).toBeTruthy();
+        expect(host?.userId).toBe(createdUser.id);
+        expect(host?.eventTypeId).toBe(eventType.id);
+      }
+
+      // Cleanup event type
+      await prisma.eventType.delete({ where: { id: eventType.id } });
     });
   });
 });

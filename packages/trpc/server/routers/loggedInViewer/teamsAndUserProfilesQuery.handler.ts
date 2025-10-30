@@ -1,10 +1,9 @@
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { withRoleCanCreateEntity } from "@calcom/lib/entityPermissionUtils.server";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import type { PrismaClient } from "@calcom/prisma";
-import type { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -112,8 +111,9 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     // Store permission results for teams that passed the filter
     hasPermissionForFiltered = permissionChecks.filter((hasPermission) => hasPermission);
     teamsData = teamsData.filter((_, index) => permissionChecks[index]);
-
   }
+
+  const rolesWithWriteAccess = [MembershipRole.ADMIN, MembershipRole.OWNER] as MembershipRole[];
 
   return [
     {
@@ -135,7 +135,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       role: membership.role,
       readOnly: input?.withPermission
         ? !hasPermissionForFiltered[index]
-        : !withRoleCanCreateEntity(membership.role),
+        : !rolesWithWriteAccess.includes(membership.role),
     })),
   ];
 };

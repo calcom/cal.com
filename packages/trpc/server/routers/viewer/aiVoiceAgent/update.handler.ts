@@ -25,5 +25,6 @@ export const updateHandler = async ({ ctx, input }: UpdateHandlerOptions) => {
     beginMessage: retellUpdates.beginMessage ?? undefined,
     generalTools: retellUpdates.generalTools as RetellLLMGeneralTools,
     voiceId: retellUpdates.voiceId,
+    language: retellUpdates.language,
   });
 };

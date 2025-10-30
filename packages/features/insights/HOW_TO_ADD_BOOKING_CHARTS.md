@@ -143,12 +143,9 @@ export class InsightsBookingBaseService {
     const baseConditions = await this.getBaseConditions();
 
     // Example: Get booking counts by day using raw SQL for performance
-    const data = await this.prisma.$queryRaw<
-      Array<{
-        date: Date;
-        bookingsCount: number;
-      }>
-    >`
+    // Note: Use Prisma.sql for the entire query (Prisma v6 requirement)
+    // Prisma v6 no longer allows mixing template literals with Prisma.sql fragments
+    const query = Prisma.sql`
       SELECT
         DATE("createdAt") as date,
         COUNT(*)::int as "bookingsCount"
@@ -157,6 +154,13 @@ export class InsightsBookingBaseService {
       GROUP BY DATE("createdAt")
       ORDER BY date ASC
     `;
+
+    const data = await this.prisma.$queryRaw<
+      Array<{
+        date: Date;
+        bookingsCount: number;
+      }>
+    >(query);
 
     // Transform the data for the chart
     return data.map((item) => ({
@@ -174,5 +178,6 @@ export class InsightsBookingBaseService {
 3. **Base Conditions**: Always use `await this.getBaseConditions()` for proper filtering and permissions
 4. **Error Handling**: Wrap service calls in try-catch blocks with `TRPCError`
 5. **Loading States**: Always show loading indicators with `LoadingInsight`
-6. **Consistent Styling**: Use `recharts` for new charts.
+6. **Consistent Styling**: Use `recharts` for new charts
 7. **Date Handling**: Use `getDateRanges()` and `getTimeView()` for time-based charts
+8. **Prisma v6 Compatibility**: Use `Prisma.sql` for the entire query instead of mixing template literals with SQL fragments

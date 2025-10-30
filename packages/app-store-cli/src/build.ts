@@ -22,7 +22,7 @@ const formatOutput = (source: string) =>
     ...prettierConfig,
   });
 
-const getVariableName = (appName: string) => appName.replace(/[-./]/g, "_");
+const getVariableName = (appName: string) => appName.replace(/[-.\/]/g, "_");
 
 // INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
 const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
@@ -136,12 +136,10 @@ function generateFiles() {
       lazyImport = false,
       importConfig,
       entryObjectKeyGetter = (app) => app.name,
-      skipHelper = false,
     }: {
       lazyImport?: boolean;
       importConfig: ImportConfig;
       entryObjectKeyGetter?: (arg: App, importName?: string) => string;
-      skipHelper?: boolean;
     },
     filter?: (arg: App) => boolean
   ) {
@@ -163,9 +161,6 @@ function generateFiles() {
     return output;
 
     function addImportStatements() {
-      // Helper is now added at the file level, not per export object
-      // This function only adds the specific import statements for apps
-
       forEachAppDir((app) => {
         const chosenConfig = getChosenImportConfig(importConfig, app);
         if (fileToBeImportedExists(app, chosenConfig) && chosenConfig.importName) {
@@ -188,15 +183,6 @@ function generateFiles() {
                 )}"`
               );
             }
-          } else {
-            // Create lazy loading wrapper function
-            const isMetadata = chosenConfig.fileToBeImported.includes("_metadata");
-            output.push(
-              `const ${getLocalImportName(app, chosenConfig)} = createLazyMetadata("${getModulePath(
-                app.path,
-                chosenConfig.fileToBeImported
-              )}", ${isMetadata});`
-            );
           }
         }
       }, filter);
@@ -209,12 +195,21 @@ function generateFiles() {
         const chosenConfig = getChosenImportConfig(importConfig, app);
 
         if (fileToBeImportedExists(app, chosenConfig)) {
-          const key = entryObjectKeyGetter(app);
           if (!lazyImport) {
+            const key = entryObjectKeyGetter(app);
             output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
           } else {
-            // For lazy imports, just reference the function we created
-            output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
+            const key = entryObjectKeyGetter(app);
+            if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
+              output.push(
+                `"${key}": dynamic(() => import("${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}")),`
+              );
+            } else {
+              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+            }
           }
         }
       }, filter);
@@ -238,37 +233,12 @@ function generateFiles() {
     }
   }
 
-  // Add lazy loading helper to outputs that need it (once per file)
-  const lazyLoadingHelper = `
-// Function to create lazy-loaded metadata
-const createLazyMetadata = (importPath: string, isMetadata = false) => {
-  return async () => {
-    try {
-      if (isMetadata) {
-        const module = await import(importPath);
-        return module.metadata;
-      }
-      return import(importPath);
-    } catch (error) {
-      console.warn(\`Failed to load metadata for \${importPath}:\`, error);
-      return null;
-    }
-  };
-};
-`;
-
-  browserOutput.push(lazyLoadingHelper);
-  serverOutput.push(lazyLoadingHelper);
-  metadataOutput.push(lazyLoadingHelper);
-  crmOutput.push(lazyLoadingHelper);
-
   serverOutput.push(
     ...getExportedObject("apiHandlers", {
       importConfig: {
         fileToBeImported: "api/index.ts",
       },
       lazyImport: true,
-      skipHelper: true,
     })
   );
 
@@ -285,8 +255,6 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
           importName: "metadata",
         },
       ],
-      lazyImport: true,
-      skipHelper: true,
     })
   );
 
@@ -340,7 +308,6 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         fileToBeImported: "components/InstallAppButton.tsx",
       },
       lazyImport: true,
-      skipHelper: true,
     })
   );
 
@@ -352,7 +319,6 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         fileToBeImported: "components/AppSettingsInterface.tsx",
       },
       lazyImport: true,
-      skipHelper: true,
     })
   );
 
@@ -362,7 +328,6 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         fileToBeImported: "components/EventTypeAppCardInterface.tsx",
       },
       lazyImport: true,
-      skipHelper: true,
     })
   );
   browserOutput.push(
@@ -371,7 +336,6 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
         fileToBeImported: "components/EventTypeAppSettingsInterface.tsx",
       },
       lazyImport: true,
-      skipHelper: true,
     })
   );
 
@@ -384,7 +348,6 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
           importName: "default",
         },
         lazyImport: true,
-        skipHelper: true,
       },
       isCrmApp
     )
@@ -414,7 +377,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
     calendarOutput.push(
       exportLine.replace(
         "export const CalendarServiceMap = {",
-        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -451,7 +414,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
     analyticsOutput.push(
       exportLine.replace(
         "export const AnalyticsServiceMap = {",
-        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -503,7 +466,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
     videoOutput.push(
       exportLine.replace(
         "export const VideoApiAdapterMap = {",
-        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
