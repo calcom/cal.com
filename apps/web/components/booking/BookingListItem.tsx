@@ -1,14 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
+import { useBookingLocation } from "@calcom/features/bookings/hooks";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { formatTime } from "@calcom/lib/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -46,6 +45,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import { BookingActionsDropdown } from "./BookingActionsDropdown";
 import { useBookingActionsStoreContext, BookingActionsStoreProvider } from "./BookingActionsStoreProvider";
 import {
@@ -94,10 +94,51 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
   return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 };
 
+const ConditionalLink = ({
+  children,
+  onClick,
+  bookingLink,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  bookingLink: string;
+  className?: string;
+}) => {
+  const { t } = useLocale();
+
+  if (onClick) {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onClick();
+      }
+    };
+
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        className={className}
+        aria-label={t("view_booking_details")}>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <Link href={bookingLink} className={className}>
+      {children}
+    </Link>
+  );
+};
+
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { onClick } = booking;
   const {
     t,
     i18n: { language },
@@ -154,7 +195,6 @@ function BookingListItem(booking: BookingItemProps) {
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
-  const locationVideoCallUrl = parsedBooking.metadata?.videoCallUrl;
 
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
@@ -162,12 +202,12 @@ function BookingListItem(booking: BookingItemProps) {
     booking.eventType.eventTypeColor &&
     booking.eventType.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
-  const locationToDisplay = getSuccessPageLocationMessage(
-    locationVideoCallUrl ? locationVideoCallUrl : location,
+  const { locationToDisplay, provider } = useBookingLocation({
+    location,
+    videoCallUrl: parsedBooking.metadata?.videoCallUrl,
     t,
-    booking.status
-  );
-  const provider = guessEventLocationType(location);
+    bookingStatus: booking.status,
+  });
 
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
@@ -258,15 +298,11 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  const buildBookingLink = () => {
-    const urlSearchParams = new URLSearchParams({
-      allRemainingBookings: isTabRecurring.toString(),
-    });
-    if (booking.attendees?.[0]?.email) urlSearchParams.set("email", booking.attendees[0].email);
-    return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
-  };
-
-  const bookingLink = buildBookingLink();
+  const bookingLink = buildBookingLink({
+    bookingUid: booking.uid,
+    allRemainingBookings: isTabRecurring,
+    email: booking.attendees?.[0]?.email,
+  });
 
   const title = booking.title;
 
@@ -321,7 +357,7 @@ function BookingListItem(booking: BookingItemProps) {
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
               )}
-              <Link href={bookingLink} className="ml-3">
+              <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="ml-3">
                 <div className="cursor-pointer py-4">
                   <div className="text-emphasis text-sm leading-6">{startTime}</div>
                   <div className="text-subtle text-sm">
@@ -350,7 +386,8 @@ function BookingListItem(booking: BookingItemProps) {
                             className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                             <div className="flex items-center gap-2">
                               {provider?.iconUrl && (
-                                <Image
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
                                   src={provider.iconUrl}
                                   width={16}
                                   height={16}
@@ -367,11 +404,11 @@ function BookingListItem(booking: BookingItemProps) {
                     </div>
                   )}
                 </div>
-              </Link>
+              </ConditionalLink>
             </div>
           </div>
           <div data-testid="title-and-attendees" className={`w-full px-4${isRejected ? "line-through" : ""}`}>
-            <Link href={bookingLink}>
+            <ConditionalLink onClick={onClick} bookingLink={bookingLink}>
               {/* Time and Badges for mobile */}
               <div className="w-full pb-2 pt-4 sm:hidden">
                 <div className="flex w-full items-center justify-between sm:hidden">
@@ -454,7 +491,7 @@ function BookingListItem(booking: BookingItemProps) {
                   </div>
                 )}
               </div>
-            </Link>
+            </ConditionalLink>
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
