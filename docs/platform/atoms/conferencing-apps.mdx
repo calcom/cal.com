@@ -4,10 +4,11 @@ title: "Conferencing Apps"
 
 The Conferencing Apps Atom allows users to seamlessly install applications such as Zoom, Google Meet, and Microsoft Teams, enabling them to set these as default or optional locations for their events.
 
-Below code snippet can be used to render Conferencing Apps Atom 
+## User-Level Installation
+
+Below code snippet can be used to render Conferencing Apps Atom for user-level installation:
 
 ```js
-
 import { ConferencingAppsSettings } from "@calcom/atoms";
 import { usePathname } from "next/navigation";
 
@@ -23,7 +24,81 @@ export default function ConferencingApps() {
 }
 ```
 
-Below is a list of props that can be passed to the Conferencing Apps Atom
+## Organization & Team-Level Installation
+
+You can also install conferencing apps at the organization or team level, providing shared credentials for all members.
+
+### Benefits
+
+- **No individual setup required**: Users within a team or organization no longer need to connect their personal accounts to Zoom or other conferencing apps.
+- **Shared credentials**: Once installed by an admin, the conferencing app credentials are available for all sub-teams and users within the organization.
+- **Reduced redundancy**: Instead of every user configuring the same app, the admin installs it once and all members can use it seamlessly.
+- **Flexible usage**: Users can leverage the shared team/org-installed credentials when creating personal events, as well as team events.
+
+### Team-Level Installation
+
+Install conferencing apps at the team level by passing both `orgId` (parent organization) and `teamId` (child team) as props:
+
+```js
+import { ConferencingAppsSettings } from "@calcom/atoms";
+import { usePathname } from "next/navigation";
+
+export default function TeamConferencingApps() {
+  const pathname = usePathname();
+  const callbackUri = `${window.location.origin}${pathname}`;
+  const orgId = 123; // Parent organization ID
+  const teamId = 456; // Child team ID
+
+  return (
+    <>
+        <ConferencingAppsSettings 
+          returnTo={callbackUri} 
+          onErrorReturnTo={callbackUri}
+          orgId={orgId}
+          teamId={teamId}
+        />
+    </>
+  )
+}
+```
+
+**Who can use team-installed apps:**
+- All members of this team can use the credentials on their team events (collective, round robin)
+- All team members can also use these credentials on their personal events
+
+### Organization-Level Installation
+
+Install conferencing apps at the organization level by passing only `orgId` (parent organization) as a prop:
+
+```js
+import { ConferencingAppsSettings } from "@calcom/atoms";
+import { usePathname } from "next/navigation";
+
+export default function OrgConferencingApps() {
+  const pathname = usePathname();
+  const callbackUri = `${window.location.origin}${pathname}`;
+  const orgId = 123; // Parent organization ID
+
+  return (
+    <>
+        <ConferencingAppsSettings 
+          returnTo={callbackUri} 
+          onErrorReturnTo={callbackUri}
+          orgId={orgId}
+        />
+    </>
+  )
+}
+```
+
+**Who can use org-installed apps:**
+- All members within the organization
+- All members of all teams within the organization
+- Can be used on personal events and all team events (collective, round robin) for all teams within the organization
+
+## Props
+
+Below is a list of props that can be passed to the Conferencing Apps Atom:
 
 <p></p>
 
@@ -34,6 +109,8 @@ Below is a list of props that can be passed to the Conferencing Apps Atom
 | disableToasts       | No       | Boolean value to disable toast notifications in the atom.              |
 | apps                | No       | Array of conferencing app slugs to display in the dropdown. If provided, only these apps will be shown (if not already installed). Valid values are `'google-meet'`, `'zoom'`, and `'msteams'`.    |
 | disableBulkUpdateEventTypes | No | A Boolean flag that prevents the bulk update of event types modal from appearing when the default conferencing app is changed. Defaults to false |
+| teamId              | No       | Team ID for team-level installation. Must be used together with `orgId`. |
+| orgId               | No       | Organization ID for org-level or team-level installation. |
 
 
 ## Google Meet
