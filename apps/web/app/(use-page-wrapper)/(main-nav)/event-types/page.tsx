@@ -6,6 +6,7 @@ import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { checkOnboardingRedirect } from "@calcom/features/auth/lib/onboardingUtils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
@@ -51,6 +52,17 @@ const Page = async ({ searchParams }: PageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(_headers, _cookies) });
   if (!session?.user?.id) {
     return redirect("/auth/login");
+  }
+
+  // Check if user needs onboarding and redirect before fetching event types data
+  // Use organizationId from session profile if available to avoid extra query
+  const organizationId = session.user.profile?.organizationId ?? null;
+  const onboardingPath = await checkOnboardingRedirect(session.user.id, {
+    checkEmailVerification: true,
+    organizationId,
+  });
+  if (onboardingPath) {
+    return redirect(onboardingPath);
   }
 
   const t = await getTranslate();
