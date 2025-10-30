@@ -18,7 +18,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { ToggleGroup } from "@calcom/ui/components/form";
 
 type AvailabilityListProps = {
   availabilities: RouterOutputs["viewer"]["availability"]["list"];
@@ -204,6 +203,7 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
     },
     [searchParams]
   );
+  const currentValue = searchParams?.get("type") ?? "mine";
 
   return (
     <div className="flex items-center gap-2">
@@ -215,8 +215,85 @@ export const AvailabilityCTA = ({ toggleGroupOptions }: AvailabilityCTAProps) =>
           router.push(`${pathname}?${createQueryString("type", value)}`);
         }}
         options={toggleGroupOptions}
-      /> */}
-      <NewScheduleButton />
+        />
+        <NewScheduleButton /> */}
+
+      {/*For Mobile: Full width tabs without button */}
+      <div className="border-muted flex w-full gap-0 border-b md:hidden dark:border-gray-700">
+        {toggleGroupOptions.map((option) => {
+          const isActive = currentValue === option.value;
+          return (
+            <button
+              key={option.value}
+              onClick={() => {
+                if (option.value === currentValue) return;
+                router.push(`${pathname}?${createQueryString("type", option.value)}`);
+              }}
+              className={`
+                group relative inline-flex flex-1 justify-center whitespace-nowrap px-4 pb-3 text-sm font-medium transition-colors
+                ${isActive ? "text-blue-600 dark:text-gray-400" : "text-gray-500 dark:text-gray-400"}
+              `}>
+              {option.label}
+              {isActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-gray-500" />
+              )}
+              {!isActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-400 opacity-0 transition-opacity group-hover:opacity-100 dark:bg-gray-500" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/*For Desktop: Tabs on left, button on right */}
+      <div className="hidden w-full items-center md:flex">
+        <div className="border-muted flex max-w-full gap-0 border-b dark:border-gray-700">
+          {toggleGroupOptions.map((option) => {
+            const isActive = currentValue === option.value;
+            return (
+              <button
+                key={option.value}
+                onClick={() => {
+                  if (option.value === currentValue) return;
+                  router.push(`${pathname}?${createQueryString("type", option.value)}`);
+                }}
+                className={`
+                group relative inline-flex whitespace-nowrap px-4 pb-3 text-sm font-medium transition-colors
+                ${isActive ? "text-blue-600 dark:text-gray-400" : "text-gray-500 dark:text-gray-400"}
+              `}>
+                {option.label}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-gray-500" />
+                )}
+                {!isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-400 opacity-0 transition-opacity group-hover:opacity-100 dark:bg-gray-500" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="ml-auto min-w-[100px] pb-3 pr-4">
+          <div className={currentValue === "mine" ? "" : "pointer-events-none opacity-0"}>
+            <NewScheduleButton />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+
+{
+  /** For showing New button on Right corner aligned to Availability heading  */
+}
+export function MobileAvailabilityButton() {
+  const searchParams = useCompatSearchParams();
+  const currentValue = searchParams?.get("type") ?? "mine";
+
+  return currentValue === "mine" ? (
+    <NewScheduleButton />
+  ) : (
+    <div className="invisible">
+      <NewScheduleButton />
+    </div>
+  );
+}

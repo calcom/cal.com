@@ -27,7 +27,7 @@ type CalIdCreateOptions = {
 };
 
 export const calIdCreateHandler = async ({ ctx, input }: CalIdCreateOptions) => {
-  const { calIdTeamId } = input;
+  const { calIdTeamId, builderTemplate } = input;
 
   const userId = ctx.user.id;
 
@@ -84,7 +84,7 @@ export const calIdCreateHandler = async ({ ctx, input }: CalIdCreateOptions) => 
         numberVerificationPending: false,
       },
     });
-    return { workflow };
+    return { workflow, builderTemplate };
   } catch (e) {
     throw e;
   }

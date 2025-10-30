@@ -100,9 +100,10 @@ const VariableDropdown: React.FC<{
 
 export interface WorkflowBuilderProps {
   workflowId?: number;
+  builderTemplate?: WorkflowBuilderTemplateFields;
 }
 
-export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) => {
+export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, builderTemplate }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t, i18n } = useLocale();
@@ -185,9 +186,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
       { enabled: !isPendingWorkflow }
     );
 
+  const prevEventTypeDataRef = useRef();
+  useEffect(() => {
+    prevEventTypeDataRef.current = eventTypeData;
+  }, [eventTypeData]);
+
   // Process event type options
   const allEventTypeOptions = useMemo(() => {
-    let options = eventTypeData?.eventTypeOptions ?? [];
+    let options = [...(eventTypeData?.eventTypeOptions ?? [])];
 
     if (!teamId && isMixedEventType && isInitialLoadRef.current) {
       const distinctEventTypes = new Set(options.map((opt) => opt.value));
@@ -196,7 +202,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
     }
 
     return options;
-  }, [eventTypeData?.eventTypeOptions, teamId, isMixedEventType, selectedOptions]);
+  }, [eventTypeData, teamId, isMixedEventType, selectedOptions]);
+
+  useEffect(() => {
+    if (eventTypeData?.eventTypeOptions) {
+      dataLoadedRef.current = false;
+      setFormData();
+    }
+  }, [eventTypeData?.eventTypeOptions]);
 
   const teamOptions = useMemo(() => eventTypeData?.teamOptions ?? [], [eventTypeData?.teamOptions]);
 
@@ -436,6 +449,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
           }) || [];
 
         // Use form.reset to set all values at once
+
         form.reset({
           name: workflowDataInput.name,
           steps: processedSteps,
@@ -471,9 +485,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
         setEmailVerificationStatus(emailStatus);
 
         // Show sections based on existing data
-        setShowEventTypeSection(true);
-        setShowTriggerSection(true);
-        setShowActionsSection(processedSteps.length > 0);
+
+        if (workflowDataInput.name) {
+          setShowEventTypeSection(true);
+        }
+
+        if (activeOn.length > 0) {
+          setShowTriggerSection(true);
+          setShowActionsSection(true);
+        }
 
         setIsAllDataLoaded(true);
         isInitialLoadRef.current = false;
@@ -491,6 +511,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
     ]
   );
 
+  // Watch the activeOn field
+  const activeOnValue = form.watch("activeOn");
+
   // Load initial data only once
   useEffect(() => {
     if (!isPendingWorkflow && workflowData && !dataLoadedRef.current) {
@@ -506,16 +529,17 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
   }, [workflowName]);
 
   useEffect(() => {
-    if (selectedOptions.length > 0) {
+    if (selectedOptions?.length > 0) {
       setShowTriggerSection(true);
-    }
-  }, [selectedOptions]);
-
-  useEffect(() => {
-    if (trigger && (triggerTiming === "immediately" || (triggerTiming === "custom" && customTime))) {
       setShowActionsSection(true);
     }
-  }, [trigger, triggerTiming, customTime]);
+  }, [selectedOptions, isPendingEventTypes]);
+
+  // useEffect(() => {
+  //   if (trigger && (triggerTiming === "immediately" || (triggerTiming === "custom" && customTime))) {
+  //     setShowActionsSection(true);
+  //   }
+  // }, [trigger, triggerTiming, customTime]);
 
   const getTriggerText = () => {
     const selectedTrigger = triggerOptions.find((t) => t.value === trigger);
@@ -556,51 +580,75 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
         return newOptions;
       });
     },
-    [allEventTypeOptions, form]
+    [allEventTypeOptions, form, isPendingEventTypes]
   );
+
+  const getNewStep = useCallback(
+    (stepNumber: number, actionType: WorkflowActions, template: WorkflowTemplates): WorkflowStep => {
+      const newStep: WorkflowStep = {
+        id: -Date.now(),
+        stepNumber: stepNumber,
+        action: actionType,
+        workflowId: workflowId!,
+        sendTo: null,
+        reminderBody: null,
+        emailSubject: null,
+        template: template,
+        numberRequired: false,
+        sender: SENDER_ID,
+        senderName: SENDER_NAME,
+        numberVerificationPending: false,
+        includeCalendarEvent: false,
+        verifiedAt: null,
+      };
+
+      // Set default template content
+      const templateBody = getTemplateBodyForAction({
+        action: newStep.action,
+        locale: i18n.language,
+        t,
+        template: newStep.template,
+        timeFormat,
+      });
+      newStep.reminderBody = templateBody;
+
+      if (shouldScheduleEmailReminder(newStep.action)) {
+        newStep.emailSubject = emailReminderTemplate({
+          isEditingMode: true,
+          locale: i18n.language,
+          action: newStep.action,
+          timeFormat,
+        }).emailSubject;
+      }
+
+      return newStep;
+    }
+  );
+
+  useEffect(() => {
+    if (builderTemplate) {
+      const newStep = getNewStep(0, builderTemplate.action, builderTemplate.template);
+
+      form.setValue("steps", [...currentSteps, newStep], { shouldDirty: true });
+
+      triggerTemplateUpdate(newStep.id);
+    }
+  }, [builderTemplate]);
 
   const addAction = useCallback(() => {
     const currentSteps = form.getValues("steps") || [];
 
-    const newStep: WorkflowStep = {
-      id: -Date.now(),
-      stepNumber: currentSteps.length + 1,
-      action: WorkflowActions.EMAIL_ATTENDEE,
-      workflowId: workflowId!,
-      sendTo: null,
-      reminderBody: null,
-      emailSubject: null,
-      template: WorkflowTemplates.REMINDER,
-      numberRequired: false,
-      sender: SENDER_ID,
-      senderName: SENDER_NAME,
-      numberVerificationPending: false,
-      includeCalendarEvent: false,
-      verifiedAt: null,
-    };
-
-    // Set default template content
-    const template = getTemplateBodyForAction({
-      action: newStep.action,
-      locale: i18n.language,
-      t,
-      template: WorkflowTemplates.REMINDER,
-      timeFormat,
-    });
-    newStep.reminderBody = template;
-
-    if (shouldScheduleEmailReminder(newStep.action)) {
-      newStep.emailSubject = emailReminderTemplate({
-        isEditingMode: true,
-        locale: i18n.language,
-        action: newStep.action,
-        timeFormat,
-      }).emailSubject;
-    }
+    const newStep = getNewStep(
+      currentSteps.length + 1,
+      WorkflowActions.EMAIL_ATTENDEE,
+      WorkflowTemplates.REMINDER
+    );
 
     form.setValue("steps", [...currentSteps, newStep], { shouldDirty: true });
 
-    triggerTemplateUpdate(newStep.id);
+    if (newStep.id) {
+      triggerTemplateUpdate(newStep.id);
+    }
   }, [workflowId, i18n.language, t, timeFormat, form, triggerTemplateUpdate]);
 
   const removeAction = useCallback(
@@ -709,6 +757,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
             const newTemplate = value as WorkflowTemplates;
             const actionType = updatedStep.action;
 
+            console.log(
+              "Action type: ",
+              actionType,
+              " Template: ",
+              newTemplate,
+              " Body: ",
+              updatedStep.reminderBody
+            );
+
             const freshTemplateBody = getTemplateBodyForAction({
               action: actionType,
               locale: i18n.language,
@@ -747,7 +804,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
             triggerTemplateUpdate(stepId);
           }
 
-          console.log("Updated_reminderBody:", updatedStep.reminderBody);
           return updatedStep;
         }
         return step;
@@ -795,10 +851,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
     // Get the latest form values - this now has the correct HTML
     const formValues = form.getValues();
     const formSteps = formValues.steps || [];
-    console.log(
-      "formSteps_reminderbody",
-      formSteps.map((s) => s.reminderBody)
-    );
     // Validate and prepare steps
     const validatedSteps = formSteps.map((step, index) => {
       const processedStep = {
@@ -954,7 +1006,22 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
   if (isPending) {
-    return <WorkflowBuilderSkeleton />;
+    return (
+      <Shell withoutMain backPath="/workflows">
+        <ShellMain
+          backPath="/workflows"
+          title={t("untitled")}
+          subtitle={t("workflows_edit_description")}
+          heading={
+            <div className="flex">
+              <div className="text-muted">{t("untitled")}</div>
+            </div>
+          }
+          CTA={<div />}>
+          <WorkflowBuilderSkeleton />;
+        </ShellMain>
+      </Shell>
+    );
   }
 
   return (
@@ -988,7 +1055,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
           isAllDataLoaded && (
             <div className="flex">
               <div className={cn(workflowData && !workflowData.name ? "text-muted" : "")}>
-                {workflowData && workflowData.name ? workflowData.name : "untitled"}
+                {workflowData && workflowData.name ? workflowData.name : t("untitled")}
               </div>
               {workflowData && workflowData.calIdTeam && (
                 <Badge className="ml-4 mt-1" variant="default">
@@ -1006,7 +1073,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
         {isError ? (
           <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
         ) : (
-          <div className="bg-card flex justify-center p-6 p-8">
+          <div className="bg-card flex justify-center p-0 md:p-14">
             <div className="bg-card mx-auto w-full p-6">
               <div className="mx-auto max-w-2xl space-y-6">
                 <div className="bg-card w-full space-y-6 rounded-lg border p-6">
@@ -1026,7 +1093,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
 
                     {/* Event Type Selection */}
                     {showEventTypeSection && (
-                      <div className="animate-slide-in-up">
+                      <div className="slideInTop">
                         <div>
                           <Label>
                             {isOrg
@@ -1073,8 +1140,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
 
                 {/* Trigger Section */}
                 {showTriggerSection && (
-                  <div className="animate-slide-in-up">
-                    <Card className="animate-slide-in-up">
+                  <div className="slideInTop">
+                    <Card className="slideInTop">
                       <CardHeader>
                         <CardTitle>When this happens</CardTitle>
                       </CardHeader>
@@ -1186,8 +1253,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
 
                 {/* Actions Section */}
                 {showActionsSection && (
-                  <div className="animate-slide-in-up">
-                    <Card className="animate-slide-in-up">
+                  <div className="slideInTop">
+                    <Card className="slideInTop">
                       <CardHeader>
                         <CardTitle>Do this</CardTitle>
                       </CardHeader>
@@ -1571,7 +1638,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId }) 
                                             setText={(text: string) => {
                                               const stepIndex = steps.findIndex((s) => s.id === step.id);
                                               if (stepIndex !== -1) {
-                                                console.log("Updating step body:", text);
                                                 form.setValue(`steps.${stepIndex}.reminderBody`, text, {
                                                   shouldDirty: true,
                                                   shouldValidate: false,

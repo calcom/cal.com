@@ -667,7 +667,7 @@ const CodeDisplay = forwardRef<HTMLTextAreaElement, { code: string; language: st
         ref={ref}
         value={code}
         readOnly
-        className="h-64 w-full resize-none rounded-md border bg-gray-50 p-2 font-mono text-xs sm:p-3"
+        className="dark:bg-default h-64 w-full resize-none rounded-md border bg-gray-50 p-2 font-mono text-xs sm:p-3"
         style={{ fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace' }}
       />
     </div>
@@ -1237,7 +1237,9 @@ export const EventEmbed = ({ eventId, calLink: propCalLink }: { eventId?: number
                 {selectedEmbedType !== "email" && (
                   <>
                     <h4 className="mb-1 text-sm font-medium">Ready to embed?</h4>
-                    <p className="mb-3 text-xs text-gray-600">Get the code to add to your website</p>
+                    <p className="dark:text-default mb-3 text-xs text-gray-600">
+                      Get the code to add to your website
+                    </p>
                   </>
                 )}
                 <Button

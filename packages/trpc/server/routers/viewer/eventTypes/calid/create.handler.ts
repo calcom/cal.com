@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { IS_DEV, ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getDefaultLocations } from "@calcom/lib/server/getDefaultLocations";
