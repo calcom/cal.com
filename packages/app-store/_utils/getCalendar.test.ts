@@ -70,13 +70,11 @@ describe("getCalendar", () => {
     const { CalendarCacheWrapper } = await import(
       "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper"
     );
-    // @ts-expect-error - Mocking constructor for testing
     vi.mocked(CalendarCacheWrapper).mockImplementation(mockCalendarCacheWrapper);
 
     const { CalendarCacheEventRepository } = await import(
       "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository"
     );
-    // @ts-expect-error - Mocking constructor for testing
     vi.mocked(CalendarCacheEventRepository).mockImplementation(mockCalendarCacheEventRepository);
   });
 
