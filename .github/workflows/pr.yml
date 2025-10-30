@@ -121,35 +121,35 @@ jobs:
   build-api-v1:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build-atoms:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/atoms-production-build.yml
     secrets: inherit
 
   build-docs:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
 
   build:
     name: Production builds
     needs: [changes, check-label, deps]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
@@ -163,7 +163,7 @@ jobs:
   e2e:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    # if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }} temp to force e2e
+    # if: ${{ needs.check-label.outputs.run-e2e == 'true'  }} temp to force e2e
     if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
@@ -171,28 +171,28 @@ jobs:
   e2e-api-v2:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/e2e-api-v2.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true'  }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
@@ -204,14 +204,14 @@ jobs:
 
   merge-reports:
     name: Merge reports
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true'  }}
     needs: [changes, check-label, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
   publish-report:
     name: Publish HTML report
-    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true'  }}
     permissions:
       contents: write
       issues: write
