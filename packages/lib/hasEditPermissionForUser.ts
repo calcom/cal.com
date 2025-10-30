@@ -1,10 +1,9 @@
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 type InputOptions = {
   ctx: {
-    user: { id: NonNullable<TrpcSessionUser>["id"] };
+    user: { id: number };
   };
   input: {
     memberId: number;
