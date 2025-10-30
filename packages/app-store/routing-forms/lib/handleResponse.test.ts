@@ -394,4 +394,62 @@ describe("handleResponse", () => {
     expect(result.crmAppSlug).toBe("");
     expect(result.teamMembersMatchingAttributeLogic).toEqual([123]);
   });
+
+  it("should return empty string CRM values when CRM fetch succeeds but returns null values", async () => {
+    const chosenRoute = {
+      id: "route1",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      queryValue: { type: "group", children1: {} } as any,
+      action: {
+        type: "customPageMessage" as const,
+        value: "Thank you for your submission!",
+      },
+      attributeRoutingConfig: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      attributesQueryValue: { type: "group", children1: {} } as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
+      isFallback: false,
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
+
+    vi.mocked(routerGetCrmContactOwnerEmail).mockResolvedValue({
+      email: null,
+      recordType: null,
+      crmAppSlug: null,
+      recordId: null,
+    });
+    vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as any }],
+      checkedFallback: false,
+      fallbackAttributeLogicBuildingWarnings: [],
+      mainAttributeLogicBuildingWarnings: [],
+      timeTaken: {
+        ttGetAttributesForLogic: 50,
+      },
+    });
+
+    const result = await handleResponse({
+      response: mockResponse,
+      form: formWithRoute,
+      formFillerId: "user1",
+      chosenRouteId: "route1",
+      isPreview: false,
+      identifierKeyedResponse: {
+        name: "John Doe",
+        email: "john.doe@example.com",
+      },
+      fetchCrm: true,
+    });
+
+    expect(routerGetCrmContactOwnerEmail).toHaveBeenCalled();
+    expect(findTeamMembersMatchingAttributeLogic).toHaveBeenCalled();
+    expect(result.crmContactOwnerEmail).toBe("");
+    expect(result.crmContactOwnerRecordType).toBe("");
+    expect(result.crmAppSlug).toBe("");
+    expect(result.crmRecordId).toBe("");
+    expect(result.teamMembersMatchingAttributeLogic).toEqual([123]);
+  });
 });

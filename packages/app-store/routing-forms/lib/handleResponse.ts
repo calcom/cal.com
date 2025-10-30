@@ -121,10 +121,17 @@ const _handleResponse = async ({
                       action: chosenRoute.action,
                     })
                   : null;
-              crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
-              crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
-              crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
-              crmRecordId = contactOwnerQuery?.recordId ?? null;
+              if (fetchCrm) {
+                crmContactOwnerEmail = contactOwnerQuery?.email ?? "";
+                crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? "";
+                crmAppSlug = contactOwnerQuery?.crmAppSlug ?? "";
+                crmRecordId = contactOwnerQuery?.recordId ?? "";
+              } else {
+                crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
+                crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
+                crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
+                crmRecordId = contactOwnerQuery?.recordId ?? null;
+              }
             } catch (error) {
               moduleLogger.error("Error fetching CRM contact owner", safeStringify(error));
               crmContactOwnerEmail = "";
