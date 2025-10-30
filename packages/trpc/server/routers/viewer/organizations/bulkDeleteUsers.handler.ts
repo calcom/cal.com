@@ -1,7 +1,9 @@
-import { TeamBilling } from "@calcom/ee/billing/teams";
+import { TeamBillingDataRepositoryFactory } from "@calcom/ee/billing/repository/teamBillingData/teamBillingDataRepositoryFactory";
+import { TeamBillingService } from "@calcom/ee/billing/teams";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -138,7 +140,9 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     removeHostAssignment,
   ]);
 
-  const teamBilling = await TeamBilling.findAndInit(currentUserOrgId);
+  const teamBillingDataRepository = TeamBillingDataRepositoryFactory.getRepository(IS_TEAM_BILLING_ENABLED);
+
+  const teamBilling = await TeamBillingService.findAndInit(currentUserOrgId);
   await teamBilling.updateQuantity();
 
   return {

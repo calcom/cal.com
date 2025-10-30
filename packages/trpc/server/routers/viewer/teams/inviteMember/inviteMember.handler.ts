@@ -1,6 +1,6 @@
 import { type TFunction } from "i18next";
 
-import { TeamBilling } from "@calcom/ee/billing/teams";
+import { TeamBillingService } from "@calcom/ee/billing/teams";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -228,7 +228,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     });
   }
 
-  const teamBilling = TeamBilling.init(team);
+  const teamBilling = TeamBillingService.init(team);
   await teamBilling.updateQuantity();
 
   return {

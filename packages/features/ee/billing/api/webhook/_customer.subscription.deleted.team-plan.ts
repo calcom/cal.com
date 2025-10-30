@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { TeamBilling } from "../../teams";
+import { TeamBillingService } from "../../teams";
 import type { SWHMap } from "./__handler";
 
 const metadataSchema = z.object({
@@ -11,13 +11,13 @@ const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) =>
   const subscription = data.object;
   try {
     const { teamId } = metadataSchema.parse(subscription.metadata);
-    const teamBilling = await TeamBilling.findAndInit(teamId);
+    const teamBilling = await TeamBillingService.findAndInit(teamId);
     await teamBilling.downgrade();
     return { success: true };
   } catch (error) {
     // If stripe metadata is missing teamId, we attempt to find by sub ID.
-    const team = await TeamBilling.repo.findBySubscriptionId(subscription.id);
-    const teamBilling = TeamBilling.init(team);
+    const team = await TeamBillingService.repo.findBySubscriptionId(subscription.id);
+    const teamBilling = TeamBillingService.init(team);
     await teamBilling.downgrade();
     return { success: true };
   }

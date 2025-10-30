@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 
-import { TeamBilling } from "@calcom/features/ee/billing/teams";
+import { TeamBillingService } from "@calcom/features/ee/billing/teams";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -115,7 +115,7 @@ export class TeamService {
     // Step 1: Cancel the external billing subscription first.
     // If this fails, the entire operation aborts, leaving the team and its data intact.
     // This prevents a state where the user is billed for a deleted team.
-    const teamBilling = await TeamBilling.findAndInit(id);
+    const teamBilling = await TeamBillingService.findAndInit(id);
     await teamBilling.cancel();
 
     // Step 2: Clean up internal, related data like workflow reminders.
@@ -165,7 +165,7 @@ export class TeamService {
 
     await Promise.all(deleteMembershipPromises);
 
-    const teamsBilling = await TeamBilling.findAndInitMany(teamIds);
+    const teamsBilling = await TeamBillingService.findAndInitMany(teamIds);
     const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
     await Promise.allSettled(teamBillingPromises);
   }
@@ -215,7 +215,7 @@ export class TeamService {
       } else throw e;
     }
 
-    const teamBilling = await TeamBilling.findAndInit(verificationToken.teamId);
+    const teamBilling = await TeamBillingService.findAndInit(verificationToken.teamId);
     await teamBilling.updateQuantity();
 
     return verificationToken.team.name;
@@ -349,7 +349,7 @@ export class TeamService {
   }
 
   static async publish(teamId: number) {
-    const teamBilling = await TeamBilling.findAndInit(teamId);
+    const teamBilling = await TeamBillingService.findAndInit(teamId);
     return teamBilling.publish();
   }
 
