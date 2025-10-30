@@ -5,8 +5,8 @@ import type { NextRequest } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
-import { validateCsrfToken } from "@calcom/lib/validateCsrfToken";
 import { bookingCancelWithCsrfSchema } from "@calcom/prisma/zod-utils";
+import { validateCsrfToken } from "@calcom/web/lib/validateCsrfToken";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 

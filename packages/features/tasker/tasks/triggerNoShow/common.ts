@@ -87,6 +87,10 @@ function checkIfHostJoinedTheCall(email: string, allParticipants: ParticipantsWi
   );
 }
 
+function checkIfGuestJoinedTheCall(email: string, allParticipants: ParticipantsWithEmail): boolean {
+  return allParticipants.some((participant) => participant.email && participant.email === email);
+}
+
 const getUserOrGuestById = async (id: string) => {
   // Try User table (numeric IDs)
   if (!isNaN(Number(id))) {
@@ -134,6 +138,8 @@ export const prepareNoShowTrigger = async (
   hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
+  guestsThatJoinedTheCall: { email: string; name: string }[];
+  guestsThatDidntJoinTheCall: { email: string; name: string }[];
   originalRescheduledBooking?: OriginalRescheduledBooking;
   participants: ParticipantsWithEmail;
 } | void> => {
@@ -183,7 +189,7 @@ export const prepareNoShowTrigger = async (
   }
   const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
 
-  const { hosts } = getHostsAndGuests(booking);
+  const { hosts, guests } = getHostsAndGuests(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
   const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
@@ -200,9 +206,26 @@ export const prepareNoShowTrigger = async (
 
   const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
 
-  const didGuestJoinTheCall = meetingDetails.data.some(
-    (meeting) => meeting.max_participants > numberOfHostsThatJoined
-  );
+  const requireEmailForGuests = booking.eventType?.calVideoSettings?.requireEmailForGuests ?? false;
+
+  let didGuestJoinTheCall: boolean;
+  const guestsThatJoinedTheCall: { email: string; name: string }[] = [];
+  const guestsThatDidntJoinTheCall: { email: string; name: string }[] = [];
+
+  if (requireEmailForGuests) {
+    for (const guest of guests) {
+      if (checkIfGuestJoinedTheCall(guest.email, participantsWithEmail)) {
+        guestsThatJoinedTheCall.push(guest);
+      } else {
+        guestsThatDidntJoinTheCall.push(guest);
+      }
+    }
+    didGuestJoinTheCall = guestsThatJoinedTheCall.length > 0;
+  } else {
+    didGuestJoinTheCall = meetingDetails.data.some(
+      (meeting) => meeting.max_participants > numberOfHostsThatJoined
+    );
+  }
 
   return {
     hostsThatDidntJoinTheCall,
@@ -211,6 +234,8 @@ export const prepareNoShowTrigger = async (
     numberOfHostsThatJoined,
     webhook,
     didGuestJoinTheCall,
+    guestsThatJoinedTheCall,
+    guestsThatDidntJoinTheCall,
     originalRescheduledBooking,
     participants: participantsWithEmail,
   };
