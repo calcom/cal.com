@@ -109,6 +109,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                             onChange={(e) => setTeamName(e.target.value)}
                             placeholder="Acme Inc."
                             className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
+                            data-testid="team-details-name"
                           />
                         </div>
 
@@ -130,7 +131,8 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
                   color="primary"
                   className="rounded-[10px]"
                   onClick={handleContinue}
-                  disabled={!isSlugValid || !teamName || !teamSlug}>
+                  disabled={!isSlugValid || !teamName || !teamSlug}
+                  data-testid="team-details-continue">
                   {t("continue")}
                 </Button>
               </div>

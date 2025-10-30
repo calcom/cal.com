@@ -242,10 +242,18 @@ export const TeamBrandView = ({ userEmail }: TeamBrandViewProps) => {
 
               {/* Footer */}
               <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+                <Button
+                  color="minimal"
+                  className="rounded-[10px]"
+                  onClick={handleSkip}
+                  data-testid="team-brand-skip">
                   {t("ill_do_this_later")}
                 </Button>
-                <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                <Button
+                  color="primary"
+                  className="rounded-[10px]"
+                  onClick={handleContinue}
+                  data-testid="team-brand-continue">
                   {t("continue")}
                 </Button>
               </div>

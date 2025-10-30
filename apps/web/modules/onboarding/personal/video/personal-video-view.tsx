@@ -127,7 +127,8 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
             className="rounded-[10px]"
             onClick={handleContinue}
             loading={mutation.isPending}
-            disabled={mutation.isPending}>
+            disabled={mutation.isPending}
+            data-testid="personal-video-finish">
             {t("finish_and_start")}
           </Button>
         }>
@@ -156,7 +157,7 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
         </div>
       </OnboardingCard>
 
-      <SkipButton onClick={handleSkip} disabled={mutation.isPending} />
+      <SkipButton onClick={handleSkip} disabled={mutation.isPending} data-testid="personal-video-skip" />
     </OnboardingLayout>
   );
 };

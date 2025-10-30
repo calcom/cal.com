@@ -270,7 +270,8 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                   className="rounded-[10px]"
                   disabled={(isEmailMode && !hasValidInvites) || isSubmitting}
                   loading={isSubmitting}
-                  onClick={form.handleSubmit(handleContinue)}>
+                  onClick={form.handleSubmit(handleContinue)}
+                  data-testid="org-invite-continue">
                   {t("continue")}
                 </Button>
               </div>
@@ -281,7 +282,8 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
           <div className="flex w-full justify-center">
             <button
               onClick={handleSkip}
-              className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4">
+              className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4"
+              data-testid="org-invite-skip">
               {t("ill_do_this_later")}
             </button>
           </div>

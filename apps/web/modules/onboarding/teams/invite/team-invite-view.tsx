@@ -198,7 +198,8 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
                   className="rounded-[10px]"
                   disabled={!hasValidInvites || isSubmitting}
                   loading={isSubmitting}
-                  onClick={form.handleSubmit(handleContinue)}>
+                  onClick={form.handleSubmit(handleContinue)}
+                  data-testid="team-invite-continue">
                   {t("continue")}
                 </Button>
               </div>
@@ -210,7 +211,8 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
             <button
               onClick={handleSkip}
               disabled={isSubmitting}
-              className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4 disabled:opacity-50">
+              className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4 disabled:opacity-50"
+              data-testid="team-invite-skip">
               {t("ill_do_this_later")}
             </button>
           </div>

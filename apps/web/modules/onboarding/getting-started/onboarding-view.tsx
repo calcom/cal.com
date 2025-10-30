@@ -126,6 +126,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                     <RadioAreaGroup.Item
                       key={plan.id}
                       value={plan.id}
+                      data-testid={`onboarding-plan-${plan.id}`}
                       className={classNames(
                         "bg-default relative flex items-center overflow-hidden rounded-[10px] border transition",
                         isSelected ? "border-emphasis shadow-sm" : "border-subtle",
@@ -166,7 +167,11 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
 
               {/* Footer */}
               <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                <Button
+                  color="primary"
+                  className="rounded-[10px]"
+                  onClick={handleContinue}
+                  data-testid="onboarding-continue">
                   {t("continue")}
                 </Button>
               </div>

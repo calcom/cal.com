@@ -70,7 +70,12 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
         subtitle={t("onboarding_org_teams_subtitle")}
         footer={
           <>
-            <Button type="button" color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+            <Button
+              type="button"
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={handleSkip}
+              data-testid="org-teams-skip">
               {t("onboarding_skip_for_now")}
             </Button>
             <Button
@@ -78,7 +83,8 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
               form="teams-form"
               color="primary"
               className="rounded-[10px]"
-              disabled={!hasValidTeams}>
+              disabled={!hasValidTeams}
+              data-testid="org-teams-continue">
               {t("continue")}
             </Button>
           </>
