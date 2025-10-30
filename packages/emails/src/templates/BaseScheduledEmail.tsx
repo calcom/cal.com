@@ -83,8 +83,8 @@ export const BaseScheduledEmail = (
         props.subtitle || (
           <>
             {t(
-              props.calEvent.seatsPerTimeSlot && props.calEvent.seatsPerTimeSlot > 1
-                ? "group_event_emailed_you_and_others"
+              props.calEvent.seatsPerTimeSlot
+                ? "group_session_event_details"
                 : "emailed_you_and_any_other_attendees"
             )}
           </>

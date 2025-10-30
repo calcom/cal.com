@@ -58,9 +58,11 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   }
 
   protected getTextBody(title = "", subtitle?: string): string {
-    const isSeated = !!(this.calEvent.seatsPerTimeSlot && this.calEvent.seatsPerTimeSlot > 1);
     const subtitleKey =
-      subtitle ?? (isSeated ? "group_event_emailed_you_and_others" : "emailed_you_and_any_other_attendees");
+      subtitle ??
+      (this.calEvent.seatsPerTimeSlot
+        ? "group_session_event_details"
+        : "emailed_you_and_any_other_attendees");
     return `
 ${this.t(
   title

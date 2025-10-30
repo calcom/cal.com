@@ -32,10 +32,8 @@ export type EventNameObjectType = {
 export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
   const attendeeName = parseName(eventNameObj.attendeeName);
 
-  const isSeated = !!(eventNameObj.seatsPerTimeSlot && eventNameObj.seatsPerTimeSlot > 1);
-
   if (!eventNameObj.eventName) {
-    if (isSeated)
+    if (eventNameObj.seatsPerTimeSlot)
       return eventNameObj.t("event_group_title_default", {
         eventName: eventNameObj.eventType,
         host: eventNameObj.teamName || eventNameObj.host,
