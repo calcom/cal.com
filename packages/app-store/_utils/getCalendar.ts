@@ -4,6 +4,7 @@ import { CalendarCacheEventService } from "@calcom/features/calendar-subscriptio
 import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import logger from "@calcom/lib/logger";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import type { Calendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -45,32 +46,19 @@ export const getCalendar = async (
   // check if Calendar Cache is supported and enabled
   if (CalendarCacheEventService.isCalendarTypeSupported(calendarType)) {
     log.debug(
-      `Calendar Cache is supported for credential ${credential.id}, checking feature flags`
+      `Calendar Cache is supported for credential ${credential.id}, checking if cache is ready`
     );
     const featuresRepository = new FeaturesRepository(prisma);
-    const [
-      isCalendarSubscriptionCacheEnabled,
-      isCalendarSubscriptionCacheEnabledForUser,
-      isCalendarSubscriptionCacheEnabledReadForUser,
-    ] = await Promise.all([
+    const selectedCalendarRepository = new SelectedCalendarRepository(prisma);
+    
+    const [isCalendarSubscriptionCacheEnabled, isCacheReady] = await Promise.all([
       featuresRepository.checkIfFeatureIsEnabledGlobally(
         CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
       ),
-      featuresRepository.checkIfUserHasFeatureNonHierarchical(
-        credential.userId as number,
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-      ),
-      featuresRepository.checkIfUserHasFeatureNonHierarchical(
-        credential.userId as number,
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_READ_FEATURE
-      ),
+      selectedCalendarRepository.isCacheReadyForCredential(credential.id),
     ]);
 
-    if (
-      isCalendarSubscriptionCacheEnabled &&
-      isCalendarSubscriptionCacheEnabledForUser &&
-      isCalendarSubscriptionCacheEnabledReadForUser
-    ) {
+    if (isCalendarSubscriptionCacheEnabled && isCacheReady) {
       log.debug(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const originalCalendar = new CalendarService(credential as any);

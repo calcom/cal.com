@@ -59,4 +59,12 @@ export interface ISelectedCalendarRepository {
       | "syncSubscribedAt"
     >
   ): Promise<SelectedCalendar>;
+
+  /**
+   * Check if cache is ready for a credential by verifying all selected calendars
+   * have both syncToken and syncSubscribedAt populated
+   *
+   * @param credentialId
+   */
+  isCacheReadyForCredential(credentialId: number): Promise<boolean>;
 }

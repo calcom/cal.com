@@ -73,4 +73,16 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
       data,
     });
   }
+
+  async isCacheReadyForCredential(credentialId: number): Promise<boolean> {
+    const calendars = await this.prismaClient.selectedCalendar.findMany({
+      where: { credentialId },
+      select: { syncToken: true, syncSubscribedAt: true },
+    });
+
+    const hasCalendars = calendars.length > 0;
+    const allReady = hasCalendars && calendars.every(c => c.syncToken && c.syncSubscribedAt);
+    
+    return allReady;
+  }
 }

@@ -3,6 +3,7 @@ import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 vi.mock("@calcom/features/flags/features.repository");
+vi.mock("@calcom/lib/server/repository/SelectedCalendarRepository");
 vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper");
 vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository");
 vi.mock("@calcom/prisma", () => ({
@@ -23,7 +24,10 @@ vi.mock("../calendar.services.generated", () => ({
 describe("getCalendar", () => {
   let mockFeaturesRepository: {
     checkIfFeatureIsEnabledGlobally: ReturnType<typeof vi.fn>;
-    checkIfUserHasFeatureNonHierarchical: ReturnType<typeof vi.fn>;
+  };
+
+  let mockSelectedCalendarRepository: {
+    isCacheReadyForCredential: ReturnType<typeof vi.fn>;
   };
 
   let mockCalendarCacheWrapper: ReturnType<typeof vi.fn>;
@@ -48,7 +52,10 @@ describe("getCalendar", () => {
 
     mockFeaturesRepository = {
       checkIfFeatureIsEnabledGlobally: vi.fn(),
-      checkIfUserHasFeatureNonHierarchical: vi.fn(),
+    };
+
+    mockSelectedCalendarRepository = {
+      isCacheReadyForCredential: vi.fn(),
     };
 
     mockCalendarCacheWrapper = vi.fn().mockImplementation((config) => ({
@@ -63,6 +70,13 @@ describe("getCalendar", () => {
     const { FeaturesRepository } = await import("@calcom/features/flags/features.repository");
     vi.mocked(FeaturesRepository).mockImplementation(
       () => mockFeaturesRepository as unknown as InstanceType<typeof FeaturesRepository>
+    );
+
+    const { SelectedCalendarRepository } = await import(
+      "@calcom/lib/server/repository/SelectedCalendarRepository"
+    );
+    vi.mocked(SelectedCalendarRepository).mockImplementation(
+      () => mockSelectedCalendarRepository as unknown as InstanceType<typeof SelectedCalendarRepository>
     );
 
     const { CalendarCacheWrapper } = await import(
@@ -84,11 +98,9 @@ describe("getCalendar", () => {
     vi.clearAllMocks();
   });
 
-  test("should use CalendarCacheWrapper when all flags are enabled", async () => {
+  test("should use CalendarCacheWrapper when global flag is enabled and cache is ready", async () => {
     mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-    mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(true);
+    mockSelectedCalendarRepository.isCacheReadyForCredential.mockResolvedValue(true);
 
     const { getCalendar } = await import("./getCalendar");
     const calendar = await getCalendar(mockCredential);
@@ -96,14 +108,7 @@ describe("getCalendar", () => {
     expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(
       "calendar-subscription-cache"
     );
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).toHaveBeenCalledWith(
-      123,
-      "calendar-subscription-cache"
-    );
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).toHaveBeenCalledWith(
-      123,
-      "calendar-subscription-cache-read"
-    );
+    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).toHaveBeenCalledWith(1);
 
     expect(mockCalendarCacheWrapper).toHaveBeenCalledTimes(1);
     expect(mockCalendarCacheWrapper).toHaveBeenCalledWith(
@@ -120,11 +125,9 @@ describe("getCalendar", () => {
     expect(calendar).toHaveProperty("__isCalendarCacheWrapper", true);
   });
 
-  test("should NOT use CalendarCacheWrapper when calendar-subscription-cache-read is disabled", async () => {
+  test("should NOT use CalendarCacheWrapper when cache is not ready", async () => {
     mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-    mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false);
+    mockSelectedCalendarRepository.isCacheReadyForCredential.mockResolvedValue(false);
 
     const { getCalendar } = await import("./getCalendar");
     const calendar = await getCalendar(mockCredential);
@@ -132,14 +135,7 @@ describe("getCalendar", () => {
     expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(
       "calendar-subscription-cache"
     );
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).toHaveBeenCalledWith(
-      123,
-      "calendar-subscription-cache"
-    );
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).toHaveBeenCalledWith(
-      123,
-      "calendar-subscription-cache-read"
-    );
+    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).toHaveBeenCalledWith(1);
 
     expect(mockCalendarCacheWrapper).not.toHaveBeenCalled();
 
@@ -149,9 +145,7 @@ describe("getCalendar", () => {
 
   test("should NOT use CalendarCacheWrapper when global cache flag is disabled", async () => {
     mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(false);
-    mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(true);
+    mockSelectedCalendarRepository.isCacheReadyForCredential.mockResolvedValue(true);
 
     const { getCalendar } = await import("./getCalendar");
     const calendar = await getCalendar(mockCredential);
@@ -159,41 +153,7 @@ describe("getCalendar", () => {
     expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(
       "calendar-subscription-cache"
     );
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).toHaveBeenCalledWith(
-      123,
-      "calendar-subscription-cache"
-    );
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).toHaveBeenCalledWith(
-      123,
-      "calendar-subscription-cache-read"
-    );
-
-    expect(mockCalendarCacheWrapper).not.toHaveBeenCalled();
-
-    expect(calendar).toHaveProperty("__isMockCalendarService", true);
-    expect(calendar).not.toHaveProperty("__isCalendarCacheWrapper");
-  });
-
-  test("should NOT use CalendarCacheWrapper when user cache flag is disabled", async () => {
-    mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-    mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical
-      .mockResolvedValueOnce(false)
-      .mockResolvedValueOnce(true);
-
-    const { getCalendar } = await import("./getCalendar");
-    const calendar = await getCalendar(mockCredential);
-
-    expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(
-      "calendar-subscription-cache"
-    );
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).toHaveBeenCalledWith(
-      123,
-      "calendar-subscription-cache"
-    );
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).toHaveBeenCalledWith(
-      123,
-      "calendar-subscription-cache-read"
-    );
+    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).toHaveBeenCalledWith(1);
 
     expect(mockCalendarCacheWrapper).not.toHaveBeenCalled();
 
@@ -207,7 +167,7 @@ describe("getCalendar", () => {
 
     expect(calendar).toBeNull();
     expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).not.toHaveBeenCalled();
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).not.toHaveBeenCalled();
+    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).not.toHaveBeenCalled();
   });
 
   test("should return null for credential without key", async () => {
@@ -221,6 +181,6 @@ describe("getCalendar", () => {
 
     expect(calendar).toBeNull();
     expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).not.toHaveBeenCalled();
-    expect(mockFeaturesRepository.checkIfUserHasFeatureNonHierarchical).not.toHaveBeenCalled();
+    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).not.toHaveBeenCalled();
   });
 });
