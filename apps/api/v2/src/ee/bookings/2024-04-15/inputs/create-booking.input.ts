@@ -26,6 +26,7 @@ function ValidateBookingName(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         validate(value: any) {
           if (typeof value === "string") {
             return value.trim().length > 0;
@@ -231,4 +232,14 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   crmOwnerRecordType?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description:
+      "Reserved slot uid for the booking. If passed will prevent double bookings by checking that someone else has not reserved the same slot. If there is another reserved slot for the same time we will check if it is not expired and which one was reserved first. If the other reserved slot is expired we will allow the booking to proceed. If there are no reserved slots for the same time we will allow the booking to proceed. Right now only enabled for non-team (round robin, collective) bookings aka 1 on 1 bookings, instant bookings and recurring bookings.",
+    example: "430a2525-08e4-456d-a6b7-95ec2b0d22fb",
+  })
+  @IsOptional()
+  @IsString()
+  reservedSlotUid?: string;
 }
