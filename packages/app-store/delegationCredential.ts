@@ -7,17 +7,14 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import {
-  buildNonDelegationCredential,
-  buildNonDelegationCredentials,
-  isDelegationCredential,
-} from "@calcom/lib/delegationCredential";
+import { buildNonDelegationCredential, buildNonDelegationCredentials, isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
+
 
 const GOOGLE_WORKSPACE_SLUG = "google";
 const OFFICE365_WORKSPACE_SLUG = "office365";
@@ -657,6 +654,55 @@ export async function getUsersCredentialsIncludeServiceAccountKey(user: Pick<Use
   const credentials = await prisma.credential.findMany({
     where: {
       userId: user.id,
+    },
+    select: credentialForCalendarServiceSelect,
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  const { credentials: allCredentials } = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
+    user: {
+      email: user.email,
+      id: user.id,
+      credentials,
+    },
+  });
+
+  return allCredentials;
+}
+
+export async function getUsersAndTeamsCredentialsIncludeServiceAccountKey(user: User) {
+  const teams = await prisma.team.findMany({
+    where: {
+      members: {
+        some: {
+          userId: user.id,
+          accepted: true,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const credentials = await prisma.credential.findMany({
+    where: {
+      OR: [
+        {
+          userId: user.id,
+        },
+        ...(teams.length > 0
+          ? [
+              {
+                teamId: {
+                  in: teams.map((team) => team.id),
+                },
+              },
+            ]
+          : []),
+      ],
     },
     select: credentialForCalendarServiceSelect,
     orderBy: {
