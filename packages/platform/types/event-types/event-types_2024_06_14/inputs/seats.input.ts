@@ -6,7 +6,7 @@ import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/platform-constants";
 // Class representing the seat options
 export class Seats_2024_06_14 {
   @IsInt()
-  @Min(1)
+  @Min(2)
   @Max(MAX_SEATS_PER_TIME_SLOT)
   @ApiProperty({
     description: "Number of seats available per time slot",

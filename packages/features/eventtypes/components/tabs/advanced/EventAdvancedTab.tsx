@@ -1048,8 +1048,8 @@ export const EventAdvancedTab = ({
                         //For old events if value > MAX_SEATS_PER_TIME_SLOT
                         value={value > MAX_SEATS_PER_TIME_SLOT ? MAX_SEATS_PER_TIME_SLOT : value ?? 1}
                         step={1}
-                        placeholder="1"
-                        min={1}
+                        placeholder="2"
+                        min={2}
                         max={MAX_SEATS_PER_TIME_SLOT}
                         containerClassName={classNames(
                           "max-w-80",
