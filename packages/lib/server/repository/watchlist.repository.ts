@@ -59,6 +59,7 @@ export class WatchlistRepository implements IWatchlistRepository {
     if (!params.isGlobal && !params.organizationId) {
       throw new Error("Both isGlobal and organizationId are missing");
     }
+
     if (params.isGlobal) {
       const entry = await this.prismaClient.watchlist.findFirst({
         where: {
@@ -69,19 +70,21 @@ export class WatchlistRepository implements IWatchlistRepository {
         },
       });
       return entry;
+    } else if (params.organizationId) {
+      const entry = await this.prismaClient.watchlist.findUnique({
+        where: {
+          type_value_organizationId: {
+            type: params.type,
+            value: params.value,
+            organizationId: params.organizationId,
+          },
+        },
+      });
+
+      return entry;
     }
 
-    const entry = await this.prismaClient.watchlist.findUnique({
-      where: {
-        type_value_organizationId: {
-          type: params.type,
-          value: params.value,
-          organizationId: params.organizationId,
-        },
-      },
-    });
-
-    return entry;
+    return null;
   }
 
   async findAllEntries(params: FindAllEntriesInput): Promise<{
