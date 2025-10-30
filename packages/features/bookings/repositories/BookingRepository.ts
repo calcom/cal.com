@@ -1234,7 +1234,12 @@ export class BookingRepository {
         id: true,
         uid: true,
         userId: true,
-        user: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
         title: true,
         description: true,
         startTime: true,
@@ -1242,7 +1247,14 @@ export class BookingRepository {
         eventTypeId: true,
         userPrimaryEmail: true,
         eventType: {
-          include: {
+          select: {
+            teamId: true,
+            parentId: true,
+            slug: true,
+            hideOrganizerEmail: true,
+            customReplyToEmail: true,
+            bookingFields: true,
+            metadata: true,
             team: {
               select: {
                 id: true,

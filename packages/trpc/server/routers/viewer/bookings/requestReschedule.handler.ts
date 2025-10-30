@@ -47,7 +47,7 @@ const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
 export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingUid, rescheduleReason: cancellationReason } = input;
-  log.debug("Started", safeStringify({ bookingUid, cancellationReason, user }));
+  log.debug("Started", safeStringify({ bookingUid }));
   const bookingRepository = new BookingRepository(prisma);
   const bookingToReschedule = await bookingRepository.findBookingForRequestReschedule({ bookingUid });
 
