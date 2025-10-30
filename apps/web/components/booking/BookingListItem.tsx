@@ -731,7 +731,7 @@ export default function BookingListItem(booking: BookingItemProps) {
                 <div className="flex w-full flex-col lg:w-auto">
                   <div className="flex w-full flex-row flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium lg:flex-row lg:flex-nowrap lg:items-start lg:space-y-0 lg:pl-0 ltr:pr-4 rtl:pl-4">
                     {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}
-                    {!isCancelled && !isPending && !isRejected && (
+                    {!showCancelOrModifyInstanceAction && !!isCancelled && !isPending && !isRejected && (
                       <Button
                         color="secondary"
                         onClick={() => rescheduleBooking(rescheduleEventLink)}
