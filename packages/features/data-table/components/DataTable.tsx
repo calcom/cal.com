@@ -368,7 +368,7 @@ function DataTableBody<TData>({
                   transform: `translateY(${virtualItem.start}px)`,
                 }),
               }}
-              className="hover:bg-subtle flex w-full border-none">
+              className="hover:bg-subtle border-subtle flex w-full border-b">
               <SeparatorRowRenderer separator={row.original as SeparatorRow} className={separatorClassName} />
             </TableRow>
           );
