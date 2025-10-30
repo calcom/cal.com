@@ -1,4 +1,4 @@
-import type { BookingReportReason } from "@calcom/prisma/enums";
+import type { BookingReportReason, BookingReportStatus } from "@calcom/prisma/enums";
 
 export interface CreateBookingReportInput {
   bookingUid: string;
@@ -22,6 +22,7 @@ export interface ListBookingReportsFilters {
   reason?: BookingReportReason[];
   cancelled?: boolean;
   hasWatchlist?: boolean;
+  status?: BookingReportStatus[];
 }
 
 export interface BookingReportWithDetails {
@@ -33,6 +34,7 @@ export interface BookingReportWithDetails {
   description: string | null;
   cancelled: boolean;
   createdAt: Date;
+  status: BookingReportStatus;
   watchlistId: string | null;
   reporter: {
     id: number;
@@ -75,6 +77,12 @@ export interface IBookingReportRepository {
   }): Promise<BookingReportWithDetails[]>;
 
   linkWatchlistToReport(params: { reportId: string; watchlistId: string }): Promise<void>;
+
+  updateReportStatus(params: {
+    reportId: string;
+    status: BookingReportStatus;
+    organizationId?: number;
+  }): Promise<void>;
 
   deleteReport(params: { reportId: string; organizationId?: number }): Promise<void>;
 }

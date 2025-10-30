@@ -65,6 +65,10 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
       where.cancelled = params.filters.cancelled;
     }
 
+    if (params.filters?.status && params.filters.status.length > 0) {
+      where.status = { in: params.filters.status };
+    }
+
     const [reports, totalCount] = await Promise.all([
       this.prismaClient.bookingReport.findMany({
         where,
@@ -79,6 +83,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
           description: true,
           cancelled: true,
           createdAt: true,
+          status: true,
           watchlistId: true,
           reportedBy: {
             select: {
@@ -145,6 +150,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
         description: true,
         cancelled: true,
         createdAt: true,
+        status: true,
         watchlistId: true,
         reportedBy: {
           select: {
@@ -184,6 +190,25 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
     await this.prismaClient.bookingReport.update({
       where: { id: params.reportId },
       data: { watchlistId: params.watchlistId },
+    });
+  }
+
+  async updateReportStatus(params: {
+    reportId: string;
+    status: "PENDING" | "DISMISSED" | "BLOCKED";
+    organizationId?: number;
+  }): Promise<void> {
+    const where: Prisma.BookingReportWhereInput = {
+      id: params.reportId,
+    };
+
+    if (params.organizationId) {
+      where.organizationId = params.organizationId;
+    }
+
+    await this.prismaClient.bookingReport.updateMany({
+      where,
+      data: { status: params.status },
     });
   }
 

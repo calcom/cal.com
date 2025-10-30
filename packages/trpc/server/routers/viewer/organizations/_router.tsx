@@ -28,6 +28,7 @@ import { ZGetWatchlistEntryDetailsInputSchema } from "./getWatchlistEntryDetails
 import { ZIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 import { ZAddToWatchlistInputSchema } from "./addToWatchlist.schema";
 import { ZDeleteBookingReportInputSchema } from "./deleteBookingReport.schema";
+import { ZDismissBookingReportInputSchema } from "./dismissBookingReport.schema";
 import { ZListBookingReportsInputSchema } from "./listBookingReports.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
@@ -210,6 +211,12 @@ export const viewerOrganizationsRouter = router({
     .input(ZDeleteBookingReportInputSchema)
     .mutation(async (opts) => {
       const { default: handler } = await import("./deleteBookingReport.handler");
+      return handler(opts);
+    }),
+  dismissBookingReport: authedOrgAdminProcedure
+    .input(ZDismissBookingReportInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./dismissBookingReport.handler");
       return handler(opts);
     }),
 

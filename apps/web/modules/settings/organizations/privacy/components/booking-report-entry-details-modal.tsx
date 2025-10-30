@@ -58,12 +58,32 @@ export function BookingReportEntryDetailsModal({
     },
   });
 
+  const dismissBookingReport = trpc.viewer.organizations.dismissBookingReport.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.organizations.listBookingReports.invalidate();
+      showToast(t("booking_report_dismissed"), "success");
+      onClose();
+      reset();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   const onSubmit = (data: FormData) => {
     if (!entry) return;
 
     addToWatchlist.mutate({
       reportIds: [entry.id],
       type: data.blockType,
+    });
+  };
+
+  const handleDismiss = () => {
+    if (!entry) return;
+
+    dismissBookingReport.mutate({
+      reportId: entry.id,
     });
   };
 
@@ -151,14 +171,15 @@ export function BookingReportEntryDetailsModal({
             <Button
               type="button"
               color="secondary"
-              onClick={onClose}
-              disabled={isSubmitting || addToWatchlist.isPending}>
+              onClick={handleDismiss}
+              loading={dismissBookingReport.isPending}
+              disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
               {t("dont_block")}
             </Button>
             <Button
               type="submit"
               loading={isSubmitting || addToWatchlist.isPending}
-              disabled={isSubmitting || addToWatchlist.isPending}>
+              disabled={isSubmitting || addToWatchlist.isPending || dismissBookingReport.isPending}>
               {t("add_to_blocklist")}
             </Button>
           </DialogFooter>

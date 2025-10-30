@@ -71,7 +71,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       limit,
       offset,
       searchTerm,
-      filters: { hasWatchlist: false },
+      filters: { hasWatchlist: false, status: ["PENDING"] },
     },
     {
       placeholderData: keepPreviousData,
@@ -251,8 +251,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
         header: t("reason"),
         size: 150,
         cell: ({ row }) => {
-          console.log("repw", row.original);
-          const reason = row.original.reason.toLowerCase();
+          const reason = t(row.original.reason.toLowerCase());
           const capitalizedReason = reason.charAt(0).toUpperCase() + reason.slice(1);
 
           return <Badge variant="blue">{capitalizedReason}</Badge>;

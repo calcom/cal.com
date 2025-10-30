@@ -103,6 +103,12 @@ export const addToWatchlistHandler = async ({ ctx, input }: AddToWatchlistOption
           watchlistId,
         });
 
+        await bookingReportRepo.updateReportStatus({
+          reportId: report.id,
+          status: "BLOCKED",
+          organizationId,
+        });
+
         return { reportId: report.id, watchlistId, value };
       })
     );
