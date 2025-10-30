@@ -1,6 +1,6 @@
 "use client";
 
-import type { User } from "@prisma/client";
+import type { User } from "@calcom/prisma/client";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -42,9 +42,10 @@ export function useRedirectToOnboardingIfNeeded() {
 
   useEffect(() => {
     if (canRedirect) {
-      router.replace("/getting-started");
+      const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
+      router.replace(gettingStartedPath);
     }
-  }, [canRedirect, router]);
+  }, [canRedirect, router, flags]);
 
   return {
     isLoading,

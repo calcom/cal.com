@@ -9,6 +9,7 @@ import { TestingModule } from "@nestjs/testing";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
@@ -17,7 +18,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import { User, PlatformOAuthClient, Team, RateLimit } from "@calcom/prisma/client";
+import type { User, PlatformOAuthClient, Team, RateLimit } from "@calcom/prisma/client";
 
 describe("AppController", () => {
   describe("Rate limiting", () => {
@@ -33,6 +34,7 @@ describe("AppController", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
+    let membershipRepositoryFixture: MembershipRepositoryFixture;
 
     let apiKeyString: string;
 
@@ -106,6 +108,14 @@ describe("AppController", () => {
         username: userEmail,
         user: { connect: { id: user.id } },
         organization: { connect: { id: organization.id } },
+      });
+
+      membershipRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      await membershipRepositoryFixture.create({
+        user: { connect: { id: user.id } },
+        team: { connect: { id: organization.id } },
+        role: "OWNER",
+        accepted: true,
       });
 
       app = moduleRef.createNestApplication();

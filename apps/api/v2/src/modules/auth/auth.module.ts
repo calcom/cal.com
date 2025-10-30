@@ -6,7 +6,6 @@ import { NextAuthStrategy } from "@/modules/auth/strategies/next-auth/next-auth.
 import { DeploymentsModule } from "@/modules/deployments/deployments.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
-import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -22,7 +21,6 @@ import { PassportModule } from "@nestjs/passport";
     MembershipsModule,
     TokensModule,
     DeploymentsModule,
-    ProfilesModule,
   ],
   providers: [NextAuthGuard, NextAuthStrategy, ApiAuthGuard, ApiAuthStrategy, OAuthFlowService],
   exports: [NextAuthGuard, ApiAuthGuard],

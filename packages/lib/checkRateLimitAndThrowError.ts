@@ -1,8 +1,7 @@
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
+import { HttpError } from "./http-error";
 import type { RateLimitHelper } from "./rateLimit";
 import { rateLimiter } from "./rateLimit";
 
@@ -20,8 +19,8 @@ export async function checkRateLimitAndThrowError({
   if (!success) {
     const convertToSeconds = (ms: number) => Math.floor(ms / 1000);
     const secondsToWait = convertToSeconds(reset - Date.now());
-    throw new TRPCError({
-      code: "TOO_MANY_REQUESTS",
+    throw new HttpError({
+      statusCode: 429,
       message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,
     });
   }

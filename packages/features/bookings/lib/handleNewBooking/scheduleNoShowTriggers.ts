@@ -1,4 +1,4 @@
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -10,6 +10,7 @@ type ScheduleNoShowTriggersArgs = {
     startTime: Date;
     id: number;
     location: string | null;
+    uid: string;
   };
   triggerForUser?: number | true | null;
   organizerUser: { id: number | null };
@@ -62,7 +63,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
           },
-          { scheduledAt }
+          { scheduledAt, referenceUid: booking.uid }
         );
       }
       return Promise.resolve();
@@ -93,7 +94,7 @@ const _scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
             // Prevents null values from being serialized
             webhook: { ...webhook, time: webhook.time, timeUnit: webhook.timeUnit },
           },
-          { scheduledAt }
+          { scheduledAt, referenceUid: booking.uid }
         );
       }
 

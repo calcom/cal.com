@@ -8,6 +8,7 @@ import type { SSRConfig } from "next-i18next/dist/types/types";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import dynamic from "next/dynamic";
+import { NuqsAdapter } from "nuqs/adapters/next/pages";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
@@ -15,6 +16,7 @@ import { useEffect } from "react";
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
+import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
@@ -271,6 +273,10 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 
 const AppProviders = (props: AppPropsWithChildren) => {
   const isBookingPage = useIsBookingPage();
+  const _isBookingPage =
+    (typeof props.Component.isBookingPage === "function"
+      ? props.Component.isBookingPage({ router: props.router })
+      : props.Component.isBookingPage) || isBookingPage;
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
@@ -281,9 +287,17 @@ const AppProviders = (props: AppPropsWithChildren) => {
             isThemeSupported={props.Component.isThemeSupported}
             isBookingPage={props.Component.isBookingPage || isBookingPage}
             router={props.router}>
-            <FeatureFlagsProvider>
-              <OrgBrandProvider>{props.children}</OrgBrandProvider>
-            </FeatureFlagsProvider>
+            <NuqsAdapter>
+              <FeatureFlagsProvider>
+                {_isBookingPage ? (
+                  <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                ) : (
+                  <DynamicIntercomProvider>
+                    <OrgBrandProvider>{props.children}</OrgBrandProvider>
+                  </DynamicIntercomProvider>
+                )}
+              </FeatureFlagsProvider>
+            </NuqsAdapter>
           </CalcomThemeProvider>
         </TooltipProvider>
       </CustomI18nextProvider>

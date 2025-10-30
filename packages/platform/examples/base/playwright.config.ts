@@ -1,4 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import dotenv from "dotenv";
+import path from "path";
+
+const envPath = process.env.CI ? path.resolve(__dirname, ".env") : path.resolve(__dirname, ".env.local");
+
+dotenv.config({ path: envPath });
 
 const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
@@ -10,7 +16,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   timeout: DEFAULT_TEST_TIMEOUT,
-  fullyParallel: true,
+  fullyParallel: false,
   reporter: [
     ["list"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],

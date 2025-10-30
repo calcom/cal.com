@@ -3,6 +3,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
 import { SystemField, CustomField } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
+import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -17,8 +18,8 @@ import {
   getEventTypesPublic,
   EventTypesPublic,
 } from "@calcom/platform-libraries/event-types";
-import { GetEventTypesQuery_2024_06_14 } from "@calcom/platform-types";
-import { EventType } from "@calcom/prisma/client";
+import type { GetEventTypesQuery_2024_06_14 } from "@calcom/platform-types";
+import type { EventType } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesService_2024_06_14 {
@@ -38,8 +39,11 @@ export class EventTypesService_2024_06_14 {
     }
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
+     
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     const { eventType: eventTypeCreated } = await createEventType({
       input: rest,
       ctx: {
@@ -93,20 +97,25 @@ export class EventTypesService_2024_06_14 {
     }
   }
 
-  async getEventTypeByUsernameAndSlug(
-    username: string,
-    eventTypeSlug: string,
-    orgSlug?: string,
-    orgId?: number
-  ) {
-    const user = await this.usersRepository.findByUsername(username, orgSlug, orgId);
+  async getEventTypeByUsernameAndSlug(params: {
+    username: string;
+    eventTypeSlug: string;
+    orgSlug?: string;
+    orgId?: number;
+    authUser?: AuthOptionalUser;
+  }) {
+    const user = await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId);
     if (!user) {
       return null;
     }
 
-    const eventType = await this.eventTypesRepository.getUserEventTypeBySlug(user.id, eventTypeSlug);
+    const eventType = await this.eventTypesRepository.getUserEventTypeBySlug(user.id, params.eventTypeSlug);
 
     if (!eventType) {
+      return null;
+    }
+
+    if (eventType.hidden && params.authUser?.id !== user.id) {
       return null;
     }
 
@@ -116,10 +125,18 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async getEventTypesByUsername(username: string, orgSlug?: string, orgId?: number) {
-    const user = await this.usersRepository.findByUsername(username, orgSlug, orgId);
+  async getEventTypesByUsername(params: {
+    username: string;
+    orgSlug?: string;
+    orgId?: number;
+    authUser?: AuthOptionalUser;
+  }) {
+    const user = await this.usersRepository.findByUsername(params.username, params.orgSlug, params.orgId);
     if (!user) {
       return [];
+    }
+    if (params.authUser?.id !== user.id) {
+      return await this.getUserEventTypesPublic(user.id);
     }
     return await this.getUserEventTypes(user.id);
   }
@@ -172,6 +189,14 @@ export class EventTypesService_2024_06_14 {
     });
   }
 
+  async getUserEventTypesPublic(userId: number) {
+    const eventTypes = await this.eventTypesRepository.getUserEventTypesPublic(userId);
+
+    return eventTypes.map((eventType) => {
+      return { ownerId: userId, ...eventType };
+    });
+  }
+
   async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
     const user = await this.usersRepository.findByUsername(username);
     if (!user) {
@@ -181,15 +206,26 @@ export class EventTypesService_2024_06_14 {
     return await getEventTypesPublic(user.id);
   }
 
-  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14) {
+  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14, authUser?: AuthOptionalUser) {
     const { username, eventSlug, usernames, orgSlug, orgId } = queryParams;
     if (username && eventSlug) {
-      const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug, orgSlug, orgId);
+      const eventType = await this.getEventTypeByUsernameAndSlug({
+        username,
+        eventTypeSlug: eventSlug,
+        orgSlug,
+        orgId,
+        authUser,
+      });
       return eventType ? [eventType] : [];
     }
 
     if (username) {
-      return await this.getEventTypesByUsername(username, orgSlug, orgId);
+      return await this.getEventTypesByUsername({
+        username,
+        orgSlug,
+        orgId,
+        authUser,
+      });
     }
 
     if (usernames) {

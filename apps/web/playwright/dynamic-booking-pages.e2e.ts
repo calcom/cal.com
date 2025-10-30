@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 
-import { MembershipRole } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
@@ -109,14 +109,11 @@ test("multiple duration selection updates event length correctly", async ({ page
     await page.waitForSelector('[data-testid="event-types"]');
     await page.click(`text=Multiple duration`);
     await page.waitForSelector('[data-testid="event-title"]');
-    await expect(page.getByTestId("vertical-tab-event_setup_tab_title")).toHaveAttribute(
-      "aria-current",
-      "page"
-    );
+    await expect(page.getByTestId("vertical-tab-basics")).toHaveAttribute("aria-current", "page");
     await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     await page.fill('[name="eventName"]', "{Event duration} event btwn {Organiser} {Scheduler}");
     await page.locator('[data-testid="update-eventtype"]').click();
-    await page.waitForResponse("/api/trpc/eventTypes/update?batch=1");
+    await page.waitForResponse("/api/trpc/eventTypesHeavy/update?batch=1");
   });
 
   await page.goto(`/${user.username}/multiple-duration`);
@@ -196,9 +193,9 @@ test.describe("Organization:", () => {
         });
         await expect(page.getByTestId("success-page")).toBeVisible();
         // All the teammates should be in the booking
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         await expect(page.getByText(user1.name!, { exact: true })).toBeVisible();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         await expect(page.getByText(user2.name!, { exact: true })).toBeVisible();
       }
     );

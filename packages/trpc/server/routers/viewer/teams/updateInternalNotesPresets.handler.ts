@@ -1,5 +1,6 @@
-import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +21,15 @@ export const updateInternalNotesPresetsHandler = async ({
   const isOrgAdmin = ctx.user?.organization?.isOrgAdmin;
 
   if (!isOrgAdmin) {
-    if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) {
+    const permissionCheckService = new PermissionCheckService();
+    const hasTeamUpdatePermission = await permissionCheckService.checkPermission({
+      userId: ctx.user?.id || 0,
+      teamId: input.teamId,
+      permission: "team.update",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+
+    if (!hasTeamUpdatePermission) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
   }

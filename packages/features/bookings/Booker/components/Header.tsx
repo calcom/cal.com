@@ -5,6 +5,7 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useInitializeWeekStart } from "@calcom/features/bookings/Booker/components/hooks/useInitializeWeekStart";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -25,6 +26,7 @@ export function Header({
   eventSlug,
   isMyLink,
   renderOverlay,
+  isCalendarView,
 }: {
   extraDays: number;
   isMobile: boolean;
@@ -33,20 +35,24 @@ export function Header({
   eventSlug: string;
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
+  isCalendarView?: boolean;
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
+  const isPlatform = useIsPlatform();
   const [layout, setLayout] = useBookerStoreContext((state) => [state.layout, state.setLayout], shallow);
   const selectedDateString = useBookerStoreContext((state) => state.selectedDate);
   const setSelectedDate = useBookerStoreContext((state) => state.setSelectedDate);
   const addToSelectedDate = useBookerStoreContext((state) => state.addToSelectedDate);
-  const isMonthView = layout === BookerLayouts.MONTH_VIEW;
+  const isMonthView = isCalendarView !== undefined ? !isCalendarView : layout === BookerLayouts.MONTH_VIEW;
   const today = dayjs();
   const selectedDate = selectedDateString ? dayjs(selectedDateString) : today;
   const selectedDateMin3DaysDifference = useMemo(() => {
     const diff = today.diff(selectedDate, "days");
     return diff > 3 || diff < -3;
   }, [today, selectedDate]);
+
+  useInitializeWeekStart(isPlatform, isCalendarView ?? false);
 
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
@@ -130,7 +136,10 @@ export function Header({
             <Button
               className="capitalize ltr:ml-2 rtl:mr-2"
               color="secondary"
-              onClick={() => setSelectedDate({ date: today.format("YYYY-MM-DD") })}>
+              onClick={() => {
+                const selectedDate = (isCalendarView ? today.startOf("week") : today).format("YYYY-MM-DD");
+                setSelectedDate({ date: selectedDate });
+              }}>
               {t("today")}
             </Button>
           )}

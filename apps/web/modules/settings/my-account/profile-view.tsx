@@ -511,12 +511,12 @@ const ProfileForm = ({
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
-    email: emailSchema,
+    email: emailSchema.toLowerCase(),
     bio: z.string(),
     secondaryEmails: z.array(
       z.object({
         id: z.number(),
-        email: emailSchema,
+        email: emailSchema.toLowerCase(),
         emailVerified: z.union([z.string(), z.null()]).optional(),
         emailPrimary: z.boolean().optional(),
       })
