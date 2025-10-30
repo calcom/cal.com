@@ -30,8 +30,8 @@ export class OrganizationMembershipService {
         if (!isOrganizationVerified || !orgAutoAcceptEmail) return false;
 
         // Case-insensitive comparison (email domains are case-insensitive per RFC)
-        const emailDomain = userEmail.split("@")[1]?.toLowerCase();
-        const orgDomain = orgAutoAcceptEmail.toLowerCase();
+        const emailDomain = userEmail.split("@")[1]?.trim().toLowerCase();
+        const orgDomain = orgAutoAcceptEmail.trim().toLowerCase();
 
         if (!emailDomain) return false;
 
