@@ -239,7 +239,7 @@ export default function Booker( props : BookerProps ) {
 
 The booker atom also supports rescheduling a booking. To reschedule a booking, you need to pass in the `rescheduleUid` prop to the booker atom along with the other necessary props. This will allow the booker to display the reschedule form and handle the rescheduling process. The `rescheduleUid` is the booking uid you get when you create a booking.
 
-Here is an example of how to use the booker atom for rescheduling a booking:
+Here is an example of how to use the booker atom for rescheduling an individual event:
 
 ```js
 import { Booker } from "@calcom/atoms";
@@ -253,6 +253,32 @@ export default function Booker( props : BookerProps ) {
         // rescheduleUid is the booking uid you get when you create a booking
         // it is only required when rescheduling a booking
         rescheduleUid={props.rescheduleUid}
+        onCreateBookingSuccess={() => {
+          console.log("Booking rescheduled successfully!");
+         }}
+      />
+    </>
+  )
+}
+```
+
+For team events, you need to pass isTeamEvent and teamId prop to the booker alonng with the other necessary props. This will allow the booker to display the reschedule form and handle the rescheduling process. The `teamId` is the team id you get when you create a team event.
+
+Here is an example of how to use the booker atom for rescheduling a team event:
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <Booker
+        eventSlug={props.eventTypeSlug}
+        // rescheduleUid is the booking uid you get when you create a booking
+        // it is only required when rescheduling a booking
+        rescheduleUid={props.rescheduleUid}
+        isTeamEvent={true}
+        teamId={props.teamId}
         onCreateBookingSuccess={() => {
           console.log("Booking rescheduled successfully!");
          }}
