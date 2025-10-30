@@ -1,6 +1,9 @@
+import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 import type { CalendarSubscriptionEventItem } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionPort.interface";
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
+import type { ISelectedCalendarRepository } from "@calcom/lib/server/repository/SelectedCalendarRepository.interface";
 import type { CalendarCacheEvent, SelectedCalendar } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheEventService"] });
@@ -96,5 +99,34 @@ export class CalendarCacheEventService {
     if (!type) return false;
     // return ["google_calendar", "office365_calendar"].includes(type);
     return ["google_calendar"].includes(type);
+  }
+
+  /**
+   * Determines if cache should be served for a given credential
+   *
+   * @param args - Dependencies and parameters needed to check cache readiness
+   * @returns Promise<boolean> - true if cache should be served, false otherwise
+   */
+  static async shouldServeCache(args: {
+    calendarType: string | null;
+    credentialId: number;
+    featuresRepository: IFeaturesRepository;
+    selectedCalendarRepository: ISelectedCalendarRepository;
+  }): Promise<boolean> {
+    const { calendarType, credentialId, featuresRepository, selectedCalendarRepository } = args;
+
+    // Check if calendar type is supported
+    if (!CalendarCacheEventService.isCalendarTypeSupported(calendarType)) {
+      return false;
+    }
+
+    const [isCalendarSubscriptionCacheEnabled, isCacheReady] = await Promise.all([
+      featuresRepository.checkIfFeatureIsEnabledGlobally(
+        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+      ),
+      selectedCalendarRepository.isCacheReadyForCredential(credentialId),
+    ]);
+
+    return isCalendarSubscriptionCacheEnabled && isCacheReady;
   }
 }

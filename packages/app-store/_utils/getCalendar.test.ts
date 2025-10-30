@@ -6,6 +6,7 @@ vi.mock("@calcom/features/flags/features.repository");
 vi.mock("@calcom/lib/server/repository/SelectedCalendarRepository");
 vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper");
 vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository");
+vi.mock("@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService");
 vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
@@ -90,23 +91,32 @@ describe("getCalendar", () => {
       "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository"
     );
     vi.mocked(CalendarCacheEventRepository).mockImplementation(mockCalendarCacheEventRepository);
+
+    const { CalendarCacheEventService } = await import(
+      "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService"
+    );
+    vi.spyOn(CalendarCacheEventService, "shouldServeCache").mockResolvedValue(false);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  test("should use CalendarCacheWrapper when global flag is enabled and cache is ready", async () => {
-    mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-    mockSelectedCalendarRepository.isCacheReadyForCredential.mockResolvedValue(true);
+  test("should use CalendarCacheWrapper when shouldServeCache returns true", async () => {
+    const { CalendarCacheEventService } = await import(
+      "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService"
+    );
+    vi.spyOn(CalendarCacheEventService, "shouldServeCache").mockResolvedValue(true);
 
     const { getCalendar } = await import("./getCalendar");
     const calendar = await getCalendar(mockCredential);
 
-    expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(
-      "calendar-subscription-cache"
-    );
-    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).toHaveBeenCalledWith(1);
+    expect(CalendarCacheEventService.shouldServeCache).toHaveBeenCalledWith({
+      calendarType: "google_calendar",
+      credentialId: 1,
+      featuresRepository: expect.any(Object),
+      selectedCalendarRepository: expect.any(Object),
+    });
 
     expect(mockCalendarCacheWrapper).toHaveBeenCalledTimes(1);
     expect(mockCalendarCacheWrapper).toHaveBeenCalledWith(
@@ -123,35 +133,21 @@ describe("getCalendar", () => {
     expect(calendar).toHaveProperty("__isCalendarCacheWrapper", true);
   });
 
-  test("should NOT use CalendarCacheWrapper when cache is not ready", async () => {
-    mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-    mockSelectedCalendarRepository.isCacheReadyForCredential.mockResolvedValue(false);
+  test("should NOT use CalendarCacheWrapper when shouldServeCache returns false", async () => {
+    const { CalendarCacheEventService } = await import(
+      "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService"
+    );
+    vi.spyOn(CalendarCacheEventService, "shouldServeCache").mockResolvedValue(false);
 
     const { getCalendar } = await import("./getCalendar");
     const calendar = await getCalendar(mockCredential);
 
-    expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(
-      "calendar-subscription-cache"
-    );
-    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).toHaveBeenCalledWith(1);
-
-    expect(mockCalendarCacheWrapper).not.toHaveBeenCalled();
-
-    expect(calendar).toHaveProperty("__isMockCalendarService", true);
-    expect(calendar).not.toHaveProperty("__isCalendarCacheWrapper");
-  });
-
-  test("should NOT use CalendarCacheWrapper when global cache flag is disabled", async () => {
-    mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(false);
-    mockSelectedCalendarRepository.isCacheReadyForCredential.mockResolvedValue(true);
-
-    const { getCalendar } = await import("./getCalendar");
-    const calendar = await getCalendar(mockCredential);
-
-    expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).toHaveBeenCalledWith(
-      "calendar-subscription-cache"
-    );
-    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).toHaveBeenCalledWith(1);
+    expect(CalendarCacheEventService.shouldServeCache).toHaveBeenCalledWith({
+      calendarType: "google_calendar",
+      credentialId: 1,
+      featuresRepository: expect.any(Object),
+      selectedCalendarRepository: expect.any(Object),
+    });
 
     expect(mockCalendarCacheWrapper).not.toHaveBeenCalled();
 
@@ -160,15 +156,22 @@ describe("getCalendar", () => {
   });
 
   test("should return null for null credential", async () => {
+    const { CalendarCacheEventService } = await import(
+      "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService"
+    );
+
     const { getCalendar } = await import("./getCalendar");
     const calendar = await getCalendar(null);
 
     expect(calendar).toBeNull();
-    expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).not.toHaveBeenCalled();
-    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).not.toHaveBeenCalled();
+    expect(CalendarCacheEventService.shouldServeCache).not.toHaveBeenCalled();
   });
 
   test("should return null for credential without key", async () => {
+    const { CalendarCacheEventService } = await import(
+      "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService"
+    );
+
     const credentialWithoutKey = {
       ...mockCredential,
       key: null,
@@ -178,7 +181,19 @@ describe("getCalendar", () => {
     const calendar = await getCalendar(credentialWithoutKey as unknown as CredentialForCalendarService);
 
     expect(calendar).toBeNull();
-    expect(mockFeaturesRepository.checkIfFeatureIsEnabledGlobally).not.toHaveBeenCalled();
-    expect(mockSelectedCalendarRepository.isCacheReadyForCredential).not.toHaveBeenCalled();
+    expect(CalendarCacheEventService.shouldServeCache).not.toHaveBeenCalled();
+  });
+
+  test("should use provided shouldServeCache parameter when supplied", async () => {
+    const { CalendarCacheEventService } = await import(
+      "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService"
+    );
+
+    const { getCalendar } = await import("./getCalendar");
+    const calendar = await getCalendar(mockCredential, true);
+
+    expect(CalendarCacheEventService.shouldServeCache).not.toHaveBeenCalled();
+    expect(mockCalendarCacheWrapper).toHaveBeenCalledTimes(1);
+    expect(calendar).toHaveProperty("__isCalendarCacheWrapper", true);
   });
 });

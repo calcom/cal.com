@@ -1,4 +1,3 @@
-import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 import { CalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
@@ -49,16 +48,14 @@ export const getCalendar = async (
     const featuresRepository = new FeaturesRepository(prisma);
     const selectedCalendarRepository = new SelectedCalendarRepository(prisma);
     
-    const [isCalendarSubscriptionCacheEnabled, isCacheReady] = await Promise.all([
-      featuresRepository.checkIfFeatureIsEnabledGlobally(
-        CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
-      ),
-      selectedCalendarRepository.isCacheReadyForCredential(credential.id),
-    ]);
-
-    shouldServeCache = isCalendarSubscriptionCacheEnabled && isCacheReady;
+    shouldServeCache = await CalendarCacheEventService.shouldServeCache({
+      calendarType,
+      credentialId: credential.id,
+      featuresRepository,
+      selectedCalendarRepository,
+    });
   }
-  if (CalendarCacheEventService.isCalendarTypeSupported(calendarType) && shouldServeCache) {
+  if (shouldServeCache) {
     log.debug(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalCalendar = new CalendarService(credential as any);
