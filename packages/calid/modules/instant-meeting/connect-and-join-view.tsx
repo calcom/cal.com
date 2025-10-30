@@ -16,7 +16,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import { TRPCClientError } from "@trpc/client";
 
-function ConnectAndJoin() {
+function CalidConnectAndJoin() {
   const { t } = useLocale();
   const router = useRouter();
   const token = getQueryParam("token");
@@ -25,9 +25,11 @@ function ConnectAndJoin() {
 
   const session = useSession();
   console.log("Sessions : ", session);
-  const isUserPartOfOrg = session.status === "authenticated" && !!session.data.user?.org;
+  // const isUserPartOfOrg = session.status === "authenticated" && !!session.data.user?.org;
+  const isUserPartOfOrg = session.status === "authenticated";
 
-  const mutation = trpc.viewer.loggedInViewerRouter.connectAndJoin.useMutation({
+  // const mutation = trpc.viewer.loggedInViewerRouter.connectAndJoin.useMutation({
+  const mutation = trpc.viewer.loggedInViewerRouter.calid_connectAndJoin.useMutation({
     onSuccess: (res) => {
       if (res.meetingUrl && !res.isBookingAlreadyAcceptedBySomeoneElse) {
         router.push(res.meetingUrl);
@@ -50,13 +52,14 @@ function ConnectAndJoin() {
   if (!token) return <p>{t("token_not_found")}</p>;
 
   return (
-    <div className="mx-8 mt-12 block items-start sm:flex">
+    // <div className="mx-8 mt-12 block items-start sm:flex">
+    <div className="mx-auto mt-12 flex w-full max-w-4xl items-center justify-center px-4">
       {session ? (
         <div className="w-full">
           <EmptyScreen
             headline={t("instant_tab_title")}
             Icon="phone-call"
-            description={t("uprade_to_create_instant_bookings")}
+            // description={t("uprade_to_create_instant_bookings")}
             buttonRaw={
               <div className="flex flex-col items-center justify-center	gap-4">
                 {meetingUrl ? (
@@ -97,4 +100,4 @@ function ConnectAndJoin() {
   );
 }
 
-export default ConnectAndJoin;
+export default CalidConnectAndJoin;
