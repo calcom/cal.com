@@ -29,19 +29,21 @@ async function getAppMetadata(appName: string): Promise<AppMeta | null> {
   }
 
   try {
-
-    const metadata = await (appStoreMetadata as any)[appName];
-    if (metadata) {
-
-      const cleanMetadata = { ...metadata };
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      delete cleanMetadata["/*"];
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      delete cleanMetadata["__createdUsingCli"];
-      appMetadataCache.set(appName, cleanMetadata);
-      return cleanMetadata;
+    // Call the lazy loading function to get metadata
+    const metadataLoader = (appStoreMetadata as any)[appName];
+    if (metadataLoader && typeof metadataLoader === "function") {
+      const metadata = await metadataLoader();
+      if (metadata) {
+        const cleanMetadata = { ...metadata };
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete cleanMetadata["/*"];
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        delete cleanMetadata["__createdUsingCli"];
+        appMetadataCache.set(appName, cleanMetadata);
+        return cleanMetadata;
+      }
     }
   } catch (error) {
     console.warn(`Failed to load metadata for app: ${appName}`, error);
