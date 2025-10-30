@@ -10,3 +10,6 @@ export { UserRepository as PrismaUserRepository } from "@calcom/features/users/r
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 export { MembershipRepository as PrismaMembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 export { HostRepository as PrismaHostRepository } from "@calcom/lib/server/repository/host";
+export { BookingReferenceRepository as PrismaBookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+export { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
+export { ProfileRepository as PrismaProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
