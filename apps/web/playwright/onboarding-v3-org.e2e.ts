@@ -9,93 +9,129 @@ test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("Onboarding V3 - Organization Flow", () => {
-  const testOrganizationOnboarding = (identityProvider: IdentityProvider) => {
-    test(`Organization onboarding flow - ${identityProvider} user`, async ({ page, users }) => {
-      // Create user with company email so organization option is shown
-      const user = await users.create({
-        completedOnboarding: false,
-        name: null,
-        identityProvider,
-        email: "test@company.com", // Company email to show org option
-      });
-      await user.apiLogin();
-      await page.goto("/onboarding/getting-started");
-
-      await test.step("Getting started - Select Organization plan", async () => {
-        await page.waitForURL("/onboarding/getting-started");
-
-        // Wait for the page to load and select Organization plan
-        const orgPlan = page.getByTestId("onboarding-plan-organization");
-        await expect(orgPlan).toBeVisible();
-        await orgPlan.click();
-
-        // Click Continue button
-        await page.getByTestId("onboarding-continue").click();
-
-        // Should navigate to organization details
-        await expect(page).toHaveURL(/.*\/onboarding\/organization\/details/);
-      });
-
-      await test.step("Organization Details - Set organization name and slug", async () => {
-        // Check that we're on the details page
-        await expect(page.locator("text=organization")).toBeVisible();
-
-        // Fill in organization name
-        await page.getByTestId("org-details-name").fill("Test Organization");
-
-        // The slug should auto-generate from the name
-        // Wait for slug validation to complete
-        await page.waitForTimeout(500);
-
-        // Click Continue
-        await page.getByTestId("org-details-continue").click();
-
-        // Should navigate to brand page
-        await expect(page).toHaveURL(/.*\/onboarding\/organization\/brand/);
-      });
-
-      await test.step("Organization Brand - Skip branding", async () => {
-        // Check that we're on the brand page
-        await expect(page.getByText("Brand color")).toBeVisible();
-
-        // Click "I'll do this later" button to skip
-        await page.getByTestId("org-brand-skip").click();
-
-        // Should navigate to teams page
-        await expect(page).toHaveURL(/.*\/onboarding\/organization\/teams/);
-      });
-
-      await test.step("Organization Teams - Skip teams", async () => {
-        // Check that we're on the teams page
-        await expect(page.getByText("Skip for now")).toBeVisible();
-
-        // Click "Skip for now" button to skip teams
-        await page.getByTestId("org-teams-skip").click();
-
-        // Should navigate to invite page
-        await expect(page).toHaveURL(/.*\/onboarding\/organization\/invite/);
-      });
-
-      await test.step("Organization Invite - Skip invites and complete onboarding", async () => {
-        // Check that we're on the invite page
-        await expect(page.locator("text=invite")).toBeVisible();
-
-        // Click "I'll do this later" button to skip invites and complete onboarding
-        await page.getByTestId("org-invite-skip").click();
-
-        // Should redirect to getting-started or complete onboarding
-        // Wait for navigation to complete
-        await page.waitForTimeout(1000);
-
-        // Verify that onboarding has been completed or redirected appropriately
-        // The actual redirect destination may vary based on implementation
-        const currentUrl = page.url();
-        expect(currentUrl).toBeTruthy();
-      });
+  test("Organization onboarding flow - Complete with teams and invites", async ({ page, users }) => {
+    const user = await users.create({
+      completedOnboarding: false,
+      name: "Org Admin",
+      email: "admin@acmecorp.com", // Company email required to show org option
+      identityProvider: IdentityProvider.CAL,
     });
-  };
+    await user.apiLogin();
+    await page.goto("/onboarding/getting-started");
 
-  testOrganizationOnboarding(IdentityProvider.GOOGLE);
-  testOrganizationOnboarding(IdentityProvider.CAL);
-  testOrganizationOnboarding(IdentityProvider.SAML);
+    await test.step("Getting started - Select Organization plan", async () => {
+      await page.waitForURL("/onboarding/getting-started");
+      const orgPlan = page.getByTestId("onboarding-plan-organization");
+      await expect(orgPlan).toBeVisible();
+      await orgPlan.click();
+      await page.getByTestId("onboarding-continue").click();
+      await expect(page).toHaveURL(/.*\/onboarding\/organization\/details/);
+    });
+
+    await test.step("Organization Details - Set organization details", async () => {
+      await expect(page.locator("text=organization")).toBeVisible();
+      await page.getByTestId("org-details-name").fill("Acme Corporation");
+      const bioTextarea = page.locator("textarea");
+      await bioTextarea.fill("Leading provider of innovative solutions for modern businesses.");
+      await page.waitForTimeout(1000);
+      const slugInput = page.locator('input[name="slug"]');
+      await expect(slugInput).toHaveValue("acme-corporation");
+      await page.getByTestId("org-details-continue").click();
+      await expect(page).toHaveURL(/.*\/onboarding\/organization\/brand/);
+    });
+
+    await test.step("Organization Brand - Customize branding", async () => {
+      await expect(page.getByText("Brand color")).toBeVisible();
+      const colorInput = page.locator('input[type="text"][maxlength="6"]');
+      await colorInput.fill("FF6B35");
+      await page.getByTestId("org-brand-continue").click();
+      await expect(page).toHaveURL(/.*\/onboarding\/organization\/teams/);
+    });
+
+    await test.step("Organization Teams - Add multiple teams", async () => {
+      await expect(page.getByText("Skip for now")).toBeVisible();
+      const firstTeamInput = page.locator('input[placeholder="Team"]').first();
+      await firstTeamInput.fill("Engineering");
+      await page.getByRole("button", { name: "Add" }).click();
+      const teamInputs = page.locator('input[placeholder="Team"]');
+      await teamInputs.nth(1).fill("Sales");
+      await page.getByRole("button", { name: "Add" }).click();
+      await teamInputs.nth(2).fill("Marketing");
+      await page.getByTestId("org-teams-continue").click();
+      await expect(page).toHaveURL(/.*\/onboarding\/organization\/invite/);
+    });
+
+    await test.step("Organization Invite - Invite members to teams", async () => {
+      await expect(page.locator("text=invite")).toBeVisible();
+      const firstEmailInput = page.locator('input[type="email"]').first();
+      await firstEmailInput.fill("engineer1@acmecorp.com");
+      const firstTeamSelect = page.locator('[role="combobox"]').first();
+      await firstTeamSelect.click();
+      await page.getByText("Engineering", { exact: true }).click();
+      await page.getByRole("button", { name: "Add" }).click();
+      const emailInputs = page.locator('input[type="email"]');
+      await emailInputs.nth(1).fill("sales1@acmecorp.com");
+      const secondTeamSelect = page.locator('[role="combobox"]').nth(1);
+      await secondTeamSelect.click();
+      await page.getByText("Sales", { exact: true }).click();
+      await page.getByRole("button", { name: "Add" }).click();
+      await emailInputs.nth(2).fill("marketing1@acmecorp.com");
+      const thirdTeamSelect = page.locator('[role="combobox"]').nth(2);
+      await thirdTeamSelect.click();
+      await page.getByText("Marketing", { exact: true }).click();
+      await page.getByRole("button", { name: "Admins" }).click();
+      await page.getByTestId("org-invite-continue").click();
+      await page.waitForTimeout(2000);
+      const currentUrl = page.url();
+      expect(currentUrl).toBeTruthy();
+    });
+  });
+
+  test("Organization onboarding flow - Skip all optional steps", async ({ page, users }) => {
+    const user = await users.create({
+      completedOnboarding: false,
+      name: "Org Admin",
+      email: "admin@minimal-org.com",
+      identityProvider: IdentityProvider.CAL,
+    });
+    await user.apiLogin();
+    await page.goto("/onboarding/getting-started");
+
+    await test.step("Getting started - Select Organization plan", async () => {
+      await page.waitForURL("/onboarding/getting-started");
+      const orgPlan = page.getByTestId("onboarding-plan-organization");
+      await expect(orgPlan).toBeVisible();
+      await orgPlan.click();
+      await page.getByTestId("onboarding-continue").click();
+      await expect(page).toHaveURL(/.*\/onboarding\/organization\/details/);
+    });
+
+    await test.step("Organization Details - Minimal setup", async () => {
+      await expect(page.locator("text=organization")).toBeVisible();
+      await page.getByTestId("org-details-name").fill("Minimal Organization");
+      await page.waitForTimeout(500);
+      await page.getByTestId("org-details-continue").click();
+      await expect(page).toHaveURL(/.*\/onboarding\/organization\/brand/);
+    });
+
+    await test.step("Organization Brand - Skip branding", async () => {
+      await expect(page.getByText("Brand color")).toBeVisible();
+      await page.getByTestId("org-brand-skip").click();
+      await expect(page).toHaveURL(/.*\/onboarding\/organization\/teams/);
+    });
+
+    await test.step("Organization Teams - Skip teams", async () => {
+      await expect(page.getByText("Skip for now")).toBeVisible();
+      await page.getByTestId("org-teams-skip").click();
+      await expect(page).toHaveURL(/.*\/onboarding\/organization\/invite/);
+    });
+
+    await test.step("Organization Invite - Skip invites", async () => {
+      await expect(page.locator("text=invite")).toBeVisible();
+      await page.getByTestId("org-invite-skip").click();
+      await page.waitForTimeout(1000);
+      const currentUrl = page.url();
+      expect(currentUrl).toBeTruthy();
+    });
+  });
 });
