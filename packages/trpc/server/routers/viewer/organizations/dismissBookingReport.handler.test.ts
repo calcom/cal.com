@@ -4,8 +4,6 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { PrismaBookingReportRepository } from "@calcom/lib/server/repository/bookingReport";
 import { MembershipRole, BookingReportReason } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
-
 import { dismissBookingReportHandler } from "./dismissBookingReport.handler";
 
 vi.mock("@calcom/features/pbac/services/permission-check.service");
