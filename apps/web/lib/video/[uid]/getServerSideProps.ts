@@ -221,7 +221,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const isAttendee = sessionUserEmail
-    ? bookingObj.attendees?.some((attendee) => attendee.email === sessionUserEmail) ?? false
+    ? bookingObj.attendees?.some(
+        (attendee) => attendee.email.toLowerCase() === sessionUserEmail.toLowerCase()
+      ) ?? false
     : false;
 
   // set meetingPassword for guests
