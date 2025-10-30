@@ -1,12 +1,12 @@
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 
+import { TeamBillingDataRepositoryFactory } from "../repository/teamBillingData/teamBillingDataRepositoryFactory";
 import { InternalTeamBilling } from "./internal-team-billing";
 import { StubTeamBilling } from "./stub-team-billing";
 import type { TeamBilling as _TeamBilling, TeamBillingInput } from "./team-billing";
-import { TeamBillingRepository } from "./team-billing.repository";
 
 export class TeamBilling {
-  static repo = new TeamBillingRepository();
+  static repo = TeamBillingDataRepositoryFactory.getRepository(!!IS_TEAM_BILLING_ENABLED);
 
   /** Initialize a single team billing */
   static init(team: TeamBillingInput): _TeamBilling {
