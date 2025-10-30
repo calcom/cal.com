@@ -1,11 +1,10 @@
-import { Prisma } from "./client";
+import { Prisma } from "@calcom/prisma/client";
 
 export async function isPrismaAvailableCheck(): Promise<boolean> {
   try {
-    const { PrismaClient } = await import("./client");
-    const prisma = new PrismaClient();
+    const { prisma } = await import("./index");
 
-    await prisma.$queryRawUnsafe("SELECT 1");
+    await prisma.$queryRaw<unknown[]>(Prisma.sql`SELECT 1`);
     await prisma.$disconnect();
     return true;
   } catch (e: unknown) {

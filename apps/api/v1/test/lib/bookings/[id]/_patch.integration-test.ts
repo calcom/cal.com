@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 
 import prisma from "@calcom/prisma";
 
@@ -11,6 +11,30 @@ type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
 describe("PATCH /api/bookings", () => {
+  beforeAll(async () => {
+    const acmeOrg = await prisma.team.findFirst({
+      where: {
+        slug: "acme",
+        isOrganization: true,
+      },
+    });
+
+    if (acmeOrg) {
+      await prisma.organizationSettings.upsert({
+        where: {
+          organizationId: acmeOrg.id,
+        },
+        update: {
+          isAdminAPIEnabled: true,
+        },
+        create: {
+          organizationId: acmeOrg.id,
+          orgAutoAcceptEmail: "acme.com",
+          isAdminAPIEnabled: true,
+        },
+      });
+    }
+  });
   it("Returns 403 when user has no permission to the booking", async () => {
     const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
     const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
