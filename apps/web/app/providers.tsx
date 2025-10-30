@@ -2,14 +2,12 @@
 
 import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { SessionProvider } from "next-auth/react";
-import { usePathname } from "next/navigation";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { WebPushProvider } from "@calcom/features/notifications/WebPushContext";
 import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import PlainChat from "@lib/plain/dynamicProvider";
 
 type ProvidersProps = {
   isEmbed: boolean;
@@ -18,13 +16,10 @@ type ProvidersProps = {
 };
 export function Providers({ isEmbed, children, nonce }: ProvidersProps) {
   const isBookingPage = useIsBookingPage();
-  const pathname = usePathname();
-  const isOnboardingPage = pathname?.startsWith("/getting-started");
 
   return (
     <SessionProvider>
       <TrpcProvider>
-        {!isBookingPage && !isOnboardingPage ? <PlainChat nonce={nonce} /> : null}
         {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
         {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
         <CacheProvider>

@@ -1,7 +1,7 @@
 import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
-import { MSTeamsLocationType } from "@calcom/app-store/locations";
+import { MSTeamsLocationType } from "@calcom/app-store/constants";
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescriptionHTML } from "@calcom/lib/CalEventParser";
 import {
@@ -691,10 +691,13 @@ export default class Office365CalendarService implements Calendar {
       const response = await this.fetcher(`${await this.getUserEndpoint()}/mailboxSettings/timeZone`);
       const timezone = await handleErrorsJson<string>(response);
 
-      if (!timezone) {
-        this.log.warn("No timezone found in mailbox settings, defaulting to Europe/London");
+      if (!timezone || typeof timezone !== "string") {
+        this.log.warn("No timezone found in outlook mailbox settings, defaulting to Europe/London", {
+          timezone,
+        });
         return "Europe/London";
       }
+      this.log.info("timezone found in outlook mailbox settings", { timezone });
 
       return timezone;
     } catch (error) {

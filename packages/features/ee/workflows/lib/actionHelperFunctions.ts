@@ -1,7 +1,7 @@
-import type { WorkflowTriggerEvents } from "@prisma/client";
 import type { TFunction } from "i18next";
 
 import type { TimeFormat } from "@calcom/lib/timeFormat";
+import type { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
 import {
@@ -32,6 +32,10 @@ export function isWhatsappAction(action: WorkflowActions) {
 
 export function isSMSOrWhatsappAction(action: WorkflowActions) {
   return isSMSAction(action) || isWhatsappAction(action);
+}
+
+export function isCalAIAction(action: WorkflowActions) {
+  return action === WorkflowActions.CAL_AI_PHONE_CALL;
 }
 
 export function isEmailAction(action: WorkflowActions) {

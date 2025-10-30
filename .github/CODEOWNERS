@@ -2,7 +2,12 @@
 /apps/api/**/* @calcom/Platform @calcom/Foundation
 /apps/ui-playground/**/* @calcom/Consumer @calcom/Foundation
 /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
-/apps/web/lib/**/* @calcom/Foundation
+/apps/web/lib/csp.ts @calcom/Foundation
+/apps/web/lib/buildNonce.ts @calcom/Foundation
+/apps/web/lib/daily-webhook/**/* @calcom/Foundation
+/apps/web/lib/core/**/* @calcom/Foundation
+/apps/web/lib/booking.ts @calcom/Foundation
+/apps/web/lib/handleOrgRedirect.ts @calcom/Foundation
 /apps/web/middleware.ts @calcom/Foundation
 /deploy/**/* @calcom/Foundation
 /infra/**/* @calcom/Foundation
@@ -25,7 +30,7 @@
 /packages/lib/slots.ts @calcom/Foundation
 /packages/platform/atoms/**/*WebWrapper.tsx @calcom/Consumer
 /packages/platform/**/* @calcom/Platform @calcom/Foundation
-/packages/prisma/**/* @calcom/DBA
+/packages/prisma/**/* @calcom/Foundation
 /packages/trpc/server/routers/viewer/bookings/confirm.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/bookings/get.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/slots/**/* @calcom/Foundation

@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import type { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
@@ -9,15 +8,16 @@ import logger from "@calcom/lib/logger";
 import { Redirect } from "@calcom/lib/redirect";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
-import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import billing from "..";
 import { TeamBillingPublishResponseStatus, type TeamBilling, type TeamBillingInput } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
 
-const teamPaymentMetadataSchema = teamMetadataSchema.unwrap();
+const teamPaymentMetadataSchema = teamMetadataStrictSchema.unwrap();
 
 export class InternalTeamBilling implements TeamBilling {
   private _team!: Omit<TeamBillingInput, "metadata"> & {

@@ -7,7 +7,6 @@ import { RetellAIPhoneServiceProviderFactory } from "./providers/retellAI";
  * This function should be called during application startup
  */
 export function initializeAIPhoneServiceRegistry(): void {
-  // Use Retell AI as the default provider
   const defaultProvider = AIPhoneServiceProviderType.RETELL_AI;
 
   // Build providers configuration - only Retell AI for now
@@ -18,7 +17,6 @@ export function initializeAIPhoneServiceRegistry(): void {
     },
   ];
 
-  // Initialize the registry
   AIPhoneServiceRegistry.initialize({
     defaultProvider,
     providers,

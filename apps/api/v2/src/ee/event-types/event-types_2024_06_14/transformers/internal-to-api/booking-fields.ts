@@ -520,6 +520,7 @@ export const systemBeforeFieldName: NameSystemField = {
             name: "fullName",
             type: "text",
             required: true,
+            label: "your_name",
           },
         ],
       },

@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 export const baseEventTypeSelect = {
   id: true,
@@ -16,6 +16,7 @@ export const baseEventTypeSelect = {
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
   canSendCalVideoTranscriptionEmails: true,
+  seatsPerTimeSlot: true,
 } satisfies Prisma.EventTypeSelect;
 
 export const bookEventTypeSelect = {

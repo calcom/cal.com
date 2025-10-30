@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import {
   serviceAccountKeySchema,
@@ -9,6 +7,7 @@ import {
   decryptServiceAccountKey,
 } from "@calcom/lib/server/serviceAccountKey";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { OrganizationRepository } from "./organization";
 
@@ -97,7 +96,8 @@ export class DelegationCredentialRepository {
             id: data.organizationId,
           },
         },
-        serviceAccountKey: encryptedKey,
+        // z.passthrough() is not allowed in Prisma, but we know this is trusted.
+        serviceAccountKey: encryptedKey as unknown as Prisma.InputJsonValue,
       },
       select: delegationCredentialSafeSelect,
     });

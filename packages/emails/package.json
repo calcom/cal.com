@@ -9,7 +9,6 @@
   "dependencies": {
     "@calcom/dayjs": "*",
     "@calcom/lib": "*",
-    "next-i18next": "^15.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rrule": "^2.7.1"

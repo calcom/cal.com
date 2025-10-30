@@ -3,6 +3,7 @@ import {
   createBookingScenario,
   Timezones,
   TestData,
+  mockCalendarToHaveNoBusySlots,
   type ScenarioData,
 } from "../../utils/bookingScenario/bookingScenario";
 
@@ -94,6 +95,8 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
+      await mockCalendarToHaveNoBusySlots("googlecalendar");
+
       const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
       });
@@ -128,6 +131,8 @@ describe("getSchedule", () => {
       };
 
       await createBookingScenario(scenarioData);
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar");
 
       const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
@@ -184,6 +189,8 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
+      await mockCalendarToHaveNoBusySlots("googlecalendar");
+
       const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
       });
@@ -239,6 +246,8 @@ describe("getSchedule", () => {
 
       await createBookingScenario(scenarioData);
 
+      await mockCalendarToHaveNoBusySlots("googlecalendar");
+
       const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),
       });
@@ -287,6 +296,8 @@ describe("getSchedule", () => {
       };
 
       await createBookingScenario(scenarioData);
+
+      await mockCalendarToHaveNoBusySlots("googlecalendar");
 
       const schedule = await availableSlotsService.getAvailableSlots({
         input: getTestScheduleInput({ yesterdayDateString, plus5DateString }),

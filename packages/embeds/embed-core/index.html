@@ -1,6 +1,13 @@
 <html>
   <head>
     <title>Embed Playground</title>
+    <style>
+      html.grid-row-gap body {
+        grid-row-gap: 10rem;
+        flex-flow: column;
+        display: flex;
+      }
+    </style>
      <script type="text/javascript" src="./playground/lib/playground-init.ts"></script>
     <script>
       let popupRescheduleUid = null;
@@ -14,6 +21,10 @@
       
       if (!location.search.includes("nonResponsive")) {
         document.write('<meta name="viewport" content="width=device-width"/>');
+      }
+
+      if (location.search.includes("grid-row-gap")) {
+        document.documentElement.classList.add("grid-row-gap");
       }
      
       function addInlineEmbedInNewNamespaceWithoutReload(selector) {
@@ -175,7 +186,16 @@
     </style>
   </head>
   <body>
+    <div style="margin-bottom: 20px;">
+      <h2>Different variations of the page</h2>
+      <div style="display: flex; flex-flow: row; gap: 10px;"> 
+        <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
+        <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
+        <span style="display: block"><a href="?grid-row-gap">Grid row gap version of this page here</a></span>
+    </div>
+    </div>
     <div id="misc-embeds">
+      <h2>Misc Embeds</h2>
       <div>
         <button id="add-inline-embed-in-a-new-namespace-without-reload-button" onclick="addInlineEmbedInNewNamespaceWithoutReload('#add-inline-embed-in-a-new-namespace-without-reload-button-content')">Add Inline Embed in a new namespace without reload</button>
         <div id="add-inline-embed-in-a-new-namespace-without-reload-button-content"></div>
@@ -195,8 +215,6 @@
           <div id="two-different-namespace-with-different-init-config-content-2"></div>
         </div>
       </div>
-      <span style="display: block"><a href="?color-scheme=dark">With Dark Color Scheme for the Page</a></span>
-      <span style="display: block"><a href="?nonResponsive">Non responsive version of this page here</a></span>
       <span style="display: block">
         <a href="?name=john&email=email&guests=abc&guests=def&notes=NOTES&location=%7B%22optionValue%22%3A%22%2B919999999999%22%2C%22value%22%3A%22phone%22%7D&only=ns%3ApageParamsForwarding">
           Page Params Forwarding(Prefills various fields by auto-forwarding query params)

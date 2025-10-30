@@ -1,11 +1,9 @@
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "../delegationCredential/server";
 
-type SessionUser = NonNullable<TrpcSessionUser>;
-type User = { id: SessionUser["id"]; email: SessionUser["email"] };
+type User = { id: number; email: string };
 
 /**
  * It includes in-memory DelegationCredential credentials as well.

@@ -1,9 +1,9 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import type { Prisma } from "@prisma/client";
 
 import { GOOGLE_MEET_TYPE } from "@calcom/platform-constants";
+import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class ConferencingRepository {

@@ -137,7 +137,7 @@ export const OAuthClientForm = ({
                     color="minimal"
                     variant="icon"
                     StartIcon="plus"
-                    className="text-default mx-2 mb-2"
+                    className="text-default mx-2"
                     disabled={isFormDisabled}
                     onClick={() => {
                       append({ uri: "" });
@@ -150,7 +150,7 @@ export const OAuthClientForm = ({
                       color="destructive"
                       variant="icon"
                       StartIcon="trash"
-                      className="text-default mx-2 mb-2"
+                      className="text-default mx-2"
                       disabled={isFormDisabled}
                       onClick={() => {
                         remove(index);

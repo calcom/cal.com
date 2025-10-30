@@ -1,9 +1,17 @@
+import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
+import type { Workflow } from "@calcom/ee/workflows/lib/types";
 import { prisma } from "@calcom/prisma";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import { WorkflowRepository } from "../repository/workflow";
 
 // TODO (Sean): Move most of the logic migrated in 16861 to this service
 export class WorkflowService {
+  static _beforeAfterEventTriggers: WorkflowTriggerEvents[] = [
+    WorkflowTriggerEvents.AFTER_EVENT,
+    WorkflowTriggerEvents.BEFORE_EVENT,
+  ];
   static async deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
     const team = await prisma.team.findUnique({
       where: {
@@ -62,5 +70,62 @@ export class WorkflowService {
         await WorkflowRepository.deleteAllWorkflowReminders(remindersToDelete);
       }
     }
+  }
+
+  static async scheduleWorkflowsForNewBooking({
+    isNormalBookingOrFirstRecurringSlot,
+    isConfirmedByDefault,
+    isRescheduleEvent,
+    workflows,
+    ...args
+  }: ScheduleWorkflowRemindersArgs & {
+    isConfirmedByDefault: boolean;
+    isRescheduleEvent: boolean;
+    isNormalBookingOrFirstRecurringSlot: boolean;
+  }) {
+    if (workflows.length <= 0) return;
+
+    const workflowsToTrigger: Workflow[] = [];
+
+    if (isRescheduleEvent) {
+      workflowsToTrigger.push(
+        ...workflows.filter(
+          (workflow) =>
+            workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT ||
+            this._beforeAfterEventTriggers.includes(workflow.trigger)
+        )
+      );
+    } else if (!isConfirmedByDefault) {
+      workflowsToTrigger.push(
+        ...workflows.filter((workflow) => workflow.trigger === WorkflowTriggerEvents.BOOKING_REQUESTED)
+      );
+    } else if (isConfirmedByDefault) {
+      workflowsToTrigger.push(
+        ...workflows.filter(
+          (workflow) =>
+            this._beforeAfterEventTriggers.includes(workflow.trigger) ||
+            (isNormalBookingOrFirstRecurringSlot && workflow.trigger === WorkflowTriggerEvents.NEW_EVENT)
+        )
+      );
+    }
+
+    if (workflowsToTrigger.length === 0) return;
+
+    await scheduleWorkflowReminders({
+      ...args,
+      workflows: workflowsToTrigger,
+    });
+  }
+
+  static async scheduleWorkflowsFilteredByTriggerEvent({
+    workflows,
+    triggers,
+    ...args
+  }: ScheduleWorkflowRemindersArgs & { triggers: WorkflowTriggerEvents[] }) {
+    if (workflows.length <= 0) return;
+    await scheduleWorkflowReminders({
+      ...args,
+      workflows: workflows.filter((workflow) => triggers.includes(workflow.trigger)),
+    });
   }
 }

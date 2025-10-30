@@ -9,6 +9,12 @@ vi.mock("@calcom/lib/server/i18n", () => ({
   getTranslation: vi.fn().mockResolvedValue("translated"),
 }));
 
+vi.mock("@calcom/prisma", () => {
+  return {
+    default: vi.fn(),
+  };
+});
+
 const withTeamSpy = vi.fn().mockReturnThis();
 const withDestinationCalendarSpy = vi.fn().mockReturnThis();
 

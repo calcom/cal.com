@@ -7,7 +7,7 @@ import { bookEventOnThisPage } from "./lib/testUtils";
 test.describe("Workflow Tab - Event Type", () => {
   test.describe("Check the functionalities of the Workflow Tab", () => {
     test.describe("User Workflows", () => {
-      test.beforeEach(async ({ page, users }) => {
+      test.beforeEach(async ({ page, users, emails }) => {
         await loginUser(users);
         await page.goto("/workflows");
       });
@@ -26,7 +26,8 @@ test.describe("Workflow Tab - Event Type", () => {
         await fillNameInput("Edited Workflow");
         await saveWorkflow();
         await page.getByTestId("go-back-button").click();
-        page.getByTestId("workflow-list").waitFor();
+        await page.getByTestId("workflow-list").waitFor();
+        await page.reload();
         await hasWorkflowInList("Edited Workflow");
       });
 
@@ -42,16 +43,28 @@ test.describe("Workflow Tab - Event Type", () => {
         await assertListCount(1);
       });
 
-      test("Create an action and check if workflow is triggered", async ({ page, users, workflowPage }) => {
+      test("Create an action and check if workflow reminder is added", async ({
+        page,
+        users,
+        workflowPage,
+        emails,
+      }) => {
         const { createWorkflow, assertWorkflowReminders } = workflowPage;
         const [user] = users.get();
         const [eventType] = user.eventTypes;
 
-        await createWorkflow({ name: "A New Workflow", trigger: WorkflowTriggerEvents.NEW_EVENT });
+        await createWorkflow({
+          name: "A New Before Event Workflow",
+          trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+        });
+        await createWorkflow({
+          name: "A New After Event Workflow",
+          trigger: WorkflowTriggerEvents.AFTER_EVENT,
+        });
         await page.goto(`/${user.username}/${eventType.slug}`);
         await page.click('[data-testid="incrementMonth"]');
         await bookEventOnThisPage(page);
-        await assertWorkflowReminders(eventType.id, 1);
+        await assertWorkflowReminders(eventType.id, 2);
       });
     });
 

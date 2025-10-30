@@ -18,7 +18,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformBilling, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
@@ -29,7 +28,6 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
@@ -47,16 +45,14 @@ import {
   X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { slugify } from "@calcom/platform-libraries";
-import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
+import type { PlatformBilling, User, Team } from "@calcom/prisma/client";
 
 describe("Organizations Organizations Endpoints", () => {
   let app: INestApplication;
 
   let userRepositoryFixture: UserRepositoryFixture;
   let organizationsRepositoryFixture: OrganizationRepositoryFixture;
-  let teamsRepositoryFixture: TeamRepositoryFixture;
   let membershipsRepositoryFixture: MembershipRepositoryFixture;
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let managedOrganizationsRepositoryFixture: ManagedOrganizationsRepositoryFixture;
@@ -90,7 +86,6 @@ describe("Organizations Organizations Endpoints", () => {
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
-    teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
     managedOrganizationsRepositoryFixture = new ManagedOrganizationsRepositoryFixture(moduleRef);

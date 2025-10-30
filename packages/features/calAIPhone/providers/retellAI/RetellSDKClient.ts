@@ -11,7 +11,8 @@ import type {
   UpdateAgentRequest,
   RetellAgent,
   CreatePhoneNumberParams,
-  RetellDynamicVariables,
+  CreatePhoneCallParams,
+  CreateWebCallParams,
   ImportPhoneNumberParams,
 } from "./types";
 
@@ -221,20 +222,29 @@ export class RetellSDKClient implements RetellAIRepository {
     }
   }
 
-  async createPhoneCall(data: {
-    from_number: string;
-    to_number: string;
-    retell_llm_dynamic_variables?: RetellDynamicVariables;
-  }) {
+  async createPhoneCall(data: CreatePhoneCallParams) {
     try {
       const response = await this.client.call.createPhoneCall({
-        from_number: data.from_number,
-        to_number: data.to_number,
-        retell_llm_dynamic_variables: data.retell_llm_dynamic_variables,
+        from_number: data.fromNumber,
+        to_number: data.toNumber,
+        retell_llm_dynamic_variables: data.dynamicVariables,
       });
       return response;
     } catch (error) {
       this.logger.error("Failed to create phone call", { error });
+      throw error;
+    }
+  }
+
+  async createWebCall(data: CreateWebCallParams) {
+    try {
+      const response = await this.client.call.createWebCall({
+        agent_id: data.agentId,
+        retell_llm_dynamic_variables: data.dynamicVariables,
+      });
+      return response;
+    } catch (error) {
+      this.logger.error("Failed to create web call", { error });
       throw error;
     }
   }

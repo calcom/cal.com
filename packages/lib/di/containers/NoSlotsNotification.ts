@@ -1,10 +1,9 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { redisModule } from "@calcom/features/redis/di/redisModule";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 import type { NoSlotsNotificationService } from "@calcom/trpc/server/routers/viewer/slots/handleNotificationWhenNoSlots";
 
+import { createContainer } from "../di";
 import { membershipRepositoryModule } from "../modules/Membership";
 import { noSlotsNotificationModule } from "../modules/NoSlotsNotification";
 import { teamRepositoryModule } from "../modules/Team";

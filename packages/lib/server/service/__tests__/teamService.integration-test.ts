@@ -1,7 +1,7 @@
-import type { Team, User } from "@prisma/client";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import prisma from "@calcom/prisma";
+import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TeamService } from "../teamService";
@@ -209,15 +209,15 @@ describe("TeamService.removeMembers Integration Tests", () => {
     // Create organization structure
     const orgTeam = await createTestTeam({ isOrganization: true });
     const subTeam = await createTestTeam({ parentId: orgTeam.id });
-    
+
     // Create users
     const orgUser1 = await createTestUser({ organizationId: orgTeam.id });
     const orgUser2 = await createTestUser({ organizationId: orgTeam.id });
     const nonOrgUser = await createTestUser();
-    
+
     // Create regular team
     const regularTeamEntity = await createTestTeam();
-    
+
     // Set up memberships
     await createTestMembership(orgUser1.id, orgTeam.id);
     await createTestMembership(orgUser2.id, orgTeam.id);
@@ -227,36 +227,35 @@ describe("TeamService.removeMembers Integration Tests", () => {
     await createTestMembership(orgUser2.id, subTeam.id);
     await createTestMembership(nonOrgUser.id, regularTeamEntity.id);
     await createTestMembership(nonOrgUser.id, subTeam.id);
-    
+
     // Structure the test data
     orgTestData = {
       team: orgTeam,
-      teams: [{
-        team: subTeam,
-        members: [orgUser1, orgUser2]
-      }],
-      members: [orgUser1, orgUser2]
+      teams: [
+        {
+          team: subTeam,
+          members: [orgUser1, orgUser2],
+        },
+      ],
+      members: [orgUser1, orgUser2],
     };
-    
+
     regularTeamTestData = {
       team: regularTeamEntity,
-      members: [orgUser1, orgUser2, nonOrgUser]
+      members: [orgUser1, orgUser2, nonOrgUser],
     };
-    
+
     userWithoutOrg = nonOrgUser;
   });
 
   afterEach(async () => {
     const teamIds = [
       orgTestData.team.id,
-      ...orgTestData.teams.map(t => t.team.id),
-      regularTeamTestData.team.id
+      ...orgTestData.teams.map((t) => t.team.id),
+      regularTeamTestData.team.id,
     ];
-    const userIds = [
-      ...orgTestData.members.map(u => u.id),
-      userWithoutOrg.id
-    ];
-    
+    const userIds = [...orgTestData.members.map((u) => u.id), userWithoutOrg.id];
+
     await cleanupTestData(teamIds, userIds);
     vi.clearAllMocks();
   });
@@ -264,10 +263,10 @@ describe("TeamService.removeMembers Integration Tests", () => {
   describe("Team Removal - Sub-Team/Regular Team", () => {
     it("should remove members from a single team", async () => {
       const [orgUser1, orgUser2] = orgTestData.members;
-      
-      await TeamService.removeMembers({ 
-        teamIds: [regularTeamTestData.team.id], 
-        userIds: [orgUser1.id, orgUser2.id] 
+
+      await TeamService.removeMembers({
+        teamIds: [regularTeamTestData.team.id],
+        userIds: [orgUser1.id, orgUser2.id],
       });
 
       await expectMembershipNotExists(orgUser1.id, regularTeamTestData.team.id);
@@ -283,10 +282,10 @@ describe("TeamService.removeMembers Integration Tests", () => {
     it("should remove members from multiple teams", async () => {
       const [orgUser1] = orgTestData.members;
       const subTeam = orgTestData.teams[0].team;
-      
-      await TeamService.removeMembers({ 
-        teamIds: [regularTeamTestData.team.id, subTeam.id], 
-        userIds: [orgUser1.id] 
+
+      await TeamService.removeMembers({
+        teamIds: [regularTeamTestData.team.id, subTeam.id],
+        userIds: [orgUser1.id],
       });
 
       await expectMembershipNotExists(orgUser1.id, regularTeamTestData.team.id);
@@ -337,7 +336,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
       expect(hostsBefore).toHaveLength(3);
 
       // Remove member from team (not org)
-      await TeamService.removeMembers({ teamIds: [regularTeamTestData.team.id], userIds: [teamMember.id], isOrg: false });
+      await TeamService.removeMembers({
+        teamIds: [regularTeamTestData.team.id],
+        userIds: [teamMember.id],
+        isOrg: false,
+      });
 
       // Verify hosts for team events were removed
       const hostsAfterForTeamEvents = await prisma.host.findMany({
@@ -410,7 +413,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
       });
 
       // Remove orgTestData.members[0] from team
-      await TeamService.removeMembers({ teamIds: [regularTeamTestData.team.id], userIds: [orgTestData.members[0].id], isOrg: false });
+      await TeamService.removeMembers({
+        teamIds: [regularTeamTestData.team.id],
+        userIds: [orgTestData.members[0].id],
+        isOrg: false,
+      });
 
       // Verify orgTestData.members[0]'s managed event types were deleted
       const deletedEventType1 = await prisma.eventType.findUnique({
@@ -447,7 +454,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
     });
 
     it("should not modify user organization data when removing from sub-team", async () => {
-      await TeamService.removeMembers({ teamIds: [regularTeamTestData.team.id], userIds: [orgTestData.members[0].id], isOrg: false });
+      await TeamService.removeMembers({
+        teamIds: [regularTeamTestData.team.id],
+        userIds: [orgTestData.members[0].id],
+        isOrg: false,
+      });
 
       await expectMembershipNotExists(orgTestData.members[0].id, regularTeamTestData.team.id);
 
@@ -464,7 +475,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
     it("should remove members from organization and all sub-teams", async () => {
       const originalUsername = orgTestData.members[0].username || "";
 
-      await TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [orgTestData.members[0].id], isOrg: true });
+      await TeamService.removeMembers({
+        teamIds: [orgTestData.team.id],
+        userIds: [orgTestData.members[0].id],
+        isOrg: true,
+      });
 
       await expectMembershipNotExists(orgTestData.members[0].id, orgTestData.team.id);
       await expectMembershipExists(orgTestData.members[0].id, regularTeamTestData.team.id);
@@ -493,7 +508,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
       const eventType = await createTestEventType(orgTestData.teams[0].team.id);
       await createTestHost(orgTestData.members[0].id, eventType.id);
 
-      await TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [orgTestData.members[0].id], isOrg: true });
+      await TeamService.removeMembers({
+        teamIds: [orgTestData.team.id],
+        userIds: [orgTestData.members[0].id],
+        isOrg: true,
+      });
 
       const hosts = await prisma.host.findMany({
         where: {
@@ -522,7 +541,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
         organizationId: null,
       });
 
-      await TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [userInOrg.id], isOrg: true });
+      await TeamService.removeMembers({
+        teamIds: [orgTestData.team.id],
+        userIds: [userInOrg.id],
+        isOrg: true,
+      });
 
       const updatedUser = await prisma.user.findUnique({
         where: { id: userInOrg.id },
@@ -573,7 +596,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
         },
       });
 
-      await TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [profileUser.id], isOrg: true });
+      await TeamService.removeMembers({
+        teamIds: [orgTestData.team.id],
+        userIds: [profileUser.id],
+        isOrg: true,
+      });
 
       const deletedProfile = await prisma.profile.findUnique({
         where: { id: profile.id },
@@ -588,7 +615,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
       await createTestMembership(userWithoutProfile.id, orgTestData.team.id);
 
       await expect(
-        TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [userWithoutProfile.id], isOrg: true })
+        TeamService.removeMembers({
+          teamIds: [orgTestData.team.id],
+          userIds: [userWithoutProfile.id],
+          isOrg: true,
+        })
       ).resolves.not.toThrow();
 
       await expectMembershipNotExists(userWithoutProfile.id, orgTestData.team.id);
@@ -623,7 +654,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
         },
       });
 
-      await TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [userWithProfile.id], isOrg: true });
+      await TeamService.removeMembers({
+        teamIds: [orgTestData.team.id],
+        userIds: [userWithProfile.id],
+        isOrg: true,
+      });
 
       const redirects = await prisma.tempOrgRedirect.findMany({
         where: { from: userWithProfile.username || "" },
@@ -653,7 +688,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
         },
       });
 
-      await TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [userWithUsername.id], isOrg: true });
+      await TeamService.removeMembers({
+        teamIds: [orgTestData.team.id],
+        userIds: [userWithUsername.id],
+        isOrg: true,
+      });
 
       const updatedUser = await prisma.user.findUnique({
         where: { id: userWithUsername.id },
@@ -863,7 +902,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
       expect(eventsBeforeRemoval).toHaveLength(3);
 
       // Remove orgTestData.members[0] from organization
-      await TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [orgTestData.members[0].id], isOrg: true });
+      await TeamService.removeMembers({
+        teamIds: [orgTestData.team.id],
+        userIds: [orgTestData.members[0].id],
+        isOrg: true,
+      });
 
       // Verify orgTestData.members[0]'s managed events in all sub-teams were deleted
       const deletedEvent1 = await prisma.eventType.findUnique({
@@ -912,7 +955,10 @@ describe("TeamService.removeMembers Integration Tests", () => {
     it("should call TeamBilling.updateQuantity for each team", async () => {
       const { TeamBilling } = await import("@calcom/features/ee/billing/teams");
 
-      await TeamService.removeMembers({ teamIds: [regularTeamTestData.team.id], userIds: [orgTestData.members[0].id, orgTestData.members[1].id] });
+      await TeamService.removeMembers({
+        teamIds: [regularTeamTestData.team.id],
+        userIds: [orgTestData.members[0].id, orgTestData.members[1].id],
+      });
 
       expect(TeamBilling.findAndInitMany).toHaveBeenCalledWith([regularTeamTestData.team.id]);
       const mockInstances = await TeamBilling.findAndInitMany([regularTeamTestData.team.id]);
@@ -928,16 +974,26 @@ describe("TeamService.removeMembers Integration Tests", () => {
     });
 
     it("should gracefully skip when given empty arrays", async () => {
-      await expect(TeamService.removeMembers({ teamIds: [], userIds: [orgTestData.members[0].id] })).resolves.not.toThrow();
-      await expect(TeamService.removeMembers({ teamIds: [regularTeamTestData.team.id], userIds: [] })).resolves.not.toThrow();
+      await expect(
+        TeamService.removeMembers({ teamIds: [], userIds: [orgTestData.members[0].id] })
+      ).resolves.not.toThrow();
+      await expect(
+        TeamService.removeMembers({ teamIds: [regularTeamTestData.team.id], userIds: [] })
+      ).resolves.not.toThrow();
       await expect(TeamService.removeMembers({ teamIds: [], userIds: [] })).resolves.not.toThrow();
     });
 
     it("should throw error on second removal attempt of same member", async () => {
-      await TeamService.removeMembers({ teamIds: [regularTeamTestData.team.id], userIds: [orgTestData.members[0].id] });
+      await TeamService.removeMembers({
+        teamIds: [regularTeamTestData.team.id],
+        userIds: [orgTestData.members[0].id],
+      });
 
       await expect(
-        TeamService.removeMembers({ teamIds: [regularTeamTestData.team.id], userIds: [orgTestData.members[0].id] })
+        TeamService.removeMembers({
+          teamIds: [regularTeamTestData.team.id],
+          userIds: [orgTestData.members[0].id],
+        })
       ).rejects.toThrow("Membership not found");
     });
 
@@ -978,7 +1034,11 @@ describe("TeamService.removeMembers Integration Tests", () => {
 
       // This should fail because of username unique constraint violation
       await expect(
-        TeamService.removeMembers({ teamIds: [orgTestData.team.id], userIds: [rollbackTestUser.id], isOrg: true })
+        TeamService.removeMembers({
+          teamIds: [orgTestData.team.id],
+          userIds: [rollbackTestUser.id],
+          isOrg: true,
+        })
       ).rejects.toThrow();
 
       // Verify nothing was changed - all data should still exist due to transaction rollback

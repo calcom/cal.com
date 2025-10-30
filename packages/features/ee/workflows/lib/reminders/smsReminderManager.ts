@@ -18,6 +18,7 @@ import type { CalEventResponses, RecurringEvent } from "@calcom/types/Calendar";
 
 import { isAttendeeAction } from "../actionHelperFunctions";
 import { getSenderId } from "../alphanumericSenderIdSupport";
+import { IMMEDIATE_WORKFLOW_TRIGGER_EVENTS } from "../constants";
 import { WorkflowOptOutContactRepository } from "../repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../service/workflowOptOutService";
 import type { ScheduleReminderArgs } from "./emailReminderManager";
@@ -187,11 +188,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
         // Allows debugging generated email content without waiting for sendgrid to send emails
         log.debug(`Sending sms for trigger ${triggerEvent}`, smsMessage);
 
-        if (
-          triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
-          triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
-          triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
-        ) {
+        if (IMMEDIATE_WORKFLOW_TRIGGER_EVENTS.includes(triggerEvent)) {
           try {
             await sendSmsOrFallbackEmail({
               twilioData: {

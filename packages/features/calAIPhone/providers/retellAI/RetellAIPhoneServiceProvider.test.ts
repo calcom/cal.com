@@ -1,3 +1,5 @@
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import type {
@@ -16,6 +18,10 @@ import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 import type { RetellAIService } from "./RetellAIService";
 import type { RetellAIRepository } from "./types";
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
 
 function createMockRetellAIService(overrides: Partial<RetellAIService> = {}): RetellAIService {
   const defaultMocks = {
@@ -67,7 +73,7 @@ describe("RetellAIPhoneServiceProvider", () => {
       deleteAgent: vi.fn().mockResolvedValue(undefined),
 
       // Phone number operations
-      createPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
+      createPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890", provider: "retellAI" }),
       importPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
       deletePhoneNumber: vi.fn().mockResolvedValue(undefined),
       getPhoneNumber: vi.fn().mockResolvedValue({ phone_number: "+1234567890" }),
@@ -379,9 +385,9 @@ describe("RetellAIPhoneServiceProvider", () => {
 
     it("should create phone call", async () => {
       const callData: AIPhoneServiceCallData = {
-        from_number: "+1234567890",
-        to_number: "+0987654321",
-        retell_llm_dynamic_variables: {
+        fromNumber: "+1234567890",
+        toNumber: "+0987654321",
+        dynamicVariables: {
           name: "John Doe",
           email: "john@example.com",
         },
@@ -395,8 +401,8 @@ describe("RetellAIPhoneServiceProvider", () => {
 
     it("should handle call data without dynamic variables", async () => {
       const callData: AIPhoneServiceCallData = {
-        from_number: "+1234567890",
-        to_number: "+0987654321",
+        fromNumber: "+1234567890",
+        toNumber: "+0987654321",
       };
 
       await testProvider.createPhoneCall(callData);
@@ -411,7 +417,9 @@ describe("RetellAIPhoneServiceProvider", () => {
     let createPhoneNumberMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
-      createPhoneNumberMock = vi.fn().mockResolvedValue({ phone_number: "+1234567890" });
+      createPhoneNumberMock = vi
+        .fn()
+        .mockResolvedValue({ phone_number: "+1234567890", provider: "retellAI" });
 
       mockService = createMockRetellAIService({
         createPhoneNumber: createPhoneNumberMock,
@@ -442,7 +450,7 @@ describe("RetellAIPhoneServiceProvider", () => {
         inbound_agent_id: "inbound-agent-id",
         outbound_agent_id: "outbound-agent-id",
       });
-      expect(result).toEqual({ phone_number: "+1234567890" });
+      expect(result).toEqual({ phone_number: "+1234567890", provider: "retellAI" });
     });
 
     it("should handle optional parameters in phone number creation", async () => {

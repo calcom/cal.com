@@ -23,7 +23,7 @@ import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repo
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
+import type { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
 
 describe("OAuth client WebhooksController (e2e)", () => {
   let app: INestApplication;

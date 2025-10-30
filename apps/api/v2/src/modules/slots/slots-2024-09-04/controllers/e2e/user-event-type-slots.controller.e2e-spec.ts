@@ -19,7 +19,6 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { EventType, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
@@ -36,11 +35,11 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_09_04 } from "@calcom/platform-constants";
-import {
+import type {
   CreateScheduleInput_2024_06_11,
   ReserveSlotOutput_2024_09_04 as ReserveSlotOutputData_2024_09_04,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import type { EventType, User, Team } from "@calcom/prisma/client";
 
 describe("Slots 2024-09-04 Endpoints", () => {
   describe("User event type slots", () => {
@@ -77,7 +76,6 @@ describe("Slots 2024-09-04 Endpoints", () => {
     const seatedEventTypeSlug = `slots-2024-09-04-seated-event-type-${randomString()}`;
     let seatedEventType: EventType;
 
-    const variableLengthEventTypeSlug = `slots-2024-09-04-variable-length-event-type-${randomString()}`;
     let variableLengthEventType: EventType;
 
     let reservedSlot: ReserveSlotOutputData_2024_09_04;
@@ -502,7 +500,8 @@ describe("Slots 2024-09-04 Endpoints", () => {
 
       const reserveResponseBody: GetReservedSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      const { reservationDuration, ...rest } = reservedSlot;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { reservationDuration: _1, ...rest } = reservedSlot;
       expect(reserveResponseBody.data).toEqual(rest);
     });
 

@@ -62,8 +62,8 @@ import {
   RescheduleBookingInput,
   CancelBookingInput,
 } from "@calcom/platform-types";
-import { PrismaClient } from "@calcom/prisma";
-import { EventType, User, Team } from "@calcom/prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
+import type { EventType, User, Team } from "@calcom/prisma/client";
 
 type CreatedBooking = {
   hosts: { id: number }[];
@@ -576,10 +576,13 @@ export class BookingsService_2024_08_13 {
         return this.outputService.getOutputRecurringBooking(booking);
       }
       if (isRecurring && isSeated) {
-        return this.outputService.getOutputRecurringSeatedBooking(booking);
+        return this.outputService.getOutputRecurringSeatedBooking(
+          booking,
+          !!booking.eventType?.seatsShowAttendees
+        );
       }
       if (isSeated) {
-        return this.outputService.getOutputSeatedBooking(booking);
+        return this.outputService.getOutputSeatedBooking(booking, !!booking.eventType?.seatsShowAttendees);
       }
       return this.outputService.getOutputBooking(booking);
     }
@@ -591,7 +594,10 @@ export class BookingsService_2024_08_13 {
     const ids = recurringBooking.map((booking) => booking.id);
     const isRecurringSeated = !!recurringBooking[0].eventType?.seatsPerTimeSlot;
     if (isRecurringSeated) {
-      return this.outputService.getOutputRecurringSeatedBookings(ids);
+      return this.outputService.getOutputRecurringSeatedBookings(
+        ids,
+        !!recurringBooking[0].eventType?.seatsShowAttendees
+      );
     }
 
     return this.outputService.getOutputRecurringBookings(ids);
@@ -657,9 +663,19 @@ export class BookingsService_2024_08_13 {
       if (isRecurring && !isSeated) {
         formattedBookings.push(this.outputService.getOutputRecurringBooking(formatted));
       } else if (isRecurring && isSeated) {
-        formattedBookings.push(this.outputService.getOutputRecurringSeatedBooking(formatted));
+        formattedBookings.push(
+          this.outputService.getOutputRecurringSeatedBooking(
+            formatted,
+            !!formatted.eventType?.seatsShowAttendees
+          )
+        );
       } else if (isSeated) {
-        formattedBookings.push(await this.outputService.getOutputSeatedBooking(formatted));
+        formattedBookings.push(
+          await this.outputService.getOutputSeatedBooking(
+            formatted,
+            !!formatted.eventType?.seatsShowAttendees
+          )
+        );
       } else {
         formattedBookings.push(await this.outputService.getOutputBooking(formatted));
       }

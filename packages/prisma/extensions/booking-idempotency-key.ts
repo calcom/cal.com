@@ -1,6 +1,5 @@
-import { Prisma } from "@prisma/client";
-
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
+import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 export function bookingIdempotencyKeyExtension() {

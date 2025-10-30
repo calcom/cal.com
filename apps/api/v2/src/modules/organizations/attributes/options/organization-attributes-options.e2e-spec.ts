@@ -21,7 +21,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, Membership, Attribute, AttributeOption } from "@calcom/prisma/client";
+import type { User, Team, Membership, Attribute, AttributeOption } from "@calcom/prisma/client";
 
 describe("Organizations Attributes Options Endpoints", () => {
   describe("User lacks required role", () => {

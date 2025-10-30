@@ -4,9 +4,9 @@ import { FormProvider } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName, validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type { InputClassNames } from "@calcom/features/eventtypes/lib/types";
-import type { EventNameObjectType } from "@calcom/lib/event";
-import { getEventName, validateCustomEventName } from "@calcom/lib/event";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";

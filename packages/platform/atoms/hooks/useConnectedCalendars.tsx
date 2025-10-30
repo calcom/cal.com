@@ -22,6 +22,7 @@ export const useConnectedCalendars = (props: { enabled?: boolean }) => {
       });
     },
     enabled: props?.enabled !== undefined ? props.enabled && isInit : isInit,
+    staleTime: 5000,
   });
 
   return calendars;

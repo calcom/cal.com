@@ -6,6 +6,7 @@ import { IS_SMS_CREDITS_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPublishedOrgIdFromMemberOrTeamId } from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import prisma from "@calcom/prisma";
+import { CreditUsageType } from "@calcom/prisma/enums";
 
 const InputSchema = z.object({
   userId: z
@@ -101,6 +102,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         bookingUid: parsedBookingUid,
         smsSid,
         credits: 0,
+        creditFor: CreditUsageType.SMS,
       });
 
       return res.status(200).send(`SMS to US and CA are free for teams. Credits set to 0`);
@@ -135,6 +137,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       bookingUid: parsedBookingUid,
       smsSid,
       credits: 0,
+      creditFor: CreditUsageType.SMS,
     });
 
     return res.status(200).send(`SMS are free for organizations. Credits set to 0`);
@@ -151,6 +154,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     smsSid,
     bookingUid: parsedBookingUid,
     smsSegments: numSegments ?? undefined,
+    creditFor: CreditUsageType.SMS,
   });
 
   if (chargedUserOrTeamId) {

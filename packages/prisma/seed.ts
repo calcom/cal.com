@@ -1,6 +1,3 @@
-import type { Membership, Team, User } from "@prisma/client";
-import { Prisma } from "@prisma/client";
-import type { UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
 import type z from "zod";
 
@@ -15,6 +12,9 @@ import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@ca
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
+import type { Membership, Team, User } from "./client";
+import { Prisma } from "./client";
+import type { UserPermissionRole } from "./client";
 import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";

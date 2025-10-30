@@ -1,9 +1,11 @@
-import type { SelectedCalendar } from "@prisma/client";
+import "../../tests/libs/__mocks__/prisma";
+
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import OfficeCalendarService from "@calcom/app-store/office365calendar/lib/CalendarService";
 import logger from "@calcom/lib/logger";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -18,6 +20,83 @@ vi.mock("./crypto", () => ({
 }));
 
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
+
+vi.mock("@calcom/app-store/calendar.services.generated", () => {
+  class MockGoogleCalendarService {
+    constructor(credential: any) {
+      this.credential = credential;
+    }
+
+    getCredentialId() {
+      return this.credential.id;
+    }
+
+    async createEvent() {
+      return {};
+    }
+
+    async updateEvent() {
+      return {};
+    }
+
+    async deleteEvent() {
+      return {};
+    }
+
+    async getAvailability() {
+      return [];
+    }
+
+    async getAvailabilityWithTimeZones() {
+      return [];
+    }
+
+    async listCalendars() {
+      return [];
+    }
+  }
+
+  class MockOfficeCalendarService {
+    constructor(credential: any) {
+      this.credential = credential;
+    }
+
+    getCredentialId() {
+      return this.credential.id;
+    }
+
+    async createEvent() {
+      return {};
+    }
+
+    async updateEvent() {
+      return {};
+    }
+
+    async deleteEvent() {
+      return {};
+    }
+
+    async getAvailability() {
+      return [];
+    }
+
+    async getAvailabilityWithTimeZones() {
+      return [];
+    }
+
+    async listCalendars() {
+      return [];
+    }
+  }
+
+  return {
+    CalendarServiceMap: {
+      googlecalendar: vi.importActual("@calcom/app-store/googlecalendar/lib/CalendarService"),
+      office365calendar: vi.importActual("@calcom/app-store/office365calendar/lib/CalendarService"),
+    },
+  };
+});
 
 function buildDelegationCredential(credential: CredentialPayload): CredentialForCalendarService {
   return {
@@ -87,10 +166,12 @@ describe("getCalendarsEvents", () => {
       },
       userId: 808,
       teamId: null,
+      user: {
+        email: "test@example.com",
+      },
       appId: "exampleApp",
       invalid: false,
       delegationCredentialId: null,
-      user: null,
     };
   });
 
@@ -339,7 +420,9 @@ describe("getCalendarsEventsWithTimezones", () => {
       },
       userId: 808,
       teamId: null,
-      user: null,
+      user: {
+        email: "test@example.com",
+      },
       appId: "exampleApp",
       invalid: false,
       delegationCredentialId: null,

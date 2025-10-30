@@ -1,5 +1,4 @@
-import { createModule } from "@evyweb/ioctopus";
-
+import { createModule } from "@calcom/lib/di/di";
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 
 import { NoopRedisService } from "../NoopRedisService";

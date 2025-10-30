@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 
 type EnforceTrueOrNested<T> = {
   [K in keyof T]: T[K] extends object ? EnforceTrueOrNested<T[K]> : true; // only allow `true` at leaves

@@ -17,15 +17,20 @@ export async function openFilter(page: Page, columnId: string) {
   await page.getByTestId(`filter-popover-trigger-${columnId}`).click();
 }
 
+export async function addOrOpenFilter(page: Page, columnId: string) {
+  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
+  if (await existingFilter.isVisible()) {
+    await openFilter(page, columnId);
+  } else {
+    await addFilter(page, columnId);
+  }
+}
+
 /**
  * Apply a filter with a specific value
  */
 export async function applySelectFilter(page: Page, columnId: string, value: string) {
-  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
-  if (!(await existingFilter.isVisible())) {
-    await addFilter(page, columnId);
-  }
-  await openFilter(page, columnId);
+  await addOrOpenFilter(page, columnId);
   await selectOptionValue(page, columnId, value);
   await page.keyboard.press("Escape");
 }
@@ -36,11 +41,7 @@ export async function selectOptionValue(page: Page, columnId: string, value: str
 }
 
 export async function applyTextFilter(page: Page, columnId: string, operator: string, operand?: string) {
-  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
-  if (!(await existingFilter.isVisible())) {
-    await addFilter(page, columnId);
-  }
-  await openFilter(page, columnId);
+  await addOrOpenFilter(page, columnId);
 
   await page.getByTestId(`text-filter-options-select-${columnId}`).click();
   await page
@@ -58,11 +59,7 @@ export async function applyTextFilter(page: Page, columnId: string, operator: st
 }
 
 export async function applyNumberFilter(page: Page, columnId: string, operator: string, operand: number) {
-  const existingFilter = page.getByTestId(`filter-popover-trigger-${columnId}`);
-  if (!(await existingFilter.isVisible())) {
-    await addFilter(page, columnId);
-  }
-  await openFilter(page, columnId);
+  await addOrOpenFilter(page, columnId);
 
   await page.getByTestId(`number-filter-options-select-${columnId}`).click();
   await page

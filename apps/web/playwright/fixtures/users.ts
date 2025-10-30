@@ -1,8 +1,5 @@
 import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
-import type Prisma from "@prisma/client";
-import type { Team } from "@prisma/client";
-import { Prisma as PrismaType } from "@prisma/client";
 import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
 import { v4 } from "uuid";
@@ -13,6 +10,9 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
+import type Prisma from "@calcom/prisma/client";
+import type { Team } from "@calcom/prisma/client";
+import type { Prisma as PrismaType } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
@@ -32,12 +32,12 @@ type UserFixture = ReturnType<typeof createUserFixture>;
 
 export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
 
-const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
+const userIncludes = {
   eventTypes: true,
   workflows: true,
   credentials: true,
   routingForms: true,
-});
+} satisfies PrismaType.UserInclude;
 
 type InstallStripeParamsSkipTrue = {
   eventTypeIds?: number[];
@@ -63,9 +63,9 @@ type InstallStripeParams = InstallStripeParamsUnion & {
   page: Page;
 };
 
-const userWithEventTypes = PrismaType.validator<PrismaType.UserArgs>()({
+const userWithEventTypes = {
   include: userIncludes,
-});
+} satisfies PrismaType.UserDefaultArgs;
 
 const seededForm = {
   id: "948ae412-d995-4865-875a-48302588de03",
@@ -657,8 +657,8 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     eventTypes: user.eventTypes,
     routingForms: user.routingForms,
     self,
-    apiLogin: async (password?: string) =>
-      apiLogin({ ...(await self()), password: password || user.username }, store.page),
+    apiLogin: async (navigateToUrl?: string, password?: string) =>
+      apiLogin({ ...(await self()), password: password || user.username }, store.page, navigateToUrl),
     /** Don't forget to close context at the end */
     apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
       const newContext = await browser.newContext();
@@ -969,14 +969,18 @@ export async function login(
 
 export async function apiLogin(
   user: Pick<Prisma.User, "username"> & Partial<Pick<Prisma.User, "email">> & { password: string | null },
-  page: Page
+  page: Page,
+  navigateToUrl?: string
 ) {
+  // Get CSRF token
   const csrfToken = await page
     .context()
     .request.get("/api/auth/csrf")
     .then((response) => response.json())
     .then((json) => json.csrfToken);
-  const data = {
+
+  // Make the login request
+  const loginData = {
     email: user.email ?? `${user.username}@example.com`,
     password: user.password ?? user.username,
     callbackURL: WEBAPP_URL,
@@ -984,10 +988,30 @@ export async function apiLogin(
     json: "true",
     csrfToken,
   };
+
   const response = await page.context().request.post("/api/auth/callback/credentials", {
-    data,
+    data: loginData,
   });
+
   expect(response.status()).toBe(200);
+
+  /**
+   * Critical: Navigate to a protected page to trigger NextAuth session loading
+   * This forces NextAuth to run the jwt and session callbacks that populate
+   * the session with profile, org, and other important data
+   * We picked /settings/my-account/profile due to it being one of
+   * our lighest protected pages and doesnt do anything other than load the user profile
+   */
+  await page.goto(navigateToUrl || "/settings/my-account/profile");
+
+  // Wait for the session API call to complete to ensure session is fully established
+  // Only wait if we're on a protected page that would trigger the session API call
+  try {
+    await page.waitForResponse("/api/auth/session", { timeout: 2000 });
+  } catch (error) {
+    // Session API call not made (likely on a public page), continue anyway
+  }
+
   return response;
 }
 

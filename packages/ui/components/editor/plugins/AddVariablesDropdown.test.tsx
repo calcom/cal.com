@@ -17,6 +17,10 @@ vi.mock("../../dropdown", () => ({
   DropdownMenuItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+vi.mock("@calcom/lib/hooks/useMediaQuery", () => ({
+  default: (_query: string) => false,
+}));
+
 describe("AddVariablesDropdown", () => {
   const mockAddVariable = vi.fn();
   const variables = ["var1", "var2", "var3"];

@@ -3,7 +3,7 @@ import type { ParsedUrlQuery } from "querystring";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
 import * as constants from "@calcom/lib/constants";
-import { RedirectType } from "@calcom/prisma/client";
+import { RedirectType } from "@calcom/prisma/enums";
 
 import { handleOrgRedirect, getRedirectWithOriginAndSearchString } from "./handleOrgRedirect";
 

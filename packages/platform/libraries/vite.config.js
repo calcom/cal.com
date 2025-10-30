@@ -36,6 +36,7 @@ export default defineConfig({
       dynamicRequireRoot: "../../../apps/web",
       dynamicRequireTargets: ["next-i18next.config.js"],
       ignoreDynamicRequires: true,
+      include: ["../../prisma/client/**"],
     },
     rollupOptions: {
       external: [
@@ -187,12 +188,17 @@ export default defineConfig({
   plugins: [react(), dts()],
   resolve: {
     alias: {
+      "@calcom/lib/server/i18n": path.resolve(__dirname, "./i18n.ts"),
+      "./server/i18n": path.resolve(__dirname, "./i18n.ts"),
+      "../server/i18n": path.resolve(__dirname, "./i18n.ts"),
       "@": path.resolve(__dirname, "./src"),
       "@calcom/lib": path.resolve(__dirname, "../../lib"),
       "@calcom/trpc": resolve("../../trpc"),
       "lru-cache": resolve("../../../node_modules/lru-cache/dist/cjs/index.js"),
-      "@prisma/client": resolve("../../../node_modules/@prisma/client"),
-      "@calcom/prisma/client": resolve("../../../node_modules/.prisma/client"),
+      "@calcom/prisma/client/runtime/library": resolve(
+        "../../../node_modules/@calcom/prisma/client/runtime/library.js"
+      ),
+      "@calcom/prisma/client": resolve("../../../node_modules/@calcom/prisma/client/index.js"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
       // eslint-disable-next-line prettier/prettier

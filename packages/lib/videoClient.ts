@@ -1,9 +1,9 @@
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
-import appStore from "@calcom/app-store";
+import { DailyLocationType } from "@calcom/app-store/constants";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
@@ -27,22 +27,22 @@ const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<V
   for (const cred of withCredentials) {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     log.silly("Getting video adapter for", safeStringify({ appName, cred: getPiiFreeCredential(cred) }));
-    const appImportFn = appStore[appName as keyof typeof appStore];
 
-    // Static Link Video Apps don't exist in packages/app-store/index.ts(it's manually maintained at the moment) and they aren't needed there anyway.
-    const app = appImportFn ? await appImportFn() : null;
+    const videoAdapterImport = VideoApiAdapterMap[appName as keyof typeof VideoApiAdapterMap];
 
-    if (!app) {
+    if (!videoAdapterImport) {
       log.error(`Couldn't get adapter for ${appName}`);
       continue;
     }
 
-    if ("lib" in app && "VideoApiAdapter" in app.lib) {
-      const makeVideoApiAdapter = app.lib.VideoApiAdapter as VideoApiAdapterFactory;
+    const videoAdapterModule = await videoAdapterImport;
+    const makeVideoApiAdapter = videoAdapterModule.default as VideoApiAdapterFactory;
+
+    if (makeVideoApiAdapter) {
       const videoAdapter = makeVideoApiAdapter(cred);
       videoAdapters.push(videoAdapter);
     } else {
-      log.error(`App ${appName} doesn't have 'lib.VideoApiAdapter' defined`);
+      log.error(`App ${appName} doesn't have a default VideoApiAdapter export`);
     }
   }
 

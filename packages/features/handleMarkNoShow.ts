@@ -1,15 +1,21 @@
 import { type TFunction } from "i18next";
 
+import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
@@ -112,6 +118,193 @@ const handleMarkNoShow = async ({
         bookingId,
         ...(platformClientParams ? platformClientParams : {}),
       });
+
+      const booking = await prisma.booking.findUnique({
+        where: { uid: bookingUid },
+        select: {
+          startTime: true,
+          endTime: true,
+          title: true,
+          metadata: true,
+          uid: true,
+          location: true,
+          destinationCalendar: true,
+          smsReminderNumber: true,
+          userPrimaryEmail: true,
+          eventType: {
+            select: {
+              id: true,
+              hideOrganizerEmail: true,
+              customReplyToEmail: true,
+              schedulingType: true,
+              slug: true,
+              title: true,
+              metadata: true,
+              parentId: true,
+              teamId: true,
+              hosts: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              parent: {
+                select: {
+                  teamId: true,
+                },
+              },
+              workflows: {
+                select: {
+                  workflow: {
+                    select: workflowSelect,
+                  },
+                },
+              },
+              owner: {
+                select: {
+                  hideBranding: true,
+                  email: true,
+                  name: true,
+                  timeZone: true,
+                  locale: true,
+                },
+              },
+              team: {
+                select: {
+                  parentId: true,
+                  name: true,
+                  id: true,
+                },
+              },
+            },
+          },
+          attendees: {
+            select: {
+              email: true,
+              name: true,
+              timeZone: true,
+              locale: true,
+              phoneNumber: true,
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              destinationCalendar: true,
+              timeZone: true,
+              locale: true,
+              username: true,
+              timeFormat: true,
+            },
+          },
+        },
+      });
+
+      if (booking?.eventType) {
+        const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
+
+        if (workflows.length > 0) {
+          const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
+          // Cache translations to avoid requesting multiple times.
+          const translations = new Map();
+          const attendeesListPromises = booking.attendees.map(async (attendee) => {
+            const locale = attendee.locale ?? "en";
+            let translate = translations.get(locale);
+            if (!translate) {
+              translate = await getTranslation(locale, "common");
+              translations.set(locale, translate);
+            }
+            return {
+              name: attendee.name,
+              email: attendee.email,
+              timeZone: attendee.timeZone,
+              phoneNumber: attendee.phoneNumber,
+              language: {
+                translate,
+                locale,
+              },
+            };
+          });
+          const attendeesList = await Promise.all(attendeesListPromises);
+          try {
+            const organizer = booking.user || booking.eventType.owner;
+            const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata);
+            const metadata =
+              parsedMetadata.success && parsedMetadata.data?.videoCallUrl
+                ? { videoCallUrl: parsedMetadata.data.videoCallUrl }
+                : undefined;
+            const bookerUrl = await getBookerBaseUrl(booking.eventType?.team?.parentId ?? null);
+            const destinationCalendar = booking.destinationCalendar
+              ? [booking.destinationCalendar]
+              : booking.user?.destinationCalendar
+              ? [booking.user?.destinationCalendar]
+              : [];
+            const team = !!booking.eventType?.team
+              ? {
+                  name: booking.eventType.team.name,
+                  id: booking.eventType.team.id,
+                  members: [],
+                }
+              : undefined;
+
+            const calendarEvent: ExtendedCalendarEvent = {
+              type: booking.eventType.slug,
+              title: booking.title,
+              startTime: booking.startTime.toISOString(),
+              endTime: booking.endTime.toISOString(),
+              organizer: {
+                id: booking.user?.id,
+                email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+                name: booking.user?.name || "Nameless",
+                username: booking.user?.username || undefined,
+                timeZone: organizer?.timeZone || "UTC",
+                timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
+                language: {
+                  translate: tOrganizer,
+                  locale: booking.user?.locale ?? "en",
+                },
+              },
+              attendees: attendeesList,
+              uid: booking.uid,
+              location: booking.location || "",
+              eventType: {
+                slug: booking.eventType.slug,
+                schedulingType: booking.eventType.schedulingType,
+                hosts: booking.eventType.hosts,
+              },
+              destinationCalendar,
+              bookerUrl,
+              metadata,
+              rescheduleReason: null,
+              cancellationReason: null,
+              hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
+              eventTypeId: booking.eventType?.id,
+              customReplyToEmail: booking.eventType?.customReplyToEmail,
+              team,
+            };
+
+            await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
+              workflows,
+              smsReminderNumber: booking.smsReminderNumber,
+              hideBranding: booking.eventType.owner?.hideBranding,
+              calendarEvent,
+              triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
+            });
+          } catch (error) {
+            logger.error("Error while scheduling workflow reminders for booking no-show updated", error);
+          }
+        }
+      }
 
       responsePayload.setAttendees(payload.attendees);
       responsePayload.setMessage(payload.message);

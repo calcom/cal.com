@@ -1,4 +1,5 @@
 import "@calcom/lib/__mocks__/logger";
+import { prisma } from "@calcom/prisma/__mocks__/prisma";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
@@ -38,6 +39,10 @@ vi.mock("../lib/isRouter", () => ({
 
 vi.mock("@calcom/lib/sentryWrapper", () => ({
   withReporting: (fn: unknown) => fn,
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  prisma,
 }));
 
 const mockForm: TargetRoutingFormForResponse = {
@@ -108,6 +113,7 @@ describe("handleResponse", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(RoutingFormResponseRepository).mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       () => mockRoutingFormResponseRepository as any
     );
   });
@@ -251,16 +257,20 @@ describe("handleResponse", () => {
   it("should handle chosen route and call routing logic", async () => {
     const chosenRoute = {
       id: "route1",
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       queryValue: { type: "group", children1: {} } as any,
       action: {
         type: "customPageMessage" as const,
         value: "Thank you for your submission!",
       },
       attributeRoutingConfig: null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       attributesQueryValue: { type: "group", children1: {} } as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fallbackAttributesQueryValue: { type: "group", children1: {} } as any,
       isFallback: false,
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formWithRoute: TargetRoutingFormForResponse = { ...mockForm, routes: [chosenRoute as any] };
 
     vi.mocked(routerGetCrmContactOwnerEmail).mockResolvedValue({
@@ -270,6 +280,7 @@ describe("handleResponse", () => {
       recordId: "123",
     });
     vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       teamMembersMatchingAttributeLogic: [{ userId: 123, result: "MATCH" as any }],
       checkedFallback: false,
       fallbackAttributeLogicBuildingWarnings: [],
@@ -309,6 +320,7 @@ describe("handleResponse", () => {
     vi.mocked(isRouter).mockReturnValue(true);
     const formWithRoute: TargetRoutingFormForResponse = {
       ...mockForm,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       routes: [chosenRoute as any],
     };
 

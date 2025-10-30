@@ -119,7 +119,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -193,7 +193,6 @@ describe("handleNewBooking", () => {
                   uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingPassword: "MOCK_PASSWORD",
-                  meetingUrl: "https://UNUSED_URL",
                 },
               ],
             });
@@ -338,7 +337,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          mockCalendarToHaveNoBusySlots("googlecalendar", {
+          await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -472,7 +471,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -545,7 +544,6 @@ describe("handleNewBooking", () => {
                   uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingPassword: "MOCK_PASSWORD",
-                  meetingUrl: "https://UNUSED_URL",
                 },
               ],
             });
@@ -691,7 +689,7 @@ describe("handleNewBooking", () => {
             },
           });
 
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
             create: {
               id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -764,7 +762,6 @@ describe("handleNewBooking", () => {
                   uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingId: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
                   meetingPassword: "MOCK_PASSWORD",
-                  meetingUrl: "https://UNUSED_URL",
                 },
               ],
             });
@@ -949,7 +946,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -1104,7 +1101,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
@@ -1325,7 +1322,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+        const calendarMock = await mockCalendarToHaveNoBusySlots("googlecalendar", {
           create: {
             id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
             iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",

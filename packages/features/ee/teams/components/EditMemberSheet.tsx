@@ -20,7 +20,7 @@ import { Skeleton, Loader } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { updateRoleInCache } from "./MemberChangeRoleModal";
+import { updateRoleInCache, getUpdatedUser } from "./MemberChangeRoleModal";
 import type { Action, State, User } from "./MemberList";
 
 const formSchema = z.object({
@@ -142,6 +142,14 @@ export function EditMemberSheet({
       await utils.viewer.teams.listMembers.invalidate();
       showToast(t("profile_updated_successfully"), "success");
       setEditMode(false);
+
+      dispatch({
+        type: "EDIT_USER_SHEET",
+        payload: {
+          showModal: true,
+          user: getUpdatedUser(selectedUser, role, customRoles),
+        },
+      });
     },
     async onError(err) {
       showToast(err.message, "error");

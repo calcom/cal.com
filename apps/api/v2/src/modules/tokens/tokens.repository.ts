@@ -3,9 +3,10 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
-import { PlatformAuthorizationToken } from "@prisma/client";
 import { DateTime } from "luxon";
 import { v4 as uuidv4 } from "uuid";
+
+import type { PlatformAuthorizationToken } from "@calcom/prisma/client";
 
 @Injectable()
 export class TokensRepository {
@@ -94,7 +95,7 @@ export class TokensRepository {
   async forceRefreshOAuthTokens(clientId: string, ownerId: number) {
     const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_deletedAccessToken, _deletedRefreshToken, accessToken, refreshToken] =
       await this.dbWrite.prisma.$transaction([
         this.dbWrite.prisma.accessToken.deleteMany({

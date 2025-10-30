@@ -1,15 +1,13 @@
 import { z } from "zod";
 
-import {
-  _AttendeeModel,
-  _BookingModel as Booking,
-  _EventTypeModel,
-  _PaymentModel,
-  _TeamModel,
-  _UserModel,
-} from "@calcom/prisma/zod";
+import { extendedBookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import { iso8601 } from "@calcom/prisma/zod-utils";
-import { extendedBookingCreateBody } from "@calcom/prisma/zod/custom/booking";
+import { AttendeeSchema } from "@calcom/prisma/zod/modelSchema/AttendeeSchema";
+import { BookingSchema as Booking } from "@calcom/prisma/zod/modelSchema/BookingSchema";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
+import { PaymentSchema } from "@calcom/prisma/zod/modelSchema/PaymentSchema";
+import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
+import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
 
 import { schemaQueryUserId } from "./shared/queryUserId";
 
@@ -72,17 +70,16 @@ export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
   .merge(schemaBookingEditParams)
   .omit({ uid: true });
 
-const teamSchema = _TeamModel.pick({
+const teamSchema = TeamSchema.pick({
   name: true,
   slug: true,
 });
 
 export const schemaBookingReadPublic = Booking.extend({
-  eventType: _EventTypeModel
-    .pick({
-      title: true,
-      slug: true,
-    })
+  eventType: EventTypeSchema.pick({
+    title: true,
+    slug: true,
+  })
     .merge(
       z.object({
         team: teamSchema.nullish(),
@@ -91,7 +88,7 @@ export const schemaBookingReadPublic = Booking.extend({
     .nullish(),
   attendees: z
     .array(
-      _AttendeeModel.pick({
+      AttendeeSchema.pick({
         id: true,
         email: true,
         name: true,
@@ -100,17 +97,15 @@ export const schemaBookingReadPublic = Booking.extend({
       })
     )
     .optional(),
-  user: _UserModel
-    .pick({
-      email: true,
-      name: true,
-      timeZone: true,
-      locale: true,
-    })
-    .nullish(),
+  user: UserSchema.pick({
+    email: true,
+    name: true,
+    timeZone: true,
+    locale: true,
+  }).nullish(),
   payment: z
     .array(
-      _PaymentModel.pick({
+      PaymentSchema.pick({
         id: true,
         success: true,
         paymentOption: true,
@@ -140,3 +135,8 @@ export const schemaBookingReadPublic = Booking.extend({
   rescheduledBy: true,
   createdAt: true,
 });
+
+export {
+  bookingCreateSchemaLegacyPropsForApi,
+  bookingCreateBodySchemaForApi,
+} from "@calcom/features/bookings/lib/bookingCreateBodySchema";

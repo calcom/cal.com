@@ -4,6 +4,16 @@ import { generateSkeleton } from "../ui/skeleton";
 function getStyle() {
   return `
   <style>
+    /* 
+      Modal box is added as a child of the top-most element which is body(the container)
+      If the container has grid layout being used. Even if the cal-modal-box is visiblity:hidden, it causes it to take up space in the grid layout
+      It causes that space to keep on increasing as modal box is opened and closed repeatedly
+      We set position:absolute to move it out of the regular flow of the grid layout
+    */
+    :host {
+      position: absolute;
+    }
+    
     .my-backdrop {
       position:fixed;
       width:100%;

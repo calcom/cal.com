@@ -1,5 +1,4 @@
-import type { DestinationCalendar } from "@prisma/client";
-
+import type { DestinationCalendar } from "@calcom/prisma/client";
 import type {
   AdditionalInformation,
   CalendarEvent,

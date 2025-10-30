@@ -1,12 +1,10 @@
-import type { Workflow } from "@prisma/client";
-
+import type { Workflow } from "@calcom/prisma/client";
 import { isAuthorized } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 export interface WorkflowPermissions {
   canView: boolean;
   canUpdate: boolean;
   canDelete: boolean;
-  canManage: boolean;
   readOnly: boolean; // Keep for backward compatibility
 }
 
@@ -36,18 +34,16 @@ export class WorkflowPermissionsBuilder {
     const mockWorkflow = { id: 0, teamId, userId: null };
 
     // Check all permissions in parallel for better performance
-    const [canView, canUpdate, canDelete, canManage] = await Promise.all([
+    const [canView, canUpdate, canDelete] = await Promise.all([
       isAuthorized(mockWorkflow, this.currentUserId, "workflow.read"),
       isAuthorized(mockWorkflow, this.currentUserId, "workflow.update"),
       isAuthorized(mockWorkflow, this.currentUserId, "workflow.delete"),
-      isAuthorized(mockWorkflow, this.currentUserId, "workflow.manage"),
     ]);
 
     const permissions = {
       canView,
       canUpdate,
       canDelete,
-      canManage,
       readOnly: !canUpdate,
     };
 
@@ -64,7 +60,6 @@ export class WorkflowPermissionsBuilder {
       canView: isOwner,
       canUpdate: isOwner,
       canDelete: isOwner,
-      canManage: isOwner,
       readOnly: !isOwner,
     };
   }
@@ -80,7 +75,6 @@ export class WorkflowPermissionsBuilder {
         canView: false,
         canUpdate: false,
         canDelete: false,
-        canManage: false,
         readOnly: true,
       };
     }

@@ -22,7 +22,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, EventType, AttributeOption } from "@calcom/prisma/client";
+import type { User, Team, AttributeOption } from "@calcom/prisma/client";
 
 describe("Organizations Users Endpoints", () => {
   const bio = "I am a bio";
@@ -414,7 +414,6 @@ describe("Organizations Users Endpoints", () => {
     let user: User;
     let org: Team;
     let team: Team;
-    let managedEventType: EventType;
     let createdUser: User;
 
     beforeAll(async () => {
@@ -480,7 +479,7 @@ describe("Organizations Users Endpoints", () => {
         locations: [],
       });
 
-      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+      await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "MANAGED",
         team: {
           connect: { id: team.id },
@@ -651,7 +650,6 @@ describe("Organizations Users Endpoints", () => {
         type: "TEXT",
         slug: `test-attribute-2-${randomString()}`,
       });
-      const attributeId = attribute.id;
 
       assignedOption1 = await attributeRepositoryFixture.createOption({
         slug: "option1",

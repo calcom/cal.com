@@ -1,4 +1,4 @@
-import type { Team } from "@prisma/client";
+import type { Team } from "@calcom/prisma/client";
 
 export interface OrganizationBillingRepository {
   findById(organizationId: number): Promise<Pick<Team, "id" | "slug" | "name" | "billingPeriod"> | null>;

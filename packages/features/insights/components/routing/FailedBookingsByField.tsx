@@ -16,7 +16,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
-import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+import { useInsightsRoutingParameters } from "../../hooks/useInsightsRoutingParameters";
 import { ChartCard } from "../ChartCard";
 
 // Custom Tooltip component
@@ -131,13 +131,8 @@ function FormCard({ formName, fields }: FormCardProps) {
 
 export function FailedBookingsByField() {
   const { t } = useLocale();
-  const { userId, teamId, startDate, endDate, isAll, routingFormId } = useInsightsParameters();
-  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery({
-    userId,
-    teamId,
-    isAll,
-    routingFormId,
-  });
+  const insightsRoutingParams = useInsightsRoutingParameters();
+  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery(insightsRoutingParams);
 
   if (!data || Object.entries(data).length === 0) return null;
 

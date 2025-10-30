@@ -1,4 +1,4 @@
-import type { readonlyPrisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import {
   InsightsRoutingBaseService,
@@ -7,7 +7,7 @@ import {
 } from "./InsightsRoutingBaseService";
 
 export interface IInsightsRoutingService {
-  prisma: typeof readonlyPrisma;
+  prisma: PrismaClient;
 }
 
 export class InsightsRoutingService {

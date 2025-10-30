@@ -15,7 +15,6 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
   DataTableProvider,
@@ -30,10 +29,10 @@ import {
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
+import type { MemberPermissions } from "@calcom/features/users/components/UserTable/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -163,6 +162,7 @@ interface Props {
       }[];
     }[];
   };
+  permissions: MemberPermissions;
 }
 
 export default function MemberList(props: Props) {
@@ -291,8 +291,6 @@ function MemberListContent(props: Props) {
   //   const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
   //   return owners.length;
   // };
-
-  const isAdminOrOwner = checkAdminOrOwner(props.team.membership.role);
 
   const removeMember = () =>
     removeMemberMutation.mutate({
@@ -429,17 +427,19 @@ function MemberListContent(props: Props) {
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
+          // TODO(SEAN) In a follow up can we rename canChangeMemberRole to canEditMembers - role is a bit specific.
+          const canChangeRole = props.permissions?.canChangeMemberRole ?? false;
+          const canRemove = props.permissions?.canRemove ?? false;
+          const canImpersonate = props.permissions?.canImpersonate ?? false;
+          const canResendInvitation = props.permissions?.canInvite ?? false;
           const editMode =
-            (props.team.membership?.role === MembershipRole.OWNER &&
-              (user.role !== MembershipRole.OWNER || !isSelf)) ||
-            (props.team.membership?.role === MembershipRole.ADMIN && user.role !== MembershipRole.OWNER) ||
-            props.isOrgAdminOrOwner;
+            [canChangeRole, canRemove, canImpersonate, canResendInvitation].some(Boolean) && !isSelf;
+
           const impersonationMode =
-            editMode &&
+            canImpersonate &&
             !user.disableImpersonation &&
             user.accepted &&
             process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
-          const resendInvitation = editMode && !user.accepted;
           return (
             <>
               {props.team.membership?.accepted && (
@@ -495,22 +495,24 @@ function MemberListContent(props: Props) {
                         </DropdownMenuTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuContent>
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                onClick={() =>
-                                  dispatch({
-                                    type: "EDIT_USER_SHEET",
-                                    payload: {
-                                      user,
-                                      showModal: true,
-                                    },
-                                  })
-                                }
-                                StartIcon="pencil">
-                                {t("edit")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
+                            {canChangeRole ? (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "EDIT_USER_SHEET",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  StartIcon="pencil">
+                                  {t("edit")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            ) : null}
                             {impersonationMode && (
                               <>
                                 <DropdownMenuItem>
@@ -532,7 +534,7 @@ function MemberListContent(props: Props) {
                                 <DropdownMenuSeparator />
                               </>
                             )}
-                            {resendInvitation && (
+                            {canResendInvitation && (
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
@@ -548,23 +550,25 @@ function MemberListContent(props: Props) {
                                 </DropdownItem>
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem>
-                              <DropdownItem
-                                type="button"
-                                onClick={() =>
-                                  dispatch({
-                                    type: "SET_DELETE_ID",
-                                    payload: {
-                                      user,
-                                      showModal: true,
-                                    },
-                                  })
-                                }
-                                color="destructive"
-                                StartIcon="user-x">
-                                {t("remove")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
+                            {canRemove ? (
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "SET_DELETE_ID",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  color="destructive"
+                                  StartIcon="user-x">
+                                  {t("remove")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            ) : null}
                           </DropdownMenuContent>
                         </DropdownMenuPortal>
                       </Dropdown>
@@ -713,7 +717,7 @@ function MemberListContent(props: Props) {
         ToolbarRight={
           <>
             <DataTableFilters.ClearFiltersButton />
-            {isAdminOrOwner && (
+            {props.permissions.canInvite && (
               <DataTableToolbar.CTA
                 type="button"
                 color="primary"

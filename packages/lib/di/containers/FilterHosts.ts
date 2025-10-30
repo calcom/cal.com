@@ -1,9 +1,8 @@
-import { createContainer } from "@evyweb/ioctopus";
-
 import { DI_TOKENS } from "@calcom/lib/di/tokens";
 import { prismaModule } from "@calcom/prisma/prisma.module";
 
 import type { FilterHostsService } from "../../bookings/filterHostsBySameRoundRobinHost";
+import { createContainer } from "../di";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { filterHostsModule } from "../modules/FilterHosts";
 

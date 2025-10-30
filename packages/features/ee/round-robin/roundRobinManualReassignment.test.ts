@@ -154,7 +154,9 @@ const expectEventManagerCalledWith = (
     expectedParams.uid,
     undefined,
     expectedParams.changedOrganizer,
-    expectedParams.destinationCalendars ?? expect.any(Array)
+    expectedParams.destinationCalendars ?? expect.any(Array),
+    undefined,
+    expectedParams.changedOrganizer
   );
 };
 
@@ -463,9 +465,9 @@ describe("roundRobinManualReassignment test", () => {
     const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
     await mockEventManagerReschedule();
 
-    const sendRoundRobinCancelledEmailsAndSMSSpy = vi.spyOn(
+    const sendRoundRobinReassignedEmailsAndSMSSpy = vi.spyOn(
       await import("@calcom/emails"),
-      "sendRoundRobinCancelledEmailsAndSMS"
+      "sendRoundRobinReassignedEmailsAndSMS"
     );
 
     const testDestinationCalendar = createTestDestinationCalendar();
@@ -521,7 +523,7 @@ describe("roundRobinManualReassignment test", () => {
       reassignedById: 1,
     });
 
-    expect(sendRoundRobinCancelledEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    expect(sendRoundRobinReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
   });
 });
 
