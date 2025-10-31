@@ -113,6 +113,26 @@ export async function managedEventManualReassignment({
 
   const originalUser = await prisma.user.findUnique({
     where: { id: originalBooking.userId ?? undefined },
+    include: {
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          key: true,
+          userId: true,
+          teamId: true,
+          appId: true,
+          invalid: true,
+          user: {
+            select: {
+              email: true,
+            },
+          },
+          delegationCredentialId: true,
+        },
+      },
+      destinationCalendar: true,
+    },
   });
 
   if (!originalUser) {
@@ -199,13 +219,24 @@ export async function managedEventManualReassignment({
     });
 
     // Update the cancelled booking metadata with new booking ID
+    const existingReassignment =
+      typeof cancelled.metadata === "object" &&
+      cancelled.metadata &&
+      "reassignment" in cancelled.metadata &&
+      typeof cancelled.metadata.reassignment === "object" &&
+      cancelled.metadata.reassignment !== null
+        ? cancelled.metadata.reassignment
+        : {};
+
     await tx.booking.update({
       where: { id: cancelled.id },
       data: {
         metadata: {
-          ...(typeof cancelled.metadata === "object" ? cancelled.metadata : {}),
+          ...(typeof cancelled.metadata === "object" && cancelled.metadata !== null
+            ? cancelled.metadata
+            : {}),
           reassignment: {
-            ...(typeof cancelled.metadata === "object" && cancelled.metadata && "reassignment" in cancelled.metadata ? cancelled.metadata.reassignment : {}),
+            ...existingReassignment,
             reassignedToBookingId: created.id,
           },
         },
@@ -225,6 +256,10 @@ export async function managedEventManualReassignment({
 
   // Delete calendar events from original user
   if (originalUser) {
+    // Get translation functions for both users
+    const { getTranslation } = await import("@calcom/lib/server/i18n");
+    const originalUserT = await getTranslation(originalUser.locale ?? "en", "common");
+
     const originalUserCredentials = await getAllCredentialsIncludeServiceAccountKey(
       originalUser,
       currentEventTypeDetails
@@ -242,7 +277,7 @@ export async function managedEventManualReassignment({
             name: originalUser.name || "",
             email: originalUser.email,
             timeZone: originalUser.timeZone,
-            language: { translate: (key: string) => key, locale: originalUser.locale ?? "en" },
+            language: { translate: originalUserT, locale: originalUser.locale ?? "en" },
           },
           startTime: dayjs(originalBookingFull.startTime).utc().format(),
           endTime: dayjs(originalBookingFull.endTime).utc().format(),
@@ -261,6 +296,8 @@ export async function managedEventManualReassignment({
   }
 
   // Create calendar events for new user
+  const newUserT = await getTranslation(newUser.locale ?? "en", "common");
+
   const newUserWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: { ...newUser, credentials: newUserCredentials },
   });
@@ -274,7 +311,7 @@ export async function managedEventManualReassignment({
         name: newUser.name || "",
         email: newUser.email,
         timeZone: newUser.timeZone,
-        language: { translate: (key: string) => key, locale: newUser.locale ?? "en" },
+        language: { translate: newUserT, locale: newUser.locale ?? "en" },
       },
       startTime: dayjs(newBooking.startTime).utc().format(),
       endTime: dayjs(newBooking.endTime).utc().format(),
@@ -285,7 +322,7 @@ export async function managedEventManualReassignment({
         name: att.name,
         email: att.email,
         timeZone: att.timeZone,
-        language: { translate: (key: string) => key, locale: att.locale ?? "en" },
+        language: { translate: newUserT, locale: att.locale ?? "en" },
       })),
       team: targetEventTypeDetails.team ? {
         members: [{
@@ -293,7 +330,7 @@ export async function managedEventManualReassignment({
           email: newUser.email,
           name: newUser.name || "",
           timeZone: newUser.timeZone,
-          language: { translate: (key: string) => key, locale: newUser.locale ?? "en" },
+          language: { translate: newUserT, locale: newUser.locale ?? "en" },
         }],
         name: targetEventTypeDetails.team.name || "",
         id: targetEventTypeDetails.team.id || 0,
@@ -315,7 +352,7 @@ export async function managedEventManualReassignment({
           email: originalUser.email,
           name: originalUser.name || "",
           timeZone: originalUser.timeZone,
-          language: { translate: (key: string) => key, locale: originalUser.locale ?? "en" },
+          language: { translate: originalUserT, locale: originalUser.locale ?? "en" },
         },
         startTime: dayjs(originalBookingFull.startTime).utc().format(),
         endTime: dayjs(originalBookingFull.endTime).utc().format(),
@@ -336,7 +373,7 @@ export async function managedEventManualReassignment({
       const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
       
       await WorkflowService.scheduleWorkflowsForNewBooking({
-        workflows: targetEventTypeDetails.workflows,
+        workflows: targetEventTypeDetails.workflows.map(w => w.workflow),
         smsReminderNumber: newBooking.smsReminderNumber || null,
         calendarEvent: {
           type: targetEventTypeDetails.slug,
@@ -349,13 +386,13 @@ export async function managedEventManualReassignment({
             name: newUser.name || "",
             email: newUser.email,
             timeZone: newUser.timeZone,
-            language: { translate: (key: string) => key, locale: newUser.locale ?? "en" },
+            language: { translate: newUserT, locale: newUser.locale ?? "en" },
           },
           attendees: newBooking.attendees.map(att => ({
             name: att.name,
             email: att.email,
             timeZone: att.timeZone,
-            language: { translate: (key: string) => key, locale: att.locale ?? "en" },
+            language: { translate: newUserT, locale: att.locale ?? "en" },
           })),
           location: newBooking.location || undefined,
           description: newBooking.description || undefined,

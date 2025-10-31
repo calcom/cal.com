@@ -113,6 +113,11 @@ export async function findTargetChildEventType({
     throw new Error("Cannot reassign to the same user");
   }
 
+  // 6. Ensure target child event type has parentId
+  if (!targetChildEventType.parentId) {
+    throw new Error("Target child event type is missing parentId");
+  }
+
   return {
     currentChildEventType: {
       id: currentChildEventType.id,
@@ -120,7 +125,11 @@ export async function findTargetChildEventType({
       userId: currentChildEventType.userId,
     },
     parentEventType,
-    targetChildEventType,
+    targetChildEventType: {
+      id: targetChildEventType.id,
+      parentId: targetChildEventType.parentId,
+      userId: targetChildEventType.userId,
+    },
     originalBooking: booking,
   };
 }

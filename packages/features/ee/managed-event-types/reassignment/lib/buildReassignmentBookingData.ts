@@ -24,7 +24,7 @@ interface BuildReassignmentBookingDataParams {
     eventName: string | null;
     team?: { name: string } | null;
   };
-  newUser: User;
+  newUser: Pick<User, "id" | "username" | "email" | "timeZone" | "locale" | "name">;
   reassignReason?: string;
   reassignedById: number;
   originalUserId: number;
