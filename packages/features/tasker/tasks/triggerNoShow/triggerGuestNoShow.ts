@@ -58,33 +58,35 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
 
   if (requireEmailForGuests) {
     if (guestsThatDidntJoinTheCall.length > 0) {
-      await sendWebhookPayload(
-        webhook,
-        WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        booking,
-        maxStartTime,
-        participants,
-        originalRescheduledBooking
-      );
-
-      await markGuestAsNoshowInBooking({
-        bookingId: booking.id,
-        hostsThatJoinedTheCall,
-        guestsThatDidntJoinTheCall,
-      });
+      await Promise.all([
+        sendWebhookPayload(
+          webhook,
+          WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+          booking,
+          maxStartTime,
+          participants,
+          originalRescheduledBooking
+        ),
+        markGuestAsNoshowInBooking({
+          bookingId: booking.id,
+          hostsThatJoinedTheCall,
+          guestsThatDidntJoinTheCall,
+        }),
+      ]);
     }
   } else {
     if (!didGuestJoinTheCall) {
-      await sendWebhookPayload(
-        webhook,
-        WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-        booking,
-        maxStartTime,
-        participants,
-        originalRescheduledBooking
-      );
-
-      await markGuestAsNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall });
+      await Promise.all([
+        sendWebhookPayload(
+          webhook,
+          WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+          booking,
+          maxStartTime,
+          participants,
+          originalRescheduledBooking
+        ),
+        markGuestAsNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall }),
+      ]);
     }
   }
 }

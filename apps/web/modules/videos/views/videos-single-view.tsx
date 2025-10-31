@@ -395,7 +395,6 @@ export function LogInOverlay(props: LogInOverlayProps) {
         setIsOpen(false);
       }
     } catch (error) {
-      console.error("Error joining as guest:", error);
       const errorKey = error instanceof Error ? error.message : "failed_to_join_call";
       const errorMessage = t(errorKey) || errorKey;
       setError(errorMessage);
