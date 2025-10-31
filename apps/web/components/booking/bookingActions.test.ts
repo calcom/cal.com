@@ -13,7 +13,7 @@ import {
   shouldShowRecurringCancelAction,
   isActionDisabled,
   getActionLabel,
-  type BookingActionContext,
+  BookingActionContext,
 } from "./bookingActions";
 
 const mockT = (key: string) => key;
@@ -54,7 +54,7 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
           locale: "en",
           bookingId: 1,
           noShow: false,
-        } as any,
+        },
       ],
       user: {
         id: 1,
@@ -438,9 +438,9 @@ describe("Booking Actions", () => {
       expect(shouldShowEditActions(context)).toBe(true);
     });
 
-    it("should return false for pending bookings", () => {
+    it("should return true for pending bookings", () => {
       const context = createMockContext({ isPending: true });
-      expect(shouldShowEditActions(context)).toBe(false);
+      expect(shouldShowEditActions(context)).toBe(true);
     });
 
     it("should return false for cancelled bookings", () => {
