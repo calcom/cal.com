@@ -112,8 +112,8 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
     describe("POST /v2/bookings", () => {
       it("should create booking with reservedSlotUid from cookie and remove selected slot", async () => {
         const reservedSlotUid = `reserved-slot-${randomString()}`;
-        const startTime = DateTime.now().plus({ days: 1 }).startOf("hour").toJSDate();
-        const endTime = DateTime.fromJSDate(startTime).plus({ hours: 1 }).toJSDate();
+        const startTime = new Date("2040-05-21T09:30:00.000Z");
+        const endTime = new Date("2040-05-21T10:30:00.000Z");
 
         await createReservedSlot(user.id, eventTypeId, reservedSlotUid, startTime, endTime);
 
@@ -146,8 +146,8 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
 
       it("should create booking with reservedSlotUid from request body and remove selected slot", async () => {
         const reservedSlotUid = `reserved-slot-${randomString()}`;
-        const startTime = DateTime.now().plus({ days: 1 }).startOf("hour").toJSDate();
-        const endTime = DateTime.fromJSDate(startTime).plus({ hours: 1 }).toJSDate();
+        const startTime = new Date("2040-05-21T11:30:00.000Z");
+        const endTime = new Date("2040-05-21T12:30:00.000Z");
 
         await createReservedSlot(user.id, eventTypeId, reservedSlotUid, startTime, endTime);
 
@@ -181,8 +181,8 @@ describe("Reserved Slot Bookings Endpoints 2024-08-13", () => {
       it("should fail when trying to book with reservedSlotUid that is not first in line", async () => {
         const firstReservedSlotUid = `reserved-slot-first-${randomString()}`;
         const secondReservedSlotUid = `reserved-slot-second-${randomString()}`;
-        const startTime = DateTime.now().plus({ days: 1 }).startOf("hour").toJSDate();
-        const endTime = DateTime.fromJSDate(startTime).plus({ hours: 1 }).toJSDate();
+        const startTime = new Date("2040-05-21T13:30:00.000Z");
+        const endTime = new Date("2040-05-21T14:30:00.000Z");
 
         await createReservedSlot(user.id, eventTypeId, firstReservedSlotUid, startTime, endTime);
 
