@@ -275,7 +275,7 @@ function SeparatorRowRenderer({ separator, className }: { separator: SeparatorRo
   return (
     <div
       className={classNames(
-        "bg-muted text-emphasis w-full px-3 py-2 font-semibold",
+        "bg-cal-muted text-emphasis w-full px-3 py-2 font-semibold",
         separator.className,
         className
       )}>
@@ -402,10 +402,10 @@ function DataTableBody<TData>({
                     width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                   }}
                   className={classNames(
-                    "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
+                    "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
                     variant === "compact" && "p-0",
                     column.getIsPinned() &&
-                      "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
+                      "bg-default group-hover:!bg-cal-muted group-data-[state=selected]:bg-subtle sm:sticky"
                   )}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>

@@ -492,7 +492,7 @@ export default function Success(props: PageProps) {
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
-                            ? "bg-success"
+                            ? "bg-cal-success"
                             : "",
                           !giphyImage && isReschedulable && (needsConfirmation || isAwaitingPayment)
                             ? "bg-subtle"
