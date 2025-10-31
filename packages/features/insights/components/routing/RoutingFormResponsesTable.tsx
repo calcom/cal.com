@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -26,6 +26,7 @@ import { useInsightsParameters } from "../../hooks/useInsightsParameters";
 import { useInsightsRoutingFacetedUniqueValues } from "../../hooks/useInsightsRoutingFacetedUniqueValues";
 import type { RoutingFormTableRow } from "../../lib/types";
 import { RoutingKPICards } from "./RoutingKPICards";
+import type { Row } from "@tanstack/react-table";
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
@@ -84,6 +85,7 @@ export function RoutingFormResponsesTable() {
         attendeeName: false,
         attendeeEmail: false,
         attendeePhone: false,
+        reroutingStatus: true,
         utm_source: false,
         utm_medium: false,
         utm_campaign: false,

@@ -1,5 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import startCase from "lodash/startCase";
 import { useMemo } from "react";
 import { z } from "zod";
@@ -246,6 +246,75 @@ export const useInsightsColumns = ({
           </div>
         ),
       }),
+      columnHelper.accessor("isRerouted", {
+        id: "reroutingStatus",
+        header: t("routing_form_insights_reassignment_status"),
+        size: 140,
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.SINGLE_SELECT,
+          },
+        },
+        cell: (info) => {
+          const row = info.row.original;
+          const status = row.isRerouted;
+          const isOriginal = status === 'original';
+          
+          // Check actual data fields instead of relying only on status
+          const hasFromReschedule = row.fromReschedule !== null && row.fromReschedule !== undefined;
+          const hasReassignmentReason = row.bookingAssignmentReason && row.bookingAssignmentReason.trim() !== '';
+          
+          // Original bookings (cancelled and replaced) - show as "Routed"
+          if (isOriginal) {
+            return (
+              <Badge variant="purple" className="flex items-center gap-1">
+                <span>{t("routing_status_routed")}</span>
+              </Badge>
+            );
+          }
+          
+          // Show both badges if booking is both rerouted and reassigned
+          if (hasFromReschedule && hasReassignmentReason) {
+            return (
+              <div className="flex flex-wrap gap-1">
+                <Badge variant="blue" className="flex items-center gap-1">
+                  <span>{t("routing_status_rerouted")}</span>
+                </Badge>
+                <Badge variant="orange" className="flex items-center gap-1">
+                  <span>{t("routing_status_reassigned")}</span>
+                </Badge>
+              </div>
+            );
+          }
+          
+          // Current bookings that are rerouted (have fromReschedule)
+          if (hasFromReschedule) {
+            return (
+              <Badge variant="blue" className="flex items-center gap-1">
+                <span>{t("routing_status_rerouted")}</span>
+              </Badge>
+            );
+          }
+          
+          // Reassigned bookings
+          if (hasReassignmentReason) {
+            return (
+              <Badge variant="orange" className="flex items-center gap-1">
+                <span>{t("routing_status_reassigned")}</span>
+              </Badge>
+            );
+          }
+          
+          // Standard bookings (not reassigned, not rerouted, not original)
+          return (
+            <Badge variant="gray">
+              <span>{t("routing_status_standard")}</span>
+            </Badge>
+          );
+        },
+      }),
       columnHelper.accessor("bookingAssignmentReason", {
         id: "bookingAssignmentReason",
         header: t("routing_form_insights_assignment_reason"),
@@ -255,8 +324,20 @@ export const useInsightsColumns = ({
           filter: { type: ColumnFilterType.TEXT },
         },
         cell: (info) => {
+          const row = info.row.original;
           const assignmentReason = info.getValue();
-          return <div className="max-w-[250px]">{assignmentReason}</div>;
+
+          return (
+            <div className="max-w-[250px] space-y-1">
+              <div className="truncate">{assignmentReason || "-"}</div>
+              {row.reroutedFromBookingUid && (
+                <div className="text-muted text-xs">← {t("routing_form_insights_reassigned_from")}: {row.reroutedFromBookingUid.slice(-8)}</div>
+              )}
+              {row.reroutedToBookingUid && (
+                <div className="text-muted text-xs">→ {t("routing_form_insights_reassigned_to")}: {row.reroutedToBookingUid.slice(-8)}</div>
+              )}
+            </div>
+          );
         },
       }),
       columnHelper.accessor("utm_source", {
