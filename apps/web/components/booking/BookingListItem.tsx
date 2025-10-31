@@ -424,7 +424,7 @@ function BookingListItem(booking: BookingItemProps) {
       <RescheduleDialog
         isOpenDialog={isOpenRescheduleDialog}
         setIsOpenDialog={setIsOpenRescheduleDialog}
-        bookingUId={booking.uid}
+        bookingUid={booking.uid}
       />
       {isOpenReassignDialog && (
         <ReassignDialog

@@ -1366,4 +1366,86 @@ export class BookingRepository {
       },
     });
   }
+
+  findBookingForRequestReschedule({ bookingUid }: { bookingUid: string }) {
+    return this.prismaClient.booking.findUniqueOrThrow({
+      where: {
+        uid: bookingUid,
+        NOT: {
+          status: {
+            in: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
+          },
+        },
+      },
+      select: {
+        id: true,
+        uid: true,
+        userId: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+        title: true,
+        description: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        userPrimaryEmail: true,
+        eventType: {
+          select: {
+            teamId: true,
+            parentId: true,
+            slug: true,
+            hideOrganizerEmail: true,
+            customReplyToEmail: true,
+            bookingFields: true,
+            metadata: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        location: true,
+        attendees: true,
+        references: true,
+        customInputs: true,
+        dynamicEventSlugRef: true,
+        dynamicGroupSlugRef: true,
+        destinationCalendar: true,
+        smsReminderNumber: true,
+        workflowReminders: true,
+        responses: true,
+        iCalUID: true,
+      },
+    });
+  }
+
+  async markBookingAsRescheduled({
+    bookingId,
+    cancellationReason,
+    cancelledBy,
+  }: {
+    bookingId: number;
+    cancellationReason?: string;
+    cancelledBy: string;
+  }) {
+    return await this.prismaClient.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        rescheduled: true,
+        cancellationReason,
+        status: BookingStatus.CANCELLED,
+        updatedAt: new Date().toISOString(),
+        cancelledBy,
+      },
+    });
+  }
 }
