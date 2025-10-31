@@ -76,35 +76,85 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
 
   if (eventType && shouldReserveSlot && !reservedBySomeoneElse && !_isDryRun) {
     try {
-      await Promise.all(
-        // FIXME: In case of team event, users doesn't have assignees, those are in hosts. users just have the creator of the event which is wrong.
-        // Also, we must not block all the users' slots, we must use routedTeamMemberIds if set like we do in getSchedule.
-        // We could even improve it by identifying the next person being booked now that we have a queue of assignees.
-        eventType.users.map((user) =>
-          prisma.selectedSlots.upsert({
-            where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
-            update: {
-              slotUtcStartDate,
-              slotUtcEndDate,
-              releaseAt,
-              eventTypeId,
-            },
-            create: {
-              userId: user.id,
-              eventTypeId,
-              slotUtcStartDate,
-              slotUtcEndDate,
-              uid,
-              releaseAt,
-              isSeat: eventType.seatsPerTimeSlot !== null,
-            },
-          })
-        )
-      );
-    } catch {
+      // Get the event type details to check scheduling type
+      const eventTypeDetails = await prisma.eventType.findUnique({
+        where: { id: eventTypeId },
+        select: { schedulingType: true },
+      });
+
+      if (eventTypeDetails?.schedulingType === "ROUND_ROBIN") {
+        // Atomic operation: Create reservation first, then check capacity
+        await prisma.selectedSlots.upsert({
+          where: { selectedSlotUnique: { userId: -1, slotUtcStartDate, slotUtcEndDate, uid } },
+          update: {
+            slotUtcStartDate,
+            slotUtcEndDate,
+            releaseAt,
+            eventTypeId,
+          },
+          create: {
+            userId: -1, // Generic reservation for Round-Robin
+            eventTypeId,
+            slotUtcStartDate,
+            slotUtcEndDate,
+            uid,
+            releaseAt,
+            isSeat: eventType.seatsPerTimeSlot !== null,
+          },
+        });
+
+        // Check capacity after creation to handle race conditions
+        const totalReservations = await prisma.selectedSlots.count({
+          where: {
+            slotUtcStartDate,
+            slotUtcEndDate,
+            userId: -1,
+            releaseAt: { gt: new Date() },
+          },
+        });
+        
+        if (totalReservations > eventType.users.length) {
+          // Rollback: Delete the reservation we just created
+          await prisma.selectedSlots.delete({
+            where: { selectedSlotUnique: { userId: -1, slotUtcStartDate, slotUtcEndDate, uid } },
+          });
+          throw new TRPCError({
+            message: "Slot is fully booked",
+            code: "BAD_REQUEST",
+          });
+        }
+      } else {
+        // For other scheduling types, create reservations for all users
+        await Promise.all(
+          eventType.users.map((user) =>
+            prisma.selectedSlots.upsert({
+              where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },
+              update: {
+                slotUtcStartDate,
+                slotUtcEndDate,
+                releaseAt,
+                eventTypeId,
+              },
+              create: {
+                userId: user.id,
+                eventTypeId,
+                slotUtcStartDate,
+                slotUtcEndDate,
+                uid,
+                releaseAt,
+                isSeat: eventType.seatsPerTimeSlot !== null,
+              },
+            })
+          )
+        );
+      }
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        throw error;
+      }
       throw new TRPCError({
-        message: "Event type not found",
-        code: "NOT_FOUND",
+        message: "Failed to reserve slot",
+        code: "INTERNAL_SERVER_ERROR",
       });
     }
   }
