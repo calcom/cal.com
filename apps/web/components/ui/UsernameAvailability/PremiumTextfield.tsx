@@ -13,6 +13,7 @@ import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
@@ -81,7 +82,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
 
   useEffect(() => {
     // Use the current username or if it's not set, use the one available from stripe
-    setInputUsernameValue(currentUsername || stripeCustomer?.username || "");
+    setInputUsernameValue(slugify(currentUsername || stripeCustomer?.username || "", true));
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {
@@ -105,7 +106,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const updateUsername = trpc.viewer.me.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      await update({ username: inputUsernameValue });
+      const sanitizedUsername = slugify(inputUsernameValue || "");
+      await update({ username: sanitizedUsername });
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
@@ -171,11 +173,12 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   };
 
   const saveUsername = () => {
+    const sanitizedUsername = slugify(inputUsernameValue || "");
     if (usernameChangeCondition !== UsernameChangeStatusEnum.UPGRADE) {
       updateUsername.mutate({
-        username: inputUsernameValue,
+        username: sanitizedUsername,
       });
-      setCurrentUsername(inputUsernameValue);
+      setCurrentUsername(sanitizedUsername);
     }
   };
 
@@ -234,7 +237,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
               if (searchParams?.toString() !== _searchParams.toString()) {
                 router.replace(`${pathname}?${_searchParams.toString()}`);
               }
-              setInputUsernameValue(event.target.value);
+              const sanitized = slugify(event.target.value, true);
+              setInputUsernameValue(sanitized);
             }}
             data-testid="username-input"
           />
