@@ -219,7 +219,7 @@ export function SelectWithValidation<
             position: "absolute",
           }}
           value={hiddenInputValue}
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+           
           onChange={() => {}}
           // TODO:Not able to get focus to work
           // onFocus={() => selectRef.current?.focus()}
