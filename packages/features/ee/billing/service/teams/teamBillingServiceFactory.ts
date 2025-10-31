@@ -1,25 +1,31 @@
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
-
 import { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
-import { TeamBillingDataRepositoryFactory } from "../../repository/teamBillingData/teamBillingDataRepositoryFactory";
 import type { ITeamBillingService, TeamBillingInput } from "./ITeamBillingService";
 import { StubTeamBillingService } from "./stubTeamBillingService";
 import { TeamBillingService } from "./teamBillingService";
 
 export class TeamBillingServiceFactory {
-  static teamBillingDataRepository = TeamBillingDataRepositoryFactory.getRepository(
-    !!IS_TEAM_BILLING_ENABLED
-  );
+  private teamBillingDataRepository: ITeamBillingDataRepository;
+  private billingRepository: IBillingRepository;
+  private isTeamBillingEnabled: boolean;
 
-  constructor(
-    private teamBillingDataRepository: ITeamBillingDataRepository,
-    private billingRepository: IBillingRepository
-  ) {}
+  constructor({
+    teamBillingDataRepository,
+    billingRepository,
+    isTeamBillingEnabled,
+  }: {
+    teamBillingDataRepository: ITeamBillingDataRepository;
+    billingRepository: IBillingRepository;
+    isTeamBillingEnabled: boolean;
+  }) {
+    this.teamBillingDataRepository = teamBillingDataRepository;
+    this.billingRepository = billingRepository;
+    this.isTeamBillingEnabled = isTeamBillingEnabled;
+  }
 
   /** Initialize a single team billing */
   init(team: TeamBillingInput): ITeamBillingService {
-    if (IS_TEAM_BILLING_ENABLED)
+    if (this.isTeamBillingEnabled)
       return new TeamBillingService(team, this.teamBillingDataRepository, this.billingRepository);
     return new StubTeamBillingService(team);
   }
