@@ -3,8 +3,6 @@ import { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRob
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
-
-
 import { TRPCError } from "@trpc/server";
 
 import type { TRoundRobinReassignInputSchema } from "./roundRobinReassign.schema";
@@ -17,7 +15,7 @@ type RoundRobinReassignOptions = {
 };
 
 export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassignOptions) => {
-  const { bookingId, reassignReason } = input;
+  const { bookingId } = input;
 
   // Check if user has access to change booking
   const bookingRepo = new BookingRepository(prisma);
@@ -31,7 +29,6 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
     bookingId,
     orgId: ctx.user.organizationId,
     reassignedById: ctx.user.id,
-    reassignReason,
   });
 };
 

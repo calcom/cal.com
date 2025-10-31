@@ -49,14 +49,12 @@ export const roundRobinReassignment = async ({
   emailsEnabled = true,
   platformClientParams,
   reassignedById,
-  reassignReason,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   reassignedById: number;
-  reassignReason?: string;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
@@ -258,7 +256,6 @@ export const roundRobinReassignment = async ({
         userId: reassignedRRHost.id,
         userPrimaryEmail: reassignedRRHost.email,
         title: newBookingTitle,
-        reassignReason,
         reassignById: reassignedById,
         idempotencyKey: IdempotencyKeyService.generate({
           startTime: booking.startTime,
@@ -290,7 +287,6 @@ export const roundRobinReassignment = async ({
 
   await AssignmentReasonRecorder.roundRobinReassignment({
     bookingId,
-    reassignReason,
     reassignById: reassignedById,
     reassignmentType: RRReassignmentType.ROUND_ROBIN,
   });
@@ -440,7 +436,6 @@ export const roundRobinReassignment = async ({
       reassigned: {
         name: reassignedRRHost.name,
         email: reassignedRRHost.email,
-        reason: reassignReason,
         byUser: originalOrganizer.name || undefined,
       },
     });
