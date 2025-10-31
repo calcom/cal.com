@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { createElement } from "react";
+import { AnchorHTMLAttributes, createElement } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -37,31 +37,29 @@ export type ListItemProps = { expanded?: boolean; rounded?: boolean } & ({
 export function ListItem(props: ListItemProps) {
   const { href, expanded, rounded = true, ...passThroughProps } = props;
 
-  const elementType = href ? "a" : "li";
-
-  const element = createElement(
-    elementType,
-    {
-      ...passThroughProps,
-      className: classNames(
-        "items-center bg-default min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0 border-subtle",
-        expanded ? "my-2 border" : "border -mb-px last:mb-0",
-        // Pass rounded false to not round the corners -> Useful when used in list we can use roundedContainer to create the right design
-        rounded ? "rounded-md" : "rounded-none",
-        props.className,
-        (props.onClick || href) && "hover:bg-muted"
-      ),
-      "data-testid": "list-item",
-    },
-    props.children
-  );
+  const elementProps = {
+    ...passThroughProps,
+    className: classNames(
+      "items-center bg-default min-w-0 flex-1 flex border-neutral-200 p-4 sm:mx-0 md:border md:p-4 xl:mt-0 border-subtle",
+      expanded ? "my-2 border" : "border -mb-px last:mb-0",
+      // Pass rounded false to not round the corners -> Useful when used in list we can use roundedContainer to create the right design
+      rounded ? "rounded-md" : "rounded-none",
+      props.className,
+      (props.onClick || href) && "hover:bg-muted"
+    ),
+    "data-testid": "list-item",
+  };
 
   return href ? (
-    <Link passHref href={href} legacyBehavior>
-      {element}
+    <Link
+      href={href}
+      className={elementProps.className}
+      data-testid={elementProps["data-testid"]}
+      {...(passThroughProps as AnchorHTMLAttributes<HTMLAnchorElement>)}>
+      {props.children}
     </Link>
   ) : (
-    element
+    createElement("li", elementProps, props.children)
   );
 }
 

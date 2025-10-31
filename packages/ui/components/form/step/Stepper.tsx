@@ -30,13 +30,13 @@ function Stepper<T extends DefaultStep>(props: {
                   href={props.disableSteps ? "#" : `${href}?step=${index + 1}`}
                   shallow
                   replace
-                  legacyBehavior>
+                  {...(index + 1 === props.step ? { "aria-current": "step" } : {})}>
                   {index + 1 < props.step ? (
-                    <a className="hover:bg-inverted block h-2.5 w-2.5 rounded-full bg-gray-600">
+                    <span className="hover:bg-inverted block h-2.5 w-2.5 rounded-full bg-gray-600">
                       <span className="sr-only">{mapStep.title}</span>
-                    </a>
+                    </span>
                   ) : index + 1 === props.step ? (
-                    <a className="relative flex items-center justify-center" aria-current="step">
+                    <span className="relative flex items-center justify-center">
                       <span className="absolute flex h-5 w-5 p-px" aria-hidden="true">
                         <span className="bg-emphasis h-full w-full rounded-full" />
                       </span>
@@ -45,11 +45,11 @@ function Stepper<T extends DefaultStep>(props: {
                         aria-hidden="true"
                       />
                       <span className="sr-only">{mapStep.title}</span>
-                    </a>
+                    </span>
                   ) : (
-                    <a className="bg-emphasis block h-2.5 w-2.5 rounded-full hover:bg-gray-400">
+                    <span className="bg-emphasis block h-2.5 w-2.5 rounded-full hover:bg-gray-400">
                       <span className="sr-only">{mapStep.title}</span>
-                    </a>
+                    </span>
                   )}
                 </Link>
               </li>
