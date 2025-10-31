@@ -169,7 +169,9 @@ export class AvailableSlotsService {
         currentTimeInUtc,
       })) || [];
 
-    const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => slot.uid !== bookerClientUid);
+    const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter(
+      (slot) => slot.uid !== bookerClientUid && slot.eventTypeId === eventTypeId
+    );
 
     await _cleanupExpiredSlots({ eventTypeId });
 
