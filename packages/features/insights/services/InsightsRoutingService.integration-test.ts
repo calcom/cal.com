@@ -1669,3 +1669,307 @@ describe("InsightsRoutingService Integration Tests", () => {
     });
   });
 });
+
+  describe("getRoutingFormStats", () => {
+    it("should calculate seats data correctly", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      // Create event type with seats
+      const seatsEventType = await prisma.eventType.create({
+        data: {
+          title: "Seats Event",
+          slug: `seats-event-${randomUUID()}`,
+          length: 60,
+          userId: testData.user.id,
+          teamId: testData.team.id,
+          seatsPerTimeSlot: 5,
+        },
+      });
+
+      // Create booking with seats
+      const seatsBooking = await prisma.booking.create({
+        data: {
+          uid: `seats-booking-${randomUUID()}`,
+          title: "Seats Booking",
+          startTime: new Date(),
+          endTime: new Date(Date.now() + 60 * 60 * 1000),
+          userId: testData.user.id,
+          eventTypeId: seatsEventType.id,
+          status: BookingStatus.ACCEPTED,
+        },
+      });
+
+      // Create attendees
+      const attendee1 = await prisma.attendee.create({
+        data: {
+          email: `attendee1-${randomUUID()}@example.com`,
+          name: "Attendee 1",
+          timeZone: "UTC",
+          bookingId: seatsBooking.id,
+        },
+      });
+
+      const attendee2 = await prisma.attendee.create({
+        data: {
+          email: `attendee2-${randomUUID()}@example.com`,
+          name: "Attendee 2",
+          timeZone: "UTC",
+          bookingId: seatsBooking.id,
+        },
+      });
+
+      // Create booking seats
+      await prisma.bookingSeat.createMany({
+        data: [
+          { bookingId: seatsBooking.id, attendeeId: attendee1.id, referenceUid: `ref-${randomUUID()}` },
+          { bookingId: seatsBooking.id, attendeeId: attendee2.id, referenceUid: `ref-${randomUUID()}` },
+        ],
+      });
+
+      // Create form response linked to seats booking
+      const seatsFormResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: `seats-filler-${randomUUID()}`,
+          formId: testData.form.id,
+          response: {},
+          routedToBookingUid: seatsBooking.uid,
+        },
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const stats = await service.getRoutingFormStats();
+
+      expect(stats).toBeDefined();
+      expect(stats?.seatsData).toBeDefined();
+      expect(stats?.seatsData?.totalBookings).toBeGreaterThan(0);
+      expect(stats?.seatsData?.totalSeatsBookings).toBe(1);
+      expect(stats?.seatsData?.fullyBookedEvents).toBe(0);
+
+      // Cleanup
+      await prisma.bookingSeat.deleteMany({ where: { bookingId: seatsBooking.id } });
+      await prisma.app_RoutingForms_FormResponse.delete({ where: { id: seatsFormResponse.id } });
+      await prisma.booking.delete({ where: { id: seatsBooking.id } });
+      await prisma.eventType.delete({ where: { id: seatsEventType.id } });
+      await testData.cleanup();
+    });
+
+    it("should calculate average time to book correctly", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const responseCreatedAt = new Date(Date.now() - 300000); // 5 minutes ago
+      const bookingCreatedAt = new Date();
+
+      const booking = await prisma.booking.create({
+        data: {
+          uid: `time-booking-${randomUUID()}`,
+          title: "Time Test Booking",
+          startTime: new Date(),
+          endTime: new Date(Date.now() + 60 * 60 * 1000),
+          userId: testData.user.id,
+          eventTypeId: testData.eventType.id,
+          status: BookingStatus.ACCEPTED,
+          createdAt: bookingCreatedAt,
+        },
+      });
+
+      const formResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: `time-filler-${randomUUID()}`,
+          formId: testData.form.id,
+          response: {},
+          routedToBookingUid: booking.uid,
+          createdAt: responseCreatedAt,
+        },
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const stats = await service.getRoutingFormStats();
+
+      expect(stats).toBeDefined();
+      expect(stats?.avgTimeToBook).toBeGreaterThan(0);
+      expect(stats?.avgTimeToBook).toBeLessThanOrEqual(300);
+
+      // Cleanup
+      await prisma.app_RoutingForms_FormResponse.delete({ where: { id: formResponse.id } });
+      await prisma.booking.delete({ where: { id: booking.id } });
+      await testData.cleanup();
+    });
+  });
+
+  describe("getMostSubmittedAnswers", () => {
+    it("should return most submitted answers with correct field labels", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const fieldId = uuid();
+      const form = await prisma.app_RoutingForms_Form.create({
+        data: {
+          name: "Test Form with Labels",
+          userId: testData.user.id,
+          teamId: testData.team.id,
+          fields: [
+            {
+              id: fieldId,
+              type: "text",
+              label: "Favorite Color",
+              required: true,
+            },
+          ],
+        },
+      });
+
+      // Create multiple responses with same field
+      const responses = await Promise.all([
+        prisma.app_RoutingForms_FormResponse.create({
+          data: {
+            formFillerId: `filler-1-${randomUUID()}`,
+            formId: form.id,
+            response: {},
+          },
+        }),
+        prisma.app_RoutingForms_FormResponse.create({
+          data: {
+            formFillerId: `filler-2-${randomUUID()}`,
+            formId: form.id,
+            response: {},
+          },
+        }),
+      ]);
+
+      await Promise.all([
+        prisma.routingFormResponseField.create({
+          data: {
+            responseId: responses[0].id,
+            fieldId: fieldId,
+            valueString: "Blue",
+          },
+        }),
+        prisma.routingFormResponseField.create({
+          data: {
+            responseId: responses[1].id,
+            fieldId: fieldId,
+            valueString: "Blue",
+          },
+        }),
+      ]);
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const results = await service.getMostSubmittedAnswers();
+
+      expect(results).toBeDefined();
+      expect(results.length).toBeGreaterThan(0);
+      const blueAnswer = results.find((r) => r.answer === "Blue");
+      expect(blueAnswer).toBeDefined();
+      expect(blueAnswer?.fieldLabel).toBe("Favorite Color");
+      expect(blueAnswer?.count).toBe(2);
+
+      // Cleanup
+      await prisma.routingFormResponseField.deleteMany({
+        where: { responseId: { in: responses.map((r) => r.id) } },
+      });
+      await prisma.app_RoutingForms_FormResponse.deleteMany({
+        where: { id: { in: responses.map((r) => r.id) } },
+      });
+      await prisma.app_RoutingForms_Form.delete({ where: { id: form.id } });
+      await testData.cleanup();
+    });
+
+    it("should count distinct responses for multi-select fields", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const fieldId = uuid();
+      const form = await prisma.app_RoutingForms_Form.create({
+        data: {
+          name: "Multi-Select Form",
+          userId: testData.user.id,
+          teamId: testData.team.id,
+          fields: [
+            {
+              id: fieldId,
+              type: "multiselect",
+              label: "Interests",
+              required: false,
+            },
+          ],
+        },
+      });
+
+      const response = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: `multi-filler-${randomUUID()}`,
+          formId: form.id,
+          response: {},
+        },
+      });
+
+      await prisma.routingFormResponseField.create({
+        data: {
+          responseId: response.id,
+          fieldId: fieldId,
+          valueStringArray: ["Sports", "Music", "Reading"],
+        },
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "user",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const results = await service.getMostSubmittedAnswers();
+
+      expect(results).toBeDefined();
+      const sportsAnswer = results.find((r) => r.answer === "Sports");
+      expect(sportsAnswer).toBeDefined();
+      expect(sportsAnswer?.count).toBe(1);
+
+      // Cleanup
+      await prisma.routingFormResponseField.deleteMany({ where: { responseId: response.id } });
+      await prisma.app_RoutingForms_FormResponse.delete({ where: { id: response.id } });
+      await prisma.app_RoutingForms_Form.delete({ where: { id: form.id } });
+      await testData.cleanup();
+    });
+  });
+});
