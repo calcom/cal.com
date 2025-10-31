@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 
-import { autoOpenInExternalBrowser, isWebView } from "@lib/isWebView";
+import { autoOpenInExternalBrowser, isOpenedInWebView } from "@lib/isWebView";
 
 export default function WebViewBlocker() {
   const [autoRedirectFailed, setAutoRedirectFailed] = useState(false);
@@ -14,7 +14,7 @@ export default function WebViewBlocker() {
   const { t } = useLocale();
 
   useEffect(() => {
-    if (isWebView()) {
+    if (isOpenedInWebView()) {
       // Try auto-redirect
       const redirected = autoOpenInExternalBrowser();
 
