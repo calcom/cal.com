@@ -34,6 +34,7 @@ import type { validStatuses } from "~/bookings/lib/validStatuses";
 import { BookingDetailsSheet } from "../components/BookingDetailsSheet";
 import { BookingsCalendar } from "../components/BookingsCalendar";
 import { BookingsList } from "../components/BookingsList";
+import { useBookingCursor } from "../hooks/useBookingCursor";
 import type { RowData, BookingOutput } from "../types";
 
 type BookingsProps = {
@@ -369,37 +370,11 @@ function BookingsContent({ status, permissions }: BookingsProps) {
     return merged;
   }, [bookingsToday, flatData, status]);
 
-  const bookingNavigation = useMemo(() => {
-    const bookingRows = finalData.filter((row) => row.type === "data") as Array<{
-      type: "data";
-      booking: BookingOutput;
-      isToday: boolean;
-      recurringInfo?: import("../types").RecurringInfo;
-    }>;
-
-    const currentIndex = bookingRows.findIndex(
-      (row) => selectedBooking && row.booking.id === selectedBooking.id
-    );
-
-    const onPrevious = () => {
-      if (currentIndex > 0) {
-        setSelectedBooking(bookingRows[currentIndex - 1].booking);
-      }
-    };
-
-    const onNext = () => {
-      if (currentIndex < bookingRows.length - 1) {
-        setSelectedBooking(bookingRows[currentIndex + 1].booking);
-      }
-    };
-
-    return {
-      onPrevious,
-      onNext,
-      hasPrevious: currentIndex > 0,
-      hasNext: currentIndex < bookingRows.length - 1 && currentIndex >= 0,
-    };
-  }, [finalData, selectedBooking]);
+  const bookingNavigation = useBookingCursor({
+    bookings: finalData,
+    selectedBooking,
+    setSelectedBooking,
+  });
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
