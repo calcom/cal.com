@@ -18,6 +18,7 @@ import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 import { CalAiBanner } from "./CalAiBanner";
+import { DynamicModals } from "./DynamicModals";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
@@ -38,6 +39,7 @@ const Layout = (props: LayoutProps) => {
       </div>
 
       <TimezoneChangeDialog />
+      <DynamicModals />
 
       <div className="flex min-h-screen flex-col">
         {banners && !props.isPlatformUser && <BannerContainer banners={banners} />}
