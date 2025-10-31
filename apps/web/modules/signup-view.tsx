@@ -33,7 +33,10 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 
+import { isOpenedInWebView as isWebView } from "@lib/isWebView";
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
+
+import WebViewBlocker from "@components/webview-blocker";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesn't get passed to the API
@@ -178,6 +181,12 @@ export default function Signup({
       });
   };
 
+  const [inWebView, setInWebView] = useState(false);
+
+  useEffect(() => {
+    setInWebView(isWebView());
+  }, []);
+
   return (
     <>
       <div className="bg-default flex min-h-screen flex-col items-center justify-center p-4">
@@ -191,38 +200,40 @@ export default function Signup({
 
               {/* Social Login Buttons */}
               <div className="mb-4 space-y-2">
-                {/* Google Button */}
-                {isGoogleLoginEnabled && (
-                  <Button
-                    color="secondary"
-                    loading={isGoogleLoading}
-                    CustomStartIcon={
-                      <img className="mr-3 h-5 w-5" src="/google-icon-colored.svg" alt="Google" />
-                    }
-                    className="text-subtle bg-primary w-full justify-center rounded-md"
-                    data-testid="continue-with-google-button"
-                    onClick={async () => {
-                      setIsGoogleLoading(true);
-                      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                      const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
-                      const searchQueryParams = new URLSearchParams();
-                      if (prepopulateFormValues?.username) {
-                        searchQueryParams.set("username", prepopulateFormValues.username);
-                        localStorage.setItem("username", prepopulateFormValues.username);
+                {/* Google Button or WebView Blocker */}
+                {inWebView ? (
+                  <WebViewBlocker />
+                ) : (
+                  isGoogleLoginEnabled && (
+                    <Button
+                      color="secondary"
+                      loading={isGoogleLoading}
+                      CustomStartIcon={
+                        <img className="mr-3 h-5 w-5" src="/google-icon-colored.svg" alt="Google" />
                       }
-                      if (token) {
-                        searchQueryParams.set("email", prepopulateFormValues?.email);
-                      }
-                      const url = searchQueryParams.toString()
-                        ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
-                        : GOOGLE_AUTH_URL;
+                      className="text-subtle bg-primary w-full justify-center rounded-md"
+                      data-testid="continue-with-google-button"
+                      onClick={async () => {
+                        setIsGoogleLoading(true);
+                        const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                        const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
+                        const searchQueryParams = new URLSearchParams();
+                        if (prepopulateFormValues?.username) {
+                          searchQueryParams.set("username", prepopulateFormValues.username);
+                          localStorage.setItem("username", prepopulateFormValues.username);
+                        }
+                        if (token) {
+                          searchQueryParams.set("email", prepopulateFormValues?.email);
+                        }
+                        const url = searchQueryParams.toString()
+                          ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
+                          : GOOGLE_AUTH_URL;
 
-                      console.log("Redirect to url: ", url);
-
-                      router.push(url);
-                    }}>
-                    {t("continue_with_google")}
-                  </Button>
+                        router.push(url);
+                      }}>
+                      {t("continue_with_google")}
+                    </Button>
+                  )
                 )}
                 {/* Divider */}
                 {isGoogleLoginEnabled && (
