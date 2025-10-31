@@ -953,7 +953,7 @@ describe("TeamService.removeMembers Integration Tests", () => {
 
   describe("Common Behaviors and Edge Cases", () => {
     it("should call TeamBilling.updateQuantity for each team", async () => {
-      const { TeamBilling } = await import("@calcom/features/ee/billing/teams");
+      const { TeamBilling: TeamBillingService } = await import("@calcom/features/ee/billing/teams");
 
       await TeamService.removeMembers({
         teamIds: [regularTeamTestData.team.id],
