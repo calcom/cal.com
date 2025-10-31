@@ -143,6 +143,7 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
+  const isAwaitingPayment = props.paymentStatus && !props.paymentStatus.success;
 
   const attendees = bookingInfo?.attendees;
 
@@ -300,6 +301,12 @@ export default function Success(props: PageProps) {
     if (isCancelled) {
       return "";
     }
+    if (isAwaitingPayment && !isCancelled) {
+      return t("complete_your_booking_subject", {
+        title: eventName,
+        date: formatToLocalizedDate(date, undefined, "long", tz),
+      });
+    }
     if (needsConfirmation) {
       if (props.profile.name !== null) {
         return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
@@ -378,11 +385,16 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
 
   const successPageHeadline = (() => {
+    if (isAwaitingPayment && !isCancelled) {
+      return props.paymentStatus?.paymentOption === "HOLD"
+        ? t("meeting_awaiting_payment_method")
+        : t("meeting_awaiting_payment");
+    }
+
     if (needsConfirmationAndReschedulable) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
     }
@@ -481,14 +493,18 @@ export default function Success(props: PageProps) {
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
-                          !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
+                          !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
+                            ? "bg-success"
+                            : "",
+                          !giphyImage && isReschedulable && (needsConfirmation || isAwaitingPayment)
+                            ? "bg-subtle"
+                            : "",
                           isCancelled ? "bg-error" : ""
                         )}>
-                        {!giphyImage && !needsConfirmation && isReschedulable && (
+                        {!giphyImage && !needsConfirmation && !isAwaitingPayment && isReschedulable && (
                           <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
-                        {needsConfirmation && isReschedulable && (
+                        {(needsConfirmation || isAwaitingPayment) && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
                         )}
                         {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
@@ -580,7 +596,7 @@ export default function Success(props: PageProps) {
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
-                        <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
+                        <div className="col-span-2 mb-6 break-words last:mb-0" data-testid="booking-title">
                           {isRoundRobin ? bookingInfo.title : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>

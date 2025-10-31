@@ -11,7 +11,7 @@ import {
 import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { ScheduleRepository } from "@calcom/features/schedules/repositories/schedule";
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";

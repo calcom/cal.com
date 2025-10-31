@@ -30,7 +30,7 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
-import type { ScheduleRepository } from "@calcom/features/schedules/repositories/schedule";
+import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";

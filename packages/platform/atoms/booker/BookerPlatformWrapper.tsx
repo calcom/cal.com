@@ -441,7 +441,7 @@ const BookerPlatformWrapperComponent = (
     metadata: props.metadata ?? {},
     handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
-    handleRecBooking: createRecBooking,
+    handleRecBooking: props?.handleCreateRecurringBooking ?? createRecBooking,
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,

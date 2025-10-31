@@ -1,4 +1,4 @@
-import { ScheduleRepository } from "@calcom/features/schedules/repositories/schedule";
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 
 import type { TrpcSessionUser } from "../../../../types";
 import type { TGetInputSchema } from "./get.schema";
