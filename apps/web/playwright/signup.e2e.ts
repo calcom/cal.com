@@ -295,10 +295,6 @@ test.describe("Email Signup Flow Test", async () => {
       userEmail: userToCreate.email,
     });
 
-    // We need to wait for emails to be sent
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(5000);
-
     expect(receivedEmails?.total).toBe(1);
 
     const verifyEmail = receivedEmails?.items[0];
