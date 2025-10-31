@@ -40,7 +40,10 @@ export class BusyTimesService {
     rescheduleUid?: string | null;
     duration?: number | null;
     currentBookings?:
-      | (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title" | "status" | "rescheduled"> & {
+      | (Pick<
+          Booking,
+          "id" | "uid" | "userId" | "startTime" | "endTime" | "title" | "status" | "rescheduled"
+        > & {
           eventType: Pick<
             EventType,
             "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
@@ -129,7 +132,7 @@ export class BusyTimesService {
 
     const bookingSeatCountMap: { [x: string]: number } = {};
     const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
-      const { id, startTime, endTime, eventType, title, status, rescheduled, ...rest } = booking;
+      const { id, startTime, endTime, eventType, title, ...rest } = booking;
 
       const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
       const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
@@ -164,23 +167,15 @@ export class BusyTimesService {
         // doing this allows using the map later to remove the ranges from calendar busy times.
         delete bookingSeatCountMap[bookedAt];
       }
-
-      // Allow rescheduling the same booking to the same time
+      // rescheduling the same booking to the same time should be possible. Why?
       if (rest.uid === rescheduleUid) {
         return aggregate;
       }
-
-      // For individual events: block former slots from rescheduled bookings
-      // These are CANCELLED bookings with rescheduled=true that should prevent the slot from being reused
-      // Note: Seated events don't block former slots (handled above in the seatsReferences logic)
-      const isRescheduledFormerSlot = status === BookingStatus.CANCELLED && rescheduled === true;
-
-      // Block this time slot
       aggregate.push({
         start: dayjs(startTime).subtract(minutesToBlockBeforeEvent, "minute").toDate(),
         end: dayjs(endTime).add(minutesToBlockAfterEvent, "minute").toDate(),
         title,
-        source: `eventType-${eventType?.id}-booking-${id}${isRescheduledFormerSlot ? "-rescheduled-former-slot" : ""}`,
+        source: `eventType-${eventType?.id}-booking-${id}`,
       });
       return aggregate;
     }, []);
