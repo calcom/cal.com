@@ -73,7 +73,7 @@ const _getBookingData = async <T extends z.ZodType>({
     attendeePhoneNumber: responses.attendeePhoneNumber,
     guests: responses.guests ? responses.guests : [],
     location: responses.location?.optionValue || responses.location?.value || "",
-    smsReminderNumber: responses.smsReminderNumber,
+    smsReminderNumber: responses.smsReminderNumber || responses.attendeePhoneNumber,
     notes: responses.notes || "",
     calEventUserFieldsResponses,
     rescheduleReason: responses.rescheduleReason,

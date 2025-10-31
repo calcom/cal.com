@@ -114,6 +114,21 @@ export const BookingFields = ({
           readOnly = false;
         }
 
+        if (field.name === SystemField.Enum.attendeePhoneNumber) {
+          if (locationResponse?.value === "phone" && locationResponse?.optionValue) {
+            const currentPhoneValue = watch(`responses.${SystemField.Enum.attendeePhoneNumber}`);
+            // Only prefill if the current value is empty to avoid overwriting user input
+            if (!currentPhoneValue || currentPhoneValue.trim() === "") {
+              setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, locationResponse?.optionValue, {
+                shouldValidate: false,
+                shouldDirty: true,
+                shouldTouch: false,
+              });
+            }
+          }
+          readOnly = false;
+        }
+
         if (field.name === SystemField.Enum.smsReminderNumber) {
           // `smsReminderNumber` and location.optionValue when location.value===phone are the same data point. We should solve it in a better way in the Form Builder itself.
           // I think we should have a way to connect 2 fields together and have them share the same value in Form Builder
@@ -122,7 +137,43 @@ export const BookingFields = ({
             // Just don't render the field now, as the value is already connected to attendee phone location
             return null;
           }
+          
+          // Consolidation: Hide smsReminderNumber if attendeePhoneNumber is visible to avoid duplicate phone inputs
+          const attendeePhoneField = fields.find(f => f.name === SystemField.Enum.attendeePhoneNumber);
+          const isAttendeePhoneVisible = attendeePhoneField && 
+            !attendeePhoneField.hidden && 
+            (!attendeePhoneField.views || attendeePhoneField.views.some(view => view.id === currentView));
+          
+          if (isAttendeePhoneVisible) {
+            // Sync the value to attendeePhoneNumber only if it's empty, then hide this field
+            const smsValue = watch(`responses.${SystemField.Enum.smsReminderNumber}`);
+            const target = `responses.${SystemField.Enum.attendeePhoneNumber}` as const;
+            const current = watch(target);
+            if (smsValue && !current) {
+              setValue(target, smsValue, { shouldDirty: false, shouldValidate: true });
+            }
+            return null;
+          }
+          
           // `smsReminderNumber` can be edited during reschedule even though it's a system field
+          readOnly = false;
+        }
+
+        if (field.name === SystemField.Enum.aiAgentCallPhoneNumber) {
+          // Consolidation: Hide aiAgentCallPhoneNumber if attendeePhoneNumber is visible to avoid duplicate phone inputs
+          const attendeePhoneField = fields.find(f => f.name === SystemField.Enum.attendeePhoneNumber);
+          const isAttendeePhoneVisible = attendeePhoneField && 
+            !attendeePhoneField.hidden && 
+            (!attendeePhoneField.views || attendeePhoneField.views.some(view => view.id === currentView));
+          
+          if (isAttendeePhoneVisible) {
+            // Sync the value to attendeePhoneNumber and hide this field
+            const aiValue = watch(`responses.${SystemField.Enum.aiAgentCallPhoneNumber}`);
+            if (aiValue) {
+              setValue(`responses.${SystemField.Enum.attendeePhoneNumber}`, aiValue);
+            }
+            return null;
+          }
           readOnly = false;
         }
 
