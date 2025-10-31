@@ -20,4 +20,5 @@ export interface ITeamBillingService {
   downgrade(): Promise<void>;
   updateQuantity(): Promise<void>;
   getSubscriptionStatus(): Promise<SubscriptionStatus | null>;
+  endTrial(): Promise<boolean>;
 }
