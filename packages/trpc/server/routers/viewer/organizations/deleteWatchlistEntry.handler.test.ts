@@ -33,7 +33,7 @@ describe("deleteWatchlistEntryHandler", () => {
   };
 
   const mockWatchlistRepo = {
-    findEntryWithAudit: vi.fn(),
+    findEntryWithAuditAndReports: vi.fn(),
     deleteEntry: vi.fn(),
   };
 
@@ -75,12 +75,12 @@ describe("deleteWatchlistEntryHandler", () => {
         message: "You are not authorized to delete blocklist entries",
       });
 
-      expect(mockWatchlistRepo.findEntryWithAudit).not.toHaveBeenCalled();
+      expect(mockWatchlistRepo.findEntryWithAuditAndReports).not.toHaveBeenCalled();
     });
 
     it("should check permission with correct parameters", async () => {
       mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: [],
       });
@@ -108,7 +108,7 @@ describe("deleteWatchlistEntryHandler", () => {
     });
 
     it("should throw NOT_FOUND when entry does not exist", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: null,
         auditHistory: [],
       });
@@ -129,7 +129,7 @@ describe("deleteWatchlistEntryHandler", () => {
     });
 
     it("should throw FORBIDDEN when entry belongs to different organization", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: { ...mockEntry, organizationId: 999 },
         auditHistory: [],
       });
@@ -156,7 +156,7 @@ describe("deleteWatchlistEntryHandler", () => {
     });
 
     it("should successfully delete entry when authorized", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: [],
       });
@@ -175,7 +175,7 @@ describe("deleteWatchlistEntryHandler", () => {
     });
 
     it("should pass correct userId to deleteEntry", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: [],
       });
