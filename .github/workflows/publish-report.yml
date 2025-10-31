@@ -43,6 +43,12 @@ jobs:
         with:
           name: html-report--attempt-${{ github.run_number }}-${{ github.run_attempt }}
           path: ${{ env.HTML_REPORT_URL_PATH }}
+      - name: Download junit XML report
+        uses: actions/download-artifact@v4
+        with:
+          name: junit-report--attempt-${{ github.run_number }}-${{ github.run_attempt }}
+          path: junit-results
+        continue-on-error: true
       - name: Push HTML Report
         timeout-minutes: 3
         # commit report, then try push-rebase-loop until it's able to merge the HTML report to the gh-pages branch
@@ -70,6 +76,23 @@ jobs:
           FULL_HTML_REPORT_URL=https://calcom.github.io/test-results/$HTML_REPORT_URL_PATH
           echo "::notice title=📋 Published Playwright Test Report::$FULL_HTML_REPORT_URL"
           echo "link=$FULL_HTML_REPORT_URL" >> $GITHUB_OUTPUT
+      - name: Check for test failures
+        id: test-failures
+        run: |
+          HAS_FAILURES=false
+          
+          # Check if junit XML file exists and parse it
+          if [ -f "junit-results/results.xml" ]; then
+            FAILURES=$(grep -o 'failures="[0-9]*"' junit-results/results.xml | grep -o '[0-9]*' || echo "0")
+            ERRORS=$(grep -o 'errors="[0-9]*"' junit-results/results.xml | grep -o '[0-9]*' || echo "0")
+            
+            if [ "$FAILURES" -gt 0 ] || [ "$ERRORS" -gt 0 ]; then
+              HAS_FAILURES=true
+            fi
+          fi
+          
+          echo "has-failures=$HAS_FAILURES" >> $GITHUB_OUTPUT
+          echo "E2E test failures detected: $HAS_FAILURES"
       - name: Find Comment
         uses: peter-evans/find-comment@v2
         id: fc
@@ -77,22 +100,24 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: "github-actions[bot]"
           body-includes: <!-- GENERATED-E2E-RESULTS -->
-      - name: Create comment
-        if: steps.fc.outputs.comment-id == ''
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            <!-- GENERATED-E2E-RESULTS -->
-            ## E2E results are ready!
-            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
-      - name: Update comment
+      - name: Delete existing comment
         if: steps.fc.outputs.comment-id != ''
         uses: peter-evans/create-or-update-comment@v3
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           edit-mode: replace
           body: |
+            <!-- DELETED-E2E-RESULTS -->
+            _This comment has been replaced with updated results._
+      - name: Create new comment
+        if: steps.test-failures.outputs.has-failures == 'true'
+        uses: peter-evans/create-or-update-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
             <!-- GENERATED-E2E-RESULTS -->
-            ## E2E results are ready!
-            - [Workflow #${{ github.run_number }}.${{ github.run_attempt }} latest results](${{ steps.url.outputs.link }})
+            ## E2E Test Results ❌
+            
+            Some E2E tests are failing. Please check the detailed report for more information.
+            
+            📋 [View detailed results](${{ steps.url.outputs.link }})
