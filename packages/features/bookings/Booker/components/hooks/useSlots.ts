@@ -3,7 +3,6 @@ import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import {
   MINUTES_TO_BOOK,
@@ -22,12 +21,12 @@ const useQuickAvailabilityChecks = ({
   eventTypeId,
   eventDuration,
   timeslotsAsISOString,
-  slotReservationId,
+  reservedSlotUid,
 }: {
   eventTypeId: number | undefined;
   eventDuration: number;
   timeslotsAsISOString: string[];
-  slotReservationId: string | undefined | null;
+  reservedSlotUid: string | undefined | null;
 }) => {
   // Maintain a cache to ensure previous state is maintained as the request is fetched
   // It is important because tentatively selecting a new timeslot will cause a new request which is uncached.
@@ -51,16 +50,16 @@ const useQuickAvailabilityChecks = ({
     {
       slots: slotsToCheck,
       // enabled flag can't be true if eventTypeId is nullish
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       eventTypeId: eventTypeId!,
     },
     {
       refetchInterval: PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS * 1000,
       refetchOnWindowFocus: true,
-      // We must have slotReservationId because it is possible that slotReservationId is set right after isAvailable request is made and we accidentally could consider the slot as unavailable.
+      // We must have reservedSlotUid because it is possible that reservedSlotUid is set right after isAvailable request is made and we accidentally could consider the slot as unavailable.
       // isAvailable request also prevents querying reserved slots if uid is not set. We are safe from both sides.
       // TODO: We should move to creating uuid client side for reservation and not waiting for server to set uid cookie.
-      enabled: !!(eventTypeId && timeslotsAsISOString.length > 0 && slotReservationId),
+      enabled: !!(eventTypeId && timeslotsAsISOString.length > 0 && reservedSlotUid),
       staleTime: PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS * 1000,
     }
   );
@@ -90,7 +89,10 @@ export const useSlots = (event: { id: number; length: number } | null) => {
       ],
       shallow
     );
-  const [slotReservationId, setSlotReservationId] = useSlotReservationId();
+  const [reservedSlotUid, setReservedSlotUid] = useBookerStoreContext(
+    (state) => [state.reservedSlotUid, state.setReservedSlotUid],
+    shallow
+  );
   const reserveSlotMutation = trpc.viewer.slots.reserveSlot.useMutation({
     trpc: {
       context: {
@@ -98,7 +100,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
       },
     },
     onSuccess: (data) => {
-      setSlotReservationId(data.uid);
+      setReservedSlotUid(data.uid);
     },
   });
   const removeSelectedSlot = trpc.viewer.slots.removeSelectedSlotMark.useMutation({
@@ -106,8 +108,8 @@ export const useSlots = (event: { id: number; length: number } | null) => {
   });
 
   const handleRemoveSlot = () => {
-    if (event?.id && slotReservationId) {
-      removeSelectedSlot.mutate({ uid: slotReservationId });
+    if (event?.id && reservedSlotUid) {
+      removeSelectedSlot.mutate({ uid: reservedSlotUid });
     }
   };
 
@@ -123,7 +125,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
     eventTypeId,
     eventDuration,
     timeslotsAsISOString: allUniqueSelectedTimeslots,
-    slotReservationId,
+    reservedSlotUid,
   });
 
   // In case of skipConfirm flow selectedTimeslot would never be set and instead we could have multiple tentatively selected timeslots, so we pick the latest one from it.
@@ -151,7 +153,6 @@ export const useSlots = (event: { id: number; length: number } | null) => {
       handleRemoveSlot();
       clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.id, timeSlotToBeBooked]);
 
   return {
@@ -159,7 +160,7 @@ export const useSlots = (event: { id: number; length: number } | null) => {
     setTentativeSelectedTimeslots,
     selectedTimeslot,
     tentativeSelectedTimeslots,
-    slotReservationId,
+    reservedSlotUid,
     allSelectedTimeslots,
     /**
      * Faster but not that accurate as getSchedule, but doesn't give false positive, so it is usable

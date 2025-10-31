@@ -13,6 +13,25 @@ import { TRPCError } from "@trpc/server";
 
 import type { TReserveSlotInputSchema } from "./reserveSlot.schema";
 
+export const RESERVED_SLOT_UID_COOKIE_NAME = "uid";
+
+export function getReservedSlotUidFromCookies(req?: {
+  cookies: Record<string, string | undefined> | undefined;
+}) {
+  return req?.cookies?.[RESERVED_SLOT_UID_COOKIE_NAME];
+}
+
+export function getReservedSlotUidFromRequest(req?: {
+  cookies: Record<string, string | undefined> | undefined;
+  body?: { reservedSlotUid?: string };
+}) {
+  const fromCookies = getReservedSlotUidFromCookies(req);
+  if (fromCookies) {
+    return fromCookies;
+  }
+  return req?.body?.reservedSlotUid;
+}
+
 interface ReserveSlotOptions {
   ctx: {
     prisma: PrismaClient;
@@ -23,7 +42,7 @@ interface ReserveSlotOptions {
 }
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
   const { prisma, req, res } = ctx;
-  const uid = req?.cookies?.uid || uuid();
+  const uid = getReservedSlotUidFromCookies(req) || uuid();
 
   const { slotUtcStartDate, slotUtcEndDate, eventTypeId, _isDryRun } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
@@ -114,7 +133,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   const useSecureCookies = WEBAPP_URL.startsWith("https://");
   res?.setHeader(
     "Set-Cookie",
-    serialize("uid", uid, {
+    serialize(RESERVED_SLOT_UID_COOKIE_NAME, uid, {
       path: "/",
       sameSite: useSecureCookies ? "none" : "lax",
       secure: useSecureCookies,

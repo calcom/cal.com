@@ -37,6 +37,7 @@ export type CreateBookingMeta = {
   hostname?: string;
   forcedSlug?: string;
   noEmail?: boolean;
+  reservedSlotUid?: string;
 } & PlatformParams;
 
 export type BookingHandlerInput = {

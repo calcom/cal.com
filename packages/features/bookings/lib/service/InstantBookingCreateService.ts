@@ -5,6 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import type {
   CreateInstantBookingData,
+  CreateBookingMeta,
   InstantBookingCreateResult,
 } from "@calcom/features/bookings/lib/dto/types";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
@@ -27,6 +28,7 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
+import { createInstantBookingWithReservedSlot } from "../handleNewBooking/createInstantBookingWithReservedSlot";
 
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
@@ -163,8 +165,10 @@ const triggerBrowserNotifications = async (args: {
 
 export async function handler(
   bookingData: CreateInstantBookingData,
-  deps: IInstantBookingCreateServiceDependencies
+  deps: IInstantBookingCreateServiceDependencies,
+  bookingMeta?: CreateBookingMeta
 ) {
+  console.log("asap bookingMeta - will remove by Lauris", bookingMeta);
   // TODO: In a followup PR, we aim to remove prisma dependency and instead inject the repositories as dependencies.
   const { prismaClient: prisma } = deps;
   let eventType = await getEventTypesFromDB(bookingData.eventTypeId);
@@ -273,7 +277,17 @@ export async function handler(
     data: newBookingData,
   };
 
-  const newBooking = await prisma.booking.create(createBookingObj);
+  const newBooking = await (async () => {
+    if (bookingMeta?.reservedSlotUid) {
+      return createInstantBookingWithReservedSlot(createBookingObj, {
+        eventTypeId: reqBody.eventTypeId,
+        slotUtcStart: reqBody.start,
+        slotUtcEnd: reqBody.end,
+        reservedSlotUid: bookingMeta.reservedSlotUid!,
+      });
+    }
+    return prisma.booking.create(createBookingObj);
+  })();
 
   // Create Instant Meeting Token
 
@@ -351,7 +365,10 @@ export async function handler(
 export class InstantBookingCreateService implements IBookingCreateService {
   constructor(private readonly deps: IInstantBookingCreateServiceDependencies) {}
 
-  async createBooking(input: { bookingData: CreateInstantBookingData }): Promise<InstantBookingCreateResult> {
-    return handler(input.bookingData, this.deps);
+  async createBooking(input: {
+    bookingData: CreateInstantBookingData;
+    bookingMeta?: CreateBookingMeta;
+  }): Promise<InstantBookingCreateResult> {
+    return handler(input.bookingData, this.deps, input.bookingMeta);
   }
 }
