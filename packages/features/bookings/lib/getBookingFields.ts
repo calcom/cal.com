@@ -118,7 +118,6 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
-  isOrgTeamEvent: _isOrgTeamEvent,
   disableBookingTitle,
   additionalNotesRequired,
   customInputs,
