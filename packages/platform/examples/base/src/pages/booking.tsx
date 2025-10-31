@@ -147,11 +147,16 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             rescheduleUid={rescheduleUid}
             rescheduledBy={rescheduledBy}
             eventSlug={eventTypeSlugQueryParam}
-            username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
               setBookingTitle(data.data.title ?? "");
               router.push(`/${data.data.uid}`);
             }}
+            {...(true
+              ? {
+                  isTeamEvent: true,
+                  teamId: teams?.[0]?.id || 0,
+                }
+              : { username: props.calUsername })}
             duration={eventTypeDuration}
             bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
             hostsLimit={3}

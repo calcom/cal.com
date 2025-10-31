@@ -94,11 +94,11 @@ export type EmailsAndSmsSideEffectsPayload =
   | ConfirmedSideEffectsPayload;
 
 export interface IBookingEmailSmsHandler {
-  logger: Logger<unknown>;
+  logger: Pick<Logger<unknown>, "warn" | "debug" | "error" | "getSubLogger">;
 }
 
 export class BookingEmailSmsHandler {
-  private readonly log: Logger<unknown>;
+  private readonly log: Pick<Logger<unknown>, "warn" | "debug" | "error">;
 
   constructor(dependencies: IBookingEmailSmsHandler) {
     this.log = dependencies.logger.getSubLogger({ prefix: ["BookingEmailSmsHandler"] });

@@ -1,8 +1,8 @@
+import type { TFunction } from "i18next";
+
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import type { TFunction } from "i18next";
-
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
@@ -15,7 +15,7 @@ import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
 >;
-type BookingMetaOptions = {
+export type BookingMetaOptions = {
   conferenceCredentialId?: number;
   platformClientId?: string;
   platformRescheduleUrl?: string;

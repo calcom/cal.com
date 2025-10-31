@@ -1,0 +1,27 @@
+{
+  "name": "@calcom/trigger",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "dev:trigger": "trigger dev",
+    "deploy:trigger": "trigger deploy"
+  },
+  "dependencies": {
+    "@calcom/prisma": "*",
+    "@trigger.dev/sdk": "^4.0.0",
+    "zod-prisma": "^0.5.4"
+  },
+  "devDependencies": {
+    "@calcom/tsconfig": "*",
+    "trigger.dev": "^4.0.0",
+    "typescript": "*"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./trigger": "./index.ts"
+  }
+}
