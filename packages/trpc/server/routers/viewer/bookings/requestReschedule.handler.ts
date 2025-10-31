@@ -5,6 +5,8 @@ import { deleteMeeting } from "@calcom/app-store/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
@@ -24,6 +26,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
 import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -157,16 +160,26 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   try {
     const bookingAuditService = BookingAuditService.create();
-    await bookingAuditService.onRescheduleRequested(String(bookingToReschedule.id), user.id, {
-      changes: [
-        { field: "rescheduled", oldValue: false, newValue: true },
-        { field: "status", oldValue: bookingToReschedule.status, newValue: BookingStatus.CANCELLED },
-        { field: "cancelledBy", oldValue: null, newValue: user.email },
-      ],
-      booking: {
-        cancellationReason,
-      },
+    const hashedLinkService = new HashedLinkService();
+    const bookingEventHandlerService = new BookingEventHandlerService({
+      log,
+      hashedLinkService,
+      bookingAuditService,
     });
+    await bookingEventHandlerService.onRescheduleRequested(
+      String(bookingToReschedule.id),
+      createUserActor(user.id),
+      {
+        changes: [
+          { field: "rescheduled", oldValue: false, newValue: true },
+          { field: "status", oldValue: bookingToReschedule.status, newValue: BookingStatus.CANCELLED },
+          { field: "cancelledBy", oldValue: null, newValue: user.email },
+        ],
+        booking: {
+          cancellationReason,
+        },
+      }
+    );
   } catch (error) {
     log.error("Failed to create booking audit log for reschedule request", error);
   }

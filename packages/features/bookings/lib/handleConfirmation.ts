@@ -1,6 +1,8 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -12,13 +14,12 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { WorkflowService } from "@calcom/lib/server/service/workflows";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -31,6 +32,8 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
+import { BookingEventHandlerService } from "./onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -318,11 +321,21 @@ export async function handleConfirmation(args: {
 
     try {
       const bookingAuditService = BookingAuditService.create();
-      await bookingAuditService.onBookingAccepted(String(updatedBooking.id), booking.userId || undefined, {
-        booking: {
-          meetingTime: updatedBooking.startTime.toISOString(),
-        },
+      const hashedLinkService = new HashedLinkService();
+      const bookingEventHandlerService = new BookingEventHandlerService({
+        log,
+        hashedLinkService,
+        bookingAuditService,
       });
+      await bookingEventHandlerService.onBookingAccepted(
+        String(updatedBooking.id),
+        createUserActor(booking.userId || 0),
+        {
+          booking: {
+            meetingTime: updatedBooking.startTime.toISOString(),
+          },
+        }
+      );
     } catch (error) {
       log.error("Failed to create booking audit log for confirmation", error);
     }

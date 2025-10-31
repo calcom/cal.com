@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
@@ -16,6 +15,8 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
 } from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -31,6 +32,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -264,7 +266,7 @@ export const roundRobinReassignment = async ({
           startTime: booking.startTime,
           endTime: booking.endTime,
           userId: reassignedRRHost.id,
-          reassignedById,
+          reassignedById: reassignedById,
         }),
       },
       select: bookingSelect,
@@ -272,7 +274,13 @@ export const roundRobinReassignment = async ({
 
     try {
       const bookingAuditService = BookingAuditService.create();
-      await bookingAuditService.onBookingUpdated(String(bookingId), reassignedById, {
+      const hashedLinkService = new HashedLinkService();
+      const bookingEventHandlerService = new BookingEventHandlerService({
+        log,
+        hashedLinkService,
+        bookingAuditService,
+      });
+      await bookingEventHandlerService.onBookingUpdated(String(bookingId), createUserActor(reassignedById), {
         changes: [
           { field: "userId", oldValue: oldUserId, newValue: reassignedRRHost.id },
           { field: "userPrimaryEmail", oldValue: oldEmail, newValue: reassignedRRHost.email },

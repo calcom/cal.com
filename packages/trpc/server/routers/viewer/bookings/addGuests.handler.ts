@@ -1,11 +1,14 @@
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
+import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
@@ -123,7 +126,13 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   try {
     const bookingAuditService = BookingAuditService.create();
-    await bookingAuditService.onAttendeeAdded(String(bookingId), user.id, {
+    const hashedLinkService = new HashedLinkService();
+    const bookingEventHandlerService = new BookingEventHandlerService({
+      log,
+      hashedLinkService,
+      bookingAuditService,
+    });
+    await bookingEventHandlerService.onAttendeeAdded(String(bookingId), createUserActor(user.id), {
       changes: [{ field: "attendees", oldValue: oldGuestCount, newValue: bookingAttendees.attendees.length }],
       booking: {
         addedGuests: uniqueGuests,
