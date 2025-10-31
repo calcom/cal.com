@@ -11,7 +11,6 @@ import {
 import { Header } from "@calcom/features/bookings/Booker/components/Header";
 import { BookerSection } from "@calcom/features/bookings/Booker/components/Section";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
-import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { LargeCalendar } from "@calcom/features/calendar-view/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -72,23 +71,14 @@ const CalendarViewPlatformWrapperComponent = (
     shallow
   );
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
-  const date = dayjs(selectedDate).format("YYYY-MM-DD");
   const month = useBookerStoreContext((state) => state.month);
   const [dayCount] = useBookerStoreContext((state) => [state.dayCount, state.setDayCount], shallow);
 
-  const { prefetchNextMonth, monthCount } = usePrefetch({
-    date,
-    month,
-    bookerLayout,
-    bookerState,
-  });
-
   const [startTime, endTime] = useTimesForSchedule({
     month,
-    monthCount,
     dayCount,
-    prefetchNextMonth,
     selectedDate,
+    bookerLayout,
   });
 
   const { timezone } = useTimePreferences();
@@ -118,9 +108,9 @@ const CalendarViewPlatformWrapperComponent = (
     teamMemberEmail: undefined,
     ...(isTeamEvent
       ? {
-          isTeamEvent: isTeamEvent,
-          teamId: teamId,
-        }
+        isTeamEvent: isTeamEvent,
+        teamId: teamId,
+      }
       : {}),
     enabled:
       Boolean(teamId || username) &&
