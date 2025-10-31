@@ -17,16 +17,29 @@ export async function fetchGeolocation() {
     }
   }
 
-  const res = await fetch("/api/geolocation");
-  const data = await res.json();
+  try {
+    const res = await fetch("/api/geolocation");
+    
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    const data = await res.json();
 
-  const newCacheData = {
-    country: data.country,
-    timestamp: Date.now(),
-  };
+    const newCacheData = {
+      country: data.country,
+      timestamp: Date.now(),
+    };
 
-  localStorage.setItem(CACHE_KEY, JSON.stringify(newCacheData));
-  return data;
+    localStorage.setItem(CACHE_KEY, JSON.stringify(newCacheData));
+    return data;
+  } catch (error) {
+    const cachedData = localStorage.getItem(CACHE_KEY);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+    return { country: "US", timestamp: Date.now() };
+  }
 }
 
 export function useGeolocation() {
