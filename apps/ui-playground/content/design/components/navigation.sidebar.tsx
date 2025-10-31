@@ -10,7 +10,7 @@ export const SidebarExample: React.FC = () => {
 
   return (
     <RenderComponentWithSnippet>
-      <div className="bg-muted border-muted flex w-60 flex-col border p-3">
+      <div className="bg-cal-muted border-muted flex w-60 flex-col border p-3">
         <NavigationItem
           item={{
             name: "Event types",
@@ -92,7 +92,7 @@ export const SidebarExample: React.FC = () => {
           }}
         />
       </div>
-      <div className="bg-muted border-muted flex w-60 flex-col border p-3">
+      <div className="bg-cal-muted border-muted flex w-60 flex-col border p-3">
         <NavigationItem
           item={{
             name: "Back",

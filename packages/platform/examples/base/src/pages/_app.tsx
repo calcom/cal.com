@@ -109,16 +109,16 @@ export default function App({ Component, pageProps }: AppProps) {
         <div>
           <BookerEmbed
             customClassNames={{
-              bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
+              bookerContainer: "bg-[#F5F2FE]! [&_button:!rounded-full] border-subtle border",
               datePickerCustomClassNames: {
-                datePickerDatesActive: "!bg-[#D7CEF5]",
+                datePickerDatesActive: "bg-[#D7CEF5]!",
               },
               eventMetaCustomClassNames: {
                 eventMetaTitle: "text-[#7151DC]",
               },
               availableTimeSlotsCustomClassNames: {
-                availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
-                availableTimes: "!bg-[#D7CEF5]",
+                availableTimeSlotsHeaderContainer: "bg-[#F5F2FE]!",
+                availableTimes: "bg-[#D7CEF5]!",
               },
             }}
             username={username}

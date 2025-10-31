@@ -639,7 +639,7 @@ const ProfileForm = ({
         </div>
         {extraField}
         <p className="text-subtle mt-1 flex gap-1 text-sm">
-          <Icon name="info" className="mt-0.5 flex-shrink-0" />
+          <Icon name="info" className="mt-0.5 shrink-0" />
           <span className="flex-1">{t("tip_username_plus")}</span>
         </p>
         <div className="mt-6">

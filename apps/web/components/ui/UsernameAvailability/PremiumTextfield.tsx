@@ -202,7 +202,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <span
           className={classNames(
             isInputUsernamePremium ? "border border-orange-400 " : "",
-            "border-default bg-muted text-subtle hidden h-8 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
+            "border-default bg-cal-muted text-subtle hidden h-8 items-center rounded-l-md border border-r-0 px-3 text-sm md:inline-flex"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
@@ -216,7 +216,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "border-l-1 my-0 rounded-md font-sans text-sm leading-4 focus:!ring-0 sm:rounded-l-none",
+              "border-l my-0 rounded-md font-sans text-sm leading-4 focus:ring-0! sm:rounded-l-none",
               isInputUsernamePremium
                 ? "border border-orange-400 focus:border focus:border-orange-400"
                 : "border focus:border",

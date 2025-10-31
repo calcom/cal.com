@@ -150,7 +150,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                       <div className="flex justify-between">
                         <div>
                           <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
-                          <p className="text-subtle max-w-[280px] break-words text-sm sm:max-w-[500px]">
+                          <p className="text-subtle max-w-[280px] wrap-break-word text-sm sm:max-w-[500px]">
                             {t("add_webhook_description", { appName: APP_NAME })}
                           </p>
                         </div>

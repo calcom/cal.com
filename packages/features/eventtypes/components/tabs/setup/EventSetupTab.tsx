@@ -212,7 +212,7 @@ export const EventSetupTab = (
                   isSearchable={false}
                   isDisabled={lengthLockedProps.disabled}
                   className={classNames(
-                    "h-auto !min-h-[36px] text-sm",
+                    "h-auto min-h-[36px]! text-sm",
                     customClassNames?.durationSection?.multipleDuration?.availableDurationsSelect?.select
                   )}
                   innerClassNames={
@@ -312,7 +312,7 @@ export const EventSetupTab = (
             />
           )}
           {!lengthLockedProps.disabled && (
-            <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
+            <div className="mt-4! [&_label]:my-1 [&_label]:font-normal">
               <SettingsToggle
                 title={t("allow_multiple_durations")}
                 checked={multipleDuration !== undefined}

@@ -183,7 +183,7 @@ function SingleForm({
               className={classNames(
                 "bg-default flex-1",
                 isDesktop && "grid gap-8",
-                isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
+                isDesktop && isTestPreviewOpen && "grid-cols-[1fr_400px]",
                 isDesktop && !isTestPreviewOpen && "grid-cols-1",
                 !isDesktop && "flex flex-col"
               )}>

@@ -547,7 +547,7 @@ const WebhookForm = (props: {
                             {variables.map(({ name, variable, description }) => (
                               <div
                                 key={name}
-                                className="hover:bg-muted  cursor-pointer rounded p-2 text-sm transition-colors"
+                                className="hover:bg-cal-muted  cursor-pointer rounded p-2 text-sm transition-colors"
                                 onClick={() => {
                                   const currentValue = formMethods.getValues("payloadTemplate") || "{}";
                                   const updatedValue = insertVariableIntoTemplate(

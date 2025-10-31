@@ -464,7 +464,7 @@ export default function Success(props: PageProps) {
               <div
                 className={classNames(
                   "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
-                  !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
+                  !isBackgroundTransparent && " bg-default dark:bg-cal-muted border-booker border-booker-width",
                   "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
                 role="dialog"
@@ -492,7 +492,7 @@ export default function Success(props: PageProps) {
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && isReschedulable && !needsConfirmation && !isAwaitingPayment
-                            ? "bg-success"
+                            ? "bg-cal-success"
                             : "",
                           !giphyImage && isReschedulable && (needsConfirmation || isAwaitingPayment)
                             ? "bg-subtle"
@@ -570,7 +570,7 @@ export default function Success(props: PageProps) {
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{cancellationReason}</p>
+                              <p className="wrap-break-word">{cancellationReason}</p>
                             </div>
                           </>
                         )}
@@ -578,7 +578,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("cancelled_by")}</div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                              <p className="wrap-break-word">{bookingInfo?.cancelledBy}</p>
                             </div>
                           </>
                         )}
@@ -586,7 +586,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
                             <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{previousBooking?.rescheduledBy}</p>
+                              <p className="wrap-break-word">{previousBooking?.rescheduledBy}</p>
                               <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
                                 {t("original_booking")}
                               </Link>
@@ -711,7 +711,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
-                              <p className="whitespace-pre-line break-words">{bookingInfo.description}</p>
+                              <p className="whitespace-pre-line wrap-break-word">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
@@ -789,7 +789,7 @@ export default function Success(props: PageProps) {
                                 }}
                               />
                               <p
-                                className="text-default break-words"
+                                className="text-default wrap-break-word"
                                 data-testid="field-response"
                                 data-fob-field={field.name}>
                                 {field.type === "boolean"

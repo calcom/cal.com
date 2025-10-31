@@ -32,7 +32,7 @@ export const EventTypeEditPageSkeleton = () => {
     <Shell subtitle={<SkeletonText className="hidden h-4 w-24" />} afterHeading={backButtonSkeleton}>
       <div className="flex flex-col xl:flex-row xl:space-x-6">
         <div className="hidden xl:block">
-          <div className="primary-navigation w-64 flex-shrink-0">
+          <div className="primary-navigation w-64 shrink-0">
             <div className="flex flex-col space-y-1">
               {/* Tab navigation items */}
               {Array.from({ length: 8 }).map((_, index) => (

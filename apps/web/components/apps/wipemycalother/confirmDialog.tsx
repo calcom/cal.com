@@ -82,7 +82,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="flex flex-row space-x-3">
-          <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
+          <div className="flex h-10 w-10 shrink-0 justify-center rounded-full bg-[#FAFAFA]">
             <Icon name="clock" className="m-auto h-5 w-5" />
           </div>
           <div className="pt-1">

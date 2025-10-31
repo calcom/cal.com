@@ -151,7 +151,7 @@ export const AddNewTeamMembersForm = () => {
       <div className="space-y-6">
         <div className="flex space-x-3">
           <form onSubmit={onSubmit} className="flex w-full items-end space-x-2">
-            <div className="flex-grow">
+            <div className="grow">
               <TextField
                 label={t("email")}
                 type="email"

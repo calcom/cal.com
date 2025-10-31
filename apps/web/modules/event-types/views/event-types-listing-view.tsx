@@ -125,7 +125,7 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
       <TextField
         className="max-w-64"
         addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
+        containerClassName="max-w-64 focus:ring-offset-0! mb-4"
         type="search"
         value={searchTerm}
         autoComplete="false"
@@ -483,7 +483,7 @@ export const InfiniteEventTypeList = ({
 
   return (
     <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
-      <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
+      <ul ref={parent} className="divide-subtle static! w-full divide-y" data-testid="event-types">
         {pages.map((page, pageIdx) => {
           return page?.eventTypes?.map((type, index) => {
             const embedLink = `${group.profile.slug}/${type.slug}`;
@@ -505,7 +505,7 @@ export const InfiniteEventTypeList = ({
               type.schedulingType !== SchedulingType.MANAGED;
             return (
               <li key={type.id}>
-                <div className="hover:bg-muted flex w-full items-center justify-between transition">
+                <div className="hover:bg-cal-muted flex w-full items-center justify-between transition">
                   <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                     {!(firstItem && firstItem.id === type.id) && (
                       <ArrowButton

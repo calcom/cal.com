@@ -239,7 +239,7 @@ export function RoleSheet({
                   ))}{" "}
                 </div>
               ) : (
-                <div className="bg-muted rounded-xl p-1">
+                <div className="bg-cal-muted rounded-xl p-1">
                   <div className="flex items-center justify-between px-3 py-2">
                     <Label>{t("permissions")}</Label>
                     <div className="flex items-center gap-2">

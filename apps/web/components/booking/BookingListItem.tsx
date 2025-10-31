@@ -519,9 +519,9 @@ function BookingListItem(booking: BookingItemProps) {
       <div
         data-testid="booking-item"
         data-today={String(booking.isToday)}
-        className="hover:bg-muted group w-full">
+        className="hover:bg-cal-muted group w-full">
         <div className="flex flex-col sm:flex-row">
-          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-48">
             <div className="flex h-full items-center">
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
@@ -1226,7 +1226,7 @@ const NoShowAttendeesDialog = ({
               });
             }}>
             <div
-              className={`bg-muted flex items-center justify-between px-4 py-2 ${
+              className={`bg-cal-muted flex items-center justify-between px-4 py-2 ${
                 index === 0 ? "rounded-t-md" : ""
               } ${index === noShowAttendees.length - 1 ? "rounded-b-md" : "border-subtle border-b"}`}>
               <span className="text-emphasis flex flex-col text-sm">

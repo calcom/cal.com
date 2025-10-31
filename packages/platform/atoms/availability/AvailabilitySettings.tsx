@@ -279,7 +279,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
     <div
       className={classNames(
         open
-          ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+          ? "fadeIn fixed inset-0 z-50 bg-neutral-800/70 transition-opacity sm:hidden"
           : ""
       )}>
       <div
@@ -429,7 +429,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
         }
         CTA={
           <div className={cn(customClassNames?.ctaClassName, "flex items-center justify-end")}>
-            <div className="sm:hover:bg-muted hidden items-center rounded-md px-2 transition sm:flex">
+            <div className="sm:hover:bg-cal-muted hidden items-center rounded-md px-2 transition sm:flex">
               {!openSidebar && allowSetToDefault ? (
                 <>
                   <Skeleton
@@ -493,7 +493,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 <div
                   className={classNames(
                     openSidebar
-                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70 sm:hidden"
+                      ? "fadeIn fixed inset-0 z-50 bg-neutral-800/70 transition-opacity sm:hidden"
                       : ""
                   )}>
                   <div

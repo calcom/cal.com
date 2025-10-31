@@ -1,7 +1,7 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
 
@@ -94,7 +94,7 @@ function AddFilterButtonComponent<TData>(
                       addFilter(column.id);
                       setOpen(false);
                     }}
-                    className="flex items-center justify-between px-4 py-2"
+                    className="flex items-center justify-between px-4 py-2 rounded-none"
                     data-testid={`add-filter-item-${column.id}`}>
                     <span>{startCase(column.title)}</span>
                     {showHiddenIndicator && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}

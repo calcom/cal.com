@@ -24,7 +24,7 @@ export function AvailabilityScheduleSkeleton() {
               </div>
 
               {/* Action buttons */}
-              <div className="relative flex-shrink-0 md:relative md:bottom-auto md:right-auto">
+              <div className="relative shrink-0 md:relative md:bottom-auto md:right-auto">
                 {/* Desktop buttons - Set to Default, Delete, and Save */}
                 <div className="flex items-center justify-end">
                   {/* Set to Default - desktop only */}

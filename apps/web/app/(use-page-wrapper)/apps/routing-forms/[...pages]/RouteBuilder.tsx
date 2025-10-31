@@ -307,7 +307,7 @@ const WeightedAttributesSelector = ({
             }}
           />
         </div>
-        <div className="bg-muted mt-1 rounded-xl p-2">
+        <div className="bg-cal-muted mt-1 rounded-xl p-2">
           {attributeIdForWeights ? (
             <SelectField
               size="sm"
@@ -652,21 +652,21 @@ const Route = ({
       <div
         className={classNames(
           "cal-query-builder-card w-full gap-2 p-2",
-          route.isFallback && "bg-muted border-subtle rounded-xl  border"
+          route.isFallback && "bg-cal-muted border-subtle rounded-xl  border"
         )}>
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}
           <div>
             {route.isFallback ? (
               <div className="flex w-full flex-col gap-2 text-sm lg:flex-row">
-                <div className="flex flex-grow items-center gap-2">
-                  {/* <div className="flex flex-grow-0 whitespace-nowrap">
+                <div className="flex grow items-center gap-2">
+                  {/* <div className="flex grow-0 whitespace-nowrap">
                       <span>{t("send_booker_to")}</span>
                     </div> */}
                   <Select
                     size="sm"
                     isDisabled={disabled}
-                    className="data-testid-select-routing-action block w-full flex-grow"
+                    className="data-testid-select-routing-action block w-full grow"
                     required
                     value={RoutingPages.find((page) => page.value === route.action?.type)}
                     onChange={(item) => {
@@ -695,7 +695,7 @@ const Route = ({
                       required
                       disabled={disabled}
                       name="customPageMessage"
-                      className="border-default flex flex-grow lg:w-fit"
+                      className="border-default flex grow lg:w-fit"
                       style={{
                         minHeight: "38px",
                       }}
@@ -708,8 +708,8 @@ const Route = ({
                     <TextField
                       disabled={disabled}
                       name="externalRedirectUrl"
-                      className="border-default flex flex-grow text-sm"
-                      containerClassName="flex-grow"
+                      className="border-default flex grow text-sm"
+                      containerClassName="grow"
                       type="url"
                       required
                       labelSrOnly
@@ -720,7 +720,7 @@ const Route = ({
                       placeholder="https://example.com"
                     />
                   ) : (
-                    <div className="flex-grow">
+                    <div className="grow">
                       <Select
                         size="sm"
                         required
@@ -758,8 +758,8 @@ const Route = ({
                         <>
                           <TextField
                             disabled={disabled}
-                            className="border-default flex w-full flex-grow text-sm"
-                            containerClassName="flex-grow mt-2"
+                            className="border-default flex w-full grow text-sm"
+                            containerClassName="grow mt-2"
                             addOnLeading={eventTypePrefix}
                             required
                             value={customEventTypeSlug}
@@ -796,12 +796,12 @@ const Route = ({
                   </div>
                   <span className="text-emphasis ml-2 text-sm font-medium">Send booker to</span>
                 </div>
-                <div className="bg-muted flex w-full flex-col gap-2 rounded-xl p-2 text-sm lg:flex-row">
-                  <div className="flex flex-grow items-center gap-2">
+                <div className="bg-cal-muted flex w-full flex-col gap-2 rounded-xl p-2 text-sm lg:flex-row">
+                  <div className="flex grow items-center gap-2">
                     <Select
                       size="sm"
                       isDisabled={disabled}
-                      className="data-testid-select-routing-action block w-full flex-grow"
+                      className="data-testid-select-routing-action block w-full grow"
                       required
                       value={RoutingPages.find((page) => page.value === route.action?.type)}
                       onChange={(item) => {
@@ -830,7 +830,7 @@ const Route = ({
                         required
                         disabled={disabled}
                         name="customPageMessage"
-                        className="border-default flex flex-grow lg:w-fit"
+                        className="border-default flex grow lg:w-fit"
                         style={{
                           minHeight: "38px",
                         }}
@@ -844,8 +844,8 @@ const Route = ({
                         size="sm"
                         disabled={disabled}
                         name="externalRedirectUrl"
-                        className="border-default flex flex-grow text-sm"
-                        containerClassName="flex-grow"
+                        className="border-default flex grow text-sm"
+                        containerClassName="grow"
                         type="url"
                         required
                         labelSrOnly
@@ -856,7 +856,7 @@ const Route = ({
                         placeholder="https://example.com"
                       />
                     ) : (
-                      <div className="flex-grow">
+                      <div className="grow">
                         <Select
                           size="sm"
                           required
@@ -894,8 +894,8 @@ const Route = ({
                           <>
                             <TextField
                               disabled={disabled}
-                              className="border-default flex w-full flex-grow text-sm"
-                              containerClassName="flex-grow mt-2"
+                              className="border-default flex w-full grow text-sm"
+                              containerClassName="grow mt-2"
                               addOnLeading={eventTypePrefix}
                               required
                               value={customEventTypeSlug}
