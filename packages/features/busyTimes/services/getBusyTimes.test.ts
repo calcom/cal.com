@@ -9,6 +9,10 @@ vi.mock("@calcom/prisma", () => ({
   prisma,
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  prisma,
+}));
+
 const startOfTomorrow = dayjs().add(1, "day").startOf("day");
 const tomorrowDate = startOfTomorrow.format("YYYY-MM-DD");
 

@@ -7,6 +7,8 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
+import type { Prisma } from "./client";
+import { PrismaClient } from "./client";
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
 
 function getRandomRatingFeedback() {

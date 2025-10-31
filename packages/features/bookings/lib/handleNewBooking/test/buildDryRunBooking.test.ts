@@ -9,6 +9,10 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {}, // empty object as default export
+}));
+
 describe("buildDryRunBooking", () => {
   const baseOrganizerUser = {
     id: 1,

@@ -20,13 +20,33 @@ export async function getAppWithMetadata(app: { dirName: string } | { slug: stri
   let appMetadata: App | null;
 
   if ("dirName" in app) {
-    appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata] as App;
+    appMetadata = await appStoreMetadata[app.dirName as keyof typeof appStoreMetadata]() as App;
   } else {
-    const foundEntry = Object.entries(appStoreMetadata).find(([, meta]) => {
-      return meta.slug === app.slug;
-    });
+
+    const commonAppNames = [
+      'googlecalendar', 'zoomvideo', 'jitsivideo', 'dailyvideo', 'googlevideo',
+      'office365calendar', 'applecalendar', 'caldavcalendar', 'stripepayment',
+      'paypal', 'hubspot', 'salesforce', 'hubspot', 'sendgrid', 'gmail',
+
+    ];
+
+    let foundEntry = null;
+
+
+    for (const appName of commonAppNames) {
+      try {
+        const metadata = await appStoreMetadata[appName]?.();
+        if (metadata && metadata.slug === app.slug) {
+          foundEntry = metadata;
+          break;
+        }
+      } catch (error) {
+
+      }
+    }
+
     if (!foundEntry) return null;
-    appMetadata = foundEntry[1] as App;
+    appMetadata = foundEntry as App;
   }
 
   if (!appMetadata) return null;
