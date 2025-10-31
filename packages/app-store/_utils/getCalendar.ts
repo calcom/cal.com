@@ -14,7 +14,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendar = async (
   credential: CredentialForCalendarService | null,
-  shouldServeCache?: boolean,
+  shouldServeCache?: boolean
 ): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
@@ -43,14 +43,14 @@ export const getCalendar = async (
     return null;
   }
   // if shouldServeCache is not supplied, determine on the fly.
-  if (typeof shouldServeCache === "undefined") {
+  if (typeof shouldServeCache === "undefined" || shouldServeCache) {
     const featuresRepository = new FeaturesRepository(prisma);
     const [isCalendarSubscriptionCacheEnabled, isCalendarSubscriptionCacheEnabledForUser] = await Promise.all(
       [
         featuresRepository.checkIfFeatureIsEnabledGlobally(
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),
-        featuresRepository.checkIfUserHasFeature(
+        featuresRepository.checkIfUserHasFeatureNonHierarchical(
           credential.userId as number,
           CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
         ),
