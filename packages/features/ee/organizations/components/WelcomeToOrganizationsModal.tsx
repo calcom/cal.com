@@ -22,6 +22,9 @@ export function WelcomeToOrganizationsModal() {
   const { t } = useLocale();
   const { isOpen, closeModal } = useWelcomeModal();
 
+  const SMALL = { outer: 32, icon: 16 };
+  const LARGE = { outer: 48, icon: 24 };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
       <DialogContent size="default" className="max-w-[400px] rounded-2xl" type="">
@@ -36,25 +39,37 @@ export function WelcomeToOrganizationsModal() {
           <div className="relative flex h-32 items-center justify-center">
             <div className="relative flex h-full w-full items-center justify-center">
               {/* Central users icon (larger) */}
-              <div className="from-default to-muted border-subtle absolute flex h-12 w-12 items-center justify-center rounded-full border bg-gradient-to-b shadow-sm">
-                <Icon name="users" className="text-emphasis h-7 w-7 opacity-70" />
+              <div
+                className="from-default to-muted border-subtle absolute flex items-center justify-center rounded-full border bg-gradient-to-b shadow-sm"
+                style={{ width: LARGE.outer, height: LARGE.outer }}>
+                <Icon
+                  name="users"
+                  className="text-emphasis opacity-70"
+                  style={{ width: LARGE.icon, height: LARGE.icon }}
+                />
               </div>
 
               {/* Surrounding user icons */}
-              {[0, 1, 2, 3].map((index) => {
-                const angle = (index * Math.PI) / 2;
-                const radius = 55;
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
+              {[30, 190, 320].map((deg, index) => {
+                const radius = 75;
+                const rad = (deg * Math.PI) / 180;
+                const x = Math.cos(rad) * radius;
+                const y = Math.sin(rad) * radius;
 
                 return (
                   <div
                     key={index}
-                    className="bg-muted border-subtle absolute flex h-7 w-7 items-center justify-center rounded-full border shadow-sm"
+                    className="from-default to-muted bg-muted border-subtle absolute flex items-center justify-center rounded-full border bg-gradient-to-b shadow-sm"
                     style={{
+                      width: SMALL.outer,
+                      height: SMALL.outer,
                       transform: `translate(${x}px, ${y}px)`,
                     }}>
-                    <Icon name="user" className="text-default h-4 w-4" />
+                    <Icon
+                      name="user"
+                      className="text-default"
+                      style={{ width: SMALL.icon, height: SMALL.icon }}
+                    />
                   </div>
                 );
               })}
