@@ -55,6 +55,14 @@ export function transformRoutingFormResponsesToVariableFormat(
   return Object.keys(transformed).length > 0 ? transformed : null;
 }
 
+export function formatIdentifierToVariable(key: string): string {
+  return key
+    .replace(/[^a-zA-Z0-9 ]/g, "")
+    .trim()
+    .replaceAll(" ", "_")
+    .toUpperCase();
+}
+
 export type VariablesType = {
   eventName?: string;
   organizerName?: string;
@@ -185,11 +193,7 @@ const customTemplate = (
     // handle custom variables from form/booking responses
     if (variables.responses) {
       Object.keys(variables.responses).forEach((customInput) => {
-        const formatedToVariable = customInput
-          .replace(/[^a-zA-Z0-9 ]/g, "")
-          .trim()
-          .replaceAll(" ", "_")
-          .toUpperCase();
+        const formatedToVariable = formatIdentifierToVariable(customInput);
 
         if (variable === formatedToVariable && variables.responses) {
           const response = variables.responses[customInput];
