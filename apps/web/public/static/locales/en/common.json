@@ -3903,5 +3903,14 @@
   "onboarding_plan_team_badge": "$15/user/mo",
   "onboarding_plan_organization_badge": "$37/user/mo",
   "onboarding_plan_organization_description": "Robust scheduling for larger teams looking to have more control, privacy, and security.",
+  "invite_teammates": "Invite Teammates",
+  "organization_brand": "Organization Brand",
+  "organization_details": "Organization Details",
+  "organization_teams": "Organization Teams",
+  "personal_profile": "Personal Profile",
+  "personal_settings": "Personal Settings",
+  "team_brand": "Team Brand",
+  "team_details": "Team Details",
+  "team_invite": "Team Invite",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
