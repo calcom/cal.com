@@ -52,9 +52,8 @@ export function onRouterTransitionStart(url: string, navigationType: "push" | "r
 
 if (
   process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
-  typeof globalThis.crypto !== "undefined" &&
-  typeof globalThis.crypto.getRandomValues === "function" &&
-  !globalThis.ReactNativeWebView
+  typeof window !== "undefined" &&
+  typeof window.crypto?.getRandomValues === "function"
 ) {
   initBotId({
     protect: [
