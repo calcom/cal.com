@@ -7,6 +7,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
+import type { WebhookVersion } from "@calcom/prisma/enums";
 
 import type { WebhookSubscriber } from "../dto/types";
 import type { IWebhookRepository } from "../interface/repository";
@@ -22,6 +23,7 @@ interface WebhookQueryResult {
   time: number | null;
   timeUnit: TimeUnit | null;
   eventTriggers: WebhookTriggerEvents[];
+  version: WebhookVersion;
   priority: number; // This field is added by the query and removed before returning
 }
 
@@ -103,6 +105,7 @@ export class WebhookRepository implements IWebhookRepository {
       time: webhook.time,
       timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers as WebhookTriggerEvents[],
+      version: webhook.version,
     }));
   }
 
@@ -124,7 +127,7 @@ export class WebhookRepository implements IWebhookRepository {
     const results = await this.prisma.$queryRaw<WebhookQueryResult[]>`
       -- Platform webhooks (highest priority)
       SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
         1 as priority
       FROM "Webhook"
       WHERE active = true 
@@ -135,7 +138,7 @@ export class WebhookRepository implements IWebhookRepository {
       
       -- User-specific webhooks (only if userId provided)
       SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
         2 as priority
       FROM "Webhook"
       WHERE active = true 
@@ -148,7 +151,7 @@ export class WebhookRepository implements IWebhookRepository {
       
       -- Event type webhooks (only if eventTypeId provided)
       SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
         3 as priority
       FROM "Webhook"
       WHERE active = true 
@@ -161,7 +164,7 @@ export class WebhookRepository implements IWebhookRepository {
       
       -- Parent event type webhooks (only if managedParentEventTypeId provided)
       SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
         4 as priority
       FROM "Webhook"
       WHERE active = true 
@@ -174,7 +177,7 @@ export class WebhookRepository implements IWebhookRepository {
       
       -- Team webhooks (only if teamIds provided and not empty)
       SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
         5 as priority
       FROM "Webhook"
       WHERE active = true 
@@ -188,7 +191,7 @@ export class WebhookRepository implements IWebhookRepository {
       
       -- OAuth client webhooks (only if oAuthClientId provided)
       SELECT 
-        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers",
+        id, "subscriberUrl", "payloadTemplate", "appId", secret, time, "timeUnit", "eventTriggers", version,
         6 as priority
       FROM "Webhook"
       WHERE active = true 
@@ -223,6 +226,7 @@ export class WebhookRepository implements IWebhookRepository {
         time: true,
         timeUnit: true,
         eventTriggers: true,
+        version: true,
       },
     });
 
@@ -237,6 +241,7 @@ export class WebhookRepository implements IWebhookRepository {
       time: webhook.time,
       timeUnit: webhook.timeUnit as TimeUnit | null,
       eventTriggers: webhook.eventTriggers,
+      version: webhook.version,
     };
   }
 
@@ -257,6 +262,7 @@ export class WebhookRepository implements IWebhookRepository {
         platform: true,
         time: true,
         timeUnit: true,
+        version: true,
       },
     });
   }
