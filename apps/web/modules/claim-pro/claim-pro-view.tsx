@@ -15,7 +15,9 @@ export interface PageProps {
   userMetadata: {
     isProUser?: {
       yearClaimed?: number;
+      formSubmittedForYear?: number;
       validTillDate?: string;
+      verifield?: boolean;
     };
   };
 }
@@ -24,41 +26,42 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
   const [userMetadata, setUserMetadata] = useState(initialUserMetadata);
   const [showTallyForm, setShowTallyForm] = useState(false);
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
-  const yearClaimed = userMetadata.isProUser?.yearClaimed || 0;
+  const formSubmittedForYear = userMetadata.isProUser?.formSubmittedForYear || 0;
   const { data: session } = useSession();
   const userEmail = session?.user?.email;
 
   const mutation = trpc.viewer.me.calid_updateProfile.useMutation({
     onSuccess: (data) => {
+      const newFormSubmittedForYear =
+        data.metadata?.isProUser?.formSubmittedForYear || userMetadata.isProUser?.formSubmittedForYear || 0;
       setUserMetadata((prev) => ({
         ...prev,
         isProUser: {
-          yearClaimed: data.metadata?.isProUser?.yearClaimed || prev.isProUser?.yearClaimed,
+          formSubmittedForYear: newFormSubmittedForYear,
           validTillDate: data.metadata?.isProUser?.validTillDate || prev.isProUser?.validTillDate,
         },
       }));
+
+      setShowVerificationDialog(true);
+      if (newFormSubmittedForYear >= 2) {
+        setShowTallyForm(false);
+      }
     },
   });
 
-  const handleTallySubmission = (yearClaimed: number) => {
+  const handleTallySubmission = (formSubmittedForYear: number) => {
     mutation.mutate({
       metadata: {
         isProUser: {
-          yearClaimed: yearClaimed + 1,
+          ...userMetadata.isProUser,
+          formSubmittedForYear: formSubmittedForYear + 1,
           validTillDate: dayjs()
             .utc()
-            .add(yearClaimed + 1, "years")
+            .add(formSubmittedForYear + 1, "years")
             .toISOString(),
-          verified: false,
         },
       },
     });
-    if (yearClaimed === 1) {
-      setShowTallyForm(false);
-      setShowVerificationDialog(true);
-    } else {
-      setShowVerificationDialog(true);
-    }
   };
 
   return (
@@ -77,9 +80,9 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
       {showTallyForm ? (
         <div className="w-full max-w-4xl">
           <TallyForm
-            yearClaimed={yearClaimed}
+            formSubmittedForYear={formSubmittedForYear}
             userEmail={userEmail}
-            onSubmission={() => handleTallySubmission(yearClaimed)}
+            onSubmission={() => handleTallySubmission(formSubmittedForYear)}
           />
         </div>
       ) : (
@@ -87,7 +90,7 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
           <div className="group relative h-80 w-full">
             <div
               className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
-                yearClaimed >= 1
+                formSubmittedForYear >= 1
                   ? "cursor-not-allowed opacity-60"
                   : "cursor-pointer group-hover:-translate-x-1.5 group-hover:-translate-y-3.5 group-hover:scale-105 group-hover:transform"
               }`}
@@ -96,9 +99,9 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
               }}>
               <div
                 className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
-                  yearClaimed >= 1 ? "bg-green-100" : "bg-blue-100"
+                  formSubmittedForYear >= 1 ? "bg-green-100" : "bg-blue-100"
                 }`}>
-                {yearClaimed >= 1 ? (
+                {formSubmittedForYear >= 1 ? (
                   <Icon name="check" className="h-8 w-8 text-green-500" />
                 ) : (
                   <svg
@@ -116,16 +119,16 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
                 )}
               </div>
               <h3 className="text-default text-xl font-bold">
-                {yearClaimed >= 1 ? "First Year Pro" : "Unlock 1st Year"}
+                {formSubmittedForYear >= 1 ? "First Year Pro" : "Unlock 1st Year"}
               </h3>
               <p className="text-default mb-6">
-                {yearClaimed >= 1 ? "Already Claimed" : "Unlock all premium features for one year"}
+                {formSubmittedForYear >= 1 ? "Already Claimed" : "Unlock all premium features for one year"}
               </p>
               <Button
-                onClick={() => yearClaimed < 1 && setShowTallyForm(true)}
+                onClick={() => formSubmittedForYear < 1 && setShowTallyForm(true)}
                 className="text-center"
-                disabled={mutation.isPending || yearClaimed >= 1}>
-                {yearClaimed >= 1 ? "Already Claimed" : "Claim"}
+                disabled={mutation.isPending || formSubmittedForYear >= 1}>
+                {formSubmittedForYear >= 1 ? "Already Claimed" : "Claim"}
               </Button>
             </div>
           </div>
@@ -133,7 +136,7 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
           <div className="group relative h-80 w-full">
             <div
               className={`bg-default border-default flex h-full w-full flex-col items-center justify-center rounded-2xl border p-8 shadow-xl transition-all duration-300 ease-out ${
-                yearClaimed < 1 || yearClaimed > 1
+                formSubmittedForYear < 1 || formSubmittedForYear > 1
                   ? "cursor-not-allowed opacity-60"
                   : "cursor-pointer group-hover:-translate-x-1.5 group-hover:-translate-y-3.5 group-hover:scale-105 group-hover:transform"
               }`}
@@ -142,9 +145,9 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
               }}>
               <div
                 className={`mb-4 flex h-16 w-16 items-center justify-center rounded-lg ${
-                  yearClaimed >= 2 ? "bg-green-100" : "bg-blue-100"
+                  formSubmittedForYear >= 2 ? "bg-green-100" : "bg-blue-100"
                 }`}>
-                {yearClaimed >= 2 ? (
+                {formSubmittedForYear >= 2 ? (
                   <Icon name="check" className="h-8 w-8 text-green-500" />
                 ) : (
                   <svg
@@ -162,16 +165,22 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
                 )}
               </div>
               <h3 className="text-default text-xl font-bold">
-                {yearClaimed >= 2 ? "Second Year Pro" : "Unlock 2nd Year"}
+                {formSubmittedForYear >= 2 ? "Second Year Pro" : "Unlock 2nd Year"}
               </h3>
               <p className="text-default mb-6">
-                {yearClaimed >= 2 ? "Already Claimed" : "Unlock all premium features for two years"}
+                {formSubmittedForYear >= 2 ? "Already Claimed" : "Unlock all premium features for two years"}
               </p>
               <Button
-                onClick={() => yearClaimed >= 1 && yearClaimed < 2 && setShowTallyForm(true)}
+                onClick={() =>
+                  formSubmittedForYear >= 1 && formSubmittedForYear < 2 && setShowTallyForm(true)
+                }
                 className="text-center"
-                disabled={mutation.isPending || yearClaimed < 1 || yearClaimed >= 2}>
-                {yearClaimed >= 2 ? "Already Claimed" : yearClaimed < 1 ? "Complete First Year" : "Claim"}
+                disabled={mutation.isPending || formSubmittedForYear < 1 || formSubmittedForYear >= 2}>
+                {formSubmittedForYear >= 2
+                  ? "Already Claimed"
+                  : formSubmittedForYear < 1
+                  ? "Complete First Year"
+                  : "Claim"}
               </Button>
             </div>
           </div>
@@ -273,7 +282,7 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
       <VerificationDialog
         isOpen={showVerificationDialog}
         onClose={() => setShowVerificationDialog(false)}
-        yearClaimed={yearClaimed}
+        formSubmittedForYear={formSubmittedForYear}
       />
     </div>
   );
@@ -282,10 +291,10 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
 interface VerificationDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  yearClaimed: number;
+  formSubmittedForYear: number;
 }
 
-const VerificationDialog = ({ isOpen, onClose, yearClaimed }: VerificationDialogProps) => {
+const VerificationDialog = ({ isOpen, onClose, formSubmittedForYear }: VerificationDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent showCloseButton>
@@ -298,9 +307,9 @@ const VerificationDialog = ({ isOpen, onClose, yearClaimed }: VerificationDialog
             <h3 className="text-default text-xl font-semibold">Your response has been submitted!</h3>
 
             <p className="text-default text-sm">
-              Our team will verify your submission and your {yearClaimed === 1 ? "1st" : "2nd"} year of Pro
-              plan will be activated automatically. It typically takes 24-48 hours, keep an eye on your email
-              inbox.
+              Our team will verify your submission and your {formSubmittedForYear === 1 ? "1st" : "2nd"} year
+              of Pro plan will be activated automatically. It typically takes 24-48 hours, keep an eye on your
+              email inbox.
             </p>
           </div>
         </div>

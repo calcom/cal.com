@@ -13,21 +13,19 @@ declare global {
 }
 
 interface TallyFormProps {
-  yearClaimed: number;
+  formSubmittedForYear: number;
   userEmail?: string | null;
   onSubmission?: () => void;
 }
 
-export const TallyForm = ({ yearClaimed, userEmail, onSubmission }: TallyFormProps) => {
+export const TallyForm = ({ formSubmittedForYear, userEmail, onSubmission }: TallyFormProps) => {
   const scriptLoadedRef = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
-  const baseUrl = yearClaimed == 1 ? "https://tally.so/r/mDrJKZ" : "https://tally.so/r/3qr859";
+  const baseUrl = formSubmittedForYear == 1 ? "https://tally.so/r/mDrJKZ" : "https://tally.so/r/3qr859";
 
   const tallySrc = userEmail
     ? `${baseUrl}?formEventsForwarding=1&Email=${encodeURIComponent(userEmail)}`
     : `${baseUrl}?formEventsForwarding=1`;
-
-  console.log(tallySrc);
 
   useEffect(() => {
     // Load embeds once when script is ready
@@ -78,7 +76,7 @@ export const TallyForm = ({ yearClaimed, userEmail, onSubmission }: TallyFormPro
   return (
     <div className="relative h-full w-full">
       {isLoading && (
-        <div className="absolute inset-0 z-10 bg-white p-8">
+        <div className="bg-default absolute inset-0 z-10 p-8">
           <SkeletonContainer>
             <div className="space-y-6">
               <div className="space-y-2">
