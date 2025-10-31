@@ -80,6 +80,8 @@ export function AgentConfigurationSheet({
 
   const { outboundAgentForm, inboundAgentForm } = useAgentForms({ agentData, inboundAgentData });
 
+  const trigger = form.watch("trigger");
+
   const updateAgentMutation = trpc.viewer.aiVoiceAgent.update.useMutation({
     onSuccess: async () => {
       if (activeAgentId) {
@@ -93,12 +95,17 @@ export function AgentConfigurationSheet({
 
   const handleAgentUpdate = async (data: AgentFormValues) => {
     if (!agentId) return;
+    if (trigger === "FORM_SUBMITTED" && !data.outboundEventTypeId) {
+      showToast(t("select_event_type_to_schedule_calls"), "error");
+      return;
+    }
 
     const updatePayload = {
       generalPrompt: restorePromptComplexity(data.generalPrompt),
       beginMessage: data.beginMessage,
       language: data.language as Language,
       voiceId: data.voiceId,
+      outboundEventTypeId: data.outboundEventTypeId,
     };
 
     await updateAgentMutation.mutateAsync({
@@ -146,7 +153,12 @@ export function AgentConfigurationSheet({
           </SheetHeader>
           <SheetBody className="px-0">
             {activeTab === "outgoingCalls" && (
-              <OutgoingCallsTab outboundAgentForm={outboundAgentForm} readOnly={readOnly} />
+              <OutgoingCallsTab
+                outboundAgentForm={outboundAgentForm}
+                readOnly={readOnly}
+                eventTypeOptions={eventTypeOptions}
+                trigger={trigger}
+              />
             )}
 
             {activeTab === "phoneNumber" && (
@@ -158,6 +170,7 @@ export function AgentConfigurationSheet({
                 workflowId={workflowId}
                 isOrganization={isOrganization}
                 form={form}
+                eventTypeIds={eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
               />
             )}
 
@@ -241,6 +254,8 @@ export function AgentConfigurationSheet({
           teamId={teamId}
           isOrganization={isOrganization}
           form={form}
+          eventTypeIds={eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
+          outboundEventTypeId={agentData?.outboundEventTypeId}
         />
       )}
 
