@@ -8,11 +8,11 @@ import type {
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import PhoneInput from "@calcom/features/components/phone-input";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { fieldSchema, variantsConfigSchema, FieldType } from "@calcom/prisma/zod-utils";
+import type { fieldSchema, variantsConfigSchema, FieldType, fieldTypeEnum } from "@calcom/prisma/zod-utils";
 import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
+import { Label, CheckboxField, EmailField, InputField, Checkbox, DatePicker } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
@@ -88,7 +88,7 @@ type Component =
 // TODO: Share FormBuilder components across react-query-awesome-builder(for Routing Forms) widgets.
 // There are certain differences b/w two. Routing Forms expect label to be provided by the widget itself and FormBuilder adds label itself and expect no label to be added by component.
 // Routing Form approach is better as it provides more flexibility to show the label in complex components. But that can't be done right now because labels are missing consistent asterisk required support across different components
-export const Components: Record<FieldType, Component> = {
+export const Components: Record<z.infer<typeof fieldTypeEnum>, Component> = {
   text: {
     propsType: propsTypes.text,
     factory: (props) => <Widgets.TextWidget id={props.name} noLabel={true} {...props} />,
@@ -553,6 +553,48 @@ export const Components: Record<FieldType, Component> = {
     propsType: propsTypes.url,
     factory: (props) => {
       return <Widgets.TextWidget type="url" autoComplete="url" noLabel={true} {...props} />;
+    },
+  },
+  date: {
+    propsType: propsTypes.date,
+    factory: (props) => {
+      if (!props) {
+        return <div />;
+      }
+
+      // Parse props.value as local date to avoid UTC offset issues
+      let dateValue: Date | undefined;
+      if (props.value) {
+        const dateParts = props.value.split('-');
+        if (dateParts.length === 3) {
+          const year = parseInt(dateParts[0], 10);
+          const month = parseInt(dateParts[1], 10) - 1; // Month is 0-indexed
+          const day = parseInt(dateParts[2], 10);
+          dateValue = new Date(year, month, day);
+        }
+      }
+      
+      return (
+        <DatePicker
+          date={dateValue || new Date()}
+          onDatesChange={(date) => {
+            // Handle null/clears
+            if (!date) {
+              props.setValue("");
+              return;
+            }
+            
+            // Format selected Date to zero-padded YYYY-MM-DD string
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            props.setValue(formattedDate);
+          }}
+          disabled={props.readOnly}
+          className="w-full"
+        />
+      );
     },
   },
 } as const;
