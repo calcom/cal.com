@@ -1,4 +1,6 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { showToast } from "@calcom/ui/components/toast";
 
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { DestinationCalendarSettings } from "../DestinationCalendar";
@@ -6,9 +8,19 @@ import { DestinationCalendarSettings } from "../DestinationCalendar";
 export const DestinationCalendarSettingsWebWrapper = () => {
   const calendars = trpc.viewer.calendars.connectedCalendars.useQuery();
   const utils = trpc.useUtils();
+  const { t } = useLocale();
   const mutation = trpc.viewer.calendars.setDestinationCalendar.useMutation({
     onSuccess: () => {
       utils.viewer.calendars.connectedCalendars.invalidate();
+    },
+  });
+
+  const mutationReminder = trpc.viewer.calendars.setDestinationReminder.useMutation({
+    onSuccess: () => {
+      showToast(t("save_changes"), "success");
+    },
+    onError(error) {
+      showToast(`Error updating reminder: ${error.message}`, "error");
     },
   });
 
@@ -25,6 +37,7 @@ export const DestinationCalendarSettingsWebWrapper = () => {
         value={calendars.data.destinationCalendar.externalId}
         hidePlaceholder
         onChange={mutation.mutate}
+        onReminderChange={mutationReminder.mutate}
       />
     </AtomsWrapper>
   );
