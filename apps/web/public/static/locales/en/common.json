@@ -3828,7 +3828,7 @@
   "select_event_type_for_inbound_calls": "Inbound calls can book only one event type. Select the event type where meetings will be scheduled when callers reach your agent.",
   "select_event_type_for_outbound_calls": "Select the event type that should be used to schedule meetings.",
   "setup_inbound_agent_for_incoming_calls": "Set up inbound agent for incoming calls",
-  "no_event_types_available_for_test_call": "No event types available for test call",
+  "no_event_types_available_for_test_call": "No event types available for a test call",
   "create_block_entry": "Create Block Entry",
   "blocklist_entry_details": "Blocklist Entry Details",
   "blocklist_entry_not_found": "Blocklist entry not found",

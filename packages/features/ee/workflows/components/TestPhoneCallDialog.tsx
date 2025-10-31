@@ -11,7 +11,7 @@ import { Label } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { getEventTypeIdForTest } from "../lib/actionHelperFunctions";
+import { getEventTypeIdForCalAiTest } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
 
 interface TestPhoneCallDialogProps {
@@ -53,7 +53,7 @@ export function TestPhoneCallDialog({
       return;
     }
 
-    const eventTypeValidation = getEventTypeIdForTest({
+    const eventTypeValidation = getEventTypeIdForCalAiTest({
       trigger: form.getValues("trigger"),
       outboundEventTypeId,
       eventTypeIds,

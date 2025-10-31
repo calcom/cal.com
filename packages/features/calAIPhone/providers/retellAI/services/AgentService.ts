@@ -2,11 +2,13 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { v4 as uuidv4 } from "uuid";
 
 import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
+import prisma from "@calcom/prisma";
 
 import type {
   AIPhoneServiceUpdateModelParams,
@@ -716,6 +718,26 @@ export class AgentService {
 
     // Update outbound event type ID in database if provided
     if (outboundEventTypeId) {
+      const eventTypeRepository = new EventTypeRepository(prisma);
+
+      const outBoundEventType = await eventTypeRepository.findByIdMinimal({
+        id: outboundEventTypeId,
+      });
+
+      if (!outBoundEventType) {
+        throw new HttpError({
+          statusCode: 404,
+          message: "Event type not found.",
+        });
+      }
+
+      if (userId !== outBoundEventType.userId && teamId !== outBoundEventType.teamId) {
+        throw new HttpError({
+          statusCode: 403,
+          message: "You don't have permission to use this event type.",
+        });
+      }
+
       await this.deps.agentRepository.updateOutboundEventTypeId({
         agentId: id,
         eventTypeId: outboundEventTypeId,
