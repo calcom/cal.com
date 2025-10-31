@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 import dayjs from "@calcom/dayjs";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 /**
  * Created Audit Action Helper Service
@@ -8,11 +9,15 @@ import dayjs from "@calcom/dayjs";
  */
 export class CreatedAuditActionHelperService {
     static readonly schema = z.object({
-        meetingTime: z.string(),
+        startTime: z.string(),
+        endTime: z.string(),
+        status: z.nativeEnum(BookingStatus),
     });
 
     static createData(params: {
-        meetingTime: string;
+        startTime: string;
+        endTime: string;
+        status: BookingStatus;
     }): z.infer<typeof this.schema> {
         return params;
     }
@@ -27,7 +32,9 @@ export class CreatedAuditActionHelperService {
 
     static getDisplayDetails(data: z.infer<typeof this.schema>, t: TFunction): Record<string, string> {
         return {
-            'Meeting Time': dayjs(data.meetingTime).format('MMM D, YYYY h:mm A'),
+            'Start Time': dayjs(data.startTime).format('MMM D, YYYY h:mm A'),
+            'End Time': dayjs(data.endTime).format('MMM D, YYYY h:mm A'),
+            'Initial Status': data.status,
         };
     }
 }

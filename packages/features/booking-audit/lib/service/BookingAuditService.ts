@@ -111,7 +111,7 @@ export class BookingAuditService {
             bookingId,
             actorId,
             type: "RECORD_CREATED",
-            action: "ACCEPTED",
+            action: "CREATED",
             data,
             timestamp: new Date(),
         });
@@ -430,6 +430,10 @@ export class BookingAuditService {
      */
     getDisplaySummary(audit: BookingAudit, t: TFunction): string {
         switch (audit.action) {
+            case "CREATED": {
+                const data = CreatedAuditActionHelperService.validate(audit.data);
+                return CreatedAuditActionHelperService.getDisplaySummary(data, t);
+            }
             case "ACCEPTED":
             case "PENDING":
             case "AWAITING_HOST": {
@@ -507,6 +511,10 @@ export class BookingAuditService {
      */
     getDisplayDetails(audit: BookingAudit, t: TFunction): Record<string, string> {
         switch (audit.action) {
+            case "CREATED": {
+                const data = CreatedAuditActionHelperService.validate(audit.data);
+                return CreatedAuditActionHelperService.getDisplayDetails(data, t);
+            }
             case "ACCEPTED":
             case "PENDING":
             case "AWAITING_HOST": {

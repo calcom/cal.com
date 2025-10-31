@@ -1570,7 +1570,9 @@ async function handler(
         try {
           const bookingAuditService = BookingAuditService.create();
           const auditData = CreatedAuditActionHelperService.createData({
-            meetingTime: booking.startTime.toISOString(),
+            startTime: booking.startTime.toISOString(),
+            endTime: booking.endTime.toISOString(),
+            status: booking.status,
           });
           await bookingAuditService.onBookingCreated(String(booking.id), userId || booking.userId, auditData);
         } catch (error) {

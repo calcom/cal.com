@@ -770,9 +770,9 @@ model Attendee {
   bookingId   Int?
   bookingSeat BookingSeat?
   noShow      Boolean?     @default(false)
-  
+
   // Actor relation for audit trail
-  Actor       Actor[]
+  Actor Actor[]
 
   @@index([email])
   @@index([bookingId])
@@ -2603,6 +2603,9 @@ enum BookingAuditType {
 }
 
 enum BookingAuditAction {
+  // Booking lifecycle
+  CREATED @map("created")
+
   // Status changes
   CANCELLED     @map("cancelled")
   ACCEPTED      @map("accepted")
@@ -2634,33 +2637,33 @@ enum BookingAuditAction {
 }
 
 enum ActorType {
-  USER     @map("user")     // Registered Cal.com user (stored here for audit retention even after user deletion)
-  GUEST    @map("guest")    // Non-registered user
+  USER     @map("user") // Registered Cal.com user (stored here for audit retention even after user deletion)
+  GUEST    @map("guest") // Non-registered user
   ATTENDEE @map("attendee") // Guest who booked (has Attendee record)
-  SYSTEM   @map("system")   // Automated actions
+  SYSTEM   @map("system") // Automated actions
 }
 
 model Actor {
-  id        String    @id @default(uuid())
-  type      ActorType
-  
+  id   String    @id @default(uuid())
+  type ActorType
+
   // References for different actor types
-  userId     Int?      // For USER type (nullable to allow user deletion)
-  attendeeId Int?      // For ATTENDEE type
+  userId     Int? // For USER type (nullable to allow user deletion)
+  attendeeId Int? // For ATTENDEE type
   attendee   Attendee? @relation(fields: [attendeeId], references: [id], onDelete: Restrict)
-  
+
   // Identity fields (for GUEST/ATTENDEE types)
-  email     String?
-  phone     String?
-  name      String?
-  
-  createdAt DateTime  @default(now())
+  email String?
+  phone String?
+  name  String?
+
+  createdAt     DateTime       @default(now())
   bookingAudits BookingAudit[]
 
   @@unique([userId])
   @@unique([attendeeId])
-  @@unique([email])   // Prevent duplicate email actors
-  @@unique([phone])   // Prevent duplicate phone actors
+  @@unique([email]) // Prevent duplicate email actors
+  @@unique([phone]) // Prevent duplicate phone actors
   @@index([email])
   @@index([userId])
   @@index([attendeeId])
@@ -2677,15 +2680,15 @@ model BookingAudit {
 
   type   BookingAuditType
   action BookingAuditAction
-  
+
   // Timestamp of the actual booking change (business event time)
   // Important: May differ from createdAt if audit is processed asynchronously
   timestamp DateTime
-  
+
   // Database record timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   data Json?
 
   @@index([actorId])

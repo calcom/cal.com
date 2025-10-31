@@ -9,12 +9,10 @@ import dayjs from "@calcom/dayjs";
 export class RejectedAuditActionHelperService {
     static readonly schema = z.object({
         rejectionReason: z.string(),
-        meetingTime: z.string(),
     });
 
     static createData(params: {
         rejectionReason: string;
-        meetingTime: string;
     }): z.infer<typeof this.schema> {
         return params;
     }
@@ -29,7 +27,6 @@ export class RejectedAuditActionHelperService {
 
     static getDisplayDetails(data: z.infer<typeof this.schema>, t: TFunction): Record<string, string> {
         return {
-            'Meeting Time': dayjs(data.meetingTime).format('MMM D, YYYY h:mm A'),
             'Reason': data.rejectionReason,
         };
     }

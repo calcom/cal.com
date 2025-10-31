@@ -53,7 +53,9 @@ export class BookingEventHandlerService {
 
     try {
       const auditData = CreatedAuditActionHelperService.createData({
-        meetingTime: payload.booking.startTime.toISOString(),
+        startTime: payload.booking.startTime.toISOString(),
+        endTime: payload.booking.endTime.toISOString(),
+        status: payload.booking.status,
       });
       const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
       await this.bookingAuditService.onBookingCreated(

@@ -1,4 +1,5 @@
 import type { BookingFlowConfig } from "./dto/types";
+import type { BookingStatus } from "@calcom/prisma/enums";
 
 export interface BookingCreatedPayload {
   config: BookingFlowConfig;
@@ -8,6 +9,8 @@ export interface BookingCreatedPayload {
   booking: {
     id: number;
     startTime: Date;
+    endTime: Date;
+    status: BookingStatus;
     userId: number | null;
     user?: {
       id: number;

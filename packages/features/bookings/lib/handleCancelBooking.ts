@@ -478,7 +478,6 @@ async function handler(input: CancelBookingInput) {
         BookingStatus.CANCELLED,
         {
           cancellationReason: cancellationReason || "",
-          meetingTime: updatedBooking.startTime.toISOString(),
         }
       );
     } catch (error) {

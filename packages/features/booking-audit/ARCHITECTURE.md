@@ -134,6 +134,9 @@ Defines specific actions performed on bookings:
 
 ```prisma
 enum BookingAuditAction {
+  // Booking lifecycle
+  CREATED       @map("created")
+  
   // Status changes
   CANCELLED     @map("cancelled")
   ACCEPTED      @map("accepted")
@@ -167,23 +170,26 @@ enum BookingAuditAction {
 
 **Action Categories:**
 
-1. **Status Changes**: Track booking lifecycle transitions
+1. **Booking Lifecycle**: Track creation events
+   - `CREATED`
+
+2. **Status Changes**: Track booking lifecycle transitions
    - `CANCELLED`, `ACCEPTED`, `REJECTED`, `PENDING`, `AWAITING_HOST`, `RESCHEDULED`
 
-2. **Attendee Management**: Track changes to booking participants
+3. **Attendee Management**: Track changes to booking participants
    - `ATTENDEE_ADDED`, `ATTENDEE_REMOVED`
 
-3. **Reason Updates**: Track updates to explanatory text fields
+4. **Reason Updates**: Track updates to explanatory text fields
    - `CANCELLATION_REASON_UPDATED`, `REJECTION_REASON_UPDATED`
    - `ASSIGNMENT_REASON_UPDATED`, `REASSIGNMENT_REASON_UPDATED`
 
-4. **Meeting Details**: Track changes to meeting logistics
+5. **Meeting Details**: Track changes to meeting logistics
    - `LOCATION_CHANGED`, `MEETING_URL_UPDATED`
 
-5. **No-Show Tracking**: Track attendance issues
+6. **No-Show Tracking**: Track attendance issues
    - `HOST_NO_SHOW_UPDATED`, `ATTENDEE_NO_SHOW_UPDATED`
 
-6. **Rescheduling**: Track reschedule requests
+7. **Rescheduling**: Track reschedule requests
    - `RESCHEDULE_REQUESTED`
 
 ---
@@ -195,17 +201,17 @@ The `BookingAudit.data` field stores action-specific context. Each action has it
 ### Booking Lifecycle Actions
 
 #### CREATED
-Used when a booking is initially created.
+Used when a booking is initially created. Records the complete state at creation time.
 
 ```typescript
 {
-  startTime: string  // ISO 8601 timestamp
-  endTime: string    // ISO 8601 timestamp
-  status: 'ACCEPTED' | 'PENDING' | 'AWAITING_HOST'  // Initial booking status
+  startTime: string     // ISO 8601 timestamp
+  endTime: string       // ISO 8601 timestamp
+  status: BookingStatus // Actual booking status (any value from BookingStatus enum)
 }
 ```
 
-**Note:** Requires adding `CREATED` action to the `BookingAuditAction` enum. Currently the code incorrectly uses `ACCEPTED` for creation.
+**Design Decision:** The `status` field accepts any `BookingStatus` value, not just the expected creation statuses (ACCEPTED, PENDING, AWAITING_HOST). This follows the principle of capturing reality rather than enforcing business rules in the audit layer. If a booking is ever created with an unexpected status due to a bug, we want to record that fact for debugging purposes rather than silently skip the audit record.
 
 ---
 
@@ -227,12 +233,16 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 }
 ```
 
+**Design Decision:** Does not store meeting time. The booking's start/end times are immutable and available in the Booking table. The audit only stores what changed (the cancellation reason).
+
 #### REJECTED
 ```typescript
 {
   rejectionReason: string
 }
 ```
+
+**Design Decision:** Does not store meeting time. Only the rejection reason changes during this action.
 
 #### RESCHEDULED
 ```typescript
@@ -241,6 +251,8 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
   endTime: string    // New end time (ISO 8601)
 }
 ```
+
+**Design Decision:** Stores both new start and end times since these are what changed. The old times are available in previous audit records or can be queried from the booking table.
 
 #### RESCHEDULE_REQUESTED
 ```typescript
@@ -503,8 +515,8 @@ The audit system uses **per-action versioning** rather than global versioning. E
 ### Why Per-Action Versioning?
 
 Different actions have different data requirements:
-- `CANCELLED` needs `cancellationReason` and `meetingTime`
-- `RESCHEDULED` needs `meetingTime` (new time)
+- `CANCELLED` needs `cancellationReason`
+- `RESCHEDULED` needs new `startTime` and `endTime`
 - `ATTENDEE_ADDED` needs `attendee` information
 - `REASSIGNMENT_REASON_UPDATED` needs assignment context
 
@@ -519,7 +531,7 @@ Each action has a dedicated Action Helper Service that defines:
 4. **Display Logic**: How to render the audit record in the UI
 
 **Example Action Helper Services:**
-- `CreatedAuditActionHelperService` → Handles `RECORD_CREATED` action
+- `CreatedAuditActionHelperService` → Handles `CREATED` action
 - `CancelledAuditActionHelperService` → Handles `CANCELLED` action
 - `RescheduledAuditActionHelperService` → Handles `RESCHEDULED` action
 - `ReassignmentAuditActionHelperService` → Handles `REASSIGNMENT_REASON_UPDATED` action
@@ -569,7 +581,7 @@ The JSON `data` field provides schema flexibility:
 Every action is fully traceable:
 - Who: Actor with type and identity
 - What: Type and Action enums
-- When: Automatic timestamp
+- When: Explicit timestamp
 - Why/How: Contextual data in JSON field
 
 ### 5. Integrity
@@ -578,6 +590,42 @@ Database constraints ensure data quality:
 - `onDelete: Restrict` protects audit integrity
 - Unique constraints prevent duplicate actors
 - Indexes ensure query performance
+
+### 6. Reality Over Enforcement
+**The audit system records actual state, not expected state.**
+
+The audit system is designed to capture what actually happened, not to enforce business rules:
+
+- **Store Actual Values**: When recording state (e.g., booking status at creation), store the actual value from the database without validation or filtering
+- **No Type Guards for State**: Avoid conditionally creating audit records based on whether the state matches expectations
+- **Bug Detection**: If a booking is created with an unexpected status, record it—this becomes valuable debugging information
+- **Single Source of Truth**: Let the business logic layer enforce rules; the audit layer's job is faithful recording
+
+**Example:**
+```typescript
+// ❌ BAD: Enforcing expected values
+if (booking.status === 'ACCEPTED' || booking.status === 'PENDING' || booking.status === 'AWAITING_HOST') {
+  // Only audit if status is "expected"
+  await auditService.onBookingCreated(...);
+}
+
+// ✅ GOOD: Recording actual state
+await auditService.onBookingCreated(bookingId, userId, {
+  startTime: booking.startTime.toISOString(),
+  endTime: booking.endTime.toISOString(),
+  status: booking.status  // Whatever it actually is
+});
+```
+
+**Benefits:**
+- Audit trail shows real system behavior, including anomalies
+- Easier to debug issues (incomplete audits hide problems)
+- Schemas naturally evolve with business requirements
+- No silent failures where audits are skipped
+
+**When to Validate:**
+- Validate data structure (required fields, types) ✅
+- Do NOT validate business logic (expected values, state transitions) ❌
 
 ---
 
@@ -673,18 +721,6 @@ The audit system is accessed through `BookingAuditService`, which provides:
 
 ---
 
-## Future Enhancements
-
-### Planned Improvements
-
-1. **UUID v7 Migration**: When Prisma 7 is available, migrate to UUID v7 for better time-based sorting
-2. **Audit Retention Policies**: Implement configurable retention for old audit records
-3. **Audit Search**: Full-text search across audit data
-4. **Audit Analytics**: Aggregated views and reporting
-5. **Per-Action Schema Evolution**: As business requirements change, individual action schemas can be enhanced independently
-
----
-
 ## Summary
 
 The Booking Audit System provides a robust, scalable architecture for tracking all booking-related actions. Key features include:
@@ -695,191 +731,7 @@ The Booking Audit System provides a robust, scalable architecture for tracking a
 - ✅ **Strong Integrity**: Database constraints ensure data quality
 - ✅ **Performance**: Strategic indexes for common query patterns
 - ✅ **Compliance Ready**: Immutable, traceable audit records
+- ✅ **Reality-Based Recording**: Captures actual state, aiding in debugging and analysis
 
 This architecture supports compliance requirements, debugging, analytics, and provides transparency for both users and administrators.
-
----
-
----
-
-# INTERNAL: Code Changes Required
-
-**⚠️ This section is for internal development reference only and should not be shared externally.**
-
-The following changes need to be made to the codebase to align with this documentation:
-
-## 1. Add CREATED Action to Enum
-
-**File:** `packages/prisma/schema.prisma`
-
-```prisma
-enum BookingAuditAction {
-  // Booking lifecycle
-  CREATED       @map("created")        // NEW: Add this
-  
-  // Status changes
-  CANCELLED     @map("cancelled")
-  ACCEPTED      @map("accepted")
-  REJECTED      @map("rejected")
-  // ... rest of the enum
-}
-```
-
-## 2. Update CreatedAuditActionHelperService Schema
-
-**File:** `packages/features/booking-audit/lib/actions/CreatedAuditActionHelperService.ts`
-
-Change from:
-```typescript
-static readonly schema = z.object({
-  meetingTime: z.string(),
-});
-```
-
-To:
-```typescript
-static readonly schema = z.object({
-  startTime: z.string(),  // Match Booking model
-  endTime: z.string(),    // Match Booking model
-  status: z.enum(['ACCEPTED', 'PENDING', 'AWAITING_HOST']),
-});
-```
-
-## 3. Update CancelledAuditActionHelperService Schema
-
-**File:** `packages/features/booking-audit/lib/actions/CancelledAuditActionHelperService.ts`
-
-Change from:
-```typescript
-static readonly schema = z.object({
-  cancellationReason: z.string(),
-  meetingTime: z.string(),
-});
-```
-
-To:
-```typescript
-static readonly schema = z.object({
-  cancellationReason: z.string(),
-  // Remove meetingTime - not needed
-});
-```
-
-## 4. Update RejectedAuditActionHelperService Schema
-
-**File:** `packages/features/booking-audit/lib/actions/RejectedAuditActionHelperService.ts`
-
-Change from:
-```typescript
-static readonly schema = z.object({
-  rejectionReason: z.string(),
-  meetingTime: z.string(),
-});
-```
-
-To:
-```typescript
-static readonly schema = z.object({
-  rejectionReason: z.string(),
-  // Remove meetingTime - not needed
-});
-```
-
-## 5. Update RescheduledAuditActionHelperService Schema
-
-**File:** `packages/features/booking-audit/lib/actions/RescheduledAuditActionHelperService.ts`
-
-Change from:
-```typescript
-static readonly schema = z.object({
-  meetingTime: z.string(),
-});
-```
-
-To:
-```typescript
-static readonly schema = z.object({
-  startTime: z.string(),  // Match Booking model
-  endTime: z.string(),    // Match Booking model
-});
-```
-
-## 6. Update BookingAuditService.onBookingCreated
-
-**File:** `packages/features/booking-audit/lib/service/BookingAuditService.ts`
-
-Change from:
-```typescript
-async onBookingCreated(
-  bookingId: string,
-  userId: number | undefined,
-  data: CreatedAuditData
-): Promise<BookingAudit> {
-  // ...
-  type: "RECORD_CREATED",
-  action: "ACCEPTED",  // Wrong!
-  // ...
-}
-```
-
-To:
-```typescript
-async onBookingCreated(
-  bookingId: string,
-  userId: number | undefined,
-  data: CreatedAuditData
-): Promise<BookingAudit> {
-  // ...
-  type: "RECORD_CREATED",
-  action: "CREATED",  // Use new CREATED action
-  // ...
-}
-```
-
-## 7. Update All Audit Data Creation Calls
-
-Update all places where audit data is created to use the new field names:
-
-**Example locations:**
-- `packages/features/bookings/lib/service/RegularBookingService.ts`
-- `packages/features/bookings/lib/handleCancelBooking.ts`
-- `packages/features/bookings/lib/handleConfirmation.ts`
-
-**Before:**
-```typescript
-CreatedAuditActionHelperService.createData({
-  meetingTime: booking.startTime.toISOString(),
-});
-```
-
-**After:**
-```typescript
-CreatedAuditActionHelperService.createData({
-  startTime: booking.startTime.toISOString(),
-  endTime: booking.endTime.toISOString(),
-  status: booking.status,
-});
-```
-
-## 8. Remove Unused Action Audit Methods (Optional)
-
-**File:** `packages/features/booking-audit/lib/service/BookingAuditService.ts`
-
-Consider removing `onBookingPending` and `onBookingAwaitingHost` methods if they're not used for status transitions:
-- These states are set on creation (covered by `CREATED` action)
-- No legitimate transitions to these states exist currently
-
-## Summary of Changes
-
-| Component | Change Type | Description |
-|-----------|-------------|-------------|
-| Prisma Schema | Add | New `CREATED` action enum value |
-| CreatedAuditActionHelperService | Update | Use `startTime`/`endTime`/`status` instead of `meetingTime` |
-| CancelledAuditActionHelperService | Remove | Remove `meetingTime` field |
-| RejectedAuditActionHelperService | Remove | Remove `meetingTime` field |
-| RescheduledAuditActionHelperService | Update | Use `startTime`/`endTime` instead of `meetingTime` |
-| BookingAuditService | Update | Use `CREATED` action instead of `ACCEPTED` for creation |
-| All audit creation callsites | Update | Pass new field structure |
-
----
 

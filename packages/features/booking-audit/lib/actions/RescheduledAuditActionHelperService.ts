@@ -8,11 +8,13 @@ import dayjs from "@calcom/dayjs";
  */
 export class RescheduledAuditActionHelperService {
     static readonly schema = z.object({
-        meetingTime: z.string(),
+        startTime: z.string(),
+        endTime: z.string(),
     });
 
     static createData(params: {
-        meetingTime: string;
+        startTime: string;
+        endTime: string;
     }): z.infer<typeof this.schema> {
         return params;
     }
@@ -22,13 +24,14 @@ export class RescheduledAuditActionHelperService {
     }
 
     static getDisplaySummary(data: z.infer<typeof this.schema>, t: TFunction): string {
-        const formattedDate = dayjs(data.meetingTime).format('MMM D, YYYY');
+        const formattedDate = dayjs(data.startTime).format('MMM D, YYYY');
         return t('audit.rescheduled_to', { date: formattedDate });
     }
 
     static getDisplayDetails(data: z.infer<typeof this.schema>, t: TFunction): Record<string, string> {
         return {
-            'New Meeting Time': dayjs(data.meetingTime).format('MMM D, YYYY h:mm A'),
+            'New Start Time': dayjs(data.startTime).format('MMM D, YYYY h:mm A'),
+            'New End Time': dayjs(data.endTime).format('MMM D, YYYY h:mm A'),
         };
     }
 }
