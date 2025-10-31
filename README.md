@@ -4,7 +4,7 @@
    <img src="https://user-images.githubusercontent.com/8019099/210054112-5955e812-a76e-4160-9ddd-58f2c72f1cce.png" alt="Logo">
   </a>
 
-  <h3 align="center">Cal.com (formerly Calendso)</h3>
+  <h3 align="center">Cal.com</h3>
 
   <p align="center">
     The open-source Calendly successor.
@@ -175,6 +175,7 @@ yarn dx
 ```
 
 #### Development tip
+
 1. Add `export NODE_OPTIONS=“--max-old-space-size=16384”` to your shell script to increase the memory limit for the node process. Alternatively, you can run this in your terminal before running the app. Replace 16384 with the amount of RAM you want to allocate to the node process.
 
 2. Add `NEXT_PUBLIC_LOGGER_LEVEL={level}` to your .env file to control the logging verbosity for all tRPC queries and mutations.\
@@ -226,7 +227,7 @@ for Logger level to be set at info, for example.
 
    3. Now open your psql shell with the DB you created: `psql -h localhost -U postgres -d <DB name>`
 
-   4. Inside the psql shell execute `\conninfo`. And you will get the following info.  
+   4. Inside the psql shell execute `\conninfo`. And you will get the following info.
       ![image](https://user-images.githubusercontent.com/39329182/236612291-51d87f69-6dc1-4a23-bf4d-1ca1754e0a35.png)
 
    5. Now extract all the info and add it to your DATABASE_URL. The url would look something like this
@@ -375,15 +376,268 @@ Executable doesn't exist at /Users/alice/Library/Caches/ms-playwright/chromium-1
 
 ### Docker
 
-The Docker configuration for Cal.com is an effort powered by people within the community.
+**Official support**: Our team will begin to officially support the Dockerfile and docker-compose resources in this
+repository.
 
-If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
+**Important**: Cal.com will **not** be supporting installations that use these Docker resources. While we provide and maintain the Docker configurations, support for Docker-based installations is the responsibility of the user.
 
-The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+This image can be found on DockerHub at [https://hub.docker.com/r/calcom/cal.com](https://hub.docker.com/r/calcom/cal.com).
 
-Issues with Docker? Find your answer or open a new discussion [here](https://github.com/calcom/docker/discussions) to ask the community.
+**Note for ARM Users**: Use the {version}-arm suffix for pulling images. Example: `docker pull calcom/cal.com:v5.6.19-arm`.
 
-Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+#### Requirements
+
+Make sure you have `docker` & `docker compose` installed on the server / system. Both are installed by most docker utilities, including Docker Desktop and Rancher Desktop.
+
+Note: `docker compose` without the hyphen is now the primary method of using docker-compose, per the Docker documentation.
+
+#### (Most users) Running Cal.com with Docker Compose
+
+If you are evaluating Cal.com or running with minimal to no modifications, this option is for you.
+
+1. Clone calcom/cal.com
+
+   ```bash
+   git clone --recursive https://github.com/calcom/cal.com.git
+   ```
+
+2. Change into the directory
+
+   ```bash
+   cd cal.com
+   ```
+
+3. Prepare your configuration: Rename `.env.example` to `.env` and then update `.env`
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Most configurations can be left as-is, but for configuration options see [Important Run-time variables](#important-run-time-variables) below.
+
+   **Push Notifications (VAPID Keys)**
+   If you see an error like:
+
+   ```
+   Error: No key set vapidDetails.publicKey
+   ```
+
+   This means your environment variables for Web Push are missing.
+   You must generate and set `NEXT_PUBLIC_VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`.
+
+   Generate them with:
+
+   ```bash
+   npx web-push generate-vapid-keys
+   ```
+
+   Then update your `.env` file:
+
+   ```env
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY=your_public_key_here
+   VAPID_PRIVATE_KEY=your_private_key_here
+   ```
+
+   Do **not** commit real keys to `.env.example` — only placeholders.
+
+   Update the appropriate values in your .env file, then proceed.
+
+4. (optional) Pre-Pull the images by running the following command:
+
+   ```bash
+   docker compose pull
+   ```
+
+   This will use the default image locations as specified by `image:` in the docker-compose.yaml file.
+
+   Note: To aid with support, by default Scarf.sh is used as registry proxy for download metrics.
+
+5. Start Cal.com via docker compose
+
+   (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
+
+   ```bash
+   docker compose up -d
+   ```
+
+   To run Cal.com web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
+
+   ```bash
+   docker compose up -d calcom studio
+   ```
+
+   To run only the Cal.com web app, ensure that DATABASE_URL is configured for an available database and run:
+
+   ```bash
+   docker compose up -d calcom
+   ```
+
+   **Note: to run in attached mode for debugging, remove `-d` from your desired run command.**
+
+6. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
+
+#### Updating Cal.com
+
+1. Stop the Cal.com stack
+
+   ```bash
+   docker compose down
+   ```
+
+2. Pull the latest changes
+
+   ```bash
+   docker compose pull
+   ```
+
+3. Update env vars as necessary.
+4. Re-start the Cal.com stack
+
+   ```bash
+   docker compose up -d
+   ```
+
+#### (Advanced users) Build and Run Cal.com
+
+1. Clone calcom/docker.
+
+   ```bash
+   git clone https://github.com/calcom/cal.com.git calcom-docker
+   ```
+
+2. Change into the directory
+
+   ```bash
+   cd calcom-docker
+   ```
+
+3. Update the calcom submodule. This project depends on the Cal.com source code, which is included here as a Git submodule. To make sure you get everything you need, update the submodule with the command below.
+
+   ```bash
+   git submodule update --remote --init
+   ```
+
+   Note: DO NOT use recursive submodule update, otherwise you will receive a git authentication error.
+
+4. Rename `.env.example` to `.env` and then update `.env`
+
+   For configuration options see [Build-time variables](#build-time-variables) below. Update the appropriate values in your .env file, then proceed.
+
+5. Build the Cal.com docker image:
+
+   Note: Due to application configuration requirements, an available database is currently required during the build process.
+
+   a) If hosting elsewhere, configure the `DATABASE_URL` in the .env file, and skip the next step
+
+   b) If a local or temporary database is required, start a local database via docker compose.
+
+   ```bash
+   docker compose up -d database
+   ```
+
+6. Build Cal.com via docker compose (DOCKER_BUILDKIT=0 must be provided to allow a network bridge to be used at build time. This requirement will be removed in the future)
+
+   ```bash
+   DOCKER_BUILDKIT=0 docker compose build calcom
+   ```
+
+7. Start Cal.com via docker compose
+
+   (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
+
+   ```bash
+   docker compose up -d
+   ```
+
+   To run Cal.com web app and Prisma Studio against a remote database, ensure that DATABASE_URL is configured for an available database and run:
+
+   ```bash
+   docker compose up -d calcom studio
+   ```
+
+   To run only the Cal.com web app, ensure that DATABASE_URL is configured for an available database and run:
+
+   ```bash
+   docker compose up -d calcom
+   ```
+
+   **Note: to run in attached mode for debugging, remove `-d` from your desired run command.**
+
+8. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
+
+#### Configuration
+
+##### Important Run-time variables
+
+These variables must also be provided at runtime
+
+| Variable                | Description                                                                                                                                                                      | Required | Default                                                             |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------------------------------------------------------------------- |
+| DATABASE_URL            | database url with credentials - if using a connection pooler, this setting should point there                                                                                    | required | `postgresql://unicorn_user:magical_password@database:5432/calendso` |
+| CALCOM_LICENSE_KEY      | Enterprise License Key                                                                                                                                                           | optional |                                                                     |
+| NEXT_PUBLIC_WEBAPP_URL  | Base URL of the site. NOTE: if this value differs from the value used at build-time, there will be a slight delay during container start (to update the statically built files). | optional | `http://localhost:3000`                                             |
+| NEXTAUTH_URL            | Location of the auth server. By default, this is the Cal.com docker instance itself.                                                                                             | optional | `{NEXT_PUBLIC_WEBAPP_URL}/api/auth`                                 |
+| NEXTAUTH_SECRET         | must match build variable                                                                                                                                                        | required | `secret`                                                            |
+| CALENDSO_ENCRYPTION_KEY | must match build variable                                                                                                                                                        | required | `secret`                                                            |
+
+##### Build-time variables
+
+If building the image yourself, these variables must be provided at the time of the docker build, and can be provided by updating the .env file. Currently, if you require changes to these variables, you must follow the instructions to build and publish your own image.
+
+Updating these variables is not required for evaluation, but is required for running in production. Instructions for generating variables can be found in the [Cal.com instructions](https://github.com/calcom/cal.com)
+
+| Variable                               | Description                                                                                                                                | Required | Default                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------- |
+| DATABASE_URL                           | database url with credentials - if using a connection pooler, this setting should point there                                              | required | `postgresql://unicorn_user:magical_password@database:5432/calendso` |
+| MAX_OLD_SPACE_SIZE                     | Needed for Nodejs/NPM build options                                                                                                        | required | 4096                                                                |
+| NEXT_PUBLIC_LICENSE_CONSENT            | license consent - true/false                                                                                                               | required |                                                                     |
+| NEXTAUTH_SECRET                        | Cookie encryption key                                                                                                                      | required | `secret`                                                            |
+| CALENDSO_ENCRYPTION_KEY                | Authentication encryption key                                                                                                              | required | `secret`                                                            |
+| NEXT_PUBLIC_WEBAPP_URL                 | Base URL injected into static files                                                                                                        | optional | `http://localhost:3000`                                             |
+| NEXT_PUBLIC_WEBSITE_TERMS_URL          | custom URL for terms and conditions website                                                                                                | optional | `https://cal.com/terms`                                             |
+| NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL | custom URL for privacy policy website                                                                                                      | optional | `https://cal.com/privacy`                                           |
+| NEXT_PUBLIC_API_V2_URL                 | URL for the v2 API, only required for custom integrations or custom booking experiences using [Cal.com Platform](https://cal.com/platform) | optional |                                                                     |
+| CALCOM_TELEMETRY_DISABLED              | Allow Cal.com to collect anonymous usage data (set to `1` to disable)                                                                      | optional |                                                                     |
+| NEXT_PUBLIC_SINGLE_ORG_SLUG            | Required if ORGANIZATIONS_ENABLED is true                                                                                                  | optional |                                                                     |
+| ORGANIZATIONS_ENABLED                  | Used for Enterprise or Organizations plan                                                                                                  | optional |                                                                     |
+
+#### Troubleshooting
+
+##### SSL edge termination
+
+If running behind a load balancer which handles SSL certificates, you will need to add the environmental variable `NODE_TLS_REJECT_UNAUTHORIZED=0` to prevent requests from being rejected. Only do this if you know what you are doing and trust the services/load-balancers directing traffic to your service.
+
+##### Failed to commit changes: Invalid 'prisma.user.create()'
+
+Certain versions may have trouble creating a user if the field `metadata` is empty. Using an empty json object `{}` as the field value should resolve this issue. Also, the `id` field will autoincrement, so you may also try leaving the value of `id` as empty.
+
+##### CLIENT_FETCH_ERROR
+
+If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefor needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
+
+```
+docker-calcom-1  | @calcom/web:start: [next-auth][error][CLIENT_FETCH_ERROR]
+docker-calcom-1  | @calcom/web:start: https://next-auth.js.org/errors#client_fetch_error request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost {
+docker-calcom-1  | @calcom/web:start:   error: {
+docker-calcom-1  | @calcom/web:start:     message: 'request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost',
+docker-calcom-1  | @calcom/web:start:     stack: 'FetchError: request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost\n' +
+docker-calcom-1  | @calcom/web:start:       '    at ClientRequest.<anonymous> (/calcom/node_modules/next/dist/compiled/node-fetch/index.js:1:65756)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at ClientRequest.emit (node:events:513:28)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at ClientRequest.emit (node:domain:489:12)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at Socket.socketErrorListener (node:_http_client:494:9)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at Socket.emit (node:events:513:28)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at Socket.emit (node:domain:489:12)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at emitErrorNT (node:internal/streams/destroy:157:8)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at emitErrorCloseNT (node:internal/streams/destroy:122:3)\n' +
+docker-calcom-1  | @calcom/web:start:       '    at processTicksAndRejections (node:internal/process/task_queues:83:21)',
+docker-calcom-1  | @calcom/web:start:     name: 'FetchError'
+docker-calcom-1  | @calcom/web:start:   },
+docker-calcom-1  | @calcom/web:start:   url: 'http://testing.localhost:3000/api/auth/session',
+docker-calcom-1  | @calcom/web:start:   message: 'request to http://testing.localhost:3000/api/auth/session failed, reason: getaddrinfo ENOTFOUND testing.localhost'
+docker-calcom-1  | @calcom/web:start: }
+```
+
+<img referrerpolicy="no-referrer-when-downgrade" src="https://static.scarf.sh/a.png?x-pxid=81cda9f7-a102-453b-ac01-51c35650bd70" />
 
 ### Railway
 
@@ -425,7 +679,7 @@ See the [roadmap project](https://cal.com/roadmap) for a list of proposed featur
 
 Cal.com, Inc. is a commercial open source company, which means some parts of this open source repository require a commercial license. The concept is called "Open Core" where the core technology (99%) is fully open source, licensed under [AGPLv3](https://opensource.org/license/agpl-v3) and the last 1% is covered under a commercial license (["/ee" Enterprise Edition](https://github.com/calcom/cal.com/tree/main/packages/features/ee)) which we believe is entirely relevant for larger organisations that require enterprise features. Enterprise features are built by the core engineering team of Cal.com, Inc. which is hired in full-time. Find their compensation on https://cal.com/open.
 
-> [!NOTE]  
+> [!NOTE]
 > Our philosophy is simple, all "Singleplayer APIs" are open-source under AGPLv3. All commercial "Multiplayer APIs" are under a commercial license.
 
 |                                   | AGPLv3 | EE  |
@@ -497,8 +751,8 @@ Don't code but still want to contribute? Join our [Discussions](https://github.c
 - Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for unsafe-inline in style-src . If you have some custom changes in your instance, you might have to make some code change to make your instance CSP compatible. Right now it enables strict CSP only on login page and on other SSR pages it is enabled in Report only mode to detect possible issues. On, SSG pages it is still not supported.
 
 ## Single Org Mode
-Refer to docs [here](./docs/self-hosting/guides/organization/single-organization-setup) for a detailed documentation with screenshots.
 
+Refer to docs [here](./docs/self-hosting/guides/organization/single-organization-setup) for a detailed documentation with screenshots.
 
 ## Integrations
 
@@ -655,6 +909,7 @@ following
 We use changesets to generate changelogs and publish public packages (packages with `private: true` are ignored).
 
 An example of good readme is [atoms readme](https://github.com/calcom/cal.com/blob/main/packages/platform/atoms/README.md). Every public package must:
+
 1. Follow semantic versioning when using changesets.
 2. Mark breaking changes using `❗️Breaking change`
 

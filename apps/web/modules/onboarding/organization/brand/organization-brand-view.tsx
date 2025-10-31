@@ -7,8 +7,9 @@ import { HexColorPicker } from "react-colorful";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Logo } from "@calcom/ui/components/logo";
 
+import { OnboardingCard } from "../../personal/_components/OnboardingCard";
+import { OnboardingLayout } from "../../personal/_components/OnboardingLayout";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationBrandViewProps = {
@@ -116,70 +117,137 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   return (
-    <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">
-      {/* Header */}
-      <div className="flex w-full items-center justify-between px-6 py-4">
-        <Logo className="h-5 w-auto" />
+    <OnboardingLayout userEmail={userEmail} currentStep={2}>
+      <OnboardingCard
+        title={t("onboarding_org_brand_title")}
+        subtitle={t("onboarding_org_brand_subtitle")}
+        footer={
+          <>
+            <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+              {t("ill_do_this_later")}
+            </Button>
+            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+              {t("continue")}
+            </Button>
+          </>
+        }>
+        {/* Form */}
+        <div className="bg-default border-muted w-full rounded-[10px] border">
+          <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
+            <div className="flex w-full flex-col items-start">
+              <div className="flex w-full gap-6 px-5 py-4">
+                {/* Left side - Form */}
+                <div className="flex w-full flex-col gap-6">
+                  {/* Brand Color */}
+                  <div className="flex w-full flex-col gap-6">
+                    <p className="text-emphasis text-sm font-medium leading-4">{t("brand_color")}</p>
+                    <div className="flex w-full items-center gap-2">
+                      <p className="text-subtle w-[98px] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-4">
+                        {t("onboarding_primary_color_label")}
+                      </p>
+                      <BrandColorPicker
+                        value={brandColor}
+                        onChange={(value) => {
+                          setBrandColor(value);
+                          setOrganizationBrand({ color: value });
+                        }}
+                        t={t}
+                      />
+                    </div>
+                  </div>
 
-        {/* Progress dots - centered */}
-        <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1">
-          <div className="bg-emphasis h-1 w-1 rounded-full" />
-          <div className="bg-emphasis h-1.5 w-1.5 rounded-full" />
-          <div className="bg-subtle h-1 w-1 rounded-full" />
-          <div className="bg-subtle h-1 w-1 rounded-full" />
-        </div>
+                  {/* Logo Upload */}
+                  <div className="flex w-full flex-col gap-2">
+                    <p className="text-emphasis text-sm font-medium leading-4">{t("logo")}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
+                        {logoPreview && (
+                          <img
+                            src={logoPreview}
+                            alt={t("onboarding_logo_preview_alt")}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          color="secondary"
+                          size="sm"
+                          onClick={() => document.getElementById("logo-upload")?.click()}>
+                          {t("upload")}
+                        </Button>
+                        <input
+                          id="logo-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-subtle text-xs font-normal leading-3">{t("onboarding_logo_size_hint")}</p>
+                  </div>
 
-        <div className="bg-muted flex items-center gap-2 rounded-full px-3 py-2">
-          <p className="text-emphasis text-sm font-medium leading-none">{userEmail}</p>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex h-full w-full items-start justify-center px-6 py-8">
-        <div className="relative flex w-full max-w-[600px] flex-col gap-6">
-          {/* Card */}
-          <div className="bg-muted border-muted relative rounded-xl border p-1">
-            <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-              {/* Card Header */}
-              <div className="flex w-full gap-1.5 px-5 py-4">
-                <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">{t("onboarding_org_brand_title")}</h1>
-                  <p className="text-subtle text-sm font-medium leading-tight">
-                    {t("onboarding_org_brand_subtitle")}
-                  </p>
+                  {/* Banner Upload */}
+                  <div className="flex w-full flex-col gap-2">
+                    <p className="text-emphasis text-sm font-medium leading-4">
+                      {t("onboarding_banner_label")}
+                    </p>
+                    <div className="flex w-full flex-col gap-2">
+                      <div className="bg-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
+                        {bannerPreview && (
+                          <img
+                            src={bannerPreview}
+                            alt={t("onboarding_banner_preview_alt")}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          color="secondary"
+                          size="sm"
+                          className="w-fit"
+                          onClick={() => document.getElementById("banner-upload")?.click()}>
+                          {t("upload")}
+                        </Button>
+                        <input
+                          id="banner-upload"
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleBannerChange(e.target.files?.[0] || null)}
+                        />
+                      </div>
+                    </div>
+                    <p className="text-subtle text-xs font-normal leading-3">
+                      {t("onboarding_banner_size_hint")}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Form */}
-              <div className="bg-default border-muted w-full rounded-[10px] border">
-                <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-                  <div className="flex w-full flex-col items-start">
-                    <div className="flex w-full gap-6 px-5 py-4">
-                      {/* Left side - Form */}
-                      <div className="flex w-full flex-col gap-6">
-                        {/* Brand Color */}
-                        <div className="flex w-full flex-col gap-6">
-                          <p className="text-emphasis text-sm font-medium leading-4">{t("brand_color")}</p>
-                          <div className="flex w-full items-center gap-2">
-                            <p className="text-subtle w-[98px] overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium leading-4">
-                              {t("onboarding_primary_color_label")}
-                            </p>
-                            <BrandColorPicker
-                              value={brandColor}
-                              onChange={(value) => {
-                                setBrandColor(value);
-                                setOrganizationBrand({ color: value });
-                              }}
-                              t={t}
-                            />
-                          </div>
-                        </div>
+                {/* Right side - Preview */}
+                <div className="bg-muted border-muted flex hidden h-[328px] w-full grow overflow-hidden rounded-[10px] border p-5 md:block">
+                  <div className="flex flex-col gap-2.5">
+                    <p className="text-subtle text-sm font-medium leading-4">{t("preview")}</p>
+                    <div className="border-subtle bg-default relative flex w-[110%] flex-col gap-2.5 rounded-md border px-5 pb-5 pt-[74px]">
+                      {/* Banner preview */}
+                      <div className="bg-muted border-muted absolute left-1 top-1 h-[92px] w-[272px] overflow-hidden rounded-[4px] border">
+                        {bannerPreview && (
+                          <img
+                            src={bannerPreview}
+                            alt={t("onboarding_banner_preview_alt")}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
 
-                        {/* Logo Upload */}
-                        <div className="flex w-full flex-col gap-2">
-                          <p className="text-emphasis text-sm font-medium leading-4">{t("logo")}</p>
-                          <div className="flex items-center gap-2">
-                            <div className="bg-muted border-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
+                      {/* Content */}
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-3 p-1">
+                          <div className="flex flex-col gap-3">
+                            {/* Logo preview */}
+                            <div className="bg-muted z-20 h-9 w-9 shrink-0 overflow-hidden rounded-md border-2 border-[var(--cal-bg)]">
                               {logoPreview && (
                                 <img
                                   src={logoPreview}
@@ -188,141 +256,38 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                                 />
                               )}
                             </div>
-                            <div className="flex flex-col gap-2">
-                              <Button
-                                color="secondary"
-                                size="sm"
-                                onClick={() => document.getElementById("logo-upload")?.click()}>
-                                {t("upload")}
-                              </Button>
-                              <input
-                                id="logo-upload"
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => handleLogoChange(e.target.files?.[0] || null)}
-                              />
+                            <p className="text-subtle text-sm font-medium capitalize leading-4 ">
+                              {organizationDetails.name || t("onboarding_preview_nameless")}
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-3">
+                            <div className="flex flex-col gap-3">
+                              <p className="font-cal text-xl leading-5 tracking-[0.2px]">
+                                {t("onboarding_preview_example_title")}
+                              </p>
+                              <p className="text-subtle text-sm font-medium leading-5">
+                                {t("onboarding_preview_example_description")}
+                              </p>
                             </div>
                           </div>
-                          <p className="text-subtle text-xs font-normal leading-3">
-                            {t("onboarding_logo_size_hint")}
-                          </p>
                         </div>
-
-                        {/* Banner Upload */}
-                        <div className="flex w-full flex-col gap-2">
-                          <p className="text-emphasis text-sm font-medium leading-4">{t("onboarding_banner_label")}</p>
-                          <div className="flex w-full flex-col gap-2">
-                            <div className="bg-muted border-muted relative h-[92px] w-full overflow-hidden rounded-md border">
-                              {bannerPreview && (
-                                <img
-                                  src={bannerPreview}
-                                  alt={t("onboarding_banner_preview_alt")}
-                                  className="h-full w-full object-cover"
-                                />
-                              )}
+                        <div className="flex flex-col gap-1">
+                          {[134, 104, 84, 104].map((width, i) => (
+                            <div key={i} className="flex items-center gap-2 p-1">
+                              <div className="bg-subtle h-5 w-5 shrink-0 rounded-full" />
+                              <div className="bg-subtle h-2.5 rounded-full" style={{ width: `${width}px` }} />
                             </div>
-                            <div className="flex flex-col gap-2">
-                              <Button
-                                color="secondary"
-                                size="sm"
-                                className="w-fit"
-                                onClick={() => document.getElementById("banner-upload")?.click()}>
-                                {t("upload")}
-                              </Button>
-                              <input
-                                id="banner-upload"
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => handleBannerChange(e.target.files?.[0] || null)}
-                              />
-                            </div>
-                          </div>
-                          <p className="text-subtle text-xs font-normal leading-3">
-                            {t("onboarding_banner_size_hint")}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Right side - Preview */}
-                      <div className="bg-muted border-muted flex hidden h-[328px] w-full grow overflow-hidden rounded-[10px] border p-5 md:block">
-                        <div className="flex flex-col gap-2.5">
-                          <p className="text-subtle text-sm font-medium leading-4">{t("preview")}</p>
-                          <div className="border-subtle bg-default relative flex w-[110%] flex-col gap-2.5 rounded-md border px-5 pb-5 pt-[74px]">
-                            {/* Banner preview */}
-                            <div className="bg-muted border-muted absolute left-1 top-1 h-[92px] w-[272px] overflow-hidden rounded-[4px] border">
-                              {bannerPreview && (
-                                <img
-                                  src={bannerPreview}
-                                  alt={t("onboarding_banner_preview_alt")}
-                                  className="h-full w-full object-cover"
-                                />
-                              )}
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex flex-col gap-4">
-                              <div className="flex flex-col gap-3 p-1">
-                                <div className="flex flex-col gap-3">
-                                  {/* Logo preview */}
-                                  <div className="bg-muted z-20 h-9 w-9 shrink-0 overflow-hidden rounded-md border-2 border-[var(--cal-bg)]">
-                                    {logoPreview && (
-                                      <img
-                                        src={logoPreview}
-                                        alt={t("onboarding_logo_preview_alt")}
-                                        className="h-full w-full object-cover"
-                                      />
-                                    )}
-                                  </div>
-                                  <p className="text-subtle text-sm font-medium capitalize leading-4 ">
-                                    {organizationDetails.name || t("onboarding_preview_nameless")}
-                                  </p>
-                                </div>
-                                <div className="flex flex-col gap-3">
-                                  <div className="flex flex-col gap-3">
-                                    <p className="font-cal text-xl leading-5 tracking-[0.2px]">
-                                      {t("onboarding_preview_example_title")}
-                                    </p>
-                                    <p className="text-subtle text-sm font-medium leading-5">
-                                      {t("onboarding_preview_example_description")}
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                {[134, 104, 84, 104].map((width, i) => (
-                                  <div key={i} className="flex items-center gap-2 p-1">
-                                    <div className="bg-subtle h-5 w-5 shrink-0 rounded-full" />
-                                    <div
-                                      className="bg-subtle h-2.5 rounded-full"
-                                      style={{ width: `${width}px` }}
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {/* Footer */}
-              <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
-                  {t("ill_do_this_later")}
-                </Button>
-                <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-                  {t("continue")}
-                </Button>
-              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </OnboardingCard>
+    </OnboardingLayout>
   );
 };
