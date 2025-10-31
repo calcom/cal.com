@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
@@ -80,29 +82,51 @@ export function WelcomeToOrganizationsModal() {
               </div>
 
               {/* Surrounding user icons */}
-              {[30, 190, 320].map((deg, index) => {
-                const r = 95; // icon orbit radius
-                const rad = (deg * Math.PI) / 180;
-                const x = Math.cos(rad) * r;
-                const y = Math.sin(rad) * r;
+              {[
+                { initialDeg: 30, duration: 20, icon: "user" },
+                { initialDeg: 190, duration: 25, icon: "user" },
+                { initialDeg: 320, duration: 15, icon: "user" },
+                { initialDeg: 280, duration: 20, icon: "building" },
+              ].map(({ initialDeg, duration, icon }, index) => {
+                const r = RINGS[index % RINGS.length]; // icon orbit radius - each icon on a different ring
+                const steps = 60;
+                const xKeyframes = [];
+                const yKeyframes = [];
+                for (let i = 0; i <= steps; i++) {
+                  const angle = initialDeg + (360 * i) / steps;
+                  xKeyframes.push(r * Math.cos((angle * Math.PI) / 180));
+                  yKeyframes.push(r * Math.sin((angle * Math.PI) / 180));
+                }
 
                 return (
-                  <div
+                  <motion.div
                     key={index}
                     className="from-default to-muted border-subtle absolute flex items-center justify-center rounded-full border bg-gradient-to-b shadow-sm"
                     style={{
-                      width: SMALL.outer,
-                      height: SMALL.outer,
                       left: "50%",
                       top: "50%",
-                      transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                    }}>
+                      width: SMALL.outer,
+                      height: SMALL.outer,
+                    }}
+                    animate={{
+                      x: xKeyframes,
+                      y: yKeyframes,
+                    }}
+                    transition={{
+                      duration,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    transformTemplate={({ x, y }) =>
+                      // Lock the icon to the center of the ring and only translate on x and y
+                      `translate(-50%, -50%) translateX(${x}) translateY(${y})`
+                    }>
                     <Icon
-                      name="user"
+                      name={icon}
                       className="text-default"
                       style={{ width: SMALL.icon, height: SMALL.icon }}
                     />
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
