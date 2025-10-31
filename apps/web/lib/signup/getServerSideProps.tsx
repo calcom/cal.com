@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -23,6 +24,18 @@ const querySchema = z.object({
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  //redirecting the already signed up user to / page
+  const session = await getServerSession({ req: ctx.req });
+
+  if (session) {
+    return {
+      redirect: {
+        destination: "/event-types", // Change this to wherever you want logged-in users to go
+        permanent: false,
+      },
+    };
+  }
+
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const featuresRepository = new FeaturesRepository();
   const emailVerificationEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
