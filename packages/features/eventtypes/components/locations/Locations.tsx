@@ -149,7 +149,7 @@ const Locations: React.FC<LocationsProps> = ({
   );
 
   useEffect(() => {
-    if (!!prefillLocation) {
+    if (prefillLocation) {
       const newLocationType = prefillLocation.value;
 
       const canAppendLocation = !validLocations.find((location) => location.type === newLocationType);
