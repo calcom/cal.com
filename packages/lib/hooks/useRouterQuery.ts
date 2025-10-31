@@ -37,6 +37,25 @@ function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]
  */
 export const useRouterQuery = () => {
   const searchParams = useCompatSearchParams();
-  const routerQuery = fromEntriesWithDuplicateKeys(searchParams?.entries() ?? null);
+  let routerQuery = fromEntriesWithDuplicateKeys(searchParams?.entries() ?? null);
+
+  // In embed contexts, useSearchParams might not properly reflect URL params
+  // Fall back to window.location.search if we're in an embed and have no params
+  if (typeof window !== "undefined" && window.location.search) {
+    const isEmbed = window.location.pathname.includes("/embed");
+    const hasNoParams = Object.keys(routerQuery).length === 0;
+
+    if (isEmbed && hasNoParams) {
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      routerQuery = fromEntriesWithDuplicateKeys(urlSearchParams.entries());
+    } else if (isEmbed) {
+      // Even if we have some params, merge with window.location.search to ensure we have all
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const windowQuery = fromEntriesWithDuplicateKeys(urlSearchParams.entries());
+      // Merge window query params with priority (they represent the actual URL)
+      routerQuery = { ...routerQuery, ...windowQuery };
+    }
+  }
+
   return routerQuery;
 };
