@@ -41,7 +41,7 @@ export const PriorityDialog = (
   }
 ) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, option, options: _options, onChange, customClassNames } = props;
+  const { isOpenDialog, setIsOpenDialog, option, onChange, customClassNames } = props;
   const { getValues } = useFormContext<FormValues>();
 
   const priorityOptions = [
