@@ -92,7 +92,8 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
               className="rounded-[10px]"
               onClick={handleContinue}
               loading={mutation.isPending}
-              disabled={mutation.isPending || !form.formState.isValid}>
+              disabled={mutation.isPending || !form.formState.isValid}
+              data-testid="personal-settings-continue">
               {t("continue")}
             </Button>
           }>
@@ -114,6 +115,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
                         }}
                         placeholder="John Doe"
                         className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
+                        data-testid="personal-settings-name"
                       />
                       {form.formState.errors.name && (
                         <p className="text-error text-sm">{form.formState.errors.name.message}</p>
