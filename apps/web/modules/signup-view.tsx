@@ -33,7 +33,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 
-import { isWebView } from "@lib/isWebView";
+import { isOpenedInWebView as isWebView } from "@lib/isWebView";
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 import WebViewBlocker from "@components/webview-blocker";

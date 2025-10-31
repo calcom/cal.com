@@ -1,42 +1,27 @@
-export function isWebView(): boolean {
+export function isOpenedInWebView(): boolean {
   if (typeof window === "undefined") return false;
-  const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
-  // Detect common in-app browsers / WebViews
+  const ua = navigator.userAgent;
+
   const webViewPatterns = [
-    /FBAN|FBAV/i, // Facebook
-    /Instagram/i, // Instagram
-    /LinkedIn/i, // LinkedIn
-    /Twitter/i, // Twitter
-    /Line\//i, // Line
-    /WhatsApp/i, // WhatsApp
-    /Snapchat/i, // Snapchat
-    /Messenger/i, // Facebook Messenger
-    /WeChat/i, // WeChat
-    /Pinterest/i, // Pinterest
-    /Reddit/i, // Reddit app
-    /TikTok/i, // TikTok
-    /Quora/i, // Quora
+    /FBAN|FBAV|FB_IAB/i, // Facebook
+    /Instagram/i,
+    /LinkedIn/i,
+    /Twitter/i,
+    /Line\//i,
+    /WhatsApp/i,
+    /Snapchat/i,
+    /Messenger/i,
+    /MicroMessenger/i, // WeChat
+    /Pinterest/i,
+    /Reddit/i,
+    /TikTok/i,
   ];
 
-  if (webViewPatterns.some((pattern) => pattern.test(ua))) {
-    return true;
-  }
-
-  // iOS WebView detection (excluding Safari)
-  const isIOS = /iPhone|iPad|iPod/i.test(ua);
-  const isSafari = /Safari/i.test(ua);
-  const isWebKit = /WebKit/i.test(ua);
-
-  if (isIOS && isWebKit && !isSafari) {
-    return true;
-  }
-
-  // Android WebView detection
-  if (/wv|Version\/[\d.]+.*Chrome\/[.0-9]*/.test(ua)) {
-    return true;
-  }
-
-  return false;
+  const inWebView =
+    webViewPatterns.some((pattern) => pattern.test(ua)) ||
+    (/iPhone|iPad|iPod/i.test(ua) && /WebKit/i.test(ua) && !/Safari/i.test(ua)) ||
+    /Android.*(wv|Version\/[\d.]+.*Chrome\/[.0-9]*)/.test(ua);
+  return inWebView;
 }
 
 export function autoOpenInExternalBrowser(): boolean {

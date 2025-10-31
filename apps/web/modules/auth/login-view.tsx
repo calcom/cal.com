@@ -24,7 +24,7 @@ import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetr
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 
-import { isWebView } from "@lib/isWebView";
+import { isOpenedInWebView as isWebView } from "@lib/isWebView";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
