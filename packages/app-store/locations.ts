@@ -312,7 +312,7 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
     if (location.displayLocationPublicly || !eventLocationType) {
       return location;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { address: _1, link: _2, hostPhoneNumber: _3, ...privacyFilteredLocation } = location;
       logger.debug("Applied Privacy Filter", location, privacyFilteredLocation);
       return privacyFilteredLocation;
