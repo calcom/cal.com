@@ -44,8 +44,5 @@
     "generated/prisma",
     "zod",
     "zod-utils.ts"
-  ],
-  "prisma": {
-    "seed": "yarn seed-basic"
-  }
+  ]
 }
