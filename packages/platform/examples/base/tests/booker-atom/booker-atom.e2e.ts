@@ -41,3 +41,45 @@ test("tweak availability  using AvailabilitySettings Atom", async ({ page }) => 
   );
   await expect(page.locator('[data-testid="booking-redirect-or-cancel-links"]')).toBeVisible();
 });
+
+test("atom booker sends reservedSlotUid in request body", async ({ page }) => {
+  let bookingRequestBody: { reservedSlotUid: string | null } = { reservedSlotUid: null };
+
+  page.on("request", (request) => {
+    if (request.url().includes("/bookings") && request.method() === "POST") {
+      bookingRequestBody = request.postDataJSON();
+    }
+  });
+
+  await page.goto("/booking");
+
+  await expect(page.locator('[data-testid="event-type-card"]').first()).toBeVisible();
+  await page.locator('[data-testid="event-type-card"]').first().click();
+
+  await expect(page.locator('[data-testid="booker-container"]')).toBeVisible();
+
+  await page.locator('[data-testid="day"]:not([data-disabled="true"])').first().click();
+  await page.locator('[data-testid="time"]:not([data-disabled="true"])').first().click();
+
+  await page.fill('[name="name"]', "Test User");
+  await page.fill('[name="email"]', "test@example.com");
+
+  const responsePromise = page.waitForResponse(
+    (response) => response.url().includes("/bookings") && response.request().method() === "POST"
+  );
+
+  await page.locator('[data-testid="confirm-book-button"]').click();
+
+  await responsePromise;
+
+  await expect(page.locator('[data-testid="booking-success-page"]')).toBeVisible();
+
+  expect(bookingRequestBody).toBeTruthy();
+  expect(bookingRequestBody).toHaveProperty("reservedSlotUid");
+  expect(typeof bookingRequestBody.reservedSlotUid).toBe("string");
+  if (bookingRequestBody.reservedSlotUid) {
+    expect(bookingRequestBody.reservedSlotUid.length).toBeGreaterThan(0);
+  } else {
+    throw new Error("reservedSlotUid is not set");
+  }
+});
