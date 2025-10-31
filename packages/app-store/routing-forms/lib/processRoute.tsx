@@ -1,6 +1,6 @@
 "use client";
 
-import type { JsonTree } from "react-awesome-query-builder";
+import type { JsonTree } from "@react-awesome-query-builder/ui";
 import type { z } from "zod";
 
 import { evaluateRaqbLogic, RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";

@@ -1,6 +1,6 @@
-import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder";
-import { Utils as QbUtils } from "react-awesome-query-builder";
+import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "@react-awesome-query-builder/ui";
+import type { Config } from "@react-awesome-query-builder/ui";
+import { Utils as QbUtils } from "@react-awesome-query-builder/ui";
 
 import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
 import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
@@ -69,7 +69,7 @@ export const raqbQueryValueUtils = {
 };
 
 export function buildEmptyQueryValue() {
-  return { id: QbUtils.uuid(), type: "group" as const };
+  return { id: QbUtils.uuid(), type: "group" as const, children1: {} };
 }
 
 export const buildStateFromQueryValue = ({
