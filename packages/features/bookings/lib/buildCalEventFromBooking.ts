@@ -1,8 +1,7 @@
 import dayjs from "@calcom/dayjs";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import type { Prisma } from "@calcom/prisma/client";
-
-import { parseRecurringEvent } from "./isRecurringEvent";
-import { getTranslation } from "./server/i18n";
 
 type DestinationCalendar = {
   id: number;
