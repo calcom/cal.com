@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
-import { Icon } from "@calcom/ui/components/icon";
+import { Icon, type IconName } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
 import { useWelcomeModal } from "../hooks/useWelcomeModal";
@@ -31,7 +31,7 @@ export function WelcomeToOrganizationsModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeModal()}>
-      <DialogContent size="default" className="!p-0" type={null}>
+      <DialogContent size="default" className="!p-0">
         <div className="flex flex-col gap-4 p-6">
           <div className="flex flex-col items-center gap-1">
             <Logo className="h-10 w-auto" />
@@ -82,13 +82,15 @@ export function WelcomeToOrganizationsModal() {
               </div>
 
               {/* Surrounding user icons */}
-              {[
-                { initialDeg: 30, duration: 20, icon: "user" },
-                { initialDeg: 190, duration: 25, icon: "user" },
-                { initialDeg: 320, duration: 15, icon: "user" },
-                { initialDeg: 280, duration: 20, icon: "building" },
-              ].map(({ initialDeg, duration, icon }, index) => {
-                const r = RINGS[index % RINGS.length]; // icon orbit radius - each icon on a different ring
+              {(
+                [
+                  { initialDeg: 30, duration: 20, icon: "user" },
+                  { initialDeg: 190, duration: 25, icon: "user" },
+                  { initialDeg: 320, duration: 15, icon: "user" },
+                  { initialDeg: 280, duration: 20, icon: "building" },
+                ] as Array<{ initialDeg: number; duration: number; icon: IconName }>
+              ).map(({ initialDeg, duration, icon }, index) => {
+                const r = RINGS[index % RINGS.length]; // icon orbit radius - each icon on a different ring (we have more icons than ring so we cycle through them)
                 const steps = 60;
                 const xKeyframes = [];
                 const yKeyframes = [];
