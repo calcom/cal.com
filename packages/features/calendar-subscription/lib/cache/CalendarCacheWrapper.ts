@@ -66,7 +66,12 @@ export class CalendarCacheWrapper implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    log.debug("getAvailability (mixed cache + original)", { dateFrom, dateTo, selectedCalendars });
+    log.debug("getAvailability (mixed cache + original)", {
+      dateFrom,
+      dateTo,
+      calendarIds: selectedCalendars.map((c) => c.id),
+      calendarCount: selectedCalendars.length,
+    });
 
     if (!selectedCalendars?.length) return [];
 
@@ -115,7 +120,8 @@ export class CalendarCacheWrapper implements Calendar {
     log.debug("getAvailabilityWithTimeZones (mixed cache + original)", {
       dateFrom,
       dateTo,
-      selectedCalendars,
+      calendarIds: selectedCalendars.map((c) => c.id),
+      calendarCount: selectedCalendars.length,
     });
 
     if (!selectedCalendars?.length) return [];
