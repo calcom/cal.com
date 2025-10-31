@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -25,7 +25,7 @@ import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
 
 enum ReassignType {
-  ROUND_ROBIN = "round_robin",
+  AUTO = "auto",
   TEAM_MEMBER = "team_member",
 }
 
@@ -38,7 +38,7 @@ type ReassignDialog = {
 };
 
 type FormValues = {
-  reassignType: ReassignType.ROUND_ROBIN | ReassignType.TEAM_MEMBER;
+  reassignType: ReassignType.AUTO | ReassignType.TEAM_MEMBER;
   teamMemberId?: number;
   reassignReason?: string;
 };
@@ -75,19 +75,49 @@ export const ReassignDialog = ({
   });
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const [isManagedEvent, setIsManagedEvent] = useState<boolean | null>(null);
+
+  // Try managed event query first
+  const managedEventQuery = trpc.viewer.teams.getManagedEventUsersToReassign.useInfiniteQuery(
+    {
+      bookingId,
+      limit: 10,
+      searchTerm: debouncedSearch,
+    },
+    {
+      enabled: isManagedEvent !== false,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      retry: false,
+    }
+  );
+
+  // Fallback to round robin query
+  const roundRobinQuery = trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
+    {
+      bookingId,
+      exclude: "fixedHosts",
+      limit: 10,
+      searchTerm: debouncedSearch,
+    },
+    {
+      enabled: isManagedEvent === false,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  // Detect which query succeeded
+  useEffect(() => {
+    if (isManagedEvent === null) {
+      if (managedEventQuery.data) {
+        setIsManagedEvent(true);
+      } else if (managedEventQuery.isError || managedEventQuery.error) {
+        setIsManagedEvent(false);
+      }
+    }
+  }, [managedEventQuery.data, managedEventQuery.error, managedEventQuery.isError, isManagedEvent]);
 
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
-    trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
-      {
-        bookingId,
-        exclude: "fixedHosts",
-        limit: 10,
-        searchTerm: debouncedSearch,
-      },
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
-    );
+    isManagedEvent === false ? roundRobinQuery : managedEventQuery;
 
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page.items) ?? [];
@@ -110,7 +140,7 @@ export const ReassignDialog = ({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      reassignType: bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.ROUND_ROBIN,
+      reassignType: bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.AUTO,
     },
   });
 
@@ -119,6 +149,21 @@ export const ReassignDialog = ({
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
       showToast(t("booking_reassigned_to_host", { host: data?.reassignedTo.name }), "success");
+    },
+    onError: async (error) => {
+      if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
+        showToast(t("no_available_hosts"), "error");
+      } else {
+        showToast(t("unexpected_error_try_again"), "error");
+      }
+    },
+  });
+
+  const managedEventReassignMutation = trpc.viewer.teams.managedEventReassign.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.bookings.get.invalidate();
+      setIsOpenDialog(false);
+      showToast(t("booking_reassigned"), "success");
     },
     onError: async (error) => {
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
@@ -144,6 +189,21 @@ export const ReassignDialog = ({
     },
   });
 
+  const managedEventManualReassignMutation = trpc.viewer.teams.managedEventManualReassign.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.bookings.get.invalidate();
+      setIsOpenDialog(false);
+      showToast(t("booking_reassigned"), "success");
+    },
+    onError: async (error) => {
+      if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
+        showToast(t("no_available_hosts"), "error");
+      } else {
+        showToast(t(error.message), "error");
+      }
+    },
+  });
+
   const [confirmationModal, setConfirmationModal] = useState<{
     show: boolean;
     membersStatus: "unavailable" | "available" | null;
@@ -153,8 +213,12 @@ export const ReassignDialog = ({
   });
 
   const handleSubmit = (values: FormValues) => {
-    if (values.reassignType === ReassignType.ROUND_ROBIN) {
-      roundRobinReassignMutation.mutate({ teamId, bookingId });
+    if (values.reassignType === ReassignType.AUTO) {
+      if (isManagedEvent) {
+        managedEventReassignMutation.mutate({ bookingId });
+      } else {
+        roundRobinReassignMutation.mutate({ teamId, bookingId });
+      }
     } else {
       if (values.teamMemberId) {
         const selectedMember = teamMemberOptions?.find((member) => member.value === values.teamMemberId);
@@ -179,8 +243,20 @@ export const ReassignDialog = ({
           setIsOpenDialog(open);
         }}>
         <DialogContent
-          title={t("reassign_round_robin_host")}
-          description={t("reassign_to_another_rr_host")}
+          title={
+            isManagedEvent === null
+              ? t("loading")
+              : isManagedEvent
+                ? t("reassign_managed_event_user")
+                : t("reassign_round_robin_host")
+          }
+          description={
+            isManagedEvent === null
+              ? ""
+              : isManagedEvent
+                ? t("reassign_to_another_user")
+                : t("reassign_to_another_rr_host")
+          }
           enableOverflow>
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
@@ -188,24 +264,49 @@ export const ReassignDialog = ({
                 const reassignType: ReassignType = z.nativeEnum(ReassignType).parse(val);
                 form.setValue("reassignType", reassignType);
               }}
-              defaultValue={bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.ROUND_ROBIN}
+              defaultValue={bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.AUTO}
               className="mt-1 flex flex-col gap-4">
               {!bookingFromRoutingForm ? (
                 <RadioArea.Item
-                  value={ReassignType.ROUND_ROBIN}
+                  value={ReassignType.AUTO}
                   className="w-full text-sm"
                   classNames={{ container: "w-full" }}
-                  disabled={bookingFromRoutingForm}>
-                  <strong className="mb-1 block">{t("round_robin")}</strong>
-                  <p>{t("round_robin_reassign_description")}</p>
+                  disabled={bookingFromRoutingForm || isManagedEvent === null}>
+                  <strong className="mb-1 block">
+                    {isManagedEvent === null
+                      ? t("loading")
+                      : isManagedEvent
+                        ? t("auto_reassign")
+                        : t("round_robin")}
+                  </strong>
+                  <p>
+                    {isManagedEvent === null
+                      ? ""
+                      : isManagedEvent
+                        ? t("auto_reassign_description")
+                        : t("round_robin_reassign_description")}
+                  </p>
                 </RadioArea.Item>
               ) : null}
               <RadioArea.Item
                 value={ReassignType.TEAM_MEMBER}
                 className="text-sm"
-                classNames={{ container: "w-full" }}>
-                <strong className="mb-1 block">{t("team_member_round_robin_reassign")}</strong>
-                <p>{t("team_member_round_robin_reassign_description")}</p>
+                classNames={{ container: "w-full" }}
+                disabled={isManagedEvent === null}>
+                <strong className="mb-1 block">
+                  {isManagedEvent === null
+                    ? t("loading")
+                    : isManagedEvent
+                      ? t("specific_team_member")
+                      : t("team_member_round_robin_reassign")}
+                </strong>
+                <p>
+                  {isManagedEvent === null
+                    ? ""
+                    : isManagedEvent
+                      ? t("specific_team_member_description")
+                      : t("team_member_round_robin_reassign_description")}
+                </p>
               </RadioArea.Item>
             </RadioArea.Group>
 
@@ -275,7 +376,12 @@ export const ReassignDialog = ({
               <Button
                 type="submit"
                 data-testid="rejection-confirm"
-                loading={roundRobinReassignMutation.isPending || roundRobinManualReassignMutation.isPending}>
+                loading={
+                  roundRobinReassignMutation.isPending ||
+                  roundRobinManualReassignMutation.isPending ||
+                  managedEventReassignMutation.isPending ||
+                  managedEventManualReassignMutation.isPending
+                }>
                 {t("reassign")}
               </Button>
             </DialogFooter>
@@ -300,11 +406,19 @@ export const ReassignDialog = ({
             if (!teamMemberId) {
               return;
             }
-            roundRobinManualReassignMutation.mutate({
-              bookingId,
-              teamMemberId,
-              reassignReason: form.getValues("reassignReason"),
-            });
+            if (isManagedEvent) {
+              managedEventManualReassignMutation.mutate({
+                bookingId,
+                teamMemberId,
+                reassignReason: form.getValues("reassignReason"),
+              });
+            } else {
+              roundRobinManualReassignMutation.mutate({
+                bookingId,
+                teamMemberId,
+                reassignReason: form.getValues("reassignReason"),
+              });
+            }
             setConfirmationModal({
               show: false,
               membersStatus: null,

@@ -109,6 +109,13 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   } = context;
   const seatReferenceUid = getSeatReferenceUid();
 
+  // Check if booking can be reassigned
+  const isReassignableRoundRobin =
+    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1);
+  const isManagedChildEvent = booking.eventType.parentId != null;
+  const isReassignable = isReassignableRoundRobin || isManagedChildEvent;
+
   const actions: (ActionType | null)[] = [
     {
       id: "reschedule",
@@ -154,9 +161,7 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
           icon: "user-plus",
           disabled: false,
         },
-    // Reassign if round robin with no or one host groups
-    booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    (!booking.eventType.hostGroups || booking.eventType.hostGroups?.length <= 1)
+    isReassignable
       ? {
           id: "reassign",
           label: t("reassign"),
