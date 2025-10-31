@@ -31,7 +31,12 @@ export class TeamBillingServiceFactory {
   /** Initialize a single team billing */
   init(team: TeamBillingInput): ITeamBillingService {
     if (this.isTeamBillingEnabled)
-      return new TeamBillingService(team, this.teamBillingDataRepository, this.billingRepository);
+      return new TeamBillingService({
+        team,
+        billingProviderService: this.billingProviderService,
+        teamBillingDataRepository: this.teamBillingDataRepository,
+        billingRepository: this.billingRepository,
+      });
     return new StubTeamBillingService(team);
   }
   /** Initialize multiple team billings at once for bulk operations */

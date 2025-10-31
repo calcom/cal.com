@@ -30,4 +30,8 @@ export class StubTeamBillingService implements ITeamBillingService {
   async getSubscriptionStatus() {
     return null;
   }
+
+  async endTrial() {
+    return true;
+  }
 }
