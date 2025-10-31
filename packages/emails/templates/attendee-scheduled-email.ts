@@ -57,7 +57,12 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     });
   }
 
-  protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {
+  protected getTextBody(title = "", subtitle?: string): string {
+    const subtitleKey =
+      subtitle ??
+      (this.calEvent.seatsPerTimeSlot
+        ? "group_session_event_details"
+        : "emailed_you_and_any_other_attendees");
     return `
 ${this.t(
   title
@@ -66,7 +71,7 @@ ${this.t(
     ? "your_event_has_been_scheduled_recurring"
     : "your_event_has_been_scheduled"
 )}
-${this.t(subtitle)}
+${this.t(subtitleKey)}
 
 ${getRichDescription(this.calEvent, this.t)}
 `.trim();
