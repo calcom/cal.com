@@ -11,15 +11,176 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { isPasswordValid } from "@calcom/lib/auth/isPasswordValid";
-import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
-import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
-import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
-import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
 import type { Prisma } from "./client";
+
+
+/** @see https://github.com/colinhacks/zod/issues/3155#issuecomment-2060045794 */
+export const emailRegex =
+  /* eslint-disable-next-line no-useless-escape */
+  /^(?!\.)(?!.*\.\.)([A-Z0-9_+-\.']*)[A-Z0-9_+'-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
+
+/**
+ * RFC 5321 Section 4.5.3.1.3 specifies:
+ * - Maximum email address length: 254 characters
+ * - Local part (before @): max 64 characters
+ * - Domain part (after @): max 253 characters
+ */
+const MAX_EMAIL_LENGTH = 254;
+
+const emailRegexSchema = z
+  .string()
+  .max(MAX_EMAIL_LENGTH, { message: "Email address is too long" })
+  .regex(emailRegex);
+
+const slugify = (str: string, forDisplayingInput?: boolean) => {
+  if (!str) {
+    return "";
+  }
+
+  const s = str
+    .toLowerCase() // Convert to lowercase
+    .trim() // Remove whitespace from both sides
+    .normalize("NFD") // Normalize to decomposed form for handling accents
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    .replace(/\p{Diacritic}/gu, "") // Remove any diacritics (accents) from characters
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    .replace(/[^.\p{L}\p{N}\p{Zs}\p{Emoji}]+/gu, "-") // Replace any non-alphanumeric characters (including Unicode and except "." period) with a dash
+    .replace(/[\s_#]+/g, "-") // Replace whitespace, # and underscores with a single dash
+    .replace(/^-+/, "") // Remove dashes from start
+    .replace(/\.{2,}/g, ".") // Replace consecutive periods with a single period
+    .replace(/^\.+/, "") // Remove periods from the start
+    .replace(
+      /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
+      ""
+    ) // Removes emojis
+    .replace(/\s+/g, " ")
+    .replace(/-+/g, "-"); // Replace consecutive dashes with a single dash
+
+  return forDisplayingInput ? s : s.replace(/-+$/, "").replace(/\.*$/, ""); // Remove dashes and period from end
+};
+
+const getValidRhfFieldName = (fieldName: string) => {
+  // Remember that any transformation that you do here would run on System Field names as well. So, be careful and avoiding doing anything here that would modify the SystemField names.
+  // e.g. SystemField name currently have uppercases in them. So, no need to lowercase unless absolutely needed.
+  return fieldName.replace(/[^a-zA-Z0-9-_]/g, "-");
+};
+
+function isPasswordValid(password: string): boolean;
+function isPasswordValid(
+  password: string,
+  breakdown: boolean,
+  strict?: boolean
+): { caplow: boolean; num: boolean; min: boolean; admin_min: boolean };
+function isPasswordValid(password: string, breakdown?: boolean, strict?: boolean) {
+  let cap = false, // Has uppercase characters
+    low = false, // Has lowercase characters
+    num = false, // At least one number
+    min = false, // Eight characters, or fifteen in strict mode.
+    admin_min = false;
+  if (password.length >= 7 && (!strict || password.length > 14)) min = true;
+  if (strict && password.length > 14) admin_min = true;
+  if (password.match(/\d/)) num = true;
+  if (password.match(/[a-z]/)) low = true;
+  if (password.match(/[A-Z]/)) cap = true;
+
+  if (!breakdown) return cap && low && num && min && (strict ? admin_min : true);
+
+  let errors: Record<string, boolean> = { caplow: cap && low, num, min };
+  // Only return the admin key if strict mode is enabled.
+  if (strict) errors = { ...errors, admin_min };
+
+  return errors;
+}
+
+export type IntervalLimitUnit = "day" | "week" | "month" | "year";
+export type IntervalLimit = Partial<Record<`PER_${Uppercase<IntervalLimitUnit>}`, number | undefined>>;
+export type IntervalLimitKey = keyof IntervalLimit;
+
+export const intervalLimitsType: z.Schema<IntervalLimit | null> = z
+  .object({
+    PER_DAY: z.number().optional(),
+    PER_WEEK: z.number().optional(),
+    PER_MONTH: z.number().optional(),
+    PER_YEAR: z.number().optional(),
+  })
+  .nullable();
+
+const raqbChildSchema = z.object({
+  type: z.string().optional(),
+  properties: z
+    .object({
+      field: z.any().optional(),
+      operator: z.any().optional(),
+      value: z.any().optional(),
+      valueSrc: z.any().optional(),
+      valueError: z.array(z.union([z.string(), z.null()])).optional(),
+      valueType: z.any().optional(),
+    })
+    .optional(),
+});
+
+const raqbChildren1Schema = z
+  .record(raqbChildSchema)
+  .superRefine((children1, ctx) => {
+    if (!children1) return;
+    const isObject = (value: unknown): value is Record<string, unknown> =>
+      typeof value === "object" && value !== null;
+    Object.entries(children1).forEach(([, _rule]) => {
+      const rule = _rule as unknown;
+      if (!isObject(rule) || rule.type !== "rule") return;
+      if (!isObject(rule.properties)) return;
+
+      const value = rule.properties.value || [];
+      const valueSrc = rule.properties.valueSrc;
+      if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
+        return;
+      }
+
+      if (!valueSrc.length) {
+        // If valueSrc is empty, value could be empty for operators like is_empty, is_not_empty
+        return;
+      }
+
+      // MultiSelect array can be 2D array
+      const flattenedValues = value.flat();
+
+      const validValues = flattenedValues.filter((value: unknown) => {
+        // Might want to restrict it to filter out null and empty string as well. But for now we know that Prisma errors only for undefined values when saving it in JSON field
+        // Also, it is possible that RAQB has some requirements to support null or empty string values.
+        if (value === undefined) return false;
+        return true;
+      });
+
+      if (!validValues.length) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Looks like you are trying to create a rule with no value",
+        });
+      }
+    });
+  });
+
+const raqbQueryValueSchema = z.union([
+  z.object({
+    id: z.string().optional(),
+    type: z.literal("group"),
+    children1: raqbChildren1Schema.optional(),
+    properties: z.any(),
+  }),
+  z.object({
+    id: z.string().optional(),
+    type: z.literal("switch_group"),
+    children1: raqbChildren1Schema.optional(),
+    properties: z.any(),
+  }),
+]);
+
+const zodAttributesQueryValue = raqbQueryValueSchema;
+
 
 // Let's not import 118kb just to get an enum
 export enum Frequency {
@@ -219,8 +380,6 @@ export const eventTypeColor = z
   .nullable();
 
 export type IntervalLimitsType = IntervalLimit | null;
-
-export { intervalLimitsType } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 
 export const eventTypeSlug = z
   .string()
