@@ -524,6 +524,54 @@ class BookingRepository {
 - Keep methods generic and reusable: `findByUserIdIncludeAttendees` not `findBookingsForReporting`
 - No business logic in repositories - that belongs in Services
 
+## Creating Services and Using Them in API v2
+
+When creating a new service and integrating it with API v2, follow the layered architecture pattern used in the codebase.
+
+### Architecture Layers
+
+1. **Base Service** (`packages/features/*/lib/service/`) - Contains business logic with optional dependency injection
+2. **Platform Library Export** (`packages/platform/libraries/`) - Re-exports base services for API v2
+3. **API v2 Service** (`apps/api/v2/src/lib/services/`) - Extends base service with NestJS DI
+4. **API v2 Repository** (`apps/api/v2/src/lib/repositories/`) - Wraps base repositories with NestJS DI
+5. **API v2 Module** (`apps/api/v2/src/lib/modules/`) - Registers providers for dependency injection
+
+### Implementation Steps
+
+Follow the pattern demonstrated in `apps/api/v2/src/lib/services/regular-booking.service.ts` and its associated files:
+
+1. **Create Base Service** in `packages/features/[feature]/lib/service/[Name]Service.ts`
+   - Constructor should accept optional dependencies with fallback instantiation
+   - Keep services framework-agnostic (no NestJS dependencies)
+
+2. **Export from Platform Libraries** in `packages/platform/libraries/[feature].ts`
+   - Export the service class and its dependency types
+   - See `packages/platform/libraries/bookings.ts` for reference
+
+3. **Create API v2 Repository Wrappers** in `apps/api/v2/src/lib/repositories/`
+   - Extend base repository from platform-libraries
+   - Use `@Injectable()` decorator and inject `PrismaWriteService`
+   - See `apps/api/v2/src/lib/repositories/prisma-booking.repository.ts` for reference
+
+4. **Create API v2 Service** in `apps/api/v2/src/lib/services/`
+   - Extend base service from platform-libraries
+   - Use `@Injectable()` and inject API v2 repositories/services
+   - Pass dependencies to base via `super()`
+   - See `apps/api/v2/src/lib/services/regular-booking.service.ts` for reference
+
+5. **Create API v2 Module** in `apps/api/v2/src/lib/modules/`
+   - Import `PrismaModule`
+   - Register all repositories and services as providers
+   - Export the main service
+   - See `apps/api/v2/src/lib/modules/regular-booking.module.ts` for reference
+
+### Key Rules
+
+- **Never import directly from `packages/features` in API v2** - Always use platform-libraries
+- **Use NestJS dependency injection** - Let the framework handle instantiation
+- **Register all dependencies as providers** in the module
+- **Follow naming conventions** - `[Name]Service.ts` for services, `Prisma[Name]Repository.ts` for repositories
+
 ## When using Day.js
 
 ```typescript
