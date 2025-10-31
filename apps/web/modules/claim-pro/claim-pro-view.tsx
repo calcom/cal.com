@@ -7,7 +7,6 @@ import { Icon } from "@calid/features/ui/components/icon";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
 
-import dayjs from "@calcom/dayjs";
 import { trpc } from "@calcom/trpc/react";
 
 export interface PageProps {
@@ -38,7 +37,6 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
         ...prev,
         isProUser: {
           formSubmittedForYear: newFormSubmittedForYear,
-          validTillDate: data.metadata?.isProUser?.validTillDate || prev.isProUser?.validTillDate,
         },
       }));
 
@@ -55,10 +53,6 @@ export default function Page({ userMetadata: initialUserMetadata }: PageProps) {
         isProUser: {
           ...userMetadata.isProUser,
           formSubmittedForYear: formSubmittedForYear + 1,
-          validTillDate: dayjs()
-            .utc()
-            .add(formSubmittedForYear + 1, "years")
-            .toISOString(),
         },
       },
     });
