@@ -7,6 +7,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
+import { stripMarkdown } from "./stripMarkdown";
 
 const translator = short();
 
@@ -65,10 +66,9 @@ export const getWho = (
 };
 
 export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNotes">, t: TFunction) => {
-  if (!calEvent.additionalNotes) {
-    return "";
-  }
-  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
+  if (!calEvent.additionalNotes) return "";
+  const plainText = stripMarkdown(calEvent.additionalNotes, { preserveNewlines: true });
+  return `${t("additional_notes")}:\n${plainText}`;
 };
 
 export const getUserFieldsResponses = (
@@ -113,11 +113,9 @@ export const getAppsStatus = (calEvent: Pick<CalendarEvent, "appsStatus">, t: TF
 };
 
 export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: TFunction) => {
-  if (!calEvent.description) {
-    return "";
-  }
-  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
-  return `${t("description")}\n${plainText}`;
+  if (!calEvent.description) return "";
+  const plainText = stripMarkdown(calEvent.description, { preserveNewlines: true });
+  return `${t("description")}:\n${plainText}`;
 };
 
 export const getLocation = (
@@ -223,8 +221,9 @@ export const getPlatformCancelLink = (
   if (calEvent.platformCancelUrl) {
     const platformCancelLink = new URL(`${calEvent.platformCancelUrl}/${bookingUid}`);
     platformCancelLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformCancelLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformCancelLink.searchParams.append("cancel", "true");
     platformCancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
     if (seatUid) platformCancelLink.searchParams.append("seatReferenceUid", seatUid);
@@ -267,8 +266,9 @@ export const getPlatformRescheduleLink = (
       `${calEvent.platformRescheduleUrl}/${seatUid ? seatUid : bookingUid}`
     );
     platformRescheduleLink.searchParams.append("slug", calEvent.type);
-    calEvent.organizer.username &&
+    if (calEvent.organizer.username) {
       platformRescheduleLink.searchParams.append("username", calEvent.organizer.username);
+    }
     platformRescheduleLink.searchParams.append("reschedule", "true");
     if (calEvent?.team) platformRescheduleLink.searchParams.append("teamId", calEvent.team.id.toString());
     return platformRescheduleLink.toString();
