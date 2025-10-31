@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE_FIELD } from "@calcom/lib/bookings/SystemField";
+import { shouldShowFieldInCustomResponses } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -89,15 +89,7 @@ export function BookingDetailsSheet({
 
   const customResponses = booking.responses
     ? Object.entries(booking.responses as Record<string, unknown>)
-        .filter(([fieldName]) => {
-          const isSystemField = SystemField.safeParse(fieldName);
-          // Filter out system fields except SMS_REMINDER_NUMBER_FIELD and TITLE_FIELD
-          // These don't have dedicated sections in the UI
-          if (isSystemField.success && fieldName !== SMS_REMINDER_NUMBER_FIELD && fieldName !== TITLE_FIELD) {
-            return false;
-          }
-          return true;
-        })
+        .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
         .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
