@@ -3,7 +3,9 @@ import { compile } from "handlebars";
 
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import { prisma } from "@calcom/prisma";
 import type { Payment, Webhook } from "@calcom/prisma/client";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -117,7 +119,30 @@ function addUTCOffset(data: WebhookPayloadType): WithUTCOffsetType<WebhookPayloa
   return data as WithUTCOffsetType<WebhookPayloadType>;
 }
 
-function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt: string }>): string {
+export type TrackingData = {
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  utm_term?: string | null;
+  utm_content?: string | null;
+};
+
+async function hydrateTrackingForZapier(data: EventPayloadType): Promise<TrackingData | undefined> {
+  const repo = new BookingRepository(prisma);
+  if (data.bookingId) {
+    const booking = await repo.findByIdIncludeTracking(data.bookingId);
+    return (booking as unknown as { tracking?: TrackingData })?.tracking ?? undefined;
+  }
+  if (data.uid) {
+    const booking = await repo.findByUidIncludeTracking(data.uid);
+    return (booking as unknown as { tracking?: TrackingData })?.tracking ?? undefined;
+  }
+  return undefined;
+}
+
+function getZapierPayload(
+  data: WithUTCOffsetType<EventPayloadType & { createdAt: string; tracking?: TrackingData }>
+): string {
   const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
     return {
       name: attendee.name,
@@ -164,6 +189,15 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     metadata: {
       videoCallUrl: data.metadata?.videoCallUrl,
     },
+    ...(data.tracking && {
+      tracking: {
+        utm_source: data.tracking.utm_source,
+        utm_medium: data.tracking.utm_medium,
+        utm_campaign: data.tracking.utm_campaign,
+        utm_term: data.tracking.utm_term,
+        utm_content: data.tracking.utm_content,
+      },
+    }),
   };
   return JSON.stringify(body);
 }
@@ -217,7 +251,8 @@ const sendPayload = async (
   if (isEventPayload(data)) {
     data.description = data.description || data.additionalNotes;
     if (appId === "zapier") {
-      body = getZapierPayload({ ...data, createdAt });
+      const tracking = await hydrateTrackingForZapier(data);
+      body = getZapierPayload({ ...data, createdAt, tracking });
     }
   }
 
