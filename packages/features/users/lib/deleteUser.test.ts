@@ -8,6 +8,7 @@ import { deleteUser } from "./deleteUser";
 
 vi.mock("@calcom/prisma", () => ({
   default: prismock,
+  prisma: prismock,
 }));
 
 vi.mock("@calcom/app-store/stripepayment/lib/customer", async () => {
