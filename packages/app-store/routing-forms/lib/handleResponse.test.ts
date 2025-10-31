@@ -342,4 +342,63 @@ describe("handleResponse", () => {
       })
     ).rejects.toThrow(/Chosen route is a router/);
   });
+
+  it("should throw error if form fields are not defined", async () => {
+    const formWithoutFields: TargetRoutingFormForResponse = {
+      ...mockForm,
+      fields: undefined,
+    };
+
+    await expect(
+      handleResponse({
+        response: mockResponse,
+        form: formWithoutFields,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+      })
+    ).rejects.toThrow(/Form has no fields defined/);
+  });
+
+  it("should throw error if route references fields that do not exist in the form", async () => {
+    const routeWithMissingField = {
+      id: "route1",
+      queryValue: {
+        type: "group" as const,
+        children1: {
+          "1": {
+            type: "rule" as const,
+            properties: {
+              field: "non-existent-field", // This field doesn't exist in mockForm.fields
+              operator: "equal",
+              value: ["some-value"],
+              valueSrc: ["value"],
+            },
+          },
+        },
+      },
+      action: {
+        type: "customPageMessage" as const,
+        value: "Thank you",
+      },
+    };
+
+    const formWithInvalidRoute: TargetRoutingFormForResponse = {
+      ...mockForm,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      routes: [routeWithMissingField as any],
+    };
+
+    await expect(
+      handleResponse({
+        response: mockResponse,
+        form: formWithInvalidRoute,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: "route1",
+        isPreview: false,
+      })
+    ).rejects.toThrow(/Router is configured with fields that are not present in the form/);
+  });
 });
