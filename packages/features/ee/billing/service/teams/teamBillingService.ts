@@ -189,7 +189,7 @@ export class TeamBillingService implements ITeamBillingService {
   async getSubscriptionStatus() {
     const { subscriptionId } = this.team.metadata;
     if (!subscriptionId) return null;
-    return await billing.getSubscriptionStatus(subscriptionId);
+    return billing.getSubscriptionStatus(subscriptionId);
   }
 
   /**

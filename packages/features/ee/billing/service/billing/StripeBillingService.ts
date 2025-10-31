@@ -170,7 +170,10 @@ export class StripeBillingService implements BillingService {
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     if (!subscription || !subscription.status) return null;
 
-    return subscription.status;
+    return StripeBillingService.mapStripeStatusToCalStatus({
+      stripeStatus: subscription.status,
+      subscriptionId,
+    });
   }
 
   async getCheckoutSession(checkoutSessionId: string) {
