@@ -7,6 +7,8 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { CalVideoSettings as CalVideoSettingsType } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
 import { TextField } from "@calcom/ui/components/form";
@@ -16,12 +18,32 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import LocationSettingsContainer from "./LocationSettingsContainer";
 
-const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSettingsType }) => {
+const CalVideoSettings = ({
+  calVideoSettings,
+  eventTypeId,
+}: {
+  calVideoSettings?: CalVideoSettingsType;
+  eventTypeId?: number;
+}) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const isPlatform = useIsPlatform();
   const [isExpanded, setIsExpanded] = useState(false);
   const [parent] = useAutoAnimate<HTMLDivElement>();
+
+  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(
+    { eventTypeId: eventTypeId ?? undefined },
+    { enabled: !!eventTypeId }
+  );
+
+  const hasHostNoShowWebhook = webhooks?.some((webhook) =>
+    webhook.eventTriggers?.includes(WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW)
+  );
+
+  const hasGuestNoShowWebhook = webhooks?.some((webhook) =>
+    webhook.eventTriggers?.includes(WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW)
+  );
+
   return (
     <>
       <Tooltip content="expandable" side="right" className="lg:hidden">
@@ -82,6 +104,42 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                   return (
                     <SettingsToggle
                       title={t("enable_automatic_recording")}
+                      labelClassName="text-sm"
+                      checked={value}
+                      onCheckedChange={onChange}
+                      Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    />
+                  );
+                }}
+              />
+            )}
+
+            {!isPlatform && !hasHostNoShowWebhook && (
+              <Controller
+                name="calVideoSettings.enableAutomaticNoShowTrackingForHosts"
+                defaultValue={!!calVideoSettings?.enableAutomaticNoShowTrackingForHosts}
+                render={({ field: { onChange, value } }) => {
+                  return (
+                    <SettingsToggle
+                      title={t("enable_automatic_no_show_tracking_for_hosts")}
+                      labelClassName="text-sm"
+                      checked={value}
+                      onCheckedChange={onChange}
+                      Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    />
+                  );
+                }}
+              />
+            )}
+
+            {!isPlatform && !hasGuestNoShowWebhook && (
+              <Controller
+                name="calVideoSettings.enableAutomaticNoShowTrackingForGuests"
+                defaultValue={!!calVideoSettings?.enableAutomaticNoShowTrackingForGuests}
+                render={({ field: { onChange, value } }) => {
+                  return (
+                    <SettingsToggle
+                      title={t("enable_automatic_no_show_tracking_for_guests")}
                       labelClassName="text-sm"
                       checked={value}
                       onCheckedChange={onChange}

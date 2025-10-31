@@ -8,7 +8,11 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { LocationFormValues, EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type {
+  LocationFormValues,
+  EventTypeSetupProps,
+  CalVideoSettings as CalVideoSettingsType,
+} from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
@@ -25,11 +29,13 @@ import DefaultLocationSettings from "./DefaultLocationSettings";
 import LocationInput from "./LocationInput";
 import type { LocationCustomClassNames } from "./types";
 
-export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
+export type TEventTypeLocation = Pick<
+  EventTypeSetupProps["eventType"],
+  "id" | "locations" | "calVideoSettings"
+>;
 export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["locationOptions"];
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
-
 
 type LocationsProps = {
   team: { id: number } | null;
@@ -255,7 +261,19 @@ const Locations: React.FC<LocationsProps> = ({
                 )}
               </div>
 
-              {isCalVideo && !isPlatform && <CalVideoSettings />}
+              {isCalVideo && !isPlatform && (
+                <CalVideoSettings
+                  calVideoSettings={
+                    (eventType?.calVideoSettings
+                      ? {
+                          ...eventType.calVideoSettings,
+                          redirectUrlOnExit: eventType.calVideoSettings.redirectUrlOnExit ?? undefined,
+                        }
+                      : undefined) as CalVideoSettingsType | undefined
+                  }
+                  eventTypeId={eventType?.id}
+                />
+              )}
 
               {eventLocationType?.supportsCustomLabel && eventLocationType?.type ? (
                 <DefaultLocationSettings
