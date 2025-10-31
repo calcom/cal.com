@@ -16,7 +16,7 @@ import type { Membership } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
+import { HttpError } from "@calcom/lib/http-error";
 
 const log = logger.getSubLogger({ prefix: ["TeamService"] });
 
@@ -62,7 +62,7 @@ export class TeamService {
       select: { parentId: true, isOrganization: true },
     });
 
-    if (!team) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+    if (!team) throw new HttpError({ statusCode: 404, message: "Team not found" });
 
     const isOrganizationOrATeamInOrganization = !!(team.parentId || team.isOrganization);
 
@@ -74,7 +74,7 @@ export class TeamService {
           teamId,
         },
       });
-      if (!existingToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite token not found" });
+      if (!existingToken) throw new HttpError({ statusCode: 404, message: "Invite token not found" });
       return {
         token: existingToken.token,
         inviteLink: await TeamService.buildInviteLink(existingToken.token, isOrganizationOrATeamInOrganization),
@@ -187,10 +187,10 @@ export class TeamService {
       },
     });
 
-    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+    if (!verificationToken) throw new HttpError({ statusCode: 404, message: "Invite not found" });
     if (!verificationToken.teamId || !verificationToken.team)
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Invite token is not associated with any team",
       });
 
@@ -207,8 +207,8 @@ export class TeamService {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
+          throw new HttpError({
+            statusCode: 403,
             message: "This user is a member of this team / has a pending invitation.",
           });
         }
@@ -311,12 +311,12 @@ export class TeamService {
     });
 
     if (!verificationToken) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+      throw new HttpError({ statusCode: 404, message: "Invite not found" });
     }
 
     if (!verificationToken.teamId || !verificationToken.team) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
+      throw new HttpError({
+        statusCode: 404,
         message: "Invite token is not associated with any team",
       });
     }
@@ -327,15 +327,15 @@ export class TeamService {
     });
 
     if (!currentUser) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      throw new HttpError({ statusCode: 404, message: "User not found" });
     }
 
     if (
       currentUser.email !== verificationToken.identifier &&
       currentUser.username !== verificationToken.identifier
     ) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
+      throw new HttpError({
+        statusCode: 403,
         message: "This invitation is not for your account",
       });
     }
@@ -399,7 +399,7 @@ export class TeamService {
     });
 
     if (!membership) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Membership not found" });
+      throw new HttpError({ statusCode: 404, message: "Membership not found" });
     }
 
     return membership;
@@ -420,7 +420,7 @@ export class TeamService {
     });
 
     if (!team) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+      throw new HttpError({ statusCode: 404, message: "Team not found" });
     }
 
     return team;
@@ -450,7 +450,7 @@ export class TeamService {
     });
 
     if (!user) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      throw new HttpError({ statusCode: 404, message: "User not found" });
     }
 
     return user;

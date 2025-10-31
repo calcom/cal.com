@@ -4,7 +4,7 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
+import { HttpError } from "@calcom/lib/http-error";
 
 import jackson from "./jackson";
 import { tenantPrefix, samlProductID } from "./saml";
@@ -30,8 +30,8 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
 
   if (!memberships || memberships.length === 0) {
     if (!HOSTED_CAL_FEATURES)
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
+      throw new HttpError({
+        statusCode: 401,
         message: "no_account_exists",
       });
 
@@ -39,8 +39,8 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
     const organization = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
 
     if (!organization)
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
+      throw new HttpError({
+        statusCode: 401,
         message: "no_account_exists",
       });
 
@@ -57,8 +57,8 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
     memberships = await getAllAcceptedMemberships({ prisma, email });
 
     if (!memberships || memberships.length === 0)
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
+      throw new HttpError({
+        statusCode: 401,
         message: "no_account_exists",
       });
   }
@@ -80,8 +80,8 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
     .filter((connections) => connections.length > 0);
 
   if (connectionsFound.length === 0) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
+    throw new HttpError({
+      statusCode: 400,
       message:
         "Could not find a SSO Identity Provider for your email. Please contact your admin to ensure you have been given access to Cal",
     });

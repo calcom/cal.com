@@ -110,7 +110,7 @@ Add the tRPC endpoint in the insights router using the `getInsightsBookingServic
 import { bookingRepositoryBaseInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { userBelongsToTeamProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@calcom/platform-libraries";
 
 export const insightsRouter = router({
   // ... existing procedures

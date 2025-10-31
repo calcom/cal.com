@@ -19,7 +19,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 
-import { TRPCError } from "@trpc/server";
+import { HttpError } from "@calcom/lib/http-error";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;
@@ -62,7 +62,7 @@ export const getEventTypeById = async ({
 
   if (!rawEventType) {
     if (isTrpcCall) {
-      throw new TRPCError({ code: "NOT_FOUND" });
+      throw new HttpError({ statusCode: 404, message: "Event type not found" });
     } else {
       throw new Error("Event type not found");
     }
@@ -167,8 +167,8 @@ export const getEventTypeById = async ({
     });
     if (!fallbackUser) {
       if (isTrpcCall) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
+        throw new HttpError({
+          statusCode: 404,
           message: "The event type doesn't have user and no fallback user was found",
         });
       } else {
@@ -189,8 +189,8 @@ export const getEventTypeById = async ({
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
 
   if (!currentUser?.id && !eventType.teamId) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
+    throw new HttpError({
+      statusCode: 404,
       message: "Could not find user or team",
     });
   }

@@ -11,7 +11,7 @@ import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import type { Membership, Team, User, VerificationToken, Profile } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@calcom/platform-libraries";
 
 import { TeamService } from "./teamService";
 

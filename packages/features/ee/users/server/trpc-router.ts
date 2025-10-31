@@ -6,7 +6,7 @@ import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
 import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@calcom/platform-libraries";
 import type { inferRouterOutputs } from "@trpc/server";
 
 export type UserAdminRouter = typeof userAdminRouter;

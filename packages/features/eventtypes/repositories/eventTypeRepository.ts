@@ -14,7 +14,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
-import { TRPCError } from "@trpc/server";
+import { HttpError } from "@calcom/lib/http-error";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 
@@ -467,7 +467,7 @@ export class EventTypeRepository {
       },
     });
 
-    if (!teamMembership) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (!teamMembership) throw new HttpError({ statusCode: 401, message: "User not authorized to access team event types" });
 
     return await prisma.eventType.findMany({
       where: {
