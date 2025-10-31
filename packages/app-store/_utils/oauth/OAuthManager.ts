@@ -86,6 +86,14 @@ export class OAuthManager {
   private credentialSyncVariables: CredentialSyncVariables;
   private useCredentialSync: boolean;
   private autoCheckTokenExpiryOnRequest: boolean;
+  // Prevents concurrent token refreshes by storing active refresh promises in memory
+  private static inMemoryLocks = new Map<string, Promise<CurrentTokenObject>>();
+
+  // Creates a unique lock key to identify this specific credential's refresh operation
+  private getInMemoryLockKey(): string {
+    const resourceId = this.resourceOwner.id || 'anonymous';
+    return `oauth:refresh:${this.appSlug}:${this.resourceOwner.type}:${resourceId}`;
+  }
 
   constructor({
     getCurrentTokenObject,
@@ -236,6 +244,8 @@ export class OAuthManager {
     return !response.ok || response.status < 200 || response.status >= 300;
   }
 
+
+
   /**
    * Gets the current token object as is if not expired.
    * If expired, it refreshes the token and returns the new token object.
@@ -267,19 +277,58 @@ export class OAuthManager {
       myLog.debug("Token is not expired. Returning the current token object");
       return { token: this.normalizeNewlyReceivedToken(currentTokenObject), isUpdated: false };
     } else {
-      const token = {
-        // Keep the old token object as it is, as some integrations don't send back all the props e.g. refresh_token isn't sent again by Google Calendar
-        // It also allows any other properties set to be retained.
-        // Let's not use normalizedCurrentTokenObject here as `normalizeToken` could possible be not idempotent
-        ...currentTokenObject,
-        ...this.normalizeNewlyReceivedToken(
-          await this.refreshOAuthToken({ refreshToken: currentTokenObject.refresh_token ?? null })
-        ),
-      };
-      myLog.debug("Token is expired. So, returning new token object");
-      this.currentTokenObject = token;
+      // Check if another request is already refreshing this token
+      const lockKey = this.getInMemoryLockKey();
+      if (OAuthManager.inMemoryLocks.has(lockKey)) {
+        myLog.debug("Token refresh already in progress, waiting for completion");
+        const refreshedToken = await OAuthManager.inMemoryLocks.get(lockKey)!;
+        // Sync our instance with the refreshed token from the other request
+        this.currentTokenObject = refreshedToken;
+        return { token: this.normalizeNewlyReceivedToken(refreshedToken), isUpdated: true };
+      }
+
+      try {
+        // Start the refresh and store the promise so other requests can wait for it
+        const refreshPromise = this.performTokenRefresh(currentTokenObject);
+        OAuthManager.inMemoryLocks.set(lockKey, refreshPromise);
+
+        const token = await refreshPromise;
+        
+        // Remove the lock now that refresh is complete
+        OAuthManager.inMemoryLocks.delete(lockKey);
+        
+        return { token: this.normalizeNewlyReceivedToken(token), isUpdated: true };
+      } catch (error) {
+        // Always clean up the lock, even on failure
+        OAuthManager.inMemoryLocks.delete(lockKey);
+        myLog.error("Error during token refresh", { error: error instanceof Error ? error.message : String(error) });
+        throw error;
+      }
+    }
+  }
+
+  private async performTokenRefresh(currentTokenObject: CurrentTokenObject): Promise<CurrentTokenObject> {
+    const myLog = log.getSubLogger({
+      prefix: [`performTokenRefresh:appSlug=${this.appSlug}`],
+    });
+    
+    const token = {
+      // Keep the old token object as it is, as some integrations don't send back all the props e.g. refresh_token isn't sent again by Google Calendar
+      // It also allows any other properties set to be retained.
+      // Let's not use normalizedCurrentTokenObject here as `normalizeToken` could possible be not idempotent
+      ...currentTokenObject,
+      ...this.normalizeNewlyReceivedToken(
+        await this.refreshOAuthToken({ refreshToken: currentTokenObject.refresh_token ?? null })
+      ),
+    };
+    myLog.debug("Token is expired. So, returning new token object");
+    try {
       await this.updateTokenObject(token);
-      return { token, isUpdated: true };
+      this.currentTokenObject = token;
+      return token;
+    } catch (e) {
+      myLog.error("Failed to persist refreshed token; leaving in-memory token unchanged", safeStringify(e));
+      throw e;
     }
   }
 
