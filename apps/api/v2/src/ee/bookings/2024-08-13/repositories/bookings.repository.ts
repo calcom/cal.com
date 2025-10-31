@@ -50,6 +50,20 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
+  async getByUidWithUserIdAndSeatsReferencesCount(bookingUid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        userId: true,
+        seatsReferences: {
+          take: 1,
+        },
+      },
+    });
+  }
+
   async getByUid(bookingUid: string) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
