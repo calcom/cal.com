@@ -111,7 +111,7 @@ The event types page UI components are located in `apps/web/modules/event-types/
 
 Changes to shared UI patterns (like tab layouts and button alignments) need to be checked across multiple views to maintain consistency:
 - Event types page layout: `apps/web/modules/event-types/views/event-types-listing-view.tsx`
-- Bookings page layout: `apps/web/modules/bookings/views/bookings-listing-view.tsx`
+- Bookings page layout: `apps/web/modules/bookings/views/bookings-view.tsx`
 - Common elements like tabs, search bars, and filter buttons should maintain consistent alignment across views
 
 ## When working on workflow triggers or similar enum-based features in the Cal.com codebase
