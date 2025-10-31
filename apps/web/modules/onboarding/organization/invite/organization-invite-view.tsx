@@ -63,7 +63,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const handleSubmitOnboarding = async (invitesData: FormValues["invites"]) => {
     // Save invites to store before submitting
     setInvites(invitesData);
-    await submitOnboarding(store, userEmail);
+    await submitOnboarding(store, userEmail, invitesData);
   };
 
   const handleContinue = async (data?: FormValues) => {
