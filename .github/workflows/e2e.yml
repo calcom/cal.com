@@ -1,9 +1,15 @@
 name: E2E
 on:
   workflow_call:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   actions: write
   contents: read
+
 env:
   NODE_OPTIONS: --max-old-space-size=4096
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
@@ -41,11 +47,13 @@ env:
   SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
 jobs:
   e2e:
     timeout-minutes: 20
     name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-8vcpu-ubuntu-2204
+
     services:
       postgres:
         image: postgres:13
@@ -57,10 +65,17 @@ jobs:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: calendso
         options: >-
+          --mount type=tmpfs,destination=/var/lib/postgresql/data
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          -c fsync=off
+          -c synchronous_commit=off
+          -c full_page_writes=off
+          -c wal_level=minimal
+          -c max_wal_senders=0
+          -c autovacuum=off
         ports:
           - 5432:5432
       mailhog:
@@ -71,23 +86,39 @@ jobs:
         ports:
           - 8025:8025
           - 1025:1025
+
     strategy:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
+
     steps:
       - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Cache Playwright/Prisma
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ms-playwright
+            ~/.cache/prisma
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/yarn.lock','**/pnpm-lock.yaml','**/package-lock.json') }}
+
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
+
       - name: Run Tests
-        run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+        run: yarn e2e --workers=$(nproc) --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
         if: always()
@@ -95,3 +126,4 @@ jobs:
           name: blob-report-${{ matrix.shard }}
           path: blob-report
           retention-days: 30
+          compression-level: 0
