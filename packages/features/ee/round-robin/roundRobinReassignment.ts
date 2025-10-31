@@ -15,7 +15,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -24,15 +24,13 @@ import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
-} from "@calcom/lib/delegationCredential/server";
-import { getLuckyUserService } from "@calcom/lib/di/containers/LuckyUser";
+} from "@calcom/app-store/delegationCredential";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -105,14 +103,14 @@ export const roundRobinReassignment = async ({
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
-        user,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        schedule: null,
-        createdAt: new Date(0), // use earliest possible date as fallback
-        groupId: null,
-      }));
+      user,
+      isFixed: false,
+      priority: 2,
+      weight: 100,
+      schedule: null,
+      createdAt: new Date(0), // use earliest possible date as fallback
+      groupId: null,
+    }));
 
   if (eventType.hosts.length === 0) {
     throw new Error(ErrorCode.EventTypeNoHosts);
@@ -251,7 +249,7 @@ export const roundRobinReassignment = async ({
     newBookingTitle = getEventName(eventNameObject);
 
     const oldUserId = booking.userId;
-    const oldEmail = booking.userPrimaryEmail;
+    const oldEmail = booking.user?.email || "";
     const oldTitle = booking.title;
 
     booking = await prisma.booking.update({
@@ -273,23 +271,34 @@ export const roundRobinReassignment = async ({
     });
 
     try {
-      const bookingAuditService = BookingAuditService.create();
-      const hashedLinkService = new HashedLinkService();
-      const bookingEventHandlerService = new BookingEventHandlerService({
-        log,
-        hashedLinkService,
-        bookingAuditService,
-      });
-      await bookingEventHandlerService.onBookingUpdated(String(bookingId), createUserActor(reassignedById), {
-        changes: [
-          { field: "userId", oldValue: oldUserId, newValue: reassignedRRHost.id },
-          { field: "userPrimaryEmail", oldValue: oldEmail, newValue: reassignedRRHost.email },
-          { field: "title", oldValue: oldTitle, newValue: newBookingTitle },
-        ],
-        booking: {
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      await bookingEventHandlerService.onReassignmentReasonUpdated(
+        String(bookingId),
+        createUserActor(reassignedById),
+        {
           reassignmentReason: "Round robin reassignment",
-        },
-      });
+          assignmentMethod: 'round_robin',
+          assignmentDetails: {
+            assignedUser: {
+              id: reassignedRRHost.id,
+              name: reassignedRRHost.name || "",
+              email: reassignedRRHost.email,
+            },
+            previousUser: {
+              id: previousRRHost?.id || 0,
+              name: previousRRHost?.name || "",
+              email: previousRRHost?.email || "",
+            },
+            teamId: eventType.teamId ?? undefined,
+            teamName: eventType.team?.name,
+          },
+          changes: [
+            { field: "userId", oldValue: oldUserId, newValue: reassignedRRHost.id },
+            { field: "userPrimaryEmail", oldValue: oldEmail, newValue: reassignedRRHost.email },
+            { field: "title", oldValue: oldTitle, newValue: newBookingTitle },
+          ],
+        }
+      );
     } catch (error) {
       logger.error("Failed to create booking audit log for round robin reassignment", error);
     }
@@ -328,10 +337,10 @@ export const roundRobinReassignment = async ({
   // If changed owner, also change destination calendar
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
-        where: {
-          userId: originalOrganizer.id,
-        },
-      })
+      where: {
+        userId: originalOrganizer.id,
+      },
+    })
     : null;
 
   const evt: CalendarEvent = {

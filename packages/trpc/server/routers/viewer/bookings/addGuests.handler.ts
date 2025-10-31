@@ -1,14 +1,15 @@
 import dayjs from "@calcom/dayjs";
 import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
-import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { AttendeeAddedAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/AttendeeAddedAuditActionHelperService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
+import logger from "@calcom/lib/logger";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
@@ -16,8 +17,12 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
+import { checkEmailVerificationRequired } from "../../publicViewer/checkIfUserEmailVerificationRequired.handler";
+
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
+
+const log = logger.getSubLogger({ prefix: ["addGuests.handler"] });
 
 type AddGuestsOptions = {
   ctx: {
@@ -83,11 +88,51 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
     : [];
 
-  const uniqueGuests = guests.filter(
-    (guest) =>
-      !booking.attendees.some((attendee) => guest === attendee.email) &&
-      !blacklistedGuestEmails.includes(guest)
-  );
+  // Normalize and deduplicate guests with proper email handling
+  const normalizedGuests = guests.map((guest) => ({
+    original: guest,
+    normalized: extractBaseEmail(guest).toLowerCase(),
+  }));
+
+  // Filter unique guests with proper deduplication
+  const seenEmails = new Set<string>();
+  const uniqueGuests: string[] = [];
+
+  for (const guestEntry of normalizedGuests) {
+    const baseEmail = guestEntry.normalized;
+
+    // Skip if already in the set (deduplication)
+    if (seenEmails.has(baseEmail)) {
+      continue;
+    }
+
+    // Skip if already an attendee (case-insensitive)
+    if (
+      booking.attendees.some(
+        (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseEmail
+      )
+    ) {
+      continue;
+    }
+
+    // Skip if blacklisted
+    if (blacklistedGuestEmails.includes(baseEmail)) {
+      continue;
+    }
+
+    // Check if email verification is required
+    const verificationRequired = await checkEmailVerificationRequired({
+      userSessionEmail: ctx.user.email,
+      email: guestEntry.original,
+    });
+
+    if (verificationRequired) {
+      continue;
+    }
+
+    seenEmails.add(baseEmail);
+    uniqueGuests.push(guestEntry.original);
+  }
 
   if (uniqueGuests.length === 0)
     throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
@@ -125,21 +170,14 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   });
 
   try {
-    const bookingAuditService = BookingAuditService.create();
-    const hashedLinkService = new HashedLinkService();
-    const bookingEventHandlerService = new BookingEventHandlerService({
-      log,
-      hashedLinkService,
-      bookingAuditService,
-    });
-    await bookingEventHandlerService.onAttendeeAdded(String(bookingId), createUserActor(user.id), {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditData = AttendeeAddedAuditActionHelperService.createData({
+      addedGuests: uniqueGuests,
       changes: [{ field: "attendees", oldValue: oldGuestCount, newValue: bookingAttendees.attendees.length }],
-      booking: {
-        addedGuests: uniqueGuests,
-      },
     });
+    await bookingEventHandlerService.onAttendeeAdded(String(bookingId), createUserActor(user.id), auditData);
   } catch (error) {
-    console.log("Failed to create booking audit log for adding guests", error);
+    log.error("Failed to create booking audit log for adding guests", error);
   }
 
   const attendeesListPromises = bookingAttendees.attendees.map(async (attendee) => {
@@ -205,9 +243,9 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   await eventManager.updateCalendarAttendees(evt, booking);
 
   try {
-    await sendAddGuestsEmails(evt, guests);
+    await sendAddGuestsEmails(evt, uniqueGuests);
   } catch {
-    console.log("Error sending AddGuestsEmails");
+    log.error("Error sending AddGuestsEmails");
   }
 
   return { message: "Guests added" };

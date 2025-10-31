@@ -13,14 +13,15 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
+import { StatusChangeAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/StatusChangeAuditActionHelperService";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -327,14 +328,11 @@ export async function handleConfirmation(args: {
         hashedLinkService,
         bookingAuditService,
       });
+      const auditData = StatusChangeAuditActionHelperService.createData({});
       await bookingEventHandlerService.onBookingAccepted(
         String(updatedBooking.id),
         createUserActor(booking.userId || 0),
-        {
-          booking: {
-            meetingTime: updatedBooking.startTime.toISOString(),
-          },
-        }
+        auditData
       );
     } catch (error) {
       log.error("Failed to create booking audit log for confirmation", error);

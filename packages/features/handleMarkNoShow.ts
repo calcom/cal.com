@@ -5,15 +5,15 @@ import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
-import { WorkflowService } from "@calcom/lib/server/service/workflows";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -251,14 +251,14 @@ const handleMarkNoShow = async ({
             const destinationCalendar = booking.destinationCalendar
               ? [booking.destinationCalendar]
               : booking.user?.destinationCalendar
-              ? [booking.user?.destinationCalendar]
-              : [];
+                ? [booking.user?.destinationCalendar]
+                : [];
             const team = booking.eventType?.team
               ? {
-                  name: booking.eventType.team.name,
-                  id: booking.eventType.team.id,
-                  members: [],
-                }
+                name: booking.eventType.team.name,
+                id: booking.eventType.team.id,
+                members: [],
+              }
               : undefined;
 
             const calendarEvent: ExtendedCalendarEvent = {
@@ -333,6 +333,7 @@ const handleMarkNoShow = async ({
 
       if (userId && bookingToUpdate) {
         try {
+          const log = logger.getSubLogger({ prefix: ["handleMarkNoShow"] });
           const bookingAuditService = BookingAuditService.create();
           const hashedLinkService = new HashedLinkService();
           const bookingEventHandlerService = new BookingEventHandlerService({

@@ -2,7 +2,26 @@ import type { Logger } from "tslog";
 
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { BookingAuditService, BookingAuditData } from "@calcom/lib/server/service/bookingAuditService";
+import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
+import { CreatedAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionHelperService";
+import type { BookingStatus } from "@calcom/prisma/enums";
+import { BookingAuditType, BookingAuditAction } from "@calcom/prisma/enums";
+import type {
+  StatusChangeAuditData,
+  CancelledAuditData,
+  RejectedAuditData,
+  RescheduleRequestedAuditData,
+  AttendeeAddedAuditData,
+  AttendeeRemovedAuditData,
+  CancellationReasonUpdatedAuditData,
+  RejectionReasonUpdatedAuditData,
+  AssignmentAuditData,
+  ReassignmentAuditData,
+  LocationChangedAuditData,
+  MeetingUrlUpdatedAuditData,
+  HostNoShowUpdatedAuditData,
+  AttendeeNoShowUpdatedAuditData,
+} from "@calcom/features/booking-audit/lib/types";
 
 import type { Actor } from "../types/actor";
 import { getActorUserId } from "../types/actor";
@@ -33,14 +52,14 @@ export class BookingEventHandlerService {
     await this.onBookingCreatedOrRescheduled(payload);
 
     try {
+      const auditData = CreatedAuditActionHelperService.createData({
+        meetingTime: payload.booking.startTime.toISOString(),
+      });
+      const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
       await this.bookingAuditService.onBookingCreated(
         String(payload.booking.id),
-        payload.booking.userId || payload.booking.user?.id,
-        {
-          booking: {
-            meetingTime: payload.booking.startTime.toISOString(),
-          },
-        }
+        userId,
+        auditData
       );
     } catch (error) {
       this.log.error("Error while creating booking audit", safeStringify(error));
@@ -84,7 +103,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingAccepted(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onBookingAccepted(bookingId: string, actor: Actor, data?: StatusChangeAuditData) {
     try {
       await this.bookingAuditService.onBookingAccepted(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -92,7 +111,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingCancelled(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onBookingCancelled(bookingId: string, actor: Actor, data: CancelledAuditData) {
     try {
       await this.bookingAuditService.onBookingCancelled(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -100,15 +119,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingUpdated(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
-    try {
-      await this.bookingAuditService.onBookingUpdated(bookingId, getActorUserId(actor), data);
-    } catch (error) {
-      this.log.error("Error while creating booking updated audit", safeStringify(error));
-    }
-  }
-
-  async onRescheduleRequested(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onRescheduleRequested(bookingId: string, actor: Actor, data: RescheduleRequestedAuditData) {
     try {
       await this.bookingAuditService.onRescheduleRequested(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -116,7 +127,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onAttendeeAdded(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onAttendeeAdded(bookingId: string, actor: Actor, data: AttendeeAddedAuditData) {
     try {
       await this.bookingAuditService.onAttendeeAdded(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -124,7 +135,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onHostNoShowUpdated(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onHostNoShowUpdated(bookingId: string, actor: Actor, data: HostNoShowUpdatedAuditData) {
     try {
       await this.bookingAuditService.onHostNoShowUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -132,7 +143,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingRejected(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onBookingRejected(bookingId: string, actor: Actor, data: RejectedAuditData) {
     try {
       await this.bookingAuditService.onBookingRejected(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -140,7 +151,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingPending(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onBookingPending(bookingId: string, actor: Actor, data?: StatusChangeAuditData) {
     try {
       await this.bookingAuditService.onBookingPending(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -148,7 +159,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingAwaitingHost(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onBookingAwaitingHost(bookingId: string, actor: Actor, data?: StatusChangeAuditData) {
     try {
       await this.bookingAuditService.onBookingAwaitingHost(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -156,7 +167,60 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onAttendeeRemoved(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onBookingStatusChange(
+    bookingId: string,
+    actor: Actor,
+    status: BookingStatus,
+    data?: StatusChangeAuditData | CancelledAuditData | RejectedAuditData
+  ) {
+    try {
+      // Route to the appropriate specific method based on status
+      switch (status) {
+        case "ACCEPTED": {
+          // Type guard: ensure data is StatusChangeAuditData or undefined
+          const statusData: StatusChangeAuditData | undefined =
+            data && !('rejectionReason' in data) && !('cancellationReason' in data) ? data : undefined;
+          await this.bookingAuditService.onBookingAccepted(bookingId, getActorUserId(actor), statusData);
+          break;
+        }
+        case "REJECTED": {
+          // Caller must provide RejectedAuditData for REJECTED status
+          if (data && 'rejectionReason' in data) {
+            await this.bookingAuditService.onBookingRejected(bookingId, getActorUserId(actor), data);
+          }
+          break;
+        }
+        case "CANCELLED": {
+          // Caller must provide CancelledAuditData for CANCELLED status
+          if (data && 'cancellationReason' in data) {
+            await this.bookingAuditService.onBookingCancelled(bookingId, getActorUserId(actor), data);
+          }
+          break;
+        }
+        case "PENDING": {
+          // Type guard: ensure data is StatusChangeAuditData or undefined
+          const statusData: StatusChangeAuditData | undefined =
+            data && !('rejectionReason' in data) && !('cancellationReason' in data) ? data : undefined;
+          await this.bookingAuditService.onBookingPending(bookingId, getActorUserId(actor), statusData);
+          break;
+        }
+        case "AWAITING_HOST": {
+          // Type guard: ensure data is StatusChangeAuditData or undefined
+          const statusData: StatusChangeAuditData | undefined =
+            data && !('rejectionReason' in data) && !('cancellationReason' in data) ? data : undefined;
+          await this.bookingAuditService.onBookingAwaitingHost(bookingId, getActorUserId(actor), statusData);
+          break;
+        }
+      }
+    } catch (error) {
+      this.log.error(
+        `Error while creating booking status change audit for status: ${status}`,
+        safeStringify(error)
+      );
+    }
+  }
+
+  async onAttendeeRemoved(bookingId: string, actor: Actor, data: AttendeeRemovedAuditData) {
     try {
       await this.bookingAuditService.onAttendeeRemoved(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -164,7 +228,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onCancellationReasonUpdated(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onCancellationReasonUpdated(bookingId: string, actor: Actor, data: CancellationReasonUpdatedAuditData) {
     try {
       await this.bookingAuditService.onCancellationReasonUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -172,7 +236,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onRejectionReasonUpdated(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onRejectionReasonUpdated(bookingId: string, actor: Actor, data: RejectionReasonUpdatedAuditData) {
     try {
       await this.bookingAuditService.onRejectionReasonUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -180,7 +244,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onAssignmentReasonUpdated(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onAssignmentReasonUpdated(bookingId: string, actor: Actor, data: AssignmentAuditData) {
     try {
       await this.bookingAuditService.onAssignmentReasonUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -188,7 +252,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onReassignmentReasonUpdated(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onReassignmentReasonUpdated(bookingId: string, actor: Actor, data: ReassignmentAuditData) {
     try {
       await this.bookingAuditService.onReassignmentReasonUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -196,7 +260,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onLocationChanged(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onLocationChanged(bookingId: string, actor: Actor, data: LocationChangedAuditData) {
     try {
       await this.bookingAuditService.onLocationChanged(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -204,7 +268,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onMeetingUrlUpdated(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onMeetingUrlUpdated(bookingId: string, actor: Actor, data: MeetingUrlUpdatedAuditData) {
     try {
       await this.bookingAuditService.onMeetingUrlUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -212,7 +276,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onAttendeeNoShowUpdated(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onAttendeeNoShowUpdated(bookingId: string, actor: Actor, data: AttendeeNoShowUpdatedAuditData) {
     try {
       await this.bookingAuditService.onAttendeeNoShowUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {
@@ -220,9 +284,9 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onSystemAction(bookingId: string, actor: Actor, data?: Partial<BookingAuditData>) {
+  async onSystemAction(bookingId: string, type: BookingAuditType, action: BookingAuditAction, data?: unknown) {
     try {
-      await this.bookingAuditService.onSystemAction(bookingId, data);
+      await this.bookingAuditService.onSystemAction(bookingId, type, action, data);
     } catch (error) {
       this.log.error("Error while creating system action audit", safeStringify(error));
     }

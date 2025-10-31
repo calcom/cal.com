@@ -4,18 +4,19 @@
 export type Actor = {
   /**
    * The type of actor performing the action
+   * Must match ActorType enum in Prisma schema
    */
-  type: "User" | "System" | "Attendee";
+  type: "User" | "Guest" | "System";
 
   /**
-   * The user ID if the actor is a User or Attendee
-   * Null if the actor is the System
+   * The user ID if the actor is a User (registered Cal.com user)
+   * Null for Guest (non-registered) and System actors
    */
   userId?: number | null;
 
   /**
    * Additional metadata about the actor
-   * e.g., email for Attendee, automation name for System
+   * e.g., email for Guest, automation name for System
    */
   metadata?: {
     email?: string;
@@ -48,11 +49,11 @@ export function createSystemActor(metadata?: Actor["metadata"]): Actor {
 }
 
 /**
- * Creates an Actor representing an Attendee
+ * Creates an Actor representing a Guest (non-registered attendee)
  */
-export function createAttendeeActor(email: string, metadata?: Actor["metadata"]): Actor {
+export function createGuestActor(email: string, metadata?: Actor["metadata"]): Actor {
   return {
-    type: "Attendee",
+    type: "Guest",
     userId: null,
     metadata: {
       ...metadata,
@@ -61,11 +62,14 @@ export function createAttendeeActor(email: string, metadata?: Actor["metadata"])
   };
 }
 
+export const createAttendeeActor = createGuestActor;
+
 /**
  * Extracts the user ID from an actor if available
+ * Returns undefined if the actor has no userId (null or undefined)
  */
-export function getActorUserId(actor?: Actor): number | null | undefined {
-  return actor?.userId;
+export function getActorUserId(actor: Actor): number | undefined {
+  return actor.userId ?? undefined;
 }
 
 /**
@@ -78,8 +82,8 @@ export function actorToAuditString(actor?: Actor): string | null {
     return `User:${actor.userId}`;
   }
 
-  if (actor.type === "Attendee" && actor.metadata?.email) {
-    return `Attendee:${actor.metadata.email}`;
+  if (actor.type === "Guest" && actor.metadata?.email) {
+    return `Guest:${actor.metadata.email}`;
   }
 
   if (actor.type === "System") {

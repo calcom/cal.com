@@ -1,12 +1,13 @@
 import type { TFunction } from "i18next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { deleteMeeting } from "@calcom/app-store/videoClient";
+import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { RescheduleRequestedAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionHelperService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
@@ -15,18 +16,16 @@ import {
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
-import { getDelegationCredentialOrRegularCredential } from "@calcom/lib/delegationCredential/server";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/delegationCredential";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { BookingWebhookFactory } from "@calcom/lib/server/service/BookingWebhookFactory";
-import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { prisma } from "@calcom/prisma";
 import type { BookingReference, EventType } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -159,26 +158,18 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   try {
-    const bookingAuditService = BookingAuditService.create();
-    const hashedLinkService = new HashedLinkService();
-    const bookingEventHandlerService = new BookingEventHandlerService({
-      log,
-      hashedLinkService,
-      bookingAuditService,
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditData = RescheduleRequestedAuditActionHelperService.createData({
+      cancellationReason,
+      changes: [
+        { field: "rescheduled", oldValue: false, newValue: true },
+        { field: "cancelledBy", oldValue: null, newValue: user.email },
+      ],
     });
     await bookingEventHandlerService.onRescheduleRequested(
       String(bookingToReschedule.id),
       createUserActor(user.id),
-      {
-        changes: [
-          { field: "rescheduled", oldValue: false, newValue: true },
-          { field: "status", oldValue: bookingToReschedule.status, newValue: BookingStatus.CANCELLED },
-          { field: "cancelledBy", oldValue: null, newValue: user.email },
-        ],
-        booking: {
-          cancellationReason,
-        },
-      }
+      auditData
     );
   } catch (error) {
     log.error("Failed to create booking audit log for reschedule request", error);
@@ -240,10 +231,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: bookingToReschedule.eventType?.team
       ? {
-          name: bookingToReschedule.eventType.team.name,
-          id: bookingToReschedule.eventType.team.id,
-          members: [],
-        }
+        name: bookingToReschedule.eventType.team.name,
+        id: bookingToReschedule.eventType.team.id,
+        members: [],
+      }
       : undefined,
   });
 

@@ -13,8 +13,9 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
+import { ReassignmentAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionHelperService";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -32,8 +33,6 @@ import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKey
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { BookingAuditService } from "@calcom/lib/server/service/bookingAuditService";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -106,14 +105,14 @@ export const roundRobinManualReassignment = async ({
   const eventTypeHosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
-        user,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        schedule: null,
-        createdAt: new Date(0), // use earliest possible date as fallback
-        groupId: null,
-      }));
+      user,
+      isFixed: false,
+      priority: 2,
+      weight: 100,
+      schedule: null,
+      createdAt: new Date(0), // use earliest possible date as fallback
+      groupId: null,
+    }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
   const currentRRHost = booking.attendees.find((attendee) =>
@@ -192,7 +191,8 @@ export const roundRobinManualReassignment = async ({
     });
 
     const oldUserId = booking.userId;
-    const oldEmail = booking.userPrimaryEmail;
+    const oldUser = booking.user;
+    const oldEmail = booking.user?.email;
     const oldTitle = booking.title;
 
     booking = await prisma.booking.update({
@@ -214,23 +214,28 @@ export const roundRobinManualReassignment = async ({
     });
 
     try {
-      const bookingAuditService = BookingAuditService.create();
-      const hashedLinkService = new HashedLinkService();
-      const bookingEventHandlerService = new BookingEventHandlerService({
-        log,
-        hashedLinkService,
-        bookingAuditService,
-      });
-      await bookingEventHandlerService.onBookingUpdated(String(bookingId), createUserActor(reassignedById), {
-        changes: [
-          { field: "userId", oldValue: oldUserId, newValue: newUserId },
-          { field: "userPrimaryEmail", oldValue: oldEmail, newValue: newUser.email },
-          { field: "title", oldValue: oldTitle, newValue: newBookingTitle },
-        ],
-        booking: {
-          reassignmentReason: reassignReason || "Manual round robin reassignment",
+      const bookingEventHandlerService = getBookingEventHandlerService();
+      const auditData = ReassignmentAuditActionHelperService.createData({
+        reassignmentReason: reassignReason || "Manual round robin reassignment",
+        assignmentMethod: "manual",
+        assignedUser: {
+          id: newUser.id,
+          name: newUser.name || "",
+          email: newUser.email,
         },
+        previousUser: {
+          id: oldUser?.id || 0,
+          name: oldUser?.name || "",
+          email: oldEmail || "",
+        },
+        userIdChange: { oldValue: oldUserId, newValue: newUserId },
+        emailChange: { oldValue: oldEmail || null, newValue: newUser.email },
       });
+      await bookingEventHandlerService.onReassignmentReasonUpdated(
+        String(bookingId),
+        createUserActor(reassignedById),
+        auditData
+      );
     } catch (error) {
       logger.error("Failed to create booking audit log for manual round robin reassignment", error);
     }
@@ -238,7 +243,7 @@ export const roundRobinManualReassignment = async ({
     await AssignmentReasonRecorder.roundRobinReassignment({
       bookingId,
       reassignReason,
-      reassignById: createUserActor(reassignedById),
+      reassignById: reassignedById,
       reassignmentType: RRReassignmentType.MANUAL,
     });
   } else if (currentRRHost) {
@@ -359,8 +364,8 @@ export const roundRobinManualReassignment = async ({
 
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
-        where: { userId: originalOrganizer.id },
-      })
+      where: { userId: originalOrganizer.id },
+    })
     : null;
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
@@ -602,22 +607,22 @@ export async function handleWorkflowsUpdate({
         },
         ...(eventType?.teamId
           ? [
-              {
-                activeOnTeams: {
-                  some: {
-                    teamId: eventType.teamId,
-                  },
+            {
+              activeOnTeams: {
+                some: {
+                  teamId: eventType.teamId,
                 },
               },
-            ]
+            },
+          ]
           : []),
         ...(eventType?.team?.parentId
           ? [
-              {
-                isActiveOnAll: true,
-                teamId: eventType.team.parentId,
-              },
-            ]
+            {
+              isActiveOnAll: true,
+              teamId: eventType.team.parentId,
+            },
+          ]
           : []),
       ],
     },
