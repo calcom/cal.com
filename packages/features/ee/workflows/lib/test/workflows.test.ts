@@ -17,6 +17,9 @@ import { v4 as uuidv4 } from "uuid";
 import { describe, expect, beforeAll, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import tasker from "@calcom/features/tasker";
+import * as rateLimitModule from "@calcom/lib/checkRateLimitAndThrowError";
 import type { Prisma } from "@calcom/prisma/client";
 import {
   BookingStatus,
@@ -1110,7 +1113,6 @@ describe("Routing Form Variables", () => {
   });
 
   test("should substitute routing form variables in email subject and body", async () => {
-    // Using the actual FORM_SUBMITTED_WEBHOOK_RESPONSES structure with both value and response
     const mockFormData = {
       responses: {
         "contact person": {
@@ -1240,6 +1242,16 @@ describe("Routing Form Variables", () => {
   });
 
   test("should pass routing form responses to AI phone call workflows", async () => {
+    // Mock the feature flag
+    const mockCheckFeature = vi
+      .spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally")
+      .mockResolvedValue(true);
+
+    // Mock rate limiting
+    const mockRateLimit = vi
+      .spyOn(rateLimitModule, "checkRateLimitAndThrowError")
+      .mockResolvedValue(undefined);
+
     // Mock the AI agent setup
     await prismock.agent.create({
       data: {
@@ -1258,7 +1270,7 @@ describe("Routing Form Variables", () => {
       data: {
         id: 999,
         stepNumber: 1,
-        action: WorkflowActions.CAL_AI,
+        action: WorkflowActions.CAL_AI_PHONE_CALL,
         workflowId: 1,
         agentId: "test-agent-id",
         verifiedAt: new Date(),
@@ -1300,22 +1312,27 @@ describe("Routing Form Variables", () => {
       routedEventTypeId: 123,
     };
 
-    // Mock the tasker.create to capture the task data
-    const mockTaskerCreate = vi.fn();
-    vi.doMock("@calcom/features/tasker", () => ({
-      default: { create: mockTaskerCreate },
-    }));
+    const mockTaskerCreate = vi.spyOn(tasker, "create").mockResolvedValue("task-id");
 
     await scheduleAIPhoneCall(aiPhoneArgs);
 
     // Verify that the task was created with form responses
-    if (mockTaskerCreate.mock.calls.length > 0) {
-      const taskData = mockTaskerCreate.mock.calls[0][1];
-      expect(taskData.formResponses).toEqual(mockFormData.responses);
-      expect(taskData.routedEventTypeId).toBe(123);
-    }
+    expect(mockTaskerCreate).toHaveBeenCalled();
+    expect(mockTaskerCreate).toHaveBeenCalledWith(
+      "executeAIPhoneCall",
+      expect.any(Object),
+      expect.any(Object)
+    );
+    const taskData = mockTaskerCreate.mock.calls[0][1] as {
+      responses?: typeof mockFormData.responses;
+      routedEventTypeId?: number;
+    };
+    expect(taskData.responses).toEqual(mockFormData.responses);
+    expect(taskData.routedEventTypeId).toBe(123);
 
     // Clean up
-    vi.restoreAllMocks();
+    mockTaskerCreate.mockRestore();
+    mockCheckFeature.mockRestore();
+    mockRateLimit.mockRestore();
   });
 });
