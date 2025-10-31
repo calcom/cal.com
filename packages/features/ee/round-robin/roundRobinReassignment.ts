@@ -1,5 +1,7 @@
 import { cloneDeep } from "lodash";
 
+
+
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
@@ -14,7 +16,7 @@ import {
 } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
@@ -209,9 +211,9 @@ export const roundRobinReassignment = async ({
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
 
-    const responseSchema = getBookingResponsesSchema({
+    const responseSchema = getBookingResponsesPartialSchema({
       bookingFields: eventType.bookingFields,
-      view: "booking",
+      view: "reschedule",
     });
 
     const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
