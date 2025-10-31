@@ -350,7 +350,8 @@ export const userMetadata = z
     isPremium: z.boolean().optional(),
     isProUser: z
       .object({
-        yearClaimed: z.number().optional(),
+        yearClaimed: z.number().optional().default(0),
+        formSubmittedForYear: z.number().optional(),
         validTillDate: z.string().optional(),
         verified: z.boolean().optional().default(false),
       })

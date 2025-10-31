@@ -12,8 +12,9 @@ export const updateUserMetadataAllowedKeys = z.object({
   isProUser: z
     .object({
       yearClaimed: z.number().optional(),
+      formSubmittedForYear: z.number().optional(),
       validTillDate: z.string().optional(),
-      verified: z.boolean().optional().default(false),
+      verified: z.boolean().optional(),
     })
     .optional(),
 });
