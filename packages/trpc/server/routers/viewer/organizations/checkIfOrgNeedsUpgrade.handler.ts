@@ -3,11 +3,11 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { TrpcSessionUser } from "../../../types";
-
 type GetUpgradeableOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: {
+      id: number;
+    };
   };
 };
 

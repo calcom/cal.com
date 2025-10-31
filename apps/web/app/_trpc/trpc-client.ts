@@ -1,8 +1,7 @@
 "use client";
 
-import superjson from "superjson";
-
 import { ENDPOINTS } from "@calcom/trpc/react/shared";
+import { transformer } from "@calcom/trpc/utils/transformer";
 
 import { httpBatchLink, httpLink, loggerLink, splitLink } from "@trpc/client";
 
@@ -76,5 +75,5 @@ export const trpcClient = trpc.createClient({
       },
     }),
   ],
-  transformer: superjson,
+  transformer,
 });
