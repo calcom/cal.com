@@ -3,7 +3,7 @@
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams, usePathname } from "next/navigation";
 import { createParser, useQueryState } from "nuqs";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -30,8 +30,10 @@ import BookingListItem from "@components/booking/BookingListItem";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
+import { BookingDetailsSheet } from "../components/BookingDetailsSheet";
 import { BookingsCalendar } from "../components/BookingsCalendar";
 import { BookingsList } from "../components/BookingsList";
+import { useBookingCursor } from "../hooks/useBookingCursor";
 import type { RowData, BookingOutput } from "../types";
 
 type BookingsProps = {
@@ -97,6 +99,7 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
+  const [selectedBooking, setSelectedBooking] = useState<BookingOutput | null>(null);
 
   const tabs: HorizontalTabItemProps[] = useMemo(() => {
     const queryString = searchParams?.toString() || "";
@@ -275,6 +278,7 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
                 }}
                 listingStatus={status}
                 recurringInfo={recurringInfo}
+                onClick={() => setSelectedBooking(booking)}
                 {...booking}
               />
             );
@@ -367,6 +371,12 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
     return merged;
   }, [bookingsToday, flatData, status]);
 
+  const bookingNavigation = useBookingCursor({
+    bookings: finalData,
+    selectedBooking,
+    setSelectedBooking,
+  });
+
   const getFacetedUniqueValues = useFacetedUniqueValues();
 
   const table = useReactTable<RowData>({
@@ -425,6 +435,17 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
           )}
         </div>
       </main>
+      <BookingDetailsSheet
+        booking={selectedBooking}
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        userTimeZone={user?.timeZone}
+        userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
+        onPrevious={bookingNavigation.onPrevious}
+        hasPrevious={bookingNavigation.hasPrevious}
+        onNext={bookingNavigation.onNext}
+        hasNext={bookingNavigation.hasNext}
+      />
     </div>
   );
 }

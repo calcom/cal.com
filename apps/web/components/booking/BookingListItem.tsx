@@ -83,6 +83,7 @@ export type BookingItemProps = BookingItem & {
     userEmail: string | undefined;
   };
   isToday: boolean;
+  onClick?: () => void;
 };
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -120,10 +121,36 @@ const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooki
   return !!booking.routedFromRoutingFormReponse && !!booking.eventType?.team;
 };
 
+const ConditionalLink = ({
+  children,
+  onClick,
+  bookingLink,
+  className,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  bookingLink: string;
+  className?: string;
+}) => {
+  if (onClick) {
+    return (
+      <div onClick={onClick} className={className}>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <Link href={bookingLink} className={className}>
+      {children}
+    </Link>
+  );
+};
+
 function BookingListItem(booking: BookingItemProps) {
   const parsedBooking = buildParsedBooking(booking);
 
   const { userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
+  const { onClick } = booking;
   const {
     t,
     i18n: { language },
@@ -526,7 +553,7 @@ function BookingListItem(booking: BookingItemProps) {
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
               )}
-              <Link href={bookingLink} className="ml-3">
+              <ConditionalLink onClick={onClick} bookingLink={bookingLink} className="ml-3">
                 <div className="cursor-pointer py-4">
                   <div className="text-emphasis text-sm leading-6">{startTime}</div>
                   <div className="text-subtle text-sm">
@@ -555,6 +582,7 @@ function BookingListItem(booking: BookingItemProps) {
                             className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
                             <div className="flex items-center gap-2">
                               {provider?.iconUrl && (
+                                // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                   src={provider.iconUrl}
                                   className="h-4 w-4 rounded-sm"
@@ -570,11 +598,11 @@ function BookingListItem(booking: BookingItemProps) {
                     </div>
                   )}
                 </div>
-              </Link>
+              </ConditionalLink>
             </div>
           </div>
           <div data-testid="title-and-attendees" className={`w-full px-4${isRejected ? "line-through" : ""}`}>
-            <Link href={bookingLink}>
+            <ConditionalLink onClick={onClick} bookingLink={bookingLink}>
               {/* Time and Badges for mobile */}
               <div className="w-full pb-2 pt-4 sm:hidden">
                 <div className="flex w-full items-center justify-between sm:hidden">
@@ -657,7 +685,7 @@ function BookingListItem(booking: BookingItemProps) {
                   </div>
                 )}
               </div>
-            </Link>
+            </ConditionalLink>
           </div>
           <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {shouldShowPendingActions(actionContext) && <TableActions actions={pendingActions} />}

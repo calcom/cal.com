@@ -3914,5 +3914,7 @@
   "team_brand": "Team Brand",
   "team_details": "Team Details",
   "team_invite": "Team Invite",
+  "slots": "Slots",
+  "slots_taken": "{{takenSeats}}/{{totalSeats}} slots taken",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
