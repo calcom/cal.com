@@ -26,7 +26,7 @@ async function getLabelText(field: Locator) {
   return await getLabelLocator(field).locator("span").first().innerText();
 }
 
-test.describe.configure({ mode: "parallel" });
+test.describe.configure({ mode: "serial" });
 test.describe("Manage Booking Questions", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
@@ -195,7 +195,6 @@ test.describe("Manage Booking Questions", () => {
         const searchParams = new URLSearchParams();
         searchParams.append("name", "FirstName");
         await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
-          await selectFirstAvailableTimeSlotNextMonth(page);
           await expectSystemFieldsToBeThereOnBookingPage({
             page,
             isFirstAndLastNameVariant: true,
@@ -214,7 +213,6 @@ test.describe("Manage Booking Questions", () => {
         searchParams.append("firstName", "John");
         searchParams.append("lastName", "Doe");
         await doOnFreshPreviewWithSearchParams(searchParams, page, context, async (page) => {
-          await selectFirstAvailableTimeSlotNextMonth(page);
           await expectSystemFieldsToBeThereOnBookingPage({
             page,
             isFirstAndLastNameVariant: true,
@@ -607,11 +605,19 @@ async function doOnFreshPreviewWithSearchParams(
 ) {
   const previewUrl = (await page.locator('[data-testid="preview-button"]').getAttribute("href")) || "";
   const previewUrlObj = new URL(previewUrl);
+  // Set overlayCalendar to false to show the booking form instead of overlay calendar
+  previewUrlObj.searchParams.set("overlayCalendar", "false");
   searchParams.forEach((value, key) => {
     previewUrlObj.searchParams.append(key, value);
   });
   const previewTabPage = await context.newPage();
   await previewTabPage.goto(previewUrlObj.toString());
+  // Wait for the page to load completely
+  await previewTabPage.waitForLoadState("networkidle");
+  // Select a time slot to open the booking form
+  await selectFirstAvailableTimeSlotNextMonth(previewTabPage);
+  // Wait for the booking form to load
+  await previewTabPage.waitForLoadState("networkidle");
   await callback(previewTabPage);
   if (!persistTab) {
     await previewTabPage.close();
