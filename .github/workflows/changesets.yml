@@ -15,7 +15,7 @@ jobs:
   release:
     if: github.repository == 'calcom/cal.com' # prevent this action from running on forks
     name: Release
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
