@@ -8,6 +8,7 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import { emailSchema } from "@calcom/lib/emailSchema";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import slugify from "@calcom/lib/slugify";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -28,9 +29,25 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const session = await getServerSession({ req: ctx.req });
 
   if (session) {
+    const { callbackUrl } = ctx.query;
+    if (callbackUrl) {
+      try {
+        const destination = getSafeRedirectUrl(callbackUrl as string);
+        if (destination) {
+          return {
+            redirect: {
+              destination,
+              permanent: false,
+            },
+          };
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+    }
     return {
       redirect: {
-        destination: "/event-types", // Change this to wherever you want logged-in users to go
+        destination: "/",
         permanent: false,
       },
     };
