@@ -634,6 +634,15 @@ export class BookingsController_2024_04_15 {
       if (Object.values(ErrorCode).includes(error.message as unknown as ErrorCode)) {
         throw new HttpException(error.message, 400);
       }
+      if (error.message === "reserved_slot_not_first_in_line") {
+        const errorData =
+          "data" in error ? (error.data as { secondsUntilRelease: number }) : { secondsUntilRelease: 300 };
+        const message = `Someone else reserved this slot before you. This slot will be freed up in ${errorData.secondsUntilRelease} seconds.`;
+        throw new HttpException(message, 400);
+      }
+      if (error.message === "reservation_not_found_or_expired") {
+        throw new HttpException("The reserved slot was not found or has expired.", 410);
+      }
       throw new InternalServerErrorException(error?.message ?? errMsg);
     }
 

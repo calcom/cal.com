@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -54,11 +55,19 @@ export async function ensureReservedSlotIsEarliest(
       releaseAt: { gt: now },
     },
     orderBy: [{ releaseAt: "asc" }, { id: "asc" }],
-    select: { uid: true },
+    select: { uid: true, releaseAt: true },
   });
 
   if (!earliestActive || earliestActive.uid !== reservedSlotUid) {
-    throw new HttpError({ statusCode: 409, message: "another_reservation_is_ahead" }); 
+    const defaultSecondsUntilRelease = parseInt(MINUTES_TO_BOOK) * 60;
+    const secondsUntilRelease = earliestActive 
+      ? Math.max(0, Math.ceil((earliestActive.releaseAt.getTime() - now.getTime()) / 1000))
+      : defaultSecondsUntilRelease;
+    throw new HttpError({ 
+      statusCode: 409, 
+      message: "reserved_slot_not_first_in_line",
+      data: { secondsUntilRelease }
+    }); 
   }
 
   return { eventTypeId, slotUtcStartDate, slotUtcEndDate, reservedSlotUid };

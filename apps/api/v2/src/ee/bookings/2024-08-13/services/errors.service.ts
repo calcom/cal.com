@@ -61,6 +61,13 @@ export class ErrorsBookingsService_2024_08_13 {
           message += ` You can reschedule your existing booking (${errorData.rescheduleUid}) to a new timeslot instead.`;
         }
         throw new BadRequestException(message);
+      } else if (error.message === "reserved_slot_not_first_in_line") {
+        const errorData =
+          "data" in error ? (error.data as { secondsUntilRelease: number }) : { secondsUntilRelease: 300 };
+        const message = `Someone else reserved this slot before you. This slot will be freed up in ${errorData.secondsUntilRelease} seconds.`;
+        throw new BadRequestException(message);
+      } else if (error.message === "reservation_not_found_or_expired") {
+        throw new BadRequestException("The reserved slot was not found or has expired.");
       }
     }
     throw error;
