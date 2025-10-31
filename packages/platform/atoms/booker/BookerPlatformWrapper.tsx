@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useQueryClient } from "@tanstack/react-query";
- 
 import debounce from "lodash/debounce";
 import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
 import { shallow } from "zustand/shallow";
@@ -442,7 +441,7 @@ const BookerPlatformWrapperComponent = (
     metadata: props.metadata ?? {},
     handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
-    handleRecBooking: createRecBooking,
+    handleRecBooking: props?.handleCreateRecurringBooking ?? createRecBooking,
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,

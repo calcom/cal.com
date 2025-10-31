@@ -49,6 +49,7 @@ import {
   confirmBookingHandler,
   getCalendarLinks,
 } from "@calcom/platform-libraries";
+import { PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
@@ -64,6 +65,7 @@ import {
   RescheduleBookingInput,
   CancelBookingInput,
 } from "@calcom/platform-types";
+import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
 
@@ -762,16 +764,26 @@ export class BookingsService_2024_08_13 {
     authUser: AuthOptionalUser
   ) {
     try {
-      await this.canRescheduleBooking(bookingUid);
+      const isIndividualSeatRequest = this.isRescheduleSeatedBody(body);
+      const isIndividualSeatReschedule = await this.shouldRescheduleIndividualSeat(
+        bookingUid,
+        isIndividualSeatRequest,
+        authUser
+      );
+
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
         request,
         bookingUid,
-        body
+        body,
+        isIndividualSeatReschedule
       );
+
+      await this.canRescheduleBooking(bookingUid);
+
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
-          userId: bookingRequest.userId,
+          userId: bookingRequest.userId ?? authUser?.id,
           hostname: bookingRequest.headers?.host || "",
           platformClientId: bookingRequest.platformClientId,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
@@ -838,6 +850,57 @@ export class BookingsService_2024_08_13 {
       );
     }
     return booking;
+  }
+
+  async shouldRescheduleIndividualSeat(
+    bookingUid: string,
+    isIndividualSeatReschedule: boolean,
+    authUser: AuthOptionalUser
+  ) {
+    const booking = await this.bookingsRepository.getByUidWithUserIdAndSeatsReferencesCount(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const hasSeatsPresent = booking.seatsReferences.length > 0;
+
+    if (!hasSeatsPresent) return false;
+
+    return await this.isIndividualSeatOrOrgAdminReschedule(
+      isIndividualSeatReschedule,
+      booking.userId,
+      authUser?.id
+    );
+  }
+
+  async isIndividualSeatOrOrgAdminReschedule(
+    isIndividualSeatReschedule: boolean,
+    bookingUserId: number | null,
+    authUserId?: number | null
+  ) {
+    if (isIndividualSeatReschedule) {
+      return true;
+    }
+
+    if (!authUserId) {
+      throw new Error(`No auth user found`);
+    }
+
+    if (!bookingUserId) {
+      throw new Error(`No user found for booking`);
+    }
+
+    const isOrgAdmin = await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+      authUserId,
+      bookingUserId
+    );
+
+    return isOrgAdmin;
+  }
+
+  isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
+    return "seatUid" in body;
   }
 
   async cancelBooking(
