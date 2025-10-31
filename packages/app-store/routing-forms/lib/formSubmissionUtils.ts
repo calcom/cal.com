@@ -1,21 +1,21 @@
-import type { Prisma } from "@prisma/client";
-import type { App_RoutingForms_Form, User } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
+import type { App_RoutingForms_Form, User } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
-import { TRPCError } from "@trpc/server";
-
 import type { FormResponse, SerializableForm, SerializableField, OrderedResponses } from "../types/types";
+import getFieldIdentifier from "./getFieldIdentifier";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/formSubmissionUtils"] });
 
@@ -114,7 +114,10 @@ function getWebhookTargetEntity(form: { teamId?: number | null; user: { id: numb
  */
 export async function _onFormSubmission(
   form: Ensure<
-    SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
+    SerializableForm<App_RoutingForms_Form> & {
+      user: Pick<User, "id" | "email" | "timeFormat" | "locale">;
+      userWithEmails?: string[];
+    },
     "fields"
   >,
   response: FormResponse,
@@ -161,6 +164,7 @@ export async function _onFormSubmission(
   };
 
   const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
+
   const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
 
   const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
@@ -213,6 +217,22 @@ export async function _onFormSubmission(
       const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
       await Promise.all(promises);
+
+      const workflows = await WorkflowService.getAllWorkflowsFromRoutingForm(form);
+
+      await WorkflowService.scheduleFormWorkflows({
+        workflows,
+        responseId,
+        responses: fieldResponsesByIdentifier,
+        form: {
+          ...form,
+          fields: form.fields.map((field) => ({
+            type: field.type,
+            identifier: getFieldIdentifier(field),
+          })),
+        },
+      });
+
       const orderedResponses = form.fields.reduce((acc, field) => {
         acc.push(response[field.id]);
         return acc;
@@ -245,6 +265,8 @@ export type TargetRoutingFormForResponse = SerializableForm<
     user: {
       id: number;
       email: string;
+      timeFormat: number | null;
+      locale: string | null;
     };
     team: {
       parentId: number | null;
@@ -269,9 +291,7 @@ export const onSubmissionOfFormResponse = async ({
 }) => {
   if (!form.fields) {
     // There is no point in submitting a form that doesn't have fields defined
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-    });
+    throw new HttpError({ statusCode: 400 });
   }
   const settings = RoutingFormSettings.parse(form.settings);
   let userWithEmails: string[] = [];

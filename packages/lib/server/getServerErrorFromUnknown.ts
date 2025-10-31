@@ -1,12 +1,9 @@
-import { Prisma } from "@prisma/client";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-
-import { TRPCError } from "@trpc/server";
-import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import { Prisma } from "@calcom/prisma/client";
 
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";
@@ -37,10 +34,6 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 }
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
-  if (cause instanceof TRPCError) {
-    const statusCode = getHTTPStatusCodeFromError(cause);
-    return new HttpError({ statusCode, message: cause.message });
-  }
   if (isZodError(cause)) {
     return new HttpError({
       statusCode: 400,
@@ -87,8 +80,10 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return getHttpError({ statusCode, cause });
   }
   if (typeof cause === "string") {
-    // @ts-expect-error https://github.com/tc39/proposal-error-cause
-    return new Error(cause, { cause });
+    return new HttpError({
+      statusCode: 500,
+      message: cause,
+    });
   }
 
   return new HttpError({

@@ -1,8 +1,7 @@
-import type { Availability } from "@prisma/client";
-
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/dayjs";
+import type { Availability } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime">[];
@@ -53,7 +52,7 @@ export function transformDateOverridesForAtom(
     };
     const dayRangeIndex = acc.findIndex(
       // early return prevents override.date from ever being empty.
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date!)
     );
     if (dayRangeIndex === -1) {

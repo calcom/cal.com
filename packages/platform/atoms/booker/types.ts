@@ -2,15 +2,15 @@ import type React from "react";
 
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import type { BookerStore } from "@calcom/features/bookings/Booker/store";
-import type { Timezone } from "@calcom/features/bookings/Booker/types";
-import type { BookingResponse } from "@calcom/features/bookings/types";
+import type { Timezone, VIEW_TYPE } from "@calcom/features/bookings/Booker/types";
+import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
+import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
   ApiSuccessResponse,
   ApiErrorResponse,
   ApiSuccessResponseWithoutData,
   RoutingFormSearchParams,
 } from "@calcom/platform-types";
-import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
 
 import type { UseCreateBookingInput } from "../hooks/bookings/useCreateBooking";
@@ -58,6 +58,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
     rescheduleReason?: string;
   } & Record<string, string | string[]>;
   handleCreateBooking?: (input: UseCreateBookingInput) => void;
+  handleCreateRecurringBooking?: (input: BookingCreateBody[]) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
   onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
@@ -88,8 +89,6 @@ export type BookerPlatformWrapperAtomProps = Omit<
   silentlyHandleCalendarFailures?: boolean;
   hideEventMetadata?: boolean;
 };
-
-type VIEW_TYPE = keyof typeof BookerLayouts;
 
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];

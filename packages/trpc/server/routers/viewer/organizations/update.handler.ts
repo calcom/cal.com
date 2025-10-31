@@ -1,5 +1,3 @@
-import type { Prisma } from "@prisma/client";
-
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
@@ -8,6 +6,7 @@ import { uploadLogo } from "@calcom/lib/server/avatar";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
@@ -15,6 +14,38 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
+
+export const getBannerUrl = async (
+  banner: string | null | undefined,
+  teamId: number
+): Promise<string | null | undefined> => {
+  if (banner === undefined) {
+    // Banner not provided, don't update
+    return undefined;
+  }
+
+  if (banner === null) {
+    // Explicitly set to null, remove banner
+    return null;
+  }
+
+  if (
+    banner.startsWith("data:image/png;base64,") ||
+    banner.startsWith("data:image/jpeg;base64,") ||
+    banner.startsWith("data:image/jpg;base64,")
+  ) {
+    // Valid base64 image, resize and upload
+    const resizedBanner = await resizeBase64Image(banner, { maxSize: 1500 });
+    return await uploadLogo({
+      logo: resizedBanner,
+      teamId,
+      isBanner: true,
+    });
+  }
+
+  // Invalid banner string, don't update
+  return undefined;
+};
 
 type UpdateOptions = {
   ctx: {
@@ -186,21 +217,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     metadata: mergeMetadata({ ...input.metadata }),
   };
 
-  if (
-    input.banner &&
-    (input.banner.startsWith("data:image/png;base64,") ||
-      input.banner.startsWith("data:image/jpeg;base64,") ||
-      input.banner.startsWith("data:image/jpg;base64,"))
-  ) {
-    const banner = await resizeBase64Image(input.banner, { maxSize: 1500 });
-    data.bannerUrl = await uploadLogo({
-      logo: banner,
-      teamId: currentOrgId,
-      isBanner: true,
-    });
-  } else {
-    data.bannerUrl = null;
-  }
+  data.bannerUrl = await getBannerUrl(input.banner, currentOrgId);
 
   if (
     input.logoUrl &&

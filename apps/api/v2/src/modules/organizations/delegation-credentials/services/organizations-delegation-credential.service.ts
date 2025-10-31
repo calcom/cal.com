@@ -12,7 +12,6 @@ import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegat
 import { OrganizationsDelegationCredentialRepository } from "@/modules/organizations/delegation-credentials/organizations-delegation-credential.repository";
 import { InjectQueue } from "@nestjs/bull";
 import { Injectable, NotFoundException, Logger } from "@nestjs/common";
-import { User } from "@prisma/client";
 import { Queue } from "bull";
 
 import { encryptServiceAccountKey } from "@calcom/platform-libraries";
@@ -21,6 +20,7 @@ import {
   toggleDelegationCredentialEnabled,
   type TServiceAccountKeySchema,
 } from "@calcom/platform-libraries/app-store";
+import type { User } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsDelegationCredentialService {

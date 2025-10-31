@@ -15,12 +15,12 @@ import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/c
 import { Switch } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 
+import * as Connect from "../../connect";
 import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";
 import { useDeleteCalendarCredentials } from "../../hooks/calendars/useDeleteCalendarCredentials";
 import { useRemoveSelectedCalendar } from "../../hooks/calendars/useRemoveSelectedCalendar";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
-import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
@@ -192,7 +192,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                         message={<span>{connectedCalendar.error?.message || t("calendar_error")}</span>}
                         iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                         actions={
-                          !Boolean(connectedCalendar.delegationCredentialId) && (
+                          !connectedCalendar.delegationCredentialId && (
                             <div className="flex w-32 justify-end">
                               <PlatformDisconnectIntegration
                                 credentialId={connectedCalendar.credentialId}

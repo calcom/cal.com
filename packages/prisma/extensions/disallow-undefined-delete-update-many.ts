@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../client";
 
 export const checkUndefinedInValue = (where: any) => {
   if (where) {
@@ -28,10 +28,14 @@ export function disallowUndefinedDeleteUpdateManyExtension() {
   return Prisma.defineExtension({
     query: {
       $allModels: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         async deleteMany({ args, query }) {
           checkUndefinedInValue(args.where);
           return query(args);
         },
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         async updateMany({ args, query }) {
           checkUndefinedInValue(args.where);
           return query(args);

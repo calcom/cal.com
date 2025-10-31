@@ -249,3 +249,8 @@ export const RETELL_AI_TEST_EVENT_TYPE_MAP = (() => {
     return null;
   }
 })();
+
+// Environment variable for configuring past booking reschedule behavior per team. A comma separated list of team IDs(e.g. '1,2,3')
+/* This is an internal environment variable and is not meant to be used by the self-hosters. It is planned to be removed later by either having it as an option in Event Type or by some other customer configurable approaches*/
+export const ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS =
+  process.env._CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS;

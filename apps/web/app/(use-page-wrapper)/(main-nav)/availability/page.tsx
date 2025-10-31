@@ -5,10 +5,12 @@ import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
+import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -55,15 +57,7 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   // This is because the data is cached and as a result the data is converted to a string
   const availabilities = {
     ...cachedAvailabilities,
-    schedules: cachedAvailabilities.schedules.map((schedule) => ({
-      ...schedule,
-      availability: schedule.availability.map((avail) => ({
-        ...avail,
-        startTime: new Date(avail.startTime),
-        endTime: new Date(avail.endTime),
-        date: avail.date ? new Date(avail.date) : null,
-      })),
-    })),
+    schedules: cachedAvailabilities.schedules.map((schedule) => getScheduleListItemData(schedule)),
   };
 
   const organizationId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
@@ -72,8 +66,14 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
         orgId: organizationId,
       })
     : false;
-  const isOrgAdminOrOwner = checkAdminOrOwner(session?.user?.org?.role);
-  const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgPrivate;
+
+  const permissionService = new PermissionCheckService();
+  const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
+    userId: session.user.id,
+    permission: "availability.read",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+  const canViewTeamAvailability = teamIdsWithPermission.length > 0 || !isOrgPrivate;
 
   return (
     <ShellMainAppDir

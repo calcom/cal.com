@@ -1,4 +1,4 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import {
   eventTypeBookingFieldsSchema,
   EventTypeWithOwnerAndTeam,
@@ -31,7 +31,7 @@ import { z } from "zod";
 
 import { CreationSource } from "@calcom/platform-libraries";
 import { EventTypeMetaDataSchema } from "@calcom/platform-libraries/event-types";
-import {
+import type {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
   CancelSeatedBookingInput_2024_08_13,
@@ -44,8 +44,8 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
-import { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
-import { EventType } from "@calcom/prisma/client";
+import type { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
+import type { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & {
   userId: number | undefined;
@@ -176,6 +176,7 @@ export class InputBookingsService_2024_08_13 {
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
       guests,
+      verificationCode: inputBooking.emailVerificationCode,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: {
         ...(inputBooking.bookingFieldsResponses || {}),
@@ -471,6 +472,7 @@ export class InputBookingsService_2024_08_13 {
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
         guests,
+        verificationCode: inputBooking.emailVerificationCode,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: {
           ...(inputBooking.bookingFieldsResponses || {}),
@@ -505,11 +507,13 @@ export class InputBookingsService_2024_08_13 {
   async createRescheduleBookingRequest(
     request: Request,
     bookingUid: string,
-    body: RescheduleBookingInput
+    body: RescheduleBookingInput,
+    isIndividualSeatReschedule: boolean
   ): Promise<BookingRequest> {
-    const bodyTransformed = this.isRescheduleSeatedBody(body)
-      ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
-      : await this.transformInputRescheduleBooking(bookingUid, body);
+    const bodyTransformed =
+      isIndividualSeatReschedule && "seatUid" in body
+        ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
+        : await this.transformInputRescheduleBooking(bookingUid, body, isIndividualSeatReschedule);
 
     const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(
       bodyTransformed.eventTypeId
@@ -552,7 +556,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputRescheduleSeatedBooking(
@@ -600,10 +604,15 @@ export class InputBookingsService_2024_08_13 {
       guests: [],
       responses: { ...bookingResponses },
       rescheduleUid: inputBooking.seatUid,
+      verificationCode: inputBooking.emailVerificationCode,
     };
   }
 
-  async transformInputRescheduleBooking(bookingUid: string, inputBooking: RescheduleBookingInput_2024_08_13) {
+  async transformInputRescheduleBooking(
+    bookingUid: string,
+    inputBooking: RescheduleBookingInput_2024_08_13,
+    isIndividualSeatReschedule: boolean
+  ) {
     const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
@@ -615,7 +624,7 @@ export class InputBookingsService_2024_08_13 {
     if (!eventType) {
       throw new NotFoundException(`Event type with id=${booking.eventTypeId} not found`);
     }
-    if (eventType.seatsPerTimeSlot) {
+    if (eventType.seatsPerTimeSlot && !isIndividualSeatReschedule) {
       throw new BadRequestException(
         `Booking with uid=${bookingUid} is a seated booking which means you have to provide seatUid in the request body to specify which seat specifically you want to reschedule. First, fetch the booking using https://cal.com/docs/api-reference/v2/bookings/get-a-booking and then within the attendees array you will find the seatUid of the booking you want to reschedule. Second, provide the seatUid in the request body to specify which seat specifically you want to reschedule using the reschedule endpoint https://cal.com/docs/api-reference/v2/bookings/reschedule-a-booking#option-2`
       );
@@ -649,7 +658,6 @@ export class InputBookingsService_2024_08_13 {
 
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
     const endTime = startTime.plus({ minutes: eventType.length });
-
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -661,6 +669,7 @@ export class InputBookingsService_2024_08_13 {
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
       rescheduleUid: bookingUid,
+      verificationCode: inputBooking.emailVerificationCode,
     };
   }
 
@@ -766,7 +775,7 @@ export class InputBookingsService_2024_08_13 {
   }
 
   isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
-    return body.hasOwnProperty("seatUid");
+    return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
@@ -813,7 +822,7 @@ export class InputBookingsService_2024_08_13 {
     // for an individual person, so api users need to call booking by booking using uid + seatUid to cancel it.
     return {
       uid: bookingUid,
-      cancellationReason: "",
+      cancellationReason: inputBooking.cancellationReason || "",
       allRemainingBookings: false,
       seatReferenceUid: inputBooking.seatUid,
     };

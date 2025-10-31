@@ -5,7 +5,7 @@ import type {
   EventTypeAssignedUsers,
   EventTypeHosts,
 } from "@calcom/features/eventtypes/components/EventType";
-import { checkForEmptyAssignment } from "@calcom/lib/event-types/utils/checkForEmptyAssignment";
+import { checkForEmptyAssignment } from "@calcom/features/eventtypes/lib/checkForEmptyAssignment";
 
 export const useHandleRouteChange = ({
   isTeamEventTypeDeleted,

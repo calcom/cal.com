@@ -2,7 +2,6 @@ import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
 import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
 
-import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
 import ical from "node-ical";
@@ -14,6 +13,12 @@ import type { Tracking } from "@calcom/features/bookings/lib/handleNewBooking/ty
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type {
+  WebhookTriggerEvents,
+  Booking,
+  BookingReference,
+  DestinationCalendar,
+} from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -301,13 +306,13 @@ export function expectWebhookToHaveBeenCalledWith(
 
   if (parsedBody.payload) {
     if (data.payload) {
-      if (!!data.payload.metadata) {
+      if (data.payload.metadata) {
         expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
       }
-      if (!!data.payload.responses)
+      if (data.payload.responses)
         expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
 
-      if (!!data.payload.organizer)
+      if (data.payload.organizer)
         expect(parsedBody.payload.organizer).toEqual(expect.objectContaining(data.payload.organizer));
 
       const { responses: _1, metadata: _2, organizer: _3, ...remainingPayload } = data.payload;
@@ -1026,6 +1031,7 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
 }
 
 export function expectBookingCreatedWebhookToHaveBeenFired({
+  organizer,
   booker,
   location,
   subscriberUrl,
@@ -1034,7 +1040,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   isEmailHidden = false,
   isAttendeePhoneNumberHidden = false,
 }: {
-  organizer: { email: string; name: string };
+  organizer: { email: string; name: string; username?: string; usernameInOrg?: string };
   booker: { email: string; name: string; attendeePhoneNumber?: string };
   subscriberUrl: string;
   location: string;
@@ -1043,6 +1049,11 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   isEmailHidden?: boolean;
   isAttendeePhoneNumberHidden?: boolean;
 }) {
+  const organizerPayload = {
+    username: organizer.username,
+    ...(organizer.usernameInOrg ? { usernameInOrg: organizer.usernameInOrg } : null),
+  };
+
   if (!paidEvent) {
     expectWebhookToHaveBeenCalledWith(subscriberUrl, {
       triggerEvent: "BOOKING_CREATED",
@@ -1068,6 +1079,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
             isHidden: false,
           },
         },
+        organizer: organizerPayload,
       },
     });
   } else {
@@ -1098,6 +1110,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
             value: { optionValue: "", value: location },
           },
         },
+        organizer: organizerPayload,
       },
     });
   }
@@ -1139,21 +1152,28 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
 }
 
 export function expectBookingCancelledWebhookToHaveBeenFired({
+  organizer,
   booker,
   location,
   subscriberUrl,
   payload,
 }: {
-  organizer: { email: string; name: string };
+  organizer: { email: string; name: string; username?: string; usernameInOrg?: string };
   booker: { email: string; name: string };
   subscriberUrl: string;
   location: string;
   payload?: Record<string, unknown>;
 }) {
+  const organizerPayload = {
+    username: organizer.username,
+    ...(organizer.usernameInOrg ? { usernameInOrg: organizer.usernameInOrg } : null),
+  };
+
   expectWebhookToHaveBeenCalledWith(subscriberUrl, {
     triggerEvent: "BOOKING_CANCELLED",
     payload: {
       ...payload,
+      organizer: organizerPayload,
       metadata: null,
       responses: {
         name: {
@@ -1382,14 +1402,12 @@ export function expectSuccessfulVideoMeetingDeletionInCalendar(
 export async function expectBookingInDBToBeRescheduledFromTo({ from, to }: { from: any; to: any }) {
   // Expect previous booking to be cancelled
   await expectBookingToBeInDatabase({
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ...from,
     status: BookingStatus.CANCELLED,
   });
 
   // Expect new booking to be created but status would depend on whether the new booking requires confirmation or not.
   await expectBookingToBeInDatabase({
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ...to,
   });
 }

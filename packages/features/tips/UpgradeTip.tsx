@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
+import { useHasTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc";
 import classNames from "@calcom/ui/classNames";
@@ -54,7 +54,7 @@ export function UpgradeTip({
             alt={title}
           />
         </picture>
-        <div className="relative my-4 px-8 sm:px-14">
+        <div className="relative my-4 px-8 pb-4 sm:px-14">
           <h1 className={classNames("font-cal mt-4 text-3xl")}>{title}</h1>
           <p className={classNames("mb-8 mt-4 max-w-sm")}>{description}</p>
           {buttons}

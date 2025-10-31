@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
-import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
@@ -707,7 +706,8 @@ export default abstract class BaseCalendarService implements Calendar {
   }
 
   private async getEventsByUID(uid: string): Promise<CalendarEventType[]> {
-    const events: Prisma.PromiseReturnType<typeof this.getEvents> = [];
+    type EventsType = Awaited<ReturnType<typeof this.getEvents>>;
+    const events: EventsType = [];
     const calendars = await this.listCalendars();
 
     for (const cal of calendars) {

@@ -1,40 +1,53 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { WorkflowStep } from "@prisma/client";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
+import { Toaster } from "sonner";
 
-import Shell, { ShellMain } from "@calcom/features/shell/Shell";
+import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import type { WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
+import { Form, Input } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
+import { DeleteDialog } from "../components/DeleteDialog";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { isSMSAction, isSMSOrWhatsappAction, isCalAIAction } from "../lib/actionHelperFunctions";
+import {
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isCalAIAction,
+  isFormTrigger,
+} from "../lib/actionHelperFunctions";
 import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: (WorkflowStep & { senderName: string | null; agentId?: string | null })[];
+  steps: (WorkflowStep & {
+    senderName: string | null;
+    agentId?: string | null;
+    inboundAgentId?: string | null;
+  })[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
@@ -60,6 +73,10 @@ function WorkflowPage({
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
+  const searchParams = useSearchParams();
 
   const form = useForm<FormValues>({
     mode: "onBlur",
@@ -67,6 +84,11 @@ function WorkflowPage({
   });
 
   const utils = trpc.useUtils();
+
+  const watchedTrigger = useWatch({
+    control: form.control,
+    name: "trigger",
+  });
 
   const userQuery = useMeQuery();
   const user = userQuery.data;
@@ -107,12 +129,13 @@ function WorkflowPage({
 
   const teamId = workflow?.teamId ?? undefined;
 
-  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
+  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getActiveOnOptions.useQuery(
     { teamId, isOrg },
     { enabled: !isPendingWorkflow }
   );
 
   const teamOptions = data?.teamOptions ?? [];
+  const routingFormOptions = data?.routingFormOptions ?? [];
 
   let allEventTypeOptions = data?.eventTypeOptions ?? [];
   const distinctEventTypes = new Set();
@@ -130,7 +153,38 @@ function WorkflowPage({
     return w !== null && w !== undefined && "permissions" in w;
   };
 
-  const readOnly = workflow && hasPermissions(workflow) ? !workflow.permissions?.canUpdate : true;
+  const permissions: WorkflowPermissions =
+    workflow && hasPermissions(workflow)
+      ? workflow?.permissions
+      : {
+          canUpdate: !teamId,
+          canView: !teamId,
+          canDelete: !teamId,
+          readOnly: !!teamId,
+        };
+
+  // Watch for form name changes
+  const watchedName = form.watch("name");
+
+  // Handler functions for editable name
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNameValue(e.target.value);
+  };
+
+  const handleNameSubmit = () => {
+    form.setValue("name", nameValue);
+    setIsEditingName(false);
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      form.setValue("name", nameValue);
+      setIsEditingName(false);
+    } else if (e.key === "Escape") {
+      setNameValue(watchedName || "");
+      setIsEditingName(false);
+    }
+  };
 
   const isPending = isPendingWorkflow || isPendingEventTypes;
 
@@ -162,7 +216,15 @@ function WorkflowPage({
         setFormData(workflowWithDefaults);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending]);
+
+  // Update nameValue when workflow changes
+  useEffect(() => {
+    if (workflow?.name) {
+      setNameValue(workflow.name);
+    }
+  }, [workflow?.name]);
 
   function setFormData(workflowData: RouterOutputs["viewer"]["workflows"]["get"] | undefined) {
     if (workflowData) {
@@ -172,13 +234,25 @@ function WorkflowPage({
       let activeOn;
 
       if (workflowData.isActiveOnAll) {
-        activeOn = isOrg ? teamOptions : allEventTypeOptions;
+        activeOn = isOrg
+          ? teamOptions
+          : isFormTrigger(workflowData.trigger)
+          ? routingFormOptions
+          : allEventTypeOptions;
       } else {
         if (isOrg) {
           activeOn = workflowData.activeOnTeams.flatMap((active) => {
             return {
               value: String(active.team.id) || "",
               label: active.team.slug || "",
+            };
+          });
+          setSelectedOptions(activeOn || []);
+        } else if (isFormTrigger(workflowData.trigger)) {
+          activeOn = workflowData.activeOnRoutingForms?.flatMap((active) => {
+            return {
+              value: String(active.routingForm.id) || "",
+              label: active.routingForm.name || "",
             };
           });
           setSelectedOptions(activeOn || []);
@@ -229,6 +303,7 @@ function WorkflowPage({
       form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
       form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
+      setNameValue(workflowData.name);
       setIsAllDataLoaded(true);
     }
   }
@@ -237,12 +312,16 @@ function WorkflowPage({
     onSuccess: async ({ workflow }) => {
       utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
       setFormData(workflow);
-      showToast(
-        t("workflow_updated_successfully", {
-          workflowName: workflow.name,
-        }),
-        "success"
-      );
+
+      const autoCreateAgent = searchParams?.get("autoCreateAgent");
+      if (!autoCreateAgent) {
+        showToast(
+          t("workflow_updated_successfully", {
+            workflowName: workflow.name,
+          }),
+          "success"
+        );
+      }
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -253,7 +332,6 @@ function WorkflowPage({
   });
 
   const validateAndSubmitWorkflow = async (values: FormValues): Promise<void> => {
-    let activeOnIds: number[] = [];
     let isEmpty = false;
     let isVerified = true;
 
@@ -311,18 +389,26 @@ function WorkflowPage({
     });
 
     if (!isEmpty && isVerified) {
-      if (values.activeOn) {
-        activeOnIds = values.activeOn
+      let activeOnEventTypeOrTeamIds: number[] = [];
+      let activeOnRoutingFormIds: string[] = [];
+      if (isOrg || !isFormTrigger(values.trigger)) {
+        activeOnEventTypeOrTeamIds = values.activeOn
           .filter((option) => option.value !== "all")
           .map((option) => {
             return parseInt(option.value, 10);
           });
+      } else {
+        // Form triggers, activeOn contains routing form IDs (strings)
+        activeOnRoutingFormIds = values.activeOn
+          .filter((option) => option.value !== "all")
+          .map((option) => option.value);
       }
 
       await updateMutation.mutateAsync({
         id: workflowId,
         name: values.name,
-        activeOn: activeOnIds,
+        activeOnEventTypeIds: activeOnEventTypeOrTeamIds,
+        activeOnRoutingFormIds,
         steps: values.steps,
         trigger: values.trigger,
         time: values.time || null,
@@ -352,73 +438,141 @@ function WorkflowPage({
   };
 
   return session.data ? (
-    <Shell withoutMain backPath="/workflows">
-      <LicenseRequired>
-        <Form
-          form={form}
-          handleSubmit={async (values) => {
-            await validateAndSubmitWorkflow(values);
-          }}>
-          <ShellMain
-            backPath="/workflows"
-            title={workflow && workflow.name ? workflow.name : "Untitled"}
-            CTA={
-              !readOnly && (
-                <div>
-                  <Button data-testid="save-workflow" type="submit" loading={updateMutation.isPending}>
-                    {t("save")}
-                  </Button>
-                </div>
-              )
-            }
-            heading={
-              isAllDataLoaded && (
-                <div className="flex">
-                  <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
-                    {workflow && workflow.name ? workflow.name : "untitled"}
-                  </div>
-                  {workflow && workflow.team && (
-                    <Badge className="ml-4 mt-1" variant="gray">
-                      {workflow.team.name}
-                    </Badge>
-                  )}
-                  {readOnly && (
-                    <Badge className="ml-4 mt-1" variant="gray">
-                      {t("readonly")}
-                    </Badge>
-                  )}
-                </div>
-              )
-            }>
-            {!isError ? (
-              <>
-                {isAllDataLoaded && user ? (
-                  <>
-                    <WorkflowDetailsPage
-                      permissions={workflow && hasPermissions(workflow) ? workflow.permissions : undefined}
-                      form={form}
-                      workflowId={+workflowId}
-                      user={user}
-                      selectedOptions={selectedOptions}
-                      setSelectedOptions={setSelectedOptions}
-                      teamId={workflow ? workflow.teamId || undefined : undefined}
-                      readOnly={readOnly}
-                      isOrg={isOrg}
-                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
-                      onSaveWorkflow={handleSaveWorkflow}
-                    />
-                  </>
+    <LicenseRequired>
+      <Form
+        form={form}
+        handleSubmit={async (values) => {
+          await validateAndSubmitWorkflow(values);
+        }}>
+        <div className="flex h-full min-h-screen w-full flex-col">
+          <div className="bg-default border-muted flex w-full items-center justify-between border-b px-4 py-2">
+            <div className="border-muted flex items-center gap-2">
+              <Button
+                color="secondary"
+                size="sm"
+                variant="icon"
+                StartIcon="arrow-left"
+                href="/workflows"
+                data-testid="go-back-button"
+              />
+              <div className="flex min-w-0 items-center leading-none">
+                <span className="text-subtle min-w-content text-sm font-semibold leading-none">
+                  {t("workflows")}
+                </span>
+                <span className="text-subtle mx-1 text-sm font-semibold leading-none">/</span>
+                {isEditingName ? (
+                  <Input
+                    {...form.register("name")}
+                    data-testid="workflow-name"
+                    onChange={handleNameChange}
+                    onKeyDown={handleNameKeyDown}
+                    onBlur={handleNameSubmit}
+                    className="text-default focus:shadow-outline-gray-focused h-auto w-full whitespace-nowrap border-none p-1 text-sm font-semibold leading-none focus:ring-0"
+                    autoFocus
+                  />
                 ) : (
-                  <SkeletonLoader />
+                  <div className="group flex items-center gap-1">
+                    <span
+                      className="text-default hover:bg-muted min-w-[100px] cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
+                      onClick={() => setIsEditingName(true)}>
+                      {watchedName ? watchedName : isPending ? t("loading") : t("untitled")}
+                    </span>
+                    <Button
+                      variant="icon"
+                      color="minimal"
+                      data-testid="edit-workflow-name-button"
+                      disabled={isPending}
+                      onClick={() => setIsEditingName(true)}
+                      CustomStartIcon={
+                        <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                      }>
+                      <span className="sr-only">{t("edit")}</span>
+                    </Button>
+                  </div>
                 )}
-              </>
-            ) : (
-              <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
-            )}
-          </ShellMain>
-        </Form>
-      </LicenseRequired>
-    </Shell>
+              </div>
+              {workflow && workflow.team && (
+                <Badge className="ml-4 mt-1" variant="gray">
+                  {workflow.team.name}
+                </Badge>
+              )}
+              {permissions.readOnly && (
+                <Badge className="ml-4 mt-1" variant="gray">
+                  {t("readonly")}
+                </Badge>
+              )}
+            </div>
+
+            <div className="border-muted flex justify-end gap-2">
+              <Tooltip sideOffset={4} content={t("delete")} side="bottom">
+                <Button
+                  color="destructive"
+                  type="button"
+                  StartIcon="trash-2"
+                  data-testid="delete-button"
+                  onClick={() => {
+                    setDeleteDialogOpen(true);
+                  }}
+                  disabled={!permissions.canDelete}
+                />
+              </Tooltip>
+              <Button
+                loading={updateMutation.isPending}
+                disabled={permissions.readOnly || updateMutation.isPending}
+                data-testid="save-workflow"
+                type="submit"
+                color="primary">
+                {t("save")}
+              </Button>
+            </div>
+          </div>
+          <div className="bg-default min-h-screen w-full px-2 sm:p-0">
+            <div className="mx-auto my-8 max-w-4xl">
+              {!isError ? (
+                <>
+                  {isAllDataLoaded && user ? (
+                    <>
+                      <WorkflowDetailsPage
+                        form={form}
+                        workflowId={+workflowId}
+                        user={user}
+                        selectedOptions={selectedOptions}
+                        setSelectedOptions={setSelectedOptions}
+                        teamId={workflow ? workflow.teamId || undefined : undefined}
+                        isOrg={isOrg}
+                        allOptions={
+                          isOrg
+                            ? teamOptions
+                            : isFormTrigger(watchedTrigger)
+                            ? routingFormOptions
+                            : allEventTypeOptions
+                        }
+                        onSaveWorkflow={handleSaveWorkflow}
+                        permissions={permissions}
+                      />
+                    </>
+                  ) : (
+                    <SkeletonLoader />
+                  )}
+                </>
+              ) : (
+                <Alert severity="error" title={t("something_went_wrong")} message={error?.message ?? ""} />
+              )}
+            </div>
+          </div>
+        </div>
+      </Form>
+      <DeleteDialog
+        isOpenDialog={deleteDialogOpen}
+        setIsOpenDialog={setDeleteDialogOpen}
+        workflowId={workflowId}
+        additionalFunction={async () => {
+          // Navigate back to workflows list after deletion
+          window.location.href = "/workflows";
+        }}
+      />
+      <Toaster position="bottom-right" />
+    </LicenseRequired>
   ) : (
     <></>
   );

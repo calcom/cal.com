@@ -12,13 +12,13 @@ import FormInputFields, {
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getUrlSearchParamsToForwardForReroute } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
+import { useBookerUrl } from "@calcom/features/bookings/hooks/useBookerUrl";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -187,7 +187,7 @@ const useReroutingState = ({ isOpenDialog }: Pick<RerouteDialogProps, "isOpenDia
   const status = (() => {
     if (!value) return ReroutingStatusEnum.REROUTING_NOT_INITIATED;
     if (value.error) return ReroutingStatusEnum.REROUTING_FAILED;
-    if (!!value.newBooking) return ReroutingStatusEnum.REROUTING_COMPLETE;
+    if (value.newBooking) return ReroutingStatusEnum.REROUTING_COMPLETE;
     return ReroutingStatusEnum.REROUTING_IN_PROGRESS;
   })();
 
@@ -903,7 +903,7 @@ export const RerouteDialog = ({ isOpenDialog, setIsOpenDialog, booking }: Rerout
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent preventCloseOnOutsideClick>
+      <DialogContent preventCloseOnOutsideClick  enableOverflow>
         <DialogHeader title={t("reroute_booking")} subtitle={t("reroute_booking_description")} />
         <RerouteDialogContentAndFooter
           booking={teamEventTypeBooking}

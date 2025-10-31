@@ -38,7 +38,7 @@ interface GoogleCalError extends Error {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
-// eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
+ 
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 
@@ -196,7 +196,7 @@ export default class GoogleCalendarService implements Calendar {
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
     if (calEvent.hideCalendarEventDetails) {
@@ -355,7 +355,7 @@ export default class GoogleCalendarService implements Calendar {
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 
     if (event.location) {
@@ -466,7 +466,7 @@ export default class GoogleCalendarService implements Calendar {
     args: FreeBusyArgs,
     shouldServeCache?: boolean
   ): Promise<calendar_v3.Schema$FreeBusyResponse> {
-    if (shouldServeCache === false) return await this.fetchAvailability(args);
+    if (!shouldServeCache) return await this.fetchAvailability(args);
     const calendarCache = await CalendarCache.init(null);
     const cached = await calendarCache.getCachedAvailability({
       credentialId: this.credential.id,

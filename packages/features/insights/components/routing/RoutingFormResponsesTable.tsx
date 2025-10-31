@@ -1,7 +1,7 @@
 "use client";
 
 import { useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -105,7 +105,7 @@ export function RoutingFormResponsesTable() {
       // this also prevents user from clearing the routing form filter
       updateFilter("formId", { type: ColumnFilterType.SINGLE_SELECT, data: newRoutingFormId });
     }
-  }, [table, getInsightsFacetedUniqueValues, routingFormId]);
+  }, [table, getInsightsFacetedUniqueValues, routingFormId, updateFilter]);
 
   return (
     <>

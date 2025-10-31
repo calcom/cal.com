@@ -2,14 +2,14 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import type { LocationObject } from "@calcom/lib/location";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -97,6 +97,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     bookingFields: true,
     calVideoSettings: true,
   } satisfies Prisma.EventTypeSelect;
+
   let eventTypeGroups: TEventTypeGroup[] | null = [];
 
   if (teamIds && teamIds.length > 0) {
@@ -280,7 +281,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: user.id,
     name: user.name,
     avatarUrl: user.avatarUrl,
-    alreadyInstalled: appInstalls.some((install) => !Boolean(install.teamId) && install.userId === user.id),
+    alreadyInstalled: appInstalls.some((install) => !install.teamId && install.userId === user.id),
   };
 
   const teamsWithIsAppInstalled = hasTeams

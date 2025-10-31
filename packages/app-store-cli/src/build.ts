@@ -1,6 +1,6 @@
 import chokidar from "chokidar";
 import fs from "fs";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
@@ -82,7 +82,7 @@ function generateFiles() {
           throw new Error(`${prefix}: ${error instanceof Error ? error.message : String(error)}`);
         }
       } else if (fs.existsSync(metadataPath)) {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+         
         app = require(metadataPath).metadata;
       } else {
         app = {};
@@ -377,7 +377,7 @@ function generateFiles() {
     calendarOutput.push(
       exportLine.replace(
         "export const CalendarServiceMap = {",
-        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -414,7 +414,7 @@ function generateFiles() {
     analyticsOutput.push(
       exportLine.replace(
         "export const AnalyticsServiceMap = {",
-        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -466,7 +466,7 @@ function generateFiles() {
     videoOutput.push(
       exportLine.replace(
         "export const VideoApiAdapterMap = {",
-        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"

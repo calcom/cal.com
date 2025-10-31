@@ -1,8 +1,7 @@
-import type { Prisma } from "@prisma/client";
-
+import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { HttpError } from "@calcom/lib/http-error";
-import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 export async function checkInstalled(slug: string, userId: number) {

@@ -1,3 +1,6 @@
+// prisma client of example app
+//  using local prisma db, not related to the cal.com monorepo prisma client
+ 
 import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
@@ -5,7 +8,7 @@ const prismaClientSingleton = () => {
 };
 
 declare global {
-  // eslint-disable-next-line no-var
+   
   var prisma: undefined | ReturnType<typeof prismaClientSingleton>;
 }
 

@@ -1,6 +1,5 @@
-import type { User } from "@prisma/client";
-
 import type { PrismaClient } from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 
 export const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
   const user = await prisma.user.findUnique({

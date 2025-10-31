@@ -21,6 +21,7 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.se
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { ProfilesModule } from "@/modules/profiles/profiles.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -44,6 +45,7 @@ import { JwtService } from "@nestjs/jwt";
     StripeModule,
     BillingModule,
     SchedulesModule_2024_04_15,
+    ProfilesModule,
   ],
   providers: [
     OAuthClientRepository,

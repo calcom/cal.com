@@ -2,7 +2,8 @@ import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-import type { Prisma } from "@prisma/client";
+
+import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesRepository_2024_06_14 {
