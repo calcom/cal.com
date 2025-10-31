@@ -1,9 +1,9 @@
 import { prisma } from "@calcom/prisma";
 
-import type { ITeamBillingRepository } from "./ITeamBillingDataRepository";
+import type { ITeamBillingDataRepository } from "./ITeamBillingDataRepository";
 import { teamBillingSelect } from "./ITeamBillingDataRepository";
 
-export class PrismaTeamBillingDataRepository implements ITeamBillingRepository {
+export class PrismaTeamBillingDataRepository implements ITeamBillingDataRepository {
   /** Fetch a single team with minimal data needed for billing */
   async find(teamId: number) {
     return prisma.team.findUniqueOrThrow({ where: { id: teamId }, select: teamBillingSelect });

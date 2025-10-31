@@ -1,5 +1,5 @@
-import { PrismaTeamBillingDataRepository } from "./prismaTeamBilling.repository";
-import { StubTeamBillingDataRepository } from "./stubTeamBilling.repository";
+import { PrismaTeamBillingDataRepository } from "./PrismaTeamBillingRepository";
+import { StubTeamBillingDataRepository } from "./stubTeamBillingRepository";
 
 export class TeamBillingDataRepositoryFactory {
   static getRepository(isBillingEnabled: boolean) {
