@@ -13,15 +13,18 @@ type ResponseDataType =
   | {
       appSlug?: string;
       appLink?: string;
+      credentialId?: number;
     }
   | undefined;
-export const useGetDefaultConferencingApp = (teamId?: number) => {
+export const useGetDefaultConferencingApp = (teamId?: number, orgId?: number) => {
   const { isInit, accessToken, organizationId } = useAtomsContext();
 
   let pathname = `/conferencing/default`;
 
   if (teamId) {
     pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/default`;
+  } else if (orgId) {
+    pathname = `/organizations/${orgId}/conferencing/default`;
   }
 
   return useQuery({

@@ -9,6 +9,7 @@ import DisconnectIntegrationModal from "@calcom/features/apps/components/Disconn
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
+import { type RouterOutputs } from "@calcom/trpc";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui/components/button";
@@ -41,6 +42,7 @@ import {
   QUERY_KEY as defaultConferencingAppQueryKey,
 } from "./hooks/useGetDefaultConferencingApp";
 import { useUpdateUserDefaultConferencingApp } from "./hooks/useUpdateUserDefaultConferencingApp";
+import { isAppInstalled } from "./utils/isAppInstalled";
 
 type ConferencingAppSlug = typeof GOOGLE_MEET | typeof ZOOM | typeof OFFICE_365_VIDEO;
 
@@ -49,6 +51,7 @@ type ConferencingAppsViewPlatformWrapperProps = {
   returnTo?: string;
   onErrorReturnTo?: string;
   teamId?: number;
+  orgId?: number;
   apps?: ConferencingAppSlug[];
   disableBulkUpdateEventTypes?: boolean;
 };
@@ -77,12 +80,14 @@ export const ConferencingAppsViewPlatformWrapper = ({
   returnTo,
   onErrorReturnTo,
   teamId,
+  orgId,
   apps,
   disableBulkUpdateEventTypes = false,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const shouldDisableBulkUpdates = !teamId && orgId ? false : disableBulkUpdateEventTypes;
 
   const showToast = (message: string, variant: "success" | "warning" | "error") => {
     if (!disableToasts) {
@@ -109,11 +114,11 @@ export const ConferencingAppsViewPlatformWrapper = ({
     updateModal({ isOpen: true, credentialId, app });
   };
 
-  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps(teamId);
-  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId);
+  const installedIntegrationsQuery = useAtomsGetInstalledConferencingApps(teamId, orgId);
+  const { data: defaultConferencingApp } = useGetDefaultConferencingApp(teamId, orgId);
   const { data: eventTypesQuery, isFetching: isEventTypesFetching } = useAtomGetEventTypes(
     teamId,
-    disableBulkUpdateEventTypes
+    shouldDisableBulkUpdates
   );
 
   const deleteCredentialMutation = useDeleteCredential({
@@ -132,10 +137,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
       handleModelClose();
     },
     teamId,
+    orgId,
   });
 
   const updateDefaultAppMutation = useUpdateUserDefaultConferencingApp({
     teamId,
+    orgId,
   });
 
   const bulkUpdateEventTypesToDefaultLocation = useAtomBulkUpdateEventTypesToDefaultLocation({
@@ -148,24 +155,28 @@ export const ConferencingAppsViewPlatformWrapper = ({
 
   const handleUpdateUserDefaultConferencingApp = ({
     appSlug,
+    credentialId,
     onSuccessCallback,
     onErrorCallback,
   }: UpdateUsersDefaultConferencingAppParams) => {
-    updateDefaultAppMutation.mutate(appSlug, {
-      onSuccess: () => {
-        showToast("Default app updated successfully", "success");
-        queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
-        !disableBulkUpdateEventTypes && onSuccessCallback();
-      },
-      onError: (error) => {
-        showToast(`Error: ${error.message}`, "error");
-        onErrorCallback();
-      },
-    });
+    updateDefaultAppMutation.mutate(
+      { app: appSlug, credentialId },
+      {
+        onSuccess: () => {
+          showToast("Default app updated successfully", "success");
+          queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });
+          !shouldDisableBulkUpdates && onSuccessCallback();
+        },
+        onError: (error) => {
+          showToast(`Error: ${error.message}`, "error");
+          onErrorCallback();
+        },
+      }
+    );
   };
 
   const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
-    if (disableBulkUpdateEventTypes) {
+    if (shouldDisableBulkUpdates) {
       callback();
       return;
     }
@@ -198,9 +209,17 @@ export const ConferencingAppsViewPlatformWrapper = ({
     returnTo,
     onErrorReturnTo,
     teamId,
+    orgId,
   });
 
-  const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {
+  const AddConferencingButtonPlatform = ({
+    installedApps,
+  }: {
+    installedApps?: RouterOutputs["viewer"]["apps"]["integrations"]["items"];
+  }) => {
+    const baseApps = teamId || orgId ? [ZOOM, OFFICE_365_VIDEO] : [GOOGLE_MEET, ZOOM, OFFICE_365_VIDEO];
+    const allowedApps = apps ? baseApps.filter((app) => apps.includes(app as ConferencingAppSlug)) : baseApps;
+
     return (
       <Dropdown>
         <DropdownMenuTrigger asChild>
@@ -209,9 +228,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {/* Show Google Meet if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
-            !installedApps.find((app) => app.slug === GOOGLE_MEET) &&
+            allowedApps.includes(GOOGLE_MEET) &&
+            !isAppInstalled({ appSlug: GOOGLE_MEET, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(GOOGLE_MEET)) && (
               <DropdownMenuItem>
                 <DropdownItem color="secondary" onClick={() => connect(GOOGLE_MEET)}>
@@ -220,9 +239,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
               </DropdownMenuItem>
             )}
 
-          {/* Show Zoom if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
-            !installedApps.find((app) => app.slug === ZOOM) &&
+            allowedApps.includes(ZOOM) &&
+            !isAppInstalled({ appSlug: ZOOM, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(ZOOM)) && (
               <DropdownMenuItem>
                 <DropdownItem color="secondary" onClick={() => connect(ZOOM)}>
@@ -231,9 +250,9 @@ export const ConferencingAppsViewPlatformWrapper = ({
               </DropdownMenuItem>
             )}
 
-          {/* Show Office 365 Video if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
-            !installedApps.find((app) => app.slug === OFFICE_365_VIDEO) &&
+            allowedApps.includes(OFFICE_365_VIDEO) &&
+            !isAppInstalled({ appSlug: OFFICE_365_VIDEO, installedApps, orgId, teamId }) &&
             (!apps || apps.includes(OFFICE_365_VIDEO)) && (
               <DropdownMenuItem>
                 <DropdownItem color="secondary" onClick={() => setIsAccountModalOpen(true)}>

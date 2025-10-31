@@ -12,8 +12,15 @@ export type UseDeleteEventTypeProps = {
   onError?: (err: Error) => void;
   onSettled?: () => void;
   teamId?: number;
+  orgId?: number;
 };
-export const useDeleteCredential = ({ onSuccess, onError, onSettled, teamId }: UseDeleteEventTypeProps) => {
+export const useDeleteCredential = ({
+  onSuccess,
+  onError,
+  onSettled,
+  teamId,
+  orgId,
+}: UseDeleteEventTypeProps) => {
   const { organizationId } = useAtomsContext();
   return useMutation({
     onSuccess,
@@ -26,6 +33,8 @@ export const useDeleteCredential = ({ onSuccess, onError, onSettled, teamId }: U
 
       if (teamId) {
         pathname = `/organizations/${organizationId}/teams/${teamId}/conferencing/${app}/disconnect`;
+      } else if (orgId) {
+        pathname = `/organizations/${orgId}/conferencing/${app}/disconnect`;
       }
       return http?.delete(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {

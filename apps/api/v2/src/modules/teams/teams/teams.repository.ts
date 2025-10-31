@@ -85,7 +85,7 @@ export class TeamsRepository {
     });
   }
 
-  async setDefaultConferencingApp(teamId: number, appSlug?: string, appLink?: string) {
+  async setDefaultConferencingApp(teamId: number, appSlug?: string, appLink?: string, credentialId?: number) {
     const team = await this.getById(teamId);
     const teamMetadata = teamMetadataSchema.parse(team?.metadata);
 
@@ -102,6 +102,7 @@ export class TeamsRepository {
                 defaultConferencingApp: {
                   appSlug: appSlug,
                   appLink: appLink,
+                  credentialId,
                 },
               }
             : {},

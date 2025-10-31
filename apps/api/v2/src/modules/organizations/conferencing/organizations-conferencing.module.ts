@@ -7,7 +7,8 @@ import { Office365VideoService } from "@/modules/conferencing/services/office365
 import { ZoomVideoService } from "@/modules/conferencing/services/zoom-video.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsConferencingController } from "@/modules/organizations/conferencing/organizations-conferencing.controller";
+import { OrganizationsConferencingController } from "@/modules/organizations/conferencing/controllers/organizations-conferencing.controller";
+import { OrganizationsTeamsConferencingController } from "@/modules/organizations/conferencing/controllers/organizations-teams-conferencing.controller";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
@@ -41,6 +42,6 @@ import { ConfigModule } from "@nestjs/config";
     OrganizationsTeamsRepository,
   ],
   exports: [OrganizationsConferencingService],
-  controllers: [OrganizationsConferencingController],
+  controllers: [OrganizationsConferencingController, OrganizationsTeamsConferencingController],
 })
 export class OrganizationsConferencingModule {}

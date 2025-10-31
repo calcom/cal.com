@@ -57,15 +57,18 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
     }
   }
 
-  const { profile } = await new UserRepository(prisma).enrichUserWithItsProfile({
+  const { profile } = await new UserRepository(prisma).enrichUserWithItsProfileSkipPlatformCheck({
     user: user,
   });
 
   // If the user is a part of an organization, query for the organization's credentials
   if (profile?.organizationId) {
-    const org = await prisma.team.findUnique({
+    const orgAndSubteamCredentials = await prisma.team.findMany({
       where: {
-        id: profile.organizationId,
+        OR: [
+          { id: profile.organizationId },
+          ...(!eventType?.team?.id ? [{ parentId: profile.organizationId }] : []),
+        ],
       },
       select: {
         credentials: {
@@ -74,8 +77,8 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
       },
     });
 
-    if (org?.credentials) {
-      allCredentials.push(...org.credentials);
+    if (orgAndSubteamCredentials?.length) {
+      allCredentials.push(...orgAndSubteamCredentials.flatMap((team) => team.credentials));
     }
   }
 

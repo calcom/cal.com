@@ -71,8 +71,14 @@ export const AppList = ({
 
   const ChildAppCard = ({ item }: { item: AppCardApp }) => {
     const appSlug = item?.slug;
+
+    const credentialIdToCompare = item.credentialOwner?.credentialId || item.userCredentialIds[0];
+
     const appIsDefault =
-      appSlug === defaultConferencingApp?.appSlug ||
+      (appSlug === defaultConferencingApp?.appSlug &&
+        (defaultConferencingApp?.credentialId
+          ? defaultConferencingApp.credentialId === credentialIdToCompare
+          : true)) ||
       (appSlug === "daily-video" && !defaultConferencingApp?.appSlug);
     return (
       <AppListCard
@@ -83,7 +89,11 @@ export const AppList = ({
         isDefault={appIsDefault}
         shouldHighlight
         slug={item.slug}
-        invalidCredential={item?.invalidCredentialIds ? item.invalidCredentialIds.length > 0 : false}
+        invalidCredential={
+          item.invalidCredentialIds.length > 0
+            ? !!item.invalidCredentialIds.find((id: number) => id === credentialIdToCompare)
+            : false
+        }
         credentialOwner={item?.credentialOwner}
         actions={
           !item.credentialOwner?.readOnly ? (
@@ -106,6 +116,7 @@ export const AppList = ({
                           } else {
                             handleUpdateUserDefaultConferencingApp({
                               appSlug,
+                              credentialId: item.credentialOwner?.credentialId,
                               onSuccessCallback: () => setBulkUpdateModal(true),
                               onErrorCallback: () => {
                                 return;
@@ -118,7 +129,7 @@ export const AppList = ({
                     </DropdownMenuItem>
                   )}
                   <ConnectOrDisconnectIntegrationMenuItem
-                    credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
+                    credentialId={credentialIdToCompare}
                     type={item.type}
                     app={item.slug}
                     isGlobal={item.isGlobal}
