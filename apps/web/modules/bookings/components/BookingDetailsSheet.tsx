@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
-import { SystemField } from "@calcom/lib/bookings/SystemField";
+import { SMS_REMINDER_NUMBER_FIELD, SystemField, TITLE_FIELD } from "@calcom/lib/bookings/SystemField";
 import { formatPrice } from "@calcom/lib/currencyConversions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -88,15 +88,17 @@ export function BookingDetailsSheet({
       : null;
 
   const customResponses = booking.responses
-    ? Object.entries(booking.responses as Record<string, unknown>).map(([question, answer]) => {
-        let translatedQuestion = question;
-        if (SystemField.safeParse(question).success) {
-          const translationKey = question.toLowerCase();
-          const translated = t(translationKey);
-          translatedQuestion = translated && translated !== translationKey ? translated : question;
-        }
-        return [translatedQuestion, answer] as [string, unknown];
-      })
+    ? Object.entries(booking.responses as Record<string, unknown>)
+        .filter(([fieldName]) => {
+          const isSystemField = SystemField.safeParse(fieldName);
+          // Filter out system fields except SMS_REMINDER_NUMBER_FIELD and TITLE_FIELD
+          // These don't have dedicated sections in the UI
+          if (isSystemField.success && fieldName !== SMS_REMINDER_NUMBER_FIELD && fieldName !== TITLE_FIELD) {
+            return false;
+          }
+          return true;
+        })
+        .map(([question, answer]) => [question, answer] as [string, unknown])
     : [];
 
   return (
@@ -162,7 +164,10 @@ export function BookingDetailsSheet({
 
             <SlotsSection booking={booking} />
 
-            <CustomQuestionsSection customResponses={customResponses} />
+            <CustomQuestionsSection
+              customResponses={customResponses}
+              bookingFields={booking.eventType?.bookingFields}
+            />
 
             <DescriptionSection booking={booking} />
           </div>
@@ -338,20 +343,44 @@ function SlotsSection({ booking }: { booking: BookingOutput }) {
   );
 }
 
-function CustomQuestionsSection({ customResponses }: { customResponses: [string, unknown][] }) {
-  if (customResponses.length === 0) {
+function CustomQuestionsSection({
+  customResponses,
+  bookingFields,
+}: {
+  customResponses: [string, unknown][];
+  bookingFields?: { name: string; label?: string; defaultLabel?: string }[];
+}) {
+  const { t } = useLocale();
+
+  // Filter out responses with falsy answers or empty arrays
+  const validResponses = customResponses.filter(([, answer]) => {
+    if (!answer) return false;
+    if (Array.isArray(answer) && answer.length === 0) return false;
+    return true;
+  });
+
+  if (validResponses.length === 0) {
     return null;
   }
 
+  // Helper to get field label from bookingFields
+  const getFieldLabel = (fieldName: string) => {
+    if (!bookingFields) return fieldName;
+
+    const field = bookingFields.find((f) => f.name === fieldName);
+    if (!field) return fieldName;
+
+    return field.label || t(field.defaultLabel || fieldName);
+  };
+
   return (
-    <div className="space-y-4">
-      {customResponses.map(([question, answer], idx) => (
-        <div key={idx} className="space-y-1">
-          <h3 className="text-subtle text-xs font-semibold capitalize">{question}</h3>
+    <>
+      {validResponses.map(([fieldName, answer], idx) => (
+        <Section key={idx} title={getFieldLabel(fieldName)}>
           <p className="text-default text-sm">{String(answer)}</p>
-        </div>
+        </Section>
       ))}
-    </div>
+    </>
   );
 }
 
