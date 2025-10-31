@@ -118,7 +118,10 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
-                      newTeamFormMethods.setValue("slug", slugify(e?.target.value));
+                      const value = e?.target.value || "";
+                      const slugified = slugify(value);
+                      const sanitized = slugified.replace(/[^a-z0-9-]/g, "");
+                      newTeamFormMethods.setValue("slug", sanitized);
                     }
                   }}
                   autoComplete="off"
@@ -147,7 +150,10 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                 value={value}
                 defaultValue={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true), {
+                  const value = e?.target.value || "";
+                  const slugified = slugify(value, true);
+                  const sanitized = slugified.replace(/[^a-z0-9-]/g, "");
+                  newTeamFormMethods.setValue("slug", sanitized, {
                     shouldTouch: true,
                   });
                   newTeamFormMethods.clearErrors("slug");
