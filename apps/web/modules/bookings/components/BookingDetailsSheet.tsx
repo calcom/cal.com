@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
+import { formatPrice } from "@calcom/lib/currencyConversions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -306,11 +307,12 @@ function PaymentSection({ booking }: { booking: BookingOutput }) {
     return null;
   }
 
+  const payment = booking.payment[0];
+  const formattedPrice = formatPrice(payment.amount, payment.currency);
+
   return (
     <Section title={t("payment")}>
-      <p className="text-default text-sm">
-        {booking.payment[0].currency} {(booking.payment[0].amount / 100).toFixed(2)}
-      </p>
+      <p className="text-default text-sm">{formattedPrice}</p>
     </Section>
   );
 }
@@ -327,7 +329,7 @@ function SlotsSection({ booking }: { booking: BookingOutput }) {
   }
 
   const totalSeats = booking.eventType.seatsPerTimeSlot;
-  const takenSeats = booking.seatsReferences.length;
+  const takenSeats = booking.attendees.length;
 
   return (
     <Section title={t("slots")}>
