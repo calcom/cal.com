@@ -26,4 +26,8 @@ export class StubTeamBillingService implements ITeamBillingService {
   async updateQuantity(): Promise<void> {
     // Stub implementation - no-op
   }
+
+  async getSubscriptionStatus() {
+    return null;
+  }
 }
