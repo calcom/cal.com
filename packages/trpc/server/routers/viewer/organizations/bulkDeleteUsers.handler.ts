@@ -1,5 +1,7 @@
+import { BillingRepositoryFactory } from "@calcom/ee/billing/repository/billing/billingRepositoryFactory";
 import { TeamBillingDataRepositoryFactory } from "@calcom/ee/billing/repository/teamBillingData/teamBillingDataRepositoryFactory";
-import { TeamBillingService } from "@calcom/ee/billing/teams";
+import { TeamBillingServiceFactory } from "@calcom/ee/billing/service/teams/teamBillingServiceFactory";
+import { BillingProviderServiceFactory } from "@calcom/features/ee/billing/service/billingProvider/billingProviderServiceFactory";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -140,10 +142,22 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     removeHostAssignment,
   ]);
 
+  const billingProviderService = BillingProviderServiceFactory.getService();
   const teamBillingDataRepository = TeamBillingDataRepositoryFactory.getRepository(IS_TEAM_BILLING_ENABLED);
+  const billingRepository = BillingRepositoryFactory.getRepository(
+    !!currentUserOrgId,
+    IS_TEAM_BILLING_ENABLED
+  );
 
-  const teamBilling = await TeamBillingService.findAndInit(currentUserOrgId);
-  await teamBilling.updateQuantity();
+  const teamBillingServiceFactory = new TeamBillingServiceFactory({
+    billingProviderService,
+    teamBillingDataRepository,
+    billingRepository,
+    isTeamBillingEnabled: IS_TEAM_BILLING_ENABLED,
+  });
+
+  const teamBillingService = await teamBillingServiceFactory.findAndInit(currentUserOrgId);
+  await teamBillingService.updateQuantity();
 
   return {
     success: true,
