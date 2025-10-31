@@ -1,7 +1,6 @@
 import type { TFunction } from "i18next";
 
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import type { PrismaClient } from "@calcom/prisma";
@@ -38,33 +37,27 @@ export async function getUserAndTeamWithBillingPermission({
 
   if (teamId) {
     const teamRepository = new TeamRepository(prismaClient);
-    const team = await teamRepository.findTeamWithAdminMembers({ teamId });
+    const team = await teamRepository.findById({ id: teamId });
 
     if (!team) {
       return result;
     }
 
-    const permissionService = new PermissionCheckService();
     const permission = team.isOrganization ? "organization.manageBilling" : "team.manageBilling";
-    const usersWithBillingAccess: UserWithBillingAccess[] = [];
+    const users = await teamRepository.findTeamMembersWithPermission({
+      teamId,
+      permission,
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    });
 
-    for (const member of team.members) {
-      const hasPermission = await permissionService.checkPermission({
-        userId: member.user.id,
-        teamId,
-        permission,
-        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
-      });
-
-      if (hasPermission) {
-        usersWithBillingAccess.push({
-          id: member.user.id,
-          name: member.user.name,
-          email: member.user.email,
-          t: await getTranslation(member.user.locale ?? "en", "common"),
-        });
-      }
-    }
+    const usersWithBillingAccess: UserWithBillingAccess[] = await Promise.all(
+      users.map(async (user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        t: await getTranslation(user.locale ?? "en", "common"),
+      }))
+    );
 
     result.team = {
       id: team.id,
