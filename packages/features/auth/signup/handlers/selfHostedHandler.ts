@@ -4,13 +4,13 @@ import { checkPremiumUsername } from "@calcom/ee/common/lib/checkPremiumUsername
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
@@ -30,6 +30,8 @@ export default async function handler(body: Record<string, string>) {
   if (!username) {
     return NextResponse.json({ message: "Invalid username" }, { status: 422 });
   }
+
+  const userRepo = new UserRepository(prisma);
 
   let foundToken: { id: number; teamId: number | null; expires: Date } | null = null;
   let correctedUsername = username;
@@ -88,25 +90,10 @@ export default async function handler(body: Record<string, string>) {
         }
       }
 
-      const user = await prisma.user.upsert({
-        where: { email: userEmail },
-        update: {
-          username: correctedUsername,
-          password: {
-            upsert: {
-              create: { hash: hashedPassword },
-              update: { hash: hashedPassword },
-            },
-          },
-          emailVerified: new Date(Date.now()),
-          identityProvider: IdentityProvider.CAL,
-        },
-        create: {
-          username: correctedUsername,
-          email: userEmail,
-          password: { create: { hash: hashedPassword } },
-          identityProvider: IdentityProvider.CAL,
-        },
+      const user = await userRepo.upsert({
+        email: userEmail,
+        username: correctedUsername,
+        hashedPassword,
       });
 
       const { membership } = await createOrUpdateMemberships({
@@ -143,25 +130,10 @@ export default async function handler(body: Record<string, string>) {
         );
       }
     }
-    await prisma.user.upsert({
-      where: { email: userEmail },
-      update: {
-        username: correctedUsername,
-        password: {
-          upsert: {
-            create: { hash: hashedPassword },
-            update: { hash: hashedPassword },
-          },
-        },
-        emailVerified: new Date(Date.now()),
-        identityProvider: IdentityProvider.CAL,
-      },
-      create: {
-        username: correctedUsername,
-        email: userEmail,
-        password: { create: { hash: hashedPassword } },
-        identityProvider: IdentityProvider.CAL,
-      },
+    await userRepo.upsert({
+      email: userEmail,
+      username: correctedUsername,
+      hashedPassword,
     });
 
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
