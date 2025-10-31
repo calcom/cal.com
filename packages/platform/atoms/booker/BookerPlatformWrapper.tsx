@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useQueryClient } from "@tanstack/react-query";
-// eslint-disable-next-line no-restricted-imports
 import debounce from "lodash/debounce";
 import { useMemo, useEffect, useCallback, useState, useRef, useContext } from "react";
 import { shallow } from "zustand/shallow";
@@ -19,10 +18,10 @@ import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/u
 import { usePrefetch } from "@calcom/features/bookings/Booker/components/hooks/usePrefetch";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
+import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
-import type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -364,7 +363,7 @@ const BookerPlatformWrapperComponent = (
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
 
-      if (!!event?.data?.successRedirectUrl) {
+      if (event?.data?.successRedirectUrl) {
         window.location.href = event?.data?.successRedirectUrl;
       }
     },
@@ -442,7 +441,7 @@ const BookerPlatformWrapperComponent = (
     metadata: props.metadata ?? {},
     handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
-    handleRecBooking: createRecBooking,
+    handleRecBooking: props?.handleCreateRecurringBooking ?? createRecBooking,
     locationUrl: props.locationUrl,
     routingFormSearchParams,
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,

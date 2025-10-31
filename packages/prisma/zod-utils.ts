@@ -58,7 +58,13 @@ export const bookerLayouts = z
   .nullable();
 
 export const orgOnboardingInvitedMembersSchema = z.array(
-  z.object({ email: z.string().email(), name: z.string().optional() })
+  z.object({
+    email: z.string().email(),
+    name: z.string().optional(),
+    teamId: z.number().optional(),
+    teamName: z.string().optional(),
+    role: z.enum(["MEMBER", "ADMIN"]).optional().default("MEMBER"),
+  })
 );
 
 export const orgOnboardingTeamsSchema = z.array(
@@ -275,6 +281,7 @@ export const bookingCancelSchema = z.object({
   // note(Lauris): cancelSubsequentBookings will cancel all bookings after one specified by id or uid.
   cancelSubsequentBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
+  skipCancellationReasonValidation: z.boolean().optional(),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
   internalNote: z
@@ -674,6 +681,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   periodCountCalendarDays: true,
   bookingLimits: true,
   onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
   slotInterval: true,
   scheduleId: true,
   workflows: true,
