@@ -75,20 +75,17 @@ export async function managedEventManualReassignment({
 
   const newUser = await prisma.user.findUnique({
     where: { id: newUserId },
-    include: {
-      credentials: {
-        include: {
-          user: {
-            select: { email: true },
-          },
-        },
-      },
-    },
   });
 
   if (!newUser) {
     throw new Error(`User ${newUserId} not found`);
   }
+
+  // Fetch credentials separately like Round Robin does
+  const newUserCredentials = await prisma.credential.findMany({
+    where: { userId: newUserId },
+    include: { user: { select: { email: true } } },
+  });
 
   const originalUser = await prisma.user.findUnique({
     where: { id: originalBooking.userId ?? undefined },
@@ -229,7 +226,7 @@ export async function managedEventManualReassignment({
 
   // Create calendar events for new user
   const newUserWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
-    user: { ...newUser, credentials: newUser.credentials },
+    user: { ...newUser, credentials: newUserCredentials },
   });
 
   const newEventManager = new EventManager(newUserWithCredentials, apps);

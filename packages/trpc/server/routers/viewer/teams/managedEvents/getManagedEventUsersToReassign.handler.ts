@@ -41,7 +41,7 @@ async function getManagedEventUsersFromDB({
     parentId: parentEventTypeId,
     ...(excludeUserId && { userId: { not: excludeUserId } }),
     ...(searchTerm && {
-      user: {
+      owner: {
         OR: [
           { name: { contains: searchTerm, mode: "insensitive" as const } },
           { email: { contains: searchTerm, mode: "insensitive" as const } },
@@ -57,7 +57,7 @@ async function getManagedEventUsersFromDB({
       select: {
         id: true,
         userId: true,
-        user: {
+        owner: {
           select: {
             ...userSelect,
             credentials: {
@@ -68,7 +68,7 @@ async function getManagedEventUsersFromDB({
       },
       take: limit + 1, // Take one more to determine if there's a next page
       ...(cursor && { skip: 1, cursor: { id: cursor } }),
-      orderBy: { user: { name: "asc" } },
+      orderBy: { owner: { name: "asc" } },
     }),
   ]);
 
@@ -76,8 +76,8 @@ async function getManagedEventUsersFromDB({
   const childEventTypes_subset = hasNextPage ? childEventTypes.slice(0, -1) : childEventTypes;
   
   const users = childEventTypes_subset
-    .filter((et) => et.user !== null)
-    .map((et) => withSelectedCalendars(et.user!));
+    .filter((et) => et.owner !== null)
+    .map((et) => withSelectedCalendars(et.owner!));
 
   return {
     users: await enrichUsersWithDelegationCredentials({

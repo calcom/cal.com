@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -75,37 +75,49 @@ export const ReassignDialog = ({
   });
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const [isManagedEvent, setIsManagedEvent] = useState<boolean | null>(null);
 
-  // Detect if booking is on a managed event by checking eventType.parentId
-  const { data: bookingData } = trpc.viewer.bookings.get.useQuery({
-    filters: { status: "upcoming" },
-  });
-  
-  const booking = bookingData?.bookings.find((b) => b.id === bookingId);
-  const isManagedEvent = booking?.eventType?.parentId != null;
+  // Try managed event query first
+  const managedEventQuery = trpc.viewer.teams.getManagedEventUsersToReassign.useInfiniteQuery(
+    {
+      bookingId,
+      limit: 10,
+      searchTerm: debouncedSearch,
+    },
+    {
+      enabled: isManagedEvent !== false,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      retry: false,
+    }
+  );
 
-  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = isManagedEvent
-    ? trpc.viewer.teams.getManagedEventUsersToReassign.useInfiniteQuery(
-        {
-          bookingId,
-          limit: 10,
-          searchTerm: debouncedSearch,
-        },
-        {
-          getNextPageParam: (lastPage) => lastPage.nextCursor,
-        }
-      )
-    : trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
-        {
-          bookingId,
-          exclude: "fixedHosts",
-          limit: 10,
-          searchTerm: debouncedSearch,
-        },
-        {
-          getNextPageParam: (lastPage) => lastPage.nextCursor,
-        }
-      );
+  // Fallback to round robin query
+  const roundRobinQuery = trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
+    {
+      bookingId,
+      exclude: "fixedHosts",
+      limit: 10,
+      searchTerm: debouncedSearch,
+    },
+    {
+      enabled: isManagedEvent === false,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  // Detect which query succeeded
+  useEffect(() => {
+    if (isManagedEvent === null) {
+      if (managedEventQuery.data) {
+        setIsManagedEvent(true);
+      } else if (managedEventQuery.isError || managedEventQuery.error) {
+        setIsManagedEvent(false);
+      }
+    }
+  }, [managedEventQuery.data, managedEventQuery.error, managedEventQuery.isError, isManagedEvent]);
+
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
+    isManagedEvent === false ? roundRobinQuery : managedEventQuery;
 
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page.items) ?? [];
@@ -231,9 +243,19 @@ export const ReassignDialog = ({
           setIsOpenDialog(open);
         }}>
         <DialogContent
-          title={isManagedEvent ? t("reassign_managed_event_user") : t("reassign_round_robin_host")}
+          title={
+            isManagedEvent === null
+              ? t("loading")
+              : isManagedEvent
+                ? t("reassign_managed_event_user")
+                : t("reassign_round_robin_host")
+          }
           description={
-            isManagedEvent ? t("reassign_to_another_user") : t("reassign_to_another_rr_host")
+            isManagedEvent === null
+              ? ""
+              : isManagedEvent
+                ? t("reassign_to_another_user")
+                : t("reassign_to_another_rr_host")
           }
           enableOverflow>
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
@@ -249,28 +271,41 @@ export const ReassignDialog = ({
                   value={ReassignType.AUTO}
                   className="w-full text-sm"
                   classNames={{ container: "w-full" }}
-                  disabled={bookingFromRoutingForm}>
+                  disabled={bookingFromRoutingForm || isManagedEvent === null}>
                   <strong className="mb-1 block">
-                    {isManagedEvent ? t("auto_reassign") : t("round_robin")}
+                    {isManagedEvent === null
+                      ? t("loading")
+                      : isManagedEvent
+                        ? t("auto_reassign")
+                        : t("round_robin")}
                   </strong>
                   <p>
-                    {isManagedEvent
-                      ? t("auto_reassign_description")
-                      : t("round_robin_reassign_description")}
+                    {isManagedEvent === null
+                      ? ""
+                      : isManagedEvent
+                        ? t("auto_reassign_description")
+                        : t("round_robin_reassign_description")}
                   </p>
                 </RadioArea.Item>
               ) : null}
               <RadioArea.Item
                 value={ReassignType.TEAM_MEMBER}
                 className="text-sm"
-                classNames={{ container: "w-full" }}>
+                classNames={{ container: "w-full" }}
+                disabled={isManagedEvent === null}>
                 <strong className="mb-1 block">
-                  {isManagedEvent ? t("specific_team_member") : t("team_member_round_robin_reassign")}
+                  {isManagedEvent === null
+                    ? t("loading")
+                    : isManagedEvent
+                      ? t("specific_team_member")
+                      : t("team_member_round_robin_reassign")}
                 </strong>
                 <p>
-                  {isManagedEvent
-                    ? t("specific_team_member_description")
-                    : t("team_member_round_robin_reassign_description")}
+                  {isManagedEvent === null
+                    ? ""
+                    : isManagedEvent
+                      ? t("specific_team_member_description")
+                      : t("team_member_round_robin_reassign_description")}
                 </p>
               </RadioArea.Item>
             </RadioArea.Group>

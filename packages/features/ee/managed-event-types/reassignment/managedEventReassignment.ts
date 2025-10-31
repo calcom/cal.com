@@ -1,10 +1,15 @@
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
-import { getLuckyUserService } from "@calcom/features/bookings/lib/getLuckyUser";
+import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import { checkIfUserAvailableWithTimes } from "@calcom/features/ee/round-robin/utils/checkIfUserAvailableWithTimes";
+import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { userSelect } from "@calcom/prisma/selects/user";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 
 import { managedEventManualReassignment } from "./managedEventManualReassignment";
@@ -98,58 +103,54 @@ export async function managedEventReassignment({
     select: {
       id: true,
       userId: true,
-      user: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          username: true,
-          timeZone: true,
-          locale: true,
-          defaultScheduleId: true,
-        },
+    },
+  });
+
+  const userIds = allChildEventTypes.map((et) => et.userId).filter((id): id is number => id !== null);
+  const users = await prisma.user.findMany({
+    where: {
+      id: {
+        in: userIds,
+      },
+    },
+    select: {
+      ...userSelect,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
       },
     },
   });
 
-  if (allChildEventTypes.length === 0) {
+  if (users.length === 0) {
     throw new Error("No other users available for reassignment in this managed event");
   }
 
-  reassignLogger.info(`Found ${allChildEventTypes.length} potential reassignment targets`);
+  reassignLogger.info(`Found ${users.length} potential reassignment targets`);
 
-  // 5. Check availability for each user at the booking time
-  const availableUsers = [];
-  
-  for (const childEventType of allChildEventTypes) {
-    if (!childEventType.user) continue;
+  // 5. Enrich users with selected calendars and delegation credentials
+  const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
+  const enrichedUsers = await enrichUsersWithDelegationCredentials({
+    orgId,
+    users: usersWithSelectedCalendars,
+  });
 
-    try {
-      const isAvailable = await checkIfUserAvailableWithTimes({
-        user: {
-          ...childEventType.user,
-          defaultScheduleId: childEventType.user.defaultScheduleId ?? undefined,
-        },
-        dateFrom: dayjs(booking.startTime).format(),
-        dateTo: dayjs(booking.endTime).format(),
-        timeZone: childEventType.user.timeZone,
-      });
+  // 6. Check availability for all users at the booking time
+  const allUsers = enrichedUsers.map(user => ({
+    ...user,
+    isFixed: false,
+    userLevelSelectedCalendars: user.selectedCalendars || [],
+    allSelectedCalendars: user.selectedCalendars || [],
+  })) as IsFixedAwareUser[];
 
-      if (isAvailable) {
-        availableUsers.push({
-          id: childEventType.user.id,
-          email: childEventType.user.email,
-          name: childEventType.user.name,
-          username: childEventType.user.username,
-          timeZone: childEventType.user.timeZone,
-          weight: 100, // Default weight for managed events
-          priority: 2,  // Default priority for managed events
-        });
-      }
-    } catch (error) {
-      reassignLogger.warn(`Error checking availability for user ${childEventType.user.id}`, error);
-    }
-  }
+  const availableUsers = await ensureAvailableUsers(
+    { ...parentEventType, users: allUsers },
+    {
+      dateFrom: dayjs(booking.startTime).format(),
+      dateTo: dayjs(booking.endTime).format(),
+      timeZone: parentEventType.timeZone || allUsers[0]?.timeZone || "UTC",
+    },
+    reassignLogger
+  );
 
   if (availableUsers.length === 0) {
     throw new Error("No users available at the booking time");
@@ -157,7 +158,7 @@ export async function managedEventReassignment({
 
   reassignLogger.info(`${availableUsers.length} users available at booking time`);
 
-  // 6. Use LuckyUserService to select the best user
+  // 7. Use LuckyUserService to select the best user
   const luckyUserService = getLuckyUserService();
   
   const selectedUser = await luckyUserService.getLuckyUser({
@@ -173,7 +174,7 @@ export async function managedEventReassignment({
 
   reassignLogger.info(`Selected user ${selectedUser.id} (${selectedUser.email}) for reassignment`);
 
-  // 7. Delegate to manual reassignment
+  // 8. Delegate to manual reassignment
   return await managedEventManualReassignment({
     bookingId,
     newUserId: selectedUser.id,

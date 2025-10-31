@@ -1,4 +1,6 @@
 import type { TFunction } from "i18next";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -7,6 +9,8 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { Prisma } from "@calcom/prisma/client";
 import type { Booking, EventType, User, Attendee, Payment } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+const translator = short();
 
 interface BuildReassignmentBookingDataParams {
   originalBooking: Booking & {
@@ -62,9 +66,13 @@ export function buildReassignmentBookingData({
     phoneNumber: attendee.phoneNumber,
   }));
 
+  // Generate a new unique UID for the reassigned booking
+  const seed = `${newUser.username}:${dayjs(originalBooking.startTime).utc().format()}:${new Date().getTime()}:reassignment`;
+  const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+
   // New booking data
   const newBookingData: Prisma.BookingCreateInput = {
-    uid: originalBooking.uid, // Keep same UID for continuity
+    uid,
     userPrimaryEmail: newUser.email,
     responses: originalBooking.responses === null ? Prisma.JsonNull : (originalBooking.responses as Prisma.InputJsonValue),
     title: newBookingTitle,

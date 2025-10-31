@@ -23,7 +23,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
   user: { id: number; username: string | null; email: string; credentials: CredentialPayload[] },
   eventType: EventType
 ) => {
-  let allCredentials = user.credentials;
+  let allCredentials = Array.isArray(user.credentials) ? user.credentials : [];
 
   // If it's a team event type query for team credentials
   if (eventType?.team?.id) {
@@ -33,7 +33,9 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
       },
       select: credentialForCalendarServiceSelect,
     });
-    allCredentials.push(...teamCredentialsQuery);
+    if (Array.isArray(teamCredentialsQuery)) {
+      allCredentials.push(...teamCredentialsQuery);
+    }
   }
 
   // If it's a managed event type, query for the parent team's credentials
@@ -52,8 +54,8 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
         },
       },
     });
-    if (teamCredentialsQuery?.credentials) {
-      allCredentials.push(...teamCredentialsQuery?.credentials);
+    if (teamCredentialsQuery?.credentials && Array.isArray(teamCredentialsQuery.credentials)) {
+      allCredentials.push(...teamCredentialsQuery.credentials);
     }
   }
 
@@ -74,7 +76,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
       },
     });
 
-    if (org?.credentials) {
+    if (org?.credentials && Array.isArray(org.credentials)) {
       allCredentials.push(...org.credentials);
     }
   }
