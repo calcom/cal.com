@@ -1,12 +1,13 @@
 import Stripe from "stripe";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { StripeBillingService } from "./stripe-billing-service";
+import { StripeBillingService } from "./StripeBillingService";
 
 vi.mock("stripe");
 
 describe("StripeBillingService", () => {
   let stripeBillingService: StripeBillingService;
+  // eslint-disable-next-line
   let stripeMock: any;
 
   beforeEach(() => {
@@ -22,6 +23,7 @@ describe("StripeBillingService", () => {
         },
       },
     };
+    // eslint-disable-next-line
     (Stripe as any).mockImplementation(() => stripeMock);
     stripeBillingService = new StripeBillingService();
   });

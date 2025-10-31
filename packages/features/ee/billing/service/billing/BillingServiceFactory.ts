@@ -1,4 +1,4 @@
-import { StripeBillingService } from "./stripe-billing-service";
+import { StripeBillingService } from "./StripeBillingService";
 
 export class BillingFactory {
   constructor() {

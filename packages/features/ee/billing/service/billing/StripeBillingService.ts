@@ -2,8 +2,8 @@ import Stripe from "stripe";
 
 import logger from "@calcom/lib/logger";
 
-import type { BillingService } from "./billing-service";
-import { SubscriptionStatus } from "./repository/billing/IBillingRepository";
+import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+import type { BillingService } from "./IBillingService";
 
 export class StripeBillingService implements BillingService {
   private stripe: Stripe;
