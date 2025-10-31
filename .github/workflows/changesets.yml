@@ -26,6 +26,7 @@ jobs:
         with:
           node-version: "20.17.0"
           registry-url: "https://registry.npmjs.org"
+          always-auth: false
       - name: Setup node, yarn and install dependencies
         uses: ./.github/actions/yarn-install
       - name: Install npm at version supporting OIDC
