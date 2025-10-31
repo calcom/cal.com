@@ -8,17 +8,12 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["views"]
-  output          = "./client"
-  binaryTargets   = ["native", "debian-openssl-1.1.x"]
-}
-
-generator client_for_api_v2 {
-  provider        = "prisma-client-js"
-  previewFeatures = ["views"]
-  output          = "../../apps/api/v2/client"
-  binaryTargets   = ["native", "debian-openssl-1.1.x"]
+  provider            = "prisma-client"
+  previewFeatures     = ["views"]
+  output              = "./generated/prisma"
+  engineType          = "client"
+  moduleFormat        = "cjs"
+  importFileExtension = ""
 }
 
 generator zod {
@@ -29,6 +24,8 @@ generator zod {
   addIncludeType           = false
   addSelectType            = false
   validateWhereUniqueInput = false
+  prismaClientPath         = "../../generated/prisma/client"
+  moduleFormat             = "cjs"
   /// createRelationValuesTypes = true
 }
 
@@ -247,6 +244,8 @@ model EventType {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
+  // @@partial_index([instantMeetingScheduleId])
+
   @@unique([userId, slug])
   @@unique([teamId, slug])
   @@unique([userId, parentId])
@@ -350,6 +349,7 @@ model TravelSchedule {
 // It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
   id                  Int                  @id @default(autoincrement())
+  uuid                String?              @unique @default(uuid()) @db.Uuid
   username            String?
   name                String?
   /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
@@ -642,6 +642,8 @@ model CreditExpenseLog {
   callDuration    Int?
   creditFor       CreditUsageType?
   externalRef     String?          @unique
+
+  // @@partial_index([bookingUid])
 }
 
 enum CreditType {
@@ -853,6 +855,8 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+
+  // @@partial_index([reassignById])
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1577,6 +1581,8 @@ model WebhookScheduledTriggers {
   webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
   bookingId     Int?
   booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  // @@partial_index([bookingId])
 }
 
 enum WorkflowTemplates {
@@ -2424,6 +2430,8 @@ model OrganizationOnboarding {
   slug               String
   logo               String?
   bio                String?
+  brandColor         String?
+  bannerUrl          String?
   isDomainConfigured Boolean @default(false)
 
   // Set when payment intent is there.

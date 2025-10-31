@@ -12,9 +12,9 @@ import {
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
+import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";
 import { getWorkingHours } from "@calcom/lib/availability";
-import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
-import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";

@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/components/hooks/useAvailableTimeSlots";
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -29,6 +30,7 @@ export const LargeCalendar = ({
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const displayOverlay =
     getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
+  const { timezone } = useBookerTime();
 
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
@@ -63,7 +65,6 @@ export const LargeCalendar = ({
         start: new Date(booking.start),
         end: new Date(booking.end),
         options: {
-          borderColor: "black",
           status: booking.status.toUpperCase() as BookingStatus,
           "data-test-id": "troubleshooter-busy-event",
           className: "border-[1.5px]",
@@ -85,6 +86,7 @@ export const LargeCalendar = ({
         gridCellsPerHour={60 / eventDuration}
         hoverEventDuration={eventDuration}
         hideHeader
+        timezone={timezone}
       />
     </div>
   );
