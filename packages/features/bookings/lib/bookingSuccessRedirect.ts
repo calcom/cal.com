@@ -72,6 +72,7 @@ type ResultType = {
   attendeeStartTime?: string | null;
   guestEmails?: string[] | null;
   phone?: string | null;
+  attendeePhoneNumber?: string | null;
   attendeeFirstName?: string | null;
   attendeeLastName?: string | null;
 };
@@ -91,12 +92,44 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
   function extractResponseDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
     const result: ResultType = { ...obj };
-    const phone = getSafe<string>(booking.responses, ["phone"]);
+
+    // Extract phone number - handle both string format and object with value property
+    let attendeePhoneNumber: string | undefined;
+    const attendeePhoneResponse = getSafe<unknown>(booking.responses, ["attendeePhoneNumber"]);
+    if (attendeePhoneResponse) {
+      if (typeof attendeePhoneResponse === "string") {
+        attendeePhoneNumber = attendeePhoneResponse;
+      } else if (
+        typeof attendeePhoneResponse === "object" &&
+        attendeePhoneResponse !== null &&
+        "value" in attendeePhoneResponse
+      ) {
+        attendeePhoneNumber = String(attendeePhoneResponse.value);
+      }
+    }
+
+    // Fallback to legacy "phone" field for backward compatibility
+    if (!attendeePhoneNumber) {
+      const phoneResponse = getSafe<unknown>(booking.responses, ["phone"]);
+      if (phoneResponse) {
+        if (typeof phoneResponse === "string") {
+          attendeePhoneNumber = phoneResponse;
+        } else if (typeof phoneResponse === "object" && phoneResponse !== null && "value" in phoneResponse) {
+          attendeePhoneNumber = String(phoneResponse.value);
+        }
+      }
+    }
+
+    if (attendeePhoneNumber) {
+      result.attendeePhoneNumber = attendeePhoneNumber;
+      // Keep phone for backward compatibility
+      result.phone = attendeePhoneNumber;
+    }
+
     const firstName = getSafe<string>(booking.responses, ["name", "firstName"]);
     const lastName = getSafe<string>(booking.responses, ["name", "lastName"]);
     const name = getSafe<string>(booking.responses, ["name"]);
 
-    if (phone) result.phone = phone;
     if (firstName) result.attendeeFirstName = firstName;
     if (lastName) result.attendeeLastName = lastName;
     else if (name && typeof name === "string") result.attendeeName = name; // Fallback if `name` is a string instead of an object
@@ -175,6 +208,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     attendeeName: bookingParams.attendeeName || undefined,
     hostStartTime: bookingParams.hostStartTime || undefined,
     attendeeStartTime: bookingParams.attendeeStartTime || undefined,
+    attendeePhoneNumber: bookingParams.attendeePhoneNumber || undefined,
   };
 
   return queryCompatibleParams;
