@@ -7,7 +7,6 @@ import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
-import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential/clientAndServer";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
@@ -494,14 +493,14 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calendarDescription: getRichDescription(calEvent),
   };
 
-  // Determine if the calendar event should include attendees
-  const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
-    .filter((domain) => domain.trim() !== "")
-    .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
+  // // Determine if the calendar event should include attendees
+  // const isOrganizerExempt = ORGANIZER_EMAIL_EXEMPT_DOMAINS?.split(",")
+  //   .filter((domain) => domain.trim() !== "")
+  //   .some((domain) => calEvent.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
-  if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
-    calendarEvent.attendees = [];
-  }
+  // if (calEvent.hideOrganizerEmail && !isOrganizerExempt) {
+  //   calendarEvent.attendees = [];
+  // }
 
   return calendarEvent;
 };

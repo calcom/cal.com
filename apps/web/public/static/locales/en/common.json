@@ -1,4 +1,11 @@
 {
+  "redirecting": "Redirecting...",
+  "open_in_browser_required": "Open in Browser Required",
+  "if_browser_did_not_open":"If your browser didn't open automatically, please tap the button below.",
+  "for_security_google_sign_in": "For security, Google sign-in must open in your device's browser (Safari, Chrome, etc.).",
+  "try_opening_browser": "Try opening in browser",
+  "manual_instructions": "Manual Instructions",
+  "complete_signin_in_opened_browser": "Complete sign-in in the opened browser",
   "workflow_filter_text": "{{filter}} and {{count}} more",
   "use_template": "Use Template",
   "add_custom": "Add custom",

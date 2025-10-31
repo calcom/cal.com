@@ -47,10 +47,12 @@ function UserNotFound(props: { slug: string }) {
   return (
     <>
       <div className="flex min-h-screen flex-col items-center justify-center px-10 md:p-0">
-        <div className="bg-default w-full max-w-xl rounded-lg p-10 text-center shadow-lg">
+        <div className="bg-default dark:bg-emphasis w-full max-w-xl rounded-lg p-10 text-center shadow-lg">
           <div className="flex flex-col items-center">
-            <h2 className="mt-4 text-3xl font-semibold text-gray-800">No man’s land - Conquer it today!</h2>
-            <p className="mt-4 text-lg text-gray-600">
+            <h2 className="dark:text-emphasis mt-4 text-3xl font-semibold text-gray-800">
+              No man’s land - Conquer it today!
+            </h2>
+            <p className="dark:text-default mt-4 text-lg text-gray-600">
               Claim username <span className="font-semibold">{`'${slug}'`}</span> on{" "}
               <span className="font-semibold">Cal ID</span> now before someone else does! 🗓️🔥
             </p>
@@ -64,7 +66,7 @@ function UserNotFound(props: { slug: string }) {
             </Link>
           </div>
 
-          <div className="mt-6 text-base text-gray-500">
+          <div className="dark:text-default mt-6 text-base text-gray-500">
             Or Lost your way? &nbsp;
             <Link href="/auth/login" className="text-blue-600 hover:underline">
               Log in to your personal space
