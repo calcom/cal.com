@@ -2,6 +2,7 @@ import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
+import { formatIdentifierToVariable } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import {
@@ -49,6 +50,13 @@ function getVariablesFromFormResponse({
     ATTENDEE_EMAIL: submittedEmail || "",
     NUMBER_TO_CALL: numberToCall,
     eventTypeId: eventTypeId?.toString() || "",
+    // Include any custom form responses
+    ...Object.fromEntries(
+      Object.entries(responses || {}).map(([key, value]) => [
+        formatIdentifierToVariable(key),
+        value.value?.toString() || "",
+      ])
+    ),
   };
 }
 
@@ -95,11 +103,7 @@ function getVariablesFromBooking(booking: BookingWithRelations, numberToCall: st
     // Include any custom form responses
     ...Object.fromEntries(
       Object.entries(responses || {}).map(([key, value]) => [
-        key
-          .replace(/[^a-zA-Z0-9 ]/g, "")
-          .trim()
-          .replaceAll(" ", "_")
-          .toUpperCase(),
+        formatIdentifierToVariable(key),
         value.value?.toString() || "",
       ])
     ),
