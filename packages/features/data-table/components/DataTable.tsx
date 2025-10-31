@@ -275,7 +275,7 @@ function SeparatorRowRenderer({ separator, className }: { separator: SeparatorRo
   return (
     <div
       className={classNames(
-        "bg-muted text-emphasis w-full px-3 py-2 font-semibold",
+        "bg-cal-muted text-emphasis w-full px-3 py-2 font-semibold",
         separator.className,
         className
       )}>
