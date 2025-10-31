@@ -95,7 +95,7 @@ export class TokensRepository {
   async forceRefreshOAuthTokens(clientId: string, ownerId: number) {
     const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const [_deletedAccessToken, _deletedRefreshToken, accessToken, refreshToken] =
       await this.dbWrite.prisma.$transaction([
         this.dbWrite.prisma.accessToken.deleteMany({
@@ -172,7 +172,7 @@ export class TokensRepository {
     const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const [_, _refresh, accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.deleteMany({
         where: { client: { id: clientId }, expiresAt: { lte: new Date() } },

@@ -5,34 +5,21 @@ import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 
+import { cityTimezonesHandler } from "../../cityTimezones/cityTimezonesHandler";
 import { TimezoneSelect } from "./TimezoneSelect";
 
-const cityTimezonesMock = [
-  { city: "Dawson City", timezone: "America/Dawson" },
-  { city: "Honolulu", timezone: "Pacific/Honolulu" },
-  { city: "Juneau", timezone: "America/Juneau" },
-  { city: "Toronto", timezone: "America/Toronto" },
-];
+vi.mock("../../cityTimezones/cityTimezonesHandler", () => ({
+  cityTimezonesHandler: vi.fn(),
+}));
 
-const runtimeMock = async (isPending: boolean) => {
-  const updatedTrcp = {
-    viewer: {
-      timezones: {
-        cityTimezones: {
-          useQuery() {
-            return {
-              data: cityTimezonesMock,
-              isPending,
-            };
-          },
-        },
-      },
-    },
-  };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mockedLib = (await import("@calcom/trpc/react")) as any;
-  mockedLib.trpc = updatedTrcp;
-};
+const mockCityTimezonesHandler = vi.mocked(cityTimezonesHandler);
+
+const cityTimezonesMock = [
+  { city: "Dawson City", timezone: "America/Dawson", population: 1375 },
+  { city: "Honolulu", timezone: "Pacific/Honolulu", population: 345064 },
+  { city: "Juneau", timezone: "America/Juneau", population: 32255 },
+  { city: "Toronto", timezone: "America/Toronto", population: 2930000 },
+];
 
 const formatOffset = (offset: string) =>
   offset.replace(/^([-+])(0)(\d):00$/, (_, sign, _zero, hour) => `${sign}${hour}:00`);
@@ -65,11 +52,19 @@ const renderSelect = (newProps: SelectProps & { variant?: "default" | "minimal" 
 };
 
 const openMenu = async () => {
+  await waitFor(
+    () => {
+      const element = screen.getByLabelText("Test");
+      expect(element).toBeEnabled();
+    },
+    { timeout: 5000 }
+  );
+
   await waitFor(async () => {
     const element = screen.getByLabelText("Test");
     element.focus();
     fireEvent.keyDown(element, { key: "ArrowDown", code: "ArrowDown" });
-    screen.getByText(optionMockValues[0]);
+    screen.getByText(optionMockValues[1]);
   });
 };
 
@@ -80,34 +75,15 @@ describe("Test TimezoneSelect", () => {
   });
 
   describe("Test TimezoneSelect with isPending = false", () => {
-    beforeAll(async () => {
-      // INFO: This needs to be here before the other calls to runtimeMock. For some reason,
-      // when we moved this file from @calcom/ui, the imports started breaking, resulting in
-      // errors of "Cannot set property 'trpc' of [object Module] which has only a getter"
-      // TODO: Update this pattern to be more consistent. Using this direct mocking in the
-      // functions below breaks some tests.
-      vi.mock("@calcom/trpc/react", () => ({
-        trpc: {
-          viewer: {
-            timezones: {
-              cityTimezones: {
-                useQuery() {
-                  return {
-                    data: cityTimezonesMock,
-                    isPending: false,
-                  };
-                },
-              },
-            },
-          },
-        },
-      }));
+    beforeEach(() => {
+      mockCityTimezonesHandler.mockClear();
+      mockCityTimezonesHandler.mockResolvedValue(cityTimezonesMock);
     });
     test("Should render with the correct CSS when provided with classNames prop", async () => {
       renderSelect({ value: timezoneMockValues[0], classNames });
-      openMenu();
+      await openMenu();
 
-      const dawsonEl = screen.getByText(timezoneMockValues[0]);
+      const dawsonEl = screen.getByText("America/Dawson");
 
       expect(dawsonEl).toBeInTheDocument();
 
@@ -134,7 +110,7 @@ describe("Test TimezoneSelect", () => {
 
     test("Should render with the correct CSS when provided with className prop", async () => {
       renderSelect({ value: timezoneMockValues[0], className: "test-css" });
-      openMenu();
+      await openMenu();
       const labelTest = screen.getByText("Test");
       const timezoneEl = labelTest.nextSibling;
       expect(timezoneEl).toHaveClass("test-css");
@@ -142,9 +118,9 @@ describe("Test TimezoneSelect", () => {
 
     test("Should render with the correct CSS when isMulti is enabled", async () => {
       renderSelect({ value: timezoneMockValues[0], isMulti: true, classNames });
-      openMenu();
+      await openMenu();
 
-      const dawsonEl = screen.getByText(timezoneMockValues[0]);
+      const dawsonEl = screen.getByText("America/Dawson");
       const multiValueEl = dawsonEl.parentElement?.parentElement;
       expect(multiValueEl).toHaveClass(classNames.multiValue());
 
@@ -174,8 +150,14 @@ describe("Test TimezoneSelect", () => {
   });
 
   describe("Test TimezoneSelect with isPending = true", () => {
-    beforeAll(async () => {
-      await runtimeMock(true);
+    beforeEach(() => {
+      mockCityTimezonesHandler.mockClear();
+      mockCityTimezonesHandler.mockImplementation(
+        () =>
+          new Promise(() => {
+            // Never resolves to simulate loading state
+          })
+      );
     });
     test("Should have no options when isPending is true", async () => {
       renderSelect({ value: timezoneMockValues[0] });
