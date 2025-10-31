@@ -105,6 +105,7 @@ export const apiHandlers = {
   whereby: import("./whereby/api"),
   wipemycalother: import("./wipemycalother/api"),
   wordpress: import("./wordpress/api"),
+  "yandex-calendar": import("./yandex-calendar/api"),
   zapier: import("./zapier/api"),
   "zoho-bigin": import("./zoho-bigin/api"),
   zohocalendar: import("./zohocalendar/api"),

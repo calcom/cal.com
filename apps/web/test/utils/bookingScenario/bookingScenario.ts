@@ -11,6 +11,7 @@ import type { z } from "zod";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+import { CalendarServiceCredentialPayload } from "@calcom/lib/CalendarService";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/dayjs";
 import type { HttpError } from "@calcom/lib/http-error";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -39,7 +40,6 @@ import type {
   NewCalendarEventType,
   EventBusyDate,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
 import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";
 
 import { getMockPaymentService } from "./MockPaymentService";
@@ -1725,7 +1725,7 @@ export const enum BookingLocations {
 
 export type CalendarServiceMethodMockCallBase = {
   calendarServiceConstructorArgs: {
-    credential: CredentialPayload;
+    credential: CalendarServiceCredentialPayload;
   };
 };
 

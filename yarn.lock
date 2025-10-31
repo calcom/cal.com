@@ -4457,6 +4457,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/yandex-calendar@workspace:packages/app-store/yandex-calendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/yandex-calendar@workspace:packages/app-store/yandex-calendar"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/zapier@workspace:packages/app-store/zapier":
   version: 0.0.0-use.local
   resolution: "@calcom/zapier@workspace:packages/app-store/zapier"
