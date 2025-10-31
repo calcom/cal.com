@@ -143,6 +143,23 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
               />
             )}
 
+            <Controller
+              name="calVideoSettings.requireEmailForGuests"
+              defaultValue={!!calVideoSettings?.requireEmailForGuests}
+              render={({ field: { onChange, value } }) => {
+                return (
+                  <SettingsToggle
+                    title={t("require_email_for_guests")}
+                    description={t("require_email_for_guests_description")}
+                    labelClassName="text-sm leading-6 whitespace-normal break-words"
+                    checked={value}
+                    onCheckedChange={onChange}
+                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                  />
+                );
+              }}
+            />
+
             <TextField
               label={t("enter_redirect_url_on_exit_description")}
               defaultValue={calVideoSettings?.redirectUrlOnExit || ""}

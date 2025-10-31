@@ -1,4 +1,6 @@
 import dayjs from "@calcom/dayjs";
+import { getHostsAndGuests } from "@calcom/features/bookings/lib/getHostsAndGuests";
+import type { Host } from "@calcom/features/bookings/lib/getHostsAndGuests";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -18,40 +20,10 @@ type OriginalRescheduledBooking =
   | null
   | undefined;
 
-export type Host = {
-  id: number;
-  email: string;
-};
-
 export type Booking = Awaited<ReturnType<typeof getBooking>>;
 type Webhook = TWebhook;
 export type Participants = TTriggerNoShowPayloadSchema["data"][number]["participants"];
-
-export function getHosts(booking: Booking): Host[] {
-  const hostMap = new Map<number, Host>();
-
-  const addHost = (id: number, email: string) => {
-    if (!hostMap.has(id)) {
-      hostMap.set(id, { id, email });
-    }
-  };
-
-  booking?.eventType?.hosts?.forEach((host) => addHost(host.userId, host.user.email));
-  booking?.eventType?.users?.forEach((user) => addHost(user.id, user.email));
-
-  // Add booking.user if not already included
-  if (booking?.user?.id && booking?.user?.email) {
-    addHost(booking.user.id, booking.user.email);
-  }
-
-  // Filter hosts to only include those who are also attendees
-  const attendeeEmails = new Set(booking.attendees?.map((attendee) => attendee.email));
-  const filteredHosts = Array.from(hostMap.values()).filter(
-    (host) => attendeeEmails.has(host.email) || host.id === booking.user?.id
-  );
-
-  return filteredHosts;
-}
+type ParticipantsWithEmail = (Participants[number] & { email?: string; isLoggedIn?: boolean })[];
 
 export function sendWebhookPayload(
   webhook: Webhook,
@@ -77,7 +49,7 @@ export function sendWebhookPayload(
       attendees: booking.attendees,
       endTime: booking.endTime,
       participants,
-      ...(!!hostEmail ? { hostEmail } : {}),
+      ...(hostEmail ? { hostEmail } : {}),
       ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
@@ -109,19 +81,36 @@ export function calculateMaxStartTime(startTime: Date, time: number, timeUnit: T
     .unix();
 }
 
-export function checkIfUserJoinedTheCall(userId: number, allParticipants: Participants): boolean {
+function checkIfHostJoinedTheCall(email: string, allParticipants: ParticipantsWithEmail): boolean {
   return allParticipants.some(
-    (participant) => participant.user_id && parseInt(participant.user_id) === userId
+    (participant) => participant.email && participant.isLoggedIn && participant.email === email
   );
 }
 
-const getUserById = async (userId: number) => {
-  return prisma.user.findUnique({
-    where: { id: userId },
-  });
-};
+function checkIfGuestJoinedTheCall(email: string, allParticipants: ParticipantsWithEmail): boolean {
+  return allParticipants.some((participant) => participant.email && participant.email === email);
+}
 
-type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
+const getUserOrGuestById = async (id: string) => {
+  // Try User table (numeric IDs)
+  if (!isNaN(Number(id))) {
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+      select: { email: true },
+    });
+    if (user) return { email: user.email, isLoggedIn: true };
+  }
+
+  // Try VideoCallGuest table (UUID)
+  const guestSession = await prisma.videoCallGuest
+    .findUnique({
+      where: { id },
+      select: { email: true },
+    })
+    .catch(() => null);
+
+  return { email: guestSession?.email, isLoggedIn: false };
+};
 
 export async function getParticipantsWithEmail(
   allParticipants: Participants
@@ -130,8 +119,8 @@ export async function getParticipantsWithEmail(
     allParticipants.map(async (participant) => {
       if (!participant.user_id) return participant;
 
-      const user = await getUserById(parseInt(participant.user_id));
-      return { ...participant, email: user?.email };
+      const { email, isLoggedIn } = await getUserOrGuestById(participant.user_id);
+      return { ...participant, email, isLoggedIn };
     })
   );
 
@@ -149,6 +138,8 @@ export const prepareNoShowTrigger = async (
   hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
+  guestsThatJoinedTheCall: { email: string; name: string }[];
+  guestsThatDidntJoinTheCall: { email: string; name: string }[];
   originalRescheduledBooking?: OriginalRescheduledBooking;
   participants: ParticipantsWithEmail;
 } | void> => {
@@ -198,14 +189,15 @@ export const prepareNoShowTrigger = async (
   }
   const meetingDetails = await getMeetingSessionsFromRoomName(dailyVideoReference.uid);
 
-  const hosts = getHosts(booking);
+  const { hosts, guests } = getHostsAndGuests(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
+  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
   const hostsThatJoinedTheCall: Host[] = [];
   const hostsThatDidntJoinTheCall: Host[] = [];
 
   for (const host of hosts) {
-    if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
+    if (checkIfHostJoinedTheCall(host.email, participantsWithEmail)) {
       hostsThatJoinedTheCall.push(host);
     } else {
       hostsThatDidntJoinTheCall.push(host);
@@ -214,11 +206,26 @@ export const prepareNoShowTrigger = async (
 
   const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
 
-  const didGuestJoinTheCall = meetingDetails.data.some(
-    (meeting) => meeting.max_participants > numberOfHostsThatJoined
-  );
+  const requireEmailForGuests = booking.eventType?.calVideoSettings?.requireEmailForGuests ?? false;
 
-  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
+  let didGuestJoinTheCall: boolean;
+  const guestsThatJoinedTheCall: { email: string; name: string }[] = [];
+  const guestsThatDidntJoinTheCall: { email: string; name: string }[] = [];
+
+  if (requireEmailForGuests) {
+    for (const guest of guests) {
+      if (checkIfGuestJoinedTheCall(guest.email, participantsWithEmail)) {
+        guestsThatJoinedTheCall.push(guest);
+      } else {
+        guestsThatDidntJoinTheCall.push(guest);
+      }
+    }
+    didGuestJoinTheCall = guestsThatJoinedTheCall.length > 0;
+  } else {
+    didGuestJoinTheCall = meetingDetails.data.some(
+      (meeting) => meeting.max_participants > numberOfHostsThatJoined
+    );
+  }
 
   return {
     hostsThatDidntJoinTheCall,
@@ -227,6 +234,8 @@ export const prepareNoShowTrigger = async (
     numberOfHostsThatJoined,
     webhook,
     didGuestJoinTheCall,
+    guestsThatJoinedTheCall,
+    guestsThatDidntJoinTheCall,
     originalRescheduledBooking,
     participants: participantsWithEmail,
   };
