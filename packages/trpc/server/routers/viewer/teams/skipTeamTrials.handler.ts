@@ -42,7 +42,7 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
       const teamBillingDataRepository =
         TeamBillingDataRepositoryFactory.getRepository(IS_TEAM_BILLING_ENABLED);
       const billingRepository = BillingRepositoryFactory.getRepository(
-        !!team.parentId,
+        team.isOrganization,
         IS_TEAM_BILLING_ENABLED
       );
       const billingProviderService = BillingProviderServiceFactory.getService();
