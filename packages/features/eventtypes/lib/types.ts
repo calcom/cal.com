@@ -276,6 +276,7 @@ export const createEventTypeInput = z
     afterEventBuffer: z.number().int().min(0).optional(),
     scheduleId: z.number().int().optional(),
     calVideoSettings: calVideoSettingsSchema,
+    allowManagedEventReassignment: z.boolean().optional(),
   })
   .partial({ hidden: true, locations: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {
