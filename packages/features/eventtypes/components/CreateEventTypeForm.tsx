@@ -64,7 +64,7 @@ export default function CreateEventTypeForm({
               required
               addOnLeading={
                 !isPlatform ? (
-                  <span className="max-w-24 md:max-w-56">
+                  <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
                     {`/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
                   </span>
                 ) : undefined
@@ -90,7 +90,7 @@ export default function CreateEventTypeForm({
                 !isPlatform ? (
                   <Tooltip
                     content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
-                    <span className="max-w-24 md:max-w-56">
+                    <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
                       {`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}
                     </span>
                   </Tooltip>
