@@ -1,0 +1,175 @@
+---
+title: "Stripe connect"
+---
+
+The Stripe connect button is used to effortlessly connect a user's Stripe account for payment processing. This allows users to accept payments for their bookings, with automatic payment collection and processing through Stripe's secure platform.
+
+Below code snippet can be used to render the Stripe connect button
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  return (
+    <>
+      <Connect.Stripe />
+    </>
+  );
+}
+```
+
+The Stripe connect atom provides a seamless way to integrate Stripe payment processing into your Cal.com platform integration. When clicked, the button redirects users to Stripe's OAuth consent page where they can authorize Cal.com to access their Stripe account. Once connected, users can start accepting payments for their bookings.
+
+## Basic usage
+
+The simplest implementation requires no additional props. The atom will handle the connection flow automatically:
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  return (
+    <>
+      <Connect.Stripe />
+    </>
+  );
+}
+```
+
+## Custom labels
+
+You can customize the button labels for different states (default, loading, and already connected):
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  return (
+    <>
+      <Connect.Stripe 
+        label="Connect to Stripe"
+        loadingLabel="Checking connection..."
+        alreadyConnectedLabel="Stripe Connected"
+      />
+    </>
+  );
+}
+```
+
+## Redirect URLs
+
+You can specify custom redirect URLs for successful connections and error scenarios:
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  return (
+    <>
+      <Connect.Stripe 
+        redir="/dashboard/payments"
+        errorRedir="/dashboard/settings"
+      />
+    </>
+  );
+}
+```
+
+## Team integration
+
+For team-based Stripe connections, pass the `teamId` prop:
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  const teamId = 123; // Your team ID
+  
+  return (
+    <>
+      <Connect.Stripe teamId={teamId} />
+    </>
+  );
+}
+```
+
+## Handling connection status
+
+You can use callback functions to handle connection check success and errors:
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  const handleCheckSuccess = () => {
+    console.log("Stripe connection verified successfully");
+  };
+
+  const handleCheckError = (error) => {
+    console.error("Error checking Stripe connection:", error);
+  };
+
+  return (
+    <>
+      <Connect.Stripe 
+        onCheckSuccess={handleCheckSuccess}
+        onCheckError={handleCheckError}
+      />
+    </>
+  );
+}
+```
+
+## Custom styling
+
+You can customize the appearance of the button using the `className`, `icon`, and `color` props:
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectStripe() {
+  return (
+    <>
+      <Connect.Stripe 
+        className="!bg-purple-600 hover:!bg-purple-700"
+        icon="credit-card"
+        color="secondary"
+      />
+    </>
+  );
+}
+```
+
+## Props
+
+We offer all kinds of customizations to the Stripe connect via props. Below is a list of props that can be passed to the Stripe connect.
+
+<p></p>
+
+| Name                  | Required | Description                                                                               |
+| :-------------------- | :------- | :---------------------------------------------------------------------------------------- |
+| teamId                | No       | The ID of the team for team-based Stripe connections                                      |
+| icon                  | No       | Custom icon to display on the button (defaults to "credit-card")                          |
+| color                 | No       | Button color variant (defaults to "primary")                                              |
+| isClickable           | No       | Boolean to override the disabled state and make the button always clickable               |
+| className             | No       | To pass in custom classnames from outside for styling the atom                            |
+| label                 | No       | The label for the connect button                                                          |
+| alreadyConnectedLabel | No       | Label to display when atom is in already connected state                                  |
+| loadingLabel          | No       | Label to display when atom is in loading state                                            |
+| onCheckError          | No       | A callback function to handle errors when checking the connection status                  |
+| redir                 | No       | A custom redirect URL link where the user gets redirected after successful authentication |
+| errorRedir            | No       | A custom redirect URL link where the user gets redirected after authentication failure    |
+| initialData           | No       | Initial data to be passed for the connection check                                        |
+| onCheckSuccess        | No       | A callback function to handle success when checking the connection status                 |
+
+<Note>
+  Please ensure all custom classnames are valid Tailwind CSS classnames. Note that sometimes the custom
+  classnames may fail to override the styling with the classnames that you might have passed via props. That
+  is because the clsx utility function that we use to override classnames inside our components has some
+  limitations. A simple get around to solve this issue is to just prefix your classnames with ! property just
+  before passing in any classname.
+</Note>
+
+## Integration with Payment Form
+
+The Stripe connect atom works seamlessly with the Payment Form atom. First, connect your Stripe account using this atom, then use the Payment Form atom to process payments for bookings. For more information on accepting payments, see the [Payment Form documentation](/platform/atoms/payment-form).
