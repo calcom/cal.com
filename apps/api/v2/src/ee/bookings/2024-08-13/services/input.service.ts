@@ -657,7 +657,21 @@ export class InputBookingsService_2024_08_13 {
     }
 
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
-    const endTime = startTime.plus({ minutes: eventType.length });
+    
+    // Calculate the original booking duration to preserve it during reschedule
+    const originalDurationMinutes = Math.round(
+      (new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / (1000 * 60)
+    );
+    
+    // For event types with multiple durations, preserve the original duration
+    // Otherwise, use the default event type length
+    const eventTypeMetadata = eventType.metadata as { multipleDuration?: number[] } | null;
+    const multipleDurations = eventTypeMetadata?.multipleDuration;
+    const durationToUse = multipleDurations && multipleDurations.length > 0 && multipleDurations.includes(originalDurationMinutes)
+      ? originalDurationMinutes
+      : eventType.length;
+    
+    const endTime = startTime.plus({ minutes: durationToUse });
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -837,4 +851,6 @@ export class InputBookingsService_2024_08_13 {
       })),
     };
   }
+
+
 }
