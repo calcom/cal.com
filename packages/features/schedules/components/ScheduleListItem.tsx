@@ -92,7 +92,7 @@ export function ScheduleListItem({
             />
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {!schedule.isDefault && (
+            {!schedule.isDefault && !schedule.lockedDefaultAvailability && (
               <DropdownMenuItem className="min-w-40 focus:ring-muted">
                 <DropdownItem
                   type="button"
@@ -120,25 +120,27 @@ export function ScheduleListItem({
                 {t("duplicate")}
               </DropdownItem>
             </DropdownMenuItem>
-            <DropdownMenuItem className="min-w-40 focus:ring-muted">
-              <DropdownItem
-                type="button"
-                color="destructive"
-                StartIcon="trash"
-                data-testid="delete-schedule"
-                className="rounded-t-none"
-                onClick={() => {
-                  if (!isDeletable) {
-                    showToast(t("requires_at_least_one_schedule"), "error");
-                  } else {
-                    deleteFunction({
-                      scheduleId: schedule.id,
-                    });
-                  }
-                }}>
-                {t("delete")}
-              </DropdownItem>
-            </DropdownMenuItem>
+            {!(schedule.isDefault && schedule.lockedDefaultAvailability) && (
+              <DropdownMenuItem className="min-w-40 focus:ring-muted">
+                <DropdownItem
+                  type="button"
+                  color="destructive"
+                  StartIcon="trash"
+                  data-testid="delete-schedule"
+                  className="rounded-t-none"
+                  onClick={() => {
+                    if (!isDeletable) {
+                      showToast(t("requires_at_least_one_schedule"), "error");
+                    } else {
+                      deleteFunction({
+                        scheduleId: schedule.id,
+                      });
+                    }
+                  }}>
+                  {t("delete")}
+                </DropdownItem>
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </Dropdown>
       </div>

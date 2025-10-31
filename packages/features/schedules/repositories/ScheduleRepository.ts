@@ -7,6 +7,8 @@ import {
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { getDefaultScheduleId } from "@calcom/trpc/server/routers/viewer/availability/util";
+import { hasLockedDefaultAvailabilityRestriction } from "@calcom/lib/lockedDefaultAvailability";
+
 
 export type FindDetailedScheduleByIdReturnType = Awaited<
   ReturnType<typeof ScheduleRepository.findDetailedScheduleById>
@@ -117,6 +119,9 @@ export class ScheduleRepository {
       throw new Error("UNAUTHORIZED");
     }
 
+    // Check if user is a member (not admin/owner) of any team with locked default availability
+    const lockedDefaultAvailability = await hasLockedDefaultAvailabilityRestriction(userId);
+
     const timeZone = schedule.timeZone || userTimeZone;
 
     const schedulesCount = await prisma.schedule.count({
@@ -138,6 +143,7 @@ export class ScheduleRepository {
       isLastSchedule: schedulesCount <= 1,
       readOnly: schedule.userId !== userId && !isManagedEventType,
       userId: schedule.userId,
+      lockedDefaultAvailability,
     };
   }
 
