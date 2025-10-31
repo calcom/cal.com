@@ -1,4 +1,3 @@
-import type { TFunction } from "i18next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -6,6 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { Prisma } from "@calcom/prisma/client";
 import type { Booking, EventType, User, Attendee, Payment } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -30,7 +30,7 @@ interface BuildReassignmentBookingDataParams {
   originalUserId: number;
 }
 
-export function buildReassignmentBookingData({
+export async function buildReassignmentBookingData({
   originalBooking,
   targetEventType,
   newUser,
@@ -38,12 +38,12 @@ export function buildReassignmentBookingData({
   reassignedById,
   originalUserId,
 }: BuildReassignmentBookingDataParams) {
-  // Regenerate title with new host name
+  // Regenerate title with new host name using proper translation
   const bookerName =
     originalBooking.attendees.find((att) => !att.email.includes("@"))?.name || "Nameless";
   
-  // Create a minimal TFunction for event naming (no translation needed for reassignment)
-  const mockT = ((key: string) => key) as TFunction;
+  // Get translation function for the new user's locale
+  const newUserT = await getTranslation(newUser.locale || "en", "common");
   
   const newBookingTitle = getEventName({
     attendeeName: bookerName,
@@ -54,7 +54,7 @@ export function buildReassignmentBookingData({
     location: originalBooking.location || "",
     bookingFields: originalBooking.responses as Prisma.JsonObject,
     eventDuration: dayjs(originalBooking.endTime).diff(originalBooking.startTime, "minutes"),
-    t: mockT,
+    t: newUserT,
   });
 
   // Build attendees data (copy from original)
@@ -102,7 +102,9 @@ export function buildReassignmentBookingData({
       : undefined,
     // Store reassignment metadata
     metadata: {
-      ...(typeof originalBooking.metadata === "object" ? originalBooking.metadata : {}),
+      ...(typeof originalBooking.metadata === "object" && originalBooking.metadata !== null
+        ? originalBooking.metadata
+        : {}),
       reassignment: {
         fromBookingId: originalBooking.id,
         fromUserId: originalUserId,
@@ -127,7 +129,9 @@ export function buildReassignmentBookingData({
       status: BookingStatus.CANCELLED,
       cancellationReason: `Reassigned to ${newUser.name || newUser.email}`,
       metadata: {
-        ...(typeof originalBooking.metadata === "object" ? originalBooking.metadata : {}),
+        ...(typeof originalBooking.metadata === "object" && originalBooking.metadata !== null
+          ? originalBooking.metadata
+          : {}),
         reassignment: {
           reassignedToUserId: newUser.id,
           reassignedToEventTypeId: targetEventType.id,

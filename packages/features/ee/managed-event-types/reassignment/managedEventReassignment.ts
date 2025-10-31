@@ -138,8 +138,6 @@ export async function managedEventReassignment({
   const allUsers = enrichedUsers.map(user => ({
     ...user,
     isFixed: false,
-    userLevelSelectedCalendars: user.selectedCalendars || [],
-    allSelectedCalendars: user.selectedCalendars || [],
   })) as IsFixedAwareUser[];
 
   const availableUsers = await ensureAvailableUsers(
@@ -172,7 +170,7 @@ export async function managedEventReassignment({
     throw new Error("Failed to select a user for reassignment");
   }
 
-  reassignLogger.info(`Selected user ${selectedUser.id} (${selectedUser.email}) for reassignment`);
+  reassignLogger.info(`Selected user ${selectedUser.id} for reassignment`);
 
   // 8. Delegate to manual reassignment
   return await managedEventManualReassignment({

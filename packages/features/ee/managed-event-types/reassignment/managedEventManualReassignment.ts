@@ -122,16 +122,17 @@ export async function managedEventManualReassignment({
       },
       reassignLogger
     );
-  } catch (_error) {
-    reassignLogger.error("Target user is not available at the booking time", _error);
+    reassignLogger.info("Target user is available");
+  } catch (error) {
+    // Log with reassignment context, then abort
+    reassignLogger.error("Target user is not available at the booking time", error);
+    throw error;
   }
-
-  reassignLogger.info("Target user is available");
 
   // 6. Build the new booking data and cancellation data
   const { buildReassignmentBookingData } = await import("./lib/buildReassignmentBookingData");
   
-  const { newBookingData, originalBookingCancellationData } = buildReassignmentBookingData({
+  const { newBookingData, originalBookingCancellationData } = await buildReassignmentBookingData({
     originalBooking: originalBookingFull,
     targetEventType: {
       id: targetEventTypeDetails.id,
