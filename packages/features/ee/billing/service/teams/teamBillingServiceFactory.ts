@@ -1,23 +1,28 @@
-import { IBillingRepository } from "../../repository/billing/IBillingRepository";
-import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import type { ITeamBillingService, TeamBillingInput } from "./ITeamBillingService";
 import { StubTeamBillingService } from "./stubTeamBillingService";
 import { TeamBillingService } from "./teamBillingService";
 
 export class TeamBillingServiceFactory {
+  private billingProviderService: IBillingProviderService;
   private teamBillingDataRepository: ITeamBillingDataRepository;
   private billingRepository: IBillingRepository;
   private isTeamBillingEnabled: boolean;
 
   constructor({
+    billingProviderService,
     teamBillingDataRepository,
     billingRepository,
     isTeamBillingEnabled,
   }: {
+    billingProviderService: IBillingProviderService;
     teamBillingDataRepository: ITeamBillingDataRepository;
     billingRepository: IBillingRepository;
     isTeamBillingEnabled: boolean;
   }) {
+    this.billingProviderService = billingProviderService;
     this.teamBillingDataRepository = teamBillingDataRepository;
     this.billingRepository = billingRepository;
     this.isTeamBillingEnabled = isTeamBillingEnabled;

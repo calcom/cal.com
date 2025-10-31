@@ -1,5 +1,7 @@
 import type { Team } from "@calcom/prisma/client";
 
+import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+
 export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization">;
 export const TeamBillingPublishResponseStatus = {
   REQUIRES_PAYMENT: "REQUIRES_PAYMENT",
@@ -17,4 +19,5 @@ export interface ITeamBillingService {
   publish(): Promise<TeamBillingPublishResponse>;
   downgrade(): Promise<void>;
   updateQuantity(): Promise<void>;
+  getSubscriptionStatus(): Promise<SubscriptionStatus | null>;
 }
