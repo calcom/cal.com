@@ -1,5 +1,5 @@
-import { NonRetriableError } from "inngest";
 import { formatInTimeZone } from "date-fns-tz";
+import { NonRetriableError } from "inngest";
 import type { createStepTools } from "inngest/components/InngestStepTools";
 import type { Logger } from "inngest/middleware/logger";
 
@@ -231,6 +231,7 @@ export async function handleBookingExportEvent({
       customInputs: true,
       startTime: true,
       endTime: true,
+      responses: true,
       metadata: true,
       status: true,
       recurringEventId: true,
@@ -446,7 +447,22 @@ export async function handleBookingExportEvent({
       "Rescheduled",
       "Recurring Event ID",
       "Is Recorded",
+      "Responses",
     ];
+
+    function csvSafe(val) {
+      if (val == null) return "";
+      const stringVal = String(val);
+      // Only wrap and escape if necessary
+      if (stringVal.includes('"')) {
+        // Escape internal double quotes per CSV standard
+        return `"${stringVal.replace(/"/g, '""')}"`;
+      }
+      if (stringVal.includes(",") || stringVal.includes("\n")) {
+        return `"${stringVal}"`;
+      }
+      return stringVal;
+    }
 
     const csvData = allBookingsWithType.map((booking) => [
       booking.id,
@@ -465,9 +481,12 @@ export async function handleBookingExportEvent({
       booking.rescheduled?.toString() ?? "",
       booking.recurringEventId ?? "",
       booking.isRecorded?.toString(),
+      csvSafe(JSON.stringify({ data: booking.responses })),
     ]);
 
     const csvContent = [header.join(","), ...csvData.map((row) => row.join(","))].join("\n");
+
+    console.log("CSV Content Generated: ", csvContent);
 
     await step.run(`Send export booking email for user with ID ${user.id}`, async () => {
       try {

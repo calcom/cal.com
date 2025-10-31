@@ -473,6 +473,7 @@ export async function getBookings({
                 "EventType.recurringEvent",
                 "EventType.currency",
                 "EventType.metadata",
+                "EventType.bookingFields",
                 "EventType.disableGuests",
                 "EventType.seatsShowAttendees",
                 "EventType.seatsShowAvailabilityCount",
@@ -482,6 +483,7 @@ export async function getBookings({
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
                 "EventType.disableRescheduling",
+                "EventType.bookingFields",
                 eb
                   .cast<SchedulingType | null>(
                     eb

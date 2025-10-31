@@ -12,7 +12,7 @@ import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
 
-import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
+// import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
@@ -282,9 +282,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
             isBookingPage={props.Component.isBookingPage || isBookingPage}
             router={props.router}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>
-                {props.children}
-              </OrgBrandProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>
@@ -299,10 +297,10 @@ const AppProviders = (props: AppPropsWithChildren) => {
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>
-          <PostHogPageView />
-          {RemainingProviders}
-        </DynamicPostHogProvider>
+        {/* <DynamicPostHogProvider> */}
+        {/* <PostHogPageView /> */}
+        {RemainingProviders}
+        {/* </DynamicPostHogProvider> */}
       </DynamicHelpscoutProvider>
     </>
   );

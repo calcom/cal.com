@@ -220,7 +220,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           }}
         />
 
-        {/* Customer.io Analytics */}
+        {/* Customer.io Analytics
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
@@ -268,7 +268,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }();
             `,
           }}
-        />
+        /> */}
       </head>
 
       <body

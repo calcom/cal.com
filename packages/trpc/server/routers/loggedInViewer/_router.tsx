@@ -2,6 +2,7 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
+import { ZCalIdConnectAndJoinInputSchema } from "./calid/connectAndJoin.schema";
 import { ZCalIdEventTypeOrderInputSchema } from "./calid/eventTypeOrder.schema";
 import { ZCalIdRoutingFormOrderInputSchema } from "./calid/routingFormOrder.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
@@ -24,6 +25,7 @@ type AppsRouterHandlerCache = {
   calid_eventTypeOrder?: typeof import("./calid/eventTypeOrder.handler").calIdEventTypeOrderHandler;
   calid_routingFormOrder?: typeof import("./calid/routingFormOrder.handler").calIdRoutingFormOrderHandler;
   calid_teamsAndUserProfilesQuery?: typeof import("./calid/teamsAndUserProfilesQuery.handler").calIdTeamsAndUserProfilesQuery;
+  calid_connectAndJoin?: typeof import("./calid/connectAndJoin.handler").Handler;
 };
 
 export const loggedInViewerRouter = router({
@@ -92,4 +94,10 @@ export const loggedInViewerRouter = router({
     const { calIdTeamsAndUserProfilesQuery } = await import("./calid/teamsAndUserProfilesQuery.handler");
     return calIdTeamsAndUserProfilesQuery({ ctx });
   }),
+  calid_connectAndJoin: authedProcedure
+    .input(ZCalIdConnectAndJoinInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { Handler } = await import("./calid/connectAndJoin.handler");
+      return Handler({ ctx, input });
+    }),
 });

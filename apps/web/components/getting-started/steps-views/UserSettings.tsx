@@ -98,6 +98,7 @@ const UserSettings = (props: IUserSettingsProps) => {
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(
     (isPrismaObjOrUndefined(user.metadata) as { designation?: string })?.designation || "founder"
   );
+  const [numberVerified, _setNumberVerified] = useState(false);
 
   const designationTypeOptions: { value: string; label: string }[] = Object.keys(designationTypes).map(
     (key) => ({
@@ -106,16 +107,18 @@ const UserSettings = (props: IUserSettingsProps) => {
     })
   );
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
-  const createEventType = trpc.viewer.eventTypes.create.useMutation();
+  const createEventType = trpc.viewer.eventTypes.calid_create.useMutation();
   const utils = trpc.useUtils();
   const onSuccess = async () => {
     if (eventTypes?.length === 0 && selectedBusiness !== null) {
       await Promise.all(
-        professionTypeAndEventTypes[selectedBusiness].map(async (event): Promise<void> => {
+        professionTypeAndEventTypes[selectedBusiness].map(async (event, i): Promise<void> => {
+          const reverseIndex = professionTypeAndEventTypes[selectedBusiness].length - i - 1;
           const eventType = {
             ...event,
             title: customEvents[event.title],
             description: customEvents[event.description as string],
+            position: reverseIndex,
             length: (event.length as number[])[0],
             metadata: {
               multipleDuration: event.length as number[],
@@ -152,7 +155,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     mutation.mutate({
       metadata: {
         currentOnboardingStep: "connected-calendar",
-        phoneNumber: data.metadata.phoneNumber,
+        phoneNumber: isPhoneFieldMandatory ? data.metadata.phoneNumber : "",
       },
       name: data.name,
       username: data.username,
@@ -206,18 +209,20 @@ const UserSettings = (props: IUserSettingsProps) => {
           </p>
         )}
       </div>
-      <PhoneNumberField
-        getValue={getPhoneValue}
-        setValue={setPhoneValue}
-        getValues={getValues}
-        defaultValues={defaultValues}
-        isRequired={isPhoneFieldMandatory}
-        allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
-        hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
-        errorMessage={errors.metadata?.phoneNumber?.message}
-        onDeleteNumber={handlePhoneDelete}
-        isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
-      />
+      {isPhoneFieldMandatory && (
+        <PhoneNumberField
+          getValue={getPhoneValue}
+          setValue={setPhoneValue}
+          getValues={getValues}
+          defaultValues={defaultValues}
+          isRequired={isPhoneFieldMandatory}
+          allowDelete={!isPhoneFieldMandatory && defaultValues?.metadata?.phoneNumber !== ""}
+          hasExistingNumber={defaultValues?.metadata?.phoneNumber !== ""}
+          errorMessage={errors.metadata?.phoneNumber?.message}
+          onDeleteNumber={handlePhoneDelete}
+          isNumberVerificationRequired={PHONE_NUMBER_VERIFICATION_ENABLED} // Only require OTP when phone is mandatory
+        />
+      )}
 
       {/* Designation select field */}
       <div className="w-full">
