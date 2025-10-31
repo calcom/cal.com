@@ -1,3 +1,4 @@
+import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
@@ -5,9 +6,12 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import { userSelect } from "@calcom/prisma/selects/user";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 
 import { findTargetChildEventType, validateManagedEventReassignment } from "./utils";
@@ -73,9 +77,29 @@ export async function managedEventManualReassignment({
     throw new Error("Failed to load event type details");
   }
 
-  const newUser = await prisma.user.findUnique({
-    where: { id: newUserId },
-  });
+    const newUser = await prisma.user.findUnique({
+      where: { id: newUserId },
+      select: {
+        ...userSelect,
+        credentials: {
+          select: {
+            id: true,
+            type: true,
+            key: true,
+            userId: true,
+            teamId: true,
+            appId: true,
+            invalid: true,
+            user: {
+              select: {
+                email: true,
+              },
+            },
+            delegationCredentialId: true,
+          },
+        },
+      },
+    });
 
   if (!newUser) {
     throw new Error(`User ${newUserId} not found`);
@@ -112,9 +136,20 @@ export async function managedEventManualReassignment({
   }
 
   // 5. Check availability of new user at booking time
+  // Transform user to IsFixedAwareUser format for availability checking
+  const enrichedUsersResult = await enrichUsersWithDelegationCredentials({
+    orgId: _orgId,
+    users: [withSelectedCalendars(newUser)],
+  });
+
+  const newUserAsFixedAwareUser = {
+    ...enrichedUsersResult[0],
+    isFixed: false,
+  } as IsFixedAwareUser;
+
   try {
     await ensureAvailableUsers(
-      { ...targetEventTypeDetails, users: [newUser] },
+      { ...targetEventTypeDetails, users: [newUserAsFixedAwareUser] },
       {
         dateFrom: dayjs(originalBookingFull.startTime).format(),
         dateTo: dayjs(originalBookingFull.endTime).format(),
