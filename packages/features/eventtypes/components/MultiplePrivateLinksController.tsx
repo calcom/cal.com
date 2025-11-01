@@ -294,6 +294,20 @@ export const MultiplePrivateLinksController = ({
                       />
                       <div className="ml-2 flex items-center">
                         {!isExpired && (
+                          <Tooltip content={t("preview")}>
+                            <Button
+                              type="button"
+                              color="minimal"
+                              variant="icon"
+                              StartIcon="external-link"
+                              data-testid="private-link-preview"
+                              href={singleUseURL}
+                              target="_blank"
+                              rel="noreferrer"
+                            />
+                          </Tooltip>
+                        )}
+                        {!isExpired && (
                           <Button
                             type="button"
                             color="minimal"
