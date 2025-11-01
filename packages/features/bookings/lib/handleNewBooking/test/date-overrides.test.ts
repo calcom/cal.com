@@ -162,7 +162,7 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
@@ -218,35 +218,11 @@ describe("handleNewBooking", () => {
           name: "Booker",
         });
 
-        // Using .endOf("day") here to ensure our date doesn't change when we set the time zone
-        let startDateTimeOrganizerTz = dayjs(plus1DateString)
-          .endOf("day")
-          .tz(newYorkTimeZone)
-          .hour(23)
-          .minute(0)
-          .second(0);
+        // Create start time at 23:00 in New York timezone
+        const startDateTimeOrganizerTz = dayjs.tz(`${plus1DateString} 23:00`, newYorkTimeZone);
 
-        let endDateTimeOrganizerTz = dayjs(plus1DateString)
-          .endOf("day")
-          .tz(newYorkTimeZone)
-          .startOf("day")
-          .add(1, "day");
-
-        const endUtcOffset = Math.abs(endDateTimeOrganizerTz.utcOffset());
-        const startUtcOffset = Math.abs(startDateTimeOrganizerTz.utcOffset());
-        //on DST transition day the utc offsets are unequal
-        if (startUtcOffset !== endUtcOffset) {
-          if (endUtcOffset > startUtcOffset) {
-            // -5:00 to -4:00 transition
-            endDateTimeOrganizerTz = endDateTimeOrganizerTz.subtract(
-              endUtcOffset - startUtcOffset,
-              "minutes"
-            );
-          } else {
-            // -4:00 to -5:00 transition
-            startDateTimeOrganizerTz = startDateTimeOrganizerTz.add(startUtcOffset - endUtcOffset, "minutes");
-          }
-        }
+        // Derive end time by adding 60 minutes - dayjs handles DST correctly
+        const endDateTimeOrganizerTz = startDateTimeOrganizerTz.clone().add(60, "minute");
 
         const overrideSchedule = {
           name: "11:00PM to 11:59PM in New York",
@@ -339,7 +315,7 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
