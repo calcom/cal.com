@@ -7,8 +7,8 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -65,6 +65,9 @@ interface OutOfOfficeEntry {
 
 export default function OutOfOfficeEntriesList() {
   const { t } = useLocale();
+  const pathname = usePathname();
+
+  if (!pathname) return null;
 
   return (
     <SettingsHeader
@@ -76,7 +79,7 @@ export default function OutOfOfficeEntriesList() {
           <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
         </div>
       }>
-      <DataTableProvider useSegments={useSegments}>
+      <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
         <OutOfOfficeEntriesListContent />
       </DataTableProvider>
     </SettingsHeader>
@@ -341,7 +344,6 @@ function OutOfOfficeEntriesListContent() {
     onSuccess: () => {
       showToast(t("success_deleted_entry_out_of_office"), "success");
       setDeletedEntry((previousValue) => previousValue + 1);
-      useFormState;
     },
     onError: () => {
       showToast(`An error occurred`, "error");

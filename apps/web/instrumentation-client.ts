@@ -50,7 +50,11 @@ export function onRouterTransitionStart(url: string, navigationType: "push" | "r
   }
 }
 
-process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
+if (
+  process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
+  typeof window !== "undefined" &&
+  typeof window.crypto?.getRandomValues === "function"
+) {
   initBotId({
     protect: [
       {
@@ -59,3 +63,4 @@ process.env.NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER === "1" &&
       },
     ],
   });
+}

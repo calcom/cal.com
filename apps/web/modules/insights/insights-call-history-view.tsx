@@ -1,6 +1,7 @@
 "use client";
 
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
 import {
@@ -21,6 +22,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
+import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 type CallHistoryRow = {
   id: string;
@@ -62,8 +64,10 @@ function reducer(state: CallDetailsState, action: CallDetailsAction): CallDetail
 }
 
 function CallHistoryTable(props: CallHistoryProps) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={25}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={25}>
       <CallHistoryContent {...props} />
     </DataTableProvider>
   );
@@ -76,7 +80,7 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
   const [rowSelection, setRowSelection] = useState({});
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { limit, offset, searchTerm: _searchTerm } = useDataTable();
+  const { limit, offset, searchTerm } = useDataTable();
 
   const {
     data: callsData,
@@ -111,7 +115,7 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
       callCreated: call.call_analysis?.call_successful ?? true,
       inVoicemail: call.call_analysis?.in_voicemail ?? false,
     }));
-  }, [callsData?.calls]);
+  }, [callsData?.calls, t]);
 
   const columns = useMemo<ColumnDef<CallHistoryRow>[]>(
     () => [
@@ -306,6 +310,16 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
           <>
             <DataTableFilters.ClearFiltersButton />
           </>
+        }
+        EmptyView={
+          <div className="px-6 py-8">
+            <EmptyScreen
+              Icon="phone"
+              headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_call_history")}
+              description={t("no_call_history_description")}
+              className="mb-16"
+            />
+          </div>
         }
       />
 

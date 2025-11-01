@@ -1,4 +1,5 @@
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
@@ -36,8 +37,10 @@ function VoiceSelectionTable({
   selectedVoiceId?: string;
   onVoiceSelect: (voiceId: string) => void;
 }) {
+  const pathname = usePathname();
+  if (!pathname) return null;
   return (
-    <DataTableProvider useSegments={useSegments} defaultPageSize={1000}>
+    <DataTableProvider tableIdentifier={pathname} useSegments={useSegments} defaultPageSize={1000}>
       <VoiceSelectionContent selectedVoiceId={selectedVoiceId} onVoiceSelect={onVoiceSelect} />
     </DataTableProvider>
   );

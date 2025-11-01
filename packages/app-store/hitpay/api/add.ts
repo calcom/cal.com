@@ -32,10 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("Unable to create user credential for Alby");
     }
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
-    }
-    return res.status(500);
+    const message =
+      error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error);
+
+    return res.status(500).json({ message });
   }
 
   return res.status(200).json({ url: "/apps/hitpay/setup" });

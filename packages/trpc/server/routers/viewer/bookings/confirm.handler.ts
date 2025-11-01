@@ -17,6 +17,7 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -411,7 +412,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     }
   }
 
-  const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
+  const message = confirmed ? "Booking confirmed" : "Booking rejected";
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };
@@ -472,63 +473,12 @@ const checkIfUserIsAuthorizedToConfirmBooking = async ({
     if (membership) return;
   }
 
-  if (bookingUserId && (await isLoggedInUserOrgAdminOfBookingUser(loggedInUserId, bookingUserId))) {
+  if (
+    bookingUserId &&
+    (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(loggedInUserId, bookingUserId))
+  ) {
     return;
   }
 
   throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not authorized to confirm this booking" });
 };
-
-async function isLoggedInUserOrgAdminOfBookingUser(loggedInUserId: number, bookingUserId: number) {
-  const orgIdsWhereLoggedInUserAdmin = await getOrgIdsWhereAdmin(loggedInUserId);
-
-  if (orgIdsWhereLoggedInUserAdmin.length === 0) {
-    return false;
-  }
-
-  const bookingUserOrgMembership = await prisma.membership.findFirst({
-    where: {
-      userId: bookingUserId,
-      teamId: {
-        in: orgIdsWhereLoggedInUserAdmin,
-      },
-      team: {
-        parentId: null,
-      },
-    },
-  });
-
-  if (bookingUserOrgMembership) return true;
-
-  const bookingUserOrgTeamMembership = await prisma.membership.findFirst({
-    where: {
-      userId: bookingUserId,
-      team: {
-        parentId: {
-          in: orgIdsWhereLoggedInUserAdmin,
-        },
-      },
-    },
-  });
-
-  return !!bookingUserOrgTeamMembership;
-}
-
-async function getOrgIdsWhereAdmin(loggedInUserId: number) {
-  const loggedInUserOrgMemberships = await prisma.membership.findMany({
-    where: {
-      userId: loggedInUserId,
-      role: {
-        in: [MembershipRole.OWNER, MembershipRole.ADMIN],
-      },
-      team: {
-        parentId: null,
-      },
-    },
-    select: {
-      teamId: true,
-    },
-  });
-
-  return loggedInUserOrgMemberships.map((m) => m.teamId);
-}

@@ -105,10 +105,10 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
     // Regular flow - create payment intent
     const paymentIntent = await this.paymentService.createPaymentIntent(
       {
-        logo: input.logo ?? null,
+        logo: organizationOnboarding.logo,
         bio: input.bio ?? null,
         brandColor: input.brandColor ?? null,
-        bannerUrl: input.bannerUrl ?? null,
+        bannerUrl: organizationOnboarding.bannerUrl,
         teams: teamsData,
         invitedMembers: invitedMembersData,
       },

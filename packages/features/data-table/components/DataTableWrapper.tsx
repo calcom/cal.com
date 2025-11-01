@@ -1,7 +1,6 @@
 "use client";
 
 import type { Row, VisibilityState } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useEffect, useRef } from "react";
 
@@ -63,6 +62,9 @@ export function DataTableWrapper<TData>({
   tableContainerRef: externalRef,
   paginationMode,
   onRowMouseclick,
+  hideSeparatorsOnSort,
+  hideSeparatorsOnFilter,
+  separatorClassName,
 }: DataTableWrapperProps<TData>) {
   const internalRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = externalRef || internalRef;
@@ -78,7 +80,7 @@ export function DataTableWrapper<TData>({
 
   useEffect(() => {
     const mergedColumnVisibility = {
-      ...(table.initialState?.columnVisibility || {}),
+      ...table.initialState?.columnVisibility,
       ...columnVisibility,
     } satisfies VisibilityState;
 
@@ -134,6 +136,9 @@ export function DataTableWrapper<TData>({
           paginationMode={paginationMode}
           onRowMouseclick={onRowMouseclick}
           hasWrapperContext={true}
+          hideSeparatorsOnSort={hideSeparatorsOnSort}
+          hideSeparatorsOnFilter={hideSeparatorsOnFilter}
+          separatorClassName={separatorClassName}
           onScroll={
             paginationMode === "infinite"
               ? (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) =>

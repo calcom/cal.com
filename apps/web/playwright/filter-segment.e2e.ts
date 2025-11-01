@@ -78,6 +78,7 @@ test.describe("Filter Segment Functionality", () => {
 
     await test.step("Can delete a filter segment", async () => {
       await deleteSegment(page, "Admin Users");
+      await page.reload();
 
       const segments = await listSegments(page);
       expect(segments.includes(segmentName)).toBe(false);
@@ -109,7 +110,7 @@ test.describe("Filter Segment Functionality", () => {
 
     await page.goto(`/settings/organizations/${org.slug}/members`);
 
-    const dataTable = page.getByTestId("user-list-data-table");
+    const dataTable = page.getByTestId('user-list-data-table').nth(0); 
     await expect(dataTable).toBeVisible();
 
     await applySelectFilter(page, "role", "admin");

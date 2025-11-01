@@ -3,8 +3,12 @@ import { ApiError } from "next/dist/server/api-utils";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { performance } from "@calcom/lib/server/perfObserver";
+
+import { TRPCError } from "@trpc/server";
+import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 type Handler<T extends NextResponse | Response = NextResponse> = (
   req: NextRequest,
@@ -34,15 +38,18 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
 
       return NextResponse.json({});
     } catch (error) {
-      let serverError;
+      let serverError: HttpError;
 
-      if (error instanceof ApiError) {
-        serverError = {
+      if (error instanceof TRPCError) {
+        const statusCode = getHTTPStatusCodeFromError(error);
+        serverError = new HttpError({ statusCode, message: error.message });
+      } else if (error instanceof ApiError) {
+        serverError = new HttpError({
           message: error.message,
           statusCode: error.statusCode,
           url: req.url,
           method: req.method,
-        };
+        });
       } else {
         serverError = getServerErrorFromUnknown(error);
       }

@@ -11,7 +11,7 @@ export interface CalendarEvent {
     status?: BookingStatus;
     hideTime?: boolean;
     allDay?: boolean;
-    borderColor?: string;
+    color?: string;
     className?: string;
     "data-test-id"?: string;
   };
