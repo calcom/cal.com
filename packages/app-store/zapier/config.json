@@ -9,7 +9,7 @@
   "categories": ["automation"],
   "publisher": "Cal.com",
   "email": "help@cal.com",
-  "description": "Workflow automation for everyone. Use the Cal.com Zapier app to automate your workflows when a booking is created, rescheduled, cancelled or when a meeting ended.",
+  "description": "Workflow automation for everyone. Use the Cal.com Zapier app to automate your workflows when a booking is created, rescheduled, cancelled or when a meeting ends.",
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "link-as-an-app"
