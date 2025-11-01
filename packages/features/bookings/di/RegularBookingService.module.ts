@@ -3,8 +3,6 @@ import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
 import { moduleLoader as cacheModuleLoader } from "@calcom/features/di/modules/Cache";
 import { moduleLoader as checkBookingAndDurationLimitsModuleLoader } from "@calcom/features/di/modules/CheckBookingAndDurationLimits";
-import { moduleLoader as checkBookingLimitsModuleLoader } from "@calcom/features/di/modules/CheckBookingLimits";
-import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/Features";
 import { moduleLoader as luckyUserServiceModuleLoader } from "@calcom/features/di/modules/LuckyUser";
 import { moduleLoader as userRepositoryModuleLoader } from "@calcom/features/di/modules/User";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
@@ -28,8 +26,6 @@ const loadModule = bindModuleToClassOnToken({
     luckyUserService: luckyUserServiceModuleLoader,
     userRepository: userRepositoryModuleLoader,
     hashedLinkService: hashedLinkServiceModuleLoader,
-    featuresRepository: featuresRepositoryModuleLoader,
-    checkBookingLimitsService: checkBookingLimitsModuleLoader,
   },
 });
 

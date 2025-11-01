@@ -7,7 +7,6 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -50,8 +49,6 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
-import { createUserActor } from "./types/actor";
-import type { Actor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -68,12 +65,6 @@ export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 export type CancelBookingInput = {
   userId?: number;
   bookingData: z.infer<typeof bookingCancelInput>;
-  /**
-   * The actor performing the cancellation.
-   * Used for audit logging to track who cancelled the booking.
-   * Optional for backward compatibility - defaults to System actor if not provided.
-   */
-  actor?: Actor;
 } & PlatformParams;
 
 async function handler(input: CancelBookingInput) {
@@ -289,17 +280,17 @@ async function handler(input: CancelBookingInput) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-        ? [bookingToDelete?.user.destinationCalendar]
-        : [],
+      ? [bookingToDelete?.user.destinationCalendar]
+      : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
-      team: {
-        name: bookingToDelete?.eventType?.team?.name || "Nameless",
-        members: teamMembers,
-        id: teamId,
-      },
-    }),
+        team: {
+          name: bookingToDelete?.eventType?.team?.name || "Nameless",
+          members: teamMembers,
+          id: teamId,
+        },
+      }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -470,20 +461,6 @@ async function handler(input: CancelBookingInput) {
     });
     updatedBookings.push(updatedBooking);
 
-    try {
-      const bookingEventHandlerService = getBookingEventHandlerService();
-      await bookingEventHandlerService.onBookingStatusChange(
-        String(updatedBooking.id),
-        createUserActor(userId || 0),
-        BookingStatus.CANCELLED,
-        {
-          cancellationReason: cancellationReason || "",
-        }
-      );
-    } catch (error) {
-      log.error("Failed to create booking audit log for cancellation", error);
-    }
-
     if (bookingToDelete.payment.some((payment) => payment.paymentOption === "ON_BOOKING")) {
       try {
         await processPaymentRefund({
@@ -624,7 +601,7 @@ type BookingCancelServiceDependencies = {
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
  */
 export class BookingCancelService implements IBookingCancelService {
-  constructor(private readonly deps: BookingCancelServiceDependencies) { }
+  constructor(private readonly deps: BookingCancelServiceDependencies) {}
 
   async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {
