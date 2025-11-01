@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { revalidateSettingsProfile } from "app/cache/path/settings/my-account";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { get, pick } from "lodash";
 import { signOut, useSession } from "next-auth/react";
 import type { BaseSyntheticEvent } from "react";
@@ -215,7 +215,7 @@ const ProfileView = ({ user }: Props) => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   const passwordRef = useRef<HTMLInputElement>(null!);
 
   const errorMessages: { [key: string]: string } = {
@@ -481,9 +481,9 @@ const ProfileForm = ({
   handleAccountDisconnect,
   extraField,
   isPending = false,
-  isFallbackImg,
+  isFallbackImg: _isFallbackImg,
   user,
-  userOrganization,
+  userOrganization: _userOrganization,
   isCALIdentityProvider,
 }: {
   defaultValues: FormValues;
@@ -500,6 +500,18 @@ const ProfileForm = ({
 }) => {
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
+
+  const utils = trpc.useUtils();
+  const removeSecondaryEmailMutation = trpc.viewer.loggedInViewerRouter.removeSecondaryEmail.useMutation({
+    onSuccess: () => {
+      showToast(t("secondary_email_deleted"), "success");
+      utils.viewer.me.invalidate();
+      revalidateSettingsProfile();
+    },
+    onError(e) {
+      showToast(e?.message || t("error_deleting_secondary_email"), "error");
+    },
+  });
 
   const profileFormSchema = z.object({
     username: z.string(),
@@ -585,7 +597,7 @@ const ProfileForm = ({
     handleAccountDisconnect(getUpdatedFormValues(formMethods.getValues()));
   };
 
-  const { data: usersAttributes, isPending: usersAttributesPending } =
+  const { data: usersAttributes, isPending: _usersAttributesPending } =
     trpc.viewer.attributes.getByUserId.useQuery({
       userId: user.id,
     });
@@ -667,9 +679,27 @@ const ProfileForm = ({
                       emailPrimary: cIndex === index,
                     }));
                     updateAllSecondaryEmailFields(fields);
+                    formMethods.setValue("secondaryEmails", formMethods.getValues("secondaryEmails"), {
+                      shouldDirty: true,
+                    });
                   }}
                   handleVerifyEmail={() => handleResendVerifyEmail(field.email)}
-                  handleItemDelete={() => deleteSecondaryEmail(index)}
+                  handleItemDelete={() => {
+                    (async () => {
+                      try {
+                        if (field.id && Number(field.id) > 0) {
+                          await removeSecondaryEmailMutation.mutateAsync({ id: Number(field.id) });
+                        }
+                      } catch (e) {
+                        console.error(e);
+                        return;
+                      }
+                      deleteSecondaryEmail(index);
+                      formMethods.setValue("secondaryEmails", formMethods.getValues("secondaryEmails"), {
+                        shouldDirty: true,
+                      });
+                    })();
+                  }}
                 />
               ))}
             </div>

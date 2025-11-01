@@ -2,6 +2,7 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { router } from "../../trpc";
 import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
+import { ZRemoveSecondaryEmailInputSchema } from "./removeSecondaryEmail.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 import { ZNoShowInputSchema } from "./markNoShow.schema";
@@ -9,13 +10,14 @@ import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuer
 import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 
-type AppsRouterHandlerCache = {
+type _AppsRouterHandlerCache = {
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
   routingFormOrder?: typeof import("./routingFormOrder.handler").routingFormOrderHandler;
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
+  removeSecondaryEmail?: typeof import("./removeSecondaryEmail.handler").removeSecondaryEmailHandler;
   addNotificationsSubscription?: typeof import("./addNotificationsSubscription.handler").addNotificationsSubscriptionHandler;
   removeNotificationsSubscription?: typeof import("./removeNotificationsSubscription.handler").removeNotificationsSubscriptionHandler;
   markNoShow?: typeof import("./markNoShow.handler").markNoShow;
@@ -53,6 +55,12 @@ export const loggedInViewerRouter = router({
     const { addSecondaryEmailHandler } = await import("./addSecondaryEmail.handler");
     return addSecondaryEmailHandler({ ctx, input });
   }),
+  removeSecondaryEmail: authedProcedure
+    .input(ZRemoveSecondaryEmailInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { removeSecondaryEmailHandler } = await import("./removeSecondaryEmail.handler");
+      return removeSecondaryEmailHandler({ ctx, input });
+    }),
   addNotificationsSubscription: authedProcedure
     .input(ZAddNotificationsSubscriptionInputSchema)
     .mutation(async ({ ctx, input }) => {
