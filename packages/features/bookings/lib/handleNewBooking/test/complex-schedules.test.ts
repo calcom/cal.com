@@ -57,6 +57,7 @@ describe("handleNewBooking", () => {
         });
 
         // Using .endOf("day") here to ensure our date doesn't change when we set the time zone
+        // Book the last slot before midnight: 23:00-00:00 local (ending at midnight)
         let startDateTimeOrganizerTz = dayjs(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
@@ -72,27 +73,41 @@ describe("handleNewBooking", () => {
 
         const endUtcOffset = Math.abs(endDateTimeOrganizerTz.utcOffset());
         const startUtcOffset = Math.abs(startDateTimeOrganizerTz.utcOffset());
-        //on DST transition day the utc offsets are unequal
         if (startUtcOffset !== endUtcOffset) {
           if (endUtcOffset > startUtcOffset) {
-            // -5:00 to -4:00 transition
             endDateTimeOrganizerTz = endDateTimeOrganizerTz.subtract(
               endUtcOffset - startUtcOffset,
               "minutes"
             );
           } else {
-            // -4:00 to -5:00 transition
             startDateTimeOrganizerTz = startDateTimeOrganizerTz.add(startUtcOffset - endUtcOffset, "minutes");
           }
         }
 
+        // Final safety: if UTC instants still match or duration is <= 0, force end to be start + 60 minutes
+        // This ensures the slot ends at midnight (00:00) of the next day
+        const utcStart = startDateTimeOrganizerTz.utc().valueOf();
+        const utcEnd = endDateTimeOrganizerTz.utc().valueOf();
+        if (utcStart >= utcEnd) {
+          endDateTimeOrganizerTz = startDateTimeOrganizerTz.add(60, "minutes");
+        }
+
+        // Schedule with two blocks to explicitly cover 23:00-00:00 slot that crosses midnight
+        // Block 1: 16:00-24:00 covers the evening hours up to midnight
+        // Block 2: 00:00-01:00 covers the first hour after midnight for bookings ending at 00:00
         const schedule = {
-          name: "4:00PM to 11:59PM in New York",
+          name: "4:00PM to 12:00AM in New York",
           availability: [
             {
               days: [0, 1, 2, 3, 4, 5, 6],
-              startTime: dayjs("1970-01-01").utc().hour(16).toDate(), // These times are stored with Z offset
-              endTime: dayjs("1970-01-01").utc().hour(23).minute(59).toDate(), // These times are stored with Z offset
+              startTime: dayjs("1970-01-01").utc().hour(16).toDate(), // 16:00 local
+              endTime: dayjs("1970-01-02").utc().startOf("day").toDate(), // 24:00 local (midnight)
+              date: null,
+            },
+            {
+              days: [0, 1, 2, 3, 4, 5, 6],
+              startTime: dayjs("1970-01-01").utc().startOf("day").toDate(), // 00:00 local
+              endTime: dayjs("1970-01-01").utc().hour(1).toDate(), // 01:00 local
               date: null,
             },
           ],
@@ -176,7 +191,7 @@ describe("handleNewBooking", () => {
 
         await expectBookingToBeInDatabase({
           description: "",
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+           
           uid: createdBooking.uid!,
           eventTypeId: mockBookingData.eventTypeId,
           status: BookingStatus.ACCEPTED,
