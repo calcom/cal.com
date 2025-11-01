@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { noop } from "lodash";
 
 import prisma from "@calcom/prisma";
