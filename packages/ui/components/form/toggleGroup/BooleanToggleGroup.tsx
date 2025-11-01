@@ -34,7 +34,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
   defaultValue = true,
   value,
   disabled = false,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+   
   onValueChange = () => {},
   variant = "default",
   ...passThrough

@@ -1,6 +1,6 @@
 "use client";
 
-// eslint-disable-next-line no-restricted-imports
+ 
 import { debounce } from "lodash";
 import Link from "next/link";
 import type { CSSProperties, SyntheticEvent } from "react";

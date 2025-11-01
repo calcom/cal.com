@@ -22,7 +22,7 @@ test.describe("2FA Tests", async () => {
     // log in trail user
     const user = await test.step("Enable 2FA", async () => {
       const user = await users.create();
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       const userPassword = user.username!;
       await user.apiLogin();
 
@@ -38,7 +38,7 @@ test.describe("2FA Tests", async () => {
       /**
        * Try a wrong code and test that wrong code is rejected.
        */
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       await fillOtp({ page, secret: "123456", noRetry: true });
       await expect(page.locator('[data-testid="error-submitting-code"]')).toBeVisible();
 
@@ -46,7 +46,7 @@ test.describe("2FA Tests", async () => {
 
       await fillOtp({
         page,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         secret: secret!,
       });
 
@@ -68,12 +68,12 @@ test.describe("2FA Tests", async () => {
       });
 
       const secret = symmetricDecrypt(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         userWith2FaSecret!.twoFactorSecret!,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         process.env.CALENDSO_ENCRYPTION_KEY!
       );
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       await fillOtp({ page: secondPage, secret: secret! });
       await Promise.all([
         secondPage.press('input[name="2fa6"]', "Enter"),
@@ -89,7 +89,7 @@ test.describe("2FA Tests", async () => {
     // log in trail user
     const user = await test.step("Enable 2FA", async () => {
       const user = await users.create();
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       const userPassword = user.username!;
       await user.apiLogin();
 
@@ -102,7 +102,7 @@ test.describe("2FA Tests", async () => {
       expect(secret).toHaveLength(32);
       await page.click('[data-testid="goto-otp-screen"]');
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       await fillOtp({ page, secret: secret! });
 
       // backup codes are now showing, so run a few tests
@@ -128,7 +128,7 @@ test.describe("2FA Tests", async () => {
     });
 
     await test.step("Disable 2FA", async () => {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       const userPassword = user.username!;
 
       // expects the home page for an authorized user
@@ -143,13 +143,13 @@ test.describe("2FA Tests", async () => {
       });
 
       const secret = symmetricDecrypt(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         userWith2FaSecret!.twoFactorSecret!,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         process.env.CALENDSO_ENCRYPTION_KEY!
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+       
       await fillOtp({ page, secret: secret! });
       await page.click('[data-testid="disable-2fa"]');
       await expect(page.locator(`[data-testid=two-factor-switch][data-state="unchecked"]`)).toBeVisible();

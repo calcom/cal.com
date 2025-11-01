@@ -10,7 +10,7 @@
  */
 export function buildWhereClause(userId: number | null, attendeeEmails: string[], userIds: number[] = []) {
   const filterByAttendeeEmails = attendeeEmails.length > 0;
-  const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : !!userId ? { userId } : {};
+  const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : userId ? { userId } : {};
 
   let whereClause = {};
 

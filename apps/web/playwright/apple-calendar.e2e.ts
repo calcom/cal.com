@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+ 
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
