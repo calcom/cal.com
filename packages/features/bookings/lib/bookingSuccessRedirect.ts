@@ -100,7 +100,11 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     const result: ResultType = { ...obj };
     //Extact both phoneNumber and attendeePhoneNumber from response.
     const phoneNumber = getSafe<string>(booking.responses, ["phoneNumber"]);
-    const attendeePhoneNumber = getSafe<AttendeePhoneNumber>(booking.responses, ["attendeePhoneNumber"]);
+
+    //Handles both string and object formats for attendeePhoneNumber.
+    const attendeePhoneNumber = getSafe<AttendeePhoneNumber | string>(booking.responses, [
+      "attendeePhoneNumber",
+    ]);
     const firstName = getSafe<string>(booking.responses, ["name", "firstName"]);
     const lastName = getSafe<string>(booking.responses, ["name", "lastName"]);
     const name = getSafe<string>(booking.responses, ["name"]);
