@@ -15,7 +15,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
-import { ReassignmentAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionHelperService";
+import { ReassignmentAuditActionService } from "@calcom/features/booking-audit/lib/actions/ReassignmentAuditActionService";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
   RRReassignmentType,
@@ -215,22 +215,26 @@ export const roundRobinManualReassignment = async ({
 
     try {
       const bookingEventHandlerService = getBookingEventHandlerService();
-      const auditData = ReassignmentAuditActionHelperService.createData({
+      const auditData = {
         reassignmentReason: reassignReason || "Manual round robin reassignment",
-        assignmentMethod: "manual",
-        assignedUser: {
-          id: newUser.id,
-          name: newUser.name || "",
-          email: newUser.email,
+        assignmentMethod: "manual" as const,
+        assignmentDetails: {
+          assignedUser: {
+            id: newUser.id,
+            name: newUser.name || "",
+            email: newUser.email,
+          },
+          previousUser: {
+            id: oldUser?.id || 0,
+            name: oldUser?.name || "",
+            email: oldEmail || "",
+          },
         },
-        previousUser: {
-          id: oldUser?.id || 0,
-          name: oldUser?.name || "",
-          email: oldEmail || "",
-        },
-        userIdChange: { oldValue: oldUserId, newValue: newUserId },
-        emailChange: { oldValue: oldEmail || null, newValue: newUser.email },
-      });
+        changes: [
+          { field: "userId", oldValue: oldUserId, newValue: newUserId },
+          { field: "userPrimaryEmail", oldValue: oldEmail || null, newValue: newUser.email },
+        ],
+      };
       await bookingEventHandlerService.onReassignmentReasonUpdated(
         String(bookingId),
         createUserActor(reassignedById),

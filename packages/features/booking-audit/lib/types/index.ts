@@ -1,60 +1,59 @@
 import { z } from "zod";
 
-import { CreatedAuditActionHelperService } from "../actions/CreatedAuditActionHelperService";
-import { CancelledAuditActionHelperService } from "../actions/CancelledAuditActionHelperService";
-import { RejectedAuditActionHelperService } from "../actions/RejectedAuditActionHelperService";
-import { RescheduledAuditActionHelperService } from "../actions/RescheduledAuditActionHelperService";
-import { RescheduleRequestedAuditActionHelperService } from "../actions/RescheduleRequestedAuditActionHelperService";
-import { AttendeeAddedAuditActionHelperService } from "../actions/AttendeeAddedAuditActionHelperService";
-import { AttendeeRemovedAuditActionHelperService } from "../actions/AttendeeRemovedAuditActionHelperService";
-import { ReassignmentAuditActionHelperService } from "../actions/ReassignmentAuditActionHelperService";
-import { AssignmentAuditActionHelperService } from "../actions/AssignmentAuditActionHelperService";
-import { CancellationReasonUpdatedAuditActionHelperService } from "../actions/CancellationReasonUpdatedAuditActionHelperService";
-import { RejectionReasonUpdatedAuditActionHelperService } from "../actions/RejectionReasonUpdatedAuditActionHelperService";
-import { LocationChangedAuditActionHelperService } from "../actions/LocationChangedAuditActionHelperService";
-import { MeetingUrlUpdatedAuditActionHelperService } from "../actions/MeetingUrlUpdatedAuditActionHelperService";
-import { HostNoShowUpdatedAuditActionHelperService } from "../actions/HostNoShowUpdatedAuditActionHelperService";
-import { AttendeeNoShowUpdatedAuditActionHelperService } from "../actions/AttendeeNoShowUpdatedAuditActionHelperService";
-import { StatusChangeAuditActionHelperService } from "../actions/StatusChangeAuditActionHelperService";
+import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
+import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
+import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
+import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
+import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
+import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
+import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
+import { AssignmentAuditActionService } from "../actions/AssignmentAuditActionService";
+import { CancellationReasonUpdatedAuditActionService } from "../actions/CancellationReasonUpdatedAuditActionService";
+import { RejectionReasonUpdatedAuditActionService } from "../actions/RejectionReasonUpdatedAuditActionService";
+import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
+import { MeetingUrlUpdatedAuditActionService } from "../actions/MeetingUrlUpdatedAuditActionService";
+import { HostNoShowUpdatedAuditActionService } from "../actions/HostNoShowUpdatedAuditActionService";
+import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
+import { StatusChangeAuditActionService } from "../actions/StatusChangeAuditActionService";
 
 /**
  * Union of all audit data schemas for repository validation
  * Used to validate audit data at write time
  */
 export const BookingAuditDataSchema = z.union([
-    CreatedAuditActionHelperService.schema,
-    CancelledAuditActionHelperService.schema,
-    RejectedAuditActionHelperService.schema,
-    RescheduledAuditActionHelperService.schema,
-    RescheduleRequestedAuditActionHelperService.schema,
-    AttendeeAddedAuditActionHelperService.schema,
-    AttendeeRemovedAuditActionHelperService.schema,
-    ReassignmentAuditActionHelperService.schema,
-    AssignmentAuditActionHelperService.schema,
-    CancellationReasonUpdatedAuditActionHelperService.schema,
-    RejectionReasonUpdatedAuditActionHelperService.schema,
-    LocationChangedAuditActionHelperService.schema,
-    MeetingUrlUpdatedAuditActionHelperService.schema,
-    HostNoShowUpdatedAuditActionHelperService.schema,
-    AttendeeNoShowUpdatedAuditActionHelperService.schema,
-    StatusChangeAuditActionHelperService.schema,
+    CreatedAuditActionService.schema,
+    CancelledAuditActionService.schema,
+    RejectedAuditActionService.schema,
+    RescheduledAuditActionService.schema,
+    RescheduleRequestedAuditActionService.schema,
+    AttendeeAddedAuditActionService.schema,
+    AttendeeRemovedAuditActionService.schema,
+    ReassignmentAuditActionService.schema,
+    AssignmentAuditActionService.schema,
+    CancellationReasonUpdatedAuditActionService.schema,
+    RejectionReasonUpdatedAuditActionService.schema,
+    LocationChangedAuditActionService.schema,
+    MeetingUrlUpdatedAuditActionService.schema,
+    HostNoShowUpdatedAuditActionService.schema,
+    AttendeeNoShowUpdatedAuditActionService.schema,
+    StatusChangeAuditActionService.schema,
 ]);
 
 // Re-export all types
-export * from "../actions/CreatedAuditActionHelperService";
-export * from "../actions/CancelledAuditActionHelperService";
-export * from "../actions/RejectedAuditActionHelperService";
-export * from "../actions/RescheduledAuditActionHelperService";
-export * from "../actions/RescheduleRequestedAuditActionHelperService";
-export * from "../actions/AttendeeAddedAuditActionHelperService";
-export * from "../actions/AttendeeRemovedAuditActionHelperService";
-export * from "../actions/ReassignmentAuditActionHelperService";
-export * from "../actions/AssignmentAuditActionHelperService";
-export * from "../actions/CancellationReasonUpdatedAuditActionHelperService";
-export * from "../actions/RejectionReasonUpdatedAuditActionHelperService";
-export * from "../actions/LocationChangedAuditActionHelperService";
-export * from "../actions/MeetingUrlUpdatedAuditActionHelperService";
-export * from "../actions/HostNoShowUpdatedAuditActionHelperService";
-export * from "../actions/AttendeeNoShowUpdatedAuditActionHelperService";
-export * from "../actions/StatusChangeAuditActionHelperService";
-
+export * from "../actions/CreatedAuditActionService";
+export * from "../actions/CancelledAuditActionService";
+export * from "../actions/RejectedAuditActionService";
+export * from "../actions/RescheduledAuditActionService";
+export * from "../actions/RescheduleRequestedAuditActionService";
+export * from "../actions/AttendeeAddedAuditActionService";
+export * from "../actions/AttendeeRemovedAuditActionService";
+export * from "../actions/ReassignmentAuditActionService";
+export * from "../actions/AssignmentAuditActionService";
+export * from "../actions/CancellationReasonUpdatedAuditActionService";
+export * from "../actions/RejectionReasonUpdatedAuditActionService";
+export * from "../actions/LocationChangedAuditActionService";
+export * from "../actions/MeetingUrlUpdatedAuditActionService";
+export * from "../actions/HostNoShowUpdatedAuditActionService";
+export * from "../actions/AttendeeNoShowUpdatedAuditActionService";
+export * from "../actions/StatusChangeAuditActionService";

@@ -64,7 +64,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
-import { CreatedAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionHelperService";
+import { CreatedAuditActionService } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionService";
 import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -1569,11 +1569,11 @@ async function handler(
 
         try {
           const bookingAuditService = BookingAuditService.create();
-          const auditData = CreatedAuditActionHelperService.createData({
+          const auditData = {
             startTime: booking.startTime.toISOString(),
             endTime: booking.endTime.toISOString(),
             status: booking.status,
-          });
+          };
           await bookingAuditService.onBookingCreated(String(booking.id), userId || booking.userId, auditData);
         } catch (error) {
           logger.error("Failed to create booking audit log", error);

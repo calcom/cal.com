@@ -3,7 +3,7 @@ import { sendAddGuestsEmails } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
-import { AttendeeAddedAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/AttendeeAddedAuditActionHelperService";
+import { AttendeeAddedAuditActionService } from "@calcom/features/booking-audit/lib/actions/AttendeeAddedAuditActionService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
@@ -171,10 +171,10 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
-    const auditData = AttendeeAddedAuditActionHelperService.createData({
+    const auditData = {
       addedGuests: uniqueGuests,
       changes: [{ field: "attendees", oldValue: oldGuestCount, newValue: bookingAttendees.attendees.length }],
-    });
+    };
     await bookingEventHandlerService.onAttendeeAdded(String(bookingId), createUserActor(user.id), auditData);
   } catch (error) {
     log.error("Failed to create booking audit log for adding guests", error);
