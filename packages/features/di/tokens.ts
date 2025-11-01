@@ -58,6 +58,8 @@ export const DI_TOKENS = {
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
   MEMBERSHIP_SERVICE: Symbol("MembershipService"),
   MEMBERSHIP_SERVICE_MODULE: Symbol("MembershipServiceModule"),
+  BOOKING_AUDIT_SERVICE: Symbol("BookingAuditService"),
+  BOOKING_AUDIT_SERVICE_MODULE: Symbol("BookingAuditServiceModule"),
   // Booking service tokens
   ...BOOKING_DI_TOKENS,
   ...HASHED_LINK_DI_TOKENS,

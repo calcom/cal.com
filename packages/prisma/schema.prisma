@@ -771,6 +771,9 @@ model Attendee {
   bookingSeat BookingSeat?
   noShow      Boolean?     @default(false)
 
+  // Actor relation for audit trail
+  Actor Actor[]
+
   @@index([email])
   @@index([bookingId])
 }
@@ -2600,6 +2603,9 @@ enum BookingAuditType {
 }
 
 enum BookingAuditAction {
+  // Booking lifecycle
+  CREATED @map("created")
+
   // Status changes
   CANCELLED     @map("cancelled")
   ACCEPTED      @map("accepted")
@@ -2630,14 +2636,65 @@ enum BookingAuditAction {
   RESCHEDULE_REQUESTED @map("reschedule_requested")
 }
 
+enum ActorType {
+  USER     @map("user") // Registered Cal.com user (stored here for audit retention even after user deletion)
+  GUEST    @map("guest") // Non-registered user
+  ATTENDEE @map("attendee") // Guest who booked (has Attendee record)
+  SYSTEM   @map("system") // Automated actions
+}
+
+model Actor {
+  id   String    @id @default(uuid())
+  type ActorType
+
+  // References for different actor types
+  userId     Int? // For USER type (nullable to allow user deletion)
+  attendeeId Int? // For ATTENDEE type
+  attendee   Attendee? @relation(fields: [attendeeId], references: [id], onDelete: Restrict)
+
+  // Identity fields (for GUEST/ATTENDEE types)
+  email String?
+  phone String?
+  name  String?
+
+  createdAt     DateTime       @default(now())
+  bookingAudits BookingAudit[]
+
+  @@unique([userId])
+  @@unique([attendeeId])
+  @@unique([email]) // Prevent duplicate email actors
+  @@unique([phone]) // Prevent duplicate phone actors
+  @@index([email])
+  @@index([userId])
+  @@index([attendeeId])
+}
+
 model BookingAudit {
-  id        String              @id @default(uuid()) //TODO: Use uuid7() for time-sortable ID once Prisma updates to 7.
+  id        String @id @default(uuid()) //TODO: Use uuid7() for time-sortable ID once Prisma updates to 7.
   bookingId String
-  userId    String?
-  type      BookingAuditType
-  action    BookingAuditAction?
-  timestamp DateTime            @default(now())
-  data      Json?
+
+  // Actor who performed the action (USER, GUEST, or SYSTEM)
+  // Stored in Actor table to maintain audit trail even after user deletion
+  actorId String
+  actor   Actor  @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  type   BookingAuditType
+  action BookingAuditAction
+
+  // Timestamp of the actual booking change (business event time)
+  // Important: May differ from createdAt if audit is processed asynchronously
+  timestamp DateTime
+
+  // Database record timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  data Json?
+
+  @@index([actorId])
+  @@index([bookingId])
+  @@index([timestamp])
+}
 
 enum PhoneNumberSubscriptionStatus {
   ACTIVE
@@ -2712,7 +2769,6 @@ model CalAiPhoneNumber {
   @@index([teamId])
   @@index([inboundAgentId])
   @@index([outboundAgentId])
-
 }
 
 model TeamBilling {

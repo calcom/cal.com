@@ -1,3 +1,4 @@
+import { moduleLoader as bookingAuditServiceModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditService.module";
 import { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
 import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
@@ -26,6 +27,7 @@ const loadModule = bindModuleToClassOnToken({
     luckyUserService: luckyUserServiceModuleLoader,
     userRepository: userRepositoryModuleLoader,
     hashedLinkService: hashedLinkServiceModuleLoader,
+    bookingAuditService: bookingAuditServiceModuleLoader,
   },
 });
 

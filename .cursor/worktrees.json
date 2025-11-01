@@ -1,0 +1,5 @@
+{
+  "setup-worktree": [
+    "yarn"
+  ]
+}
