@@ -3,7 +3,7 @@ import type { Logger } from "tslog";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
-import { CreatedAuditActionService } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionService";
+import { CreatedAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionHelperService";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { BookingAuditType, BookingAuditAction } from "@calcom/prisma/enums";
 import type {
@@ -52,11 +52,11 @@ export class BookingEventHandlerService {
     await this.onBookingCreatedOrRescheduled(payload);
 
     try {
-      const auditData = {
+      const auditData = CreatedAuditActionHelperService.createData({
         startTime: payload.booking.startTime.toISOString(),
         endTime: payload.booking.endTime.toISOString(),
         status: payload.booking.status,
-      };
+      });
       const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
       await this.bookingAuditService.onBookingCreated(
         String(payload.booking.id),

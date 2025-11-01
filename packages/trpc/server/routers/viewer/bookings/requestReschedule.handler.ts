@@ -7,7 +7,7 @@ import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
-import { RescheduleRequestedAuditActionService } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
+import { RescheduleRequestedAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionHelperService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
   deleteWebhookScheduledTriggers,
@@ -159,13 +159,13 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
-    const auditData = {
+    const auditData = RescheduleRequestedAuditActionHelperService.createData({
       cancellationReason,
       changes: [
         { field: "rescheduled", oldValue: false, newValue: true },
         { field: "cancelledBy", oldValue: null, newValue: user.email },
       ],
-    };
+    });
     await bookingEventHandlerService.onRescheduleRequested(
       String(bookingToReschedule.id),
       createUserActor(user.id),
