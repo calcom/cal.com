@@ -441,22 +441,6 @@ export class BookingAuditService {
         });
     }
 
-    async onSystemAction(
-        bookingId: string,
-        type: BookingAuditType,
-        action: BookingAuditAction,
-        data?: unknown
-    ): Promise<BookingAudit> {
-        return this.createAuditRecord({
-            bookingId,
-            actorId: SYSTEM_ACTOR_ID,
-            type,
-            action,
-            data,
-            timestamp: new Date(),
-        });
-    }
-
     // ============== READ OPERATIONS (Display) ==============
 
     /**

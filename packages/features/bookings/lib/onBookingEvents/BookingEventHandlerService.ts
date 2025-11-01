@@ -5,7 +5,6 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
 import { CreatedAuditActionHelperService } from "@calcom/features/booking-audit/lib/actions/CreatedAuditActionHelperService";
 import type { BookingStatus } from "@calcom/prisma/enums";
-import { BookingAuditType, BookingAuditAction } from "@calcom/prisma/enums";
 import type {
   StatusChangeAuditData,
   CancelledAuditData,
@@ -283,14 +282,6 @@ export class BookingEventHandlerService {
       await this.bookingAuditService.onAttendeeNoShowUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {
       this.log.error("Error while creating attendee no-show audit", safeStringify(error));
-    }
-  }
-
-  async onSystemAction(bookingId: string, type: BookingAuditType, action: BookingAuditAction, data?: unknown) {
-    try {
-      await this.bookingAuditService.onSystemAction(bookingId, type, action, data);
-    } catch (error) {
-      this.log.error("Error while creating system action audit", safeStringify(error));
     }
   }
 }
