@@ -71,7 +71,7 @@ export const TimeTimeUnitInput = (props: Props) => {
           onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
             const allowedKeys = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Home", "End"];
             if (allowedKeys.includes(e.key)) return;
-            if (["e", "E", "+", "-", "."].includes(e.key)) {
+            if (["e", "E", "+", "-", ".", "Decimal", "Add", "Subtract"].includes(e.key)) {
               e.preventDefault();
             }
           }}
