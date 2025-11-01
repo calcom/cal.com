@@ -3,8 +3,6 @@ import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
-import { Icon } from "@calcom/ui/components/icon";
-import { TextField } from "@calcom/ui/components/form";
 import {
   Dropdown,
   DropdownItem,
@@ -12,6 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { TextField } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 
 const TIME_UNITS = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
 
@@ -60,12 +60,21 @@ export const TimeTimeUnitInput = (props: Props) => {
       <div className="grow">
         <TextField
           type="number"
-          min="1"
+          min={1}
+          inputMode="numeric"
+          pattern="[0-9]*"
           label=""
           disabled={props.disabled}
           defaultValue={form.getValues("time") ?? props.defaultTime ?? 24}
           className="rounded-r-none text-sm focus:ring-0"
           {...form.register("time", { valueAsNumber: true })}
+          onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            const allowedKeys = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete", "Home", "End"];
+            if (allowedKeys.includes(e.key)) return;
+            if (["e", "E", "+", "-", "."].includes(e.key)) {
+              e.preventDefault();
+            }
+          }}
           addOnSuffix={
             <TimeUnitAddonSuffix
               timeUnitOptions={timeUnitOptions}
