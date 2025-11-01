@@ -101,6 +101,7 @@ type WorkflowStepProps = {
     creditsTeamId?: number;
     isOrganization: boolean;
     isCalAi: boolean;
+    needsTeamsUpgrade?: boolean;
   }[];
   updateTemplate: boolean;
   setUpdateTemplate: Dispatch<SetStateAction<boolean>>;
@@ -371,13 +372,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     handleCreateAgent,
   ]);
 
-  const triggerOptions = getWorkflowTriggerOptions(t);
+  const triggerOptions = getWorkflowTriggerOptions(t, hasActiveTeamPlan);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan, trigger);
 
   const steps = useWatch({
     control: form.control,
     name: "steps",
   });
+
+  // Extract current step template from watched steps array
+  const currentStepTemplate = step ? steps?.[step.stepNumber - 1]?.template : null;
+
+  const isReminderTemplate = currentStepTemplate === WorkflowTemplates.REMINDER;
 
   const hasAiAction = hasCalAIAction(steps);
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
@@ -531,11 +537,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   isDisabled={props.readOnly}
                   onChange={(val) => {
                     if (val) {
-                      const currentTrigger = form.getValues("trigger");
+                      const triggerValue = val.value as WorkflowTriggerEvents;
+                      const currentTrigger = form.getValues("trigger") as WorkflowTriggerEvents;
                       const isCurrentFormTrigger = isFormTrigger(currentTrigger);
-                      const isNewFormTrigger = isFormTrigger(val.value);
+                      const isNewFormTrigger = isFormTrigger(triggerValue);
 
-                      form.setValue("trigger", val.value);
+                      form.setValue("trigger", triggerValue);
 
                       // Reset activeOn when switching between form and non-form triggers
                       if (isCurrentFormTrigger !== isNewFormTrigger) {
@@ -546,12 +553,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         form.setValue("selectAll", false);
                       }
 
-                      const newTimeSectionText = getTimeSectionText(val.value, t);
+                      const newTimeSectionText = getTimeSectionText(triggerValue, t);
                       if (newTimeSectionText) {
                         setTimeSectionText(newTimeSectionText);
                         if (
-                          val.value === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-                          val.value === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                          triggerValue === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                          triggerValue === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                         ) {
                           form.setValue("time", 5);
                           form.setValue("timeUnit", TimeUnit.MINUTE);
@@ -564,7 +571,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         form.unregister("time");
                         form.unregister("timeUnit");
                       }
-                      if (isFormTrigger(val.value)) {
+                      if (isFormTrigger(triggerValue)) {
                         const steps = form.getValues("steps");
                         if (steps?.length) {
                           const updatedSteps = steps.map((step) =>
@@ -584,7 +591,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     }
                   }}
                   defaultValue={selectedTrigger}
-                  options={filteredTriggerOptions}
+                  options={filteredTriggerOptions.map((option) => ({
+                    label: option.label,
+                    value: option.value,
+                    needsTeamsUpgrade: option.needsTeamsUpgrade,
+                  }))}
+                  isOptionDisabled={(option: { label: string; value: string; needsTeamsUpgrade?: boolean }) =>
+                    !!option.needsTeamsUpgrade
+                  }
                 />
               );
             }}
@@ -1321,7 +1335,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       refEmailSubject.current = e;
                     }}
                     rows={2}
-                    disabled={props.readOnly || !hasActiveTeamPlan}
+                    disabled={props.readOnly || (!hasActiveTeamPlan && !isReminderTemplate)}
                     className="my-0 focus:ring-transparent"
                     required
                     {...restEmailSubjectForm}
@@ -1354,7 +1368,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 editable={
                   !props.readOnly &&
                   !isWhatsappAction(step.action) &&
-                  (hasActiveTeamPlan || isSMSAction(step.action))
+                  (hasActiveTeamPlan || isSMSAction(step.action) || isReminderTemplate)
                 }
                 excludedToolbarItems={
                   !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
