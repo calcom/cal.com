@@ -516,6 +516,7 @@ async function handler(
     _shouldServeCache,
     ...reqBody
   } = bookingData;
+  const isRecurringTeamBooking = rawBookingData.isRecurringTeamBooking ?? false;
 
   let troubleshooterData = buildTroubleshooterData({
     eventType,
@@ -993,6 +994,20 @@ async function handler(
         fixedUsers: fixedUserPool.map((u) => u.id),
         luckyUserPool: luckyUserPool.map((u) => u.id),
       };
+
+      // For team recurring bookings, the selected lucky user(s) will handle ALL occurrences
+      if (isRecurringTeamBooking && eventType.recurringEvent) {
+        loggerWithEventDetails.debug(
+          "Team recurring booking: Lucky user(s) assigned to entire series",
+          safeStringify({
+            schedulingType: eventType.schedulingType,
+            luckyUsers: luckyUsers.map((u) => u.id),
+            fixedUsers: fixedUserPool.map((u) => u.id),
+            recurringEventFreq: eventType.recurringEvent.freq,
+            recurringEventCount: eventType.recurringEvent.count,
+          })
+        );
+      }
     } else if (
       input.bookingData.allRecurringDates &&
       eventType.schedulingType === SchedulingType.ROUND_ROBIN
@@ -1501,10 +1516,21 @@ async function handler(
         logger.info(`Booking created`, {
           bookingUid: booking.uid,
           availabilitySnapshot: organizerUserAvailability?.availabilityData,
+          isRecurringTeamBooking,
+          ...(isRecurringTeamBooking && eventType.recurringEvent
+            ? {
+                recurringEventInfo: {
+                  freq: eventType.recurringEvent.freq,
+                  count: eventType.recurringEvent.count,
+                  interval: eventType.recurringEvent.interval,
+                },
+              }
+            : {}),
         });
       }
 
-      // If it's a round robin event, record the reason for the host assignment
+      // Record assignment reason for round robin bookings
+      // For recurring bookings, this records ONCE for the entire series
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
         if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
           assignmentReason = await AssignmentReasonRecorder.CRMOwnership({
@@ -1524,6 +1550,19 @@ async function handler(
             isRerouting: !!reroutingFormResponses,
             reroutedByEmail: reqBody.rescheduledBy,
           });
+        }
+
+        // Log assignment details for recurring bookings
+        if (isRecurringTeamBooking && assignmentReason) {
+          loggerWithEventDetails.debug(
+            "Recorded assignment reason for recurring team booking series",
+            safeStringify({
+              bookingId: booking.id,
+              organizerId: organizerUser.id,
+              assignmentReason,
+              schedulingType: eventType.schedulingType,
+            })
+          );
         }
       }
 
