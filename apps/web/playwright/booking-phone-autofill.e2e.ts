@@ -150,9 +150,8 @@ async function addPhoneQuestion(page: Page, name: string, label: string, require
 }
 
 async function selectAttendeePhoneNumber(page: Page) {
-  const locationOptionText = "Attendee Phone Number";
   await page.getByTestId("location-select").click();
-  await page.locator(`text=${locationOptionText}`).click();
+  await page.getByTestId("location-select-item-phone").click();
 }
 
 async function selectPhoneLocation(page: Page) {
