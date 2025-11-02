@@ -195,7 +195,6 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     });
     const variables: VariablesType = {
       eventName: evt.title || "",
-      bookingTitle: evt.title || "",
       organizerName: evt.organizer.name,
       attendeeName: attendeeToBeUsedInMail.name,
       attendeeFirstName: attendeeToBeUsedInMail.firstName,

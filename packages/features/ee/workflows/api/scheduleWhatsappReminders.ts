@@ -81,7 +81,7 @@ export async function handler(req: NextRequest) {
       const contentVariables = getContentVariablesForTemplate({
         name: userName,
         attendeeName: attendeeName || "",
-        eventName: reminder.booking.title,
+        eventName: reminder.booking?.eventType?.title,
         eventDate: dayjs(startTime).tz(timeZone).locale(locale).format("YYYY MMM D"),
         startTime: dayjs(startTime)
           .tz(timeZone)
@@ -95,7 +95,7 @@ export async function handler(req: NextRequest) {
         reminder.workflowStep.action,
         timeFormat,
         startTime || "",
-        reminder.booking.title || "",
+        reminder.booking?.eventType?.title || "",
         timeZone || "",
         attendeeName || "",
         userName
