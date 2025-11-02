@@ -30,7 +30,6 @@ export function ProBadge({ yearClaimed, validTillDate, isMobile }: ProBadgeProps
 
   return isMobile ? (
     <div className="text-default ml-2 flex items-center gap-1 text-xs">
-      {/* <Icon name="sparkles" className="h-4 w-4 text-blue-500" /> */}
       <span className="font-bold text-blue-500">Pro</span>
     </div>
   ) : (
