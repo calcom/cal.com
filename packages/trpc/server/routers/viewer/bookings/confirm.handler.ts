@@ -406,7 +406,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       );
     }
   }
-
   const message = confirmed ? "Booking confirmed" : "Booking rejected";
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
