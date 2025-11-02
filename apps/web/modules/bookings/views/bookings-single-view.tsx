@@ -100,7 +100,14 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
 
-  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
+  const {
+    eventType,
+    bookingInfo,
+    previousBooking,
+    requiresLoginToUpdate,
+    rescheduledToUid,
+    canViewHiddenData,
+  } = props;
 
   const {
     allRemainingBookings,
@@ -381,7 +388,6 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const _canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
@@ -715,7 +721,7 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {!!utmParams && isHost && (
+                        {!!utmParams && canViewHiddenData && (
                           <>
                             <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
                             <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
@@ -737,7 +743,7 @@ export default function Success(props: PageProps) {
                               {showUtmParams && (
                                 <div className="col-span-2 mb-2 mt-2">
                                   {Object.entries(utmParams).filter(([_, value]) => Boolean(value)).length >
-                                  0 ? (
+                                    0 ? (
                                     <ul className="list-disc space-y-1 p-1 pl-5 sm:w-80">
                                       {Object.entries(utmParams)
                                         .filter(([_, value]) => Boolean(value))
@@ -845,11 +851,10 @@ export default function Success(props: PageProps) {
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link
-                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                          currentUserEmail
-                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                            : ""
-                                        }`}
+                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${currentUserEmail
+                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                          : ""
+                                          }`}
                                         legacyBehavior>
                                         {t("reschedule")}
                                       </Link>
