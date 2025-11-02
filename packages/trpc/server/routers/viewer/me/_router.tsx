@@ -41,7 +41,6 @@ export const meRouter = router({
     return handler({ ctx, input });
   }),
   calid_get: authedProcedure.input(ZCalIdGetInputSchema).query(async ({ ctx, input }) => {
-    console.log("Calling get handler: ");
     const handler = (await import("./calid/get.handler")).getHandler;
 
     return handler({ ctx, input });

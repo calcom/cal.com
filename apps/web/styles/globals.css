@@ -767,3 +767,29 @@ select:focus {
   animation: offerMovingBg 3s ease-in-out infinite reverse;
   z-index: -1;
 }
+
+/* Override text color for offer moving background to ensure visibility */
+.offer-moving-bg[aria-current="page"] {
+  color: var(--cal-text-emphasis) !important;
+}
+
+.offer-moving-bg[aria-current="page"] span {
+  color: var(--cal-text-emphasis) !important;
+}
+
+.offer-moving-bg[aria-current="page"] .icon {
+  color: var(--cal-text-emphasis) !important;
+}
+
+/* In dark mode, always use black text for better contrast against the colorful background */
+.dark .offer-moving-bg {
+  color: #000000 !important;
+}
+
+.dark .offer-moving-bg span {
+  color: #000000 !important;
+}
+
+.dark .offer-moving-bg .icon {
+  color: #000000 !important;
+}
