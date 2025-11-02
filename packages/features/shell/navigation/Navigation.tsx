@@ -296,7 +296,7 @@ const IntegrationRequests = () => {
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
   return (
-    <nav className="mt-9 flex-1  md:px-2 lg:px-0">
+    <nav className="mt-8 flex-1 md:px-2 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
