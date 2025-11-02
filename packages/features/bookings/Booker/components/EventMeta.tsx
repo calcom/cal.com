@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { shallow } from "zustand/shallow";
 
 import { Timezone as PlatformTimezoneSelect } from "@calcom/atoms/timezone";
@@ -43,6 +43,93 @@ const getTranslatedField = (
       i18nLocales.includes(trans.targetLocale) &&
       (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
   )?.translatedText;
+};
+
+const ScrollFadeDescription = ({
+  html,
+  collapsedMaxHeight = 180,
+  fadePx = 28,
+  linesFromBottomToUnfade = 2,
+}: {
+  html: string | null;
+  collapsedMaxHeight?: number;
+  fadePx?: number;
+  linesFromBottomToUnfade?: number;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [showFade, setShowFade] = useState(false);
+
+  // Update whether fade is needed and whether we're near the bottom
+  const update = () => {
+    const el = ref.current;
+    if (!el) return;
+    const overflow = el.scrollHeight > el.clientHeight + 1;
+
+    // Compute threshold as N lines
+    const cs = window.getComputedStyle(el);
+    let lineHeight = parseFloat(cs.lineHeight || "0");
+    if (!Number.isFinite(lineHeight) || lineHeight <= 0) {
+      // Fallback for 'normal'
+      const fontSize = parseFloat(cs.fontSize || "16");
+      lineHeight = Math.round(fontSize * 1.4); // conservative fallback
+    }
+    const bottomThresholdPx = Math.max(fadePx, lineHeight * linesFromBottomToUnfade);
+
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - bottomThresholdPx;
+
+    setShowFade(overflow && !nearBottom);
+  };
+
+  useEffect(() => {
+    update();
+    const el = ref.current;
+    if (!el) return;
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        update();
+      });
+    };
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+
+    return () => {
+      el.removeEventListener("scroll", onScroll);
+      ro.disconnect();
+    };
+  }, [html]);
+
+  // Use mask-image so scrollbar and interactions are unaffected
+  const mask = showFade
+    ? `linear-gradient(to bottom, black calc(100% - ${fadePx}px), transparent 100%)`
+    : "none";
+
+  return (
+    <div className="relative">
+      <div
+        ref={ref}
+        className="scroll-bar pr-4"
+        style={{
+          maxHeight: `${collapsedMaxHeight}px`,
+          overflowY: "auto",
+          WebkitMaskImage: mask,
+          maskImage: mask,
+        }}>
+        <div
+          dangerouslySetInnerHTML={{
+            __html: html || "",
+          }}
+        />
+      </div>
+    </div>
+  );
 };
 
 export const EventMeta = ({
@@ -178,12 +265,9 @@ export const EventMeta = ({
           {(event.description || translatedDescription) && (
             <EventMetaBlock
               data-testid="event-meta-description"
-              contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{
-                  __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
-                }}
+              contentClassName="mb-8 break-words max-w-full">
+              <ScrollFadeDescription
+                html={markdownToSafeHTMLClient(translatedDescription ?? event.description)}
               />
             </EventMetaBlock>
           )}
