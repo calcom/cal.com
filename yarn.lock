@@ -2817,6 +2817,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/kmeet@workspace:packages/app-store/kmeet":
+  version: 0.0.0-use.local
+  resolution: "@calcom/kmeet@workspace:packages/app-store/kmeet"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/kysely@workspace:packages/kysely":
   version: 0.0.0-use.local
   resolution: "@calcom/kysely@workspace:packages/kysely"
