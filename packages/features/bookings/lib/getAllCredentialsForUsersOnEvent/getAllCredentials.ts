@@ -34,7 +34,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
       select: credentialForCalendarServiceSelect,
     });
     if (Array.isArray(teamCredentialsQuery)) {
-      allCredentials.push(...teamCredentialsQuery);
+    allCredentials.push(...teamCredentialsQuery);
     }
   }
 

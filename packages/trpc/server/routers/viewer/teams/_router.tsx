@@ -180,8 +180,8 @@ export const viewerTeamsRouter = router({
     .input(ZGetManagedEventUsersToReassignInputSchema)
     .query(async (opts) => {
       const { default: handler } = await import("./managedEvents/getManagedEventUsersToReassign.handler");
-      return handler(opts);
-    }),
+    return handler(opts);
+  }),
   checkIfMembershipExists: authedProcedure
     .input(ZCheckIfMembershipExistsInputSchema)
     .mutation(async (opts) => {

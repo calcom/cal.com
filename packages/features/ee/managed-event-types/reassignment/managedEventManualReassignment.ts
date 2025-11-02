@@ -203,10 +203,14 @@ export async function managedEventManualReassignment({
 
   // 7. Execute the reassignment in a transaction (cancel + create)
   const { newBooking, cancelledBooking } = await prisma.$transaction(async (tx) => {
-    // First, cancel the original booking
-    const cancelled = await tx.booking.update(originalBookingCancellationData);
+    // First, cancel the original booking - destructure to avoid type conflicts
+    const cancelled = await tx.booking.update({
+      where: originalBookingCancellationData.where,
+      data: originalBookingCancellationData.data,
+      select: originalBookingCancellationData.select,
+    });
 
-    // Then, create the new booking
+    // Then, create the new booking - destructure to avoid type conflicts
     const created = await tx.booking.create({
       data: newBookingData,
       include: {
@@ -254,12 +258,13 @@ export async function managedEventManualReassignment({
   // 8. Handle calendar events - delete from old user, create for new user
   const apps = eventTypeAppMetadataOptionalSchema.parse(targetEventTypeDetails?.metadata?.apps);
 
+  // Get translation functions for both users
+  const { getTranslation } = await import("@calcom/lib/server/i18n");
+  const originalUserT = await getTranslation(originalUser.locale ?? "en", "common");
+  const newUserT = await getTranslation(newUser.locale ?? "en", "common");
+
   // Delete calendar events from original user
   if (originalUser) {
-    // Get translation functions for both users
-    const { getTranslation } = await import("@calcom/lib/server/i18n");
-    const originalUserT = await getTranslation(originalUser.locale ?? "en", "common");
-
     const originalUserCredentials = await getAllCredentialsIncludeServiceAccountKey(
       originalUser,
       currentEventTypeDetails
@@ -272,6 +277,7 @@ export async function managedEventManualReassignment({
     try {
       await originalEventManager.deleteEventsAndMeetings({
         event: {
+          type: currentEventTypeDetails.slug,
           organizer: {
             id: originalUser.id,
             name: originalUser.name || "",
@@ -296,7 +302,6 @@ export async function managedEventManualReassignment({
   }
 
   // Create calendar events for new user
-  const newUserT = await getTranslation(newUser.locale ?? "en", "common");
 
   const newUserWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: { ...newUser, credentials: newUserCredentials },
@@ -318,7 +323,12 @@ export async function managedEventManualReassignment({
       title: newBooking.title,
       type: targetEventTypeDetails.slug,
       uid: newBooking.uid,
-      attendees: newBooking.attendees.map(att => ({
+      attendees: newBooking.attendees.map((att: {
+        name: string;
+        email: string;
+        timeZone: string;
+        locale: string | null;
+      }) => ({
         name: att.name,
         email: att.email,
         timeZone: att.timeZone,
@@ -345,26 +355,33 @@ export async function managedEventManualReassignment({
   }
 
   // 9. Cancel workflow reminders for original booking
-  try {
-    await sendCancelledReminders({
-      evt: {
-        organizer: {
-          email: originalUser.email,
-          name: originalUser.name || "",
-          timeZone: originalUser.timeZone,
-          language: { translate: originalUserT, locale: originalUser.locale ?? "en" },
+  if (currentEventTypeDetails.workflows && currentEventTypeDetails.workflows.length > 0) {
+    try {
+      await sendCancelledReminders({
+        evt: {
+          type: currentEventTypeDetails.slug,
+          organizer: {
+            email: originalUser.email,
+            name: originalUser.name || "",
+            timeZone: originalUser.timeZone,
+            language: { translate: originalUserT, locale: originalUser.locale ?? "en" },
+          },
+          startTime: dayjs(originalBookingFull.startTime).utc().format(),
+          endTime: dayjs(originalBookingFull.endTime).utc().format(),
+          title: originalBookingFull.title,
+          uid: originalBookingFull.uid,
+          attendees: [],
+          eventType: { slug: currentEventTypeDetails.slug },
+          bookerUrl: `${originalUser.username}/${currentEventTypeDetails.slug}`,
         },
-        startTime: dayjs(originalBookingFull.startTime).utc().format(),
-        endTime: dayjs(originalBookingFull.endTime).utc().format(),
-        title: originalBookingFull.title,
-        uid: originalBookingFull.uid,
-        attendees: [],
-      },
-      hideBranding: false,
-    });
-    reassignLogger.info("Cancelled workflow reminders for original booking");
-  } catch (error) {
-    reassignLogger.error("Error cancelling workflow reminders", error);
+        workflows: currentEventTypeDetails.workflows.map(w => w.workflow),
+        smsReminderNumber: originalBookingFull.smsReminderNumber || null,
+        hideBranding: false,
+      });
+      reassignLogger.info("Cancelled workflow reminders for original booking");
+    } catch (error) {
+      reassignLogger.error("Error cancelling workflow reminders", error);
+    }
   }
 
   // 10. Schedule workflow reminders for new booking
@@ -388,7 +405,12 @@ export async function managedEventManualReassignment({
             timeZone: newUser.timeZone,
             language: { translate: newUserT, locale: newUser.locale ?? "en" },
           },
-          attendees: newBooking.attendees.map(att => ({
+          attendees: newBooking.attendees.map((att: {
+            name: string;
+            email: string;
+            timeZone: string;
+            locale: string | null;
+          }) => ({
             name: att.name,
             email: att.email,
             timeZone: att.timeZone,
@@ -397,6 +419,7 @@ export async function managedEventManualReassignment({
           location: newBooking.location || undefined,
           description: newBooking.description || undefined,
           eventType: { slug: targetEventTypeDetails.slug },
+          bookerUrl: `${newUser.username}/${targetEventTypeDetails.slug}`,
         },
         hideBranding: !!targetEventTypeDetails.owner?.hideBranding,
         seatReferenceUid: undefined,
