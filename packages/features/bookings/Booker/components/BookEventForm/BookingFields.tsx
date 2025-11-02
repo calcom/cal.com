@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -37,7 +37,7 @@ export const BookingFields = ({
   paymentCurrency?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const { watch, setValue, getValues, formState } = useFormContext();
+  const { watch, setValue, formState } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
@@ -48,19 +48,29 @@ export const BookingFields = ({
     [fields]
   );
 
-  // Auto-fill other phone fields when location phone is filled
-  useEffect(() => {
-    // Only run when phone location is selected
-    if (locationResponse?.value !== "phone") return;
+  // Track last synced value to avoid redundant updates
+  const lastSyncedPhoneRef = useRef<string | null>(null);
 
-    const phone = (locationResponse?.optionValue ?? "").trim();
-    if (!phone) return;
+  // Event-driven sync function
+  const syncPhoneFields = (locationValue: unknown) => {
+    // Normalize the input shape
+    if (typeof locationValue !== "object" || !locationValue) return;
+    const { value: locationType, optionValue } = locationValue as {
+      value: string;
+      optionValue?: string;
+    };
+
+    // Only sync when location type is "phone"
+    if (locationType !== "phone") return;
+    const phone = (optionValue ?? "").trim();
+
+    // Skip if empty or same as last sync (avoid redundant updates during typing)
+    if (!phone || phone === lastSyncedPhoneRef.current) return;
 
     // Copy phone to other phone fields (only if user hasn't manually touched them)
     otherPhoneFieldNames.forEach((name) => {
       const targetTouched = !!(formState.touchedFields as TouchedFields)?.responses?.[name];
 
-      // Only auto-fill if user hasn't manually touched the field
       if (!targetTouched) {
         setValue(`responses.${name}`, phone, {
           shouldDirty: false,
@@ -68,14 +78,8 @@ export const BookingFields = ({
         });
       }
     });
-  }, [
-    locationResponse?.value,
-    locationResponse?.optionValue,
-    otherPhoneFieldNames,
-    getValues,
-    setValue,
-    formState.touchedFields,
-  ]);
+    lastSyncedPhoneRef.current = phone;
+  };
 
   const getPriceFormattedLabel = (label: string, price: number) =>
     `${label} (${Intl.NumberFormat(i18n.language, {
@@ -245,6 +249,11 @@ export const BookingFields = ({
             field={{ ...fieldWithPrice, hidden }}
             readOnly={readOnly}
             key={index}
+            {...(field.name === SystemField.Enum.location && {
+              onValueChange: ({ value }) => {
+                syncPhoneFields(value);
+              },
+            })}
           />
         );
       })}
