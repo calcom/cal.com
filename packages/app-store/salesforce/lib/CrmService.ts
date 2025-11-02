@@ -4,10 +4,10 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
+import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
-import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { PrismaAssignmentReasonRepository } from "@calcom/lib/server/repository/PrismaAssignmentReasonRepository";
@@ -741,6 +741,7 @@ export default class SalesforceCRMService implements CRM {
         booking: {
           uid: bookingUid,
         },
+        deleted: null,
       },
     });
 
@@ -1599,7 +1600,7 @@ export default class SalesforceCRMService implements CRM {
     const appOptions = this.getAppOptions();
     if (!appOptions.ifFreeEmailDomainSkipOwnerCheck) return false;
 
-    const response = await checkIfFreeEmailDomain(attendeeEmail);
+    const response = await checkIfFreeEmailDomain({ email: attendeeEmail });
     return response;
   }
 
