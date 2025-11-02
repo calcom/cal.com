@@ -65,7 +65,7 @@ export const BookingFields = ({
     const phone = (optionValue ?? "").trim();
 
     // Skip if empty or same as last sync (avoid redundant updates during typing)
-    if (phone === lastSyncedPhoneRef.current) return;
+    if (!phone || phone === lastSyncedPhoneRef.current) return;
 
     // Copy phone to other phone fields (only if user hasn't manually touched them)
     otherPhoneFieldNames.forEach((name) => {
