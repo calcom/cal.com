@@ -1,16 +1,20 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
-import { sendAddGuestsEmails } from "@calcom/emails";
+import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { BookingResponses } from "@calcom/prisma/zod-utils";
+import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -18,66 +22,143 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
+type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId"> &
+  Partial<Pick<NonNullable<TrpcSessionUser>, "profile">>;
+
 type AddGuestsOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: TUser;
   };
   input: TAddGuestsInputSchema;
+  emailsEnabled?: boolean;
 };
-export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
+
+type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
+type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
+
+export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
 
-  const booking = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    include: {
-      attendees: true,
-      eventType: {
-        include: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              parentId: true,
-              hideBranding: true,
-              parent: {
-                select: {
-                  hideBranding: true,
+  const booking = await getBooking(bookingId);
+
+  await validateUserPermissions(booking, user);
+
+  validateGuestsFieldEnabled(booking);
+
+  const organizer = await getOrganizerData(booking.userId);
+
+  const uniqueGuests = await sanitizeAndFilterGuests(guests, booking);
+
+  const newGuestsDetails = uniqueGuests.map((guest) => ({
+    name: guest.name || "",
+    email: guest.email,
+    timeZone: guest.timeZone || organizer.timeZone,
+    locale: guest.language || organizer.locale,
+  }));
+
+  const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
+
+  const bookingAttendees = await updateBookingAttendees(
+    bookingId,
+    newGuestsDetails,
+    uniqueGuestEmails,
+    booking
+  );
+
+  const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
+
+  const evt = await buildCalendarEvent(booking, organizer, attendeesList);
+
+  await updateCalendarEvent(booking, evt);
+
+  if (emailsEnabled) {
+    await sendGuestNotifications(evt, booking, uniqueGuestEmails);
+  }
+
+  return { message: "Guests added" };
+};
+
+async function getBooking(bookingId: number) {
+  const bookingRepository = new BookingRepository(prisma);
+  const booking = await bookingRepository.findByIdIncludeDestinationCalendar(bookingId);
+
+  if (!booking || !booking.user) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
+  }
+
+  // Fetch additional data needed for branding logic
+  // The repository method doesn't include eventType.team, eventType.owner, or user.organizationId/hideBranding
+  const [eventTypeWithTeam, userWithBranding] = await Promise.all([
+    booking.eventTypeId
+      ? prisma.eventType.findUnique({
+          where: { id: booking.eventTypeId },
+          select: {
+            id: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+                hideBranding: true,
+                parent: {
+                  select: {
+                    id: true,
+                    hideBranding: true,
+                  },
                 },
               },
             },
-          },
-          owner: {
-            select: {
-              id: true,
-              hideBranding: true,
+            owner: {
+              select: {
+                id: true,
+                hideBranding: true,
+              },
             },
           },
-        },
-      },
-      destinationCalendar: true,
-      references: true,
-      user: {
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          timeZone: true,
-          timeFormat: true,
-          name: true,
-          destinationCalendar: true,
-          credentials: true,
-          hideBranding: true,
-          organizationId: true,
-        },
-      },
-    },
-  });
+        })
+      : Promise.resolve(null),
+    booking.userId
+      ? prisma.user.findUnique({
+          where: { id: booking.userId },
+          select: {
+            id: true,
+            organizationId: true,
+            hideBranding: true,
+          },
+        })
+      : Promise.resolve(null),
+  ]);
 
-  if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
+  // Attach fetched data to booking object with proper type handling
+  if (eventTypeWithTeam && booking.eventType) {
+    (
+      booking.eventType as typeof booking.eventType & {
+        team: typeof eventTypeWithTeam.team;
+        owner: typeof eventTypeWithTeam.owner;
+      }
+    ).team = eventTypeWithTeam.team;
+    (
+      booking.eventType as typeof booking.eventType & {
+        team: typeof eventTypeWithTeam.team;
+        owner: typeof eventTypeWithTeam.owner;
+      }
+    ).owner = eventTypeWithTeam.owner;
+  }
 
+  if (userWithBranding && booking.user) {
+    (
+      booking.user as typeof booking.user & { organizationId: number | null; hideBranding: boolean | null }
+    ).organizationId = userWithBranding.organizationId;
+    (
+      booking.user as typeof booking.user & { organizationId: number | null; hideBranding: boolean | null }
+    ).hideBranding = userWithBranding.hideBranding;
+  }
+
+  return booking;
+}
+
+async function validateUserPermissions(booking: Booking, user: TUser): Promise<void> {
   const isOrganizer = booking.userId === user.id;
   const isAttendee = !!booking.attendees.find((attendee) => attendee.email === user.email);
 
@@ -86,7 +167,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     const permissionCheckService = new PermissionCheckService();
     hasBookingUpdatePermission = await permissionCheckService.checkPermission({
       userId: user.id,
-      teamId: booking.eventType.teamId,
+      teamId: booking.eventType?.teamId,
       permission: "booking.update",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
@@ -95,10 +176,30 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   if (!hasBookingUpdatePermission && !isOrganizer && !isAttendee) {
     throw new TRPCError({ code: "FORBIDDEN", message: "you_do_not_have_permission" });
   }
+}
 
-  const organizer = await prisma.user.findUniqueOrThrow({
+function validateGuestsFieldEnabled(booking: Booking): void {
+  const parsedBookingFields = booking?.eventType?.bookingFields
+    ? eventTypeBookingFields.parse(booking.eventType.bookingFields)
+    : [];
+
+  const guestsBookingField = parsedBookingFields.find((field) => field.name === "guests");
+  if (guestsBookingField?.hidden) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Cannot add guests to this booking. The guests field is disabled for event type "${booking?.eventType?.title}" (ID: ${booking?.eventTypeId}). Please contact the event organizer to enable guest additions.`,
+    });
+  }
+}
+
+async function getOrganizerData(userId: number | null) {
+  if (!userId) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
+  }
+
+  return await prisma.user.findUniqueOrThrow({
     where: {
-      id: booking.userId || 0,
+      id: userId,
     },
     select: {
       name: true,
@@ -107,13 +208,11 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       locale: true,
     },
   });
+}
 
-  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
-    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
-    : [];
-
+function deduplicateGuestEmails(guests: string[]): string[] {
   const seenBaseEmails = new Set<string>();
-  const deduplicatedGuests = guests.filter((guest) => {
+  return guests.filter((guest) => {
     const baseEmail = extractBaseEmail(guest).toLowerCase();
     if (seenBaseEmails.has(baseEmail)) {
       return false;
@@ -121,8 +220,15 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     seenBaseEmails.add(baseEmail);
     return true;
   });
+}
 
-  const guestEmails = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
+function getBlacklistedEmails(): string[] {
+  return process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
+    : [];
+}
+
+async function getEmailVerificationRequirements(guestEmails: string[]): Promise<Map<string, boolean>> {
   const userRepo = new UserRepository(prisma);
   const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
 
@@ -132,8 +238,40 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
   }
 
-  const uniqueGuests = deduplicatedGuests.filter((guest) => {
-    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+  return emailToRequiresVerification;
+}
+
+async function sanitizeAndFilterGuests(
+  guests: Array<{
+    email: string;
+    name?: string;
+    timeZone?: string;
+    phoneNumber?: string;
+    language?: string;
+  }>,
+  booking: Booking
+): Promise<
+  Array<{
+    email: string;
+    name?: string;
+    timeZone?: string;
+    phoneNumber?: string;
+    language?: string;
+  }>
+> {
+  const guestEmails = guests.map((guest) => guest.email);
+  const deduplicatedGuests = deduplicateGuestEmails(guestEmails);
+  const blacklistedGuestEmails = getBlacklistedEmails();
+  const guestEmailsLowerCase = deduplicatedGuests.map((email) => extractBaseEmail(email).toLowerCase());
+  const emailToRequiresVerification = await getEmailVerificationRequirements(guestEmailsLowerCase);
+
+  // Create a map of email to guest object for easy lookup
+  const emailToGuestMap = new Map(
+    guests.map((guest) => [extractBaseEmail(guest.email).toLowerCase(), guest])
+  );
+
+  const uniqueGuestEmails = deduplicatedGuests.filter((email) => {
+    const baseGuestEmail = extractBaseEmail(email).toLowerCase();
     return (
       !booking.attendees.some(
         (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
@@ -143,41 +281,37 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     );
   });
 
-  if (uniqueGuests.length === 0)
+  if (uniqueGuestEmails.length === 0) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
+  }
 
-  const guestsFullDetails = uniqueGuests.map((guest) => {
-    return {
-      name: "",
-      email: guest,
-      timeZone: organizer.timeZone,
-      locale: organizer.locale,
-    };
-  });
+  // Return the full guest objects for unique emails
+  return uniqueGuestEmails
+    .map((email) => emailToGuestMap.get(extractBaseEmail(email).toLowerCase()))
+    .filter((guest): guest is NonNullable<typeof guest> => guest !== undefined);
+}
 
+async function updateBookingAttendees(
+  bookingId: number,
+  newAttendees: { name: string; email: string; timeZone: string; locale: string | null }[],
+  uniqueGuestEmails: string[],
+  booking: Booking
+) {
   const bookingResponses = booking.responses as BookingResponses;
+  const bookingRepository = new BookingRepository(prisma);
 
-  const bookingAttendees = await prisma.booking.update({
-    where: {
-      id: bookingId,
-    },
-    include: {
-      attendees: true,
-    },
-    data: {
-      attendees: {
-        createMany: {
-          data: guestsFullDetails,
-        },
-      },
-      responses: {
-        ...bookingResponses,
-        guests: [...(bookingResponses?.guests || []), ...uniqueGuests],
-      },
+  return await bookingRepository.updateBookingAttendees({
+    bookingId,
+    newAttendees,
+    updatedResponses: {
+      ...bookingResponses,
+      guests: [...(bookingResponses?.guests || []), ...uniqueGuestEmails],
     },
   });
+}
 
-  const attendeesListPromises = bookingAttendees.attendees.map(async (attendee) => {
+async function prepareAttendeesList(attendees: Booking["attendees"]) {
+  const attendeesListPromises = attendees.map(async (attendee) => {
     return {
       name: attendee.name,
       email: attendee.email,
@@ -189,7 +323,14 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     };
   });
 
-  const attendeesList = await Promise.all(attendeesListPromises);
+  return await Promise.all(attendeesListPromises);
+}
+
+async function buildCalendarEvent(
+  booking: Booking,
+  organizer: OrganizerData,
+  attendeesList: Awaited<ReturnType<typeof prepareAttendeesList>>
+): Promise<CalendarEvent> {
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
   const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
 
@@ -230,35 +371,79 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     };
   }
 
-  const credentials = await getUsersCredentialsIncludeServiceAccountKey(ctx.user);
+  return evt;
+}
+
+async function updateCalendarEvent(booking: Booking, evt: CalendarEvent): Promise<void> {
+  if (!booking.user) {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Booking user not found" });
+  }
+
+  const credentials = await getUsersCredentialsIncludeServiceAccountKey(booking.user);
 
   const eventManager = new EventManager({
-    ...user,
+    ...booking.user,
     credentials: [...credentials],
   });
 
   await eventManager.updateCalendarAttendees(evt, booking);
+}
 
-  try {
-    const eventTypeId = booking.eventTypeId;
-    let hideBranding = false;
-    if (!eventTypeId) {
-      console.warn("Booking missing eventTypeId, defaulting hideBranding to false");
-      hideBranding = false;
-    } else {
-      const organizationId = booking.eventType?.team?.parentId ?? booking.user?.organizationId ?? null;
-      hideBranding = await shouldHideBrandingForEventWithPrisma({
-        eventTypeId,
-        team: booking.eventType?.team ?? null,
-        owner: booking.user ?? null,
-        organizationId: organizationId,
-      });
-    }
-
-    await sendAddGuestsEmails({ ...evt, hideBranding }, uniqueGuests);
-  } catch (err) {
-    console.error("Error sending AddGuestsEmails", err);
+async function sendGuestNotifications(
+  evt: CalendarEvent,
+  booking: Booking,
+  uniqueGuests: string[]
+): Promise<void> {
+  const eventTypeId = booking.eventTypeId;
+  let hideBranding = false;
+  if (!eventTypeId) {
+    logger.warn("Booking missing eventTypeId, defaulting hideBranding to false");
+    hideBranding = false;
+  } else {
+    // Type assertion needed because repository doesn't include team/owner in type
+    const eventType = booking.eventType as
+      | (typeof booking.eventType & {
+          team?: {
+            parentId: number | null;
+            hideBranding: boolean | null;
+            parent: { hideBranding: boolean | null } | null;
+          } | null;
+          owner?: { id: number; hideBranding: boolean | null } | null;
+        })
+      | null;
+    const user = booking.user as
+      | (typeof booking.user & {
+          organizationId: number | null;
+        })
+      | null;
+    const organizationId = eventType?.team?.parentId ?? user?.organizationId ?? null;
+    // Convert team to match TeamWithBranding type (parent must be object or null, not undefined)
+    const team = eventType?.team
+      ? {
+          hideBranding: eventType.team.hideBranding,
+          parent: eventType.team.parent ?? null,
+        }
+      : null;
+    hideBranding = await shouldHideBrandingForEventWithPrisma({
+      eventTypeId,
+      team,
+      owner: user ?? null,
+      organizationId: organizationId,
+    });
   }
 
-  return { message: "Guests added" };
-};
+  const evtWithBranding = { ...evt, hideBranding };
+
+  const emailsAndSmsHandler = new BookingEmailSmsHandler({
+    logger: logger,
+  });
+
+  await emailsAndSmsHandler.handleAddGuests({
+    evt: evtWithBranding,
+    eventType: {
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
+      schedulingType: booking.eventType?.schedulingType || null,
+    },
+    newGuests: uniqueGuests,
+  });
+}

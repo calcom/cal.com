@@ -16,6 +16,7 @@ import {
   sendOrganizerRequestEmail,
   sendAttendeeRequestEmailAndSMS,
   withHideBranding,
+  sendAddGuestsEmailsAndSMS,
 } from "@calcom/emails";
 import type { BookingType } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -67,6 +68,10 @@ type ConfirmedEmailAndSmsPayload = EmailAndSmsPayload & {
 type RequestedEmailAndSmsPayload = EmailAndSmsPayload & {
   attendees?: Person[];
   additionalNotes?: string | null;
+};
+
+type AddGuestsEmailAndSmsPayload = EmailAndSmsPayload & {
+  newGuests: string[];
 };
 
 type RescheduledSideEffectsPayload = {
@@ -321,6 +326,32 @@ export class BookingEmailSmsHandler {
       ]);
     } catch (err) {
       this.log.error("Failed to send requested event related emails", err);
+    }
+  }
+
+  /**
+   * Handles notifications when guests are added to an existing booking.
+   */
+  public async handleAddGuests(data: AddGuestsEmailAndSmsPayload) {
+    const {
+      evt,
+      eventType: { metadata },
+      newGuests,
+    } = data;
+
+    this.log.debug(
+      "Action: ADD_GUESTS. Sending add guests emails and SMS.",
+      safeStringify({ calEvent: getPiiFreeCalendarEvent(evt) })
+    );
+
+    try {
+      await sendAddGuestsEmailsAndSMS({
+        calEvent: evt,
+        newGuests,
+        eventTypeMetadata: metadata,
+      });
+    } catch (err) {
+      this.log.error("Failed to send add guests related emails and SMS", err);
     }
   }
 }

@@ -1,5 +1,7 @@
 import { cloneDeep } from "lodash";
 
+
+
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
@@ -15,7 +17,7 @@ import {
 } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
-import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
@@ -209,7 +211,7 @@ export const roundRobinReassignment = async ({
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
 
-    const responseSchema = getBookingResponsesSchema({
+    const responseSchema = getBookingResponsesPartialSchema({
       bookingFields: eventType.bookingFields,
       view: "reschedule",
     });
@@ -256,6 +258,7 @@ export const roundRobinReassignment = async ({
         userId: reassignedRRHost.id,
         userPrimaryEmail: reassignedRRHost.email,
         title: newBookingTitle,
+        reassignById: reassignedById,
         idempotencyKey: IdempotencyKeyService.generate({
           startTime: booking.startTime,
           endTime: booking.endTime,
@@ -425,7 +428,7 @@ export const roundRobinReassignment = async ({
     bookingMetadata: booking.metadata,
   });
 
-  const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
+  const { cancellationReason: _cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
   if (emailsEnabled) {
@@ -440,6 +443,11 @@ export const roundRobinReassignment = async ({
           language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
         },
       ],
+      reassigned: {
+        name: reassignedRRHost.name,
+        email: reassignedRRHost.email,
+        byUser: originalOrganizer.name || undefined,
+      },
     });
   }
 
