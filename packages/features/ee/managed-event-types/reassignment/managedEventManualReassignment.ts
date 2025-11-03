@@ -2,6 +2,11 @@ import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegati
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
+import {
+  sendManagedEventScheduledEmailsAndSMS,
+  sendManagedEventReassignedEmailsAndSMS,
+  sendManagedEventUpdatedEmailsAndSMS,
+} from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
@@ -9,10 +14,11 @@ import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBook
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma/selects/user";
-import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 
 import { findTargetChildEventType, validateManagedEventReassignment } from "./utils";
 
@@ -434,7 +440,103 @@ export async function managedEventManualReassignment({
     }
   }
 
-  // TODO: 11. Send notification emails (original user, new user, attendees)
+  // 11. Send notification emails (original user, new user, attendees)
+  if (_emailsEnabled) {
+    try {
+      const eventTypeMetadata = targetEventTypeDetails.metadata as EventTypeMetadata | undefined;
+
+      // Build CalendarEvent for emails
+      const calEvent = {
+        type: targetEventTypeDetails.slug,
+        uid: newBooking.uid,
+        title: newBooking.title,
+        startTime: dayjs(newBooking.startTime).utc().format(),
+        endTime: dayjs(newBooking.endTime).utc().format(),
+        organizer: {
+          id: newUser.id,
+          name: newUser.name || "",
+          email: newUser.email,
+          timeZone: newUser.timeZone,
+          language: { translate: newUserT, locale: newUser.locale ?? "en" },
+          timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
+        },
+        attendees: newBooking.attendees.map((att) => ({
+          name: att.name,
+          email: att.email,
+          timeZone: att.timeZone,
+          language: { translate: newUserT, locale: att.locale ?? "en" },
+        })),
+        location: newBooking.location || undefined,
+        description: newBooking.description || undefined,
+      };
+
+      // Send email to new host (booking scheduled)
+      await sendManagedEventScheduledEmailsAndSMS({
+        calEvent,
+        members: [
+          {
+            ...newUser,
+            name: newUser.name || "",
+            username: newUser.username || "",
+            timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
+            language: { translate: newUserT, locale: newUser.locale || "en" },
+          },
+        ],
+        eventTypeMetadata,
+        reassigned: {
+          name: newUser.name,
+          email: newUser.email,
+          reason: reassignReason,
+          byUser: originalUser.name || undefined,
+        },
+      });
+      reassignLogger.info("Sent scheduled email to new host");
+
+      // Send email to old host (booking reassigned/cancelled)
+      if (originalUser) {
+        const cancelledCalEvent = {
+          ...calEvent,
+          organizer: {
+            id: originalUser.id,
+            name: originalUser.name || "",
+            email: originalUser.email,
+            timeZone: originalUser.timeZone,
+            language: { translate: originalUserT, locale: originalUser.locale ?? "en" },
+            timeFormat: getTimeFormatStringFromUserTimeFormat(originalUser.timeFormat),
+          },
+        };
+
+        await sendManagedEventReassignedEmailsAndSMS({
+          calEvent: cancelledCalEvent,
+          members: [
+            {
+              ...originalUser,
+              name: originalUser.name || "",
+              username: originalUser.username || "",
+              timeFormat: getTimeFormatStringFromUserTimeFormat(originalUser.timeFormat),
+              language: { translate: originalUserT, locale: originalUser.locale || "en" },
+            },
+          ],
+          reassignedTo: { name: newUser.name, email: newUser.email },
+          eventTypeMetadata,
+        });
+        reassignLogger.info("Sent reassignment email to original host");
+      }
+
+      // Send email to attendees (host changed)
+      if (dayjs(calEvent.startTime).isAfter(dayjs())) {
+        await sendManagedEventUpdatedEmailsAndSMS({
+          calEvent,
+          eventTypeMetadata,
+        });
+        reassignLogger.info("Sent update emails to attendees");
+      }
+    } catch (error) {
+      reassignLogger.error("Error sending notification emails", error);
+      // Don't throw - emails are not critical for reassignment success
+    }
+  }
+
   // TODO: 12. Send webhook event BOOKING_REASSIGNED
 
   reassignLogger.info("Reassignment completed successfully", {

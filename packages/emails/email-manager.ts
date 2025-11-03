@@ -284,6 +284,77 @@ export const sendRoundRobinReassignedEmailsAndSMS = async (args: {
   await Promise.all(emailsAndSMSToSend);
 };
 
+// Managed Event Email Functions
+export const sendManagedEventScheduledEmailsAndSMS = async ({
+  calEvent,
+  members,
+  eventTypeMetadata,
+  reassigned,
+}: {
+  calEvent: CalendarEvent;
+  members: Person[];
+  eventTypeMetadata?: EventTypeMetadata;
+  reassigned?: { name: string | null; email: string; reason?: string; byUser?: string };
+}) => {
+  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
+  const formattedCalEvent = formatCalEvent(calEvent);
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+  const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
+
+  for (const teamMember of members) {
+    emailsAndSMSToSend.push(
+      sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent, teamMember, reassigned }))
+    );
+    if (teamMember.phoneNumber) {
+      emailsAndSMSToSend.push(eventScheduledSMS.sendSMSToAttendee(teamMember));
+    }
+  }
+
+  await Promise.all(emailsAndSMSToSend);
+};
+
+export const sendManagedEventReassignedEmailsAndSMS = async (args: {
+  calEvent: CalendarEvent;
+  members: Person[];
+  reassignedTo: { name: string | null; email: string };
+  eventTypeMetadata?: EventTypeMetadata;
+}) => {
+  const { calEvent, members, reassignedTo, eventTypeMetadata } = args;
+  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
+  const calendarEvent = formatCalEvent(calEvent);
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+  const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
+  for (const teamMember of members) {
+    emailsAndSMSToSend.push(
+      sendEmail(
+        () => new OrganizerReassignedEmail({ calEvent: calendarEvent, teamMember, reassigned: reassignedTo })
+      )
+    );
+
+    if (teamMember.phoneNumber) {
+      emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(teamMember));
+    }
+  }
+
+  await Promise.all(emailsAndSMSToSend);
+};
+
+export const sendManagedEventUpdatedEmailsAndSMS = async ({
+  calEvent,
+  eventTypeMetadata,
+}: {
+  calEvent: CalendarEvent;
+  eventTypeMetadata?: EventTypeMetadata;
+}) => {
+  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
+
+  const emailsToSend = calEvent.attendees.map((attendee) =>
+    sendEmail(() => new AttendeeUpdatedEmail(calEvent, attendee))
+  );
+
+  await Promise.all(emailsToSend);
+};
+
 const _sendRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventTypeMetadata?: EventTypeMetadata
