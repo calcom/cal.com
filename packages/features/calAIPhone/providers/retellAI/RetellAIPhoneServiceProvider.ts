@@ -265,6 +265,7 @@ export class RetellAIPhoneServiceProvider
     voiceId?: string;
     language?: Language;
     outboundEventTypeId?: number;
+    timeZone?: string;
   }): Promise<{ message: string }> {
     return await this.service.updateAgentConfiguration(params);
   }

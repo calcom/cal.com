@@ -626,6 +626,7 @@ export class AgentService {
     voiceId,
     language,
     outboundEventTypeId,
+    timeZone,
     updateLLMConfiguration,
   }: {
     id: string;
@@ -638,6 +639,7 @@ export class AgentService {
     voiceId?: string;
     language?: Language;
     outboundEventTypeId?: number;
+    timeZone?: string;
     updateLLMConfiguration: (
       llmId: string,
       data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
@@ -716,8 +718,7 @@ export class AgentService {
       }
     }
 
-    // Update outbound event type ID in database if provided
-    if (outboundEventTypeId) {
+    if (outboundEventTypeId && agent.outboundEventTypeId !== outboundEventTypeId) {
       const eventTypeRepository = new EventTypeRepository(prisma);
 
       const outBoundEventType = await eventTypeRepository.findByIdMinimal({
@@ -737,6 +738,14 @@ export class AgentService {
           message: "You don't have permission to use this event type.",
         });
       }
+
+      const userTimeZone = timeZone || "UTC";
+      await this.updateToolsFromAgentId(agent.providerAgentId, {
+        eventTypeId: outboundEventTypeId,
+        timeZone: userTimeZone,
+        userId,
+        teamId,
+      });
 
       await this.deps.agentRepository.updateOutboundEventTypeId({
         agentId: id,
