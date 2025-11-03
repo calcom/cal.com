@@ -186,6 +186,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
+  const cardCharged = booking?.payment[0]?.success;
 
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
