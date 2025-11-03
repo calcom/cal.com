@@ -34,6 +34,10 @@ const {
   Provider,
 } = widgetsComponents;
 
+if (!Conjs || !Button || !ButtonGroup || !Provider) {
+  console.error("Missing components:", { Conjs, Button, ButtonGroup, Provider });
+}
+
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
 const TextAreaFactory = (props: WidgetProps | undefined) => renderComponent(props, TextAreaWidget);
 const NumberFactory = (props: WidgetProps | undefined) => renderComponent(props, NumberWidget);
