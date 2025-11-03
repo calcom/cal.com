@@ -111,7 +111,8 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
     }
 
     describe("POST /v2/bookings", () => {
-      it("should create booking with reservedSlotUid from cookie and remove selected slot", async () => {
+      describe("normal event type", () => {
+        it("should create booking with reservedSlotUid from cookie and remove selected slot", async () => {
         const reservedSlotUid = `reserved-slot-${randomString()}`;
         const startTime = new Date("2040-05-21T09:30:00.000Z");
         const endTime = new Date("2040-05-21T10:30:00.000Z");
@@ -224,15 +225,162 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
         const expected = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${secondsFromMessage} seconds.`;
         expect(message).toEqual(expected);
 
-        // Verify both slots still exist
         const firstSlotStillExists = await selectedSlotRepositoryFixture.getByUid(firstReservedSlotUid);
         const secondSlotStillExists = await selectedSlotRepositoryFixture.getByUid(secondReservedSlotUid);
         expect(firstSlotStillExists).toBeTruthy();
         expect(secondSlotStillExists).toBeTruthy();
 
-        // Clean up
         await selectedSlotRepositoryFixture.deleteByUId(firstReservedSlotUid);
         await selectedSlotRepositoryFixture.deleteByUId(secondReservedSlotUid);
+      });
+      });
+
+      describe("recurring event type", () => {
+        let recurringEventTypeId: number;
+        const recurringEventTypeSlug = `recurring-reserved-slot-bookings-event-type-${randomString()}`;
+
+        beforeAll(async () => {
+          const recurringEvent = await eventTypesRepositoryFixture.create(
+            {
+              title: `recurring-reserved-slot-bookings-2024-04-15-event-type-${randomString()}`,
+              slug: recurringEventTypeSlug,
+              length: 60,
+              recurringEvent: { freq: 2, count: 3, interval: 1 },
+              metadata: {
+                disableStandardEmails: {
+                  all: {
+                    attendee: true,
+                    host: true,
+                  },
+                },
+              },
+            },
+            user.id
+          );
+          recurringEventTypeId = recurringEvent.id;
+        });
+
+        it("should create booking with reservedSlotUid from cookie and remove selected slot", async () => {
+          const reservedSlotUid = `reserved-slot-${randomString()}`;
+          const startTime = new Date("2040-05-21T09:30:00.000Z");
+          const endTime = new Date("2040-05-21T10:30:00.000Z");
+
+          await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime, endTime);
+
+          const bookingData: CreateBookingInput_2024_04_15 = {
+            start: startTime.toISOString(),
+            eventTypeId: recurringEventTypeId,
+            timeZone: "Europe/Rome",
+            language: "en",
+            metadata: {},
+            hashedLink: null,
+            responses: {
+              name: "Test Attendee",
+              email: `reserved-slot-test-${randomString()}@example.com`,
+            },
+          };
+
+          const response = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingData)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
+            .set("Cookie", `${RESERVED_SLOT_UID_COOKIE_NAME}=${reservedSlotUid}`)
+            .expect(201);
+
+          const responseBody: ApiSuccessResponse<BookingResponse[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(Array.isArray(responseBody.data)).toBe(true);
+          expect(responseBody.data[0].id).toBeDefined();
+
+          const remainingSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlotUid);
+          expect(remainingSlot).toBeNull();
+        });
+
+        it("should create booking with reservedSlotUid from request body and remove selected slot", async () => {
+          const reservedSlotUid = `reserved-slot-${randomString()}`;
+          const startTime = new Date("2040-05-21T11:30:00.000Z");
+          const endTime = new Date("2040-05-21T12:30:00.000Z");
+
+          await createReservedSlot(user.id, recurringEventTypeId, reservedSlotUid, startTime, endTime);
+
+          const bookingData: CreateBookingInput_2024_04_15 & { reservedSlotUid: string } = {
+            start: startTime.toISOString(),
+            eventTypeId: recurringEventTypeId,
+            timeZone: "Europe/Rome",
+            language: "en",
+            metadata: {},
+            hashedLink: null,
+            responses: {
+              name: "Test Attendee",
+              email: `reserved-slot-test-${randomString()}@example.com`,
+            },
+            reservedSlotUid,
+          };
+
+          const response = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingData)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
+            .expect(201);
+
+          const responseBody: ApiSuccessResponse<BookingResponse[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(Array.isArray(responseBody.data)).toBe(true);
+          expect(responseBody.data[0].id).toBeDefined();
+
+          const remainingSlot = await selectedSlotRepositoryFixture.getByUid(reservedSlotUid);
+          expect(remainingSlot).toBeNull();
+        });
+
+        it("should fail when trying to book with reservedSlotUid that is not first in line", async () => {
+          const firstReservedSlotUid = `reserved-slot-first-${randomString()}`;
+          const secondReservedSlotUid = `reserved-slot-second-${randomString()}`;
+          const startTime = new Date("2040-05-21T13:30:00.000Z");
+          const endTime = new Date("2040-05-21T14:30:00.000Z");
+
+          await createReservedSlot(user.id, recurringEventTypeId, firstReservedSlotUid, startTime, endTime);
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          await createReservedSlot(user.id, recurringEventTypeId, secondReservedSlotUid, startTime, endTime);
+
+          const bookingData: CreateBookingInput_2024_04_15 & { reservedSlotUid: string } = {
+            start: startTime.toISOString(),
+            eventTypeId: recurringEventTypeId,
+            timeZone: "Europe/Rome",
+            language: "en",
+            metadata: {},
+            hashedLink: null,
+            responses: {
+              name: "Test Attendee",
+              email: `reserved-slot-test-${randomString()}@example.com`,
+            },
+            reservedSlotUid: secondReservedSlotUid, // Try to book with the second (not first in line)
+          };
+
+          const response = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(bookingData)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
+            .expect(400);
+
+          const message: string = response.body.message;
+          const match = message.match(/(\d+) seconds\.$/); 
+          expect(match).not.toBeNull();
+          const secondsFromMessage = parseInt(match![1], 10);
+          const expected = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${secondsFromMessage} seconds.`;
+          expect(message).toEqual(expected);
+
+          const firstSlotStillExists = await selectedSlotRepositoryFixture.getByUid(firstReservedSlotUid);
+          const secondSlotStillExists = await selectedSlotRepositoryFixture.getByUid(secondReservedSlotUid);
+          expect(firstSlotStillExists).toBeTruthy();
+          expect(secondSlotStillExists).toBeTruthy();
+
+          await selectedSlotRepositoryFixture.deleteByUId(firstReservedSlotUid);
+          await selectedSlotRepositoryFixture.deleteByUId(secondReservedSlotUid);
+        });
       });
     });
 
