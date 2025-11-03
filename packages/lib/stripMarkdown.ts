@@ -25,7 +25,6 @@ export function stripMarkdown(md: string, preserveNewlines = false): string {
     // Replace newlines with spaces and clean up whitespace
     plainText = plainText
       .replace(/\s+/g, " ") // Replace multiple whitespace with single space
-      .replace(/_/g, " ") // Replace underscores with spaces
       .trim();
   }
   

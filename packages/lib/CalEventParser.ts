@@ -69,7 +69,7 @@ export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNote
   if (!calEvent.additionalNotes) {
     return "";
   }
-  const plainText = stripMarkdown(calEvent.additionalNotes);
+  const plainText = stripMarkdown(calEvent.additionalNotes, true);
   return `${t("additional_notes")}:\n${plainText}`;
 };
 
@@ -118,7 +118,7 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
   if (!calEvent.description) {
     return "";
   }
-  const plainText = stripMarkdown(calEvent.description);
+  const plainText = stripMarkdown(calEvent.description, true);
   return `${t("description")}\n${plainText}`;
 };
 
