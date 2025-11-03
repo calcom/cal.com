@@ -116,6 +116,7 @@ function OutOfOfficeEntriesListContent() {
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         placeholderData: keepPreviousData,
+        refetchOnWindowFocus: false,
       }
     );
 
