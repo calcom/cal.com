@@ -1,9 +1,11 @@
 import { useState } from "react";
+import type { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { MeetingSessionDetailsDialog } from "@calcom/features/ee/video/MeetingSessionDetailsDialog";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
@@ -465,13 +467,30 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {isBookingFromRoutingForm && parsedBooking.eventType && (
-        <RerouteDialog
-          isOpenDialog={rerouteDialogIsOpen}
-          setIsOpenDialog={setRerouteDialogIsOpen}
-          booking={{ ...parsedBooking, eventType: parsedBooking.eventType }}
-        />
-      )}
+      {isBookingFromRoutingForm &&
+        parsedBooking.eventType &&
+        parsedBooking.eventType.id !== undefined &&
+        parsedBooking.eventType.slug !== undefined &&
+        parsedBooking.eventType.title !== undefined &&
+        parsedBooking.routedFromRoutingFormReponse && (
+          <RerouteDialog
+            isOpenDialog={rerouteDialogIsOpen}
+            setIsOpenDialog={setRerouteDialogIsOpen}
+            booking={{
+              ...parsedBooking,
+              metadata: parsedBooking.metadata as z.infer<typeof bookingMetadataSchema>,
+              routedFromRoutingFormReponse: parsedBooking.routedFromRoutingFormReponse,
+              eventType: {
+                length: parsedBooking.eventType.length ?? 0,
+                schedulingType: parsedBooking.eventType.schedulingType ?? null,
+                title: parsedBooking.eventType.title,
+                id: parsedBooking.eventType.id,
+                slug: parsedBooking.eventType.slug,
+                team: parsedBooking.eventType.team ?? null,
+              },
+            }}
+          />
+        )}
     </>
   );
 

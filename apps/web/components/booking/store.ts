@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { createStore } from "zustand";
 
 export type BookingActionsStore = {
@@ -17,17 +18,17 @@ export type BookingActionsStore = {
   rerouteDialogIsOpen: boolean;
 
   // Dialog setters
-  setRejectionDialogIsOpen: (isOpen: boolean) => void;
-  setChargeCardDialogIsOpen: (isOpen: boolean) => void;
-  setViewRecordingsDialogIsOpen: (isOpen: boolean) => void;
-  setMeetingSessionDetailsDialogIsOpen: (isOpen: boolean) => void;
-  setIsNoShowDialogOpen: (isOpen: boolean) => void;
-  setIsOpenRescheduleDialog: (isOpen: boolean) => void;
-  setIsOpenReassignDialog: (isOpen: boolean) => void;
-  setIsOpenLocationDialog: (isOpen: boolean) => void;
-  setIsOpenAddGuestsDialog: (isOpen: boolean) => void;
-  setIsOpenReportDialog: (isOpen: boolean) => void;
-  setRerouteDialogIsOpen: (isOpen: boolean) => void;
+  setRejectionDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setChargeCardDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setViewRecordingsDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setMeetingSessionDetailsDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsNoShowDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpenRescheduleDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpenReassignDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpenLocationDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpenAddGuestsDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpenReportDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setRerouteDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Rejection reason state
   rejectionReason: string;
@@ -50,18 +51,53 @@ export const createBookingActionsStore = () => {
     rerouteDialogIsOpen: false,
 
     // Dialog setters
-    setRejectionDialogIsOpen: (isOpen: boolean) => set({ rejectionDialogIsOpen: isOpen }),
-    setChargeCardDialogIsOpen: (isOpen: boolean) => set({ chargeCardDialogIsOpen: isOpen }),
-    setViewRecordingsDialogIsOpen: (isOpen: boolean) => set({ viewRecordingsDialogIsOpen: isOpen }),
-    setMeetingSessionDetailsDialogIsOpen: (isOpen: boolean) =>
-      set({ meetingSessionDetailsDialogIsOpen: isOpen }),
-    setIsNoShowDialogOpen: (isOpen: boolean) => set({ isNoShowDialogOpen: isOpen }),
-    setIsOpenRescheduleDialog: (isOpen: boolean) => set({ isOpenRescheduleDialog: isOpen }),
-    setIsOpenReassignDialog: (isOpen: boolean) => set({ isOpenReassignDialog: isOpen }),
-    setIsOpenLocationDialog: (isOpen: boolean) => set({ isOpenSetLocationDialog: isOpen }),
-    setIsOpenAddGuestsDialog: (isOpen: boolean) => set({ isOpenAddGuestsDialog: isOpen }),
-    setIsOpenReportDialog: (isOpen: boolean) => set({ isOpenReportDialog: isOpen }),
-    setRerouteDialogIsOpen: (isOpen: boolean) => set({ rerouteDialogIsOpen: isOpen }),
+    setRejectionDialogIsOpen: (isOpen) =>
+      set((state) => ({
+        rejectionDialogIsOpen: typeof isOpen === "function" ? isOpen(state.rejectionDialogIsOpen) : isOpen,
+      })),
+    setChargeCardDialogIsOpen: (isOpen) =>
+      set((state) => ({
+        chargeCardDialogIsOpen: typeof isOpen === "function" ? isOpen(state.chargeCardDialogIsOpen) : isOpen,
+      })),
+    setViewRecordingsDialogIsOpen: (isOpen) =>
+      set((state) => ({
+        viewRecordingsDialogIsOpen:
+          typeof isOpen === "function" ? isOpen(state.viewRecordingsDialogIsOpen) : isOpen,
+      })),
+    setMeetingSessionDetailsDialogIsOpen: (isOpen) =>
+      set((state) => ({
+        meetingSessionDetailsDialogIsOpen:
+          typeof isOpen === "function" ? isOpen(state.meetingSessionDetailsDialogIsOpen) : isOpen,
+      })),
+    setIsNoShowDialogOpen: (isOpen) =>
+      set((state) => ({
+        isNoShowDialogOpen: typeof isOpen === "function" ? isOpen(state.isNoShowDialogOpen) : isOpen,
+      })),
+    setIsOpenRescheduleDialog: (isOpen) =>
+      set((state) => ({
+        isOpenRescheduleDialog: typeof isOpen === "function" ? isOpen(state.isOpenRescheduleDialog) : isOpen,
+      })),
+    setIsOpenReassignDialog: (isOpen) =>
+      set((state) => ({
+        isOpenReassignDialog: typeof isOpen === "function" ? isOpen(state.isOpenReassignDialog) : isOpen,
+      })),
+    setIsOpenLocationDialog: (isOpen) =>
+      set((state) => ({
+        isOpenSetLocationDialog:
+          typeof isOpen === "function" ? isOpen(state.isOpenSetLocationDialog) : isOpen,
+      })),
+    setIsOpenAddGuestsDialog: (isOpen) =>
+      set((state) => ({
+        isOpenAddGuestsDialog: typeof isOpen === "function" ? isOpen(state.isOpenAddGuestsDialog) : isOpen,
+      })),
+    setIsOpenReportDialog: (isOpen) =>
+      set((state) => ({
+        isOpenReportDialog: typeof isOpen === "function" ? isOpen(state.isOpenReportDialog) : isOpen,
+      })),
+    setRerouteDialogIsOpen: (isOpen) =>
+      set((state) => ({
+        rerouteDialogIsOpen: typeof isOpen === "function" ? isOpen(state.rerouteDialogIsOpen) : isOpen,
+      })),
 
     // Rejection reason state
     rejectionReason: "",
