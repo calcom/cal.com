@@ -113,7 +113,6 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
                           form.setValue("name", e.target.value);
                         }}
                         placeholder="John Doe"
-                        className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
                       />
                       {form.formState.errors.name && (
                         <p className="text-error text-sm">{form.formState.errors.name.message}</p>
@@ -128,7 +127,6 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
                       <TimezoneSelect
                         value={selectedTimeZone}
                         onChange={({ value }) => setSelectedTimeZone(value)}
-                        size="sm"
                       />
                       <p className="text-subtle text-xs font-normal leading-3">
                         {t("current_time")}{" "}
