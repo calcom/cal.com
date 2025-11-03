@@ -98,11 +98,9 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
   function extractResponseDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {
     const result: ResultType = { ...obj };
-    //Extact both phoneNumber and attendeePhoneNumber from response.
     const phoneNumber =
       getSafe<string>(booking.responses, ["phoneNumber"]) || getSafe<string>(booking.responses, ["phone"]);
 
-    //Handles both string and object formats for attendeePhoneNumber.
     const attendeePhoneNumber = getSafe<AttendeePhoneNumber | string>(booking.responses, [
       "attendeePhoneNumber",
     ]);
