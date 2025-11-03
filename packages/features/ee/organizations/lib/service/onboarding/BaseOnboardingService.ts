@@ -263,9 +263,9 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     logoUrl?: string | null;
     bannerUrl?: string | null;
   }> {
-    const uploadedLogoUrl = !!logoUrl ? await this.uploadImageAsset({ image: logoUrl, teamId: organizationId }) : logoUrl;
+    const uploadedLogoUrl = logoUrl ? await this.uploadImageAsset({ image: logoUrl, teamId: organizationId }) : logoUrl;
 
-    const uploadedBannerUrl = !!bannerUrl
+    const uploadedBannerUrl = bannerUrl
       ? await this.uploadImageAsset({ image: bannerUrl, teamId: organizationId, isBanner: true })
       : bannerUrl;
 

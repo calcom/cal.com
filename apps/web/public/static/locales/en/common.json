@@ -3912,6 +3912,8 @@
   "onboarding_plan_team_badge": "$15/user/mo",
   "onboarding_plan_organization_badge": "$37/user/mo",
   "onboarding_plan_organization_description": "Robust scheduling for larger teams looking to have more control, privacy, and security.",
+  "view_previous_week": "View previous week",
+  "view_next_week": "View next week",
   "invite_teammates": "Invite Teammates",
   "organization_brand": "Organization Brand",
   "organization_details": "Organization Details",
