@@ -4,7 +4,7 @@ import type {
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
   WidgetProps,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
 
 import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 

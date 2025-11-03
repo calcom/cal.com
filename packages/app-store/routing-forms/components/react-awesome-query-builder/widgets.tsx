@@ -6,7 +6,7 @@ import type {
   ConjsProps,
   FieldProps,
   ProviderProps,
-} from "react-awesome-query-builder";
+} from "@react-awesome-query-builder/ui";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton } from "@calcom/ui/components/button";
