@@ -217,9 +217,12 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
           .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
           .expect(400);
 
-        expect(response.body.message).toContain("Someone else reserved this slot before you");
-        expect(response.body.message).toContain("will be freed up in");
-        expect(response.body.message).toContain("seconds");
+        const message: string = response.body.message;
+        const match = message.match(/(\d+) seconds\.$/);
+        expect(match).not.toBeNull();
+        const secondsFromMessage = parseInt(match![1], 10);
+        const expected = `Someone else reserved this booking time slot before you. This time slot will be freed up in ${secondsFromMessage} seconds.`;
+        expect(message).toEqual(expected);
 
         // Verify both slots still exist
         const firstSlotStillExists = await selectedSlotRepositoryFixture.getByUid(firstReservedSlotUid);
