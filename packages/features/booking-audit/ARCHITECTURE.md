@@ -530,11 +530,11 @@ Each action has a dedicated Action Helper Service that defines:
 3. **Validation**: Type-safe validation of audit data
 4. **Display Logic**: How to render the audit record in the UI
 
-**Example Action Helper Services:**
-- `CreatedAuditActionHelperService` → Handles `CREATED` action
-- `CancelledAuditActionHelperService` → Handles `CANCELLED` action
-- `RescheduledAuditActionHelperService` → Handles `RESCHEDULED` action
-- `ReassignmentAuditActionHelperService` → Handles `REASSIGNMENT_REASON_UPDATED` action
+**Example Action Services:**
+- `CreatedAuditActionService` → Handles `CREATED` action
+- `CancelledAuditActionService` → Handles `CANCELLED` action
+- `RescheduledAuditActionService` → Handles `RESCHEDULED` action
+- `ReassignmentAuditActionService` → Handles `REASSIGNMENT_REASON_UPDATED` action
 
 ### Benefits of Per-Action Versioning
 
@@ -546,12 +546,12 @@ Each action has a dedicated Action Helper Service that defines:
 
 ### Version Tracking
 
-Versions are tracked in the Action Helper Service classes:
+Versions are tracked in the Action Service classes:
 ```typescript
 // Example: When CANCELLED schema changes
-CancelledAuditActionHelperService.schema // v1
+CancelledAuditActionService.schema // v1
 // Later, when adding a new field:
-CancelledAuditActionHelperService.schema // v2
+CancelledAuditActionService.schema // v2
 // Other actions remain at their current version
 ```
 

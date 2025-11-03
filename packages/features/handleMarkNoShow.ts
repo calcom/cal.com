@@ -1,10 +1,14 @@
 import { type TFunction } from "i18next";
 
+import { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
@@ -44,7 +48,7 @@ const buildResultPayload = async (
   };
 };
 
-const logFailedResults = (results: PromiseSettledResult<any>[]) => {
+const logFailedResults = (results: PromiseSettledResult<unknown>[]) => {
   const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
   if (failed.length < 1) return;
   const failedMessage = failed.map((r) => r.reason);
@@ -313,6 +317,11 @@ const handleMarkNoShow = async ({
     }
 
     if (noShowHost) {
+      const bookingToUpdate = await prisma.booking.findUnique({
+        where: { uid: bookingUid },
+        select: { id: true, noShowHost: true },
+      });
+
       await prisma.booking.update({
         where: {
           uid: bookingUid,
@@ -321,6 +330,34 @@ const handleMarkNoShow = async ({
           noShowHost: true,
         },
       });
+
+      if (userId && bookingToUpdate) {
+        try {
+          const log = logger.getSubLogger({ prefix: ["handleMarkNoShow"] });
+          const bookingAuditService = BookingAuditService.create();
+          const hashedLinkService = new HashedLinkService();
+          const bookingEventHandlerService = new BookingEventHandlerService({
+            log,
+            hashedLinkService,
+            bookingAuditService,
+          });
+          await bookingEventHandlerService.onHostNoShowUpdated(
+            String(bookingToUpdate.id),
+            createUserActor(userId),
+            {
+              changes: [
+                {
+                  field: "noShowHost",
+                  oldValue: bookingToUpdate.noShowHost,
+                  newValue: true,
+                },
+              ],
+            }
+          );
+        } catch (error) {
+          logger.error("Failed to create booking audit log for host no-show", error);
+        }
+      }
 
       responsePayload.setNoShowHost(true);
       responsePayload.setMessage(t("booking_no_show_updated"));

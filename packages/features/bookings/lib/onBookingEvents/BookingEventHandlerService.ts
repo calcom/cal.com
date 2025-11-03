@@ -1,5 +1,22 @@
 import type { Logger } from "tslog";
 
+import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
+import type {
+  StatusChangeAuditData,
+  CancelledAuditData,
+  RejectedAuditData,
+  RescheduleRequestedAuditData,
+  AttendeeAddedAuditData,
+  AttendeeRemovedAuditData,
+  CancellationReasonUpdatedAuditData,
+  RejectionReasonUpdatedAuditData,
+  AssignmentAuditData,
+  ReassignmentAuditData,
+  LocationChangedAuditData,
+  MeetingUrlUpdatedAuditData,
+  HostNoShowUpdatedAuditData,
+  AttendeeNoShowUpdatedAuditData,
+} from "@calcom/features/booking-audit/lib/types";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
@@ -208,8 +225,6 @@ export class BookingEventHandlerService {
           // Type guard: ensure data is StatusChangeAuditData or undefined
           const statusData: StatusChangeAuditData | undefined =
             data && !('rejectionReason' in data) && !('cancellationReason' in data) ? data : undefined;
-          await this.bookingAuditService.onBookingAwaitingHost(bookingId, getActorUserId(actor), statusData);
-          break;
         }
       }
     } catch (error) {
@@ -228,7 +243,11 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onCancellationReasonUpdated(bookingId: string, actor: Actor, data: CancellationReasonUpdatedAuditData) {
+  async onCancellationReasonUpdated(
+    bookingId: string,
+    actor: Actor,
+    data: CancellationReasonUpdatedAuditData
+  ) {
     try {
       await this.bookingAuditService.onCancellationReasonUpdated(bookingId, getActorUserId(actor), data);
     } catch (error) {

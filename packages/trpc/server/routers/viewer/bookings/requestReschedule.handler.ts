@@ -5,7 +5,10 @@ import { getDelegationCredentialOrRegularCredential } from "@calcom/app-store/de
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails";
+import type { RescheduleRequestedAuditData } from "@calcom/features/booking-audit/lib/actions/RescheduleRequestedAuditActionService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
@@ -154,6 +157,24 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     },
   });
 
+  try {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    const auditData: RescheduleRequestedAuditData = {
+      cancellationReason,
+      changes: [
+        { field: "rescheduled", oldValue: false, newValue: true },
+        { field: "cancelledBy", oldValue: null, newValue: user.email },
+      ],
+    };
+    await bookingEventHandlerService.onRescheduleRequested(
+      String(bookingToReschedule.id),
+      createUserActor(user.id),
+      auditData
+    );
+  } catch (error) {
+    log.error("Failed to create booking audit log for reschedule request", error);
+  }
+
   // delete scheduled jobs of previous booking
   const webhookPromises = [];
   webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
@@ -220,7 +241,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const director = new CalendarEventDirector();
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
-  cancellationReason && director.setCancellationReason(cancellationReason);
+  if (cancellationReason) {
+    director.setCancellationReason(cancellationReason);
+  }
   if (Object.keys(event).length) {
     // Request Reschedule flow first cancels the booking and then reschedule email is sent. So, we need to allow reschedule for cancelled booking
     await director.buildForRescheduleEmail({ allowRescheduleForCancelledBooking: true });

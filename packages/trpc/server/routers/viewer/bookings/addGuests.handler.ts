@@ -5,7 +5,6 @@ import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEma
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -19,6 +18,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../types";
+import { checkEmailVerificationRequired } from "../../publicViewer/checkIfUserEmailVerificationRequired.handler";
 import type { TAddGuestsInputSchema } from "./addGuests.schema";
 
 type TUser = Pick<NonNullable<TrpcSessionUser>, "id" | "email" | "organizationId"> &
@@ -163,13 +163,26 @@ async function getEmailVerificationRequirements(guestEmails: string[]): Promise<
   const userRepo = new UserRepository(prisma);
   const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
 
-  const emailToRequiresVerification = new Map<string, boolean>();
-  for (const user of guestUsers) {
-    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
-    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
+  // Skip if blacklisted
+  if (blacklistedGuestEmails.includes(baseEmail)) {
+    continue;
   }
 
-  return emailToRequiresVerification;
+  // Check if email verification is required
+  const verificationRequired = await checkEmailVerificationRequired({
+    userSessionEmail: ctx.user.email,
+    email: guestEntry.original,
+  });
+
+  if (verificationRequired) {
+    continue;
+  }
+
+  seenEmails.add(baseEmail);
+  uniqueGuests.push(guestEntry.original);
+}
+
+return emailToRequiresVerification;
 }
 
 async function sanitizeAndFilterGuests(
@@ -286,8 +299,8 @@ async function buildCalendarEvent(
     destinationCalendar: booking?.destinationCalendar
       ? [booking?.destinationCalendar]
       : booking?.user?.destinationCalendar
-      ? [booking?.user?.destinationCalendar]
-      : [],
+        ? [booking?.user?.destinationCalendar]
+        : [],
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
