@@ -8,12 +8,13 @@ import { DataTableWrapper, useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import { ConfirmationDialogContent, Dialog, DialogClose } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { BlocklistEntryDetailsSheet } from "./blocklist-entry-details-sheet";
 import { useBlockedEntriesColumns } from "./blocked-entries-columns";
+import { BlocklistEntryDetailsSheet } from "./blocklist-entry-details-sheet";
 
 type BlocklistEntry = RouterOutputs["viewer"]["organizations"]["listWatchlistEntries"]["rows"][number];
 
@@ -23,9 +24,10 @@ interface BlockedEntriesTableProps {
     canCreate: boolean;
     canDelete: boolean;
   };
+  onAddClick: () => void;
 }
 
-export function BlockedEntriesTable({ permissions }: BlockedEntriesTableProps) {
+export function BlockedEntriesTable({ permissions, onAddClick }: BlockedEntriesTableProps) {
   const { t } = useLocale();
   const { limit, offset, searchTerm } = useDataTable();
 
@@ -103,12 +105,22 @@ export function BlockedEntriesTable({ permissions }: BlockedEntriesTableProps) {
         paginationMode="standard"
         EmptyView={
           <EmptyScreen
-            Icon="phone"
-            headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_entries")}
-            description={t("no_entries_description")}
+            customIcon={<img className="mb-6" src="/slash-icon-cards.svg" />}
+            headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("pbac_resource_blocklist")}
+            description={t("add_people_to_blocklist")}
             className="bg-muted mb-16"
             iconWrapperClassName="bg-default"
             dashedBorder={false}
+            buttonRaw={
+              <div className="flex gap-2">
+                <Button StartIcon="plus" onClick={onAddClick} color="primary">
+                  {t("add")}
+                </Button>
+                <Button StartIcon="book" color="secondary">
+                  {t("docs")}
+                </Button>
+              </div>
+            }
           />
         }
         totalRowCount={totalRowCount}

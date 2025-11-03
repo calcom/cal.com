@@ -28,7 +28,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ToggleGroup
             value={activeView}
@@ -52,7 +52,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       </div>
 
       {activeView === "blocked" ? (
-        <BlockedEntriesTable permissions={permissions} />
+        <BlockedEntriesTable permissions={permissions} onAddClick={() => setShowCreateModal(true)} />
       ) : (
         <PendingReportsTable permissions={permissions} />
       )}

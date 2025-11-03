@@ -65,7 +65,7 @@ export function PendingReportsTable() {
         paginationMode="standard"
         EmptyView={
           <EmptyScreen
-            Icon="ban"
+            customIcon={<img className="mb-6" src="/slash-icon-cards.svg" />}
             headline={t("no_pending_reports")}
             className="bg-muted mb-16"
             iconWrapperClassName="bg-default"
