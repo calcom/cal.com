@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from "react";
 
-import type { RowData, BookingOutput } from "../types";
+import type { RowData } from "../types";
 
 function isDataRow(row: RowData): row is Extract<RowData, { type: "data" }> {
   return row.type === "data";
@@ -8,31 +8,31 @@ function isDataRow(row: RowData): row is Extract<RowData, { type: "data" }> {
 
 export function useBookingCursor({
   bookings,
-  selectedBooking,
-  setSelectedBooking,
+  selectedBookingId,
+  setSelectedBookingId,
 }: {
   bookings: RowData[];
-  selectedBooking: BookingOutput | null;
-  setSelectedBooking: (booking: BookingOutput | null) => void;
+  selectedBookingId: number | null;
+  setSelectedBookingId: (bookingId: number | null) => void;
 }) {
   const bookingRows = useMemo(() => bookings.filter(isDataRow), [bookings]);
 
   const currentIndex = useMemo(
-    () => bookingRows.findIndex((row) => selectedBooking && row.booking.id === selectedBooking.id),
-    [bookingRows, selectedBooking]
+    () => bookingRows.findIndex((row) => selectedBookingId && row.booking.id === selectedBookingId),
+    [bookingRows, selectedBookingId]
   );
 
   const onPrevious = useCallback(() => {
     if (currentIndex >= 1) {
-      setSelectedBooking(bookingRows[currentIndex - 1].booking);
+      setSelectedBookingId(bookingRows[currentIndex - 1].booking.id);
     }
-  }, [bookingRows, currentIndex, setSelectedBooking]);
+  }, [bookingRows, currentIndex, setSelectedBookingId]);
 
   const onNext = useCallback(() => {
     if (currentIndex >= 0 && currentIndex < bookingRows.length - 1) {
-      setSelectedBooking(bookingRows[currentIndex + 1].booking);
+      setSelectedBookingId(bookingRows[currentIndex + 1].booking.id);
     }
-  }, [bookingRows, currentIndex, setSelectedBooking]);
+  }, [bookingRows, currentIndex, setSelectedBookingId]);
 
   return {
     onPrevious,

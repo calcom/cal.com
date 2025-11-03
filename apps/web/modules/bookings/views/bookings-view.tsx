@@ -3,7 +3,7 @@
 import { useReactTable, getCoreRowModel, getSortedRowModel, createColumnHelper } from "@tanstack/react-table";
 import { useSearchParams, usePathname } from "next/navigation";
 import { createParser, useQueryState } from "nuqs";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import {
@@ -99,7 +99,12 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
-  const [selectedBooking, setSelectedBooking] = useState<BookingOutput | null>(null);
+  const [selectedBookingId, setSelectedBookingId] = useQueryState("selectedId", {
+    defaultValue: null,
+    parse: (value) => (value ? parseInt(value, 10) : null),
+    serialize: (value) => (value ? String(value) : ""),
+    clearOnDefault: true,
+  });
 
   const tabs: HorizontalTabItemProps[] = useMemo(() => {
     const queryString = searchParams?.toString() || "";
@@ -278,7 +283,8 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
                 }}
                 listingStatus={status}
                 recurringInfo={recurringInfo}
-                onClick={() => setSelectedBooking(booking)}
+                // uncomment this line to enable BookingDetailsSheet
+                onClick={() => setSelectedBookingId(booking.id)}
                 {...booking}
               />
             );
@@ -298,7 +304,7 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
         },
       }),
     ];
-  }, [user, status, t, permissions.canReadOthersBookings]);
+  }, [user, status, t, permissions.canReadOthersBookings, setSelectedBookingId]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
@@ -371,10 +377,19 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
     return merged;
   }, [bookingsToday, flatData, status]);
 
+  const selectedBooking = useMemo(() => {
+    if (!selectedBookingId) return null;
+    const dataRow = finalData.find(
+      (row): row is Extract<RowData, { type: "data" }> =>
+        row.type === "data" && row.booking.id === selectedBookingId
+    );
+    return dataRow?.booking ?? null;
+  }, [selectedBookingId, finalData]);
+
   const bookingNavigation = useBookingCursor({
     bookings: finalData,
-    selectedBooking,
-    setSelectedBooking,
+    selectedBookingId,
+    setSelectedBookingId,
   });
 
   const getFacetedUniqueValues = useFacetedUniqueValues();
@@ -438,7 +453,7 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
       <BookingDetailsSheet
         booking={selectedBooking}
         isOpen={!!selectedBooking}
-        onClose={() => setSelectedBooking(null)}
+        onClose={() => setSelectedBookingId(null)}
         userTimeZone={user?.timeZone}
         userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
         onPrevious={bookingNavigation.onPrevious}
