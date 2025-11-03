@@ -49,7 +49,6 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
     return wrongUrl;
   }
   const paymentRequest = parsedData.data.invoice.paymentRequest;
-  console.log("paymentRequest: ", paymentRequest);
 
   return (
     <div className="mb-4 mt-8 flex h-full w-full flex-col items-center justify-center gap-4">
