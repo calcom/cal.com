@@ -15,10 +15,10 @@ export class OrganizationsRepository extends OrganizationRepository {
     super({ prismaClient: dbWrite.prisma });
   }
 
-  async findById(organizationId: number) {
+  async findById({ id }: { id: number }) {
     return this.dbWrite.prisma.team.findUnique({
       where: {
-        id: organizationId,
+        id,
         isOrganization: true,
       },
     });
