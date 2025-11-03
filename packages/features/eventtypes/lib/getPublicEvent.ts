@@ -44,6 +44,11 @@ const userSelect = {
       name: true,
       slug: true,
       bannerUrl: true,
+      organizationSettings: {
+        select: {
+          disableAutofillOnBookingPage: true,
+        },
+      },
     },
   },
   defaultScheduleId: true,
@@ -105,9 +110,19 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
             name: true,
             bannerUrl: true,
             logoUrl: true,
+            organizationSettings: {
+              select: {
+                disableAutofillOnBookingPage: true,
+              },
+            },
           },
         },
         isPrivate: true,
+        organizationSettings: {
+          select: {
+            disableAutofillOnBookingPage: true,
+          },
+        },
       },
     },
     successRedirectUrl: true,
