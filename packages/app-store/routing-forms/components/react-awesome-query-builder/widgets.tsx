@@ -6,6 +6,7 @@ import type {
   ConjsProps,
   FieldProps,
   ProviderProps,
+  IconProps,
 } from "@react-awesome-query-builder/ui";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -368,6 +369,10 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
 const Provider = ({ children }: ProviderProps) => children;
 
+function IconComponent({ type }: IconProps) {
+  return null;
+}
+
 const widgets = {
   TextWidget,
   TextAreaWidget,
@@ -379,6 +384,7 @@ const widgets = {
   ButtonGroup,
   Conjs,
   Provider,
+  Icon: IconComponent,
 };
 
 export default widgets;

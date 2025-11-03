@@ -38,10 +38,11 @@ const {
   Button,
   ButtonGroup,
   Provider,
+  Icon,
 } = widgetsComponents;
 
-if (!Conjs || !Button || !ButtonGroup || !Provider) {
-  console.error("Missing components:", { Conjs, Button, ButtonGroup, Provider });
+if (!Conjs || !Button || !ButtonGroup || !Provider || !Icon) {
+  console.error("Missing components:", { Conjs, Button, ButtonGroup, Provider, Icon });
 }
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
@@ -134,6 +135,7 @@ const sharedSettingsProps: Partial<Settings> = {
   renderButton: (props) => renderComponent(props, Button, 'Button'),
   renderButtonGroup: (props) => renderComponent(props, ButtonGroup, 'ButtonGroup'),
   renderProvider: (props) => renderComponent(props, Provider, 'Provider'),
+  renderIcon: (props) => renderComponent(props, Icon, 'Icon'),
 };
 
 function withRenderFnsSettings(settings: Settings) {
