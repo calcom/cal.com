@@ -149,7 +149,9 @@ export function ExperimentConfigSheet({ flag, open, onOpenChange }: ExperimentCo
                         max="100"
                         placeholder="%"
                         value={variant.percentage.toString()}
-                        onChange={(e) => handleVariantChange(index, "percentage", parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleVariantChange(index, "percentage", parseFloat(e.target.value) || 0)
+                        }
                         className="w-24"
                       />
                       <Button
@@ -167,7 +169,7 @@ export function ExperimentConfigSheet({ flag, open, onOpenChange }: ExperimentCo
                   <span className={isValid ? "text-default" : "text-destructive"}>
                     Total: {totalPercentage.toFixed(1)}%
                   </span>
-                  {!isValid && <span className="ml-2 text-destructive">Must equal 100%</span>}
+                  {!isValid && <span className="text-destructive ml-2">Must equal 100%</span>}
                 </div>
               </div>
             </div>
@@ -185,4 +187,3 @@ export function ExperimentConfigSheet({ flag, open, onOpenChange }: ExperimentCo
     </Sheet>
   );
 }
-
