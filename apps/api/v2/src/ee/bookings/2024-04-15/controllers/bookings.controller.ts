@@ -13,9 +13,14 @@ import { InstantBookingCreateService } from "@/lib/services/instant-booking-crea
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
 import { RegularBookingService } from "@/lib/services/regular-booking.service";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
+import {
+  AuthOptionalUser,
+  GetOptionalUser,
+} from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
@@ -172,8 +177,12 @@ export class BookingsController_2024_04_15 {
   }
 
   @Get("/:bookingUid/reschedule")
-  async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
-    const booking = await getBookingForReschedule(bookingUid);
+  @UseGuards(OptionalApiAuthGuard)
+  async getBookingForReschedule(
+    @Param("bookingUid") bookingUid: string,
+    @GetOptionalUser() user: AuthOptionalUser
+  ): Promise<ApiResponse<unknown>> {
+    const booking = await getBookingForReschedule(bookingUid, user?.id);
 
     if (!booking) {
       throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
