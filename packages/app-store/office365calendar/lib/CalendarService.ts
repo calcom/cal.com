@@ -132,7 +132,7 @@ export default class Office365CalendarService implements Calendar {
         );
         
         if (this.credential.user?.email) {
-          void triggerDelegationCredentialErrorWebhook({
+          triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
               id: this.credential.id,
@@ -144,6 +144,8 @@ export default class Office365CalendarService implements Calendar {
               email: this.credential.user.email,
             },
             orgId: this.credential.teamId,
+          }).catch((webhookError) => {
+            this.log.error("Failed to trigger delegation credential error webhook", webhookError);
           });
         }
         
@@ -166,7 +168,7 @@ export default class Office365CalendarService implements Calendar {
         );
         
         if (this.credential.user?.email) {
-          void triggerDelegationCredentialErrorWebhook({
+          triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
               id: this.credential.id,
@@ -178,6 +180,8 @@ export default class Office365CalendarService implements Calendar {
               email: this.credential.user.email,
             },
             orgId: this.credential.teamId,
+          }).catch((webhookError) => {
+            this.log.error("Failed to trigger delegation credential error webhook", webhookError);
           });
         }
         
@@ -264,7 +268,7 @@ export default class Office365CalendarService implements Calendar {
         );
         
         if (this.credential.user?.email) {
-          void triggerDelegationCredentialErrorWebhook({
+          triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
               id: this.credential.id,
@@ -276,6 +280,8 @@ export default class Office365CalendarService implements Calendar {
               email: this.credential.user.email,
             },
             orgId: this.credential.teamId,
+          }).catch((webhookError) => {
+            this.log.error("Failed to trigger delegation credential error webhook", webhookError);
           });
         }
         
