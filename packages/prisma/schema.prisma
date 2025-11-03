@@ -463,6 +463,7 @@ model User {
   whitelistWorkflows             Boolean                       @default(false)
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
+  experimentVariants             ExperimentVariant[]
 
   @@unique([email])
   @@unique([email, username])
@@ -591,6 +592,7 @@ model Team {
   managedOrganization  ManagedOrganization?  @relation("ManagedOrganization")
   managedOrganizations ManagedOrganization[] @relation("ManagerOrganization")
   filterSegments       FilterSegment[]
+  experimentVariants   ExperimentVariant[]
 
   teamBilling         TeamBilling?         @relation("TeamBilling")
   organizationBilling OrganizationBilling? @relation("OrganizationBilling")
@@ -1688,12 +1690,42 @@ model TeamFeatures {
   @@index([teamId, featureId])
 }
 
+model ExperimentVariant {
+  id             String         @id @default(uuid()) @db.Uuid
+  experimentSlug String
+  variant        String
+  userId         Int?
+  user           User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId         Int?
+  team           Team?          @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  visitorId      String?
+  assignmentType AssignmentType
+  assignedAt     DateTime       @default(now())
+  metadata       Json?
+
+  @@unique([experimentSlug, userId], name: "experiment_user_unique")
+  @@unique([experimentSlug, teamId], name: "experiment_team_unique")
+  @@unique([experimentSlug, visitorId], name: "experiment_visitor_unique")
+  @@index([experimentSlug])
+  @@index([userId])
+  @@index([teamId])
+  @@index([visitorId])
+  @@index([experimentSlug, userId])
+  @@index([experimentSlug, teamId])
+  @@index([experimentSlug, visitorId])
+}
+
 enum FeatureType {
   RELEASE
   EXPERIMENT
   OPERATIONAL
   KILL_SWITCH
   PERMISSION
+}
+
+enum AssignmentType {
+  DETERMINISTIC
+  RANDOM
 }
 
 enum RRResetInterval {
