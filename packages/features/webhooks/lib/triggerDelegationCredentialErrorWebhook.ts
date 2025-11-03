@@ -20,7 +20,6 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
   user: {
     id: number;
     email: string;
-    name: string | null;
   };
   orgId?: number | null;
 }): Promise<void> {
@@ -56,7 +55,6 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
       user: {
         id: user.id,
         email: user.email,
-        name: user.name,
       },
     };
 

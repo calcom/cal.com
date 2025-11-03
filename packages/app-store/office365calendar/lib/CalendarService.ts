@@ -142,7 +142,6 @@ export default class Office365CalendarService implements Calendar {
             user: {
               id: this.credential.userId ?? 0,
               email: this.credential.user.email,
-              name: null,
             },
             orgId: this.credential.teamId,
           }).catch((webhookError) => {
@@ -179,7 +178,6 @@ export default class Office365CalendarService implements Calendar {
             user: {
               id: this.credential.userId ?? 0,
               email: this.credential.user.email,
-              name: null,
             },
             orgId: this.credential.teamId,
           }).catch((webhookError) => {
@@ -280,7 +278,6 @@ export default class Office365CalendarService implements Calendar {
             user: {
               id: this.credential.userId ?? 0,
               email: this.credential.user.email,
-              name: null,
             },
             orgId: this.credential.teamId,
           }).catch((webhookError) => {

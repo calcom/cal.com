@@ -345,7 +345,6 @@ export interface DelegationCredentialErrorDTO extends BaseEventDTO {
   user: {
     id: number;
     email: string;
-    name: string | null;
   };
 }
 
@@ -514,7 +513,6 @@ export type DelegationCredentialErrorPayloadType = {
   user: {
     id: number;
     email: string;
-    name: string | null;
   };
 };
 

@@ -151,7 +151,6 @@ export class CalendarAuth {
           user: {
             id: this.credential.userId ?? 0,
             email: user.email,
-            name: null,
           },
           orgId: this.credential.teamId,
         }).catch((webhookError) => {
