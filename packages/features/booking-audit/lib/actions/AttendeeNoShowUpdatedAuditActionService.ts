@@ -1,18 +1,7 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-/**
- * Attendee no-show updated primary schema
- */
-const AttendeeNoShowUpdatedPrimarySchema = z.object({
-    /** Attendee no-show status */
-    noShowAttendee: z.object({
-        old: z.boolean().nullable(),
-        new: z.boolean(),
-    }),
-});
-
-export type AttendeeNoShowUpdatedPrimary = z.infer<typeof AttendeeNoShowUpdatedPrimarySchema>;
+import { BooleanChangeSchema } from "../common/changeSchemas";
 
 /**
  * Attendee No-Show Updated Audit Action Service
@@ -20,7 +9,9 @@ export type AttendeeNoShowUpdatedPrimary = z.infer<typeof AttendeeNoShowUpdatedP
  */
 export class AttendeeNoShowUpdatedAuditActionService {
     static readonly schema = z.object({
-        primary: AttendeeNoShowUpdatedPrimarySchema,
+        primary: z.object({
+            noShowAttendee: BooleanChangeSchema,
+        }),
     });
 
     parse(data: unknown): z.infer<typeof AttendeeNoShowUpdatedAuditActionService.schema> {

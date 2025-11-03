@@ -1,18 +1,7 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-/**
- * Location changed primary schema
- */
-const LocationChangedPrimarySchema = z.object({
-    /** Booking location update */
-    location: z.object({
-        old: z.string().nullable(),
-        new: z.string().nullable(),
-    }),
-});
-
-export type LocationChangedPrimary = z.infer<typeof LocationChangedPrimarySchema>;
+import { StringChangeSchema } from "../common/changeSchemas";
 
 /**
  * Location Changed Audit Action Service
@@ -20,7 +9,9 @@ export type LocationChangedPrimary = z.infer<typeof LocationChangedPrimarySchema
  */
 export class LocationChangedAuditActionService {
     static readonly schema = z.object({
-        primary: LocationChangedPrimarySchema,
+        primary: z.object({
+            location: StringChangeSchema,
+        }),
     });
 
     parse(data: unknown): z.infer<typeof LocationChangedAuditActionService.schema> {

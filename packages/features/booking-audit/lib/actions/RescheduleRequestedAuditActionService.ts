@@ -1,35 +1,7 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-/**
- * Reschedule requested primary schema
- */
-const RescheduleRequestedPrimarySchema = z.object({
-    cancellationReason: z.object({
-        old: z.string().nullable(),
-        new: z.string().nullable(),
-    }),
-    
-    /** Who cancelled the booking */
-    cancelledBy: z.object({
-        old: z.string().nullable(),
-        new: z.string().nullable(),
-    }),
-});
-
-/**
- * Reschedule requested secondary schema
- */
-const RescheduleRequestedSecondarySchema = z.object({
-    /** Rescheduled flag change */
-    rescheduled: z.object({
-        old: z.boolean().nullable(),
-        new: z.boolean(),
-    }).optional(),
-});
-
-export type RescheduleRequestedPrimary = z.infer<typeof RescheduleRequestedPrimarySchema>;
-export type RescheduleRequestedSecondary = z.infer<typeof RescheduleRequestedSecondarySchema>;
+import { StringChangeSchema, BooleanChangeSchema } from "../common/changeSchemas";
 
 /**
  * Reschedule Requested Audit Action Service
@@ -37,8 +9,13 @@ export type RescheduleRequestedSecondary = z.infer<typeof RescheduleRequestedSec
  */
 export class RescheduleRequestedAuditActionService {
     static readonly schema = z.object({
-        primary: RescheduleRequestedPrimarySchema,
-        secondary: RescheduleRequestedSecondarySchema.optional(),
+        primary: z.object({
+            cancellationReason: StringChangeSchema,
+            cancelledBy: StringChangeSchema,
+        }),
+        secondary: z.object({
+            rescheduled: BooleanChangeSchema.optional(),
+        }).optional(),
     });
 
     parse(data: unknown): z.infer<typeof RescheduleRequestedAuditActionService.schema> {

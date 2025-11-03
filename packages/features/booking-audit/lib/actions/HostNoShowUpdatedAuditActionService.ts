@@ -1,18 +1,7 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-/**
- * Host no-show updated primary schema
- */
-const HostNoShowUpdatedPrimarySchema = z.object({
-    /** Host no-show status */
-    noShowHost: z.object({
-        old: z.boolean().nullable(),
-        new: z.boolean(),
-    }),
-});
-
-export type HostNoShowUpdatedPrimary = z.infer<typeof HostNoShowUpdatedPrimarySchema>;
+import { BooleanChangeSchema } from "../common/changeSchemas";
 
 /**
  * Host No-Show Updated Audit Action Service
@@ -20,7 +9,9 @@ export type HostNoShowUpdatedPrimary = z.infer<typeof HostNoShowUpdatedPrimarySc
  */
 export class HostNoShowUpdatedAuditActionService {
     static readonly schema = z.object({
-        primary: HostNoShowUpdatedPrimarySchema,
+        primary: z.object({
+            noShowHost: BooleanChangeSchema,
+        }),
     });
 
     parse(data: unknown): z.infer<typeof HostNoShowUpdatedAuditActionService.schema> {

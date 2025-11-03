@@ -2,21 +2,7 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 import dayjs from "@calcom/dayjs";
 
-/**
- * Rescheduled primary schema
- */
-const RescheduledPrimarySchema = z.object({
-    startTime: z.object({
-        old: z.string().nullable(),
-        new: z.string(),
-    }),
-    endTime: z.object({
-        old: z.string().nullable(),
-        new: z.string(),
-    }),
-});
-
-export type RescheduledPrimary = z.infer<typeof RescheduledPrimarySchema>;
+import { StringChangeSchema } from "../common/changeSchemas";
 
 /**
  * Rescheduled Audit Action Service
@@ -24,7 +10,10 @@ export type RescheduledPrimary = z.infer<typeof RescheduledPrimarySchema>;
  */
 export class RescheduledAuditActionService {
     static readonly schema = z.object({
-        primary: RescheduledPrimarySchema,
+        primary: z.object({
+            startTime: StringChangeSchema,
+            endTime: StringChangeSchema,
+        }),
     });
 
     parse(data: unknown): z.infer<typeof RescheduledAuditActionService.schema> {

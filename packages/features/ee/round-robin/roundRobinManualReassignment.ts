@@ -229,7 +229,7 @@ export const roundRobinManualReassignment = async ({
       const bookingEventHandlerService = getBookingEventHandlerService();
       const auditData: ReassignmentAuditData = {
         primary: {
-          userId: { old: oldUserId?.toString() || null, new: newUserId.toString() },
+          userId: { old: oldUserId ?? null, new: newUserId },
           email: { old: oldEmail || null, new: newUser.email },
           reassignmentReason: { old: null, new: reassignReason || "Manual round robin reassignment" },
         },

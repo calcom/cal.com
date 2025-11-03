@@ -1,34 +1,7 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-/**
- * Cancelled primary schema
- */
-const CancelledPrimarySchema = z.object({
-    cancellationReason: z.object({
-        old: z.string().nullable(),
-        new: z.string().nullable(),
-    }),
-    
-    /** Who cancelled the booking */
-    cancelledBy: z.object({
-        old: z.string().nullable(),
-        new: z.string().nullable(),
-    }),
-});
-
-/**
- * Cancelled secondary schema
- */
-const CancelledSecondarySchema = z.object({
-    status: z.object({
-        old: z.string().nullable(),
-        new: z.string(),
-    }).optional(),
-});
-
-export type CancelledPrimary = z.infer<typeof CancelledPrimarySchema>;
-export type CancelledSecondary = z.infer<typeof CancelledSecondarySchema>;
+import { StringChangeSchema } from "../common/changeSchemas";
 
 /**
  * Cancelled Audit Action Service
@@ -36,8 +9,13 @@ export type CancelledSecondary = z.infer<typeof CancelledSecondarySchema>;
  */
 export class CancelledAuditActionService {
     static readonly schema = z.object({
-        primary: CancelledPrimarySchema,
-        secondary: CancelledSecondarySchema.optional(),
+        primary: z.object({
+            cancellationReason: StringChangeSchema,
+            cancelledBy: StringChangeSchema,
+        }),
+        secondary: z.object({
+            status: StringChangeSchema.optional(),
+        }).optional(),
     });
 
     parse(data: unknown): z.infer<typeof CancelledAuditActionService.schema> {

@@ -1,18 +1,7 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-/**
- * Attendee added primary schema
- */
-const AttendeeAddedPrimarySchema = z.object({
-    /** Attendees list change */
-    attendees: z.object({
-        old: z.array(z.string()).nullable(),
-        new: z.array(z.string()),
-    }),
-});
-
-export type AttendeeAddedPrimary = z.infer<typeof AttendeeAddedPrimarySchema>;
+import { StringArrayChangeSchema } from "../common/changeSchemas";
 
 /**
  * Attendee Added Audit Action Service
@@ -20,7 +9,9 @@ export type AttendeeAddedPrimary = z.infer<typeof AttendeeAddedPrimarySchema>;
  */
 export class AttendeeAddedAuditActionService {
     static readonly schema = z.object({
-        primary: AttendeeAddedPrimarySchema,
+        primary: z.object({
+            attendees: StringArrayChangeSchema,
+        }),
     });
 
     parse(data: unknown): z.infer<typeof AttendeeAddedAuditActionService.schema> {

@@ -1,28 +1,7 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-
-const StringChangeSchema = z.object({
-    old: z.string().nullable(),
-    new: z.string().nullable(),
-});
-
-/**
- * Rejected primary schema
- */
-const RejectedPrimarySchema = z.object({
-    rejectionReason: StringChangeSchema,
-});
-
-/**
- * Rejected secondary schema
- */
-const RejectedSecondarySchema = z.object({
-    status: StringChangeSchema.optional(),
-});
-
-export type RejectedPrimary = z.infer<typeof RejectedPrimarySchema>;
-export type RejectedSecondary = z.infer<typeof RejectedSecondarySchema>;
+import { StringChangeSchema } from "../common/changeSchemas";
 
 /**
  * Rejected Audit Action Service
@@ -30,8 +9,12 @@ export type RejectedSecondary = z.infer<typeof RejectedSecondarySchema>;
  */
 export class RejectedAuditActionService {
     static readonly schema = z.object({
-        primary: RejectedPrimarySchema,
-        secondary: RejectedSecondarySchema.optional(),
+        primary: z.object({
+            rejectionReason: StringChangeSchema,
+        }),
+        secondary: z.object({
+            status: StringChangeSchema.optional(),
+        }).optional(),
     });
 
     parse(data: unknown): z.infer<typeof RejectedAuditActionService.schema> {
@@ -44,7 +27,7 @@ export class RejectedAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof RejectedAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Rejection Reason': data.primary.rejectionReason.new,
+            'Rejection Reason': data.primary.rejectionReason.new ?? '-',
             'Previous Reason': data.primary.rejectionReason.old ?? '-',
         };
     }
