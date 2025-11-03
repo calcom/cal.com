@@ -6,6 +6,7 @@ import { Utils as QbUtils } from "@react-awesome-query-builder/core";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
 import type { dynamicFieldValueOperands, AttributesQueryValue } from "@calcom/lib/raqb/types";
+import { caseInsensitive } from "@calcom/lib/raqb/utils";
 import { getAttributesAssignmentData } from "@calcom/lib/service/attribute/server/getAttributes";
 import type { Attribute } from "@calcom/lib/service/attribute/server/getAttributes";
 
@@ -91,6 +92,58 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
   return errors;
 }
 
+function prepareQueryValueForEvaluation(
+  queryValue: AttributesQueryValue,
+  config: Config
+): AttributesQueryValue {
+  const clonedQueryValue = JSON.parse(JSON.stringify(queryValue)) as AttributesQueryValue;
+  
+  if (!clonedQueryValue.children1) {
+    return clonedQueryValue;
+  }
+  
+  const children = Array.isArray(clonedQueryValue.children1)
+    ? clonedQueryValue.children1
+    : Object.values(clonedQueryValue.children1);
+  
+  children.forEach((child) => {
+    if (child.type === "rule" && child.properties) {
+      const { field, operator, value, valueSrc } = child.properties;
+      
+      if (!field || !operator || !value) return;
+      
+      const fieldConfig = config.fields[field];
+      if (!fieldConfig?.fieldSettings?.listValues) return;
+      
+      const isSelectOperator = operator.includes("select_") || operator.includes("multiselect_");
+      if (!isSelectOperator) return;
+      
+      const valuesToCheck = Array.isArray(value[0]) ? value[0] : (Array.isArray(value) ? value : [value]);
+      const valueSrcArray = valueSrc || [];
+      
+      const normalizedValues = valuesToCheck.map((val, index) => {
+        const src = valueSrcArray[index] || (Array.isArray(valueSrc) && valueSrc.length === 1 ? valueSrc[0] : "value");
+        
+        if (src === "value" && typeof val === "string") {
+          return caseInsensitive(val);
+        }
+        
+        return val;
+      });
+      
+      if (Array.isArray(value[0])) {
+        child.properties.value = [normalizedValues];
+      } else if (Array.isArray(value)) {
+        child.properties.value = normalizedValues;
+      }
+    } else if (child.type === "group") {
+      prepareQueryValueForEvaluation(child as AttributesQueryValue, config);
+    }
+  });
+  
+  return clonedQueryValue;
+}
+
 function getJsonLogic({
   attributesQueryValue,
   attributesQueryBuilderConfig,
@@ -98,9 +151,14 @@ function getJsonLogic({
   attributesQueryValue: AttributesQueryValue;
   attributesQueryBuilderConfig: Config;
 }) {
+  const preparedQueryValue = prepareQueryValueForEvaluation(
+    attributesQueryValue,
+    attributesQueryBuilderConfig as unknown as Config
+  );
+  
   const state = {
     tree: QbUtils.checkTree(
-      QbUtils.loadTree(attributesQueryValue as JsonTree),
+      QbUtils.loadTree(preparedQueryValue as JsonTree),
       // We know that attributesQueryBuilderConfig is a Config because getAttributesQueryBuilderConfigHavingListofLabels returns a Config. So, asserting it.
       attributesQueryBuilderConfig as unknown as Config
     ),
