@@ -30,10 +30,10 @@ describe("Organizations / Teams / Event Types / Private Links Endpoints", () => 
   let userFixture: UserRepositoryFixture;
   let eventTypesFixture: EventTypesRepositoryFixture;
 
-  let org: { id: number; slug: string };
+  let org: { id: number; slug: string | null };
   let team: { id: number };
   let user: { email: string };
-  let eventType: { id: number; slug: string };
+  let eventType: { id: number; slug: string | null };
 
   const userEmail = `org-private-links-user-${randomString()}@api.com`;
 
