@@ -132,7 +132,7 @@ export default class Office365CalendarService implements Calendar {
         );
         
         if (this.credential.user?.email) {
-          await triggerDelegationCredentialErrorWebhook({
+          void triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
               id: this.credential.id,
@@ -166,7 +166,7 @@ export default class Office365CalendarService implements Calendar {
         );
         
         if (this.credential.user?.email) {
-          await triggerDelegationCredentialErrorWebhook({
+          void triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
               id: this.credential.id,
@@ -264,7 +264,7 @@ export default class Office365CalendarService implements Calendar {
         );
         
         if (this.credential.user?.email) {
-          await triggerDelegationCredentialErrorWebhook({
+          void triggerDelegationCredentialErrorWebhook({
             error,
             credential: {
               id: this.credential.id,

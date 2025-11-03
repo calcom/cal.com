@@ -141,7 +141,7 @@ export class CalendarAuth {
       }
 
       if (user && user.email) {
-        await triggerDelegationCredentialErrorWebhook({
+        void triggerDelegationCredentialErrorWebhook({
           error: delegationError,
           credential: {
             id: this.credential.id,

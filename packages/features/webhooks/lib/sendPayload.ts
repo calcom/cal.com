@@ -107,6 +107,7 @@ export type DelegationCredentialErrorPayloadType = {
   user: {
     id: number;
     email: string;
+    name: string | null;
   };
 };
 
@@ -312,36 +313,27 @@ const _sendPayload = async (
     throw new Error("Missing required elements to send webhook payload.");
   }
 
-  const WEBHOOK_TIMEOUT_MS = 10000;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS);
+  const response = await fetch(subscriberUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": contentType,
+      "X-Cal-Signature-256": createWebhookSignature({ secret: secretKey, body }),
+    },
+    redirect: "manual",
+    body,
+  });
 
-  try {
-    const response = await fetch(subscriberUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": contentType,
-        "X-Cal-Signature-256": createWebhookSignature({ secret: secretKey, body }),
-      },
-      redirect: "manual",
-      body,
-      signal: controller.signal,
-    });
+  const text = await response.text();
 
-    const text = await response.text();
-
-    return {
-      ok: response.ok,
-      status: response.status,
-      ...(text
-        ? {
-            message: text,
-          }
-        : {}),
-    };
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return {
+    ok: response.ok,
+    status: response.status,
+    ...(text
+      ? {
+          message: text,
+        }
+      : {}),
+  };
 };
 
 export default sendPayload;
