@@ -1,4 +1,4 @@
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminGet } from "./adminGet.schema";

@@ -4,7 +4,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable } from "@nestjs/common";
 
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
