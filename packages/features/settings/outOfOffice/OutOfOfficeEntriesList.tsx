@@ -127,6 +127,16 @@ function OutOfOfficeEntriesListContent() {
     [data, selectedTab, isPending, searchTerm]
   ) as OutOfOfficeEntry[];
 
+  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
+    onSuccess: () => {
+      showToast(t("success_deleted_entry_out_of_office"), "success");
+      setDeletedEntry((previousValue) => previousValue + 1);
+    },
+    onError: () => {
+      showToast(`An error occurred`, "error");
+    },
+  });
+
   const memoColumns = useMemo(() => {
     const columnHelper = createColumnHelper<OutOfOfficeEntry>();
     return [
@@ -332,16 +342,6 @@ function OutOfOfficeEntriesListContent() {
     manualPagination: true,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-  });
-
-  const deleteOutOfOfficeEntryMutation = trpc.viewer.ooo.outOfOfficeEntryDelete.useMutation({
-    onSuccess: () => {
-      showToast(t("success_deleted_entry_out_of_office"), "success");
-      setDeletedEntry((previousValue) => previousValue + 1);
-    },
-    onError: () => {
-      showToast(`An error occurred`, "error");
-    },
   });
 
   return (
