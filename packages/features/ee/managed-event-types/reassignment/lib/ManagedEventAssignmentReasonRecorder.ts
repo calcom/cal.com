@@ -1,5 +1,5 @@
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma/client";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 export enum ManagedEventReassignmentType {
@@ -47,17 +47,13 @@ export default class ManagedEventAssignmentReasonRecorder {
       },
     });
 
-    // Use REASSIGNED for manual, RR_REASSIGNED for auto (similar to Round Robin)
-    const reasonEnum =
-      reassignmentType === ManagedEventReassignmentType.MANUAL
-        ? AssignmentReasonEnum.REASSIGNED
-        : AssignmentReasonEnum.RR_REASSIGNED;
+    const reasonEnum = AssignmentReasonEnum.REASSIGNED;
 
     const reassignmentTypeLabel =
-      reassignmentType === ManagedEventReassignmentType.AUTO ? "Auto-reassigned" : "Reassigned";
+      reassignmentType === ManagedEventReassignmentType.AUTO ? "Auto-reassigned" : "Manual-reassigned";
 
-    const reasonString = `${reassignmentTypeLabel} by: ${reassignedBy?.username || "team member"}${
-      reassignReason ? `. Reason: ${reassignReason}` : ""
+    const reasonString = `${reassignmentTypeLabel} by: ${reassignedBy?.username || "team member"}. ${
+      reassignReason ? `Reason: ${reassignReason}` : ""
     }`;
 
     await prisma.assignmentReason.create({
