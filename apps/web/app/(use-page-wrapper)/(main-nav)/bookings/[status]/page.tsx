@@ -6,11 +6,15 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
-import BookingsList from "~/bookings/views/bookings-listing-view";
+import BookingsList from "~/bookings/views/bookings-view";
 
 const querySchema = z.object({
   status: z.enum(validStatuses),
@@ -33,9 +37,36 @@ const Page = async ({ params }: PageProps) => {
   const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
 
+  let canReadOthersBookings = false;
+  if (session?.user?.id) {
+    const permissionService = new PermissionCheckService();
+    const userId = session.user.id;
+
+    const teamIdsWithPermission = await permissionService.getTeamIdsWithPermission({
+      userId,
+      permission: "booking.read",
+      fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+    });
+    // We check if teamIdsWithPermission.length > 0.
+    // While this may not be entirely accurate, it's acceptable
+    // because we perform a thorough validation on the server side for the actual filter values.
+    // This variable is primarily for UI purposes.
+    canReadOthersBookings = teamIdsWithPermission.length > 0;
+  }
+
+  const featuresRepository = new FeaturesRepository(prisma);
+  const isCalendarViewEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "booking-calendar-view"
+  );
+
   return (
     <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
-      <BookingsList status={parsed.data.status} userId={session?.user?.id} />
+      <BookingsList
+        status={parsed.data.status}
+        userId={session?.user?.id}
+        permissions={{ canReadOthersBookings }}
+        isCalendarViewEnabled={isCalendarViewEnabled}
+      />
     </ShellMainAppDir>
   );
 };

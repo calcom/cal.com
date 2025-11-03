@@ -4,8 +4,8 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { OrgForm } from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgEditPage";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 
 const orgIdSchema = z.object({ id: z.coerce.number() });
 
