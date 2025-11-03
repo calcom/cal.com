@@ -1,22 +1,28 @@
 import { vi, beforeEach } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
+import { mockDeep } from "vitest-mock-extended";
 
-import type * as organization from "@calcom/features/ee/organizations/repositories";
+import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 
-vi.mock("@calcom/features/ee/organizations/repositories", () => organizationMock);
-type OrganizationModule = typeof organization;
-beforeEach(() => {
-  mockReset(organizationMock);
+const mockedSingleton = mockDeep<OrganizationRepository>();
+
+vi.mock("@calcom/features/ee/organizations/repositories", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@calcom/features/ee/organizations/repositories")>();
+  return {
+    ...actual,
+    organizationRepository: mockedSingleton,
+  };
 });
 
-const organizationMock = mockDeep<OrganizationModule>();
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 export const organizationScenarios = {
   organizationRepository: {
     findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fakeReturnOrganization: (org: any, forInput: any) => {
-        organizationMock.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockImplementation(
+        mockedSingleton.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockImplementation(
           (arg) => {
             if (forInput.email === arg.email) {
               return org;
@@ -28,10 +34,10 @@ export const organizationScenarios = {
         );
       },
       fakeNoMatch: () => {
-        organizationMock.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockResolvedValue(null);
+        mockedSingleton.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockResolvedValue(null);
       },
     },
-  } satisfies Partial<Record<keyof OrganizationModule["organizationRepository"], unknown>>,
-} satisfies Partial<Record<keyof OrganizationModule, unknown>>;
+  },
+};
 
-export default organizationMock;
+export default { organizationRepository: mockedSingleton };

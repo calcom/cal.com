@@ -20,11 +20,8 @@ import {
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
 } from "./delegationCredential";
 
-// Mock OrganizationRepository
-vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository", () => ({
-  OrganizationRepository: {
-    findByMemberEmail: vi.fn(),
-  },
+vi.mock("@calcom/prisma", () => ({
+  prisma: {},
 }));
 
 // Mock DelegationCredentialRepository
