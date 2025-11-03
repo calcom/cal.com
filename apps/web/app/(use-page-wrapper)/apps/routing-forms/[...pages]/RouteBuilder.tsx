@@ -2,7 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useMemo } from "react";
 import { Query, Builder, Utils as QbUtils } from "@react-awesome-query-builder/ui";
 import type { ImmutableTree, BuilderProps, Config } from "@react-awesome-query-builder/ui";
 import type { JsonTree } from "@react-awesome-query-builder/ui";
@@ -108,7 +108,7 @@ function useEnsureEventTypeIdInRedirectUrlAction({
 
 const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+  return !!(route.queryValue.children1 && Object.keys(route.queryValue.children1).length);
 };
 
 function getEmptyQueryValue() {
@@ -521,6 +521,15 @@ const Route = ({
         }
       : undefined;
 
+  const memoizedFormFieldsConfig = useMemo(
+    () =>
+      withRaqbSettingsAndWidgets({
+        config: formFieldsQueryBuilderConfig,
+        configFor: ConfigFor.FormFields,
+      }),
+    [formFieldsQueryBuilderConfig]
+  );
+
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
     <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
       <div className="ml-2 flex items-center gap-0.5">
@@ -530,10 +539,7 @@ const Route = ({
         <span className="text-emphasis ml-2 text-sm font-medium">Conditions</span>
       </div>
       <Query
-        {...withRaqbSettingsAndWidgets({
-          config: formFieldsQueryBuilderConfig,
-          configFor: ConfigFor.FormFields,
-        })}
+        {...memoizedFormFieldsConfig}
         value={route.formFieldsQueryBuilderState.tree}
         onChange={(immutableTree, formFieldsQueryBuilderConfig) => {
           onChangeFormFieldsQuery(
@@ -547,12 +553,16 @@ const Route = ({
     </div>
   ) : null;
 
-  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
-    ? withRaqbSettingsAndWidgets({
-        config: attributesQueryBuilderConfig,
-        configFor: ConfigFor.Attributes,
-      })
-    : null;
+  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = useMemo(
+    () =>
+      attributesQueryBuilderConfig
+        ? withRaqbSettingsAndWidgets({
+            config: attributesQueryBuilderConfig,
+            configFor: ConfigFor.Attributes,
+          })
+        : null,
+    [attributesQueryBuilderConfig]
+  );
 
   const attributesQueryBuilder =
     // team member attributes are only available for organization teams
