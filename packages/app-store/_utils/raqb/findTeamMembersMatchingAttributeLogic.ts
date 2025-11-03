@@ -112,9 +112,6 @@ function prepareQueryValueForEvaluation(
       
       if (!field || !operator || !value) return;
       
-      const fieldConfig = config.fields[field];
-      if (!fieldConfig?.fieldSettings?.listValues) return;
-      
       const isSelectOperator = operator.includes("select_") || operator.includes("multiselect_");
       if (!isSelectOperator) return;
       
