@@ -12,24 +12,28 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { cancelAllWorkflowRemindersForReassignment } from "./lib/handleWorkflowsUpdate";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma/selects/user";
-import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+
+import { cancelAllWorkflowRemindersForReassignment } from "./lib/handleWorkflowsUpdate";
+import ManagedEventAssignmentReasonRecorder, {
+  ManagedEventReassignmentType,
+} from "./lib/ManagedEventAssignmentReasonRecorder";
 
 import { findTargetChildEventType, validateManagedEventReassignment } from "./utils";
 
 interface ManagedEventManualReassignmentParams {
   bookingId: number;
   newUserId: number;
-  _orgId: number | null;
+  orgId: number | null;
   reassignReason?: string;
   reassignedById: number;
-  _emailsEnabled?: boolean;
-  _platformClientParams?: PlatformClientParams;
+  emailsEnabled?: boolean;
+  isAutoReassignment?: boolean;
 }
 
 /**
@@ -41,11 +45,11 @@ interface ManagedEventManualReassignmentParams {
 export async function managedEventManualReassignment({
   bookingId,
   newUserId,
-  _orgId,
+  orgId,
   reassignReason,
   reassignedById,
-  _emailsEnabled = true,
-  _platformClientParams,
+  emailsEnabled = true,
+  isAutoReassignment = false,
 }: ManagedEventManualReassignmentParams) {
   const reassignLogger = logger.getSubLogger({
     prefix: ["managedEventManualReassignment", `${bookingId}`],
@@ -164,7 +168,7 @@ export async function managedEventManualReassignment({
   // 5. Check availability of new user at booking time
   // Transform user to IsFixedAwareUser format for availability checking
   const enrichedUsersResult = await enrichUsersWithDelegationCredentials({
-    orgId: _orgId,
+    orgId,
     users: [withSelectedCalendars(newUser)],
   });
 
@@ -364,7 +368,6 @@ export async function managedEventManualReassignment({
   try {
     const cancelResult = await cancelAllWorkflowRemindersForReassignment({
       bookingUid: originalBookingFull.uid,
-      orgId: _orgId,
     });
     reassignLogger.info(`Cancelled ${cancelResult.totalCancelled} workflow reminders (${cancelResult.emailCancelled} email, ${cancelResult.smsCancelled} SMS)`);
   } catch (error) {
@@ -423,7 +426,7 @@ export async function managedEventManualReassignment({
   }
 
   // 11. Send notification emails (original user, new user, attendees)
-  if (_emailsEnabled) {
+  if (emailsEnabled) {
     try {
       const eventTypeMetadata = targetEventTypeDetails.metadata as EventTypeMetadata | undefined;
 
@@ -519,7 +522,23 @@ export async function managedEventManualReassignment({
     }
   }
 
-  // TODO: 12. Send webhook event BOOKING_REASSIGNED
+  // 12. Record assignment reason
+  try {
+    const assignmentResult = await ManagedEventAssignmentReasonRecorder.managedEventReassignment({
+      newBookingId: newBooking.id,
+      reassignById: reassignedById,
+      reassignReason,
+      reassignmentType: isAutoReassignment
+        ? ManagedEventReassignmentType.AUTO
+        : ManagedEventReassignmentType.MANUAL,
+    });
+    reassignLogger.info("Recorded assignment reason", assignmentResult);
+  } catch (error) {
+    reassignLogger.error("Error recording assignment reason", error);
+    // Don't throw - assignment reason recording failure shouldn't block reassignment
+  }
+
+  // TODO: 13. Send webhook event BOOKING_REASSIGNED
 
   reassignLogger.info("Reassignment completed successfully", {
     originalBookingId: cancelledBooking.id,

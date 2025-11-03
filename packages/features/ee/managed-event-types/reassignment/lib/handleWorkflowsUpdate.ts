@@ -15,10 +15,8 @@ const workflowLogger = logger.getSubLogger({ prefix: ["managedEventWorkflowsUpda
  */
 export async function cancelOldBookingWorkflowReminders({
   bookingUid,
-  _orgId,
 }: {
   bookingUid: string;
-  _orgId: number | null;
 }) {
   workflowLogger.info(`Cancelling workflow reminders for booking ${bookingUid}`);
 
@@ -121,13 +119,11 @@ export async function cancelOldBookingSMSReminders({
  */
 export async function cancelAllWorkflowRemindersForReassignment({
   bookingUid,
-  _orgId,
 }: {
   bookingUid: string;
-  _orgId: number | null;
 }) {
   const [emailResult, smsResult] = await Promise.all([
-    cancelOldBookingWorkflowReminders({ bookingUid, _orgId }),
+    cancelOldBookingWorkflowReminders({ bookingUid }),
     cancelOldBookingSMSReminders({ bookingUid }),
   ]);
 

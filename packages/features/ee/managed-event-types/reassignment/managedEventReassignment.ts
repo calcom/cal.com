@@ -10,7 +10,6 @@ import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userSelect } from "@calcom/prisma/selects/user";
-import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 
 import { managedEventManualReassignment } from "./managedEventManualReassignment";
 import { validateManagedEventReassignment } from "./utils";
@@ -20,8 +19,7 @@ interface ManagedEventReassignmentParams {
   orgId: number | null;
   reassignReason?: string;
   reassignedById: number;
-  _emailsEnabled?: boolean;
-  _platformClientParams?: PlatformClientParams;
+  emailsEnabled?: boolean;
 }
 
 /**
@@ -35,8 +33,7 @@ export async function managedEventReassignment({
   orgId,
   reassignReason = "Auto-reassigned to another team member",
   reassignedById,
-  _emailsEnabled = true,
-  _platformClientParams,
+  emailsEnabled = true,
 }: ManagedEventReassignmentParams) {
   const reassignLogger = logger.getSubLogger({
     prefix: ["managedEventReassignment", `${bookingId}`],
@@ -172,15 +169,15 @@ export async function managedEventReassignment({
 
   reassignLogger.info(`Selected user ${selectedUser.id} for reassignment`);
 
-  // 8. Delegate to manual reassignment
+  // 8. Delegate to manual reassignment with auto-reassignment flag
   return await managedEventManualReassignment({
     bookingId,
     newUserId: selectedUser.id,
-    _orgId: orgId,
+    orgId,
     reassignReason,
     reassignedById,
-    _emailsEnabled,
-    _platformClientParams,
+    emailsEnabled,
+    isAutoReassignment: true,
   });
 }
 
