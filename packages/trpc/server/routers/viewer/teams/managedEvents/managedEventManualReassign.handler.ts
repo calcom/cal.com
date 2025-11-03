@@ -31,7 +31,7 @@ export const managedEventManualReassignHandler = async ({
   await managedEventManualReassignment({
     bookingId,
     newUserId: teamMemberId,
-    _orgId: ctx.user.organizationId,
+    orgId: ctx.user.organizationId ?? null,
     reassignReason,
     reassignedById: ctx.user.id,
   });
