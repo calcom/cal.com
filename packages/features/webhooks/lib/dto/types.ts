@@ -331,6 +331,24 @@ export interface AfterGuestsNoShowDTO extends BaseEventDTO {
   };
 }
 
+export interface DelegationCredentialErrorDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.DELEGATION_CREDENTIAL_ERROR;
+  error: {
+    type: string;
+    message: string;
+  };
+  credential: {
+    id: number;
+    type: string;
+    appId: string;
+  };
+  user: {
+    id: number;
+    email: string;
+    name: string | null;
+  };
+}
+
 export type WebhookEventDTO =
   | BookingCreatedDTO
   | BookingCancelledDTO
@@ -349,7 +367,8 @@ export type WebhookEventDTO =
   | MeetingEndedDTO
   | InstantMeetingDTO
   | AfterHostsNoShowDTO
-  | AfterGuestsNoShowDTO;
+  | AfterGuestsNoShowDTO
+  | DelegationCredentialErrorDTO;
 
 // Service layer interfaces
 export interface WebhookTriggerArgs {
