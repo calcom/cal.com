@@ -6,8 +6,8 @@ import { ensureReservedSlotIsEarliest } from "../reservations/validateReservedSl
 
 export type ReservedSlotMeta = {
   eventTypeId: number;
-  slotUtcStart: string | Date;
-  slotUtcEnd: string | Date;
+  slotUtcStart: Date;
+  slotUtcEnd: Date;
   reservedSlotUid: string;
 };
 

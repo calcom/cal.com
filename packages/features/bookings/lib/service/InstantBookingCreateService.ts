@@ -196,6 +196,8 @@ export async function handler(
   const translator = short();
   const seed = `${reqBody.email}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
+  const bookingStartUtc = new Date(dayjs(reqBody.start).utc().format());
+  const bookingEndUtc = new Date(dayjs(reqBody.end).utc().format());
 
   const customInputs = getCustomInputsResponses(reqBody, eventType.customInputs);
   const attendeeTimezone = reqBody.timeZone;
@@ -281,8 +283,8 @@ export async function handler(
     if (bookingMeta?.reservedSlotUid) {
       return createInstantBookingWithReservedSlot(createBookingObj, {
         eventTypeId: reqBody.eventTypeId,
-        slotUtcStart: reqBody.start,
-        slotUtcEnd: reqBody.end,
+        slotUtcStart: bookingStartUtc,
+        slotUtcEnd: bookingEndUtc,
         reservedSlotUid: bookingMeta.reservedSlotUid!,
       });
     }

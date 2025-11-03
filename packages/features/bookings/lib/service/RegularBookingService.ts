@@ -530,6 +530,8 @@ async function handler(
     eventType,
   });
 
+  const bookingStartUtc = new Date(dayjs(reqBody.start).utc().format());
+  const bookingEndUtc = new Date(dayjs(reqBody.end).utc().format());
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
 
@@ -634,7 +636,7 @@ async function handler(
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
-      startTime: new Date(dayjs(reqBody.start).utc().format()),
+      startTime: bookingStartUtc,
       filterForUnconfirmed: !isConfirmedByDefault,
     });
 
@@ -794,7 +796,7 @@ async function handler(
     const booking = await deps.prismaClient.booking.findFirst({
       where: {
         eventTypeId: eventType.id,
-        startTime: new Date(dayjs(reqBody.start).utc().format()),
+        startTime: bookingStartUtc,
         status: BookingStatus.ACCEPTED,
       },
       select: {
@@ -1715,8 +1717,8 @@ async function handler(
       if (input.reservedSlotUid && !eventType.seatsPerTimeSlot && !isTeamEvent) {
         booking = await createBookingWithReservedSlot(createArgs, {
           eventTypeId,
-          slotUtcStart: reqBody.start,
-          slotUtcEnd: reqBody.end,
+          slotUtcStart: bookingStartUtc,
+          slotUtcEnd: bookingEndUtc,
           reservedSlotUid: input.reservedSlotUid,
         });
       } else {
