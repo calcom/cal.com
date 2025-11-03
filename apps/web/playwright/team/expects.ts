@@ -15,7 +15,6 @@ export async function expectInvitationEmailToBeReceived(
 ) {
   if (!emails) return null;
 
-  await page.waitForTimeout(2000);
   const receivedEmails = await getEmailsReceivedByUser({ emails, userEmail });
   expect(receivedEmails?.total).toBe(1);
 

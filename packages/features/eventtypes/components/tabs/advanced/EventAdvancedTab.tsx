@@ -21,6 +21,7 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
@@ -643,7 +644,11 @@ export const EventAdvancedTab = ({
             {t("booking_questions_title")}
           </div>
           <p className="text-subtle mt-1 max-w-[280px] break-words text-sm sm:max-w-[500px]">
-            {t("booking_questions_description")}
+            <LearnMoreLink
+              t={t}
+              i18nKey="booking_questions_description"
+              href="https://cal.com/help/event-types/booking-questions"
+            />
           </p>
         </div>
         <div className="border-subtle bg-default rounded-lg border p-5">
@@ -694,7 +699,13 @@ export const EventAdvancedTab = ({
                 title={t("disable_cancelling")}
                 data-testid="disable-cancelling-toggle"
                 {...disableCancellingLocked}
-                description={t("description_disable_cancelling")}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="description_disable_cancelling"
+                    href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
+                  />
+                }
                 checked={disableCancelling}
                 onCheckedChange={(val) => {
                   setDisableCancelling(val);
@@ -714,7 +725,13 @@ export const EventAdvancedTab = ({
                 title={t("disable_rescheduling")}
                 data-testid="disable-rescheduling-toggle"
                 {...disableReschedulingLocked}
-                description={t("description_disable_rescheduling")}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="description_disable_rescheduling"
+                    href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-rescheduling"
+                  />
+                }
                 checked={disableRescheduling}
                 onCheckedChange={(val) => {
                   setDisableRescheduling(val);
@@ -846,7 +863,13 @@ export const EventAdvancedTab = ({
             data-testid="disable-notes"
             title={t("disable_notes")}
             {...hideCalendarNotesLocked}
-            description={t("disable_notes_description")}
+            description={
+              <LearnMoreLink
+                t={t}
+                i18nKey="disable_notes_description"
+                href="https://cal.com/help/event-types/hide-notes"
+              />
+            }
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
@@ -963,7 +986,13 @@ export const EventAdvancedTab = ({
                 data-testid="multiplePrivateLinksCheck"
                 title={t("multiple_private_links_title")}
                 {...multiplePrivateLinksLocked}
-                description={t("multiple_private_links_description", { appName: APP_NAME })}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="multiple_private_links_description"
+                    href="https://cal.com/help/event-types/private-links"
+                  />
+                }
                 tooltip={isManagedEventType ? t("managed_event_field_parent_control_disabled") : ""}
                 checked={multiplePrivateLinksVisible}
                 onCheckedChange={(e) => {
@@ -1010,7 +1039,13 @@ export const EventAdvancedTab = ({
               data-testid="offer-seats-toggle"
               title={t("offer_seats")}
               {...seatsLocked}
-              description={t("offer_seats_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="offer_seats_description"
+                  href="https://cal.com/help/event-types/offer-seats"
+                />
+              }
               checked={value}
               disabled={noShowFeeEnabled || multiLocation || (!seatsEnabled && isRecurringEvent)}
               tooltip={
@@ -1136,7 +1171,13 @@ export const EventAdvancedTab = ({
             )}
             title={t("hide_organizer_email")}
             {...hideOrganizerEmailLocked}
-            description={t("hide_organizer_email_description")}
+            description={
+              <LearnMoreLink
+                t={t}
+                i18nKey="hide_organizer_email_description"
+                href="https://cal.com/help/event-types/hideorganizersemail#hide-organizers-email"
+              />
+            }
             descriptionClassName={customClassNames?.hideOrganizerEmail?.description}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
@@ -1166,7 +1207,13 @@ export const EventAdvancedTab = ({
               )}
               title={t("lock_timezone_toggle_on_booking_page")}
               {...lockTimeZoneToggleOnBookingPageLocked}
-              description={t("description_lock_timezone_toggle_on_booking_page")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="description_lock_timezone_toggle_on_booking_page"
+                  href="https://cal.com/help/event-types/timezone-lock"
+                />
+              }
               checked={value}
               onCheckedChange={(e) => {
                 onChange(e);
@@ -1213,7 +1260,13 @@ export const EventAdvancedTab = ({
             switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
             title={t("allow_rescheduling_past_events")}
             {...reschedulingPastBookingsLocked}
-            description={t("allow_rescheduling_past_events_description")}
+            description={
+              <LearnMoreLink
+                t={t}
+                i18nKey="allow_rescheduling_past_events_description"
+                href="https://cal.com/help/event-types/allow-rescheduling"
+              />
+            }
             checked={value}
             onCheckedChange={(e) => onChange(e)}
           />
@@ -1381,7 +1434,13 @@ export const EventAdvancedTab = ({
               toggleSwitchAtTheEnd={true}
               labelClassName="text-sm"
               title={t("show_optimized_slots")}
-              description={t("show_optimized_slots_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="show_optimized_slots_description"
+                  href="https://cal.com/help/event-types/optimized-slots#optimized-slots"
+                />
+              }
               checked={isChecked}
               {...showOptimizedSlotsLocked}
               onCheckedChange={(active) => {
