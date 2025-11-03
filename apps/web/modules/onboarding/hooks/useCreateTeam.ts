@@ -24,6 +24,7 @@ export function useCreateTeam() {
         name: teamDetails.name,
         slug: teamDetails.slug,
         logo: teamBrand.logo,
+        isOnboarding: true,
       });
 
       // If there's a checkout URL, redirect to Stripe payment
