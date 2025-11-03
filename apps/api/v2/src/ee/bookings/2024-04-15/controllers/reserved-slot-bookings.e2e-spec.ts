@@ -218,7 +218,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
           .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
           .expect(400);
 
-        const message: string = response.body.message;
+        const message: string = response.body.error.message;
         const match = message.match(/(\d+) seconds\.$/);
         expect(match).not.toBeNull();
         const secondsFromMessage = parseInt(match![1], 10);
@@ -366,7 +366,7 @@ describe("Reserved Slot Bookings Endpoints 2024-04-15", () => {
             .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
             .expect(400);
 
-          const message: string = response.body.message;
+          const message: string = response.body.error.message;
           const match = message.match(/(\d+) seconds\.$/); 
           expect(match).not.toBeNull();
           const secondsFromMessage = parseInt(match![1], 10);
