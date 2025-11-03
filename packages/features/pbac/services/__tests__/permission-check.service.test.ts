@@ -177,6 +177,89 @@ describe("PermissionCheckService", () => {
       });
     });
 
+    it("should use highest role when user is MEMBER of sub team but ADMIN of parent org (PBAC disabled)", async () => {
+      const teamMembership = {
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        accepted: true,
+        role: "MEMBER" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      const orgMembership = {
+        id: 2,
+        teamId: 100,
+        userId: 1,
+        accepted: true,
+        role: "ADMIN" as MembershipRole,
+        customRoleId: null,
+        disableImpersonation: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(false);
+      (MembershipRepository.findUniqueByUserIdAndTeamId as Mock)
+        .mockResolvedValueOnce(teamMembership) // Has team membership as MEMBER
+        .mockResolvedValueOnce(orgMembership); // Has org membership as ADMIN
+      mockRepository.getTeamById.mockResolvedValueOnce({ id: 1, parentId: 100 });
+
+      const result = await service.checkPermission({
+        userId: 1,
+        teamId: 1,
+        permission: "eventType.update",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(true);
+      expect(mockRepository.getTeamById).toHaveBeenCalledWith(1);
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(1, {
+        userId: 1,
+        teamId: 1,
+      });
+      expect(MembershipRepository.findUniqueByUserIdAndTeamId).toHaveBeenNthCalledWith(2, {
+        userId: 1,
+        teamId: 100,
+      });
+    });
+
+    it("should check org-level permissions when user is MEMBER of sub team but ADMIN of parent org (PBAC enabled)", async () => {
+      mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
+      mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce({
+        id: 1,
+        teamId: 1,
+        userId: 1,
+        customRoleId: "team_member_role",
+        team: { id: 1, parentId: 100 },
+      });
+      mockRepository.getOrgMembership.mockResolvedValueOnce({
+        id: 2,
+        teamId: 100,
+        userId: 1,
+        customRoleId: "org_admin_role",
+      });
+      mockRepository.checkRolePermission
+        .mockResolvedValueOnce(false) // Team member role doesn't have permission
+        .mockResolvedValueOnce(true); // Org admin role has permission
+
+      const result = await service.checkPermission({
+        userId: 1,
+        teamId: 1,
+        permission: "eventType.update",
+        fallbackRoles: ["ADMIN", "OWNER"],
+      });
+
+      expect(result).toBe(true);
+      expect(mockRepository.getMembershipByUserAndTeam).toHaveBeenCalledWith(1, 1);
+      expect(mockRepository.getOrgMembership).toHaveBeenCalledWith(1, 100);
+      expect(mockRepository.checkRolePermission).toHaveBeenNthCalledWith(1, "team_member_role", "eventType.update");
+      expect(mockRepository.checkRolePermission).toHaveBeenNthCalledWith(2, "org_admin_role", "eventType.update");
+    });
+
     it("should check org-level permissions when user has no team membership but PBAC is enabled", async () => {
       mockFeaturesRepository.checkIfTeamHasFeature.mockResolvedValueOnce(true);
       mockRepository.getMembershipByUserAndTeam.mockResolvedValueOnce(null);
