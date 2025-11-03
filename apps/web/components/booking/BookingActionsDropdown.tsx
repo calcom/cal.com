@@ -367,11 +367,8 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
     eventType: booking.eventType.id ? booking.eventType : null,
   };
 
-  if (!shouldShowEditActions(actionContext)) {
-    return null;
-  }
-
-  return (
+  // Render dialogs that might be triggered from BookingListItem even if dropdown is not shown
+  const dialogs = (
     <>
       <RescheduleDialog
         isOpenDialog={isOpenRescheduleDialog}
@@ -475,7 +472,17 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
           booking={{ ...parsedBooking, eventType: parsedBooking.eventType }}
         />
       )}
+    </>
+  );
 
+  // Don't render dropdown if edit actions shouldn't be shown
+  if (!shouldShowEditActions(actionContext)) {
+    return dialogs;
+  }
+
+  return (
+    <>
+      {dialogs}
       <Dropdown>
         <DropdownMenuTrigger asChild>
           <Button
