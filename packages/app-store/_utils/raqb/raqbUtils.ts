@@ -72,6 +72,44 @@ export function buildEmptyQueryValue() {
   return { id: QbUtils.uuid(), type: "group" as const };
 }
 
+/**
+ * Normalizes RAQB v6 JsonTree format to match the expected schema format.
+ * Converts children1 from array to record (keyed by rule IDs) and cleans up optional fields.
+ */
+export function normalizeRaqbJsonTree(tree: JsonTree | null | undefined): JsonTree | null {
+  if (!tree) {
+    return null;
+  }
+
+  const normalized: JsonTree = {
+    ...tree,
+  };
+
+  if (tree.children1) {
+    if (Array.isArray(tree.children1)) {
+      const children1Record: Record<string, JsonItem> = {};
+      tree.children1.forEach((child: JsonItem) => {
+        if (child.id) {
+          children1Record[child.id] = child;
+        }
+      });
+      normalized.children1 = children1Record;
+    } else {
+      const normalizedChildren: Record<string, JsonItem> = {};
+      Object.entries(tree.children1).forEach(([key, child]) => {
+        if (child.type === "group") {
+          normalizedChildren[key] = normalizeRaqbJsonTree(child as JsonTree) as JsonItem;
+        } else {
+          normalizedChildren[key] = child;
+        }
+      });
+      normalized.children1 = normalizedChildren;
+    }
+  }
+
+  return normalized;
+}
+
 export const buildStateFromQueryValue = ({
   queryValue,
   config,
