@@ -29,6 +29,7 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import type { BookingItemProps } from "./BookingListItem";
 import {
   getCancelEventAction,
   getEditEventActions,
@@ -37,7 +38,6 @@ import {
   shouldShowEditActions,
   type BookingActionContext,
 } from "./bookingActions";
-import type { BookingItemProps } from "./BookingListItem";
 
 interface BookingActionsDropdownProps {
   booking: BookingItemProps;
@@ -301,7 +301,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
 
     return (
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent title={t("mark_as_no_show")} description={t("mark_as_no_show_description")}>
+        <DialogContent title={t("mark_as_no_show")}>
           <div className="space-y-2">
             {attendees.map((attendee, index) => (
               <label key={attendee.email} className="flex items-center space-x-2">
