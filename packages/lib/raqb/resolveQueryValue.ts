@@ -219,6 +219,8 @@ export const resolveQueryValue = ({
           // [{field:location}, Delhi] -> becomes [New York, Delhi]. New York was the response for the field `location`
           result.push(processed);
         }
+      } else if (typeof item === "string") {
+        result.push(caseInsensitive(item));
       } else {
         result.push(processAnyValue(item));
       }

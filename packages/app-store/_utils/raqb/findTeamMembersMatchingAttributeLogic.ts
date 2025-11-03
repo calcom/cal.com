@@ -106,26 +106,12 @@ function getJsonLogic({
     config: attributesQueryBuilderConfig as unknown as Config,
   };
   
-  const plainTree = QbUtils.getTree(state.tree);
-  const treeOperators = Object.values((plainTree as any).children1 || {})
-    .map((r: any) => r?.properties?.operator)
-    .filter(Boolean);
-  const configOperators = Object.keys(state.config.operators || {});
-  
-  console.log('[DEBUG] Tree operators:', treeOperators);
-  console.log('[DEBUG] Config has operators:', configOperators.filter(k => k.includes('select') || k.includes('multiselect')));
-  console.log('[DEBUG] Operators present in config:', treeOperators.map(op => `${op}: ${!!state.config.operators?.[op]}`));
-  
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
-  // Considering errors as warnings as we want to continue with the flow without throwing actual errors
-  // We expect fallback logic to take effect in case of errors in main logic
   const warnings = getErrorsFromImmutableTree(state.tree).flat();
+  
   if (!logic) {
-    // If children1 is not empty, it means that some rules were added by use
     if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
-      // Possible reasons for this
-      // 1. The attribute option value used is not in the options list. Happens if 'Value of field' value is chosen and that field's response value doesn't exist in attribute options list.
       return { logic, warnings: ["There is some error building the logic, please check the routes."] };
     }
   }
@@ -133,7 +119,7 @@ function getJsonLogic({
   return { logic, warnings };
 }
 
-function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, any> }) {
+function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, unknown> }) {
   return {
     troubleshooter: {
       type,
@@ -170,7 +156,7 @@ async function getLogicResultForAllMembers(
         attributesQueryValue,
       });
       attributesDataPerUser.set(member.userId, attributesData);
-      const result = jsonLogic.apply(attributeJsonLogic as any, attributesData)
+      const result = jsonLogic.apply(attributeJsonLogic as unknown as jsonLogic.RulesLogic, attributesData)
         ? RaqbLogicResult.MATCH
         : RaqbLogicResult.NO_MATCH;
 
@@ -194,6 +180,51 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     dynamicFieldValueOperands,
   } = data;
   const { concurrency, enablePerf, enableTroubleshooter } = options;
+  
+  const earlyWarnings: string[] = [];
+  if (_attributesQueryValue && raqbQueryValueUtils.isQueryValueARuleGroup(_attributesQueryValue) && _attributesQueryValue.children1) {
+    const attributesQueryBuilderConfig = getAttributesQueryBuilderConfigHavingListofLabels({
+      dynamicFieldValueOperands,
+      attributes: attributesOfTheOrg,
+    });
+    
+    Object.values(_attributesQueryValue.children1).forEach((rule) => {
+      if (rule.type !== "rule") return;
+      
+      const { field, operator, value, valueSrc } = rule.properties;
+      if (!field || !operator || !value) return;
+      
+      const fieldConfig = attributesQueryBuilderConfig.fields[field];
+      if (!fieldConfig?.fieldSettings?.listValues) return;
+      
+      const allowedValues = new Set(
+        fieldConfig.fieldSettings.listValues.map((opt: { value: string | number; title: string }) => 
+          typeof opt.value === "string" ? opt.value.toLowerCase() : String(opt.value).toLowerCase()
+        )
+      );
+      
+      const isSelectOperator = operator.includes("select_") || operator.includes("multiselect_");
+      if (!isSelectOperator) return;
+      
+      const valuesToCheck = Array.isArray(value[0]) ? value[0] : (Array.isArray(value) ? value : [value]);
+      const valueSrcArray = valueSrc || [];
+      
+      let foundInvalidValue = false;
+      for (const [index, val] of valuesToCheck.entries()) {
+        if (foundInvalidValue) break;
+        
+        const src = valueSrcArray[index] || (Array.isArray(valueSrc) && valueSrc.length === 1 ? valueSrc[0] : "value");
+        if (src !== "value" || typeof val !== "string") continue;
+        
+        const normalizedVal = val.toLowerCase();
+        if (!allowedValues.has(normalizedVal)) {
+          earlyWarnings.push(`Value ${val} is not in list of values`);
+          foundInvalidValue = true;
+        }
+      }
+    });
+  }
+  
   const attributesQueryValue = getAttributesQueryValue({
     attributesQueryValue: _attributesQueryValue ?? null,
     attributes: attributesOfTheOrg,
@@ -224,11 +255,13 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     attributesQueryValue,
     attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
   });
+  
+  const allWarnings = [...earlyWarnings, ...logicBuildingWarnings];
 
   if (!logic) {
     return {
       teamMembersMatchingAttributeLogic: null,
-      logicBuildingWarnings: null,
+      logicBuildingWarnings: allWarnings.length > 0 ? allWarnings : null,
       timeTaken: {
         ttgetAttributesQueryBuilderConfigHavingListofLabels,
       },
@@ -267,7 +300,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
 
   return {
     teamMembersMatchingAttributeLogic,
-    logicBuildingWarnings,
+    logicBuildingWarnings: allWarnings,
     timeTaken: {
       ttgetAttributesQueryBuilderConfigHavingListofLabels,
       ttTeamMembersMatchingAttributeLogic,

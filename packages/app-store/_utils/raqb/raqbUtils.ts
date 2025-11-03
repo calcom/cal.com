@@ -7,7 +7,6 @@ import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import { resolveQueryValue } from "@calcom/lib/raqb/resolveQueryValue";
 import type { dynamicFieldValueOperands } from "@calcom/lib/raqb/types";
 import { caseInsensitive } from "@calcom/lib/raqb/utils";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
   AttributeOptionValueWithType,
   AttributeOptionValue,
@@ -90,7 +89,9 @@ export function normalizeRaqbJsonTree(tree: JsonTree | null | undefined): JsonTr
       const children1Record: Record<string, JsonItem> = {};
       tree.children1.forEach((child: JsonItem) => {
         if (child.id) {
-          children1Record[child.id] = child;
+          children1Record[child.id] = child.type === "group" 
+            ? (normalizeRaqbJsonTree(child as JsonTree) as JsonItem) 
+            : child;
         }
       });
       normalized.children1 = children1Record;
@@ -149,7 +150,6 @@ export function getValueOfAttributeOption(
   ) {
     if (attributeOption.isGroup) {
       const subOptions = attributeOption.contains.map((option) => option.value);
-      console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
       return subOptions;
     }
     return attributeOption.value;
