@@ -24,6 +24,7 @@ export function useCreateTeam() {
         name: teamDetails.name,
         slug: teamDetails.slug,
         logo: teamBrand.logo,
+        isOnboarding: true,
       });
 
       // If there's a checkout URL, redirect to Stripe payment
@@ -35,7 +36,7 @@ export function useCreateTeam() {
       if (result.team) {
         // Not sure we need this flag check - keeping it here for safe keeping as this is called only from v3 onboarding flow
         const gettingStartedPath = flags["onboarding-v3"]
-          ? "/onboarding/getting-started"
+          ? "/onboarding/personal/settings"
           : "/getting-started";
         router.push(gettingStartedPath);
       }

@@ -15,7 +15,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import { getUtmTrackingParameters } from "../../lib/getUtmTrackingParameters";
 import type { UseCreateBookingInput } from "./useCreateBooking";
 
-type Callbacks = { onSuccess?: () => void; onError?: (err: ApiErrorResponse | Error) => void };
+type Callbacks = { onSuccess?: () => void; onError?: (err: unknown) => void };
 type UseHandleBookingProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   event?: {
@@ -65,11 +65,9 @@ export const useHandleBookEvent = ({
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
-  const reservedSlotUid = useBookerStoreContext((state) => state.reservedSlotUid);
-
-  const handleError = (err: ApiErrorResponse | Error) => {
-    const errorMessage = err instanceof Error ? err.message : err.error?.message;
-    showToast(errorMessage ? t(errorMessage) : t("can_you_try_again"), "error");
+  const handleError = (err: unknown) => {
+    const errorMessage = err instanceof Error ? t(err.message) : t("can_you_try_again");
+    showToast(errorMessage, "error");
   };
   const searchParams = useSearchParams();
 
@@ -125,7 +123,7 @@ export const useHandleBookEvent = ({
 
       if (isInstantMeeting) {
         handleInstantBooking(mapBookingToMutationInput(bookingInput), callbacks);
-      } else if (event.data?.recurringEvent?.freq && recurringEventCount && !rescheduleUid) {
+      } else if (event.data?.recurringEvent?.freq != null && recurringEventCount && !rescheduleUid) {
         handleRecBooking(
           mapRecurringBookingToMutationInput(bookingInput, recurringEventCount, tracking),
           callbacks
