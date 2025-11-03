@@ -123,10 +123,18 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
         subtitle={t("onboarding_org_brand_subtitle")}
         footer={
           <>
-            <Button color="minimal" className="rounded-[10px]" onClick={handleSkip}>
+            <Button
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={handleSkip}
+              data-testid="org-brand-skip">
               {t("ill_do_this_later")}
             </Button>
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+            <Button
+              color="primary"
+              className="rounded-[10px]"
+              onClick={handleContinue}
+              data-testid="org-brand-continue">
               {t("continue")}
             </Button>
           </>

@@ -108,7 +108,8 @@ export const PersonalProfileView = ({ userEmail }: PersonalProfileViewProps) => 
             className="rounded-[10px]"
             onClick={onSubmit}
             loading={mutation.isPending}
-            disabled={mutation.isPending}>
+            disabled={mutation.isPending}
+            data-testid="personal-profile-continue">
             {t("continue")}
           </Button>
         }>

@@ -43,7 +43,11 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
         subtitle={t("connect_calendar_to_prevent_conflicts")}
         isLoading={queryIntegrations.isPending}
         footer={
-          <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+          <Button
+            color="primary"
+            className="rounded-[10px]"
+            onClick={handleContinue}
+            data-testid="personal-calendar-continue">
             {t("continue")}
           </Button>
         }>
@@ -60,7 +64,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
         </div>
       </OnboardingCard>
 
-      <SkipButton onClick={handleSkip} />
+      <SkipButton onClick={handleSkip} data-testid="personal-calendar-skip" />
     </OnboardingLayout>
   );
 };

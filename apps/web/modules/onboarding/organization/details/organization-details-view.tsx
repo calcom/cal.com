@@ -85,7 +85,8 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
             color="primary"
             className="rounded-[10px]"
             onClick={handleContinue}
-            disabled={!isSlugValid || !organizationName || !organizationLink}>
+            disabled={!isSlugValid || !organizationName || !organizationLink}
+            data-testid="org-details-continue">
             {t("continue")}
           </Button>
         }>
@@ -105,6 +106,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
                       onChange={(e) => setOrganizationName(e.target.value)}
                       placeholder={t("organization_name")}
                       className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
+                      data-testid="org-details-name"
                     />
                   </div>
 
