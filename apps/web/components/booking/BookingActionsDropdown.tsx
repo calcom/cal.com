@@ -37,7 +37,7 @@ import {
   shouldShowEditActions,
   type BookingActionContext,
 } from "./bookingActions";
-import type { BookingItemProps } from "./BookingListItem";
+import type { BookingItemProps } from "./types";
 
 interface BookingActionsDropdownProps {
   booking: BookingItemProps;

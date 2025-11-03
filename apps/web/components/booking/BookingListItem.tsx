@@ -19,7 +19,6 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import type { AssignmentReason } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import classNames from "@calcom/ui/classNames";
@@ -57,22 +56,7 @@ import {
   getReportAction,
 } from "./bookingActions";
 import { BookingActionsDropdown } from "./BookingActionsDropdown";
-
-type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
-
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
-
-export type BookingItemProps = BookingItem & {
-  listingStatus: BookingListingStatus;
-  recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  loggedInUser: {
-    userId: number | undefined;
-    userTimeZone: string | undefined;
-    userTimeFormat: number | null | undefined;
-    userEmail: string | undefined;
-  };
-  isToday: boolean;
-};
+import type { BookingItemProps } from "./types";
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
