@@ -245,10 +245,10 @@ export const roundRobinManualReassignment = async ({
             : undefined,
           teamName: eventType.team?.name,
         },
-        changes: [
-          { field: "userId", oldValue: oldUserId?.toString() || null, newValue: newUserId.toString() },
-          { field: "email", oldValue: oldEmail || null, newValue: newUser.email },
-        ],
+        changes: {
+          userId: { old: oldUserId?.toString() || null, new: newUserId.toString() },
+          email: { old: oldEmail || null, new: newUser.email },
+        },
       };
       await bookingEventHandlerService.onReassignment(
         String(bookingId),

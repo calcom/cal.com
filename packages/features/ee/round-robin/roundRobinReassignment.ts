@@ -295,11 +295,11 @@ export const roundRobinReassignment = async ({
             teamId: eventType.teamId ?? undefined,
             teamName: eventType.team?.name,
           },
-          changes: [
-            { field: "userId", oldValue: oldUserId, newValue: reassignedRRHost.id },
-            { field: "userPrimaryEmail", oldValue: oldEmail, newValue: reassignedRRHost.email },
-            { field: "title", oldValue: oldTitle, newValue: newBookingTitle },
-          ],
+          changes: {
+            userId: { old: oldUserId, new: reassignedRRHost.id },
+            userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
+            title: { old: oldTitle, new: newBookingTitle },
+          },
         }
       );
     } catch (error) {

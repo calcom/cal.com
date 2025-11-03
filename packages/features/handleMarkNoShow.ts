@@ -334,21 +334,17 @@ const handleMarkNoShow = async ({
           if (booking) {
             const bookingEventHandlerService = getBookingEventHandlerService();
 
-            // Build changes array with old and new values
-            const attendeeChanges = payload.attendees.map((attendee) => {
-              const oldAttendee = oldAttendeeValues.find((a) => a.email === attendee.email);
-              return {
-                field: `attendee-${attendee.email}-noShow`,
-                oldValue: oldAttendee?.noShow ?? false,
-                newValue: attendee.noShow,
-              };
-            });
+            // Track if any attendee was marked as no-show
+            const anyOldNoShow = oldAttendeeValues.some((a) => a.noShow);
+            const anyNewNoShow = payload.attendees.some((a) => a.noShow);
 
             await bookingEventHandlerService.onAttendeeNoShowUpdated(
               String(booking.id),
               createUserActor(userId),
               {
-                changes: attendeeChanges,
+                changes: {
+                  noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
+                },
               }
             );
           }
@@ -382,13 +378,12 @@ const handleMarkNoShow = async ({
             String(bookingToUpdate.id),
             createUserActor(userId),
             {
-              changes: [
-                {
-                  field: "noShowHost",
-                  oldValue: bookingToUpdate.noShowHost,
-                  newValue: true,
+              changes: {
+                noShowHost: {
+                  old: bookingToUpdate.noShowHost,
+                  new: true,
                 },
-              ],
+              },
             }
           );
         } catch (error) {

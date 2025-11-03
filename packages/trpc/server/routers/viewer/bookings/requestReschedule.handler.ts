@@ -161,10 +161,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     const bookingEventHandlerService = getBookingEventHandlerService();
     const auditData: RescheduleRequestedAuditData = {
       cancellationReason,
-      changes: [
-        { field: "rescheduled", oldValue: false, newValue: true },
-        { field: "cancelledBy", oldValue: null, newValue: user.email },
-      ],
+      changes: {
+        rescheduled: { old: false, new: true },
+        cancelledBy: { old: null, new: user.email },
+      },
     };
     await bookingEventHandlerService.onRescheduleRequested(
       String(bookingToReschedule.id),
@@ -231,10 +231,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
     team: bookingToReschedule.eventType?.team
       ? {
-          name: bookingToReschedule.eventType.team.name,
-          id: bookingToReschedule.eventType.team.id,
-          members: [],
-        }
+        name: bookingToReschedule.eventType.team.name,
+        id: bookingToReschedule.eventType.team.id,
+        members: [],
+      }
       : undefined,
   });
 

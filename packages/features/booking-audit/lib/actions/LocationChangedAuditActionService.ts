@@ -1,7 +1,18 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-import { ChangeSchema } from "../common/schemas";
+/**
+ * Location changed change schema
+ */
+const LocationChangedChangeSchema = z.object({
+    /** Booking location update */
+    location: z.object({
+        old: z.string().nullish(),
+        new: z.string().nullish(),
+    }),
+});
+
+export type LocationChangedChange = z.infer<typeof LocationChangedChangeSchema>;
 
 /**
  * Location Changed Audit Action Service
@@ -9,7 +20,7 @@ import { ChangeSchema } from "../common/schemas";
  */
 export class LocationChangedAuditActionService {
     static readonly schema = z.object({
-        changes: z.array(ChangeSchema),
+        changes: LocationChangedChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof LocationChangedAuditActionService.schema> {
@@ -21,14 +32,10 @@ export class LocationChangedAuditActionService {
     }
 
     getDisplayDetails(data: z.infer<typeof LocationChangedAuditActionService.schema>, t: TFunction): Record<string, string> {
-        const locationChange = data.changes.find(c => c.field === 'location');
-        if (locationChange) {
-            return {
-                'Old Location': String(locationChange.oldValue || '-'),
-                'New Location': String(locationChange.newValue || '-'),
-            };
-        }
-        return {};
+        return {
+            'Old Location': data.changes.location.old ?? '-',
+            'New Location': data.changes.location.new ?? '-',
+        };
     }
 }
 

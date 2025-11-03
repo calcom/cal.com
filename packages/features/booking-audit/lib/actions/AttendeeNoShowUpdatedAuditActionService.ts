@@ -1,7 +1,18 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-import { ChangeSchema } from "../common/schemas";
+/**
+ * Attendee no-show updated change schema
+ */
+const AttendeeNoShowUpdatedChangeSchema = z.object({
+    /** Attendee no-show status */
+    noShowAttendee: z.object({
+        old: z.boolean().nullish(),
+        new: z.boolean(),
+    }),
+});
+
+export type AttendeeNoShowUpdatedChange = z.infer<typeof AttendeeNoShowUpdatedChangeSchema>;
 
 /**
  * Attendee No-Show Updated Audit Action Service
@@ -9,7 +20,7 @@ import { ChangeSchema } from "../common/schemas";
  */
 export class AttendeeNoShowUpdatedAuditActionService {
     static readonly schema = z.object({
-        changes: z.array(ChangeSchema),
+        changes: AttendeeNoShowUpdatedChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof AttendeeNoShowUpdatedAuditActionService.schema> {
@@ -21,7 +32,9 @@ export class AttendeeNoShowUpdatedAuditActionService {
     }
 
     getDisplayDetails(data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.schema>, t: TFunction): Record<string, string> {
-        return {};
+        return {
+            'Attendee No-Show': `${data.changes.noShowAttendee.old ?? false} → ${data.changes.noShowAttendee.new}`,
+        };
     }
 }
 

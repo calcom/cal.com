@@ -304,13 +304,12 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
       String(booking.id),
       createUserActor(loggedInUser.id),
       {
-        changes: [
-          {
-            field: "location",
-            oldValue: oldLocation,
-            newValue: newLocationInEvtFormat,
+        changes: {
+          location: {
+            old: oldLocation,
+            new: newLocationInEvtFormat,
           },
-        ],
+        },
       }
     );
   } catch (error) {

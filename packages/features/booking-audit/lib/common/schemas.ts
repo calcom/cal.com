@@ -1,18 +1,9 @@
 import { z } from "zod";
 
 /**
- * Schema for tracking field-level changes in audit records
- * oldValue and newValue are optional to support creation (no oldValue) and deletion (no newValue)
- */
-export const ChangeSchema = z.object({
-    field: z.string(),
-    oldValue: z.unknown().optional(),
-    newValue: z.unknown().optional(),
-});
-
-/**
  * Schema for assignment/reassignment context
  * Stores both IDs (for querying) and full context (for display)
+ * Used by ReassignmentAuditActionService
  */
 export const AssignmentDetailsSchema = z.object({
     // IDs for querying
