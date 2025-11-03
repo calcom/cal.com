@@ -4,35 +4,47 @@ import type { TFunction } from "next-i18next";
 import { AssignmentDetailsSchema } from "../common/schemas";
 
 /**
- * Reassignment change schema
+ * Reassignment primary schema
  */
-const ReassignmentChangeSchema = z.object({
+const ReassignmentPrimarySchema = z.object({
     /** User ID being reassigned */
     userId: z.object({
-        old: z.union([z.string(), z.number()]).nullish(),
+        old: z.union([z.string(), z.number()]).nullable(),
         new: z.union([z.string(), z.number()]),
-    }).optional(),
+    }),
 
     /** User email being reassigned */
     email: z.object({
-        old: z.string().nullish(),
+        old: z.string().nullable(),
         new: z.string(),
-    }).optional(),
+    }),
 
+    /** Reassignment reason */
+    reassignmentReason: z.object({
+        old: z.string().nullable(),
+        new: z.string(),
+    }),
+});
+
+/**
+ * Reassignment secondary schema
+ */
+const ReassignmentSecondarySchema = z.object({
     /** User primary email being reassigned */
     userPrimaryEmail: z.object({
-        old: z.string().nullish(),
+        old: z.string().nullable(),
         new: z.string(),
     }).optional(),
 
     /** Booking title change during reassignment */
     title: z.object({
-        old: z.string().nullish(),
+        old: z.string().nullable(),
         new: z.string(),
     }).optional(),
 });
 
-export type ReassignmentChange = z.infer<typeof ReassignmentChangeSchema>;
+export type ReassignmentPrimary = z.infer<typeof ReassignmentPrimarySchema>;
+export type ReassignmentSecondary = z.infer<typeof ReassignmentSecondarySchema>;
 
 /**
  * Reassignment Audit Action Service
@@ -40,10 +52,11 @@ export type ReassignmentChange = z.infer<typeof ReassignmentChangeSchema>;
  */
 export class ReassignmentAuditActionService {
     static readonly schema = z.object({
-        reassignmentReason: z.string(),
+        primary: ReassignmentPrimarySchema,
+        secondary: ReassignmentSecondarySchema.optional(),
+        // Context fields (not changes)
         assignmentMethod: z.enum(['manual', 'round_robin', 'salesforce', 'routing_form', 'crm_ownership']),
         assignmentDetails: AssignmentDetailsSchema,
-        changes: ReassignmentChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof ReassignmentAuditActionService.schema> {
@@ -60,18 +73,20 @@ export class ReassignmentAuditActionService {
             'From': data.assignmentDetails.previousUser?.name || '-',
             'To': data.assignmentDetails.assignedUser.name,
             'Team': data.assignmentDetails.teamName || '-',
-            'Reason': data.reassignmentReason,
+            'Reason': data.primary.reassignmentReason.new,
         };
 
-        // Add field-level changes if present
-        if (data.changes.userId) {
-            details['User ID'] = `${data.changes.userId.old ?? '-'} → ${data.changes.userId.new}`;
+        // Add primary field-level changes
+        if (data.primary.userId) {
+            details['User ID'] = `${data.primary.userId.old ?? '-'} → ${data.primary.userId.new}`;
         }
-        if (data.changes.email) {
-            details['Email'] = `${data.changes.email.old ?? '-'} → ${data.changes.email.new}`;
+        if (data.primary.email) {
+            details['Email'] = `${data.primary.email.old ?? '-'} → ${data.primary.email.new}`;
         }
-        if (data.changes.title) {
-            details['Title'] = `${data.changes.title.old ?? '-'} → ${data.changes.title.new}`;
+        
+        // Add secondary field-level changes if present
+        if (data.secondary?.title) {
+            details['Title'] = `${data.secondary.title.old ?? '-'} → ${data.secondary.title.new}`;
         }
 
         return details;

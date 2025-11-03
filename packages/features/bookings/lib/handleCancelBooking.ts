@@ -487,7 +487,18 @@ async function handler(input: CancelBookingInput) {
         String(updatedBooking.id),
         createUserActor(userId || 0),
         {
-          cancellationReason: cancellationReason || "",
+          primary: {
+            cancellationReason: {
+              old: bookingToDelete.cancellationReason,
+              new: cancellationReason || "",
+            },
+          },
+          secondary: {
+            status: {
+              old: bookingToDelete.status,
+              new: "CANCELLED",
+            },
+          },
         }
       );
     } catch (error) {

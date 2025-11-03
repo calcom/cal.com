@@ -2,17 +2,17 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 /**
- * Host no-show updated change schema
+ * Host no-show updated primary schema
  */
-const HostNoShowUpdatedChangeSchema = z.object({
+const HostNoShowUpdatedPrimarySchema = z.object({
     /** Host no-show status */
     noShowHost: z.object({
-        old: z.boolean().nullish(),
+        old: z.boolean().nullable(),
         new: z.boolean(),
     }),
 });
 
-export type HostNoShowUpdatedChange = z.infer<typeof HostNoShowUpdatedChangeSchema>;
+export type HostNoShowUpdatedPrimary = z.infer<typeof HostNoShowUpdatedPrimarySchema>;
 
 /**
  * Host No-Show Updated Audit Action Service
@@ -20,7 +20,7 @@ export type HostNoShowUpdatedChange = z.infer<typeof HostNoShowUpdatedChangeSche
  */
 export class HostNoShowUpdatedAuditActionService {
     static readonly schema = z.object({
-        changes: HostNoShowUpdatedChangeSchema,
+        primary: HostNoShowUpdatedPrimarySchema,
     });
 
     parse(data: unknown): z.infer<typeof HostNoShowUpdatedAuditActionService.schema> {
@@ -33,7 +33,7 @@ export class HostNoShowUpdatedAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof HostNoShowUpdatedAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Host No-Show': `${data.changes.noShowHost.old ?? false} → ${data.changes.noShowHost.new}`,
+            'Host No-Show': `${data.primary.noShowHost.old ?? false} → ${data.primary.noShowHost.new}`,
         };
     }
 }

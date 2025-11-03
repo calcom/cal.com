@@ -342,7 +342,7 @@ const handleMarkNoShow = async ({
               String(booking.id),
               createUserActor(userId),
               {
-                changes: {
+                primary: {
                   noShowAttendee: { old: anyOldNoShow, new: anyNewNoShow },
                 },
               }
@@ -378,7 +378,7 @@ const handleMarkNoShow = async ({
             String(bookingToUpdate.id),
             createUserActor(userId),
             {
-              changes: {
+              primary: {
                 noShowHost: {
                   old: bookingToUpdate.noShowHost,
                   new: true,

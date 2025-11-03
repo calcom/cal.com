@@ -194,6 +194,125 @@ enum BookingAuditAction {
 
 ---
 
+## Schema Structure - Primary vs Secondary Changes
+
+All audit actions follow a consistent structure for tracking changes. This structure ensures complete audit trail coverage by capturing both the old and new values for every tracked field.
+
+### Core Pattern
+
+```typescript
+{
+  primary: {
+    field1: { old: T | null, new: T },
+    field2: { old: T | null, new: T }
+  },
+  secondary?: {  // Optional - only if side-effects exist
+    field3: { old: T | null, new: T }
+  }
+}
+```
+
+### Field Categories
+
+#### 1. Primary Changes
+Fields that represent the **main intent or purpose** of the action. These are the core changes that define what the action is about.
+
+**Always include old→new tracking:**
+```typescript
+primary: {
+  fieldName: { old: T | null, new: T }
+}
+```
+
+**Examples:**
+- `LOCATION_CHANGED`: The location field is primary (that's what the action is about)
+- `CANCELLED`: The cancellationReason is primary (the reason for cancellation)
+- `REASSIGNMENT`: userId, email, and reassignmentReason are primary (the core assignment changes)
+
+#### 2. Secondary Changes (Optional)
+Fields that changed as **side-effects** of the primary action. These are related changes that happen automatically when the primary change occurs.
+
+```typescript
+secondary: {
+  fieldName: { old: T | null, new: T }
+}
+```
+
+**Examples:**
+- `CANCELLED`: Status change (ACCEPTED → CANCELLED) is secondary - it's a side-effect of the cancellation
+- `REASSIGNMENT`: Title and userPrimaryEmail changes are secondary - they update as a result of the user change
+
+#### 3. Context Fields
+Metadata that provides context but doesn't change. These fields don't use the `{ old, new }` structure.
+
+```typescript
+{
+  primary: { ... },
+  assignmentMethod: "manual",  // Context field
+  assignmentDetails: { ... }   // Context field
+}
+```
+
+**Examples:**
+- `REASSIGNMENT`: assignmentMethod and assignmentDetails are context (they explain how/why but don't track changes)
+
+### Benefits
+
+1. **Complete Audit Trail**: Full before/after state captured for every change
+2. **Self-Contained Records**: Each record has complete context without querying previous records
+3. **Clear Intent**: Primary vs secondary distinction makes the purpose explicit
+4. **Better UI**: Can display clear before/after comparisons
+5. **State Reconstruction**: Can rebuild booking state at any point in the audit timeline
+6. **Easier Debugging**: See exact state transitions in each record
+
+### Examples by Action
+
+#### Simple Action (Single Primary Field)
+```typescript
+// LOCATION_CHANGED
+{
+  primary: {
+    location: { old: "Zoom", new: "Google Meet" }
+  }
+}
+```
+
+#### Action with Side-Effects
+```typescript
+// CANCELLED
+{
+  primary: {
+    cancellationReason: { old: null, new: "Client requested" }
+  },
+  secondary: {
+    status: { old: "ACCEPTED", new: "CANCELLED" }
+  }
+}
+```
+
+#### Complex Action with Context
+```typescript
+// REASSIGNMENT
+{
+  primary: {
+    userId: { old: "123", new: "456" },
+    email: { old: "old@example.com", new: "new@example.com" },
+    reassignmentReason: { old: null, new: "Load balancing" }
+  },
+  secondary: {
+    title: { old: "Meeting with John", new: "Meeting with Jane" },
+    userPrimaryEmail: { old: "john@cal.com", new: "jane@cal.com" }
+  },
+  assignmentMethod: "manual",  // Context
+  assignmentDetails: {          // Context
+    assignedBy: "admin@cal.com",
+    timestamp: "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
 ## JSON Data Schemas by Action
 
 The `BookingAudit.data` field stores action-specific context. Each action has its own schema defined in a dedicated Action Helper Service using Zod validation.
@@ -218,49 +337,79 @@ Used when a booking is initially created. Records the complete state at creation
 ### Status Change Actions
 
 #### ACCEPTED
-Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Often includes other field changes like calendar references and meeting URLs.
+Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). May include side-effects like calendar references being added.
 
 ```typescript
 {
-  changes?: Array<ChangeSchema>  // Tracks status change + any other field changes (e.g., references, metadata.videoCallUrl)
+  primary: {
+    status: { old: string | null, new: string }
+  },
+  secondary?: {
+    references?: { old: unknown[] | null, new: unknown[] | null }
+  }
 }
 ```
+
+**Primary:** Status change (the main action)  
+**Secondary:** Calendar references added as side-effect (optional)
 
 #### CANCELLED
 ```typescript
 {
-  cancellationReason: string
+  primary: {
+    cancellationReason: { old: string | null, new: string }
+  },
+  secondary?: {
+    status?: { old: string | null, new: string }
+  }
 }
 ```
 
-**Design Decision:** Does not store meeting time. The booking's start/end times are immutable and available in the Booking table. The audit only stores what changed (the cancellation reason).
+**Primary:** Cancellation reason (why it was cancelled)  
+**Secondary:** Status change to CANCELLED (side-effect)
 
 #### REJECTED
 ```typescript
 {
-  rejectionReason: string
+  primary: {
+    rejectionReason: { old: string | null, new: string }
+  },
+  secondary?: {
+    status?: { old: string | null, new: string }
+  }
 }
 ```
 
-**Design Decision:** Does not store meeting time. Only the rejection reason changes during this action.
+**Primary:** Rejection reason (why it was rejected)  
+**Secondary:** Status change to REJECTED (side-effect)
 
 #### RESCHEDULED
 ```typescript
 {
-  startTime: string  // New start time (ISO 8601)
-  endTime: string    // New end time (ISO 8601)
+  primary: {
+    startTime: { old: string | null, new: string },
+    endTime: { old: string | null, new: string }
+  }
 }
 ```
 
-**Design Decision:** Stores both new start and end times since these are what changed. The old times are available in previous audit records or can be queried from the booking table.
+**Primary:** Start and end time changes (the core rescheduling data)
 
 #### RESCHEDULE_REQUESTED
 ```typescript
 {
-  cancellationReason?: string  // Optional reason
-  changes: Array<ChangeSchema>
+  primary: {
+    cancellationReason: { old: string | null, new: string }
+  },
+  secondary: {
+    rescheduled: { old: boolean | null, new: boolean },
+    cancelledBy: { old: string | null, new: string }
+  }
 }
 ```
+
+**Primary:** Cancellation reason (why rescheduling was requested)  
+**Secondary:** Rescheduled flag and who cancelled it (side-effects)
 
 ---
 
@@ -269,57 +418,51 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 #### ATTENDEE_ADDED
 ```typescript
 {
-  addedGuests: string[]  // Array of guest emails
-  changes: Array<ChangeSchema>
+  primary: {
+    attendees: { old: string[] | null, new: string[] }
+  }
 }
 ```
+
+**Primary:** Full attendee list before/after addition  
+**Helper Method:** `getAddedGuests()` extracts the delta (which guests were added)
 
 #### ATTENDEE_REMOVED
 ```typescript
 {
-  changes: Array<ChangeSchema>
+  primary: {
+    attendees: { old: string[] | null, new: string[] }
+  }
 }
 ```
+
+**Primary:** Full attendee list before/after removal  
+**Helper Method:** `getRemovedGuests()` extracts the delta (which guests were removed)
 
 ---
 
 ### Assignment/Reassignment Actions
 
-#### ASSIGNMENT_REASON_UPDATED
-```typescript
-{
-  assignmentMethod: 'manual' | 'round_robin' | 'salesforce' | 'routing_form' | 'crm_ownership'
-  assignmentDetails: AssignmentDetailsSchema
-}
-```
-
 #### REASSIGNMENT_REASON_UPDATED
 ```typescript
 {
-  reassignmentReason: string
-  assignmentMethod: 'manual' | 'round_robin' | 'salesforce' | 'routing_form' | 'crm_ownership'
+  primary: {
+    userId: { old: string | null, new: string },
+    email: { old: string | null, new: string },
+    reassignmentReason: { old: string | null, new: string }
+  },
+  secondary?: {
+    userPrimaryEmail?: { old: string | null, new: string },
+    title?: { old: string | null, new: string }
+  },
+  assignmentMethod: 'manual' | 'round_robin' | 'salesforce' | 'routing_form' | 'crm_ownership',
   assignmentDetails: AssignmentDetailsSchema
-  changes: Array<ChangeSchema>
 }
 ```
 
----
-
-### Reason Update Actions
-
-#### CANCELLATION_REASON_UPDATED
-```typescript
-{
-  cancellationReason: string
-}
-```
-
-#### REJECTION_REASON_UPDATED
-```typescript
-{
-  rejectionReason: string
-}
-```
+**Primary:** User ID, email, and reassignment reason (core assignment changes)  
+**Secondary:** User primary email and booking title (side-effects of user change)  
+**Context:** Assignment method and details (metadata about how assignment happened)
 
 ---
 
@@ -328,16 +471,13 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 #### LOCATION_CHANGED
 ```typescript
 {
-  changes: Array<ChangeSchema>
+  primary: {
+    location: { old: string | null, new: string }
+  }
 }
 ```
 
-#### MEETING_URL_UPDATED
-```typescript
-{
-  changes: Array<ChangeSchema>
-}
-```
+**Primary:** Location change (the main action)
 
 ---
 
@@ -346,16 +486,24 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 #### HOST_NO_SHOW_UPDATED
 ```typescript
 {
-  changes: Array<ChangeSchema>
+  primary: {
+    noShowHost: { old: boolean | null, new: boolean }
+  }
 }
 ```
+
+**Primary:** Host no-show status change
 
 #### ATTENDEE_NO_SHOW_UPDATED
 ```typescript
 {
-  changes: Array<ChangeSchema>
+  primary: {
+    noShowAttendee: { old: boolean | null, new: boolean }
+  }
 }
 ```
+
+**Primary:** Attendee no-show status change
 
 ---
 
@@ -368,28 +516,26 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). Oft
 
 ### Supporting Schemas
 
-#### ChangeSchema
+#### Change Tracking Pattern
 
-Tracks field-level changes in audit records. Used to capture what other fields changed alongside the primary action.
+**As of the schema migration (2025-11-03), all changes use the `{ old, new }` pattern:**
 
 ```typescript
 {
-  field: string          // Name of the field that changed
-  oldValue: unknown      // Value before change (optional for creation)
-  newValue: unknown      // Value after change (optional for deletion)
+  fieldName: { 
+    old: T | null,  // Previous value (null if field didn't exist)
+    new: T          // New value
+  }
 }
 ```
 
-**Purpose:**
-The `changes` array captures additional field modifications that occur during an action. For example:
-- **ACCEPTED**: Tracks status change + calendar references + meeting URL updates
-- **LOCATION_CHANGED**: Tracks old and new location values
-- **ATTENDEE_ADDED**: Tracks which attendee fields were modified
+**Benefits:**
+- Complete before/after state in every record
+- Self-contained audit entries (no need to query previous records)
+- Clear state transitions
+- Easier debugging and UI display
 
-**Usage:**
-- Field creation: Only `field` and `newValue` present
-- Field update: All three fields present
-- Field deletion: Only `field` and `oldValue` present
+**Note:** The legacy `ChangeSchema` array pattern has been replaced by the primary/secondary structure with explicit `{ old, new }` tracking for each field.
 
 ---
 

@@ -27,6 +27,25 @@ interface BookingEventHandlerDeps {
   bookingAuditService: BookingAuditService;
 }
 
+// Type guard functions for discriminating audit data types
+function isStatusChangeAuditData(
+  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
+): data is StatusChangeAuditData {
+  return data !== undefined && "primary" in data && "status" in data.primary;
+}
+
+function isCancelledAuditData(
+  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
+): data is CancelledAuditData {
+  return data !== undefined && "primary" in data && "cancellationReason" in data.primary;
+}
+
+function isRejectedAuditData(
+  data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
+): data is RejectedAuditData {
+  return data !== undefined && "primary" in data && "rejectionReason" in data.primary;
+}
+
 export class BookingEventHandlerService {
   private readonly log: BookingEventHandlerDeps["log"];
   private readonly hashedLinkService: BookingEventHandlerDeps["hashedLinkService"];
@@ -158,21 +177,20 @@ export class BookingEventHandlerService {
       switch (status) {
         case "ACCEPTED": {
           // Type guard: ensure data is StatusChangeAuditData or undefined
-          const statusData: StatusChangeAuditData | undefined =
-            data && !('rejectionReason' in data) && !('cancellationReason' in data) ? data : undefined;
+          const statusData = isStatusChangeAuditData(data) ? data : undefined;
           await this.bookingAuditService.onBookingAccepted(bookingId, getActorUserId(actor), statusData);
           break;
         }
         case "REJECTED": {
           // Caller must provide RejectedAuditData for REJECTED status
-          if (data && 'rejectionReason' in data) {
+          if (isRejectedAuditData(data)) {
             await this.bookingAuditService.onBookingRejected(bookingId, getActorUserId(actor), data);
           }
           break;
         }
         case "CANCELLED": {
           // Caller must provide CancelledAuditData for CANCELLED status
-          if (data && 'cancellationReason' in data) {
+          if (isCancelledAuditData(data)) {
             await this.bookingAuditService.onBookingCancelled(bookingId, getActorUserId(actor), data);
           }
           break;

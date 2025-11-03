@@ -2,23 +2,29 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 /**
- * Status change change schema
+ * Status change primary schema
  */
-const StatusChangeChangeSchema = z.object({
+const StatusChangePrimarySchema = z.object({
     /** Booking status change */
     status: z.object({
-        old: z.string().nullish(),
+        old: z.string().nullable(),
         new: z.string(),
-    }).optional(),
+    }),
+});
 
+/**
+ * Status change secondary schema
+ */
+const StatusChangeSecondarySchema = z.object({
     /** Booking references (calendar/video integrations) */
     references: z.object({
-        old: z.array(z.unknown()).nullish(),
-        new: z.array(z.unknown()).nullish(),
+        old: z.array(z.unknown()).nullable(),
+        new: z.array(z.unknown()).nullable(),
     }).optional(),
 });
 
-export type StatusChangeChange = z.infer<typeof StatusChangeChangeSchema>;
+export type StatusChangePrimary = z.infer<typeof StatusChangePrimarySchema>;
+export type StatusChangeSecondary = z.infer<typeof StatusChangeSecondarySchema>;
 
 /**
  * Status Change Audit Action Service
@@ -26,7 +32,8 @@ export type StatusChangeChange = z.infer<typeof StatusChangeChangeSchema>;
  */
 export class StatusChangeAuditActionService {
     static readonly schema = z.object({
-        changes: StatusChangeChangeSchema.optional(),
+        primary: StatusChangePrimarySchema,
+        secondary: StatusChangeSecondarySchema.optional(),
     });
 
     parse(data: unknown): z.infer<typeof StatusChangeAuditActionService.schema> {
@@ -39,12 +46,12 @@ export class StatusChangeAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof StatusChangeAuditActionService.schema>, t: TFunction): Record<string, string> {
         const details: Record<string, string> = {};
-        if (data.changes?.status) {
-            details['Status'] = `${data.changes.status.old ?? '-'} → ${data.changes.status.new}`;
+        if (data.primary.status) {
+            details['Status'] = `${data.primary.status.old ?? '-'} → ${data.primary.status.new}`;
         }
-        if (data.changes?.references) {
-            const oldCount = data.changes.references.old?.length ?? 0;
-            const newCount = data.changes.references.new?.length ?? 0;
+        if (data.secondary?.references) {
+            const oldCount = data.secondary.references.old?.length ?? 0;
+            const newCount = data.secondary.references.new?.length ?? 0;
             details['References'] = `${oldCount} → ${newCount} integrations`;
         }
         return details;

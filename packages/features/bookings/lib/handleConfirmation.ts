@@ -46,6 +46,7 @@ export async function handleConfirmation(args: {
     startTime: Date;
     id: number;
     uid: string;
+    status: BookingStatus;
     eventType: {
       currency: string;
       description: string | null;
@@ -320,7 +321,14 @@ export async function handleConfirmation(args: {
 
     try {
       const bookingEventHandlerService = getBookingEventHandlerService();
-      const auditData: StatusChangeAuditData = {};
+      const auditData: StatusChangeAuditData = {
+        primary: {
+          status: {
+            old: booking.status,
+            new: BookingStatus.ACCEPTED,
+          },
+        },
+      };
       await bookingEventHandlerService.onBookingAccepted(
         String(updatedBooking.id),
         createUserActor(booking.userId || 0),

@@ -228,7 +228,11 @@ export const roundRobinManualReassignment = async ({
     try {
       const bookingEventHandlerService = getBookingEventHandlerService();
       const auditData: ReassignmentAuditData = {
-        reassignmentReason: reassignReason || "Manual round robin reassignment",
+        primary: {
+          userId: { old: oldUserId?.toString() || null, new: newUserId.toString() },
+          email: { old: oldEmail || null, new: newUser.email },
+          reassignmentReason: { old: null, new: reassignReason || "Manual round robin reassignment" },
+        },
         assignmentMethod: "manual",
         assignmentDetails: {
           assignedUser: {
@@ -244,10 +248,6 @@ export const roundRobinManualReassignment = async ({
             }
             : undefined,
           teamName: eventType.team?.name,
-        },
-        changes: {
-          userId: { old: oldUserId?.toString() || null, new: newUserId.toString() },
-          email: { old: oldEmail || null, new: newUser.email },
         },
       };
       await bookingEventHandlerService.onReassignment(

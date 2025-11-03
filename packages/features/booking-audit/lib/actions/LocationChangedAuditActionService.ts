@@ -2,17 +2,17 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 /**
- * Location changed change schema
+ * Location changed primary schema
  */
-const LocationChangedChangeSchema = z.object({
+const LocationChangedPrimarySchema = z.object({
     /** Booking location update */
     location: z.object({
-        old: z.string().nullish(),
-        new: z.string().nullish(),
+        old: z.string().nullable(),
+        new: z.string().nullable(),
     }),
 });
 
-export type LocationChangedChange = z.infer<typeof LocationChangedChangeSchema>;
+export type LocationChangedPrimary = z.infer<typeof LocationChangedPrimarySchema>;
 
 /**
  * Location Changed Audit Action Service
@@ -20,7 +20,7 @@ export type LocationChangedChange = z.infer<typeof LocationChangedChangeSchema>;
  */
 export class LocationChangedAuditActionService {
     static readonly schema = z.object({
-        changes: LocationChangedChangeSchema,
+        primary: LocationChangedPrimarySchema,
     });
 
     parse(data: unknown): z.infer<typeof LocationChangedAuditActionService.schema> {
@@ -33,8 +33,8 @@ export class LocationChangedAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof LocationChangedAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Old Location': data.changes.location.old ?? '-',
-            'New Location': data.changes.location.new ?? '-',
+            'Previous Location': data.primary.location.old ?? '-',
+            'New Location': data.primary.location.new ?? '-',
         };
     }
 }

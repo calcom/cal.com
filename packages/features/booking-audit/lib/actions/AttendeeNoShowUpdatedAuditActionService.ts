@@ -2,17 +2,17 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 /**
- * Attendee no-show updated change schema
+ * Attendee no-show updated primary schema
  */
-const AttendeeNoShowUpdatedChangeSchema = z.object({
+const AttendeeNoShowUpdatedPrimarySchema = z.object({
     /** Attendee no-show status */
     noShowAttendee: z.object({
-        old: z.boolean().nullish(),
+        old: z.boolean().nullable(),
         new: z.boolean(),
     }),
 });
 
-export type AttendeeNoShowUpdatedChange = z.infer<typeof AttendeeNoShowUpdatedChangeSchema>;
+export type AttendeeNoShowUpdatedPrimary = z.infer<typeof AttendeeNoShowUpdatedPrimarySchema>;
 
 /**
  * Attendee No-Show Updated Audit Action Service
@@ -20,7 +20,7 @@ export type AttendeeNoShowUpdatedChange = z.infer<typeof AttendeeNoShowUpdatedCh
  */
 export class AttendeeNoShowUpdatedAuditActionService {
     static readonly schema = z.object({
-        changes: AttendeeNoShowUpdatedChangeSchema,
+        primary: AttendeeNoShowUpdatedPrimarySchema,
     });
 
     parse(data: unknown): z.infer<typeof AttendeeNoShowUpdatedAuditActionService.schema> {
@@ -33,7 +33,7 @@ export class AttendeeNoShowUpdatedAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Attendee No-Show': `${data.changes.noShowAttendee.old ?? false} → ${data.changes.noShowAttendee.new}`,
+            'Attendee No-Show': `${data.primary.noShowAttendee.old ?? false} → ${data.primary.noShowAttendee.new}`,
         };
     }
 }

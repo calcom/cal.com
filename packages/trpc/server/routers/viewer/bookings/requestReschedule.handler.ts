@@ -160,8 +160,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
     const auditData: RescheduleRequestedAuditData = {
-      cancellationReason,
-      changes: {
+      primary: {
+        cancellationReason: { old: null, new: cancellationReason || "" },
+      },
+      secondary: {
         rescheduled: { old: false, new: true },
         cancelledBy: { old: null, new: user.email },
       },

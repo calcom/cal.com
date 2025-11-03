@@ -2,17 +2,17 @@ import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
 /**
- * Attendee added change schema
+ * Attendee added primary schema
  */
-const AttendeeAddedChangeSchema = z.object({
+const AttendeeAddedPrimarySchema = z.object({
     /** Attendees list change */
     attendees: z.object({
-        old: z.array(z.string()).nullish(),
+        old: z.array(z.string()).nullable(),
         new: z.array(z.string()),
     }),
 });
 
-export type AttendeeAddedChange = z.infer<typeof AttendeeAddedChangeSchema>;
+export type AttendeeAddedPrimary = z.infer<typeof AttendeeAddedPrimarySchema>;
 
 /**
  * Attendee Added Audit Action Service
@@ -20,22 +20,33 @@ export type AttendeeAddedChange = z.infer<typeof AttendeeAddedChangeSchema>;
  */
 export class AttendeeAddedAuditActionService {
     static readonly schema = z.object({
-        addedGuests: z.array(z.string()),
-        changes: AttendeeAddedChangeSchema,
+        primary: AttendeeAddedPrimarySchema,
     });
 
     parse(data: unknown): z.infer<typeof AttendeeAddedAuditActionService.schema> {
         return AttendeeAddedAuditActionService.schema.parse(data);
     }
 
+    /**
+     * Helper to extract just the added guests from the full attendee list
+     */
+    getAddedGuests(data: z.infer<typeof AttendeeAddedAuditActionService.schema>): string[] {
+        const oldSet = new Set(data.primary.attendees.old ?? []);
+        return data.primary.attendees.new.filter(email => !oldSet.has(email));
+    }
+
     getDisplaySummary(data: z.infer<typeof AttendeeAddedAuditActionService.schema>, t: TFunction): string {
-        return t('audit.added_guests', { count: data.addedGuests.length });
+        const added = this.getAddedGuests(data);
+        return t('audit.added_guests', { count: added.length });
     }
 
     getDisplayDetails(data: z.infer<typeof AttendeeAddedAuditActionService.schema>, t: TFunction): Record<string, string> {
+        const added = this.getAddedGuests(data);
         return {
-            'Added Guests': data.addedGuests.join(', '),
-            'Count': data.addedGuests.length.toString(),
+            'Added Guests': added.join(', '),
+            'Count': added.length.toString(),
+            'Total Before': (data.primary.attendees.old?.length ?? 0).toString(),
+            'Total After': data.primary.attendees.new.length.toString(),
         };
     }
 }
