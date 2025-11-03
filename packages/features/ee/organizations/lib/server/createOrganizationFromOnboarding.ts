@@ -14,11 +14,13 @@ import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { uploadLogo } from "@calcom/lib/server/avatar";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { DeploymentRepository } from "@calcom/lib/server/repository/deployment";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -409,22 +411,19 @@ async function handleOrganizationCreation({
   }
 
   let organization;
+
   const orgData = {
     id: organizationOnboarding.organizationId,
     name: organizationOnboarding.name,
-    // Create organization with slug=null, so that org slug doesn't conflict with existing team that is probably being migrated and thus would not be a conflict any more
-    // Remember one can have a subteam with same slug as some organization, but regular team and organization can't have same slug
     slug: organizationOnboarding.slug,
     isOrganizationConfigured: true,
-    // We believe that as the payment has been accepted first and we also restrict the emails to company emails, it is safe to set this to true.
-    // We could easily set it to false if needed. In effect, it disables impersonations by non-admin reviewed organization's owner and also disables editing the member details
     isOrganizationAdminReviewed: true,
     autoAcceptEmail: organizationOnboarding.orgOwnerEmail.split("@")[1],
     seats: organizationOnboarding.seats,
     pricePerSeat: organizationOnboarding.pricePerSeat,
     isPlatform: false,
     billingPeriod: organizationOnboarding.billingPeriod,
-    logoUrl: organizationOnboarding.logo,
+    logoUrl: null,
     bio: organizationOnboarding.bio,
   };
 
@@ -447,9 +446,37 @@ async function handleOrganizationCreation({
     organization = result.organization;
   }
 
+  if (
+    organizationOnboarding.logo &&
+    (organizationOnboarding.logo.startsWith("data:image/png;base64,") ||
+      organizationOnboarding.logo.startsWith("data:image/jpeg;base64,") ||
+      organizationOnboarding.logo.startsWith("data:image/jpg;base64,"))
+  ) {
+    const logoUrl = await uploadLogo({
+      teamId: organization.id,
+      logo: await resizeBase64Image(organizationOnboarding.logo),
+    });
+
+    await OrganizationRepository.update({
+      id: organization.id,
+      data: {
+        logoUrl,
+      },
+    });
+
+    organization.logoUrl = logoUrl;
+  } else if (organizationOnboarding.logo) {
+    await OrganizationRepository.update({
+      id: organization.id,
+      data: {
+        logoUrl: organizationOnboarding.logo,
+      },
+    });
+
+    organization.logoUrl = organizationOnboarding.logo;
+  }
+
   if (organizationOnboarding.stripeCustomerId) {
-    // Mostly needed for newly created user through the flow, existing user would have it already when checkout was created
-    // We need to set it there to ensure that for the same user new customerId is not created again
     await ensureStripeCustomerIdIsUpdated({
       owner,
       stripeCustomerId: organizationOnboarding.stripeCustomerId,
