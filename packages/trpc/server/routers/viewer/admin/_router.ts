@@ -2,6 +2,7 @@ import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+import { experimentsRouter } from "./experiments/_router";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
@@ -63,18 +64,14 @@ export const adminRouter = router({
     const { default: handler } = await import("./whitelistUserWorkflows.handler");
     return handler(opts);
   }),
-  getTeamsForFeature: authedAdminProcedure
-    .input(ZAdminGetTeamsForFeatureSchema)
-    .query(async (opts) => {
-      const { default: handler } = await import("./getTeamsForFeature.handler");
-      return handler(opts);
-    }),
-  assignFeatureToTeam: authedAdminProcedure
-    .input(ZAdminAssignFeatureToTeamSchema)
-    .mutation(async (opts) => {
-      const { default: handler } = await import("./assignFeatureToTeam.handler");
-      return handler(opts);
-    }),
+  getTeamsForFeature: authedAdminProcedure.input(ZAdminGetTeamsForFeatureSchema).query(async (opts) => {
+    const { default: handler } = await import("./getTeamsForFeature.handler");
+    return handler(opts);
+  }),
+  assignFeatureToTeam: authedAdminProcedure.input(ZAdminAssignFeatureToTeamSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./assignFeatureToTeam.handler");
+    return handler(opts);
+  }),
   unassignFeatureFromTeam: authedAdminProcedure
     .input(ZAdminUnassignFeatureFromTeamSchema)
     .mutation(async (opts) => {
@@ -105,4 +102,5 @@ export const adminRouter = router({
       return handler(opts);
     }),
   }),
+  experiments: experimentsRouter,
 });

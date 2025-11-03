@@ -76,14 +76,24 @@ export class ExperimentsRepository {
     try {
       const feature = await this.prismaClient.feature.findUnique({
         where: { slug: experimentSlug },
-        select: { enabled: true, type: true },
+        select: { enabled: true, type: true, metadata: true },
       });
 
       if (!feature || feature.type !== "EXPERIMENT" || feature.enabled !== true) {
         return null;
       }
 
-      // TODO: Store variant config in Feature.metadata or separate ExperimentConfig table
+      const metadata = feature.metadata as { variants?: ExperimentVariantConfig[]; assignmentType?: AssignmentType } | null;
+
+      if (metadata?.variants && metadata.assignmentType) {
+        return {
+          slug: experimentSlug,
+          variants: metadata.variants,
+          assignmentType: metadata.assignmentType,
+          enabled: feature.enabled,
+        };
+      }
+
       return {
         slug: experimentSlug,
         variants: [

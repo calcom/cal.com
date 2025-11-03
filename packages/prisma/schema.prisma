@@ -1657,6 +1657,7 @@ model Feature {
   createdAt   DateTime?      @default(now())
   updatedAt   DateTime?      @default(now()) @updatedAt
   updatedBy   Int?
+  metadata    Json?
   users       UserFeatures[]
   teams       TeamFeatures[]
 
