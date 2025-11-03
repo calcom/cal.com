@@ -216,13 +216,6 @@ export function BookingDetailsSheet({
             <Button color="secondary" size="sm" EndIcon="external-link" href={bookingLink} target="_blank">
               {t("view_confirmation")}
             </Button>
-            <Button
-              size="sm"
-              onClick={() => {
-                window.location.href = `/booking/${booking.uid}?reschedule=true`;
-              }}>
-              {t("edit")}
-            </Button>
           </div>
         </SheetFooter>
       </SheetContent>
