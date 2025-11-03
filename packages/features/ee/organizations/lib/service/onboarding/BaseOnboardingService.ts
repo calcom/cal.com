@@ -296,8 +296,9 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     owner: NonNullable<Awaited<ReturnType<typeof findUserToBeOrgOwner>>>;
     orgData: OrganizationData;
   }) {
+    const organizationRepository = getOrganizationRepository();
     const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
-    let organization = orgData.id ? await getOrganizationRepository().findById({ id: orgData.id }) : null;
+    let organization = orgData.id ? await organizationRepository.findById({ id: orgData.id }) : null;
 
     if (organization) {
       log.info(
@@ -328,7 +329,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       const nonOrgUsername = owner.username || "";
 
       // Create organization first to get the ID
-      const orgCreationResult = await getOrganizationRepository().createWithExistingUserAsOwner({
+      const orgCreationResult = await organizationRepository.createWithExistingUserAsOwner({
         orgData: {
           ...orgData,
           // Don't pass brand assets yet - will be uploaded after org is created
@@ -394,9 +395,10 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     email: string;
     orgData: OrganizationData;
   }) {
+    const organizationRepository = getOrganizationRepository();
     let organization = orgData.id
-      ? await getOrganizationRepository().findById({ id: orgData.id })
-      : await getOrganizationRepository().findBySlug({ slug: orgData.slug });
+      ? await organizationRepository.findById({ id: orgData.id })
+      : await organizationRepository.findBySlug({ slug: orgData.slug });
 
     if (organization) {
       log.info(
@@ -410,7 +412,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       return { organization, owner };
     }
 
-    const orgCreationResult = await getOrganizationRepository().createWithNonExistentOwner({
+    const orgCreationResult = await organizationRepository.createWithNonExistentOwner({
       orgData: {
         ...orgData,
         // To be uploaded after org is created

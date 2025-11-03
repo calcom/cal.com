@@ -14,7 +14,7 @@ export class OrganizationsRepository extends OrganizationRepository {
     private readonly dbWrite: PrismaWriteService,
     private readonly stripeService: StripeService
   ) {
-    super({ prismaClient: dbRead.prisma });
+    super({ prismaClient: dbRead.prisma, prismaWriteClient: dbWrite.prisma });
   }
 
   async findById(organizationId: number) {

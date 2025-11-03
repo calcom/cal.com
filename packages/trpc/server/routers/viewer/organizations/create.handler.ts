@@ -44,6 +44,7 @@ const getIPAddress = async (url: string): Promise<string> => {
  * TODO: To be removed. We need to reuse the logic from orgCreationUtils like in intentToCreateOrgHandler
  */
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
+  const organizationRepository = getOrganizationRepository();
   const {
     slug,
     name,
@@ -189,7 +190,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   // Create a new user and invite them as the owner of the organization
   if (!orgOwner) {
-    const data = await getOrganizationRepository().createWithNonExistentOwner({
+    const data = await organizationRepository.createWithNonExistentOwner({
       orgData,
       owner: {
         email: orgOwnerEmail,
@@ -246,7 +247,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     const nonOrgUsernameForOwner = orgOwner.username || "";
-    const { organization, ownerProfile } = await getOrganizationRepository().createWithExistingUserAsOwner({
+    const { organization, ownerProfile } = await organizationRepository.createWithExistingUserAsOwner({
       orgData,
       owner: {
         id: orgOwner.id,
