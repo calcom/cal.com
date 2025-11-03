@@ -1,14 +1,12 @@
 import { type TFunction } from "i18next";
 
-import { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
-import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { createUserActor } from "@calcom/features/bookings/lib/types/actor";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
@@ -107,6 +105,18 @@ const handleMarkNoShow = async ({
 
     if (attendees && attendeeEmails.length > 0) {
       await assertCanAccessBooking(bookingUid, userId);
+
+      // Get old noShow values before updating for audit log
+      const oldAttendeeValues = await prisma.attendee.findMany({
+        where: {
+          booking: { uid: bookingUid },
+          email: { in: attendeeEmails },
+        },
+        select: {
+          email: true,
+          noShow: true,
+        },
+      });
 
       const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
@@ -251,14 +261,14 @@ const handleMarkNoShow = async ({
             const destinationCalendar = booking.destinationCalendar
               ? [booking.destinationCalendar]
               : booking.user?.destinationCalendar
-              ? [booking.user?.destinationCalendar]
-              : [];
+                ? [booking.user?.destinationCalendar]
+                : [];
             const team = booking.eventType?.team
               ? {
-                  name: booking.eventType.team.name,
-                  id: booking.eventType.team.id,
-                  members: [],
-                }
+                name: booking.eventType.team.name,
+                id: booking.eventType.team.id,
+                members: [],
+              }
               : undefined;
 
             const calendarEvent: ExtendedCalendarEvent = {
@@ -313,6 +323,40 @@ const handleMarkNoShow = async ({
       responsePayload.setAttendees(payload.attendees);
       responsePayload.setMessage(payload.message);
 
+      // Create audit log for attendee no-show updates
+      if (userId && payload.attendees.length > 0) {
+        try {
+          const booking = await prisma.booking.findUnique({
+            where: { uid: bookingUid },
+            select: { id: true },
+          });
+
+          if (booking) {
+            const bookingEventHandlerService = getBookingEventHandlerService();
+
+            // Build changes array with old and new values
+            const attendeeChanges = payload.attendees.map((attendee) => {
+              const oldAttendee = oldAttendeeValues.find((a) => a.email === attendee.email);
+              return {
+                field: `attendee-${attendee.email}-noShow`,
+                oldValue: oldAttendee?.noShow ?? false,
+                newValue: attendee.noShow,
+              };
+            });
+
+            await bookingEventHandlerService.onAttendeeNoShowUpdated(
+              String(booking.id),
+              createUserActor(userId),
+              {
+                changes: attendeeChanges,
+              }
+            );
+          }
+        } catch (error) {
+          logger.error("Failed to create booking audit log for attendee no-show", error);
+        }
+      }
+
       await handleSendingAttendeeNoShowDataToApps(bookingUid, attendees);
     }
 
@@ -333,14 +377,7 @@ const handleMarkNoShow = async ({
 
       if (userId && bookingToUpdate) {
         try {
-          const log = logger.getSubLogger({ prefix: ["handleMarkNoShow"] });
-          const bookingAuditService = BookingAuditService.create();
-          const hashedLinkService = new HashedLinkService();
-          const bookingEventHandlerService = new BookingEventHandlerService({
-            log,
-            hashedLinkService,
-            bookingAuditService,
-          });
+          const bookingEventHandlerService = getBookingEventHandlerService();
           await bookingEventHandlerService.onHostNoShowUpdated(
             String(bookingToUpdate.id),
             createUserActor(userId),

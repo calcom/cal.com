@@ -5,7 +5,7 @@ import { ChangeSchema, AssignmentDetailsSchema } from "../common/schemas";
 
 /**
  * Reassignment Audit Action Service
- * Handles REASSIGNMENT_REASON_UPDATED action
+ * Handles REASSIGNMENT action
  */
 export class ReassignmentAuditActionService {
     static readonly schema = z.object({

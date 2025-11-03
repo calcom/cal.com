@@ -2616,26 +2616,20 @@ enum BookingAuditAction {
   CREATED @map("created")
 
   // Status changes
-  CANCELLED     @map("cancelled")
-  ACCEPTED      @map("accepted")
-  REJECTED      @map("rejected")
-  PENDING       @map("pending")
-  AWAITING_HOST @map("awaiting_host")
-  RESCHEDULED   @map("rescheduled")
+  CANCELLED   @map("cancelled")
+  ACCEPTED    @map("accepted")
+  REJECTED    @map("rejected")
+  RESCHEDULED @map("rescheduled")
 
   // Attendee management
   ATTENDEE_ADDED   @map("attendee_added")
   ATTENDEE_REMOVED @map("attendee_removed")
 
-  // Cancellation/Rejection/Assignment reasons
-  CANCELLATION_REASON_UPDATED @map("cancellation_reason_updated")
-  REJECTION_REASON_UPDATED    @map("rejection_reason_updated")
-  ASSIGNMENT_REASON_UPDATED   @map("assignment_reason_updated")
-  REASSIGNMENT_REASON_UPDATED @map("reassignment_reason_updated")
+  // Assignment/Reassignment
+  REASSIGNMENT @map("reassignment")
 
   // Meeting details
-  LOCATION_CHANGED    @map("location_changed")
-  MEETING_URL_UPDATED @map("meeting_url_updated")
+  LOCATION_CHANGED @map("location_changed")
 
   // No-show tracking
   HOST_NO_SHOW_UPDATED     @map("host_no_show_updated")

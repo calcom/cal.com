@@ -2,7 +2,7 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils"
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import type { StatusChangeAuditData } from "@calcom/features/booking-audit/lib/actions/StatusChangeAuditActionService";
-import { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -12,7 +12,6 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -33,7 +32,6 @@ import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calenda
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import { BookingEventHandlerService } from "./onBookingEvents/BookingEventHandlerService";
 import { createUserActor } from "./types/actor";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -321,13 +319,7 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
 
     try {
-      const bookingAuditService = BookingAuditService.create();
-      const hashedLinkService = new HashedLinkService();
-      const bookingEventHandlerService = new BookingEventHandlerService({
-        log,
-        hashedLinkService,
-        bookingAuditService,
-      });
+      const bookingEventHandlerService = getBookingEventHandlerService();
       const auditData: StatusChangeAuditData = {};
       await bookingEventHandlerService.onBookingAccepted(
         String(updatedBooking.id),

@@ -275,7 +275,7 @@ export const roundRobinReassignment = async ({
 
     try {
       const bookingEventHandlerService = getBookingEventHandlerService();
-      await bookingEventHandlerService.onReassignmentReasonUpdated(
+      await bookingEventHandlerService.onReassignment(
         String(bookingId),
         createUserActor(reassignedById),
         {

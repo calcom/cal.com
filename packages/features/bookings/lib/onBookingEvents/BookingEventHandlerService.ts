@@ -8,35 +8,14 @@ import type {
   RescheduleRequestedAuditData,
   AttendeeAddedAuditData,
   AttendeeRemovedAuditData,
-  CancellationReasonUpdatedAuditData,
-  RejectionReasonUpdatedAuditData,
-  AssignmentAuditData,
   ReassignmentAuditData,
   LocationChangedAuditData,
-  MeetingUrlUpdatedAuditData,
   HostNoShowUpdatedAuditData,
   AttendeeNoShowUpdatedAuditData,
 } from "@calcom/features/booking-audit/lib/types";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { BookingAuditService } from "@calcom/features/booking-audit/lib/service/BookingAuditService";
 import type { BookingStatus } from "@calcom/prisma/enums";
-import type {
-  StatusChangeAuditData,
-  CancelledAuditData,
-  RejectedAuditData,
-  RescheduleRequestedAuditData,
-  AttendeeAddedAuditData,
-  AttendeeRemovedAuditData,
-  CancellationReasonUpdatedAuditData,
-  RejectionReasonUpdatedAuditData,
-  AssignmentAuditData,
-  ReassignmentAuditData,
-  LocationChangedAuditData,
-  MeetingUrlUpdatedAuditData,
-  HostNoShowUpdatedAuditData,
-  AttendeeNoShowUpdatedAuditData,
-} from "@calcom/features/booking-audit/lib/types";
 
 import type { Actor } from "../types/actor";
 import { getActorUserId } from "../types/actor";
@@ -168,23 +147,7 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onBookingPending(bookingId: string, actor: Actor, data?: StatusChangeAuditData) {
-    try {
-      await this.bookingAuditService.onBookingPending(bookingId, getActorUserId(actor), data);
-    } catch (error) {
-      this.log.error("Error while creating booking pending audit", safeStringify(error));
-    }
-  }
-
-  async onBookingAwaitingHost(bookingId: string, actor: Actor, data?: StatusChangeAuditData) {
-    try {
-      await this.bookingAuditService.onBookingAwaitingHost(bookingId, getActorUserId(actor), data);
-    } catch (error) {
-      this.log.error("Error while creating booking awaiting host audit", safeStringify(error));
-    }
-  }
-
-  async onBookingStatusChange(
+  private async onBookingStatusChange(
     bookingId: string,
     actor: Actor,
     status: BookingStatus,
@@ -214,18 +177,6 @@ export class BookingEventHandlerService {
           }
           break;
         }
-        case "PENDING": {
-          // Type guard: ensure data is StatusChangeAuditData or undefined
-          const statusData: StatusChangeAuditData | undefined =
-            data && !('rejectionReason' in data) && !('cancellationReason' in data) ? data : undefined;
-          await this.bookingAuditService.onBookingPending(bookingId, getActorUserId(actor), statusData);
-          break;
-        }
-        case "AWAITING_HOST": {
-          // Type guard: ensure data is StatusChangeAuditData or undefined
-          const statusData: StatusChangeAuditData | undefined =
-            data && !('rejectionReason' in data) && !('cancellationReason' in data) ? data : undefined;
-        }
       }
     } catch (error) {
       this.log.error(
@@ -243,39 +194,11 @@ export class BookingEventHandlerService {
     }
   }
 
-  async onCancellationReasonUpdated(
-    bookingId: string,
-    actor: Actor,
-    data: CancellationReasonUpdatedAuditData
-  ) {
+  async onReassignment(bookingId: string, actor: Actor, data: ReassignmentAuditData) {
     try {
-      await this.bookingAuditService.onCancellationReasonUpdated(bookingId, getActorUserId(actor), data);
+      await this.bookingAuditService.onReassignment(bookingId, getActorUserId(actor), data);
     } catch (error) {
-      this.log.error("Error while creating cancellation reason updated audit", safeStringify(error));
-    }
-  }
-
-  async onRejectionReasonUpdated(bookingId: string, actor: Actor, data: RejectionReasonUpdatedAuditData) {
-    try {
-      await this.bookingAuditService.onRejectionReasonUpdated(bookingId, getActorUserId(actor), data);
-    } catch (error) {
-      this.log.error("Error while creating rejection reason updated audit", safeStringify(error));
-    }
-  }
-
-  async onAssignmentReasonUpdated(bookingId: string, actor: Actor, data: AssignmentAuditData) {
-    try {
-      await this.bookingAuditService.onAssignmentReasonUpdated(bookingId, getActorUserId(actor), data);
-    } catch (error) {
-      this.log.error("Error while creating assignment reason updated audit", safeStringify(error));
-    }
-  }
-
-  async onReassignmentReasonUpdated(bookingId: string, actor: Actor, data: ReassignmentAuditData) {
-    try {
-      await this.bookingAuditService.onReassignmentReasonUpdated(bookingId, getActorUserId(actor), data);
-    } catch (error) {
-      this.log.error("Error while creating reassignment reason updated audit", safeStringify(error));
+      this.log.error("Error while creating reassignment audit", safeStringify(error));
     }
   }
 
@@ -284,14 +207,6 @@ export class BookingEventHandlerService {
       await this.bookingAuditService.onLocationChanged(bookingId, getActorUserId(actor), data);
     } catch (error) {
       this.log.error("Error while creating location changed audit", safeStringify(error));
-    }
-  }
-
-  async onMeetingUrlUpdated(bookingId: string, actor: Actor, data: MeetingUrlUpdatedAuditData) {
-    try {
-      await this.bookingAuditService.onMeetingUrlUpdated(bookingId, getActorUserId(actor), data);
-    } catch (error) {
-      this.log.error("Error while creating meeting URL updated audit", safeStringify(error));
     }
   }
 

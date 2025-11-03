@@ -2,19 +2,15 @@ import type { TFunction } from "next-i18next";
 
 import type { BookingAudit, BookingAuditType, BookingAuditAction, Prisma } from "@calcom/prisma/client";
 
-import { AssignmentAuditActionService } from "../actions/AssignmentAuditActionService";
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
 import { AttendeeRemovedAuditActionService } from "../actions/AttendeeRemovedAuditActionService";
-import { CancellationReasonUpdatedAuditActionService } from "../actions/CancellationReasonUpdatedAuditActionService";
 import { CancelledAuditActionService } from "../actions/CancelledAuditActionService";
 import { CreatedAuditActionService } from "../actions/CreatedAuditActionService";
 import { HostNoShowUpdatedAuditActionService } from "../actions/HostNoShowUpdatedAuditActionService";
 import { LocationChangedAuditActionService } from "../actions/LocationChangedAuditActionService";
-import { MeetingUrlUpdatedAuditActionService } from "../actions/MeetingUrlUpdatedAuditActionService";
 import { ReassignmentAuditActionService } from "../actions/ReassignmentAuditActionService";
 import { RejectedAuditActionService } from "../actions/RejectedAuditActionService";
-import { RejectionReasonUpdatedAuditActionService } from "../actions/RejectionReasonUpdatedAuditActionService";
 import { RescheduleRequestedAuditActionService } from "../actions/RescheduleRequestedAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
 import { StatusChangeAuditActionService } from "../actions/StatusChangeAuditActionService";
@@ -31,11 +27,7 @@ import type {
   AttendeeAddedAuditData,
   AttendeeRemovedAuditData,
   ReassignmentAuditData,
-  AssignmentAuditData,
-  CancellationReasonUpdatedAuditData,
-  RejectionReasonUpdatedAuditData,
   LocationChangedAuditData,
-  MeetingUrlUpdatedAuditData,
   HostNoShowUpdatedAuditData,
   AttendeeNoShowUpdatedAuditData,
   StatusChangeAuditData,
@@ -66,12 +58,8 @@ export class BookingAuditService {
   private readonly rescheduleRequestedActionService: RescheduleRequestedAuditActionService;
   private readonly attendeeAddedActionService: AttendeeAddedAuditActionService;
   private readonly attendeeRemovedActionService: AttendeeRemovedAuditActionService;
-  private readonly assignmentActionService: AssignmentAuditActionService;
   private readonly reassignmentActionService: ReassignmentAuditActionService;
-  private readonly cancellationReasonUpdatedActionService: CancellationReasonUpdatedAuditActionService;
-  private readonly rejectionReasonUpdatedActionService: RejectionReasonUpdatedAuditActionService;
   private readonly locationChangedActionService: LocationChangedAuditActionService;
-  private readonly meetingUrlUpdatedActionService: MeetingUrlUpdatedAuditActionService;
   private readonly hostNoShowUpdatedActionService: HostNoShowUpdatedAuditActionService;
   private readonly attendeeNoShowUpdatedActionService: AttendeeNoShowUpdatedAuditActionService;
   private readonly statusChangeActionService: StatusChangeAuditActionService;
@@ -87,12 +75,8 @@ export class BookingAuditService {
     this.rescheduleRequestedActionService = new RescheduleRequestedAuditActionService();
     this.attendeeAddedActionService = new AttendeeAddedAuditActionService();
     this.attendeeRemovedActionService = new AttendeeRemovedAuditActionService();
-    this.assignmentActionService = new AssignmentAuditActionService();
     this.reassignmentActionService = new ReassignmentAuditActionService();
-    this.cancellationReasonUpdatedActionService = new CancellationReasonUpdatedAuditActionService();
-    this.rejectionReasonUpdatedActionService = new RejectionReasonUpdatedAuditActionService();
     this.locationChangedActionService = new LocationChangedAuditActionService();
-    this.meetingUrlUpdatedActionService = new MeetingUrlUpdatedAuditActionService();
     this.hostNoShowUpdatedActionService = new HostNoShowUpdatedAuditActionService();
     this.attendeeNoShowUpdatedActionService = new AttendeeNoShowUpdatedAuditActionService();
     this.statusChangeActionService = new StatusChangeAuditActionService();
@@ -185,40 +169,6 @@ export class BookingAuditService {
     });
   }
 
-  async onBookingPending(
-    bookingId: string,
-    userId: number | undefined,
-    data?: StatusChangeAuditData
-  ): Promise<BookingAudit> {
-    const parsedData = data ? this.statusChangeActionService.parse(data) : undefined;
-    const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
-    return this.createAuditRecord({
-      bookingId,
-      actorId,
-      type: "RECORD_UPDATED",
-      action: "PENDING",
-      data: parsedData,
-      timestamp: new Date(),
-    });
-  }
-
-  async onBookingAwaitingHost(
-    bookingId: string,
-    userId: number | undefined,
-    data?: StatusChangeAuditData
-  ): Promise<BookingAudit> {
-    const parsedData = data ? this.statusChangeActionService.parse(data) : undefined;
-    const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
-    return this.createAuditRecord({
-      bookingId,
-      actorId,
-      type: "RECORD_UPDATED",
-      action: "AWAITING_HOST",
-      data: parsedData,
-      timestamp: new Date(),
-    });
-  }
-
   async onBookingCancelled(
     bookingId: string,
     userId: number | undefined,
@@ -304,58 +254,7 @@ export class BookingAuditService {
     });
   }
 
-  async onCancellationReasonUpdated(
-    bookingId: string,
-    userId: number | undefined,
-    data: CancellationReasonUpdatedAuditData
-  ): Promise<BookingAudit> {
-    const parsedData = this.cancellationReasonUpdatedActionService.parse(data);
-    const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
-    return this.createAuditRecord({
-      bookingId,
-      actorId,
-      type: "RECORD_UPDATED",
-      action: "CANCELLATION_REASON_UPDATED",
-      data: parsedData,
-      timestamp: new Date(),
-    });
-  }
-
-  async onRejectionReasonUpdated(
-    bookingId: string,
-    userId: number | undefined,
-    data: RejectionReasonUpdatedAuditData
-  ): Promise<BookingAudit> {
-    const parsedData = this.rejectionReasonUpdatedActionService.parse(data);
-    const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
-    return this.createAuditRecord({
-      bookingId,
-      actorId,
-      type: "RECORD_UPDATED",
-      action: "REJECTION_REASON_UPDATED",
-      data: parsedData,
-      timestamp: new Date(),
-    });
-  }
-
-  async onAssignmentReasonUpdated(
-    bookingId: string,
-    userId: number | undefined,
-    data: AssignmentAuditData
-  ): Promise<BookingAudit> {
-    const parsedData = this.assignmentActionService.parse(data);
-    const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
-    return this.createAuditRecord({
-      bookingId,
-      actorId,
-      type: "RECORD_UPDATED",
-      action: "ASSIGNMENT_REASON_UPDATED",
-      data: parsedData,
-      timestamp: new Date(),
-    });
-  }
-
-  async onReassignmentReasonUpdated(
+  async onReassignment(
     bookingId: string,
     userId: number | undefined,
     data: ReassignmentAuditData
@@ -366,7 +265,7 @@ export class BookingAuditService {
       bookingId,
       actorId,
       type: "RECORD_UPDATED",
-      action: "REASSIGNMENT_REASON_UPDATED",
+      action: "REASSIGNMENT",
       data: parsedData,
       timestamp: new Date(),
     });
@@ -384,23 +283,6 @@ export class BookingAuditService {
       actorId,
       type: "RECORD_UPDATED",
       action: "LOCATION_CHANGED",
-      data: parsedData,
-      timestamp: new Date(),
-    });
-  }
-
-  async onMeetingUrlUpdated(
-    bookingId: string,
-    userId: number | undefined,
-    data: MeetingUrlUpdatedAuditData
-  ): Promise<BookingAudit> {
-    const parsedData = this.meetingUrlUpdatedActionService.parse(data);
-    const actorId = userId ? await this.getOrCreateUserActor(userId) : SYSTEM_ACTOR_ID;
-    return this.createAuditRecord({
-      bookingId,
-      actorId,
-      type: "RECORD_UPDATED",
-      action: "MEETING_URL_UPDATED",
       data: parsedData,
       timestamp: new Date(),
     });
@@ -451,9 +333,7 @@ export class BookingAuditService {
         const data = this.createdActionService.parse(audit.data);
         return this.createdActionService.getDisplaySummary(data, t);
       }
-      case "ACCEPTED":
-      case "PENDING":
-      case "AWAITING_HOST": {
+      case "ACCEPTED": {
         const data = this.statusChangeActionService.parse(audit.data);
         return this.statusChangeActionService.getDisplaySummary(data, t);
       }
@@ -481,29 +361,13 @@ export class BookingAuditService {
         const data = this.attendeeRemovedActionService.parse(audit.data);
         return this.attendeeRemovedActionService.getDisplaySummary(data, t);
       }
-      case "REASSIGNMENT_REASON_UPDATED": {
+      case "REASSIGNMENT": {
         const data = this.reassignmentActionService.parse(audit.data);
         return this.reassignmentActionService.getDisplaySummary(data, t);
-      }
-      case "ASSIGNMENT_REASON_UPDATED": {
-        const data = this.assignmentActionService.parse(audit.data);
-        return this.assignmentActionService.getDisplaySummary(data, t);
-      }
-      case "CANCELLATION_REASON_UPDATED": {
-        const data = this.cancellationReasonUpdatedActionService.parse(audit.data);
-        return this.cancellationReasonUpdatedActionService.getDisplaySummary(data, t);
-      }
-      case "REJECTION_REASON_UPDATED": {
-        const data = this.rejectionReasonUpdatedActionService.parse(audit.data);
-        return this.rejectionReasonUpdatedActionService.getDisplaySummary(data, t);
       }
       case "LOCATION_CHANGED": {
         const data = this.locationChangedActionService.parse(audit.data);
         return this.locationChangedActionService.getDisplaySummary(data, t);
-      }
-      case "MEETING_URL_UPDATED": {
-        const data = this.meetingUrlUpdatedActionService.parse(audit.data);
-        return this.meetingUrlUpdatedActionService.getDisplaySummary(data, t);
       }
       case "HOST_NO_SHOW_UPDATED": {
         const data = this.hostNoShowUpdatedActionService.parse(audit.data);
@@ -532,9 +396,7 @@ export class BookingAuditService {
         const data = this.createdActionService.parse(audit.data);
         return this.createdActionService.getDisplayDetails(data, t);
       }
-      case "ACCEPTED":
-      case "PENDING":
-      case "AWAITING_HOST": {
+      case "ACCEPTED": {
         const data = this.statusChangeActionService.parse(audit.data);
         return this.statusChangeActionService.getDisplayDetails(data, t);
       }
@@ -562,29 +424,13 @@ export class BookingAuditService {
         const data = this.attendeeRemovedActionService.parse(audit.data);
         return this.attendeeRemovedActionService.getDisplayDetails(data, t);
       }
-      case "REASSIGNMENT_REASON_UPDATED": {
+      case "REASSIGNMENT": {
         const data = this.reassignmentActionService.parse(audit.data);
         return this.reassignmentActionService.getDisplayDetails(data, t);
-      }
-      case "ASSIGNMENT_REASON_UPDATED": {
-        const data = this.assignmentActionService.parse(audit.data);
-        return this.assignmentActionService.getDisplayDetails(data, t);
-      }
-      case "CANCELLATION_REASON_UPDATED": {
-        const data = this.cancellationReasonUpdatedActionService.parse(audit.data);
-        return this.cancellationReasonUpdatedActionService.getDisplayDetails(data, t);
-      }
-      case "REJECTION_REASON_UPDATED": {
-        const data = this.rejectionReasonUpdatedActionService.parse(audit.data);
-        return this.rejectionReasonUpdatedActionService.getDisplayDetails(data, t);
       }
       case "LOCATION_CHANGED": {
         const data = this.locationChangedActionService.parse(audit.data);
         return this.locationChangedActionService.getDisplayDetails(data, t);
-      }
-      case "MEETING_URL_UPDATED": {
-        const data = this.meetingUrlUpdatedActionService.parse(audit.data);
-        return this.meetingUrlUpdatedActionService.getDisplayDetails(data, t);
       }
       case "HOST_NO_SHOW_UPDATED": {
         const data = this.hostNoShowUpdatedActionService.parse(audit.data);

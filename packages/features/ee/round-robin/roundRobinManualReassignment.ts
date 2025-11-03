@@ -105,14 +105,14 @@ export const roundRobinManualReassignment = async ({
   const eventTypeHosts = eventType.hosts.length
     ? eventType.hosts
     : eventType.users.map((user) => ({
-        user,
-        isFixed: false,
-        priority: 2,
-        weight: 100,
-        schedule: null,
-        createdAt: new Date(0), // use earliest possible date as fallback
-        groupId: null,
-      }));
+      user,
+      isFixed: false,
+      priority: 2,
+      weight: 100,
+      schedule: null,
+      createdAt: new Date(0), // use earliest possible date as fallback
+      groupId: null,
+    }));
 
   const fixedHost = eventTypeHosts.find((host) => host.isFixed);
   const currentRRHost = booking.attendees.find((attendee) =>
@@ -238,10 +238,10 @@ export const roundRobinManualReassignment = async ({
           },
           previousUser: oldUser
             ? {
-                id: oldUser.id,
-                name: oldUser.name || "",
-                email: oldEmail || "",
-              }
+              id: oldUser.id,
+              name: oldUser.name || "",
+              email: oldEmail || "",
+            }
             : undefined,
           teamName: eventType.team?.name,
         },
@@ -250,7 +250,7 @@ export const roundRobinManualReassignment = async ({
           { field: "email", oldValue: oldEmail || null, newValue: newUser.email },
         ],
       };
-      await bookingEventHandlerService.onReassignmentReasonUpdated(
+      await bookingEventHandlerService.onReassignment(
         String(bookingId),
         createUserActor(reassignedById),
         auditData
@@ -373,8 +373,8 @@ export const roundRobinManualReassignment = async ({
 
   const previousHostDestinationCalendar = hasOrganizerChanged
     ? await prisma.destinationCalendar.findFirst({
-        where: { userId: originalOrganizer.id },
-      })
+      where: { userId: originalOrganizer.id },
+    })
     : null;
 
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
@@ -616,22 +616,22 @@ export async function handleWorkflowsUpdate({
         },
         ...(eventType?.teamId
           ? [
-              {
-                activeOnTeams: {
-                  some: {
-                    teamId: eventType.teamId,
-                  },
+            {
+              activeOnTeams: {
+                some: {
+                  teamId: eventType.teamId,
                 },
               },
-            ]
+            },
+          ]
           : []),
         ...(eventType?.team?.parentId
           ? [
-              {
-                isActiveOnAll: true,
-                teamId: eventType.team.parentId,
-              },
-            ]
+            {
+              isActiveOnAll: true,
+              teamId: eventType.team.parentId,
+            },
+          ]
           : []),
       ],
     },

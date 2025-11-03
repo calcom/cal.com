@@ -300,17 +300,17 @@ async function handler(input: CancelBookingInput) {
     destinationCalendar: bookingToDelete?.destinationCalendar
       ? [bookingToDelete?.destinationCalendar]
       : bookingToDelete?.user.destinationCalendar
-      ? [bookingToDelete?.user.destinationCalendar]
-      : [],
+        ? [bookingToDelete?.user.destinationCalendar]
+        : [],
     cancellationReason: cancellationReason,
     ...(teamMembers &&
       teamId && {
-        team: {
-          name: bookingToDelete?.eventType?.team?.name || "Nameless",
-          members: teamMembers,
-          id: teamId,
-        },
-      }),
+      team: {
+        name: bookingToDelete?.eventType?.team?.name || "Nameless",
+        members: teamMembers,
+        id: teamId,
+      },
+    }),
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: bookingToDelete.eventType?.seatsShowAttendees,
     iCalUID: bookingToDelete.iCalUID,
@@ -483,10 +483,9 @@ async function handler(input: CancelBookingInput) {
 
     try {
       const bookingEventHandlerService = getBookingEventHandlerService();
-      await bookingEventHandlerService.onBookingStatusChange(
+      await bookingEventHandlerService.onBookingCancelled(
         String(updatedBooking.id),
         createUserActor(userId || 0),
-        BookingStatus.CANCELLED,
         {
           cancellationReason: cancellationReason || "",
         }
@@ -635,7 +634,7 @@ type BookingCancelServiceDependencies = {
  * Handles both individual booking cancellations and bulk cancellations for recurring events.
  */
 export class BookingCancelService implements IBookingCancelService {
-  constructor(private readonly deps: BookingCancelServiceDependencies) {}
+  constructor(private readonly deps: BookingCancelServiceDependencies) { }
 
   async cancelBooking(input: { bookingData: CancelRegularBookingData; bookingMeta?: CancelBookingMeta }) {
     const cancelBookingInput: CancelBookingInput = {

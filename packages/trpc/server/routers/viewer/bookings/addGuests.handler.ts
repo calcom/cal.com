@@ -5,6 +5,7 @@ import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEma
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -163,26 +164,13 @@ async function getEmailVerificationRequirements(guestEmails: string[]): Promise<
   const userRepo = new UserRepository(prisma);
   const guestUsers = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: guestEmails });
 
-  // Skip if blacklisted
-  if (blacklistedGuestEmails.includes(baseEmail)) {
-    continue;
+  const emailToRequiresVerification = new Map<string, boolean>();
+  for (const user of guestUsers) {
+    const matchedBase = extractBaseEmail(user.matchedEmail ?? user.email).toLowerCase();
+    emailToRequiresVerification.set(matchedBase, user.requiresBookerEmailVerification === true);
   }
 
-  // Check if email verification is required
-  const verificationRequired = await checkEmailVerificationRequired({
-    userSessionEmail: ctx.user.email,
-    email: guestEntry.original,
-  });
-
-  if (verificationRequired) {
-    continue;
-  }
-
-  seenEmails.add(baseEmail);
-  uniqueGuests.push(guestEntry.original);
-}
-
-return emailToRequiresVerification;
+  return emailToRequiresVerification;
 }
 
 async function sanitizeAndFilterGuests(
