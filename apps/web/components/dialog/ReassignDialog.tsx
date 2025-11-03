@@ -78,7 +78,6 @@ export const ReassignDialog = ({
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  // Query for managed event users
   const managedEventQuery = trpc.viewer.teams.getManagedEventUsersToReassign.useInfiniteQuery(
     {
       bookingId,
@@ -91,7 +90,6 @@ export const ReassignDialog = ({
     }
   );
 
-  // Query for round robin hosts
   const roundRobinQuery = trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
     {
       bookingId,
