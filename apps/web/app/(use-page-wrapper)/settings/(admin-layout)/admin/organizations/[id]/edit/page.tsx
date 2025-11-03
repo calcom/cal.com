@@ -10,6 +10,7 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 const orgIdSchema = z.object({ id: z.coerce.number() });
 
 export const generateMetadata = async ({ params }: { params: Params }) => {
+  const organizationRepository = getOrganizationRepository();
   const input = orgIdSchema.safeParse(await params);
   if (!input.success) {
     return await _generateMetadata(
@@ -21,7 +22,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
     );
   }
 
-  const org = await getOrganizationRepository().adminFindById({ id: input.data.id });
+  const org = await organizationRepository.adminFindById({ id: input.data.id });
 
   return await _generateMetadata(
     (t) => `${t("editing_org")}: ${org.name}`,
@@ -33,11 +34,12 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
 };
 
 const Page = async ({ params }: { params: Params }) => {
+  const organizationRepository = getOrganizationRepository();
   const input = orgIdSchema.safeParse(await params);
 
   if (!input.success) throw new Error("Invalid access");
 
-  const org = await getOrganizationRepository().adminFindById({ id: input.data.id });
+  const org = await organizationRepository.adminFindById({ id: input.data.id });
   const t = await getTranslate();
   return (
     <SettingsHeader title={`${t("editing_org")}: ${org.name}`} description={t("admin_orgs_edit_description")}>

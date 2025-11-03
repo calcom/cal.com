@@ -1,5 +1,5 @@
 import { vi, beforeEach } from "vitest";
-import { mockDeep } from "vitest-mock-extended";
+import { mockDeep, mockReset } from "vitest-mock-extended";
 
 import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 
@@ -10,7 +10,7 @@ vi.mock("@calcom/features/ee/organizations/di/OrganizationRepository.container",
 }));
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  mockReset(mockedSingleton);
 });
 
 export const organizationScenarios = {
