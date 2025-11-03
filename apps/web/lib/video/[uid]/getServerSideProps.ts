@@ -8,7 +8,7 @@ import {
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
@@ -168,7 +168,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     : null;
 
   const calVideoLogo = profile?.organization
-    ? await organizationRepository.findCalVideoLogoByOrgId({ id: profile.organization.id })
+    ? await getOrganizationRepository().findCalVideoLogoByOrgId({ id: profile.organization.id })
     : null;
 
   //daily.co calls have a 14 days exit buffer when a user enters a call when it's not available it will trigger the modals

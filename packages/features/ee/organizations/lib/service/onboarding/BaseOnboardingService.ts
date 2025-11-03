@@ -8,7 +8,7 @@ import {
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -297,7 +297,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     orgData: OrganizationData;
   }) {
     const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
-    let organization = orgData.id ? await organizationRepository.findById({ id: orgData.id }) : null;
+    let organization = orgData.id ? await getOrganizationRepository().findById({ id: orgData.id }) : null;
 
     if (organization) {
       log.info(
@@ -328,7 +328,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       const nonOrgUsername = owner.username || "";
 
       // Create organization first to get the ID
-      const orgCreationResult = await organizationRepository.createWithExistingUserAsOwner({
+      const orgCreationResult = await getOrganizationRepository().createWithExistingUserAsOwner({
         orgData: {
           ...orgData,
           // Don't pass brand assets yet - will be uploaded after org is created
@@ -395,8 +395,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     orgData: OrganizationData;
   }) {
     let organization = orgData.id
-      ? await organizationRepository.findById({ id: orgData.id })
-      : await organizationRepository.findBySlug({ slug: orgData.slug });
+      ? await getOrganizationRepository().findById({ id: orgData.id })
+      : await getOrganizationRepository().findBySlug({ slug: orgData.slug });
 
     if (organization) {
       log.info(
@@ -410,7 +410,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       return { organization, owner };
     }
 
-    const orgCreationResult = await organizationRepository.createWithNonExistentOwner({
+    const orgCreationResult = await getOrganizationRepository().createWithNonExistentOwner({
       orgData: {
         ...orgData,
         // To be uploaded after org is created
@@ -670,7 +670,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     }
 
     const existingMetadata = teamMetadataStrictSchema.parse(organization.metadata);
-    const updatedOrganization = await organizationRepository.updateStripeSubscriptionDetails({
+    const updatedOrganization = await getOrganizationRepository().updateStripeSubscriptionDetails({
       id: organization.id,
       stripeSubscriptionId: paymentSubscriptionId,
       stripeSubscriptionItemId: paymentSubscriptionItemId,
@@ -680,7 +680,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
   }
 
   protected async hasConflictingOrganization({ slug, onboardingId }: { slug: string; onboardingId: string }) {
-    const organization = await organizationRepository.findBySlugIncludeOnboarding({ slug });
+    const organization = await getOrganizationRepository().findBySlugIncludeOnboarding({ slug });
     if (!organization?.organizationOnboarding) {
       return false;
     }

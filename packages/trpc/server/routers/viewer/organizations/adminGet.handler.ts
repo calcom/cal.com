@@ -1,4 +1,4 @@
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminGet } from "./adminGet.schema";
@@ -11,7 +11,7 @@ type AdminGetOptions = {
 };
 
 export const adminGetHandler = async ({ input }: AdminGetOptions) => {
-  return await organizationRepository.adminFindById({ id: input.id });
+  return await getOrganizationRepository().adminFindById({ id: input.id });
 };
 
 export default adminGetHandler;

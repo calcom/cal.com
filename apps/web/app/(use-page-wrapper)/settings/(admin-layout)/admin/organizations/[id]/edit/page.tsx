@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { OrgForm } from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgEditPage";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 const orgIdSchema = z.object({ id: z.coerce.number() });
@@ -21,7 +21,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
     );
   }
 
-  const org = await organizationRepository.adminFindById({ id: input.data.id });
+  const org = await getOrganizationRepository().adminFindById({ id: input.data.id });
 
   return await _generateMetadata(
     (t) => `${t("editing_org")}: ${org.name}`,
@@ -37,7 +37,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   if (!input.success) throw new Error("Invalid access");
 
-  const org = await organizationRepository.adminFindById({ id: input.data.id });
+  const org = await getOrganizationRepository().adminFindById({ id: input.data.id });
   const t = await getTranslate();
   return (
     <SettingsHeader title={`${t("editing_org")}: ${org.name}`} description={t("admin_orgs_edit_description")}>

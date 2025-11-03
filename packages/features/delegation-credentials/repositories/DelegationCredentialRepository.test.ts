@@ -2,10 +2,17 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 
 import { DelegationCredentialRepository } from "./DelegationCredentialRepository";
+
+const mockOrganizationRepository = {
+  findByMemberEmail: vi.fn(),
+};
+
+vi.mock("@calcom/features/ee/organizations/di/OrganizationRepository.container", () => ({
+  getOrganizationRepository: () => mockOrganizationRepository,
+}));
 
 vi.mock("@calcom/prisma", () => ({
   prisma: {},
@@ -90,8 +97,8 @@ const createTestDelegationCredential = async (overrides = {}) => {
   });
 };
 
-const setupOrganizationMock = (returnValue: Awaited<ReturnType<typeof organizationRepository.findByMemberEmail>>) => {
-  vi.mocked(organizationRepository.findByMemberEmail).mockResolvedValue(returnValue);
+const setupOrganizationMock = (returnValue: { id: number } | null) => {
+  mockOrganizationRepository.findByMemberEmail.mockResolvedValue(returnValue);
 };
 
 describe("DelegationCredentialRepository", () => {

@@ -2,7 +2,7 @@ import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import type { Prisma } from "@calcom/prisma/client";
 
 vi.mock("@calcom/lib/server/repository/teamUtils", () => ({

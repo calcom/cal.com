@@ -2,7 +2,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 
 import { OtherTeamsListing } from "@calcom/features/ee/organizations/pages/components/OtherTeamsListing";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import { validateUserHasOrg } from "../../../actions/validateUserHasOrg";
@@ -25,7 +25,7 @@ const Page = async () => {
   }
   const organizationId = session?.user?.org?.id;
   const otherTeams = organizationId
-    ? await organizationRepository.findTeamsInOrgIamNotPartOf({
+    ? await getOrganizationRepository().findTeamsInOrgIamNotPartOf({
         userId: session?.user.id,
         parentId: organizationId,
       })

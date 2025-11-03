@@ -1,6 +1,6 @@
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -205,7 +205,7 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
 
     if (!organization.slug) {
       try {
-        const { slug } = await organizationRepository.setSlug({
+        const { slug } = await getOrganizationRepository().setSlug({
           id: organization.id,
           slug: organizationOnboarding.slug,
         });

@@ -4,7 +4,7 @@ import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { isNotACompanyEmail } from "@calcom/ee/organizations/lib/server/orgCreationUtils";
 import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import {
@@ -189,7 +189,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   // Create a new user and invite them as the owner of the organization
   if (!orgOwner) {
-    const data = await organizationRepository.createWithNonExistentOwner({
+    const data = await getOrganizationRepository().createWithNonExistentOwner({
       orgData,
       owner: {
         email: orgOwnerEmail,
@@ -246,7 +246,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     }
 
     const nonOrgUsernameForOwner = orgOwner.username || "";
-    const { organization, ownerProfile } = await organizationRepository.createWithExistingUserAsOwner({
+    const { organization, ownerProfile } = await getOrganizationRepository().createWithExistingUserAsOwner({
       orgData,
       owner: {
         id: orgOwner.id,

@@ -5,13 +5,9 @@ import type { OrganizationRepository } from "@calcom/features/ee/organizations/r
 
 const mockedSingleton = mockDeep<OrganizationRepository>();
 
-vi.mock("@calcom/features/ee/organizations/repositories", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@calcom/features/ee/organizations/repositories")>();
-  return {
-    ...actual,
-    organizationRepository: mockedSingleton,
-  };
-});
+vi.mock("@calcom/features/ee/organizations/di/OrganizationRepository.container", () => ({
+  getOrganizationRepository: () => mockedSingleton,
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
