@@ -240,6 +240,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   labels,
   userTimeFormat,
   classNames,
+  allowDeleteFirstSlot = false,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
@@ -247,6 +248,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   labels?: ScheduleLabelsType;
   userTimeFormat: number | null;
   classNames?: Pick<scheduleClassNames, "dayRanges" | "timeRangeField" | "timePicker">;
+  allowDeleteFirstSlot?: boolean;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -274,14 +276,6 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 />
               )}
             />
-            <RemoveTimeButton
-              index={index}
-              remove={remove}
-              className="text-default border-none"
-              disabled={disabled}
-              labels={labels}
-            />
-
             {index === 0 && (
               <Button
                 disabled={disabled}
@@ -307,6 +301,15 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                     prepend(slotRange.prepend);
                   }
                 }}
+              />
+            )}
+            {(allowDeleteFirstSlot || index !== 0) && (
+              <RemoveTimeButton
+                index={index}
+                remove={remove}
+                className="text-default border-none"
+                disabled={disabled}
+                labels={labels}
               />
             )}
           </div>
