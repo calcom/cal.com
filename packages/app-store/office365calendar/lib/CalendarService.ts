@@ -83,7 +83,7 @@ export default class Office365CalendarService implements Calendar {
 
         const { client_id, client_secret } = await this.getAuthCredentials(isDelegated);
 
-        const url = await this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+        const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
         const bodyParams = {
           scope: isDelegated
@@ -124,7 +124,7 @@ export default class Office365CalendarService implements Calendar {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private async getAuthUrl(delegatedTo: boolean, tenantId?: string): Promise<string> {
+  private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
     if (delegatedTo) {
       if (!tenantId) {
         const error = new CalendarAppDelegationCredentialInvalidGrantError(
@@ -197,7 +197,7 @@ export default class Office365CalendarService implements Calendar {
 
     if (!isDelegated) return;
 
-    const url = await this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+    const url = this.getAuthUrl(isDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
 
     const delegationCredentialClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
     const delegationCredentialClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
@@ -208,7 +208,7 @@ export default class Office365CalendarService implements Calendar {
       );
       
       if (this.credential.user?.email) {
-        await triggerDelegationCredentialErrorWebhook({
+        triggerDelegationCredentialErrorWebhook({
           error,
           credential: {
             id: this.credential.id,
@@ -218,8 +218,11 @@ export default class Office365CalendarService implements Calendar {
           user: {
             id: this.credential.userId ?? 0,
             email: this.credential.user.email,
+            name: null,
           },
           orgId: this.credential.teamId,
+        }).catch((webhookError) => {
+          this.log.error("Failed to trigger delegation credential error webhook", webhookError);
         });
       }
       
@@ -287,7 +290,7 @@ export default class Office365CalendarService implements Calendar {
   async testDelegationCredentialSetup(): Promise<boolean> {
     const delegationCredentialClientId = this.credential.delegatedTo?.serviceAccountKey?.client_id;
     const delegationCredentialClientSecret = this.credential.delegatedTo?.serviceAccountKey?.private_key;
-    const url = await this.getAuthUrl(
+    const url = this.getAuthUrl(
       Boolean(this.credential?.delegatedTo),
       this.credential?.delegatedTo?.serviceAccountKey?.tenant_id
     );
