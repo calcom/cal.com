@@ -22,28 +22,16 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
+
+
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import {
-  BookingWindowPeriodInputTypeEnum_2024_06_14,
-  BookerLayoutsInputEnum_2024_06_14,
-  ConfirmationPolicyEnum,
-  NoticeThresholdUnitEnum,
-  FrequencyInput,
-} from "@calcom/platform-enums";
+import { BookingWindowPeriodInputTypeEnum_2024_06_14, BookerLayoutsInputEnum_2024_06_14, ConfirmationPolicyEnum, NoticeThresholdUnitEnum, FrequencyInput } from "@calcom/platform-enums";
 import { SchedulingType } from "@calcom/platform-libraries";
-import {
-  type ApiSuccessResponse,
-  type CreateEventTypeInput_2024_06_14,
-  type EventTypeOutput_2024_06_14,
-  type GuestsDefaultFieldOutput_2024_06_14,
-  type NameDefaultFieldInput_2024_06_14,
-  type NotesDefaultFieldInput_2024_06_14,
-  type SplitNameDefaultFieldOutput_2024_06_14,
-  type UpdateEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
+import { type ApiSuccessResponse, type CreateEventTypeInput_2024_06_14, type EventTypeOutput_2024_06_14, type GuestsDefaultFieldOutput_2024_06_14, type NameDefaultFieldInput_2024_06_14, type NotesDefaultFieldInput_2024_06_14, type SplitNameDefaultFieldOutput_2024_06_14, type UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
 import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
+
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
@@ -1640,6 +1628,197 @@ describe("Event types Endpoints", () => {
         console.log(e);
       }
       await app.close();
+    });
+
+    describe("confirmationPolicy", () => {
+      describe("negative tests", () => {
+        it("should not create an event type with type 'time' without noticeThreshold", async () => {
+          const body: CreateEventTypeInput_2024_06_14 = {
+            title: "Event requiring confirmation with time",
+            slug: "event-confirmation-time-missing-threshold",
+            description: "This event requires confirmation based on time.",
+            lengthInMinutes: 60,
+            confirmationPolicy: {
+              type: ConfirmationPolicyEnum.TIME,
+              blockUnconfirmedBookingsInBooker: true,
+            },
+          };
+
+          const response = await request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(400);
+
+          expect(response.body.error).toBeDefined();
+          expect(response.status).toBe(400);
+        });
+
+        it("should not update an event type to type 'time' without noticeThreshold", async () => {
+          // First create an event type with type 'always'
+          const createBody: CreateEventTypeInput_2024_06_14 = {
+            title: "Event requiring confirmation always",
+            slug: "event-confirmation-always-to-time",
+            description: "This event always requires confirmation.",
+            lengthInMinutes: 60,
+            confirmationPolicy: {
+              type: ConfirmationPolicyEnum.ALWAYS,
+              blockUnconfirmedBookingsInBooker: true,
+            },
+          };
+
+          const createResponse = await request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(createBody)
+            .expect(201);
+
+          const createdEventType = createResponse.body.data;
+
+          // Try to update to type 'time' without noticeThreshold
+          const updateBody: UpdateEventTypeInput_2024_06_14 = {
+            confirmationPolicy: {
+              type: ConfirmationPolicyEnum.TIME,
+              blockUnconfirmedBookingsInBooker: true,
+            },
+          };
+
+          const updateResponse = await request(app.getHttpServer())
+            .patch(`/api/v2/event-types/${createdEventType.id}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(updateBody)
+            .expect(400);
+
+          expect(updateResponse.body.error).toBeDefined();
+          expect(updateResponse.status).toBe(400);
+
+          // Cleanup
+          await eventTypesRepositoryFixture.delete(createdEventType.id);
+        });
+      });
+
+      describe("positive tests", () => {
+        let eventTypeWithConfirmationTimeId: number;
+
+        it("should create an event type with type 'always'", async () => {
+          const body: CreateEventTypeInput_2024_06_14 = {
+            title: "Event requiring confirmation always",
+            slug: "event-confirmation-always",
+            description: "This event always requires confirmation.",
+            lengthInMinutes: 60,
+            confirmationPolicy: {
+              type: ConfirmationPolicyEnum.ALWAYS,
+              blockUnconfirmedBookingsInBooker: true,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+              const createdEventType = responseBody.data;
+              expect(createdEventType).toHaveProperty("id");
+              expect(createdEventType.title).toEqual(body.title);
+              expect(createdEventType.confirmationPolicy).toEqual(body.confirmationPolicy);
+              await eventTypesRepositoryFixture.delete(createdEventType.id);
+            });
+        });
+
+        it("should create an event type with type 'time' and noticeThreshold", async () => {
+          const body: CreateEventTypeInput_2024_06_14 = {
+            title: "Event requiring confirmation with time",
+            slug: "event-confirmation-time-with-threshold",
+            description: "This event requires confirmation based on time.",
+            lengthInMinutes: 60,
+            confirmationPolicy: {
+              type: ConfirmationPolicyEnum.TIME,
+              noticeThreshold: {
+                unit: NoticeThresholdUnitEnum.HOURS,
+                count: 24,
+              },
+              blockUnconfirmedBookingsInBooker: true,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .post("/api/v2/event-types")
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(201)
+            .then(async (response) => {
+              const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+              const createdEventType = responseBody.data;
+              expect(createdEventType).toHaveProperty("id");
+              expect(createdEventType.title).toEqual(body.title);
+              expect(createdEventType.confirmationPolicy).toEqual(body.confirmationPolicy);
+              eventTypeWithConfirmationTimeId = createdEventType.id;
+            });
+        });
+
+        it("should update an event type from type 'time' to 'always'", async () => {
+          const body: UpdateEventTypeInput_2024_06_14 = {
+            confirmationPolicy: {
+              type: ConfirmationPolicyEnum.ALWAYS,
+              blockUnconfirmedBookingsInBooker: false,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .patch(`/api/v2/event-types/${eventTypeWithConfirmationTimeId}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+              const updatedEventType = responseBody.data;
+              const policy = updatedEventType.confirmationPolicy as any;
+              expect(policy?.type).toEqual(ConfirmationPolicyEnum.ALWAYS);
+              expect(policy?.blockUnconfirmedBookingsInBooker).toEqual(false);
+              expect(policy?.noticeThreshold).toBeUndefined();
+            });
+        });
+
+        it("should update an event type from type 'always' to 'time' with noticeThreshold", async () => {
+          const body: UpdateEventTypeInput_2024_06_14 = {
+            confirmationPolicy: {
+              type: ConfirmationPolicyEnum.TIME,
+              noticeThreshold: {
+                unit: NoticeThresholdUnitEnum.MINUTES,
+                count: 120,
+              },
+              blockUnconfirmedBookingsInBooker: true,
+            },
+          };
+
+          return request(app.getHttpServer())
+            .patch(`/api/v2/event-types/${eventTypeWithConfirmationTimeId}`)
+            .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+            .set("Authorization", `Bearer ${apiKeyString}`)
+            .send(body)
+            .expect(200)
+            .then(async (response) => {
+              const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+              const updatedEventType = responseBody.data;
+              const policy = updatedEventType.confirmationPolicy as any;
+              expect(policy?.type).toEqual(ConfirmationPolicyEnum.TIME);
+              expect(policy?.noticeThreshold).toEqual({
+                unit: NoticeThresholdUnitEnum.MINUTES,
+                count: 120,
+              });
+              expect(policy?.blockUnconfirmedBookingsInBooker).toEqual(true);
+              await eventTypesRepositoryFixture.delete(eventTypeWithConfirmationTimeId);
+            });
+        });
+      });
     });
   });
 

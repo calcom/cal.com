@@ -23,7 +23,6 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
-import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
 import BookingListItem from "@components/booking/BookingListItem";
@@ -41,6 +40,7 @@ type BookingsProps = {
   permissions: {
     canReadOthersBookings: boolean;
   };
+  isCalendarViewEnabled: boolean;
 };
 
 function useSystemSegments(userId?: number) {
@@ -90,14 +90,15 @@ const viewParser = createParser({
   serialize: (value: "list" | "calendar") => value,
 });
 
-function BookingsContent({ status, permissions }: BookingsProps) {
-  const [view] = useQueryState("view", viewParser.withDefault("list"));
+function BookingsContent({ status, permissions, isCalendarViewEnabled }: BookingsProps) {
+  const [_view] = useQueryState("view", viewParser.withDefault("list"));
+  // Force view to be "list" if calendar view is disabled
+  const view = isCalendarViewEnabled ? _view : "list";
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
 
-  // Generate dynamic tabs that preserve query parameters
-  const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
+  const tabs: HorizontalTabItemProps[] = useMemo(() => {
     const queryString = searchParams?.toString() || "";
 
     const baseTabConfigs = [
@@ -392,7 +393,7 @@ function BookingsContent({ status, permissions }: BookingsProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row flex-wrap justify-between">
+      <div className="flex flex-row flex-wrap justify-between lg:hidden">
         <HorizontalTabs
           tabs={tabs.map((tab) => ({
             ...tab,
