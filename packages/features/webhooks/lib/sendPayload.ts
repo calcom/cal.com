@@ -94,7 +94,28 @@ export type EventPayloadType = CalendarEvent &
     paymentData?: Payment;
   };
 
-export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
+export type DelegationCredentialErrorPayloadType = {
+  error: {
+    type: string;
+    message: string;
+  };
+  credential: {
+    id: number;
+    type: string;
+    appId: string;
+  };
+  user: {
+    id: number;
+    email: string;
+    name: string | null;
+  };
+};
+
+export type WebhookPayloadType =
+  | EventPayloadType
+  | OOOEntryPayloadType
+  | BookingNoShowUpdatedPayload
+  | DelegationCredentialErrorPayloadType;
 
 type WebhookDataType = WebhookPayloadType & { triggerEvent: string; createdAt: string };
 
@@ -191,11 +212,19 @@ export function isOOOEntryPayload(data: WebhookPayloadType): data is OOOEntryPay
 }
 
 export function isNoShowPayload(data: WebhookPayloadType): data is BookingNoShowUpdatedPayload {
-  return "message" in data;
+  return "message" in data && "bookingUid" in data;
+}
+
+export function isDelegationCredentialErrorPayload(
+  data: WebhookPayloadType
+): data is DelegationCredentialErrorPayloadType {
+  return "error" in data && "credential" in data && "user" in data;
 }
 
 export function isEventPayload(data: WebhookPayloadType): data is EventPayloadType {
-  return !isNoShowPayload(data) && !isOOOEntryPayload(data);
+  return (
+    !isNoShowPayload(data) && !isOOOEntryPayload(data) && !isDelegationCredentialErrorPayload(data)
+  );
 }
 
 const sendPayload = async (
@@ -222,7 +251,13 @@ const sendPayload = async (
   }
 
   if (body === undefined) {
-    if (template && (isOOOEntryPayload(data) || isEventPayload(data) || isNoShowPayload(data))) {
+    if (
+      template &&
+      (isOOOEntryPayload(data) ||
+        isEventPayload(data) ||
+        isNoShowPayload(data) ||
+        isDelegationCredentialErrorPayload(data))
+    ) {
       body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
     } else {
       body = JSON.stringify({

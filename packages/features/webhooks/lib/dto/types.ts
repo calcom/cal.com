@@ -501,6 +501,23 @@ export type OOOEntryPayloadType = {
   };
 };
 
+export type DelegationCredentialErrorPayloadType = {
+  error: {
+    type: string;
+    message: string;
+  };
+  credential: {
+    id: number;
+    type: string;
+    appId: string;
+  };
+  user: {
+    id: number;
+    email: string;
+    name: string | null;
+  };
+};
+
 export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
