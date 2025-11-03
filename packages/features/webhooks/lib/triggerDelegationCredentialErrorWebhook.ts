@@ -9,9 +9,6 @@ const log = logger.getSubLogger({ prefix: ["triggerDelegationCredentialErrorWebh
 
 /**
  * Triggers delegation credential error webhooks for organization webhooks subscribed to DELEGATION_CREDENTIAL_ERROR
- * 
- * This function is safe to await and will never throw - all errors are caught and logged internally.
- * This ensures that webhook delivery failures do not prevent the original delegation credential error from being thrown.
  */
 export async function triggerDelegationCredentialErrorWebhook(params: {
   error: CalendarAppDelegationCredentialError;
