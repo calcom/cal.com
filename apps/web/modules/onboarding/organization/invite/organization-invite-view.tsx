@@ -63,7 +63,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const handleSubmitOnboarding = async (invitesData: FormValues["invites"]) => {
     // Save invites to store before submitting
     setInvites(invitesData);
-    await submitOnboarding(store, userEmail);
+    await submitOnboarding(store, userEmail, invitesData);
   };
 
   const handleContinue = async (data?: FormValues) => {
@@ -188,7 +188,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                     <Form form={form} handleSubmit={handleContinue} className="w-full">
                       <div className="flex w-full flex-col gap-4">
                         {/* Email and Team inputs */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col">
                           <div className="grid grid-cols-2 gap-2">
                             <Label className="text-emphasis text-sm font-medium">{t("email")}</Label>
                             <Label className="text-emphasis text-sm font-medium">{t("team")}</Label>
@@ -235,7 +235,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                             color="secondary"
                             size="sm"
                             StartIcon="plus"
-                            className="w-fit"
+                            className="mt-2 w-fit"
                             onClick={() => append({ email: "", team: "", role: "MEMBER" })}>
                             {t("add")}
                           </Button>
