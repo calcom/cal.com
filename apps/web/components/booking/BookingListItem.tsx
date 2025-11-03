@@ -46,6 +46,8 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
 
+import { BookingActionsDropdown } from "./BookingActionsDropdown";
+import { useBookingActionsStoreContext, BookingActionsStoreProvider } from "./BookingActionsStoreProvider";
 import {
   getPendingActions,
   getCancelEventAction,
@@ -55,7 +57,6 @@ import {
   type BookingActionContext,
   getReportAction,
 } from "./bookingActions";
-import { BookingActionsDropdown } from "./BookingActionsDropdown";
 import type { BookingItemProps } from "./types";
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -271,10 +272,12 @@ function BookingListItem(booking: BookingItemProps) {
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
 
+  const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
+
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
     ...reportAction,
-    onClick: () => {}, // This will be handled by BookingActionsDropdown
+    onClick: () => setIsOpenReportDialog(true),
   };
 
   return (
@@ -995,4 +998,13 @@ const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: Assig
   );
 };
 
-export default BookingListItem;
+// Wrap BookingListItem with BookingActionsStoreProvider to provide isolated store for each booking
+const BookingListItemWithProvider = (props: BookingItemProps) => {
+  return (
+    <BookingActionsStoreProvider>
+      <BookingListItem {...props} />
+    </BookingActionsStoreProvider>
+  );
+};
+
+export default BookingListItemWithProvider;

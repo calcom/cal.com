@@ -29,6 +29,7 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { useBookingActionsStoreContext } from "./BookingActionsStoreProvider";
 import {
   getCancelEventAction,
   getEditEventActions,
@@ -47,18 +48,39 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const [rejectionReason, setRejectionReason] = useState<string>("");
-  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
-  const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
-  const [meetingSessionDetailsDialogIsOpen, setMeetingSessionDetailsDialogIsOpen] = useState<boolean>(false);
-  const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
-  const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
-  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
-  const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
-  const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
-  const [isOpenReportDialog, setIsOpenReportDialog] = useState(false);
-  const [rerouteDialogIsOpen, setRerouteDialogIsOpen] = useState(false);
+  // Use store for all dialog states
+  const rejectionReason = useBookingActionsStoreContext((state) => state.rejectionReason);
+  const setRejectionReason = useBookingActionsStoreContext((state) => state.setRejectionReason);
+  const rejectionDialogIsOpen = useBookingActionsStoreContext((state) => state.rejectionDialogIsOpen);
+  const setRejectionDialogIsOpen = useBookingActionsStoreContext((state) => state.setRejectionDialogIsOpen);
+  const chargeCardDialogIsOpen = useBookingActionsStoreContext((state) => state.chargeCardDialogIsOpen);
+  const setChargeCardDialogIsOpen = useBookingActionsStoreContext((state) => state.setChargeCardDialogIsOpen);
+  const viewRecordingsDialogIsOpen = useBookingActionsStoreContext(
+    (state) => state.viewRecordingsDialogIsOpen
+  );
+  const setViewRecordingsDialogIsOpen = useBookingActionsStoreContext(
+    (state) => state.setViewRecordingsDialogIsOpen
+  );
+  const meetingSessionDetailsDialogIsOpen = useBookingActionsStoreContext(
+    (state) => state.meetingSessionDetailsDialogIsOpen
+  );
+  const setMeetingSessionDetailsDialogIsOpen = useBookingActionsStoreContext(
+    (state) => state.setMeetingSessionDetailsDialogIsOpen
+  );
+  const isNoShowDialogOpen = useBookingActionsStoreContext((state) => state.isNoShowDialogOpen);
+  const setIsNoShowDialogOpen = useBookingActionsStoreContext((state) => state.setIsNoShowDialogOpen);
+  const isOpenRescheduleDialog = useBookingActionsStoreContext((state) => state.isOpenRescheduleDialog);
+  const setIsOpenRescheduleDialog = useBookingActionsStoreContext((state) => state.setIsOpenRescheduleDialog);
+  const isOpenReassignDialog = useBookingActionsStoreContext((state) => state.isOpenReassignDialog);
+  const setIsOpenReassignDialog = useBookingActionsStoreContext((state) => state.setIsOpenReassignDialog);
+  const isOpenSetLocationDialog = useBookingActionsStoreContext((state) => state.isOpenSetLocationDialog);
+  const setIsOpenLocationDialog = useBookingActionsStoreContext((state) => state.setIsOpenLocationDialog);
+  const isOpenAddGuestsDialog = useBookingActionsStoreContext((state) => state.isOpenAddGuestsDialog);
+  const setIsOpenAddGuestsDialog = useBookingActionsStoreContext((state) => state.setIsOpenAddGuestsDialog);
+  const isOpenReportDialog = useBookingActionsStoreContext((state) => state.isOpenReportDialog);
+  const setIsOpenReportDialog = useBookingActionsStoreContext((state) => state.setIsOpenReportDialog);
+  const rerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.rerouteDialogIsOpen);
+  const setRerouteDialogIsOpen = useBookingActionsStoreContext((state) => state.setRerouteDialogIsOpen);
 
   const cardCharged = booking?.payment[0]?.success;
 
