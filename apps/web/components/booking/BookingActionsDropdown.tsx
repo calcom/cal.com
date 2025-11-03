@@ -29,7 +29,6 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
-import type { BookingItemProps } from "./BookingListItem";
 import {
   getCancelEventAction,
   getEditEventActions,
@@ -38,6 +37,7 @@ import {
   shouldShowEditActions,
   type BookingActionContext,
 } from "./bookingActions";
+import type { BookingItemProps } from "./types";
 
 interface BookingActionsDropdownProps {
   booking: BookingItemProps;
