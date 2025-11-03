@@ -20,7 +20,8 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
 }
 
 function getTypes(configFor: ConfigFor) {
-  const multiSelectOperators = BasicConfig.types.multiselect.widgets.multiselect.operators || [];
+  const baseMultiSelectOperators = BasicConfig.types.multiselect.widgets.multiselect.operators || [];
+  const multiSelectOperators = [...baseMultiSelectOperators];
 
   if (configFor === ConfigFor.Attributes) {
     // Attributes don't need reporting at the moment. So, we can support multiselect_some_in and multiselect_not_some_in operators for attributes.
@@ -48,7 +49,7 @@ function getTypes(configFor: ConfigFor) {
         ...BasicConfig.types.multiselect.widgets,
         multiselect: {
           ...BasicConfig.types.multiselect.widgets.multiselect,
-          operators: [...multiSelectOperators],
+          operators: multiSelectOperators,
         },
       },
     },
