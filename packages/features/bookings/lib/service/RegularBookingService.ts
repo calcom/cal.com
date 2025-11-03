@@ -560,7 +560,16 @@ async function handler(
     });
   }
 
-  if (eventType.requiresBookerEmailVerification) {
+  // Check if email verification is required
+  // Skip verification for reschedules if the email matches the original booking
+  const shouldSkipEmailVerification = await shouldSkipEmailVerificationForReschedule({
+    eventType,
+    rescheduleUid: reqBody.rescheduleUid,
+    bookerEmail,
+    prisma: deps.prismaClient,
+  });
+
+  if (eventType.requiresBookerEmailVerification && !shouldSkipEmailVerification) {
     const verificationCode = reqBody.verificationCode;
     if (!verificationCode) {
       throw new HttpError({
@@ -2598,6 +2607,61 @@ async function handler(
     seatReferenceUid: evt.attendeeSeatId,
     videoCallUrl: metadata?.videoCallUrl,
   };
+}
+
+/**
+ * Checks if email verification should be skipped for a reschedule request
+ * @param params - Parameters including eventType, rescheduleUid, bookerEmail, and prisma client
+ * @returns true if verification should be skipped, false otherwise
+ */
+async function shouldSkipEmailVerificationForReschedule(params: {
+  eventType: { requiresBookerEmailVerification?: boolean };
+  rescheduleUid?: string;
+  bookerEmail: string;
+  prisma: PrismaClient;
+}): Promise<boolean> {
+  const { eventType, rescheduleUid, bookerEmail, prisma } = params;
+
+  // If event type doesn't require verification or it's not a reschedule, don't skip
+  if (!eventType.requiresBookerEmailVerification || !rescheduleUid) {
+    return false;
+  }
+
+  try {
+    // Find the original booking
+    const originalBooking = await prisma.booking.findFirst({
+      where: {
+        uid: rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+        },
+      },
+      include: {
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!originalBooking) {
+      // If we can't find the original booking, require verification for safety
+      return false;
+    }
+
+    // Check if the current booker's email matches any attendee from the original booking
+    const isOriginalAttendee = originalBooking.attendees.some(
+      (attendee) => attendee.email.toLowerCase() === bookerEmail.toLowerCase()
+    );
+
+    // Skip verification only if the email matches an original attendee
+    return isOriginalAttendee;
+  } catch (error) {
+    // In case of any error, require verification for safety
+    logger.error("Error checking original booking for email verification", error);
+    return false;
+  }
 }
 
 /**
