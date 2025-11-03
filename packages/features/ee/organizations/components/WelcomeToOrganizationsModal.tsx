@@ -149,7 +149,7 @@ export function WelcomeToOrganizationsModal() {
           </div>
         </div>
 
-        <div className="bg-muted border-subtle -mx-6 mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
+        <div className="bg-muted border-subtle mt-6 flex items-center justify-between rounded-b-2xl border-t px-8 py-6">
           <Button
             color="minimal"
             href="https://cal.com/docs/organizations"
