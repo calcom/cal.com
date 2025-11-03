@@ -23,6 +23,7 @@ import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import { OAuth2UniversalSchema } from "../../_utils/oauth/universalSchema";
 import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
+import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 
 type DelegatedTo = NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]>;
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarAuth"] });
@@ -124,20 +125,41 @@ export class CalendarAuth {
     } catch (error) {
       log.error("DelegatedTo: Error authorizing using JWT auth", JSON.stringify(error));
 
+      let delegationError: CalendarAppDelegationCredentialError;
+
       if ((error as any).response?.data?.error === "unauthorized_client") {
-        throw new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
+        delegationError = new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
           "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
         );
-      }
-
-      if ((error as any).response?.data?.error === "invalid_grant") {
-        throw new CalendarAppDelegationCredentialInvalidGrantError(
+      } else if ((error as any).response?.data?.error === "invalid_grant") {
+        delegationError = new CalendarAppDelegationCredentialInvalidGrantError(
           `User ${emailToImpersonate} might not exist in Google Workspace`
         );
+      } else {
+        // Catch all error
+        delegationError = new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
       }
 
-      // Catch all error
-      throw new CalendarAppDelegationCredentialError("Error authorizing delegation credential");
+      if (user && user.email) {
+        triggerDelegationCredentialErrorWebhook({
+          error: delegationError,
+          credential: {
+            id: this.credential.id,
+            type: this.credential.type,
+            appId: this.credential.appId,
+          },
+          user: {
+            id: this.credential.userId ?? 0,
+            email: user.email,
+            name: null,
+          },
+          orgId: this.credential.teamId,
+        }).catch((webhookError) => {
+          log.error("Failed to trigger delegation credential error webhook", webhookError);
+        });
+      }
+
+      throw delegationError;
     }
   };
 
