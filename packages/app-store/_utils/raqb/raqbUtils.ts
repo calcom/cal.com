@@ -1,4 +1,4 @@
-import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "@react-awesome-query-builder/core";
+import type { JsonGroup, JsonItem, JsonRule, JsonTree, JsonCaseGroup } from "@react-awesome-query-builder/core";
 import type { Config } from "@react-awesome-query-builder/core";
 import { Utils as QbUtils } from "@react-awesome-query-builder/core";
 
@@ -13,6 +13,14 @@ import type {
   Attribute,
 } from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
+
+/**
+ * Normalized JsonTree type where children1 is a Record instead of an array.
+ * This is used for storage/schema compatibility.
+ */
+export type NormalizedJsonTree = Omit<JsonTree, "children1"> & {
+  children1?: Record<string, JsonItem | JsonCaseGroup>;
+};
 
 function ensureArray(value: string | string[]) {
   return typeof value === "string" ? [value] : value;
@@ -75,33 +83,51 @@ export function buildEmptyQueryValue() {
  * Normalizes RAQB v6 JsonTree format to match the expected schema format.
  * Converts children1 from array to record (keyed by rule IDs) and cleans up optional fields.
  */
-export function normalizeRaqbJsonTree(tree: JsonTree | null | undefined): JsonTree | null {
+export function normalizeRaqbJsonTree(tree: JsonTree | null | undefined): NormalizedJsonTree | null {
   if (!tree) {
     return null;
   }
 
-  const normalized: JsonTree = {
-    ...tree,
-  };
+  const { children1, ...rest } = tree;
+  const normalized: NormalizedJsonTree = { ...rest };
 
-  if (tree.children1) {
-    if (Array.isArray(tree.children1)) {
-      const children1Record: Record<string, JsonItem> = {};
-      tree.children1.forEach((child: JsonItem) => {
+  if (children1) {
+    const isJsonItemArray = (arr: unknown): arr is JsonItem[] =>
+      Array.isArray(arr) && arr.every((c) => c && typeof c === "object" && "type" in c);
+    const isJsonCaseGroupArray = (arr: unknown): arr is JsonCaseGroup[] =>
+      Array.isArray(arr) && arr.every((c) => c && typeof c === "object" && "case" in c);
+
+    if (isJsonItemArray(children1)) {
+      const children1Record: Record<string, JsonItem | JsonCaseGroup> = {};
+      children1.forEach((child) => {
         if (child.id) {
-          children1Record[child.id] = child.type === "group" 
-            ? (normalizeRaqbJsonTree(child as JsonTree) as JsonItem) 
+          const normalizedChild = child.type === "group" 
+            ? normalizeRaqbJsonTree(child as JsonTree) 
             : child;
+          if (normalizedChild) {
+            children1Record[child.id] = normalizedChild as JsonItem;
+          }
+        }
+      });
+      normalized.children1 = children1Record;
+    } else if (isJsonCaseGroupArray(children1)) {
+      const children1Record: Record<string, JsonItem | JsonCaseGroup> = {};
+      children1.forEach((child) => {
+        if (child.id) {
+          children1Record[child.id] = child;
         }
       });
       normalized.children1 = children1Record;
     } else {
-      const normalizedChildren: Record<string, JsonItem> = {};
-      Object.entries(tree.children1).forEach(([key, child]) => {
-        if (child.type === "group") {
-          normalizedChildren[key] = normalizeRaqbJsonTree(child as JsonTree) as JsonItem;
-        } else {
-          normalizedChildren[key] = child;
+      const normalizedChildren: Record<string, JsonItem | JsonCaseGroup> = {};
+      Object.entries(children1).forEach(([key, child]) => {
+        if (child && typeof child === "object" && "type" in child) {
+          const normalizedChild = child.type === "group"
+            ? normalizeRaqbJsonTree(child as JsonTree)
+            : child;
+          if (normalizedChild) {
+            normalizedChildren[key] = normalizedChild as JsonItem | JsonCaseGroup;
+          }
         }
       });
       normalized.children1 = normalizedChildren;

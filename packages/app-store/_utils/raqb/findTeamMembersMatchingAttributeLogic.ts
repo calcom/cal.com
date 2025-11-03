@@ -83,8 +83,9 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
     }
     const valueError = rule.properties.valueError;
     if (valueError) {
-      // Sometimes there are null values in it.
-      errors.push(valueError.filter(Boolean));
+      // Sometimes there are null values in it. Filter them out with a type predicate.
+      const filtered = valueError.filter((e): e is string => typeof e === "string" && e.length > 0);
+      errors.push(filtered);
     }
   });
   return errors;
@@ -182,16 +183,23 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
   const { concurrency, enablePerf, enableTroubleshooter } = options;
   
   const earlyWarnings: string[] = [];
-  if (_attributesQueryValue && raqbQueryValueUtils.isQueryValueARuleGroup(_attributesQueryValue) && _attributesQueryValue.children1) {
+  if (_attributesQueryValue && _attributesQueryValue.type === "group" && _attributesQueryValue.children1) {
     const attributesQueryBuilderConfig = getAttributesQueryBuilderConfigHavingListofLabels({
       dynamicFieldValueOperands,
       attributes: attributesOfTheOrg,
     });
     
-    Object.values(_attributesQueryValue.children1).forEach((rule) => {
+    const children = Array.isArray(_attributesQueryValue.children1) 
+      ? _attributesQueryValue.children1 
+      : Object.values(_attributesQueryValue.children1);
+    
+    children.forEach((rule) => {
       if (rule.type !== "rule") return;
       
-      const { field, operator, value, valueSrc } = rule.properties;
+      const properties = rule.properties;
+      if (!properties) return;
+      
+      const { field, operator, value, valueSrc } = properties;
       if (!field || !operator || !value) return;
       
       const fieldConfig = attributesQueryBuilderConfig.fields[field];
@@ -210,9 +218,10 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
       const valueSrcArray = valueSrc || [];
       
       let foundInvalidValue = false;
-      for (const [index, val] of valuesToCheck.entries()) {
+      for (let index = 0; index < valuesToCheck.length; index++) {
         if (foundInvalidValue) break;
         
+        const val = valuesToCheck[index];
         const src = valueSrcArray[index] || (Array.isArray(valueSrc) && valueSrc.length === 1 ? valueSrc[0] : "value");
         if (src !== "value" || typeof val !== "string") continue;
         
