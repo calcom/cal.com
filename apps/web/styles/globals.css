@@ -1,4 +1,6 @@
 /* @import rules must precede all rules aside from @charset and @layer statements. */
+@import "@react-awesome-query-builder/ui/css/styles.css";
+@import "@react-awesome-query-builder/ui/css/compact_styles.css";
 @import "./raqb.css";
 
 @tailwind base;
