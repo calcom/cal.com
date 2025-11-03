@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 
@@ -56,7 +57,7 @@ export const UsernameAvailabilityField = ({
       : { username: currentUsernameState || "", setQuery: setCurrentUsernameState };
   const formMethods = useForm({
     defaultValues: {
-      username: currentUsername,
+      username: slugify(currentUsername || user.username || ""),
     },
   });
 
@@ -78,7 +79,11 @@ export const UsernameAvailabilityField = ({
           setCurrentUsername={setCurrentUsername}
           inputUsernameValue={value}
           usernameRef={ref}
-          setInputUsernameValue={onChange}
+          setInputUsernameValue={(val) => {
+            const displayValue = slugify(val, true);
+            formMethods.setValue("username", displayValue);
+            onChange?.(displayValue);
+          }}
           onSuccessMutation={onSuccessMutation}
           onErrorMutation={onErrorMutation}
           disabled={!!user.organization?.id}
