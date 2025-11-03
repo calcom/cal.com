@@ -40,4 +40,5 @@ export const organizationScenarios = {
   },
 };
 
+export { mockedSingleton as organizationRepositoryMock };
 export default { organizationRepository: mockedSingleton };

@@ -6,7 +6,7 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
+import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -184,7 +184,7 @@ describe("getAllDelegationCredentialsForUserIncludeServiceAccountKey", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(organizationRepository.findByMemberEmail).mockResolvedValue(mockOrganization);
+    organizationRepositoryMock.findByMemberEmail.mockResolvedValue(mockOrganization);
   });
 
   it("should return empty array when no DelegationCredential found", async () => {
