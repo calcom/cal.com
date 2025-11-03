@@ -105,6 +105,17 @@ function getJsonLogic({
     ),
     config: attributesQueryBuilderConfig as unknown as Config,
   };
+  
+  const plainTree = QbUtils.getTree(state.tree);
+  const treeOperators = Object.values((plainTree as any).children1 || {})
+    .map((r: any) => r?.properties?.operator)
+    .filter(Boolean);
+  const configOperators = Object.keys(state.config.operators || {});
+  
+  console.log('[DEBUG] Tree operators:', treeOperators);
+  console.log('[DEBUG] Config has operators:', configOperators.filter(k => k.includes('select') || k.includes('multiselect')));
+  console.log('[DEBUG] Operators present in config:', treeOperators.map(op => `${op}: ${!!state.config.operators?.[op]}`));
+  
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
   // Considering errors as warnings as we want to continue with the flow without throwing actual errors
