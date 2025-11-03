@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -35,6 +35,7 @@ type ReassignDialog = {
   teamId: number;
   bookingId: number;
   bookingFromRoutingForm: boolean;
+  isManagedEvent: boolean;
 };
 
 type FormValues = {
@@ -66,6 +67,7 @@ export const ReassignDialog = ({
   teamId,
   bookingId,
   bookingFromRoutingForm,
+  isManagedEvent,
 }: ReassignDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -75,9 +77,8 @@ export const ReassignDialog = ({
   });
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
-  const [isManagedEvent, setIsManagedEvent] = useState<boolean | null>(null);
 
-  // Try managed event query first
+  // Query for managed event users
   const managedEventQuery = trpc.viewer.teams.getManagedEventUsersToReassign.useInfiniteQuery(
     {
       bookingId,
@@ -85,13 +86,12 @@ export const ReassignDialog = ({
       searchTerm: debouncedSearch,
     },
     {
-      enabled: isManagedEvent !== false,
+      enabled: isManagedEvent,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      retry: false,
     }
   );
 
-  // Fallback to round robin query
+  // Query for round robin hosts
   const roundRobinQuery = trpc.viewer.teams.getRoundRobinHostsToReassign.useInfiniteQuery(
     {
       bookingId,
@@ -100,24 +100,14 @@ export const ReassignDialog = ({
       searchTerm: debouncedSearch,
     },
     {
-      enabled: isManagedEvent === false,
+      enabled: !isManagedEvent,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
 
-  // Detect which query succeeded
-  useEffect(() => {
-    if (isManagedEvent === null) {
-      if (managedEventQuery.data) {
-        setIsManagedEvent(true);
-      } else if (managedEventQuery.isError || managedEventQuery.error) {
-        setIsManagedEvent(false);
-      }
-    }
-  }, [managedEventQuery.data, managedEventQuery.error, managedEventQuery.isError, isManagedEvent]);
-
-  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } =
-    isManagedEvent === false ? roundRobinQuery : managedEventQuery;
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = isManagedEvent
+    ? managedEventQuery
+    : roundRobinQuery;
 
   const allRows = useMemo(() => {
     return data?.pages.flatMap((page) => page.items) ?? [];
@@ -243,20 +233,8 @@ export const ReassignDialog = ({
           setIsOpenDialog(open);
         }}>
         <DialogContent
-          title={
-            isManagedEvent === null
-              ? t("loading")
-              : isManagedEvent
-                ? t("reassign_managed_event_user")
-                : t("reassign_round_robin_host")
-          }
-          description={
-            isManagedEvent === null
-              ? ""
-              : isManagedEvent
-                ? t("reassign_to_another_user")
-                : t("reassign_to_another_rr_host")
-          }
+          title={isManagedEvent ? t("reassign_managed_event_user") : t("reassign_round_robin_host")}
+          description={isManagedEvent ? t("reassign_to_another_user") : t("reassign_to_another_rr_host")}
           enableOverflow>
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
@@ -271,41 +249,26 @@ export const ReassignDialog = ({
                   value={ReassignType.AUTO}
                   className="w-full text-sm"
                   classNames={{ container: "w-full" }}
-                  disabled={bookingFromRoutingForm || isManagedEvent === null}>
+                  disabled={bookingFromRoutingForm}
+                  data-testid="reassign-option-auto">
                   <strong className="mb-1 block">
-                    {isManagedEvent === null
-                      ? t("loading")
-                      : isManagedEvent
-                        ? t("auto_reassign")
-                        : t("round_robin")}
+                    {isManagedEvent ? t("auto_reassign") : t("round_robin")}
                   </strong>
-                  <p>
-                    {isManagedEvent === null
-                      ? ""
-                      : isManagedEvent
-                        ? t("auto_reassign_description")
-                        : t("round_robin_reassign_description")}
-                  </p>
+                  <p>{isManagedEvent ? t("auto_reassign_description") : t("round_robin_reassign_description")}</p>
                 </RadioArea.Item>
               ) : null}
               <RadioArea.Item
                 value={ReassignType.TEAM_MEMBER}
                 className="text-sm"
                 classNames={{ container: "w-full" }}
-                disabled={isManagedEvent === null}>
+                data-testid="reassign-option-specific">
                 <strong className="mb-1 block">
-                  {isManagedEvent === null
-                    ? t("loading")
-                    : isManagedEvent
-                      ? t("specific_team_member")
-                      : t("team_member_round_robin_reassign")}
+                  {isManagedEvent ? t("specific_team_member") : t("team_member_round_robin_reassign")}
                 </strong>
                 <p>
-                  {isManagedEvent === null
-                    ? ""
-                    : isManagedEvent
-                      ? t("specific_team_member_description")
-                      : t("team_member_round_robin_reassign_description")}
+                  {isManagedEvent
+                    ? t("specific_team_member_description")
+                    : t("team_member_round_robin_reassign_description")}
                 </p>
               </RadioArea.Item>
             </RadioArea.Group>
@@ -318,9 +281,22 @@ export const ReassignDialog = ({
                     type="text"
                     placeholder={t("search")}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    data-testid="reassign-user-search"
                   />
                   <div className="scroll-bar mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
-                    {teamMemberOptions.map((member) => (
+                    {isFetching && teamMemberOptions.length === 0 ? (
+                      <div className="flex h-full items-center justify-center">
+                        <div className="flex flex-col items-center gap-2">
+                          <Icon name="loader" className="text-subtle h-5 w-5 animate-spin" />
+                          <p className="text-subtle text-sm">{t("loading")}</p>
+                        </div>
+                      </div>
+                    ) : teamMemberOptions.length === 0 ? (
+                      <div className="flex h-full items-center justify-center">
+                        <p className="text-subtle text-sm">{t("no_available_users_found_input")}</p>
+                      </div>
+                    ) : (
+                      teamMemberOptions.map((member) => (
                       <label
                         key={member.value}
                         tabIndex={watchedTeamMemberId === member.value ? -1 : 0}
@@ -333,7 +309,7 @@ export const ReassignDialog = ({
                           }
                         }}
                         className={classNames(
-                          "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring focus:ring-2",
+                          "hover:bg-subtle focus:bg-subtle focus:ring-emphasis cursor-pointer items-center justify-between gap-0.5 rounded-sm py-2 outline-none focus:ring-2",
                           watchedTeamMemberId === member.value && "bg-subtle"
                         )}>
                         <div className="flex flex-1 items-center space-x-3">
@@ -357,16 +333,19 @@ export const ReassignDialog = ({
                           )}
                         </div>
                       </label>
-                    ))}
-                    <div className="text-default text-center" ref={observerRef}>
-                      <Button
-                        color="minimal"
-                        loading={isFetchingNextPage}
-                        disabled={!hasNextPage}
-                        onClick={() => fetchNextPage()}>
-                        {hasNextPage ? t("load_more_results") : t("no_more_results")}
-                      </Button>
-                    </div>
+                      ))
+                    )}
+                    {teamMemberOptions.length > 0 && (
+                      <div className="text-default text-center" ref={observerRef}>
+                        <Button
+                          color="minimal"
+                          loading={isFetchingNextPage}
+                          disabled={!hasNextPage}
+                          onClick={() => fetchNextPage()}>
+                          {hasNextPage ? t("load_more_results") : t("no_more_results")}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
