@@ -93,6 +93,9 @@ describe("Organizations / Teams / Event Types / Private Links Endpoints", () => 
       team: { connect: { id: team.id } },
     });
 
+    expect(org.slug).toBeTruthy();
+    expect(eventType.slug).toBeTruthy();
+
     await app.init();
   });
 
@@ -200,6 +203,8 @@ describe("Organizations / Teams / Event Types / Private Links Endpoints", () => 
     } catch {
       /* empty */
     }
-    await app.close();
+    if (app) {
+      await app.close();
+    }
   });
 });
