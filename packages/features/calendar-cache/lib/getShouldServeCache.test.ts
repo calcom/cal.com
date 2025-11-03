@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 
 import { CacheService } from "./getShouldServeCache";
+import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
 
 describe("CacheService.getShouldServeCache", () => {
   const mockFeaturesRepository: IFeaturesRepository = {
@@ -57,7 +58,7 @@ describe("CacheService.getShouldServeCache", () => {
       const result = await cacheService.getShouldServeCache(undefined, 123);
 
       expect(result).toBe(true);
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(123, "calendar-cache-serve");
+      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(123, CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE);
     });
 
     it("should check feature repository when teamId is provided and return false if feature is disabled", async () => {
@@ -66,7 +67,7 @@ describe("CacheService.getShouldServeCache", () => {
       const result = await cacheService.getShouldServeCache(undefined, 456);
 
       expect(result).toBe(false);
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(456, "calendar-cache-serve");
+      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(456, CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE);
     });
   });
 
@@ -86,7 +87,7 @@ describe("CacheService.getShouldServeCache", () => {
       const result = await cacheService.getShouldServeCache(undefined, 999);
 
       expect(result).toBe(true);
-      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(999, "calendar-cache-serve");
+      expect(mockFeaturesRepository.checkIfTeamHasFeature).toHaveBeenCalledWith(999, CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE);
     });
   });
 });
