@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -10,8 +10,8 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
 
-import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
+import { useOutOfOfficeModalStore } from "./store";
 
 const CreateNewOutOfOfficeEntry = ({
   size,
@@ -28,37 +28,27 @@ const CreateNewOutOfOfficeEntry = ({
 
   const params = useCompatSearchParams();
   const openModalOnStart = !!params?.get("om");
+  const { openForCreate } = useOutOfOfficeModalStore();
+  
   useEffect(() => {
     if (openModalOnStart) {
-      setOpenModal(true);
+      openForCreate();
     }
-  }, [openModalOnStart]);
+  }, [openModalOnStart, openForCreate]);
 
-  const [openModal, setOpenModal] = useState(false);
   const selectedTab = params?.get("type") ?? OutOfOfficeTab.MINE;
 
   return (
-    <>
-      <Button
-        color="primary"
-        size={size ?? "base"}
-        className="flex items-center justify-between px-4"
-        StartIcon="plus"
-        onClick={() => setOpenModal(true)}
-        data-testid={rest["data-testid"]}
-        disabled={selectedTab === OutOfOfficeTab.TEAM && !hasTeamOOOAdminAccess}>
-        {t("add")}
-      </Button>
-      {openModal && (
-        <CreateOrEditOutOfOfficeEntryModal
-          openModal={openModal}
-          closeModal={() => {
-            setOpenModal(false);
-          }}
-          currentlyEditingOutOfOfficeEntry={null}
-        />
-      )}
-    </>
+    <Button
+      color="primary"
+      size={size ?? "base"}
+      className="flex items-center justify-between px-4"
+      StartIcon="plus"
+      onClick={openForCreate}
+      data-testid={rest["data-testid"]}
+      disabled={selectedTab === OutOfOfficeTab.TEAM && !hasTeamOOOAdminAccess}>
+      {t("add")}
+    </Button>
   );
 };
 

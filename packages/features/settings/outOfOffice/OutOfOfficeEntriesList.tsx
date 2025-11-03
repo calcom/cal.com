@@ -41,6 +41,7 @@ import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
+import { useOutOfOfficeModalStore } from "./store";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -90,12 +91,9 @@ function OutOfOfficeEntriesListContent() {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [deletedEntry, setDeletedEntry] = useState(0);
-  const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
-    useState<BookingRedirectForm | null>(null);
-  const [openModal, setOpenModal] = useState(false);
+  const { isOpen, currentEntry, openForEdit, close } = useOutOfOfficeModalStore();
   const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
-    setCurrentlyEditingOutOfOfficeEntry(entry);
-    setOpenModal(true);
+    openForEdit(entry);
   };
 
   const { searchTerm } = useDataTable();
@@ -125,9 +123,8 @@ function OutOfOfficeEntriesListContent() {
 
   const totalRowCount = data?.pages?.[0]?.meta?.totalRowCount ?? 0;
   const flatData = useMemo(
-    () =>
-      isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
-    [data, selectedTab, isPending, isFetching, searchTerm]
+    () => (isPending ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? []),
+    [data, selectedTab, isPending, searchTerm]
   ) as OutOfOfficeEntry[];
 
   const memoColumns = useMemo(() => {
@@ -156,7 +153,7 @@ function OutOfOfficeEntriesListContent() {
               header: `Member`,
               size: 300,
               cell: ({ row }) => {
-                if (!row.original || !row.original.user || isPending || isFetching) {
+                if (!row.original || !row.original.user || isPending) {
                   return <SkeletonText className="h-8 w-full" />;
                 }
                 const { avatarUrl, username, email, name } = row.original.user;
@@ -201,7 +198,7 @@ function OutOfOfficeEntriesListContent() {
           const item = row.original;
           return (
             <>
-              {row.original && !isPending && !isFetching ? (
+              {row.original && !isPending ? (
                 <div
                   className="flex flex-row justify-between p-2"
                   data-testid={`table-redirect-${item.toUser?.username || "n-a"}`}>
@@ -253,7 +250,7 @@ function OutOfOfficeEntriesListContent() {
           const item = row.original;
           return (
             <>
-              {row.original && !isPending && !isFetching ? (
+              {row.original && !isPending ? (
                 <div className="flex flex-row items-center justify-end gap-x-2" data-testid="ooo-actions">
                   <Tooltip content={t("edit")}>
                     <Button
@@ -290,7 +287,7 @@ function OutOfOfficeEntriesListContent() {
                         };
                         editOutOfOfficeEntry(outOfOfficeEntryData);
                       }}
-                      disabled={isPending || isFetching || !item.canEditAndDelete}
+                      disabled={isPending || !item.canEditAndDelete}
                     />
                   </Tooltip>
                   <Tooltip content={t("delete")}>
@@ -300,10 +297,7 @@ function OutOfOfficeEntriesListContent() {
                       color="destructive"
                       variant="icon"
                       disabled={
-                        deleteOutOfOfficeEntryMutation.isPending ||
-                        isPending ||
-                        isFetching ||
-                        !item.canEditAndDelete
+                        deleteOutOfOfficeEntryMutation.isPending || isPending || !item.canEditAndDelete
                       }
                       StartIcon="trash-2"
                       data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
@@ -324,7 +318,7 @@ function OutOfOfficeEntriesListContent() {
         },
       }),
     ];
-  }, [selectedTab, isPending, isFetching]);
+  }, [selectedTab, isPending, t, totalRowCount, editOutOfOfficeEntry, deleteOutOfOfficeEntryMutation.isPending]);
 
   const table = useReactTable({
     data: flatData,
@@ -410,14 +404,11 @@ function OutOfOfficeEntriesListContent() {
           />
         }
       />
-      {openModal && (
+      {isOpen && (
         <CreateOrEditOutOfOfficeEntryModal
-          openModal={openModal}
-          closeModal={() => {
-            setOpenModal(false);
-            setCurrentlyEditingOutOfOfficeEntry(null);
-          }}
-          currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
+          openModal={isOpen}
+          closeModal={close}
+          currentlyEditingOutOfOfficeEntry={currentEntry}
         />
       )}
     </>
