@@ -7,6 +7,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
+import { stripMarkdown } from "./stripMarkdown";
 
 const translator = short();
 
@@ -68,7 +69,8 @@ export const getAdditionalNotes = (calEvent: Pick<CalendarEvent, "additionalNote
   if (!calEvent.additionalNotes) {
     return "";
   }
-  return `${t("additional_notes")}:\n${calEvent.additionalNotes}`;
+  const plainText = stripMarkdown(calEvent.additionalNotes);
+  return `${t("additional_notes")}:\n${plainText}`;
 };
 
 export const getUserFieldsResponses = (
@@ -116,7 +118,7 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
   if (!calEvent.description) {
     return "";
   }
-  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
+  const plainText = stripMarkdown(calEvent.description);
   return `${t("description")}\n${plainText}`;
 };
 
