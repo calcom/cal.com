@@ -2,7 +2,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 
 import { DelegationCredentialRepository } from "./DelegationCredentialRepository";
@@ -17,7 +17,7 @@ vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository",
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const actual = await importOriginal<any>();
+  const actual = await importOriginal<typeof import("@calcom/lib/crypto")>();
   return {
     ...actual,
     symmetricEncrypt: vi.fn((serviceAccountKey) => {
@@ -92,8 +92,8 @@ const createTestDelegationCredential = async (overrides = {}) => {
   });
 };
 
-const setupOrganizationMock = (returnValue: any) => {
-  vi.mocked(OrganizationRepository.findByMemberEmail).mockResolvedValue(returnValue);
+const setupOrganizationMock = (returnValue: Awaited<ReturnType<typeof organizationRepository.findByMemberEmail>>) => {
+  vi.mocked(organizationRepository.findByMemberEmail).mockResolvedValue(returnValue);
 };
 
 describe("DelegationCredentialRepository", () => {

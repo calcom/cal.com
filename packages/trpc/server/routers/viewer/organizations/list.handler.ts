@@ -1,4 +1,4 @@
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -18,7 +18,7 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "You do not belong to an organization" });
   }
 
-  const currentOrg = await OrganizationRepository.findCurrentOrg({
+  const currentOrg = await organizationRepository.findCurrentOrg({
     userId: ctx.user.id,
     orgId: organizationId,
   });

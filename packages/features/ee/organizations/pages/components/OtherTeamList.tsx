@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { trackFormbricksAction } from "@calcom/features/formbricks/formbricks-client";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
@@ -10,7 +10,7 @@ import { showToast } from "@calcom/ui/components/toast";
 import OtherTeamListItem from "./OtherTeamListItem";
 
 interface Props {
-  teams: Awaited<ReturnType<typeof OrganizationRepository.findTeamsInOrgIamNotPartOf>>;
+  teams: Awaited<ReturnType<typeof organizationRepository.findTeamsInOrgIamNotPartOf>>;
   pending?: boolean;
 }
 

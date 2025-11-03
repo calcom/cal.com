@@ -1,13 +1,13 @@
 "use client";
 
-import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 
 import OtherTeamList from "./OtherTeamList";
 
 type OtherTeamsListingProps = {
-  teams: Awaited<ReturnType<typeof OrganizationRepository.findTeamsInOrgIamNotPartOf>>;
+  teams: Awaited<ReturnType<typeof organizationRepository.findTeamsInOrgIamNotPartOf>>;
 };
 export function OtherTeamsListing({ teams }: OtherTeamsListingProps) {
   const { t } = useLocale();

@@ -10,7 +10,7 @@ import { moveUserToMatchingOrg } from "./verify-email";
 
 // TODO: This test passes but coverage is very low.
 vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler");
-vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository");
+vi.mock("@calcom/features/ee/organizations/repositories");
 vi.mock("@calcom/prisma", () => {
   return {
     prisma: vi.fn(),
@@ -37,7 +37,7 @@ describe("moveUserToMatchingOrg", () => {
   });
 
   it("should not proceed if no matching organization is found", async () => {
-    organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeNoMatch();
+    organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeNoMatch();
 
     await moveUserToMatchingOrg({ email });
 
@@ -64,7 +64,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );
@@ -85,7 +85,7 @@ describe("moveUserToMatchingOrg", () => {
         requestedSlug: "requested-test-org",
       };
 
-      organizationScenarios.OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
         org,
         { email }
       );
