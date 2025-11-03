@@ -16,14 +16,11 @@ export { ConfigFor } from "./types";
 
 const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>, componentName?: string) {
   if (!props) {
-    console.log(`[renderComponent] ${componentName || 'Unknown'}: props is undefined`);
     return <div />;
   }
   if (!Component) {
-    console.error(`[renderComponent] ${componentName || 'Unknown'}: Component is undefined!`, { props });
     return <div />;
   }
-  console.log(`[renderComponent] ${componentName || 'Unknown'}: rendering with props`, typeof Component);
   return <Component {...props} />;
 };
 
@@ -41,9 +38,6 @@ const {
   Icon,
 } = widgetsComponents;
 
-if (!Conjs || !Button || !ButtonGroup || !Provider || !Icon) {
-  console.error("Missing components:", { Conjs, Button, ButtonGroup, Provider, Icon });
-}
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
 const TextAreaFactory = (props: WidgetProps | undefined) => renderComponent(props, TextAreaWidget);
