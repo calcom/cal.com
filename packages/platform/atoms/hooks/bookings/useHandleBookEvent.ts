@@ -8,7 +8,6 @@ import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { ApiErrorResponse } from "@calcom/platform-types";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -65,6 +64,7 @@ export const useHandleBookEvent = ({
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
+  const reservedSlotUid = useBookerStoreContext((state) => state.reservedSlotUid);
   const handleError = (err: unknown) => {
     const errorMessage = err instanceof Error ? t(err.message) : t("can_you_try_again");
     showToast(errorMessage, "error");
