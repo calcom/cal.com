@@ -14,10 +14,16 @@ import type { ConfigFor } from "./types";
 
 export { ConfigFor } from "./types";
 
-const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>) {
+const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>, componentName?: string) {
   if (!props) {
+    console.log(`[renderComponent] ${componentName || 'Unknown'}: props is undefined`);
     return <div />;
   }
+  if (!Component) {
+    console.error(`[renderComponent] ${componentName || 'Unknown'}: Component is undefined!`, { props });
+    return <div />;
+  }
+  console.log(`[renderComponent] ${componentName || 'Unknown'}: rendering with props`, typeof Component);
   return <Component {...props} />;
 };
 
@@ -121,13 +127,13 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
 
 // These are components and components reference when changed causes remounting of components. So, ensure that renderField and others are defined only once
 const sharedSettingsProps: Partial<Settings> = {
-  renderField: (props) => renderComponent(props, FieldSelect),
-  renderOperator: (props) => renderComponent(props, FieldSelect),
-  renderFunc: (props) => renderComponent(props, FieldSelect),
-  renderConjs: (props) => renderComponent(props, Conjs),
-  renderButton: (props) => renderComponent(props, Button),
-  renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
-  renderProvider: (props) => renderComponent(props, Provider),
+  renderField: (props) => renderComponent(props, FieldSelect, 'FieldSelect'),
+  renderOperator: (props) => renderComponent(props, FieldSelect, 'FieldSelect(operator)'),
+  renderFunc: (props) => renderComponent(props, FieldSelect, 'FieldSelect(func)'),
+  renderConjs: (props) => renderComponent(props, Conjs, 'Conjs'),
+  renderButton: (props) => renderComponent(props, Button, 'Button'),
+  renderButtonGroup: (props) => renderComponent(props, ButtonGroup, 'ButtonGroup'),
+  renderProvider: (props) => renderComponent(props, Provider, 'Provider'),
 };
 
 function withRenderFnsSettings(settings: Settings) {
