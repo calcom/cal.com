@@ -78,6 +78,17 @@ export function BookingDetailsSheet({
 
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
   const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
+  // Get conference link info for Join button
+  const locationVideoCallUrl = bookingMetadata?.videoCallUrl;
+  const locationToDisplay = booking.location
+    ? getSuccessPageLocationMessage(
+        locationVideoCallUrl ? locationVideoCallUrl : booking.location,
+        t,
+        booking.status
+      )
+    : null;
+  const provider = guessEventLocationType(booking.location);
+  const isLocationURL = typeof locationToDisplay === "string" && locationToDisplay.startsWith("http");
 
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
@@ -158,19 +169,50 @@ export function BookingDetailsSheet({
 
             <CustomQuestionsSection
               customResponses={customResponses}
-              bookingFields={booking.eventType?.bookingFields}
+              bookingFields={
+                booking.eventType?.bookingFields as
+                  | { name: string; label?: string; defaultLabel?: string }[]
+                  | undefined
+              }
             />
 
             <DescriptionSection booking={booking} />
           </div>
         </SheetBody>
 
-        <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-mb-6">
-          <div className="flex flex-col-reverse gap-2 px-4 pb-4 pt-4 sm:flex-row sm:justify-end sm:px-6 sm:pb-6">
+        <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
+          <div className="flex w-full flex-row items-center justify-end gap-2 px-4 pb-4 pt-4">
+            {isLocationURL && locationToDisplay && (
+              <>
+                <Button
+                  color="secondary"
+                  size="sm"
+                  href={locationToDisplay}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2">
+                  {provider?.iconUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={provider.iconUrl}
+                      className="h-4 w-4 flex-shrink-0 rounded-sm"
+                      alt={`${provider.label} logo`}
+                    />
+                  )}
+                  {provider?.label
+                    ? t("join_event_location", { eventLocationType: provider.label })
+                    : t("join_meeting")}
+                </Button>
+                <div className="border-subtle h-3 w-px border-r" />
+              </>
+            )}
             <SheetClose asChild>
-              <Button color="secondary">{t("cancel")}</Button>
+              <Button color="secondary" size="sm">
+                {t("cancel")}
+              </Button>
             </SheetClose>
             <Button
+              size="sm"
               onClick={() => {
                 window.location.href = `/booking/${booking.uid}?reschedule=true`;
               }}>
