@@ -6,6 +6,7 @@ import {
 } from "@/ee/event-types-private-links/services/private-links-output.service";
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { generateHashedLink, isLinkExpired } from "@calcom/platform-libraries/private-links";
 import { CreatePrivateLinkInput, PrivateLinkOutput, UpdatePrivateLinkInput } from "@calcom/platform-types";
 
@@ -133,12 +134,12 @@ export class PrivateLinksService {
   }
 
   private generateBookingUrl(hashedLink: string, orgSlug?: string, eventTypeSlug?: string): string {
-    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
-    
     if (orgSlug && eventTypeSlug) {
-      return `https://${orgSlug}/d/${hashedLink}/${eventTypeSlug}`;
+      const origin = getOrgFullOrigin(orgSlug, { protocol: true }).replace(/\/$/, "");
+      return `${origin}/d/${hashedLink}/${eventTypeSlug}`;
     }
     
-    return `${baseUrl}/d/${hashedLink}`;
+    const fallbackOrigin = getOrgFullOrigin(null, { protocol: true }).replace(/\/$/, "");
+    return `${fallbackOrigin}/d/${hashedLink}`;
   }
 }
