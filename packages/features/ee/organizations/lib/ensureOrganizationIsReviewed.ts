@@ -1,4 +1,4 @@
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 
 /**
  * It assumes that a user can only impersonate the members of the organization he is logged in to.
@@ -6,7 +6,7 @@ import { OrganizationRepository } from "@calcom/features/ee/organizations/reposi
  */
 export async function ensureOrganizationIsReviewed(loggedInUserOrgId: number | undefined) {
   if (loggedInUserOrgId) {
-    const org = await OrganizationRepository.findByIdIncludeOrganizationSettings({
+    const org = await organizationRepository.findByIdIncludeOrganizationSettings({
       id: loggedInUserOrgId,
     });
 

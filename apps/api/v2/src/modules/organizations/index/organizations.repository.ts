@@ -4,17 +4,17 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable } from "@nestjs/common";
 
-import { PrismaOrganizationRepository } from "@calcom/platform-libraries/organizations";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
-export class OrganizationsRepository extends PrismaOrganizationRepository {
+export class OrganizationsRepository extends OrganizationRepository {
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
     private readonly stripeService: StripeService
   ) {
-    super(dbRead.prisma);
+    super({ prismaClient: dbRead.prisma });
   }
 
   async findById(organizationId: number) {

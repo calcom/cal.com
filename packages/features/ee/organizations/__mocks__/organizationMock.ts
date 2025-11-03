@@ -1,23 +1,22 @@
 import { vi, beforeEach } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type * as organization from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import type * as organization from "@calcom/features/ee/organizations/repositories";
 
-vi.mock("@calcom/features/ee/organizations/repositories/OrganizationRepository", () => organizationMock);
+vi.mock("@calcom/features/ee/organizations/repositories", () => organizationMock);
 type OrganizationModule = typeof organization;
 beforeEach(() => {
   mockReset(organizationMock);
 });
 
 const organizationMock = mockDeep<OrganizationModule>();
-const OrganizationRepository = organizationMock.OrganizationRepository;
 
 export const organizationScenarios = {
-  OrganizationRepository: {
+  organizationRepository: {
     findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fakeReturnOrganization: (org: any, forInput: any) => {
-        OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockImplementation(
+        organizationMock.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockImplementation(
           (arg) => {
             if (forInput.email === arg.email) {
               return org;
@@ -29,10 +28,10 @@ export const organizationScenarios = {
         );
       },
       fakeNoMatch: () => {
-        OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockResolvedValue(null);
+        organizationMock.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockResolvedValue(null);
       },
     },
-  } satisfies Partial<Record<keyof OrganizationModule["OrganizationRepository"], unknown>>,
+  } satisfies Partial<Record<keyof OrganizationModule["organizationRepository"], unknown>>,
 } satisfies Partial<Record<keyof OrganizationModule, unknown>>;
 
 export default organizationMock;
