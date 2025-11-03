@@ -87,7 +87,7 @@ initializeGlobalCalProps();
 
 document.head.appendChild(document.createElement("style")).innerHTML = css;
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 type ValidationSchemaPropType = string | Function;
 
 type ValidationSchema = {
@@ -360,6 +360,8 @@ export class Cal {
 
     // Keep iframe invisible, till the embedded calLink sets its color-scheme. This is so that there is no flash of non-transparent(white/black) background
     iframe.style.visibility = "hidden";
+    iframe.style.opacity = "0";
+    iframe.style.pointerEvents = "none";
 
     if (calConfig.uiDebug) {
       iframe.style.border = "1px solid green";
@@ -456,6 +458,8 @@ export class Cal {
         // Once the embedded calLink starts not hiding the document, we should optimize this line to make the iframe visible earlier than this.
         // Imp: Don't use visibility:visible as that would make the iframe show even if the host element(A parent of the iframe) has visibility:hidden set. Just reset the visibility to default
         this.iframe.style.visibility = "";
+        this.iframe.style.opacity = "";
+        this.iframe.style.pointerEvents = "";
       }
       this.doInIframe({ method: "parentKnowsIframeReady" } as const);
       this.iframeDoQueue.forEach((doInIframeArg) => {
@@ -471,7 +475,6 @@ export class Cal {
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
       if (top < 0 && Math.abs(top / height) >= 0.25) {
-        // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- Intentionally done
         this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
@@ -484,6 +487,8 @@ export class Cal {
         return;
       }
       this.iframe!.style.visibility = "";
+      this.iframe!.style.opacity = "";
+      this.iframe!.style.pointerEvents = "";
 
       // Removes the loader
       // TODO: We should be using consistent approach of "state" attribute for modalBox and inlineEl.
@@ -1536,7 +1541,7 @@ document.addEventListener("click", (e) => {
   let config;
   try {
     config = JSON.parse(configString);
-  } catch (e) {
+  } catch {
     config = {};
   }
 

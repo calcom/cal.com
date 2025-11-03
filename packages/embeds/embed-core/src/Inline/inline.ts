@@ -21,6 +21,8 @@ export class Inline extends EmbedElement {
       } else if (newValue === "failed") {
         this.toggleLoader(false);
         slotEl.style.visibility = "hidden";
+        slotEl.style.opacity = "0";
+        slotEl.style.pointerEvents = "none";
         errorEl.style.display = "block";
         const errorString = getErrorString({
           errorCode: this.dataset.errorCode,

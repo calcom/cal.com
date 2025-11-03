@@ -19,6 +19,8 @@ export class ModalBox extends EmbedElement {
     this.assertHasShadowRoot();
     // We can't make it display none as that takes iframe width and height calculations to 0
     this.shadowRoot.host.style.visibility = show ? "visible" : "hidden";
+    this.shadowRoot.host.style.opacity = show ? "" : "0";
+    this.shadowRoot.host.style.pointerEvents = show ? "" : "none";
     if (!show) {
       document.body.style.overflow = ModalBox.htmlOverflow;
     }
