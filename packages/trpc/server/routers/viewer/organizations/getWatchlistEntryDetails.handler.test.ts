@@ -61,7 +61,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
   };
 
   const mockWatchlistRepo = {
-    findEntryWithAudit: vi.fn(),
+    findEntryWithAuditAndReports: vi.fn(),
   };
 
   const mockUserRepo = {
@@ -94,7 +94,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
 
     it("should use profile.organizationId when available", async () => {
       mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: { ...mockEntry, organizationId: 200 },
         auditHistory: [],
       });
@@ -135,12 +135,12 @@ describe("getWatchlistEntryDetailsHandler", () => {
         message: "You are not authorized to view blocklist entries",
       });
 
-      expect(mockWatchlistRepo.findEntryWithAudit).not.toHaveBeenCalled();
+      expect(mockWatchlistRepo.findEntryWithAuditAndReports).not.toHaveBeenCalled();
     });
 
     it("should check permission with correct parameters", async () => {
       mockPermissionCheckService.checkPermission.mockResolvedValue(true);
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: [],
       });
@@ -167,7 +167,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
     });
 
     it("should throw NOT_FOUND when entry does not exist", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: null,
         auditHistory: [],
       });
@@ -186,7 +186,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
     });
 
     it("should throw FORBIDDEN when entry belongs to different organization", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: { ...mockEntry, organizationId: 999 },
         auditHistory: [],
       });
@@ -211,7 +211,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
     });
 
     it("should return entry and audit history when authorized", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: mockAuditHistory,
       });
@@ -226,11 +226,11 @@ describe("getWatchlistEntryDetailsHandler", () => {
 
       expect(result.entry).toEqual(mockEntry);
       expect(result.auditHistory).toHaveLength(2);
-      expect(mockWatchlistRepo.findEntryWithAudit).toHaveBeenCalledWith("entry-123");
+      expect(mockWatchlistRepo.findEntryWithAuditAndReports).toHaveBeenCalledWith("entry-123");
     });
 
     it("should enrich audit history with user details", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: mockAuditHistory,
       });
@@ -254,7 +254,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
         { ...mockAuditHistory[1], changedByUserId: 1 },
       ];
 
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: auditWithDuplicates,
       });
@@ -278,7 +278,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
         { ...mockAuditHistory[1], changedByUserId: 2 },
       ];
 
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: auditWithNulls,
       });
@@ -302,7 +302,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
         { ...mockAuditHistory[1], changedByUserId: 2 },
       ];
 
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: auditWithUndefined,
       });
@@ -321,7 +321,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
     });
 
     it("should not call findUsersByIds when audit history is empty", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: [],
       });
@@ -338,7 +338,7 @@ describe("getWatchlistEntryDetailsHandler", () => {
     });
 
     it("should handle when user is not found in user map", async () => {
-      mockWatchlistRepo.findEntryWithAudit.mockResolvedValue({
+      mockWatchlistRepo.findEntryWithAuditAndReports.mockResolvedValue({
         entry: mockEntry,
         auditHistory: [mockAuditHistory[0]],
       });
