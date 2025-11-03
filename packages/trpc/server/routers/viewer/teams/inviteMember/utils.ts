@@ -504,7 +504,7 @@ export async function sendSignupToOrganizationEmail({
 }) {
   try {
     const verificationToken = await createVerificationToken(usernameOrEmail, teamId);
-    const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
+    const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
     await sendTeamInviteEmail({
       language: translation,
       from: inviterName || `${team.name}'s admin`,
@@ -647,15 +647,17 @@ export const groupUsersByJoinability = ({
       connectionInfoMap,
     });
 
-    autoJoinStatus.autoAccept
-      ? usersToAutoJoin.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        })
-      : regularUsers.push({
-          ...existingUserWithMemberships,
-          ...autoJoinStatus,
-        });
+    if (autoJoinStatus.autoAccept) {
+      usersToAutoJoin.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    } else {
+      regularUsers.push({
+        ...existingUserWithMemberships,
+        ...autoJoinStatus,
+      });
+    }
   }
 
   return [usersToAutoJoin, regularUsers];
@@ -719,7 +721,7 @@ export const sendExistingUserTeamInviteEmails = async ({
       if (!user.completedOnboarding && !user.password?.hash && user.identityProvider === "CAL") {
         const verificationToken = await createVerificationToken(user.email, teamId);
 
-        const gettingStartedPath = await OnboardingPathService.getGettingStartedPath(prisma);
+        const gettingStartedPath = await OnboardingPathService.getGettingStartedPathWhenInvited(prisma);
         inviteTeamOptions.joinLink = `${WEBAPP_URL}/signup?token=${verificationToken.token}&callbackUrl=${gettingStartedPath}`;
         inviteTeamOptions.isCalcomMember = false;
       } else if (!isAutoJoin) {
@@ -753,12 +755,6 @@ export const sendExistingUserTeamInviteEmails = async ({
   });
 
   await sendEmails(sendEmailsPromises);
-};
-
-type inviteMemberHandlerInput = {
-  teamId: number;
-  role?: "ADMIN" | "MEMBER" | "OWNER";
-  language: string;
 };
 
 export async function handleExistingUsersInvites({
@@ -991,7 +987,7 @@ export async function handleNewUsersInvites({
 }) {
   const translation = await getTranslation(language, "common");
 
-  await createNewUsersConnectToOrgIfExists({
+  const createdUsers = await createNewUsersConnectToOrgIfExists({
     invitations: invitationsForNewUsers,
     isOrg,
     teamId: teamId,
@@ -1001,6 +997,25 @@ export async function handleNewUsersInvites({
     language,
     creationSource,
   });
+
+  // Add auto-accepted users to team event types with assignAllTeamMembers immediately
+  // Only teams have event types with assignAllTeamMembers, not organizations
+  if (!isOrg) {
+    const autoAcceptedUserIds = createdUsers
+      .filter((user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept)
+      .map((user) => user.id);
+
+    if (autoAcceptedUserIds.length > 0) {
+      const results = await Promise.allSettled(
+        autoAcceptedUserIds.map((userId) => updateNewTeamMemberEventTypes(userId, teamId))
+      );
+      results.forEach((result) => {
+        if (result.status === "rejected") {
+          log.error("Error updating new team member event types for user", result.reason);
+        }
+      });
+    }
+  }
 
   const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {
     return sendSignupToOrganizationEmail({
