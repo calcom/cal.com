@@ -16,6 +16,7 @@
     "@calcom/trpc": "workspace:*",
     "@calcom/ui": "workspace:*",
     "@lexical/react": "^0.9.0",
+    "@react-awesome-query-builder/ui": "^6.6.15",
     "@tanstack/react-table": "^8.20.6",
     "@tanstack/react-virtual": "^3.10.9",
     "@vercel/functions": "^1.4.0",
