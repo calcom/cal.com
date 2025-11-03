@@ -2,7 +2,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 
 import { OtherTeamsListing } from "@calcom/features/ee/organizations/pages/components/OtherTeamsListing";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import { validateUserHasOrg } from "../../../actions/validateUserHasOrg";

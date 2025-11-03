@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";

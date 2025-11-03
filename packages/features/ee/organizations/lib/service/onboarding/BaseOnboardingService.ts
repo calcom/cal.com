@@ -8,7 +8,7 @@ import {
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";

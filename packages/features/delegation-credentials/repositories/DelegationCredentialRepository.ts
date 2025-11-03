@@ -1,4 +1,4 @@
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import logger from "@calcom/lib/logger";
 import {
   serviceAccountKeySchema,

@@ -1,5 +1,5 @@
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import type { PrismaClient } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";

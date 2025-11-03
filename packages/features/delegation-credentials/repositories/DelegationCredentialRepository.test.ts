@@ -2,7 +2,7 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
-import { organizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { organizationRepository } from "@calcom/features/ee/organizations/repositories";
 import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 
 import { DelegationCredentialRepository } from "./DelegationCredentialRepository";
