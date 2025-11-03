@@ -131,6 +131,41 @@
   display: flex;
 }
 
+/* Footer left alignment - match v5 style */
+.cal-query-builder .group--footer {
+  display: flex !important;
+  justify-content: flex-start !important;
+  padding-top: 8px;
+}
+
+/* Make the Add rule button look like plain text - match v5 style */
+.cal-query-builder .group--footer button,
+.cal-query-builder .group--footer .qb-button {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  height: auto !important;
+  min-height: auto !important;
+  border-radius: 0 !important;
+  color: var(--cal-text-muted);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Optional: tone down hover so it still feels like text */
+.cal-query-builder .group--footer button:hover,
+.cal-query-builder .group--footer .qb-button:hover {
+  text-decoration: underline;
+  background: transparent !important;
+}
+
+/* If v6 centers via an inner actions container, undo that as well */
+.cal-query-builder .group--footer .group--actions {
+  margin-left: 0 !important;
+  justify-content: flex-start !important;
+}
+
 @media (max-width: 1024px) {
   .rule--body {
     flex-direction: column;
