@@ -446,7 +446,7 @@ export default class GoogleCalendarService implements Calendar {
     uid: string,
     event: CalendarEvent,
     externalCalendarId?: string | null,
-    isInstanceCancellation?: boolean
+    isRecurringInstanceCancellation?: boolean
   ): Promise<void> {
     const calendar = await this.authedCalendar();
     const selectedCalendar = externalCalendarId || "primary";
@@ -454,13 +454,13 @@ export default class GoogleCalendarService implements Calendar {
     this.log.info("deleteEvent called", {
       uid,
       selectedCalendar,
-      isInstanceCancellation,
+      isRecurringInstanceCancellation,
       cancelledDatesCount: event.cancelledDates?.length || 0,
     });
 
     try {
       // Handle instance-level cancellation
-      if (isInstanceCancellation && event.cancelledDates && event.cancelledDates.length > 0) {
+      if (isRecurringInstanceCancellation && event.cancelledDates && event.cancelledDates.length > 0) {
         this.log.info("Processing instance cancellation", {
           uid,
           cancelledDatesCount: event.cancelledDates.length,

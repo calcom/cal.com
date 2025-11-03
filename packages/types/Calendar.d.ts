@@ -340,7 +340,7 @@ export interface Calendar {
     uid: string,
     event: CalendarEvent,
     externalCalendarId?: string | null,
-    isInstanceCancellation?: boolean
+    isRecurringInstanceCancellation?: boolean
   ): Promise<unknown>;
 
   getAvailability(

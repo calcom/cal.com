@@ -447,19 +447,19 @@ export default class EventManager {
     reference,
     event,
     isBookingInRecurringSeries,
-    isInstanceCancellation = false,
+    isRecurringInstanceCancellation = false,
   }: {
     reference: PartialReference;
     event: CalendarEvent;
     isBookingInRecurringSeries?: boolean;
-    isInstanceCancellation?: boolean;
+    isRecurringInstanceCancellation?: boolean;
   }) {
     log.debug(
       "deleteCalendarEventForBookingReference",
       safeStringify({
         bookingCalendarReference: reference,
         event: getPiiFreeCalendarEvent(event),
-        isInstanceCancellation,
+        isRecurringInstanceCancellation,
       })
     );
 
@@ -484,7 +484,7 @@ export default class EventManager {
         bookingRefUid,
         event,
         externalCalendarId: bookingExternalCalendarId,
-        isInstanceCancellation,
+        isRecurringInstanceCancellation,
       });
     }
   }
@@ -492,17 +492,17 @@ export default class EventManager {
   private async deleteVideoEventForBookingReference({
     reference,
     event,
-    isInstanceCancellation = false,
+    isRecurringInstanceCancellation = false,
   }: {
     reference: PartialReference;
     event: CalendarEvent;
-    isInstanceCancellation?: boolean;
+    isRecurringInstanceCancellation?: boolean;
   }) {
     log.debug(
       "deleteVideoEventForBookingReference",
       safeStringify({
         videoReference: reference,
-        isInstanceCancellation,
+        isRecurringInstanceCancellation,
       })
     );
 
@@ -519,7 +519,7 @@ export default class EventManager {
       await deleteMeeting(
         videoCredential,
         bookingRefUid
-        // isInstanceCancellation
+        // isRecurringInstanceCancellation
       );
     }
   }
@@ -752,13 +752,13 @@ export default class EventManager {
     isBookingInRecurringSeries?: boolean
   ) {
     // Determine if this is an instance cancellation or full deletion
-    const isInstanceCancellation = !!(event.cancelledDates && event.cancelledDates.length > 0);
+    const isRecurringInstanceCancellation = !!(event.cancelledDates && event.cancelledDates.length > 0);
 
     await this.deleteEventsAndMeetings({
       event,
       bookingReferences,
       isBookingInRecurringSeries,
-      isInstanceCancellation,
+      isRecurringInstanceCancellation,
     });
   }
 
@@ -769,12 +769,12 @@ export default class EventManager {
     event,
     bookingReferences,
     isBookingInRecurringSeries,
-    isInstanceCancellation = false,
+    isRecurringInstanceCancellation = false,
   }: {
     event: CalendarEvent;
     bookingReferences: PartialReference[];
     isBookingInRecurringSeries?: boolean;
-    isInstanceCancellation?: boolean;
+    isRecurringInstanceCancellation?: boolean;
   }) {
     const eventLog = logger.getSubLogger({ prefix: [`[deleteEventsAndMeetings]: ${event?.uid}`] });
     const calendarReferences: PartialReference[] = [];
@@ -790,7 +790,7 @@ export default class EventManager {
             reference,
             event,
             isBookingInRecurringSeries,
-            isInstanceCancellation,
+            isRecurringInstanceCancellation,
           })
         );
       }
@@ -801,7 +801,7 @@ export default class EventManager {
           this.deleteVideoEventForBookingReference({
             reference,
             event,
-            // isInstanceCancellation,
+            // isRecurringInstanceCancellation,
           })
         );
       }
@@ -812,7 +812,7 @@ export default class EventManager {
           this.deleteCRMEvent({
             reference,
             event,
-            // isInstanceCancellation,
+            // isRecurringInstanceCancellation,
           })
         );
       }
@@ -824,7 +824,7 @@ export default class EventManager {
         calendarReferences,
         videoReferences,
         crmReferences,
-        isInstanceCancellation,
+        isRecurringInstanceCancellation,
       })
     );
 
@@ -838,7 +838,7 @@ export default class EventManager {
           safeStringify({
             error: result.reason,
             referenceIndex: index,
-            isInstanceCancellation,
+            isRecurringInstanceCancellation,
           })
         );
       }
