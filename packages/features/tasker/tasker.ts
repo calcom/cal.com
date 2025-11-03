@@ -34,6 +34,9 @@ type TaskPayloads = {
     teamId: number | null;
     providerAgentId: string;
   };
+  sendAwaitingPaymentEmail: z.infer<
+    typeof import("./tasks/sendAwaitingPaymentEmail").sendAwaitingPaymentEmailPayloadSchema
+  >;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;

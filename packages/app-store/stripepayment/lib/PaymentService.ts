@@ -2,11 +2,12 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
-import { sendAwaitingPaymentEmailAndSMS } from "@calcom/emails";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import tasker from "@calcom/features/tasker";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -16,7 +17,6 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { paymentOptionEnum } from "../zod";
-import { createPaymentLink } from "./client";
 import { retrieveOrCreateStripeCustomerByEmail } from "./customer";
 import type { StripePaymentData, StripeSetupIntentData } from "./server";
 
@@ -384,27 +384,25 @@ export class PaymentService implements IAbstractPaymentService {
     paymentData: Payment,
     eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    const attendeesToEmail = event.attendeeSeatId
-      ? event.attendees.filter((attendee) => attendee.bookingSeat?.referenceUid === event.attendeeSeatId)
-      : event.attendees;
+    // Get delay from event type metadata or environment variable (default: 10 minutes)
+    const delayMinutes =
+      eventTypeMetadata?.paymentAwaitingEmailDelayMinutes ??
+      parseInt(process.env.AWAITING_PAYMENT_EMAIL_DELAY_MINUTES || "10", 10);
 
-    await sendAwaitingPaymentEmailAndSMS(
+    const scheduledAt = dayjs().add(delayMinutes, "minutes").toDate();
+
+    // Schedule the email instead of sending immediately
+    await tasker.create(
+      "sendAwaitingPaymentEmail",
       {
-        ...event,
-        attendees: attendeesToEmail,
-        paymentInfo: {
-          link: createPaymentLink({
-            paymentUid: paymentData.uid,
-            name: booking.user?.name,
-            email: booking.user?.email,
-            date: booking.startTime.toISOString(),
-          }),
-          paymentOption: paymentData.paymentOption || "ON_BOOKING",
-          amount: paymentData.amount,
-          currency: paymentData.currency,
-        },
+        bookingId: booking.id,
+        paymentId: paymentData.id,
+        attendeeSeatId: event.attendeeSeatId || null,
       },
-      eventTypeMetadata
+      {
+        scheduledAt,
+        referenceUid: booking.uid,
+      }
     );
   }
 
