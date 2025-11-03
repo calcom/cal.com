@@ -3,9 +3,9 @@ import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@ca
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import {
-  sendManagedEventScheduledEmailsAndSMS,
-  sendManagedEventReassignedEmailsAndSMS,
-  sendManagedEventUpdatedEmailsAndSMS,
+  sendReassignedScheduledEmailsAndSMS,
+  sendReassignedEmailsAndSMS,
+  sendReassignedUpdatedEmailsAndSMS,
 } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -456,7 +456,7 @@ export async function managedEventManualReassignment({
       };
 
       // Send email to new host (booking scheduled)
-      await sendManagedEventScheduledEmailsAndSMS({
+      await sendReassignedScheduledEmailsAndSMS({
         calEvent,
         members: [
           {
@@ -491,7 +491,7 @@ export async function managedEventManualReassignment({
           },
         };
 
-        await sendManagedEventReassignedEmailsAndSMS({
+        await sendReassignedEmailsAndSMS({
           calEvent: cancelledCalEvent,
           members: [
             {
@@ -510,7 +510,7 @@ export async function managedEventManualReassignment({
 
       // Send email to attendees (host changed)
       if (dayjs(calEvent.startTime).isAfter(dayjs())) {
-        await sendManagedEventUpdatedEmailsAndSMS({
+        await sendReassignedUpdatedEmailsAndSMS({
           calEvent,
           eventTypeMetadata,
         });
