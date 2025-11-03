@@ -10,7 +10,11 @@ import type { UseFormReturn } from "react-hook-form";
 import { Toaster } from "sonner";
 import type { z } from "zod";
 
-import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/app-store/_utils/raqb/raqbUtils";
+import {
+  buildEmptyQueryValue,
+  raqbQueryValueUtils,
+  normalizeRaqbJsonTree,
+} from "@calcom/app-store/_utils/raqb/raqbUtils";
 import { routingFormAppComponents } from "@calcom/app-store/routing-forms/appComponents";
 import DynamicAppComponent from "@calcom/app-store/routing-forms/components/DynamicAppComponent";
 import { EmptyState } from "@calcom/app-store/routing-forms/components/_components/EmptyState";
@@ -1065,17 +1069,48 @@ function useRoutes({
         if (isRouter(route)) {
           return route;
         }
-        return {
+
+        const normalizedQueryValue = normalizeRaqbJsonTree(route.queryValue);
+        const normalizedAttributesQueryValue = normalizeRaqbJsonTree(route.attributesQueryValue);
+        const normalizedFallbackAttributesQueryValue = normalizeRaqbJsonTree(
+          route.fallbackAttributesQueryValue
+        );
+
+        const cleanedRoute: any = {
           id: route.id,
-          name: route.name,
-          attributeRoutingConfig: route.attributeRoutingConfig,
           action: route.action,
-          isFallback: route.isFallback,
-          queryValue: route.queryValue,
-          attributesQueryValue: route.attributesQueryValue,
-          fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
-          attributeIdForWeights: route.attributeIdForWeights,
+          queryValue: normalizedQueryValue,
         };
+
+        if (route.name !== null && route.name !== undefined) {
+          cleanedRoute.name = route.name;
+        }
+
+        if (route.isFallback !== null && route.isFallback !== undefined) {
+          cleanedRoute.isFallback = route.isFallback;
+        }
+
+        if (route.attributeIdForWeights !== null && route.attributeIdForWeights !== undefined) {
+          cleanedRoute.attributeIdForWeights = route.attributeIdForWeights;
+        }
+
+        if (
+          route.attributeRoutingConfig &&
+          typeof route.attributeRoutingConfig === "object" &&
+          Object.keys(route.attributeRoutingConfig).length > 0
+        ) {
+          cleanedRoute.attributeRoutingConfig = route.attributeRoutingConfig;
+        }
+
+        if (normalizedAttributesQueryValue) {
+          cleanedRoute.attributesQueryValue = normalizedAttributesQueryValue;
+        }
+
+        if (normalizedFallbackAttributesQueryValue) {
+          cleanedRoute.fallbackAttributesQueryValue = normalizedFallbackAttributesQueryValue;
+        }
+
+        return cleanedRoute;
       });
     }
   };
