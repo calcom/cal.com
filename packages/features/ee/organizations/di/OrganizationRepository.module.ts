@@ -1,5 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { PrismaOrganizationRepository } from "@calcom/features/ee/organizations/lib/repository/PrismaOrganizationRepository";
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
 
 import { ORGANIZATION_DI_TOKENS } from "./tokens";
@@ -11,12 +11,16 @@ const loadModule = bindModuleToClassOnToken({
     module: organizationRepositoryModule,
     moduleToken,
     token,
-    classs: PrismaOrganizationRepository,
-    dep: prismaModuleLoader,
+    classs: OrganizationRepository,
+    depsMap: {
+        prismaClient: prismaModuleLoader,
+    },
 });
 
 export const moduleLoader: ModuleLoader = {
     token,
     loadModule,
 };
+
+export type { OrganizationRepository };
 
