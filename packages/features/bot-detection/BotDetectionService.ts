@@ -33,6 +33,10 @@ export class BotDetectionService {
       return;
     }
 
+    if (!Number.isInteger(eventTypeId) || eventTypeId <= 0) {
+      throw new Error(`Invalid eventTypeId: ${eventTypeId}. Must be a positive integer.`);
+    }
+
     // Fetch only the teamId from the event type
     const eventType = await this.eventTypeRepository.getTeamIdByEventTypeId({
       id: eventTypeId,
