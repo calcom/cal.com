@@ -451,6 +451,7 @@ const types: Types = {
 
 const settings: Settings = {
   setOpOnChangeField: "default", // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
+  defaultConjunction: "AND",
 };
 
 const basicConfig = {
