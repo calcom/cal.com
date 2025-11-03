@@ -274,6 +274,14 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 />
               )}
             />
+            <RemoveTimeButton
+              index={index}
+              remove={remove}
+              className="text-default border-none"
+              disabled={disabled}
+              labels={labels}
+            />
+
             {index === 0 && (
               <Button
                 disabled={disabled}
@@ -300,9 +308,6 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                   }
                 }}
               />
-            )}
-            {index !== 0 && (
-              <RemoveTimeButton index={index} remove={remove} className="text-default border-none" />
             )}
           </div>
         </Fragment>
