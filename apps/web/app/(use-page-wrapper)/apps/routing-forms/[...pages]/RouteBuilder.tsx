@@ -1142,13 +1142,20 @@ const Routes = ({
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
 
-  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(hookForm.getValues());
-  const attributesQueryBuilderConfig = attributes
-    ? getQueryBuilderConfigForAttributes({
-        attributes: attributes,
-        dynamicOperandFields: hookForm.getValues().fields,
-      })
-    : null;
+  const formFieldsQueryBuilderConfig = useMemo(
+    () => getQueryBuilderConfigForFormFields(hookForm.getValues()),
+    [hookForm.getValues().fields]
+  );
+  const attributesQueryBuilderConfig = useMemo(
+    () =>
+      attributes
+        ? getQueryBuilderConfigForAttributes({
+            attributes: attributes,
+            dynamicOperandFields: hookForm.getValues().fields,
+          })
+        : null,
+    [attributes, hookForm.getValues().fields]
+  );
 
   const { routes, setRoutes } = useRoutes({
     serializedRoutes,
