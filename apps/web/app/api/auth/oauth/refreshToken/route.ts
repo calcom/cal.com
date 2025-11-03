@@ -50,7 +50,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const payload: OAuthTokenPayload = {
+  const payloadAuthToken: OAuthTokenPayload = {
     userId: decodedRefreshToken.userId,
     teamId: decodedRefreshToken.teamId,
     scope: decodedRefreshToken.scope,
@@ -58,11 +58,23 @@ async function handler(req: NextRequest) {
     clientId: client_id,
   };
 
-  const access_token = jwt.sign(payload, secretKey, {
+  const payloadRefreshToken: OAuthTokenPayload = {
+    userId: decodedRefreshToken.userId,
+    teamId: decodedRefreshToken.teamId,
+    scope: decodedRefreshToken.scope,
+    token_type: "Refresh Token",
+    clientId: client_id,
+  };
+
+  const access_token = jwt.sign(payloadAuthToken, secretKey, {
     expiresIn: 1800, // 30 min
   });
 
-  return NextResponse.json({ access_token }, { status: 200 });
+  const refresh_token = jwt.sign(payloadRefreshToken, secretKey, {
+    expiresIn: 30 * 24 * 60 * 60, // 30 days
+  });
+
+  return NextResponse.json({ access_token, refresh_token }, { status: 200 });
 }
 
 export const POST = defaultResponderForAppDir(handler);

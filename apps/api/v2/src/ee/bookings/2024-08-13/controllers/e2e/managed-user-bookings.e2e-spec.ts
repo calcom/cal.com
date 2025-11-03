@@ -70,6 +70,7 @@ describe("Managed user bookings 2024-08-13", () => {
 
   let firstManagedUserEventTypeId: number;
   let eventTypeRequiresConfirmationId: number;
+  let seatedEventTypeId: number;
 
   const orgAdminManagedUserEmail = `managed-user-bookings-2024-08-13-org-admin-${randomString()}@api.com`;
   let orgAdminManagedUser: CreateManagedUserData;
@@ -307,6 +308,20 @@ describe("Managed user bookings 2024-08-13", () => {
       firstManagedUser.user.id
     );
     eventTypeRequiresConfirmationId = eventTypeRequiresConfirmation.id;
+  });
+
+  it("should create a seated event type for first managed user", async () => {
+    const seatedEventType = await eventTypesRepositoryFixture.create(
+      {
+        title: `managed-user-bookings-seated-event-type-${randomString()}`,
+        slug: `managed-user-bookings-seated-event-type-${randomString()}`,
+        length: 30,
+        seatsPerTimeSlot: 5,
+        seatsShowAttendees: true,
+      },
+      firstManagedUser.user.id
+    );
+    seatedEventTypeId = seatedEventType.id;
   });
 
   describe("bookings using original emails", () => {
@@ -770,6 +785,107 @@ describe("Managed user bookings 2024-08-13", () => {
         .expect(401);
 
       await userRepositoryFixture.delete(regularUser.id);
+    });
+  });
+
+  describe("seated booking management by org admin", () => {
+    let seatedBookingUid: string;
+
+    it("should create a seated booking with multiple attendees", async () => {
+      const bodyOne: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 10, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: secondManagedUser.user.name!,
+          email: secondManagedUser.user.email,
+          timeZone: secondManagedUser.user.timeZone,
+          language: secondManagedUser.user.locale,
+        },
+      };
+
+      const responseOne = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bodyOne)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const responseBodyForFirstAttendee: ApiSuccessResponse<BookingOutput_2024_08_13> = responseOne.body;
+      expect(responseBodyForFirstAttendee.status).toEqual(SUCCESS_STATUS);
+      expect(responseBodyForFirstAttendee.data).toBeDefined();
+
+      const bookingDataForFirstAttendee = responseBodyForFirstAttendee.data as BookingOutput_2024_08_13;
+      seatedBookingUid = bookingDataForFirstAttendee.uid;
+      expect(bookingDataForFirstAttendee.attendees).toBeDefined();
+      expect(bookingDataForFirstAttendee.attendees.length).toBeGreaterThan(0);
+
+      const bodyTwo: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 0, 10, 10, 0, 0)).toISOString(),
+        eventTypeId: seatedEventTypeId,
+        attendee: {
+          name: thirdManagedUser.user.name!,
+          email: thirdManagedUser.user.email,
+          timeZone: thirdManagedUser.user.timeZone,
+          language: thirdManagedUser.user.locale,
+        },
+      };
+
+      const responseTwo = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bodyTwo)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const responseBodyForSecondAttendee: ApiSuccessResponse<BookingOutput_2024_08_13> = responseTwo.body;
+      expect(responseBodyForSecondAttendee.status).toEqual(SUCCESS_STATUS);
+      expect(responseBodyForSecondAttendee.data).toBeDefined();
+
+      const bookingDataForSecondAttendee = responseBodyForSecondAttendee.data as BookingOutput_2024_08_13;
+      expect(bookingDataForSecondAttendee.attendees).toBeDefined();
+      expect(bookingDataForSecondAttendee.attendees.length).toBeGreaterThan(0);
+    });
+
+    it("should allow org admin to reschedule all seats in a seated booking for a managed user", async () => {
+      const newStartTime = new Date(Date.UTC(2030, 0, 10, 11, 0, 0)).toISOString();
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${seatedBookingUid}/reschedule`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .send({
+          start: newStartTime,
+        })
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<BookingOutput_2024_08_13> = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      const bookingData = responseBody.data as BookingOutput_2024_08_13;
+      expect(bookingData.start).toEqual(newStartTime);
+
+      seatedBookingUid = bookingData.uid;
+    });
+
+    it("should allow org admin to cancel all seats in a seated booking for a managed user", async () => {
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${seatedBookingUid}/cancel`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .set("Authorization", `Bearer ${orgAdminManagedUser.accessToken}`)
+        .send({
+          cancellationReason: "Org admin cancelled the booking",
+        })
+        .expect(200);
+
+      const responseBody: GetBookingOutput_2024_08_13 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      const bookingData = responseBody.data as BookingOutput_2024_08_13;
+      expect(bookingData.status).toEqual("cancelled");
+      expect(bookingData.uid).toEqual(seatedBookingUid);
+
+      const cancelledBooking = await bookingsRepositoryFixture.getByUid(seatedBookingUid);
+      expect(cancelledBooking?.status).toEqual("CANCELLED");
     });
   });
 
