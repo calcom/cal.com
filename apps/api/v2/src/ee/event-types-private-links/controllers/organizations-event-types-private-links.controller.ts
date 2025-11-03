@@ -12,8 +12,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { OrganizationContextService } from "@/ee/event-types-private-links/services/organization-context.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
@@ -42,8 +41,7 @@ export class OrganizationsEventTypesPrivateLinksController {
   constructor(
     private readonly privateLinksService: PrivateLinksService,
     private readonly teamsEventTypesService: TeamsEventTypesService,
-    private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly organizationsRepository: OrganizationsRepository
+    private readonly organizationContextService: OrganizationContextService
   ) {}
 
   @Post("/")
@@ -59,11 +57,11 @@ export class OrganizationsEventTypesPrivateLinksController {
   ): Promise<CreatePrivateLinkOutput> {
     await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
     
-    const organization = await this.organizationsRepository.findById(orgId);
-    const eventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
-    
-    const orgSlug = organization?.slug || undefined;
-    const eventTypeSlug = eventType?.slug || undefined;
+    const { orgSlug, eventTypeSlug } = await this.organizationContextService.getOrganizationEventTypeContext(
+      orgId,
+      teamId,
+      eventTypeId
+    );
     
     const privateLink = await this.privateLinksService.createPrivateLink(
       eventTypeId,
@@ -90,11 +88,11 @@ export class OrganizationsEventTypesPrivateLinksController {
   ): Promise<GetPrivateLinksOutput> {
     await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
     
-    const organization = await this.organizationsRepository.findById(orgId);
-    const eventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
-    
-    const orgSlug = organization?.slug || undefined;
-    const eventTypeSlug = eventType?.slug || undefined;
+    const { orgSlug, eventTypeSlug } = await this.organizationContextService.getOrganizationEventTypeContext(
+      orgId,
+      teamId,
+      eventTypeId
+    );
     
     const privateLinks = await this.privateLinksService.getPrivateLinks(
       eventTypeId,
@@ -121,11 +119,11 @@ export class OrganizationsEventTypesPrivateLinksController {
   ): Promise<UpdatePrivateLinkOutput> {
     await this.teamsEventTypesService.validateEventTypeExists(teamId, eventTypeId);
     
-    const organization = await this.organizationsRepository.findById(orgId);
-    const eventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
-    
-    const orgSlug = organization?.slug || undefined;
-    const eventTypeSlug = eventType?.slug || undefined;
+    const { orgSlug, eventTypeSlug } = await this.organizationContextService.getOrganizationEventTypeContext(
+      orgId,
+      teamId,
+      eventTypeId
+    );
     
     const updateInput: UpdatePrivateLinkInput = { ...body, linkId };
     const privateLink = await this.privateLinksService.updatePrivateLink(
