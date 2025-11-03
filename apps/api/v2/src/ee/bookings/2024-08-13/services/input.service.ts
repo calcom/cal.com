@@ -120,20 +120,18 @@ export class InputBookingsService_2024_08_13 {
     });
 
     if (oAuthClientParams) {
-      Object.assign(newRequest, { userId, ...oAuthClientParams });
+      Object.assign(newRequest, { userId, ...oAuthClientParams, reservedSlotUid });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
         creationSource: CreationSource.API_V2,
-        reservedSlotUid,
       };
     } else {
-      Object.assign(newRequest, { userId });
+      Object.assign(newRequest, { userId, reservedSlotUid });
       newRequest.body = {
         ...bodyTransformed,
         noEmail: false,
         creationSource: CreationSource.API_V2,
-        reservedSlotUid,
       };
     }
 
