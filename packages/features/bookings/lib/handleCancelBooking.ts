@@ -496,8 +496,6 @@ async function handler(input: CancelBookingInput) {
               old: bookingToDelete.cancelledBy,
               new: cancelledBy ?? null,
             },
-          },
-          secondary: {
             status: {
               old: bookingToDelete.status,
               new: "CANCELLED",

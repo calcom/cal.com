@@ -11,10 +11,8 @@ export class RejectedAuditActionService {
     static readonly schema = z.object({
         primary: z.object({
             rejectionReason: StringChangeSchema,
+            status: StringChangeSchema,
         }),
-        secondary: z.object({
-            status: StringChangeSchema.optional(),
-        }).optional(),
     });
 
     parse(data: unknown): z.infer<typeof RejectedAuditActionService.schema> {
@@ -25,7 +23,7 @@ export class RejectedAuditActionService {
         return t('audit.rejected_booking');
     }
 
-    getDisplayDetails(data: z.infer<typeof RejectedAuditActionService.schema>, t: TFunction): Record<string, string> {
+    getDisplayDetails(data: z.infer<typeof RejectedAuditActionService.schema>, _t: TFunction): Record<string, string> {
         return {
             'Rejection Reason': data.primary.rejectionReason.new ?? '-',
             'Previous Reason': data.primary.rejectionReason.old ?? '-',

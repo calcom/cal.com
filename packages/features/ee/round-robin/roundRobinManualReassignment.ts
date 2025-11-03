@@ -203,7 +203,7 @@ export const roundRobinManualReassignment = async ({
     });
 
     const oldUserId = booking.userId;
-    const oldUser = booking.user;
+    const _oldUser = booking.user;
     const oldEmail = booking.user?.email;
     const _oldTitle = booking.title;
 
@@ -229,25 +229,13 @@ export const roundRobinManualReassignment = async ({
       const bookingEventHandlerService = getBookingEventHandlerService();
       const auditData: ReassignmentAuditData = {
         primary: {
-          userId: { old: oldUserId ?? null, new: newUserId },
-          email: { old: oldEmail || null, new: newUser.email },
+          assignedToId: { old: oldUserId ?? null, new: newUserId },
+          assignedById: { old: null, new: reassignedById },
           reassignmentReason: { old: null, new: reassignReason || "Manual round robin reassignment" },
         },
-        assignmentMethod: "manual",
-        assignmentDetails: {
-          assignedUser: {
-            id: newUser.id,
-            name: newUser.name || "",
-            email: newUser.email,
-          },
-          previousUser: oldUser
-            ? {
-              id: oldUser.id,
-              name: oldUser.name || "",
-              email: oldEmail || "",
-            }
-            : undefined,
-          teamName: eventType.team?.name,
+        secondary: {
+          userPrimaryEmail: { old: oldEmail || null, new: newUser.email },
+          title: { old: _oldTitle, new: newBookingTitle },
         },
       };
       await bookingEventHandlerService.onReassignment(

@@ -12,10 +12,8 @@ export class CancelledAuditActionService {
         primary: z.object({
             cancellationReason: StringChangeSchema,
             cancelledBy: StringChangeSchema,
-        }),
-        secondary: z.object({
-            status: StringChangeSchema.optional(),
-        }).optional(),
+            status: StringChangeSchema,
+        })
     });
 
     parse(data: unknown): z.infer<typeof CancelledAuditActionService.schema> {
@@ -26,7 +24,7 @@ export class CancelledAuditActionService {
         return t('audit.cancelled_booking');
     }
 
-    getDisplayDetails(data: z.infer<typeof CancelledAuditActionService.schema>, t: TFunction): Record<string, string> {
+    getDisplayDetails(data: z.infer<typeof CancelledAuditActionService.schema>, _t: TFunction): Record<string, string> {
         return {
             'Cancellation Reason': data.primary.cancellationReason.new ?? '-',
             'Previous Reason': data.primary.cancellationReason.old ?? '-',

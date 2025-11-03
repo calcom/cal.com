@@ -10,7 +10,7 @@ import { StringArrayChangeSchema } from "../common/changeSchemas";
 export class AttendeeRemovedAuditActionService {
     static readonly schema = z.object({
         primary: z.object({
-            attendees: StringArrayChangeSchema,
+            removedAttendees: StringArrayChangeSchema,
         }),
     });
 
@@ -18,26 +18,14 @@ export class AttendeeRemovedAuditActionService {
         return AttendeeRemovedAuditActionService.schema.parse(data);
     }
 
-    /**
-     * Helper to extract just the removed guests from the full attendee list
-     */
-    getRemovedGuests(data: z.infer<typeof AttendeeRemovedAuditActionService.schema>): string[] {
-        const newSet = new Set(data.primary.attendees.new);
-        return (data.primary.attendees.old ?? []).filter(email => !newSet.has(email));
-    }
-
     getDisplaySummary(data: z.infer<typeof AttendeeRemovedAuditActionService.schema>, t: TFunction): string {
-        const removed = this.getRemovedGuests(data);
-        return t('audit.removed_guests', { count: removed.length });
+        return t('audit.removed_guests', { count: data.primary.removedAttendees.new.length });
     }
 
-    getDisplayDetails(data: z.infer<typeof AttendeeRemovedAuditActionService.schema>, t: TFunction): Record<string, string> {
-        const removed = this.getRemovedGuests(data);
+    getDisplayDetails(data: z.infer<typeof AttendeeRemovedAuditActionService.schema>, _t: TFunction): Record<string, string> {
         return {
-            'Removed Guests': removed.join(', '),
-            'Count': removed.length.toString(),
-            'Total Before': (data.primary.attendees.old?.length ?? 0).toString(),
-            'Total After': data.primary.attendees.new.length.toString(),
+            'Removed Guests': data.primary.removedAttendees.new.join(', '),
+            'Count': data.primary.removedAttendees.new.length.toString(),
         };
     }
 }

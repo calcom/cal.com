@@ -280,28 +280,13 @@ export const roundRobinReassignment = async ({
         createUserActor(reassignedById),
         {
           primary: {
-            userId: { old: oldUserId, new: reassignedRRHost.id },
-            email: { old: oldEmail, new: reassignedRRHost.email },
+            assignedToId: { old: oldUserId, new: reassignedRRHost.id },
+            assignedById: { old: null, new: reassignedById },
             reassignmentReason: { old: null, new: "Round robin reassignment" },
           },
           secondary: {
             userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
             title: { old: oldTitle, new: newBookingTitle },
-          },
-          assignmentMethod: "round_robin",
-          assignmentDetails: {
-            assignedUser: {
-              id: reassignedRRHost.id,
-              name: reassignedRRHost.name || "",
-              email: reassignedRRHost.email,
-            },
-            previousUser: {
-              id: previousRRHost?.id || 0,
-              name: previousRRHost?.name || "",
-              email: previousRRHost?.email || "",
-            },
-            teamId: eventType.teamId ?? undefined,
-            teamName: eventType.team?.name,
           },
         }
       );

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
-import { AssignmentDetailsSchema } from "../common/schemas";
 import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
 
 /**
@@ -11,17 +10,14 @@ import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas"
 export class ReassignmentAuditActionService {
     static readonly schema = z.object({
         primary: z.object({
-            userId: NumberChangeSchema,
-            email: StringChangeSchema,
+            assignedToId: NumberChangeSchema,
+            assignedById: NumberChangeSchema,
             reassignmentReason: StringChangeSchema,
         }),
         secondary: z.object({
             userPrimaryEmail: StringChangeSchema.optional(),
             title: StringChangeSchema.optional(),
         }).optional(),
-        // Context fields (not changes)
-        assignmentMethod: z.enum(['manual', 'round_robin', 'salesforce', 'routing_form', 'crm_ownership']),
-        assignmentDetails: AssignmentDetailsSchema,
     });
 
     parse(data: unknown): z.infer<typeof ReassignmentAuditActionService.schema> {
@@ -29,27 +25,20 @@ export class ReassignmentAuditActionService {
     }
 
     getDisplaySummary(data: z.infer<typeof ReassignmentAuditActionService.schema>, t: TFunction): string {
-        return t('audit.assigned_user', { userName: data.assignmentDetails.assignedUser.name });
+        return t('audit.booking_reassigned');
     }
 
-    getDisplayDetails(data: z.infer<typeof ReassignmentAuditActionService.schema>, t: TFunction): Record<string, string> {
+    getDisplayDetails(data: z.infer<typeof ReassignmentAuditActionService.schema>, _t: TFunction): Record<string, string> {
         const details: Record<string, string> = {
-            'Type': data.assignmentMethod,
-            'From': data.assignmentDetails.previousUser?.name || '-',
-            'To': data.assignmentDetails.assignedUser.name,
-            'Team': data.assignmentDetails.teamName || '-',
+            'Assigned To ID': `${data.primary.assignedToId.old ?? '-'} → ${data.primary.assignedToId.new}`,
+            'Assigned By ID': `${data.primary.assignedById.old ?? '-'} → ${data.primary.assignedById.new}`,
             'Reason': data.primary.reassignmentReason.new ?? '-',
         };
 
-        // Add primary field-level changes
-        if (data.primary.userId) {
-            details['User ID'] = `${data.primary.userId.old ?? '-'} → ${data.primary.userId.new}`;
-        }
-        if (data.primary.email) {
-            details['Email'] = `${data.primary.email.old ?? '-'} → ${data.primary.email.new ?? '-'}`;
-        }
-
         // Add secondary field-level changes if present
+        if (data.secondary?.userPrimaryEmail) {
+            details['Email'] = `${data.secondary.userPrimaryEmail.old ?? '-'} → ${data.secondary.userPrimaryEmail.new ?? '-'}`;
+        }
         if (data.secondary?.title) {
             details['Title'] = `${data.secondary.title.old ?? '-'} → ${data.secondary.title.new ?? '-'}`;
         }
