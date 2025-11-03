@@ -14,6 +14,7 @@
     "@calcom/dayjs": "workspace:*",
     "@formbricks/api": "^1.7.0",
     "@formbricks/js": "^2.1.0",
+    "@react-awesome-query-builder/core": "^6.6.15",
     "@react-awesome-query-builder/ui": "^6.6.15",
     "@sendgrid/client": "^7.7.0",
     "@unkey/ratelimit": "^2.1.3",

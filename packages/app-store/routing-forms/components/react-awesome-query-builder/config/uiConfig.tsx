@@ -120,10 +120,10 @@ const sharedSettingsProps: Partial<Settings> = {
   renderField: (props) => renderComponent(props, FieldSelect),
   renderOperator: (props) => renderComponent(props, FieldSelect),
   renderFunc: (props) => renderComponent(props, FieldSelect),
-  // renderConjs: (props) => renderComponent(props, Conjs),
-  // renderButton: (props) => renderComponent(props, Button),
-  // renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
-  // renderProvider: (props) => renderComponent(props, Provider),
+  renderConjs: (props) => renderComponent(props, Conjs),
+  renderButton: (props) => renderComponent(props, Button),
+  renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
+  renderProvider: (props) => renderComponent(props, Provider),
 };
 
 function withRenderFnsSettings(settings: Settings) {
