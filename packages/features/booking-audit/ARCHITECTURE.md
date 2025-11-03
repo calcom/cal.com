@@ -282,7 +282,8 @@ Metadata that provides context but doesn't change. These fields don't use the `{
 // CANCELLED
 {
   primary: {
-    cancellationReason: { old: null, new: "Client requested" }
+    cancellationReason: { old: null, new: "Client requested" },
+    cancelledBy: { old: null, new: "user@example.com" }
   },
   secondary: {
     status: { old: "ACCEPTED", new: "CANCELLED" }
@@ -357,7 +358,8 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). May
 ```typescript
 {
   primary: {
-    cancellationReason: { old: string | null, new: string }
+    cancellationReason: { old: string | null, new: string | null },
+    cancelledBy: { old: string | null, new: string | null }
   },
   secondary?: {
     status?: { old: string | null, new: string }
@@ -365,7 +367,7 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). May
 }
 ```
 
-**Primary:** Cancellation reason (why it was cancelled)  
+**Primary:** Cancellation reason (why it was cancelled) and who cancelled it (the actor)  
 **Secondary:** Status change to CANCELLED (side-effect)
 
 #### REJECTED
@@ -399,17 +401,17 @@ Used when a booking status changes to accepted (e.g., PENDING → ACCEPTED). May
 ```typescript
 {
   primary: {
-    cancellationReason: { old: string | null, new: string }
+    cancellationReason: { old: string | null, new: string | null },
+    cancelledBy: { old: string | null, new: string | null }
   },
   secondary: {
-    rescheduled: { old: boolean | null, new: boolean },
-    cancelledBy: { old: string | null, new: string }
+    rescheduled: { old: boolean | null, new: boolean }
   }
 }
 ```
 
-**Primary:** Cancellation reason (why rescheduling was requested)  
-**Secondary:** Rescheduled flag and who cancelled it (side-effects)
+**Primary:** Cancellation reason (why rescheduling was requested) and who requested it (the actor)  
+**Secondary:** Rescheduled flag (side-effect)
 
 ---
 

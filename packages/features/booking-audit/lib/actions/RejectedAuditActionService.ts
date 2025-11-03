@@ -1,24 +1,24 @@
 import { z } from "zod";
 import type { TFunction } from "next-i18next";
 
+
+const StringChangeSchema = z.object({
+    old: z.string().nullable(),
+    new: z.string().nullable(),
+});
+
 /**
  * Rejected primary schema
  */
 const RejectedPrimarySchema = z.object({
-    rejectionReason: z.object({
-        old: z.string().nullable(),
-        new: z.string(),
-    }),
+    rejectionReason: StringChangeSchema,
 });
 
 /**
  * Rejected secondary schema
  */
 const RejectedSecondarySchema = z.object({
-    status: z.object({
-        old: z.string().nullable(),
-        new: z.string(),
-    }).optional(),
+    status: StringChangeSchema.optional(),
 });
 
 export type RejectedPrimary = z.infer<typeof RejectedPrimarySchema>;

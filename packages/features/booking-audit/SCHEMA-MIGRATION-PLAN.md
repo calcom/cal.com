@@ -73,7 +73,8 @@ Previously only tracked new values, now track old→new:
   // Before: { cancellationReason: string }
   // After:  { 
   //   primary: { 
-  //     cancellationReason: { old: string | null, new: string }
+  //     cancellationReason: { old: string | null, new: string | null },
+  //     cancelledBy: { old: string | null, new: string | null }
   //   },
   //   secondary: {
   //     status: { old: string | null, new: string }
@@ -127,8 +128,11 @@ Complex changes splitting into primary/secondary:
   //   changes: { rescheduled: {...}, cancelledBy: {...} }
   // }
   // After:  { 
-  //   primary: { cancellationReason: { old, new } },
-  //   secondary: { rescheduled: { old, new }, cancelledBy: { old, new } }
+  //   primary: { 
+  //     cancellationReason: { old: string | null, new: string | null },
+  //     cancelledBy: { old: string | null, new: string | null }
+  //   },
+  //   secondary: { rescheduled: { old: boolean | null, new: boolean } }
   // }
   ```
 
@@ -164,13 +168,17 @@ Updated 8 files that call audit services:
 
 #### 2.1 Completed Updates
 
-1. ✅ **handleCancelBooking.ts** (line 484-506)
+1. ✅ **handleCancelBooking.ts** (line 484-510)
    ```typescript
    await bookingEventHandlerService.onBookingCancelled(bookingId, actor, {
      primary: {
        cancellationReason: {
          old: bookingToDelete.cancellationReason,
-         new: cancellationReason || "",
+         new: cancellationReason ?? null,
+       },
+       cancelledBy: {
+         old: bookingToDelete.cancelledBy,
+         new: cancelledBy ?? null,
        },
      },
      secondary: {
@@ -181,7 +189,7 @@ Updated 8 files that call audit services:
      },
    });
    ```
-   ⚠️ **Remaining**: Add `cancellationReason` to bookingToDelete query select
+   ✅ **Completed**: Added `cancellationReason` and `cancelledBy` to bookingToDelete query select
 
 2. ✅ **handleConfirmation.ts** (line 321-338)
    ```typescript
@@ -241,16 +249,28 @@ Updated 8 files that call audit services:
    });
    ```
 
-8. ✅ **requestReschedule.handler.ts** (line 160-178)
+8. ✅ **requestReschedule.handler.ts** (line 163-190)
    ```typescript
    const auditData: RescheduleRequestedAuditData = {
-     primary: { cancellationReason: { old: null, new: cancellationReason } },
+     primary: {
+       cancellationReason: {
+         old: bookingToReschedule.cancellationReason,
+         new: cancellationReason ?? null,
+       },
+       cancelledBy: {
+         old: bookingToReschedule.cancelledBy,
+         new: user.email,
+       },
+     },
      secondary: {
-       rescheduled: { old: false, new: true },
-       cancelledBy: { old: null, new: user.email },
+       rescheduled: {
+         old: bookingToReschedule.rescheduled ?? false,
+         new: true,
+       },
      },
    };
    ```
+   ✅ **Completed**: Added `cancellationReason`, `rescheduled`, and `cancelledBy` to booking query select
 
 ### ✅ Phase 3: Type Error Fixes (COMPLETED)
 

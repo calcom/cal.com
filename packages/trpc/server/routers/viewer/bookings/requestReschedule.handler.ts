@@ -83,6 +83,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       workflowReminders: true,
       responses: true,
       iCalUID: true,
+      cancellationReason: true,
+      rescheduled: true,
+      cancelledBy: true,
     },
     where: {
       uid: bookingId,
@@ -161,11 +164,20 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     const bookingEventHandlerService = getBookingEventHandlerService();
     const auditData: RescheduleRequestedAuditData = {
       primary: {
-        cancellationReason: { old: null, new: cancellationReason || "" },
+        cancellationReason: {
+          old: bookingToReschedule.cancellationReason,
+          new: cancellationReason ?? null,
+        },
+        cancelledBy: {
+          old: bookingToReschedule.cancelledBy,
+          new: user.email,
+        },
       },
       secondary: {
-        rescheduled: { old: false, new: true },
-        cancelledBy: { old: null, new: user.email },
+        rescheduled: {
+          old: bookingToReschedule.rescheduled ?? false,
+          new: true,
+        },
       },
     };
     await bookingEventHandlerService.onRescheduleRequested(

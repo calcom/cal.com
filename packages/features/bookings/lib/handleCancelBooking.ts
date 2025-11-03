@@ -490,7 +490,11 @@ async function handler(input: CancelBookingInput) {
           primary: {
             cancellationReason: {
               old: bookingToDelete.cancellationReason,
-              new: cancellationReason || "",
+              new: cancellationReason ?? null,
+            },
+            cancelledBy: {
+              old: bookingToDelete.cancelledBy,
+              new: cancelledBy ?? null,
             },
           },
           secondary: {

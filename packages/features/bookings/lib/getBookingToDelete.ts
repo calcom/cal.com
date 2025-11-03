@@ -104,6 +104,7 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       iCalSequence: true,
       status: true,
       cancellationReason: true,
+      cancelledBy: true,
     },
   });
 }

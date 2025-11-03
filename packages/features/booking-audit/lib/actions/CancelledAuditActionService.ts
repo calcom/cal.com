@@ -7,7 +7,13 @@ import type { TFunction } from "next-i18next";
 const CancelledPrimarySchema = z.object({
     cancellationReason: z.object({
         old: z.string().nullable(),
-        new: z.string(),
+        new: z.string().nullable(),
+    }),
+    
+    /** Who cancelled the booking */
+    cancelledBy: z.object({
+        old: z.string().nullable(),
+        new: z.string().nullable(),
     }),
 });
 
@@ -44,8 +50,9 @@ export class CancelledAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof CancelledAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Cancellation Reason': data.primary.cancellationReason.new,
+            'Cancellation Reason': data.primary.cancellationReason.new ?? '-',
             'Previous Reason': data.primary.cancellationReason.old ?? '-',
+            'Cancelled By': `${data.primary.cancelledBy.old ?? '-'} → ${data.primary.cancelledBy.new ?? '-'}`,
         };
     }
 }
