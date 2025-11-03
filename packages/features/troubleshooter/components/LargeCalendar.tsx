@@ -68,8 +68,8 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         start: new Date(event.start),
         end: new Date(event.end),
         options: {
-          borderColor:
-            event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : "black",
+          color:
+            event.source && calendarToColorMap[event.source] ? calendarToColorMap[event.source] : undefined,
           status: BookingStatus.ACCEPTED,
           "data-test-id": "troubleshooter-busy-event",
         },
@@ -99,7 +99,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
           start: dateOverrideStart.add(workingHoursForDay.startTime, "minutes").toDate(),
           end: dateOverrideEnd.add(workingHoursForDay.endTime, "minutes").toDate(),
           options: {
-            borderColor: "black",
+            color: "black",
             status: BookingStatus.ACCEPTED,
             "data-test-id": "troubleshooter-busy-time",
           },
@@ -122,6 +122,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
         gridCellsPerHour={60 / (event?.duration || 15)}
         hoverEventDuration={30}
         hideHeader
+        timezone={timezone}
       />
     </div>
   );
