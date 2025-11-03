@@ -12,7 +12,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/book
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { cancelAllWorkflowRemindersForReassignment } from "./lib/handleWorkflowsUpdate";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
@@ -360,34 +360,16 @@ export async function managedEventManualReassignment({
     // Calendar event creation failure is serious - should we rollback?
   }
 
-  // 9. Cancel workflow reminders for original booking
-  if (currentEventTypeDetails.workflows && currentEventTypeDetails.workflows.length > 0) {
-    try {
-      await sendCancelledReminders({
-        evt: {
-          type: currentEventTypeDetails.slug,
-          organizer: {
-            email: originalUser.email,
-            name: originalUser.name || "",
-            timeZone: originalUser.timeZone,
-            language: { translate: originalUserT, locale: originalUser.locale ?? "en" },
-          },
-          startTime: dayjs(originalBookingFull.startTime).utc().format(),
-          endTime: dayjs(originalBookingFull.endTime).utc().format(),
-          title: originalBookingFull.title,
-          uid: originalBookingFull.uid,
-          attendees: [],
-          eventType: { slug: currentEventTypeDetails.slug },
-          bookerUrl: `${originalUser.username}/${currentEventTypeDetails.slug}`,
-        },
-        workflows: currentEventTypeDetails.workflows.map(w => w.workflow),
-        smsReminderNumber: originalBookingFull.smsReminderNumber || null,
-        hideBranding: false,
-      });
-      reassignLogger.info("Cancelled workflow reminders for original booking");
-    } catch (error) {
-      reassignLogger.error("Error cancelling workflow reminders", error);
-    }
+  // 9. Cancel ALL workflow reminders for original booking
+  try {
+    const cancelResult = await cancelAllWorkflowRemindersForReassignment({
+      bookingUid: originalBookingFull.uid,
+      orgId: _orgId,
+    });
+    reassignLogger.info(`Cancelled ${cancelResult.totalCancelled} workflow reminders (${cancelResult.emailCancelled} email, ${cancelResult.smsCancelled} SMS)`);
+  } catch (error) {
+    reassignLogger.error("Error cancelling workflow reminders", error);
+    // Don't throw - workflow cancellation failure shouldn't block reassignment
   }
 
   // 10. Schedule workflow reminders for new booking
