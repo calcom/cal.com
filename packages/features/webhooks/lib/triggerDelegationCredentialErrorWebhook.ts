@@ -3,7 +3,7 @@ import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { WebhookRepository } from "./repository/WebhookRepository";
-import { sendPayload } from "./sendPayload";
+import sendPayload from "./sendPayload";
 
 const log = logger.getSubLogger({ prefix: ["triggerDelegationCredentialErrorWebhook"] });
 
