@@ -1220,8 +1220,8 @@ const NoShowAttendeesDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => setIsOpen(false)}>
-      <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")}>
-        {noShowAttendees.map((attendee) => (
+      <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")} enableOverflow>
+        {noShowAttendees.map((attendee, index) => (
           <form
             key={attendee.id}
             onSubmit={(e) => {
@@ -1231,7 +1231,10 @@ const NoShowAttendeesDialog = ({
                 attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
               });
             }}>
-            <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
+            <div
+              className={`bg-muted flex items-center justify-between px-4 py-2 ${
+                index === 0 ? "rounded-t-md" : ""
+              } ${index === noShowAttendees.length - 1 ? "rounded-b-md" : "border-subtle border-b"}`}>
               <span className="text-emphasis flex flex-col text-sm">
                 {attendee.name}
                 {attendee.email && <span className="text-muted">({attendee.email})</span>}
