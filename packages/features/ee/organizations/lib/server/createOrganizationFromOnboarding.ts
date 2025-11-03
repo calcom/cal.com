@@ -457,8 +457,11 @@ async function handleOrganizationCreation({
       logo: await resizeBase64Image(organizationOnboarding.logo),
     });
 
-    await OrganizationRepository.update({
-      id: organization.id,
+    await prisma.team.update({
+      where: {
+        id: organization.id,
+        isOrganization: true,
+      },
       data: {
         logoUrl,
       },
@@ -466,8 +469,11 @@ async function handleOrganizationCreation({
 
     organization.logoUrl = logoUrl;
   } else if (organizationOnboarding.logo) {
-    await OrganizationRepository.update({
-      id: organization.id,
+    await prisma.team.update({
+      where: {
+        id: organization.id,
+        isOrganization: true,
+      },
       data: {
         logoUrl: organizationOnboarding.logo,
       },
