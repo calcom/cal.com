@@ -450,7 +450,7 @@ const types: Types = {
 };
 
 const settings: Settings = {
-  setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
+  setOpOnChangeField: "default", // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
 };
 
 const basicConfig = {
