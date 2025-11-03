@@ -22,10 +22,10 @@ import {
   SheetBody,
   SheetHeader,
   SheetFooter,
-  SheetClose,
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 
+import { buildBookingLink } from "../lib/buildBookingLink";
 import type { BookingOutput } from "../types";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
@@ -58,6 +58,14 @@ export function BookingDetailsSheet({
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
+
+  // Build booking confirmation link
+  const isRecurring = booking.recurringEventId !== null;
+  const bookingLink = buildBookingLink({
+    bookingUid: booking.uid,
+    allRemainingBookings: isRecurring,
+    email: booking.attendees?.[0]?.email,
+  });
 
   const getStatusBadge = () => {
     switch (booking.status) {
@@ -189,7 +197,6 @@ export function BookingDetailsSheet({
                   size="sm"
                   href={locationToDisplay}
                   target="_blank"
-                  rel="noopener noreferrer"
                   className="flex items-center gap-2">
                   {provider?.iconUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -206,11 +213,9 @@ export function BookingDetailsSheet({
                 <div className="border-subtle h-3 w-px border-r" />
               </>
             )}
-            <SheetClose asChild>
-              <Button color="secondary" size="sm">
-                {t("cancel")}
-              </Button>
-            </SheetClose>
+            <Button color="secondary" size="sm" EndIcon="external-link" href={bookingLink} target="_blank">
+              {t("view_confirmation")}
+            </Button>
             <Button
               size="sm"
               onClick={() => {

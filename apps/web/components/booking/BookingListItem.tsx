@@ -56,6 +56,7 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
+import { buildBookingLink } from "../../modules/bookings/lib/buildBookingLink";
 import {
   getPendingActions,
   getCancelEventAction,
@@ -375,15 +376,11 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  const buildBookingLink = () => {
-    const urlSearchParams = new URLSearchParams({
-      allRemainingBookings: isTabRecurring.toString(),
-    });
-    if (booking.attendees?.[0]?.email) urlSearchParams.set("email", booking.attendees[0].email);
-    return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
-  };
-
-  const bookingLink = buildBookingLink();
+  const bookingLink = buildBookingLink({
+    bookingUid: booking.uid,
+    allRemainingBookings: isTabRecurring,
+    email: booking.attendees?.[0]?.email,
+  });
 
   const title = booking.title;
 
