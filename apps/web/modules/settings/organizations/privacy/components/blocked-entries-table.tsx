@@ -113,7 +113,11 @@ export function BlockedEntriesTable({ permissions, onAddClick }: BlockedEntriesT
             dashedBorder={false}
             buttonRaw={
               <div className="flex gap-2">
-                <Button StartIcon="plus" onClick={onAddClick} color="primary">
+                <Button
+                  StartIcon="plus"
+                  onClick={onAddClick}
+                  color="primary"
+                  disabled={!permissions?.canCreate}>
                   {t("add")}
                 </Button>
                 <Button StartIcon="book" color="secondary">

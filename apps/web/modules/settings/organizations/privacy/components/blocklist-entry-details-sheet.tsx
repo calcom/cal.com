@@ -113,7 +113,7 @@ export function BlocklistEntryDetailsSheet({
               </div>
 
               <div className="bg-subtle rounded-xl p-1">
-                <h2 className="text-default p-5 text-sm font-semibold">{t("History")}</h2>
+                <h2 className="text-default p-5 text-sm font-semibold">{t("history")}</h2>
                 {data.auditHistory.length > 0 ? (
                   <div className="space-y-3">
                     {data.auditHistory.map((audit) => (
