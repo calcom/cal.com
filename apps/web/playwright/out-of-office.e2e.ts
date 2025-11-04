@@ -653,11 +653,12 @@ test.describe("Out of office", () => {
     test("Default date range filter set to `Last 7 Days`", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
-      await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
-      await page.waitForResponse(
+      const responsePromise = page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await responsePromise;
       await addFilter(page, "dateRange");
       await expect(
         page.locator('[data-testid="filter-popover-trigger-dateRange"]', { hasText: "Last 7 Days" }).first()
@@ -667,11 +668,12 @@ test.describe("Out of office", () => {
     test("Can choose date range presets", async ({ page, users }) => {
       const user = await users.create({ name: `userOne=${Date.now()}` });
       await user.apiLogin();
-      await page.goto("/settings/my-account/out-of-office");
-      await page.waitForLoadState("domcontentloaded");
-      await page.waitForResponse(
+      const responsePromise = page.waitForResponse(
         (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
       );
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await responsePromise;
       await addFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible(); //Today
