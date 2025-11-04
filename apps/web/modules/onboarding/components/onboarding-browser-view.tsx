@@ -4,7 +4,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 export const OnboardingBrowserView = () => {
   return (
-    <div className="hidden lg:flex lg:items-start lg:justify-center">
+    <div className="hidden h-full w-full lg:flex lg:items-start lg:justify-center">
       <div className="sticky top-8 w-full max-w-[640px]">
         {/* Browser container */}
         <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-tl-2xl rounded-tr-2xl border border-b-0">

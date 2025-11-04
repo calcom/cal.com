@@ -107,7 +107,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       <OnboardingContinuationPrompt />
       <OnboardingLayout userEmail={userEmail} currentStep={1}>
         {/* Left column - Main content */}
-        <div className="flex w-full flex-col gap-6 py-6">
+        <div className="flex h-full w-full flex-col gap-6 py-6">
           {/* Header Section */}
           <div className="flex w-full flex-col gap-1">
             <h1 className="font-cal text-2xl font-semibold leading-7">Select plan</h1>
@@ -172,29 +172,15 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
         </div>
 
         {/* Right column - Icon display */}
-        <div className="bg-muted border-subtle hidden w-full rounded-l-2xl border-b border-l border-t lg:flex lg:h-full lg:items-center lg:justify-center">
+        <div className="bg-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t lg:flex lg:items-center lg:justify-center">
           <AnimatePresence mode="wait">
             {selectedPlanData && (
-              <motion.div
+              <PlanIcon
                 key={selectedPlan}
-                initial={{
-                  opacity: 0,
-                  y: direction === "down" ? -20 : 20,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                exit={{
-                  opacity: 0,
-                  y: direction === "down" ? 20 : -20,
-                }}
-                transition={{
-                  duration: 0.5,
-                  ease: "easeInOut",
-                }}>
-                <PlanIcon icon={selectedPlanData.icon} variant={selectedPlanData.variant} />
-              </motion.div>
+                icon={selectedPlanData.icon}
+                variant={selectedPlanData.variant}
+                animationDirection={direction}
+              />
             )}
           </AnimatePresence>
         </div>

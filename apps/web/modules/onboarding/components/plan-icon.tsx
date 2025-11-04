@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+
 import classNames from "@calcom/ui/classNames";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
@@ -19,19 +21,36 @@ const TEAM_ICON_POSITIONS = [
 export function PlanIcon({
   icon,
   variant = "single",
+  animationDirection = "down",
 }: {
   icon: IconName;
   variant?: "single" | "organization" | "team";
+  animationDirection?: "up" | "down";
 }) {
   const renderIconContainer = (index: number) => {
-    const leftPosition = "50%";
-
     return (
-      <div
-        key={index}
-        className="bg-default absolute flex h-[80px] w-[80px] -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-clip rounded-full"
+      <motion.div
+        key={`main-icon-${variant}-${icon}`}
+        initial={{
+          opacity: 0,
+          y: (animationDirection === "down" ? -20 : 20) - 40, // -40 is half of 80px for centering
+        }}
+        animate={{
+          opacity: 1,
+          y: -40, // Centered position (half of 80px)
+        }}
+        exit={{
+          opacity: 0,
+          y: (animationDirection === "down" ? 20 : -20) - 40,
+        }}
+        transition={{
+          duration: 0.5,
+          ease: "easeInOut",
+        }}
+        className="bg-default absolute flex h-[80px] w-[80px] items-center justify-center overflow-clip rounded-full"
         style={{
-          left: leftPosition,
+          x: "-50%",
+          left: "50%",
           top: "50%",
           background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-muted, #f7f7f7))",
           boxShadow:
@@ -55,11 +74,11 @@ export function PlanIcon({
             opacity: 0.15,
           }}
         />
-      </div>
+      </motion.div>
     );
   };
 
-  const renderSmallUserIcon = (ringIndex: number, angle: number) => {
+  const renderSmallUserIcon = (ringIndex: number, angle: number, index: number) => {
     const ringSize = RING_SIZES[ringIndex];
     const radius = ringSize / 2;
     const angleRad = (angle * Math.PI) / 180;
@@ -67,14 +86,33 @@ export function PlanIcon({
     // Calculate position on the ring
     const x = Math.cos(angleRad) * radius;
     const y = Math.sin(angleRad) * radius;
+    const iconHalfSize = 20.25; // Half of 40.5px
 
     return (
-      <div
-        key={`${ringIndex}-${angle}`}
-        className="bg-default absolute flex h-[40.5px] w-[40.5px] -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-clip rounded-full shadow-[0px_2.075px_4.15px_0px_rgba(34,42,53,0.05),0px_0px_0px_0.519px_rgba(34,42,53,0.08),0px_0.519px_2.594px_-2.075px_rgba(19,19,22,0.7)]"
+      <motion.div
+        key={`small-icon-${variant}-${ringIndex}-${angle}`}
+        initial={{
+          opacity: 0,
+          y: y - iconHalfSize + (animationDirection === "down" ? -20 : 20),
+        }}
+        animate={{
+          opacity: 1,
+          y: y - iconHalfSize,
+        }}
+        exit={{
+          opacity: 0,
+          y: y - iconHalfSize + (animationDirection === "down" ? 20 : -20),
+        }}
+        transition={{
+          duration: 0.5,
+          ease: "easeInOut",
+          delay: index * 0.05, // Stagger animation for small icons
+        }}
+        className="bg-default absolute flex h-[40.5px] w-[40.5px] items-center justify-center overflow-clip rounded-full shadow-[0px_2.075px_4.15px_0px_rgba(34,42,53,0.05),0px_0px_0px_0.519px_rgba(34,42,53,0.08),0px_0.519px_2.594px_-2.075px_rgba(19,19,22,0.7)]"
         style={{
-          left: `calc(50% + ${x}px)`,
-          top: `calc(50% + ${y}px)`,
+          x: x - iconHalfSize,
+          left: "50%",
+          top: "50%",
           background: "linear-gradient(to bottom, var(--cal-bg, #ffffff), var(--cal-bg-muted, #f7f7f7))",
         }}>
         <div className="flex items-center justify-center opacity-70">
@@ -87,7 +125,7 @@ export function PlanIcon({
             opacity: 0.15,
           }}
         />
-      </div>
+      </motion.div>
     );
   };
 
@@ -117,7 +155,9 @@ export function PlanIcon({
 
       {/* Small user icons on rings (for team variant) */}
       {(variant === "team" || variant === "organization") &&
-        TEAM_ICON_POSITIONS.map(({ ringIndex, angle }) => renderSmallUserIcon(ringIndex, angle))}
+        TEAM_ICON_POSITIONS.map(({ ringIndex, angle }, index) =>
+          renderSmallUserIcon(ringIndex, angle, index)
+        )}
 
       {renderIconContainer(0)}
     </div>

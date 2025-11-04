@@ -119,7 +119,7 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={4}>
       {/* Left column - Main content */}
-      <div className="flex w-full flex-col gap-6">
+      <div className="flex h-full w-full flex-col gap-6">
         <OnboardingCard
           title={t("connect_video_app")}
           subtitle={t("video_app_connection_subtitle")}
