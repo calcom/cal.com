@@ -12,7 +12,7 @@ type OnboardingCardProps = {
 
 export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }: OnboardingCardProps) => {
   return (
-    <div className="relative flex h-full w-full flex-col">
+    <div className="relative flex h-full min-h-0 w-full flex-col">
       {/* Card Header */}
       <div className="flex w-full gap-1.5 px-5 py-4">
         <div className="flex w-full flex-col gap-1">
@@ -22,7 +22,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
       </div>
 
       {/* Content */}
-      <div className="flex w-full flex-col gap-4">
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-4">
         {isLoading ? (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <SkeletonText className="h-40 w-full" />

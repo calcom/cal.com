@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
 type OnboardingLayoutProps = {
@@ -22,34 +21,17 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
   };
 
   return (
-    <div className="bg-muted flex min-h-screen w-full flex-col items-start overflow-clip rounded-[12px]">
-      {/* Header */}
-      <div className="3xl:max-w-[2000px] 4xl:max-w-[2400px] mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-6 lg:max-w-[1400px] lg:px-[176px] xl:max-w-[1600px] 2xl:max-w-[1800px]">
-        <Logo className="h-5 w-auto" />
-        <div className="flex items-center gap-2">
-          <div className="flex items-center">
-            <p className="text-default text-sm font-medium leading-none">{userEmail}</p>
-          </div>
-          <div className="relative h-[5px] w-[5px] shrink-0">
-            <Icon name="dot" className="text-muted h-[5px] w-[5px]" />
-          </div>
-          <Button onClick={handleSignOut} color="minimal" className="text-subtle h-7">
-            {t("sign_out")}
-          </Button>
+    <div className="bg-muted flex min-h-screen w-full flex-col items-center justify-between overflow-clip rounded-[12px] px-6 py-10">
+      {/* Logo and container - centered */}
+      <div className="flex w-full flex-1 flex-col items-center justify-center gap-8">
+        <Logo className="h-5 w-auto shrink-0" />
+        <div className="border-subtle bg-default grid w-full max-w-[564px] grid-cols-1 gap-6 rounded-2xl border px-12 py-10 xl:max-w-[1130px] xl:grid-cols-2 [&>*:nth-child(2)]:hidden xl:[&>*:nth-child(2)]:flex [&>*]:flex [&>*]:h-full [&>*]:max-h-[690px] [&>*]:w-full [&>*]:max-w-[564px] [&>*]:flex-col">
+          {children}
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="mx-auto flex w-full flex-1 items-center justify-center px-6 py-10">
-        <div className="bg-default border-subtle h-full max-h-[690px] overflow-hidden rounded-2xl border px-14 py-10">
-          <div className="grid h-full grid-cols-1 items-stretch gap-6 xl:grid-cols-[40%_60%] [&>*:nth-child(2)]:hidden xl:[&>*:nth-child(2)]:block">
-            {children}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer with progress dots */}
-      <div className="flex w-full items-center justify-center px-10 py-8">
+      {/* Footer with progress dots and sign out */}
+      <div className="flex w-full flex-col items-center justify-center gap-4 px-10 py-8">
         <div className="flex items-center gap-2">
           {[1, 2, 3, 4].map((step) => (
             <div key={step} className="relative flex h-2 w-2 shrink-0 items-center justify-center">
@@ -62,6 +44,9 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
             </div>
           ))}
         </div>
+        <Button onClick={handleSignOut} color="minimal" className="text-subtle h-7">
+          {t("sign_out")}
+        </Button>
       </div>
     </div>
   );

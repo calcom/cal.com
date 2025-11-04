@@ -14,6 +14,7 @@ import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
 import { PlanIcon } from "../components/plan-icon";
+import { OnboardingCard } from "../personal/_components/OnboardingCard";
 import { OnboardingLayout } from "../personal/_components/OnboardingLayout";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
@@ -90,6 +91,22 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       icon: planIconByType.organization,
       variant: "organization" as const,
     },
+    {
+      id: "organization" as PlanType,
+      title: t("onboarding_plan_organization_title"),
+      badge: t("onboarding_plan_organization_badge"),
+      description: t("onboarding_plan_organization_description"),
+      icon: planIconByType.organization,
+      variant: "organization" as const,
+    },
+    {
+      id: "organization" as PlanType,
+      title: t("onboarding_plan_organization_title"),
+      badge: t("onboarding_plan_organization_badge"),
+      description: t("onboarding_plan_organization_description"),
+      icon: planIconByType.organization,
+      variant: "organization" as const,
+    },
   ];
 
   // Only show organization plan for company emails
@@ -107,18 +124,17 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       <OnboardingContinuationPrompt />
       <OnboardingLayout userEmail={userEmail} currentStep={1}>
         {/* Left column - Main content */}
-        <div className="flex h-full w-full flex-col gap-6 py-6">
-          {/* Header Section */}
-          <div className="flex w-full flex-col gap-1">
-            <h1 className="font-cal text-2xl font-semibold leading-7">Select plan</h1>
-            <p className="text-subtle text-sm font-normal leading-normal">
-              {t("onboarding_welcome_question")}
-            </p>
-          </div>
-
+        <OnboardingCard
+          title="Select plan"
+          subtitle={t("onboarding_welcome_question")}
+          footer={
+            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+              {t("continue")}
+            </Button>
+          }>
           {/* Card */}
-          <div className="bg-muted border-muted relative rounded-xl border p-1">
-            <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
+          <div className="bg-muted border-muted relative flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl border p-1">
+            <div className="rounded-inherit flex h-full w-full flex-col items-start overflow-clip">
               {/* Plan options */}
               <RadioAreaGroup.Group
                 value={selectedPlan ?? undefined}
@@ -162,14 +178,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
               </RadioAreaGroup.Group>
             </div>
           </div>
-
-          {/* Continue Button - Outside card but inside left column */}
-          <div className="flex w-full items-center justify-end">
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-              {t("continue")}
-            </Button>
-          </div>
-        </div>
+        </OnboardingCard>
 
         {/* Right column - Icon display */}
         <div className="bg-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
