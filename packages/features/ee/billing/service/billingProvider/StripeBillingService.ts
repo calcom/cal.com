@@ -1,4 +1,4 @@
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
 import logger from "@calcom/lib/logger";
 
@@ -6,12 +6,7 @@ import { SubscriptionStatus } from "../../repository/billing/IBillingRepository"
 import type { IBillingProviderService } from "./IBillingProviderService";
 
 export class StripeBillingService implements IBillingProviderService {
-  private stripe: Stripe;
-  constructor() {
-    this.stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY!, {
-      apiVersion: "2020-08-27",
-    });
-  }
+  constructor(private stripe: Stripe) {}
 
   async createCustomer(args: Parameters<IBillingProviderService["createCustomer"]>[0]) {
     const { email, metadata } = args;
@@ -143,9 +138,11 @@ export class StripeBillingService implements IBillingProviderService {
   async handleSubscriptionUpdate(args: Parameters<IBillingProviderService["handleSubscriptionUpdate"]>[0]) {
     const { subscriptionId, subscriptionItemId, membershipCount } = args;
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+    console.log("subscription", subscription);
     const subscriptionQuantity = subscription.items.data.find(
       (sub) => sub.id === subscriptionItemId
     )?.quantity;
+    console.log("subscriptionQuantity", subscriptionQuantity);
     if (!subscriptionQuantity) throw new Error("Subscription not found");
     await this.stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],
