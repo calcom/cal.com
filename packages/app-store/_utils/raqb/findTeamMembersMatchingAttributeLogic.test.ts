@@ -1498,7 +1498,7 @@ describe("prepareQueryValueForEvaluation - Case-insensitive normalization", () =
       rules: [
         {
           raqbFieldId: NumberAttribute.id,
-          value: [100], // Number value, not string
+          value: ["100"], // Number value as string for RAQB v6
           operator: "select_equals",
         },
       ],
@@ -1748,8 +1748,9 @@ describe("Early validation warnings for invalid values", () => {
     });
 
     // Should generate warning for the first invalid value found
-    expect(mainAttributeLogicBuildingWarnings.length).toBeGreaterThan(0);
-    expect(mainAttributeLogicBuildingWarnings[0]).toContain("is not in list of values");
+    expect(mainAttributeLogicBuildingWarnings).toBeDefined();
+    expect(mainAttributeLogicBuildingWarnings?.length).toBeGreaterThan(0);
+    expect(mainAttributeLogicBuildingWarnings?.[0]).toContain("is not in list of values");
   });
 
   it("should handle children1 as array format for validation", async () => {
