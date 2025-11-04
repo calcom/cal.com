@@ -49,8 +49,34 @@ export function Event({
 
   const Component = onEventClick ? "button" : "div";
 
+  const tooltipContent = (
+    <div className="flex min-w-[200px] max-w-[300px] flex-col gap-1 py-1">
+      <div className="flex items-start gap-2">
+        {options?.color && (
+          <div className="mt-1 h-3 w-1 shrink-0 rounded-sm" style={{ backgroundColor: options.color }}></div>
+        )}
+        <div className="flex-1">
+          <div className="font-semibold leading-tight">{event.title}</div>
+          {!event.options?.hideTime && (
+            <div className="text-inverted-muted mt-1 text-xs">
+              {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+            </div>
+          )}
+          {event.description && (
+            <div className="text-inverted-muted mt-1 text-xs leading-snug">{event.description}</div>
+          )}
+          {options?.status && options.status !== "ACCEPTED" && (
+            <div className="text-inverted-muted mt-1 text-xs capitalize">
+              {options.status.toLowerCase().replace("_", " ")}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <Tooltip content={event.title}>
+    <Tooltip content={tooltipContent} className="max-w-none">
       <Component
         onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
         className={classNames(
