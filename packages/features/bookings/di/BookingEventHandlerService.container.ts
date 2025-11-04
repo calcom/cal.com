@@ -1,6 +1,4 @@
 import { createContainer } from "@calcom/features/di/di";
-import { loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
-import { SHARED_TOKENS } from "@calcom/features/di/shared/shared.tokens";
 
 import {
   type BookingEventHandlerService,
@@ -9,10 +7,9 @@ import {
 
 const container = createContainer();
 
-export function getBookingEventHandlerService(): BookingEventHandlerService {
-  // Load logger module
-  container.load(SHARED_TOKENS.LOGGER, loggerServiceModule);
-  
+export function getBookingEventHandlerService() {
+
+  // Load the booking event handler module
   bookingEventHandlerServiceModule.loadModule(container);
 
   return container.get<BookingEventHandlerService>(bookingEventHandlerServiceModule.token);
