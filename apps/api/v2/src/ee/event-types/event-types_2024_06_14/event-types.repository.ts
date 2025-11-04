@@ -93,6 +93,14 @@ export class EventTypesRepository_2024_06_14 {
     });
   }
 
+  async getEventTypeSlugById(eventTypeId: number): Promise<string | null> {
+    const result = await this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { slug: true },
+    });
+    return result?.slug ?? null;
+  }
+
   async getEventTypeByIdIncludeUsersAndTeam(eventTypeId: number) {
     const eventType = await this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },

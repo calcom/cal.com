@@ -4,6 +4,7 @@ import {
   PrivateLinksOutputService,
   type PrivateLinkData,
 } from "@/ee/event-types-private-links/services/private-links-output.service";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 
 import { getOrgFullOrigin } from "@calcom/platform-libraries/private-links";
@@ -15,7 +16,8 @@ export class PrivateLinksService {
   constructor(
     private readonly inputService: PrivateLinksInputService,
     private readonly outputService: PrivateLinksOutputService,
-    private readonly repo: PrivateLinksRepository
+    private readonly repo: PrivateLinksRepository,
+    private readonly eventTypesRepository: EventTypesRepository_2024_06_14
   ) {}
 
   async createPrivateLink(
@@ -32,7 +34,8 @@ export class PrivateLinksService {
         expiresAt: transformedInput.expiresAt ?? null,
         maxUsageCount: transformedInput.maxUsageCount ?? null,
       });
-      const bookingUrl = this.generateBookingUrl(created.link, orgSlug, eventTypeSlug);
+      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
+      const bookingUrl = this.generateBookingUrl(created.link, orgSlug, resolvedSlug);
       const mapped: PrivateLinkData = {
         id: created.link,
         eventTypeId,
@@ -58,11 +61,12 @@ export class PrivateLinksService {
   ): Promise<PrivateLinkOutput[]> {
     try {
       const links = await this.repo.listByEventTypeId(eventTypeId);
+      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
       const mapped: PrivateLinkData[] = links.map((l) => ({
         id: l.link,
         eventTypeId,
         isExpired: isLinkExpired(l),
-        bookingUrl: this.generateBookingUrl(l.link, orgSlug, eventTypeSlug),
+        bookingUrl: this.generateBookingUrl(l.link, orgSlug, resolvedSlug),
         expiresAt: l.expiresAt ?? null,
         maxUsageCount: l.maxUsageCount ?? null,
         usageCount: l.usageCount ?? 0,
@@ -94,7 +98,8 @@ export class PrivateLinksService {
       }
       const updated = await this.repo.findWithEventTypeDetails(transformedInput.linkId);
       if (!updated) throw new NotFoundException("Updated link not found");
-      const bookingUrl = this.generateBookingUrl(updated.link, orgSlug, eventTypeSlug);
+      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
+      const bookingUrl = this.generateBookingUrl(updated.link, orgSlug, resolvedSlug);
       const mapped: PrivateLinkData = {
         id: updated.link,
         eventTypeId,
@@ -131,6 +136,15 @@ export class PrivateLinksService {
       }
       throw new BadRequestException("Failed to delete private link");
     }
+  }
+
+  private async resolveEventTypeSlug(
+    eventTypeId: number,
+    providedSlug?: string
+  ): Promise<string | undefined> {
+    if (providedSlug) return providedSlug;
+    const slug = await this.eventTypesRepository.getEventTypeSlugById(eventTypeId);
+    return slug ?? undefined;
   }
 
   private generateBookingUrl(hashedLink: string, orgSlug?: string, eventTypeSlug?: string): string {
