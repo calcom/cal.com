@@ -223,7 +223,7 @@ model EventType {
   hideOrganizerEmail                       Boolean                   @default(false)
   maxActiveBookingsPerBooker               Int?
   maxActiveBookingPerBookerOfferReschedule Boolean                   @default(false)
-  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
+  /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   customReplyToEmail                       String?
   calVideoSettings                         CalVideoSettings?
 
@@ -243,6 +243,8 @@ model EventType {
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
+
+  // @@partial_index([instantMeetingScheduleId])
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -298,7 +300,7 @@ model DestinationCalendar {
   id                               Int                   @id @default(autoincrement())
   integration                      String
   externalId                       String
-  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
+  /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   primaryEmail                     String?
   user                             User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                           Int?                  @unique
@@ -347,9 +349,10 @@ model TravelSchedule {
 // It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
   id                  Int                  @id @default(autoincrement())
+  uuid                String               @unique @default(uuid()) @db.Uuid
   username            String?
   name                String?
-  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
+  /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   email               String
   emailVerified       DateTime?
   password            UserPassword?
@@ -639,6 +642,8 @@ model CreditExpenseLog {
   callDuration    Int?
   creditFor       CreditUsageType?
   externalRef     String?          @unique
+
+  // @@partial_index([bookingUid])
 }
 
 enum CreditType {
@@ -791,7 +796,7 @@ model Booking {
   user                         User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                       Int?
   // User's email at the time of booking
-  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
+  /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   userPrimaryEmail             String?
   references                   BookingReference[]
   eventType                    EventType?                        @relation(fields: [eventTypeId], references: [id])
@@ -837,9 +842,9 @@ model Booking {
   noShowHost                   Boolean?                          @default(false)
   scheduledTriggers            WebhookScheduledTriggers[]
   oneTimePassword              String?                           @unique @default(uuid())
-  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
+  /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   cancelledBy                  String?
-  /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
+  /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   rescheduledBy                String?
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
@@ -850,6 +855,8 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+
+  // @@partial_index([reassignById])
 
   @@index([eventTypeId])
   @@index([userId])
@@ -1574,6 +1581,8 @@ model WebhookScheduledTriggers {
   webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
   bookingId     Int?
   booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  // @@partial_index([bookingId])
 }
 
 enum WorkflowTemplates {
@@ -2357,6 +2366,12 @@ enum BookingReportReason {
   OTHER
 }
 
+enum BookingReportStatus {
+  PENDING // Initial state - awaiting review
+  DISMISSED // User clicked "Don't block"
+  BLOCKED // Added to watchlist
+}
+
 model BookingReport {
   id             String              @id @default(uuid()) @db.Uuid
   bookingUid     String              @unique
@@ -2369,6 +2384,7 @@ model BookingReport {
   cancelled      Boolean             @default(false)
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+  status         BookingReportStatus @default(PENDING)
 
   watchlistId String? @db.Uuid
 
