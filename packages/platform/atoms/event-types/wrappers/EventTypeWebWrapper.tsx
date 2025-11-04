@@ -55,8 +55,9 @@ const AssignmentWarningDialog = dynamic(
 );
 
 const EventSetupTab = dynamic(() =>
-  // import web wrapper when it's ready
-  import("./EventSetupTabWebWrapper").then((mod) => mod)
+    // import web wrapper when it's ready
+    import("./EventSetupTabWebWrapper").then((mod) => mod),
+  { loading: () => null }
 );
 
 const EventAvailabilityTab = dynamic(() =>
@@ -169,7 +170,7 @@ const EventTypeWeb = ({
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
-  const { data: eventTypeApps } = trpc.viewer.apps.integrations.useQuery({
+  const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
@@ -177,7 +178,7 @@ const EventTypeWeb = ({
 
   // Check workflow permissions
   const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
-  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+  const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
 
@@ -282,11 +283,18 @@ const EventTypeWeb = ({
         user={user}
         isUserLoading={isLoggedInUserPending}
         showToast={showToast}
+        orgId={orgBranding?.id ?? null}
       />
     ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
+    apps: (
+      <EventAppsTab
+        eventType={{ ...eventType, URL: permalink }}
+        eventTypeApps={eventTypeApps}
+        isPendingApps={isPendingApps}
+      />
+    ),
     workflows:
       allActiveWorkflows && canReadWorkflows ? (
         <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />

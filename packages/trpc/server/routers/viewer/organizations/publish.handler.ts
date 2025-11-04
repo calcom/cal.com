@@ -1,8 +1,9 @@
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +21,21 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
   if (!orgId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You do not have an organization to upgrade" });
 
-  if (!(await isOrganisationAdmin(ctx.user.id, orgId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+  // Check if user has permission to publish the organization
+  const permissionCheckService = new PermissionCheckService();
+  const hasPermission = await permissionCheckService.checkPermission({
+    userId: ctx.user.id,
+    teamId: orgId,
+    permission: "organization.update",
+    fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
+  });
+
+  if (!hasPermission) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to publish this organization",
+    });
+  }
 
   const prevTeam = await prisma.team.findUnique({
     where: {
