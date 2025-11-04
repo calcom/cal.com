@@ -13,7 +13,11 @@ import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availabil
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-view";
+import {
+  AvailabilityList,
+  AvailabilityCTA,
+  MobileAvailabilityButton,
+} from "~/availability/availability-view";
 
 import { ShellMainAppDir } from "../ShellMainAppDir";
 
@@ -77,17 +81,18 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   const canViewTeamAvailability = isOrgAdminOrOwner || !isOrgPrivate;
 
   return (
-    <ShellMainAppDir heading={t("availability")} subtitle={t("configure_availability")}>
-      {/* CTA={ */}
-      <div className="mb-6 flex items-center justify-end">
+    <ShellMainAppDir
+      heading={t("availability")}
+      subtitle={t("configure_availability")}
+      MobileCTA={<MobileAvailabilityButton />}
+      CTA={
         <AvailabilityCTA
           toggleGroupOptions={[
             { value: "mine", label: t("my_availability") },
             ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability") }] : []),
           ]}
         />
-      </div>
-      {/* }> */}
+      }>
       {searchParams?.type === "team" && canViewTeamAvailability ? (
         <AvailabilitySliderTable isOrg={!!organizationId} />
       ) : (

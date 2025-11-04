@@ -21,6 +21,18 @@
   "number_of_occurrences":"Number of occurrences",
   "book_members":"Book Members",
   "view_schedule":"View Schedule",
+  "redirecting": "Redirecting...",
+  "open_in_browser_required": "Open in Browser Required",
+  "if_browser_did_not_open":"If your browser didn't open automatically, please tap the button below.",
+  "for_security_google_sign_in": "For security, Google sign-in must open in your device's browser (Safari, Chrome, etc.).",
+  "try_opening_browser": "Try opening in browser",
+  "manual_instructions": "Manual Instructions",
+  "complete_signin_in_opened_browser": "Complete sign-in in the opened browser",
+  "workflow_filter_text": "{{filter}} and {{count}} more",
+  "use_template": "Use Template",
+  "add_custom": "Add custom",
+  "book_members": "Book Members",
+  "view_schedule": "View Schedule",
   "members_bookings": "Member's bookings",
   "business_type": "Business type",
   "change_icon": "Change icon",
@@ -3608,7 +3620,5 @@
   "create_new_team_event_type_description": "Create a new event type for people to book times with.",
   "username_required": "Username is required",
   "username_available": "Username available",
-  "checking_username_availability": "Checking username availability",
-  "avail_offer": "Avail Offer",
-  "avail_offer_description": "Special offers for your account"
+  "checking_username_availability": "Checking username availability"
 }

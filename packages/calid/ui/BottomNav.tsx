@@ -1,3 +1,4 @@
+import { ProBadge } from "@calid/features/modules/claim-pro/ProBadge";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -7,11 +8,13 @@ import {
   WEBSITE_PRIVACY_POLICY_URL,
   WEBSITE_TERMS_URL,
 } from "@calcom/lib/constants";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const CalIDVersion = `v${CALID_VERSION}`;
 
 export default function BottomNav() {
   const [hasMounted, setHasMounted] = useState(false);
+  const { data: user } = useMeQuery();
 
   useEffect(() => {
     setHasMounted(true);
@@ -19,6 +22,12 @@ export default function BottomNav() {
 
   return (
     <div className="text-default flex hidden pb-4 text-xs lg:block">
+      {user?.metadata?.isProUser?.yearClaimed > 0 && user?.metadata?.isProUser?.verified && (
+        <ProBadge
+          yearClaimed={user.metadata.isProUser.yearClaimed}
+          validTillDate={user.metadata.isProUser.validTillDate}
+        />
+      )}
       <div className="flex justify-between">
         <Link href={WEBSITE_PRIVACY_POLICY_URL} target="_blank" className="hover:underline">
           Privacy Policy

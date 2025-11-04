@@ -352,6 +352,14 @@ export const userMetadata = z
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
+    isProUser: z
+      .object({
+        yearClaimed: z.number().optional().default(0),
+        formSubmittedForYear: z.number().optional(),
+        validTillDate: z.string().optional(),
+        verified: z.boolean().optional().default(false),
+      })
+      .optional(),
     sessionTimeout: z.number().optional(), // Minutes
     defaultConferencingApp: schemaDefaultConferencingApp.optional(),
     defaultBookerLayouts: bookerLayouts.optional(),

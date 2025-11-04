@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import React, { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import classNames from "@calcom/ui/classNames";
 import type { IconName } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
@@ -48,6 +49,7 @@ export type NavigationItemType = {
   onlyMobile?: boolean;
   onlyDesktop?: boolean;
   moreOnMobile?: boolean;
+  shouldDisplay?: (user?: { metadata?: { isProUser?: { yearClaimed?: number } } }) => boolean;
   isCurrent?: ({
     item,
     isChild,
@@ -70,12 +72,19 @@ export const NavigationItem: React.FC<{
 }> = (props) => {
   const { item, isChild } = props;
   const { t, isLocaleReady } = useLocale();
+  const { data: user, isLoading: userLoading } = useMeQuery();
   const pathname = usePathname();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
   const current = isCurrent({ isChild: !!isChild, item, pathname });
   const shouldDisplayNavigationItem = useShouldDisplayNavigationItem(props.item);
   const [isExpanded, setIsExpanded] = usePersistedExpansionState(item.name);
 
+  // Check if item should be displayed based on user data
+  if (item.shouldDisplay) {
+    // If user is still loading, don't show items that depend on user data
+    if (userLoading) return null;
+    if (!item.shouldDisplay(user)) return null;
+  }
   if (!shouldDisplayNavigationItem) return null;
 
   const hasChildren = item.child && item.child.length > 0;
@@ -102,7 +111,7 @@ export const NavigationItem: React.FC<{
               isLocaleReady
                 ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : "",
-              item.name === "avail_offer" ? "offer-moving-bg" : ""
+              item.name === "Claim Pro" ? "offer-moving-bg" : ""
             )}>
             {item.icon && (
               <Icon
@@ -147,7 +156,7 @@ export const NavigationItem: React.FC<{
               isLocaleReady
                 ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : "",
-              item.name === "avail_offer" ? "offer-moving-bg" : ""
+              item.name === "Claim Pro" ? "offer-moving-bg" : ""
             )}
             aria-current={current ? "page" : undefined}>
             {item.icon && (
@@ -192,7 +201,7 @@ export const NavigationItem: React.FC<{
               isLocaleReady
                 ? "hover:bg-emphasis todesktop:[&[aria-current='page']]:bg-emphasis todesktop:hover:bg-transparent hover:text-emphasis"
                 : "",
-              item.name === "avail_offer" ? "offer-moving-bg" : ""
+              item.name === "Claim Pro" ? "offer-moving-bg" : ""
             )}
             aria-current={current ? "page" : undefined}>
             {item.icon && (

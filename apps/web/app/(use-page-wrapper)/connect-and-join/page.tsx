@@ -1,8 +1,9 @@
 import { _generateMetadata } from "app/_utils";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+// import LegacyPage from "~/connect-and-join/connect-and-join-view";
+import CalidConnectAndJoin from "../../../../../packages/calid/modules/instant-meeting/connect-and-join-view";
 
-import LegacyPage from "~/connect-and-join/connect-and-join-view";
+// /calid/modules/instant-meeting/connect-and-join-view.tsx"
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -16,9 +17,10 @@ export const generateMetadata = async () => {
 
 const ServerPage = async () => {
   return (
-    <LicenseRequired>
-      <LegacyPage />
-    </LicenseRequired>
+    // <LicenseRequired>
+    // <LegacyPage />
+    // </LicenseRequired>
+    <CalidConnectAndJoin />
   );
 };
 export default ServerPage;

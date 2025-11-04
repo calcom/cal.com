@@ -28,7 +28,6 @@ import { signOut, useSession } from "next-auth/react";
 import { useMemo } from "react";
 import type { BaseSyntheticEvent } from "react";
 import React, { useRef, useState } from "react";
-import { Controller, type Control } from "react-hook-form";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 

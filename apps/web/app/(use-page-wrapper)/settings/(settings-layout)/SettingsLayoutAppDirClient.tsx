@@ -410,7 +410,7 @@ const SettingsSidebarContainer = ({
       aria-label={t("settings_navigation")}>
       <>
         <Logo className="mb-4 mt-6 px-2" small icon />
-        <div style={{ marginTop: "32px" }}>
+        <div style={{ marginTop: "22px" }}>
           <BackButtonInSidebar name={t("back")} />
           {tabsWithPermissions.map((tab) => {
             return (

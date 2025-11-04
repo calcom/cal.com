@@ -17,7 +17,7 @@ export function Logo({
     <h3 className={cn("logo", inline && "inline", className)}>
       {icon ? (
         <div className="flex items-center justify-center space-x-2 md:justify-start">
-          <img className="md:h-6 w-20 dark:invert" alt="Cal ID" title="Cal ID" src={`${src}?type=icon`} />
+          <img className="w-20 md:h-6 dark:invert" alt="Cal ID" title="Cal ID" src={`${src}?type=icon`} />
         </div>
       ) : (
         <img

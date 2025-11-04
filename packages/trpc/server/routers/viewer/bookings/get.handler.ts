@@ -535,6 +535,7 @@ export async function getBookings({
                 "EventType.seatsShowAvailabilityCount",
                 "EventType.eventTypeColor",
                 "EventType.customReplyToEmail",
+                "EventType.bookingFields",
                 "EventType.allowReschedulingPastBookings",
                 "EventType.hideOrganizerEmail",
                 "EventType.disableCancelling",
