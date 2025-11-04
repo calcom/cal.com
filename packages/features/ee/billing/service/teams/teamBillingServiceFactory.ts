@@ -5,52 +5,49 @@ import type { ITeamBillingService, TeamBillingInput } from "./ITeamBillingServic
 import { StubTeamBillingService } from "./stubTeamBillingService";
 import { TeamBillingService } from "./teamBillingService";
 
-export class TeamBillingServiceFactory {
-  private billingProviderService: IBillingProviderService;
-  private teamBillingDataRepository: ITeamBillingDataRepository;
-  private billingRepository: IBillingRepository;
-  private isTeamBillingEnabled: boolean;
+// Export the interface for type safety in DI modules
+export interface ITeamBillingServiceFactoryDeps {
+  billingProviderService: IBillingProviderService;
+  teamBillingDataRepository: ITeamBillingDataRepository;
+  billingRepositoryFactory: (isOrganization: boolean) => IBillingRepository;
+  isTeamBillingEnabled: boolean;
+}
 
-  constructor({
-    billingProviderService,
-    teamBillingDataRepository,
-    billingRepository,
-    isTeamBillingEnabled,
-  }: {
-    billingProviderService: IBillingProviderService;
-    teamBillingDataRepository: ITeamBillingDataRepository;
-    billingRepository: IBillingRepository;
-    isTeamBillingEnabled: boolean;
-  }) {
-    this.billingProviderService = billingProviderService;
-    this.teamBillingDataRepository = teamBillingDataRepository;
-    this.billingRepository = billingRepository;
-    this.isTeamBillingEnabled = isTeamBillingEnabled;
-  }
+export class TeamBillingServiceFactory {
+  // Store dependencies as single object (IOctopus pattern)
+  constructor(private readonly deps: ITeamBillingServiceFactoryDeps) {}
 
   /** Initialize a single team billing */
   init(team: TeamBillingInput): ITeamBillingService {
-    if (this.isTeamBillingEnabled)
-      return new TeamBillingService({
-        team,
-        billingProviderService: this.billingProviderService,
-        teamBillingDataRepository: this.teamBillingDataRepository,
-        billingRepository: this.billingRepository,
-      });
-    return new StubTeamBillingService(team);
+    if (!this.deps.isTeamBillingEnabled) {
+      return new StubTeamBillingService(team);
+    }
+
+    // Call the factory function with runtime context to get the correct repository
+    const billingRepository = this.deps.billingRepositoryFactory(team.isOrganization);
+
+    return new TeamBillingService({
+      team,
+      billingProviderService: this.deps.billingProviderService,
+      teamBillingDataRepository: this.deps.teamBillingDataRepository,
+      billingRepository,
+    });
   }
+
   /** Initialize multiple team billings at once for bulk operations */
   initMany(teams: TeamBillingInput[]) {
     return teams.map((team) => this.init(team));
   }
+
   /** Fetch and initialize multiple team billings in one go */
   async findAndInit(teamId: number) {
-    const team = await this.teamBillingDataRepository.find(teamId);
+    const team = await this.deps.teamBillingDataRepository.find(teamId);
     return this.init(team);
   }
+
   /** Fetch and initialize multiple team billings in one go */
   async findAndInitMany(teamIds: number[]) {
-    const teams = await this.teamBillingDataRepository.findMany(teamIds);
+    const teams = await this.deps.teamBillingDataRepository.findMany(teamIds);
     return this.initMany(teams);
   }
 }
