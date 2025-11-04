@@ -16,7 +16,7 @@ type EventProps = {
 };
 
 const eventClasses = cva(
-  "group flex h-full w-full overflow-x-hidden overflow-y-auto rounded-[6px] px-[6px] text-xs leading-5 opacity-80 border-default font-medium",
+  "group flex h-full w-full overflow-hidden rounded-[6px] px-[6px] text-xs leading-5 opacity-80 border-default font-medium",
   {
     variants: {
       status: {
@@ -80,6 +80,8 @@ export function Event({
     </div>
   );
 
+  const displayType = eventDuration < 40 ? "single-line" : eventDuration < 45 ? "multi-line" : "full";
+
   return (
     <Tooltip content={tooltipContent} className="max-w-none" side={tooltipSide}>
       <Component
@@ -101,25 +103,30 @@ export function Event({
             className="-ml-1.5 mr-1.5 h-full w-[3px] shrink-0"
             style={{ backgroundColor: options.color }}></div>
         )}
-        <div className={classNames("flex", eventDuration > 30 && "flex-col py-1")}>
-          <div
-            className={classNames(
-              "flex w-full gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
-              eventDuration <= 30 && "items-center"
-            )}>
-            <span>{event.title}</span>
-            {eventDuration <= 30 && !event.options?.hideTime && (
-              <p className="text-subtle mt-1 w-full whitespace-nowrap text-left text-[10px] leading-none">
-                {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
-              </p>
-            )}
-          </div>
-          {eventDuration > 30 && !event.options?.hideTime && (
-            <p className="text-subtle mt-1 text-left text-[10px] leading-none">
+        <div className={classNames("flex w-full", displayType !== "single-line" && "flex-col py-1")}>
+          {displayType === "single-line" && (
+            <div
+              className={classNames(
+                "flex w-full shrink-0 gap-2 overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4",
+                "items-center"
+              )}>
+              <span>{event.title}</span>
+              {!event.options?.hideTime && (
+                <p className="text-subtle mt-1 w-full whitespace-nowrap text-left text-[10px] leading-none">
+                  {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+                </p>
+              )}
+            </div>
+          )}
+          {displayType !== "single-line" && (
+            <p className={classNames("shrink-0 whitespace-nowrap text-left leading-4")}>{event.title}</p>
+          )}
+          {displayType !== "single-line" && !event.options?.hideTime && (
+            <p className="text-subtle mt-1 whitespace-nowrap text-left text-[10px] leading-none">
               {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
             </p>
           )}
-          {eventDuration > 45 && event.description && (
+          {displayType === "full" && event.description && (
             <p className="text-subtle mt-1 text-left text-[10px] leading-none">{event.description}</p>
           )}
         </div>
