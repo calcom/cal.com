@@ -340,9 +340,6 @@ function ScenarioCard({ scenario }: { scenario: Scenario }) {
 }
 
 export default function WeeklyCalendarPlayground() {
-  const [selectedScenarioId, setSelectedScenarioId] = useState(scenarios[0].id);
-  const selectedScenario = scenarios.find((s) => s.id === selectedScenarioId) || scenarios[0];
-
   return (
     <div className="space-y-8 p-6">
       <div>
@@ -353,46 +350,12 @@ export default function WeeklyCalendarPlayground() {
         </p>
       </div>
 
-      {/* Focused View */}
-      <div className="border-subtle rounded-lg border p-6">
-        <div className="mb-4">
-          <label htmlFor="scenario-select" className="text-emphasis mb-2 block font-semibold">
-            Select Scenario (Focused View):
-          </label>
-          <select
-            id="scenario-select"
-            value={selectedScenarioId}
-            onChange={(e) => setSelectedScenarioId(e.target.value)}
-            className="border-default rounded border px-3 py-2">
-            {scenarios.map((scenario) => (
-              <option key={scenario.id} value={scenario.id}>
-                {scenario.title}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <h2 className="text-xl font-semibold">{selectedScenario.title}</h2>
-          <p className="text-subtle mt-1">{selectedScenario.description}</p>
-          <div className="bg-subtle mt-2 rounded p-3">
-            <strong>Expected Behavior:</strong> {selectedScenario.expected}
-          </div>
-        </div>
-
-        <div className="h-[800px] overflow-hidden rounded border">
-          <Calendar {...getBaseProps(selectedScenario.events)} />
-        </div>
-      </div>
-
       {/* Grid View of All Scenarios */}
-      <div>
+      <div className="space-y-8">
         <h2 className="mb-4 text-2xl font-bold">All Scenarios (Side-by-Side)</h2>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {scenarios.map((scenario) => (
-            <ScenarioCard key={scenario.id} scenario={scenario} />
-          ))}
-        </div>
+        {scenarios.map((scenario, index) => (
+          <ScenarioCard key={index} scenario={scenario} />
+        ))}
       </div>
 
       {/* Testing Checklist */}
