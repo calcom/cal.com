@@ -45,7 +45,7 @@ export async function validateAndGetCorrectedUsernameForTeam({
 
   const teamUserValidation = await validateAndGetCorrectedUsernameInTeam(username, email, teamId, isSignup);
   if (!teamUserValidation.isValid) {
-    throw new ErrorWithCode(ErrorCode.UserNotFound, "Username or email is already taken");
+    throw new ErrorWithCode(ErrorCode.ResourceAlreadyExists, "Username or email is already taken");
   }
   if (!teamUserValidation.username) {
     throw new ErrorWithCode(ErrorCode.UserNotFound, "Invalid username");
