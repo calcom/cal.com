@@ -158,8 +158,8 @@ export class AgentService {
         agentId,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to update agent general tools ${agentId}: ${
-          error instanceof Error ? error.message : ");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to update agent general tools ${agentId}: ${
+          error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 

@@ -65,8 +65,6 @@ import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { ErrorWithCode } from "@calcom/lib/errors";
-import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
@@ -327,7 +325,10 @@ export const buildEventForTeamEventType = async ({
     .build();
 
   if (!updatedEvt) {
-    throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Failed to build event with destination calendar due to missing required fields");
+    throw new ErrorWithCode(
+      ErrorCode.MissingRequiredField,
+      "Failed to build event with destination calendar due to missing required fields"
+    );
   }
 
   evt = updatedEvt;
@@ -341,7 +342,10 @@ export const buildEventForTeamEventType = async ({
     .build();
 
   if (!teamEvt) {
-    throw new ErrorWithCode(ErrorCode.TeamNotFound, "Failed to build team event due to missing required fields");
+    throw new ErrorWithCode(
+      ErrorCode.TeamNotFound,
+      "Failed to build team event due to missing required fields"
+    );
   }
 
   return teamEvt;
@@ -1357,7 +1361,10 @@ async function handler(
     .build();
 
   if (!builtEvt) {
-    throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Failed to build calendar event due to missing required fields");
+    throw new ErrorWithCode(
+      ErrorCode.MissingRequiredField,
+      "Failed to build calendar event due to missing required fields"
+    );
   }
 
   let evt: CalendarEvent = builtEvt;
@@ -1368,7 +1375,10 @@ async function handler(
       .build();
 
     if (!updatedEvt) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Failed to build event with recurring event ID due to missing required fields");
+      throw new ErrorWithCode(
+        ErrorCode.MissingRequiredField,
+        "Failed to build event with recurring event ID due to missing required fields"
+      );
     }
 
     evt = updatedEvt;
@@ -1596,7 +1606,10 @@ async function handler(
         .build();
 
       if (!updatedEvt) {
-        throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Failed to build event with new identifiers due to missing required fields");
+        throw new ErrorWithCode(
+          ErrorCode.MissingRequiredField,
+          "Failed to build event with new identifiers due to missing required fields"
+        );
       }
 
       evt = updatedEvt;
@@ -1728,7 +1741,10 @@ async function handler(
         .build();
 
       if (!updatedEvtWithUid) {
-        throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Failed to build event with UID due to missing required fields");
+        throw new ErrorWithCode(
+          ErrorCode.MissingRequiredField,
+          "Failed to build event with UID due to missing required fields"
+        );
       }
 
       evt = updatedEvtWithUid;
@@ -1738,7 +1754,10 @@ async function handler(
         .build();
 
       if (!updatedEvtWithPassword) {
-        throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Failed to build event with one-time password due to missing required fields");
+        throw new ErrorWithCode(
+          ErrorCode.MissingRequiredField,
+          "Failed to build event with one-time password due to missing required fields"
+        );
       }
 
       evt = updatedEvtWithPassword;
