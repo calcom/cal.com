@@ -506,7 +506,7 @@ export class UserAvailabilityService {
         (eventType?.availability.length ? eventType.availability : user.availability)
       )
     ) {
-      throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.AvailabilityNotFoundInSchedule);
+      throw new ErrorWithCode(ErrorCode.AvailabilityNotFoundInSchedule, ErrorCode.AvailabilityNotFoundInSchedule);
     }
 
     const availability = (
