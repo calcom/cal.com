@@ -51,6 +51,9 @@ export function Event({
 
   const Component = onEventClick ? "button" : "div";
 
+  const dayOfWeek = dayjs(event.start).day();
+  const tooltipSide = dayOfWeek >= 1 && dayOfWeek <= 4 ? "right" : "left";
+
   const tooltipContent = (
     <div className="flex min-w-[200px] max-w-[300px] flex-col gap-1 py-1">
       <div className="flex items-start gap-2">
@@ -78,7 +81,7 @@ export function Event({
   );
 
   return (
-    <Tooltip content={tooltipContent} className="max-w-none">
+    <Tooltip content={tooltipContent} className="max-w-none" side={tooltipSide}>
       <Component
         onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
         className={classNames(
