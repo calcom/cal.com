@@ -67,7 +67,7 @@ export class AgentService {
     }
 
     if (!data.eventTypeId || !data.userId) {
-      throw new ErrorWithCode(ErrorCode.UserNotFound, "Event type ID and user ID are required");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Event type ID and user ID are required");
     }
 
     if (!timeZoneSchema.safeParse(data.timeZone).success) {
