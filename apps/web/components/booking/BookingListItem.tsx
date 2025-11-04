@@ -470,7 +470,7 @@ function BookingListItem(booking: BookingItemProps) {
                   onClick={reportActionWithHandler.onClick}
                   disabled={reportActionWithHandler.disabled}
                   data-testid={reportActionWithHandler.id}
-                  className="h-8 w-8"
+                  className="min-h-[34px]"
                   tooltip={reportActionWithHandler.label}
                 />
               </div>
