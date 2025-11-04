@@ -1,7 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -109,7 +110,7 @@ const rescheduleSeatedBooking = async (
     // if no bookingSeat is given, also check if the request user is an org admin of the booking user
     // TODO: Next step; Evaluate ownership, what about teams?
     if (seatedBooking.user?.id !== reqUserId && !isOrgAdmin) {
-      throw new HttpError({ statusCode: 401 });
+      throw new ErrorWithCode(ErrorCode.Unauthorized, "Operation failed");
     }
 
     // Moving forward in this block is the owner making changes to the booking. All attendees should be affected

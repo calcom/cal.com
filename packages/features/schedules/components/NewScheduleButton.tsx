@@ -4,7 +4,8 @@ import { useForm } from "react-hook-form";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
@@ -46,7 +47,7 @@ export function NewScheduleButton({
       });
     },
     onError: (err) => {
-      if (err instanceof HttpError) {
+      if (err instanceof ErrorWithCode) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }

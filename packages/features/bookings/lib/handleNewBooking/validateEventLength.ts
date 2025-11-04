@@ -1,7 +1,8 @@
 import type { Logger } from "tslog";
 
 import dayjs from "@calcom/dayjs";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 
 type Props = {
@@ -24,7 +25,7 @@ const _validateEventLength = ({
   const validEventLengths = eventTypeMultipleDuration?.length ? eventTypeMultipleDuration : [eventTypeLength];
   if (!validEventLengths.includes(reqEventLength)) {
     logger.warn({ message: "NewBooking: Invalid event length" });
-    throw new HttpError({ statusCode: 400, message: "Invalid event length" });
+    throw new ErrorWithCode(ErrorCode.InvalidInput, "Invalid event length");
   }
 };
 

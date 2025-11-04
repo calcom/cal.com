@@ -10,7 +10,8 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -90,7 +91,7 @@ const DuplicateDialog = () => {
       );
     },
     onError: (err) => {
-      if (err instanceof HttpError) {
+      if (err instanceof ErrorWithCode) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }

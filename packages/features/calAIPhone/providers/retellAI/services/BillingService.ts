@@ -5,7 +5,8 @@ import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/li
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
@@ -41,18 +42,12 @@ export class BillingService {
     const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
     if (!phoneNumberPriceId) {
-      throw new HttpError({
-        statusCode: 500,
-        message: "Phone number price ID not configured",
-      });
+      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Phone number price ID not configured");
     }
 
     const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
     if (!stripeCustomerId) {
-      throw new HttpError({
-        statusCode: 500,
-        message: "Failed to create Stripe customer.",
-      });
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to create Stripe customer.");
     }
 
     // Create Stripe checkout session for phone number subscription
@@ -93,10 +88,7 @@ export class BillingService {
     });
 
     if (!checkoutSession.url) {
-      throw new HttpError({
-        statusCode: 500,
-        message: "Failed to create checkout session.",
-      });
+      throw new ErrorWithCode(ErrorCode.CheckoutSessionNotFound, "Failed to create checkout session.");
     }
 
     return { url: checkoutSession.url, message: "Payment required to purchase phone number" };
@@ -124,17 +116,11 @@ export class BillingService {
         });
 
     if (!phoneNumber) {
-      throw new HttpError({
-        statusCode: 404,
-        message: "Phone number not found or you don't have permission to cancel it.",
-      });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Phone number not found or you don");
     }
 
     if (!phoneNumber.stripeSubscriptionId) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Phone number doesn't have an active subscription.",
-      });
+      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Phone number doesn");
     }
 
     try {
@@ -182,10 +168,7 @@ export class BillingService {
       return { success: true, message: "Phone number subscription cancelled successfully." };
     } catch (error) {
       this.logger.error("Error cancelling phone number subscription:", { error });
-      throw new HttpError({
-        statusCode: 500,
-        message: "Failed to cancel subscription. Please try again or contact support.",
-      });
+      throw new ErrorWithCode(ErrorCode.SubscriptionNotFound, "Failed to cancel subscription. Please try again or contact support.");
     }
   }
 }

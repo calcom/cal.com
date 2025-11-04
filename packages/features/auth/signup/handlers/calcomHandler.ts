@@ -12,7 +12,8 @@ import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
@@ -64,10 +65,7 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
 
   // Validate the user
   if (!username) {
-    throw new HttpError({
-      statusCode: 422,
-      message: "Invalid username",
-    });
+    throw new ErrorWithCode(ErrorCode.UserNotFound, "Invalid username");
   }
 
   const email = _email.toLowerCase();
@@ -89,17 +87,11 @@ const handler: CustomNextApiHandler = async (body, usernameStatus) => {
       isSignup: true,
     });
     if (!usernameAndEmailValidation.isValid) {
-      throw new HttpError({
-        statusCode: 409,
-        message: "Username or email is already taken",
-      });
+      throw new ErrorWithCode(ErrorCode.UserNotFound, "Username or email is already taken");
     }
 
     if (!usernameAndEmailValidation.username) {
-      throw new HttpError({
-        statusCode: 422,
-        message: "Invalid username",
-      });
+      throw new ErrorWithCode(ErrorCode.UserNotFound, "Invalid username");
     }
 
     username = usernameAndEmailValidation.username;

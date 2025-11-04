@@ -2,7 +2,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { trpc } from "@calcom/trpc/react";
 import cn from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
@@ -97,7 +98,7 @@ export function WorkflowCreationDialog({
       }
     },
     onError: (err) => {
-      if (err instanceof HttpError) {
+      if (err instanceof ErrorWithCode) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }

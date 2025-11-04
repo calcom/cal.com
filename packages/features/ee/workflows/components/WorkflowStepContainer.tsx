@@ -14,7 +14,8 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { WorkflowStep } from "@calcom/prisma/client";
 import {
@@ -453,7 +454,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       utils.viewer.workflows.getVerifiedNumbers.invalidate();
     },
     onError: (err) => {
-      if (err instanceof HttpError) {
+      if (err instanceof ErrorWithCode) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
         setNumberVerified(false);
@@ -504,7 +505,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           message = err.message;
         }
       }
-      if (err instanceof HttpError) {
+      if (err instanceof ErrorWithCode) {
         message = `${err.statusCode}: ${err.message}`;
       }
       showToast(message, "error");

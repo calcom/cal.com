@@ -4,7 +4,8 @@ import type { NextApiRequest } from "next";
 import type Stripe from "stripe";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 
 /** Stripe Webhook Handler Mappings */
 export type SWHMap = {

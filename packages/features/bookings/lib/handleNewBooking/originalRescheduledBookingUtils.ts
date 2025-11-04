@@ -1,6 +1,7 @@
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -10,11 +11,11 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
   const originalBooking = await bookingRepo.findOriginalRescheduledBooking(uid, seatsEventType);
 
   if (!originalBooking) {
-    throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Could not find original booking");
   }
 
   if (originalBooking.status === BookingStatus.CANCELLED && !originalBooking.rescheduled) {
-    throw new HttpError({ statusCode: 400, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
+    throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.CancelledBookingsCannotBeRescheduled);
   }
 
   return originalBooking;

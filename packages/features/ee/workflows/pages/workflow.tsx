@@ -11,7 +11,8 @@ import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositor
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import type { WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { WorkflowActions } from "@calcom/prisma/enums";
@@ -324,7 +325,7 @@ function WorkflowPage({
       }
     },
     onError: (err) => {
-      if (err instanceof HttpError) {
+      if (err instanceof ErrorWithCode) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }

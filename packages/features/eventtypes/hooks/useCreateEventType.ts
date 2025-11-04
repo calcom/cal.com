@@ -6,7 +6,8 @@ import type { z } from "zod";
 import { createEventTypeInput } from "@calcom/features/eventtypes/lib/types";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import type { EventType } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
@@ -60,7 +61,7 @@ export const useCreateEventType = (
     },
     onError: (err) => {
       let error = err.message;
-      if (err instanceof HttpError) {
+      if (err instanceof ErrorWithCode) {
         error = `${err.statusCode}: ${err.message}`;
       }
 

@@ -4,7 +4,8 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -70,7 +71,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   });
 
   if (!seatedBooking && rescheduleUid) {
-    throw new HttpError({ statusCode: 404, message: ErrorCode.BookingNotFound });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, ErrorCode.BookingNotFound);
   }
 
   // We might be trying to create a new booking
@@ -85,7 +86,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     }) &&
     dayjs.utc(seatedBooking.startTime).format() === evt.startTime
   ) {
-    throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
+    throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.AlreadySignedUpForBooking);
   }
 
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule

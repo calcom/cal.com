@@ -7,7 +7,8 @@ import { withSelectedCalendars } from "@calcom/features/users/repositories/UserR
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -101,10 +102,7 @@ const _loadAndValidateUsers = async ({
     logger.warn({
       message: "NewBooking: Some of the users in this group do not allow dynamic booking",
     });
-    throw new HttpError({
-      message: "Some of the users in this group do not allow dynamic booking",
-      statusCode: 400,
-    });
+    throw new ErrorWithCode(ErrorCode.UserNotFound, "Some of the users in this group do not allow dynamic booking");
   }
 
   // If this event was pre-relationship migration
@@ -123,12 +121,12 @@ const _loadAndValidateUsers = async ({
     });
     if (!eventTypeUser) {
       logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
-      throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+      throw new ErrorWithCode(ErrorCode.UserNotFound, "eventTypeUser.notFound");
     }
     users.push(withSelectedCalendars(eventTypeUser));
   }
 
-  if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+  if (!users) throw new ErrorWithCode(ErrorCode.UserNotFound, "eventTypeUser.notFound");
 
   // Determine if users are locked
   const containsBlockedUser = await checkIfUsersAreBlocked({
@@ -137,7 +135,7 @@ const _loadAndValidateUsers = async ({
     span: sentrySpan,
   });
 
-  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+  if (containsBlockedUser) throw new ErrorWithCode(ErrorCode.UserNotFound, "eventTypeUser.notFound");
 
   // map fixed users
   users = users.map((user) => ({

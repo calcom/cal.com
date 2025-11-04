@@ -6,8 +6,9 @@ import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflow
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -331,7 +332,7 @@ const handleMarkNoShow = async ({
     if (error instanceof Error) {
       logger.error(error.message);
     }
-    throw new HttpError({ statusCode: 500, message: "Failed to update no-show status" });
+    throw new ErrorWithCode(ErrorCode.FailedToUpdateStatus, "Failed to update no-show status");
   }
 };
 
@@ -414,22 +415,22 @@ const getWebhooksService = async (bookingUid: string, platformClientId?: string)
 };
 
 const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
-  if (!userId) throw new HttpError({ statusCode: 401 });
+  if (!userId) throw new ErrorWithCode(ErrorCode.Unauthorized);
 
   const bookingRepo = new BookingRepository(prisma);
   const booking = await bookingRepo.findBookingByUidAndUserId({ bookingUid, userId });
 
   if (!booking)
-    throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
+    throw new ErrorWithCode(ErrorCode.PermissionDenied, "You are not allowed to access this booking");
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
   const isBookingInPast = new Date(booking.endTime) < new Date();
   if (!isBookingInPast && !isOngoing) {
-    throw new HttpError({
-      statusCode: 403,
-      message: "Cannot mark no-show before the meeting has started.",
-    });
+    throw new ErrorWithCode(
+      ErrorCode.PermissionDenied,
+      "Cannot mark no-show before the meeting has started."
+    );
   }
 };
 

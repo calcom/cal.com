@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { prisma } from "@calcom/prisma";
 import type { Host } from "@calcom/prisma/client";
 
@@ -51,17 +52,11 @@ async function validateFixedHostsAvailability(
   );
 
   if (existingSlotReservation > 0) {
-    throw new HttpError({
-      statusCode: 422,
-      message: `Can't reserve the slot because the round robin event type has no available hosts left at this time slot.`,
-    });
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Can");
   }
 
   if (hasHostAsAttendee) {
-    throw new HttpError({
-      statusCode: 422,
-      message: `Can't reserve a slot if the event is already booked.`,
-    });
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Can");
   }
 }
 
@@ -82,9 +77,6 @@ async function validateNonFixedHostsAvailability(
   });
 
   if (existingSlotReservations === hosts.length) {
-    throw new HttpError({
-      statusCode: 422,
-      message: `Can't reserve the slot because the round robin event type has no available hosts left at this time slot.`,
-    });
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Can");
   }
 }

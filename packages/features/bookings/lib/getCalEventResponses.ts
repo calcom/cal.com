@@ -4,7 +4,8 @@ import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/get
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import type { EventType, Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -53,10 +54,7 @@ export const getCalEventResponses = ({
         responses,
         bookingResponses: booking?.responses,
       });
-      throw new HttpError({
-        statusCode: 400,
-        message: "Both Phone and Email are missing",
-      });
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Both Phone and Email are missing");
     }
     backwardCompatibleResponses.email = contructEmailFromPhoneNumber(
       backwardCompatibleResponses["attendeePhoneNumber"]

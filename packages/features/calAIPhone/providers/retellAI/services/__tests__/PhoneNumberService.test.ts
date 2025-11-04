@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { PhoneNumberService } from "../PhoneNumberService";
