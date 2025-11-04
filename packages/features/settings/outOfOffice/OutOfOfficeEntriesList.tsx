@@ -8,6 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { usePathname } from "next/navigation";
+import { useQueryState } from "nuqs";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -41,6 +42,7 @@ import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
+import { outOfOfficeModalParsers } from "./parsers";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -92,7 +94,8 @@ function OutOfOfficeEntriesListContent() {
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
     useState<BookingRedirectForm | null>(null);
-  const [openModal, setOpenModal] = useState(false);
+  const [openModal, setOpenModal] = useQueryState("ooo-modal", outOfOfficeModalParsers["ooo-modal"]);
+
   const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
     setCurrentlyEditingOutOfOfficeEntry(entry);
     setOpenModal(true);

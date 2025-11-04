@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useQueryState } from "nuqs";
+import { useEffect } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -12,6 +13,7 @@ import { Button } from "@calcom/ui/components/button";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
+import { outOfOfficeModalParsers } from "./parsers";
 
 const CreateNewOutOfOfficeEntry = ({
   size,
@@ -28,14 +30,14 @@ const CreateNewOutOfOfficeEntry = ({
 
   const params = useCompatSearchParams();
   const openModalOnStart = !!params?.get("om");
+  const [openModal, setOpenModal] = useQueryState("ooo-modal", outOfOfficeModalParsers["ooo-modal"]);
+  const selectedTab = params?.get("type") ?? OutOfOfficeTab.MINE;
+
   useEffect(() => {
     if (openModalOnStart) {
       setOpenModal(true);
     }
   }, [openModalOnStart]);
-
-  const [openModal, setOpenModal] = useState(false);
-  const selectedTab = params?.get("type") ?? OutOfOfficeTab.MINE;
 
   return (
     <>
