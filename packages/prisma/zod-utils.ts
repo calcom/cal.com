@@ -681,6 +681,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   periodCountCalendarDays: true,
   bookingLimits: true,
   onlyShowFirstAvailableSlot: true,
+  showOptimizedSlots: true,
   slotInterval: true,
   scheduleId: true,
   workflows: true,
@@ -795,7 +796,7 @@ export type FieldType = z.infer<typeof fieldTypeEnum>;
 export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
   const allDomains = val.split(",").map((dom) => dom.trim());
 
-  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
+  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/i;
 
   /*
   Valid patterns - [ example, example.anything, anyone@example.anything ]
