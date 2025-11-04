@@ -1,6 +1,11 @@
 import type { TFunction } from "next-i18next";
 
 import type { BookingAudit, BookingAuditType, BookingAuditAction, Prisma } from "@calcom/prisma/client";
+import logger from "@calcom/lib/logger";
+interface BookingAuditServiceDeps {
+  bookingAuditRepository: IBookingAuditRepository;
+  actorRepository: IActorRepository;
+}
 
 import { AttendeeAddedAuditActionService } from "../actions/AttendeeAddedAuditActionService";
 import { AttendeeNoShowUpdatedAuditActionService } from "../actions/AttendeeNoShowUpdatedAuditActionService";
@@ -16,8 +21,6 @@ import { RescheduledAuditActionService } from "../actions/RescheduledAuditAction
 import { StatusChangeAuditActionService } from "../actions/StatusChangeAuditActionService";
 import type { IActorRepository } from "../repository/IActorRepository";
 import type { IBookingAuditRepository } from "../repository/IBookingAuditRepository";
-import { PrismaActorRepository } from "../repository/PrismaActorRepository";
-import { PrismaBookingAuditRepository } from "../repository/PrismaBookingAuditRepository";
 import type {
   CreatedAuditData,
   CancelledAuditData,
@@ -63,11 +66,12 @@ export class BookingAuditService {
   private readonly hostNoShowUpdatedActionService: HostNoShowUpdatedAuditActionService;
   private readonly attendeeNoShowUpdatedActionService: AttendeeNoShowUpdatedAuditActionService;
   private readonly statusChangeActionService: StatusChangeAuditActionService;
+  private readonly bookingAuditRepository: IBookingAuditRepository;
+  private readonly actorRepository: IActorRepository;
 
-  constructor(
-    private readonly bookingAuditRepository: IBookingAuditRepository = new PrismaBookingAuditRepository(),
-    private readonly actorRepository: IActorRepository = new PrismaActorRepository()
-  ) {
+  constructor(private readonly deps: BookingAuditServiceDeps) {
+    this.bookingAuditRepository = deps.bookingAuditRepository;
+    this.actorRepository = deps.actorRepository;
     this.createdActionService = new CreatedAuditActionService();
     this.cancelledActionService = new CancelledAuditActionService();
     this.rejectedActionService = new RejectedAuditActionService();
@@ -82,10 +86,6 @@ export class BookingAuditService {
     this.statusChangeActionService = new StatusChangeAuditActionService();
   }
 
-  static create(): BookingAuditService {
-    return new BookingAuditService();
-  }
-
   private async getOrCreateUserActor(userId: number): Promise<string> {
     const actor = await this.actorRepository.upsertUserActor(userId);
     return actor.id;
@@ -95,6 +95,7 @@ export class BookingAuditService {
    * Creates a booking audit record with automatic version injection
    */
   private async createAuditRecord(input: CreateBookingAuditInput): Promise<BookingAudit> {
+    logger.info("Creating audit record", { input });
     const auditData: Prisma.BookingAuditCreateInput = {
       bookingId: input.bookingId,
       actor: {
