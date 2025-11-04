@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
+import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import type { CalendarComponentProps } from "@calcom/features/calendars/weeklyview/types/state";
-import dayjs from "@calcom/dayjs";
 
 const makeDate = (dayOffset: number, hour: number, minute: number = 0) => {
   return dayjs("2025-01-06").add(dayOffset, "day").hour(hour).minute(minute).second(0).toDate();
@@ -19,9 +19,10 @@ const getBaseProps = (events: CalendarEvent[]): CalendarComponentProps => ({
   endHour: 18,
   gridCellsPerHour: 4,
   timezone: "UTC",
-  showBackgroundPattern: true,
-  showBorder: true,
-  hideHeader: false,
+  showBackgroundPattern: false,
+  showBorder: false,
+  hideHeader: true,
+  borderColor: "subtle",
 });
 
 type Scenario = {
@@ -37,7 +38,8 @@ const scenarios: Scenario[] = [
     id: "two-overlapping",
     title: "Two Overlapping Events",
     description: "Two events with overlapping time ranges on the same day",
-    expected: "Second event should be offset 8% to the right, both 80% width. Hover should bring event to front.",
+    expected:
+      "Second event should be offset 8% to the right, both 80% width. Hover should bring event to front.",
     events: [
       {
         id: 1,
@@ -59,7 +61,8 @@ const scenarios: Scenario[] = [
     id: "three-cascading",
     title: "Three Overlapping Events (Cascading)",
     description: "Three events that overlap, creating a cascading effect",
-    expected: "Events should cascade with offsets 0%, 8%, 16%. Z-index should increment. Hover brings any to top.",
+    expected:
+      "Events should cascade with offsets 0%, 8%, 16%. Z-index should increment. Hover brings any to top.",
     events: [
       {
         id: 3,
@@ -168,7 +171,8 @@ const scenarios: Scenario[] = [
     id: "dense-day",
     title: "Dense Day (10+ Events)",
     description: "A busy day with many overlapping events",
-    expected: "Visually tight stack with multiple cascading levels. Right edge should not overflow. Hover should still work.",
+    expected:
+      "Visually tight stack with multiple cascading levels. Right edge should not overflow. Hover should still work.",
     events: [
       {
         id: 14,
@@ -275,7 +279,8 @@ const scenarios: Scenario[] = [
     id: "mixed-statuses",
     title: "Mixed Event Statuses",
     description: "Events with different booking statuses",
-    expected: "Visual styling should differ by status (ACCEPTED, PENDING, CANCELLED). Cascade should still work.",
+    expected:
+      "Visual styling should differ by status (ACCEPTED, PENDING, CANCELLED). Cascade should still work.",
     events: [
       {
         id: 27,
@@ -343,8 +348,8 @@ export default function WeeklyCalendarPlayground() {
       <div>
         <h1 className="text-3xl font-bold">Weekly Calendar Playground</h1>
         <p className="text-subtle mt-2">
-          Test the overlapping events cascading layout with various scenarios. Events should cascade with
-          80% width and 8% left offset per overlap level. Hovering an event should bring it to the front.
+          Test the overlapping events cascading layout with various scenarios. Events should cascade with 80%
+          width and 8% left offset per overlap level. Hovering an event should bring it to the front.
         </p>
       </div>
 
