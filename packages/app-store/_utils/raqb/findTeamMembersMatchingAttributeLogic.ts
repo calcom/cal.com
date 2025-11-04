@@ -78,14 +78,14 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
   }
 
   const errors: string[][] = [];
-  Object.values(validatedQueryValue.children1).map((rule) => {
+  Object.values(validatedQueryValue.children1).map((rule: JsonTree) => {
     if (rule.type !== "rule") {
       return;
     }
-    const valueError = rule.properties.valueError;
+    const valueError = rule.properties?.valueError;
     if (valueError) {
       // Sometimes there are null values in it. Filter them out with a type predicate.
-      const filtered = valueError.filter((e): e is string => typeof e === "string" && e.length > 0);
+      const filtered = valueError.filter((e: unknown): e is string => typeof e === "string" && e.length > 0);
       errors.push(filtered);
     }
   });
