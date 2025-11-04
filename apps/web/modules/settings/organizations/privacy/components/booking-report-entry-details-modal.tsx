@@ -143,7 +143,7 @@ export function BookingReportEntryDetailsModal({
             </div>
 
             <div>
-              <h2 className="text-emphasis text-base font-semibold">{t("block")}</h2>
+              <h2 className="text-emphasis text-base font-semibold">{t("what_would_you_like_to_block")}</h2>
               <Controller
                 name="blockType"
                 control={control}

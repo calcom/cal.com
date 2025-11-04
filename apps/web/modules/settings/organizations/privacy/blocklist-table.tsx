@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ToggleGroup } from "@calcom/ui/components/form";
 
+import PendingReportsBadge from "./components/PendingReportsBadge";
 import { BlockedEntriesTable } from "./components/blocked-entries-table";
 import { CreateBlocklistEntryModal } from "./components/create-blocklist-entry-modal";
 import { PendingReportsTable } from "./components/pending-reports-table";
@@ -37,7 +38,15 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
             }}
             options={[
               { value: "blocked", label: t("blocked") },
-              { value: "pending", label: t("pending") },
+              {
+                value: "pending",
+                label: (
+                  <span className="flex items-center">
+                    {t("pending")}
+                    <PendingReportsBadge />
+                  </span>
+                ),
+              },
             ]}
           />
           <DataTableToolbar.SearchBar />
