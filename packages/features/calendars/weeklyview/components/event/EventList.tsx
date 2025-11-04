@@ -52,12 +52,12 @@ export function EventList({ day }: Props) {
         return (
           <div
             key={`${event.id}-${eventStart.toISOString()}`}
-            className="absolute inset-x-1"
+            className="absolute"
             data-testid={event.options?.["data-test-id"]}
             onMouseEnter={() => setHoveredEventId(event.id)}
             onMouseLeave={() => setHoveredEventId(null)}
             style={{
-              marginLeft: `${layout.leftOffsetPercent}%`,
+              left: `${layout.leftOffsetPercent}%`,
               width: `${layout.widthPercent}%`,
               zIndex,
               top: `calc(${eventStartDiff}*var(--one-minute-height))`,
