@@ -103,12 +103,12 @@ export class ManagedOrganizationsService {
   }
 
   private async isManagerOrganizationPlatform(managerOrganizationId: number) {
-    const organization = await this.organizationsRepository.findById({ id: managerOrganizationId });
+    const organization = await this.organizationsRepository.findById(managerOrganizationId);
     return !!organization?.isPlatform;
   }
 
   async getManagedOrganization(managedOrganizationId: number) {
-    const organization = await this.organizationsRepository.findById({ id: managedOrganizationId });
+    const organization = await this.organizationsRepository.findById(managedOrganizationId);
     if (!organization) {
       throw new NotFoundException(`Managed organization with id=${managedOrganizationId} does not exist.`);
     }
