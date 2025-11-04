@@ -287,7 +287,14 @@ export class InsightsRoutingBaseService {
         rfrd."formUserId",
         rfrd."bookingUid",
         rfrd."bookingId",
-        UPPER(rfrd."bookingStatus"::text) as "bookingStatus",
+        CASE WHEN EXISTS (
+          SELECT 1 FROM "Booking" b
+          WHERE b."uid" = rfrd."bookingUid" AND b."rescheduledToUid" IS NOT NULL
+        ) THEN 'RESCHEDULED' ELSE UPPER(rfrd."bookingStatus"::text) END as "bookingStatus",
+        CASE WHEN EXISTS (
+          SELECT 1 FROM "Booking" b
+          WHERE b."uid" = rfrd."bookingUid" AND b."rescheduledToUid" IS NOT NULL
+        ) THEN 6 ELSE rfrd."bookingStatusOrder" END as "bookingStatusOrder",
         rfrd."bookingStatusOrder",
         rfrd."bookingCreatedAt",
         rfrd."bookingUserId",

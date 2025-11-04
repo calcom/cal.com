@@ -781,6 +781,7 @@ model Attendee {
 }
 
 enum BookingStatus {
+  RESCHEDULED   @map("rescheduled")
   CANCELLED     @map("cancelled")
   ACCEPTED      @map("accepted")
   REJECTED      @map("rejected")

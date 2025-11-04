@@ -14,6 +14,7 @@ const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.AWAITING_HOST]: 3,
   [BookingStatus.CANCELLED]: 4,
   [BookingStatus.REJECTED]: 5,
+  [BookingStatus.RESCHEDULED]: 6,
 };
 
 export const useInsightsRoutingFacetedUniqueValues = ({
