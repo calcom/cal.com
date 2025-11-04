@@ -109,7 +109,6 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   } = context;
   const seatReferenceUid = getSeatReferenceUid();
 
-  // Check if booking can be reassigned
   const isReassignableRoundRobin =
     booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     (!booking.eventType.hostGroups || booking.eventType.hostGroups.length <= 1);
