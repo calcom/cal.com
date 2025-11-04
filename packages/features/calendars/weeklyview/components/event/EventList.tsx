@@ -57,7 +57,7 @@ export function EventList({ day }: Props) {
         return (
           <div
             key={`${event.id}-${eventStart.toISOString()}`}
-            className="absolute transition-all duration-150 ease-out"
+            className="absolute transition-all duration-100 ease-out"
             data-testid={event.options?.["data-test-id"]}
             onMouseEnter={() => setHoveredEventId(event.id)}
             onMouseLeave={() => setHoveredEventId(null)}

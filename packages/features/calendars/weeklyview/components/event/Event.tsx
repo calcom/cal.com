@@ -88,10 +88,10 @@ export function Event({
             selected,
           }),
           options?.className,
-          isHovered && "shadow-lg ring-2 ring-brand-default ring-offset-0"
+          isHovered && "ring-brand-default shadow-lg ring-2 ring-offset-0"
         )}
         style={{
-          transition: "all 150ms ease-out",
+          transition: "all 100ms ease-out",
         }}>
         {options?.color && (
           <div
