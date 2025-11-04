@@ -1,6 +1,8 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,6 +25,29 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
   const { selectedPlan, setSelectedPlan } = useOnboardingStore();
+  const previousPlanRef = useRef<PlanType | null>(null);
+
+  // Plan order mapping for determining direction
+  const planOrder: Record<PlanType, number> = {
+    personal: 0,
+    team: 1,
+    organization: 2,
+  };
+
+  // Calculate animation direction synchronously
+  const getDirection = (): "up" | "down" => {
+    if (!selectedPlan || !previousPlanRef.current) return "down";
+    const previousOrder = planOrder[previousPlanRef.current];
+    const currentOrder = planOrder[selectedPlan];
+    return currentOrder > previousOrder ? "down" : "up";
+  };
+
+  const direction = getDirection();
+
+  // Update previous plan ref after render
+  useEffect(() => {
+    previousPlanRef.current = selectedPlan;
+  }, [selectedPlan]);
 
   const handleContinue = () => {
     if (selectedPlan === "organization") {
@@ -36,7 +61,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
 
   const planIconByType: Record<PlanType, IconName> = {
     personal: "user",
-    team: "users",
+    team: "user",
     organization: "users",
   };
 
@@ -55,7 +80,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       badge: t("onboarding_plan_team_badge"),
       description: t("onboarding_plan_team_description"),
       icon: planIconByType.team,
-      variant: "single" as const,
+      variant: "team" as const,
     },
     {
       id: "organization" as PlanType,
@@ -63,7 +88,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       badge: t("onboarding_plan_organization_badge"),
       description: t("onboarding_plan_organization_description"),
       icon: planIconByType.organization,
-      variant: "double" as const,
+      variant: "organization" as const,
     },
   ];
 
@@ -147,11 +172,32 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
         </div>
 
         {/* Right column - Icon display */}
-        {selectedPlanData && (
-          <div className="bg-muted border-subtle hidden w-full rounded-l-2xl border-b border-l border-t lg:flex lg:h-full lg:items-center lg:justify-center">
-            <PlanIcon icon={selectedPlanData.icon} variant={selectedPlanData.variant} />
-          </div>
-        )}
+        <div className="bg-muted border-subtle hidden w-full rounded-l-2xl border-b border-l border-t lg:flex lg:h-full lg:items-center lg:justify-center">
+          <AnimatePresence mode="wait">
+            {selectedPlanData && (
+              <motion.div
+                key={selectedPlan}
+                initial={{
+                  opacity: 0,
+                  y: direction === "down" ? -20 : 20,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  y: direction === "down" ? 20 : -20,
+                }}
+                transition={{
+                  duration: 0.5,
+                  ease: "easeInOut",
+                }}>
+                <PlanIcon icon={selectedPlanData.icon} variant={selectedPlanData.variant} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </OnboardingLayout>
     </>
   );
