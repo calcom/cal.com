@@ -139,7 +139,7 @@ export class PrivateLinksService {
       return `${origin}/d/${hashedLink}/${eventTypeSlug}`;
     }
 
-    const fallbackOrigin = getOrgFullOrigin(null, { protocol: true }).replace(/\/$/, "");
+    const fallbackOrigin = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
     if (eventTypeSlug) {
       return `${fallbackOrigin}/d/${hashedLink}/${eventTypeSlug}`;
     }
