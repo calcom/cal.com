@@ -48,7 +48,7 @@ export async function validateAndGetCorrectedUsernameForTeam({
     throw new ErrorWithCode(ErrorCode.ResourceAlreadyExists, "Username or email is already taken");
   }
   if (!teamUserValidation.username) {
-    throw new ErrorWithCode(ErrorCode.UserNotFound, "Invalid username");
+    throw new ErrorWithCode(ErrorCode.InvalidInput, "Invalid username");
   }
   return teamUserValidation.username;
 }
