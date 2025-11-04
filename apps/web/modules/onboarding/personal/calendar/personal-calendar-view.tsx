@@ -10,7 +10,6 @@ import { OnboardingBrowserView } from "../../components/onboarding-browser-view"
 import { InstallableAppCard } from "../_components/InstallableAppCard";
 import { OnboardingCard } from "../_components/OnboardingCard";
 import { OnboardingLayout } from "../_components/OnboardingLayout";
-import { SkipButton } from "../_components/SkipButton";
 import { useAppInstallation } from "../_components/useAppInstallation";
 
 type PersonalCalendarViewProps = {
@@ -38,33 +37,51 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   };
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={3}>
+    <OnboardingLayout userEmail={userEmail} currentStep={2}>
       {/* Left column - Main content */}
-      <div className="flex h-full w-full flex-col gap-6">
-        <OnboardingCard
-          title={t("connect_your_calendar")}
-          subtitle={t("connect_calendar_to_prevent_conflicts")}
-          isLoading={queryIntegrations.isPending}
-          footer={
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-              {t("continue")}
+      <OnboardingCard
+        title={t("connect_your_calendar")}
+        subtitle={t("connect_calendar_to_prevent_conflicts")}
+        isLoading={queryIntegrations.isPending}
+        footer={
+          <div className="flex w-full items-center justify-between gap-4">
+            <Button
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={() => router.push("/onboarding/personal/settings")}
+              disabled={queryIntegrations.isPending}>
+              {t("back")}
             </Button>
-          }>
-          <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
-            {queryIntegrations.data?.items?.map((app) => (
-              <InstallableAppCard
-                key={app.slug}
-                app={app}
-                isInstalling={installingAppSlug === app.slug}
-                onInstallClick={setInstallingAppSlug}
-                installOptions={createInstallHandlers(app.slug)}
-              />
-            ))}
+            <div className="flex items-center gap-4">
+              <Button
+                color="minimal"
+                className="rounded-[10px]"
+                onClick={handleSkip}
+                disabled={queryIntegrations.isPending}>
+                {t("onboarding_skip_for_now")}
+              </Button>
+              <Button
+                color="primary"
+                className="rounded-[10px]"
+                onClick={handleContinue}
+                disabled={queryIntegrations.isPending}>
+                {t("continue")}
+              </Button>
+            </div>
           </div>
-        </OnboardingCard>
-
-        <SkipButton onClick={handleSkip} />
-      </div>
+        }>
+        <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
+          {queryIntegrations.data?.items?.map((app) => (
+            <InstallableAppCard
+              key={app.slug}
+              app={app}
+              isInstalling={installingAppSlug === app.slug}
+              onInstallClick={setInstallingAppSlug}
+              installOptions={createInstallHandlers(app.slug)}
+            />
+          ))}
+        </div>
+      </OnboardingCard>
 
       {/* Right column - Browser view */}
       <OnboardingBrowserView />

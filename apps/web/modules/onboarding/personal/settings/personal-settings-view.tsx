@@ -101,7 +101,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
       bio: data.bio || "",
     });
 
-    router.push("/onboarding/personal/profile");
+    router.push("/onboarding/personal/calendar");
   });
 
   if (!user) {
@@ -126,13 +126,6 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
                 {t("back")}
               </Button>
               <div className="flex items-center gap-4">
-                <Button
-                  color="minimal"
-                  className="rounded-[10px]"
-                  onClick={() => router.push("/onboarding/personal/profile")}
-                  disabled={mutation.isPending}>
-                  {t("onboarding_skip_for_now")}
-                </Button>
                 <Button
                   type="submit"
                   form="personal-settings-form"

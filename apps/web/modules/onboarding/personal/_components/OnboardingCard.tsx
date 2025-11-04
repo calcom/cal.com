@@ -34,7 +34,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
       </div>
 
       {/* Footer */}
-      <div className="flex w-full items-center justify-end gap-1 px-5 py-4">{footer}</div>
+      <div className="flex w-full items-center justify-start px-5 py-4">{footer}</div>
     </div>
   );
 };

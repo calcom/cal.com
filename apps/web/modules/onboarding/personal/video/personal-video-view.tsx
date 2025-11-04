@@ -14,7 +14,6 @@ import { OnboardingBrowserView } from "../../components/onboarding-browser-view"
 import { InstallableAppCard } from "../_components/InstallableAppCard";
 import { OnboardingCard } from "../_components/OnboardingCard";
 import { OnboardingLayout } from "../_components/OnboardingLayout";
-import { SkipButton } from "../_components/SkipButton";
 import { useAppInstallation } from "../_components/useAppInstallation";
 
 type PersonalVideoViewProps = {
@@ -117,50 +116,64 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
   const hasDefaultConferencingApp = !!metadata?.defaultConferencingApp?.appSlug;
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={3}>
       {/* Left column - Main content */}
-      <div className="flex h-full w-full flex-col gap-6">
-        <OnboardingCard
-          title={t("connect_video_app")}
-          subtitle={t("video_app_connection_subtitle")}
-          isLoading={isPending}
-          footer={
+      <OnboardingCard
+        title={t("connect_video_app")}
+        subtitle={t("video_app_connection_subtitle")}
+        isLoading={isPending}
+        footer={
+          <div className="flex w-full items-center justify-between gap-4">
             <Button
-              color="primary"
+              color="minimal"
               className="rounded-[10px]"
-              onClick={handleContinue}
-              loading={mutation.isPending}
+              onClick={() => router.push("/onboarding/personal/calendar")}
               disabled={mutation.isPending}>
-              {t("finish_and_start")}
+              {t("back")}
             </Button>
-          }>
-          <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
-            {queryConnectedVideoApps?.items
-              .filter((app) => app.slug !== "daily-video")
-              .map((app) => {
-                const shouldAutoSetDefault =
-                  !hasDefaultConferencingApp && app.appData?.location?.linkType === "dynamic";
-
-                return (
-                  <InstallableAppCard
-                    key={app.slug}
-                    app={app}
-                    isInstalling={installingAppSlug === app.slug}
-                    onInstallClick={setInstallingAppSlug}
-                    installOptions={createInstallHandlers(app.slug, (appSlug) => {
-                      // Auto-set as default if it's the first connected video app
-                      if (shouldAutoSetDefault) {
-                        setDefaultConferencingApp.mutate({ slug: appSlug });
-                      }
-                    })}
-                  />
-                );
-              })}
+            <div className="flex items-center gap-4">
+              <Button
+                color="minimal"
+                className="rounded-[10px]"
+                onClick={handleSkip}
+                disabled={mutation.isPending}>
+                {t("onboarding_skip_for_now")}
+              </Button>
+              <Button
+                color="primary"
+                className="rounded-[10px]"
+                onClick={handleContinue}
+                loading={mutation.isPending}
+                disabled={mutation.isPending}>
+                {t("finish_and_start")}
+              </Button>
+            </div>
           </div>
-        </OnboardingCard>
+        }>
+        <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
+          {queryConnectedVideoApps?.items
+            .filter((app) => app.slug !== "daily-video")
+            .map((app) => {
+              const shouldAutoSetDefault =
+                !hasDefaultConferencingApp && app.appData?.location?.linkType === "dynamic";
 
-        <SkipButton onClick={handleSkip} disabled={mutation.isPending} />
-      </div>
+              return (
+                <InstallableAppCard
+                  key={app.slug}
+                  app={app}
+                  isInstalling={installingAppSlug === app.slug}
+                  onInstallClick={setInstallingAppSlug}
+                  installOptions={createInstallHandlers(app.slug, (appSlug) => {
+                    // Auto-set as default if it's the first connected video app
+                    if (shouldAutoSetDefault) {
+                      setDefaultConferencingApp.mutate({ slug: appSlug });
+                    }
+                  })}
+                />
+              );
+            })}
+        </div>
+      </OnboardingCard>
 
       {/* Right column - Browser view */}
       <OnboardingBrowserView />
