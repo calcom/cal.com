@@ -17,27 +17,27 @@ export async function generateMetadata(): Promise<Metadata> {
 const calSansUI = localFont({
   src: [
     {
-      path: "../../fonts/cal-sans-ui/CalSansText-Light.ttf",
+      path: "../../fonts/cal-sans-ui/CalSansText-Light.woff2",
       weight: "300",
       style: "normal",
     },
     {
-      path: "../../fonts/cal-sans-ui/CalSansText-Regular.ttf",
+      path: "../../fonts/cal-sans-ui/CalSansText-Regular.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../../fonts/cal-sans-ui/CalSansText-Medium.ttf",
+      path: "../../fonts/cal-sans-ui/CalSansText-Medium.woff2",
       weight: "500",
       style: "normal",
     },
     {
-      path: "../../fonts/cal-sans-ui/CalSansText-SemiBold.ttf",
+      path: "../../fonts/cal-sans-ui/CalSansText-SemiBold.woff2",
       weight: "600",
       style: "normal",
     },
     {
-      path: "../../fonts/cal-sans-ui/CalSansText-Bold.ttf",
+      path: "../../fonts/cal-sans-ui/CalSansText-Bold.woff2",
       weight: "700",
       style: "normal",
     },
