@@ -115,8 +115,20 @@ const ConditionalLink = ({
   className?: string;
 }) => {
   if (onClick) {
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onClick();
+      }
+    };
+
     return (
-      <div onClick={onClick} className={className}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onClick}
+        onKeyDown={handleKeyDown}
+        className={classNames(className, "cursor-pointer")}>
         {children}
       </div>
     );
