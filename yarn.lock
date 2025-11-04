@@ -2681,7 +2681,7 @@ __metadata:
     "@getalby/lightning-tools": ^5.1.2
     "@getalby/sdk": ^4.0.0
     "@webbtc/webln-types": ^3.0.0
-    react-qr-code: ^2.0.12
+    react-qr-code: ^2.0.18
     svix: ^0.85.1
   languageName: unknown
   linkType: soft
@@ -41207,19 +41207,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-qr-code@npm:^2.0.12":
-  version: 2.0.12
-  resolution: "react-qr-code@npm:2.0.12"
+"react-qr-code@npm:^2.0.18":
+  version: 2.0.18
+  resolution: "react-qr-code@npm:2.0.18"
   dependencies:
     prop-types: ^15.8.1
     qr.js: 0.0.0
   peerDependencies:
-    react: ^16.x || ^17.x || ^18.x
-    react-native-svg: "*"
-  peerDependenciesMeta:
-    react-native-svg:
-      optional: true
-  checksum: b7bad40d7d5f04f7ff336ae499920dd5ea0e7616ed7fec5f849e54f8f26b5e4acd1ba8e69198be8617dc7fecdf36cf4302c99ff74885320b55bb95d19a09de7c
+    react: "*"
+  checksum: c90164aac6c124d6a7aba2d9426859072d2233bb8d06102d23ef0c1831048e94cebc7608b821ff2b79f3a1cadf454305c727fd3e1d7742fd71f816cdeac04053
   languageName: node
   linkType: hard
 
