@@ -249,6 +249,73 @@ describe("overlap utility", () => {
       expect(layouts[1].indexInGroup).toBe(0);
       expect(layouts[1].leftOffsetPercent).toBe(0);
     });
+
+    it("should prevent overflow with many overlapping events (dense scenario)", () => {
+      const events: CalendarEvent[] = [
+        { id: 1, title: "Event 1", start: new Date("2024-01-01T09:00:00"), end: new Date("2024-01-01T09:30:00") },
+        { id: 2, title: "Event 2", start: new Date("2024-01-01T09:15:00"), end: new Date("2024-01-01T10:00:00") },
+        { id: 3, title: "Event 3", start: new Date("2024-01-01T09:45:00"), end: new Date("2024-01-01T11:00:00") },
+        { id: 4, title: "Event 4", start: new Date("2024-01-01T10:00:00"), end: new Date("2024-01-01T10:30:00") },
+        { id: 5, title: "Event 5", start: new Date("2024-01-01T10:15:00"), end: new Date("2024-01-01T11:30:00") },
+        { id: 6, title: "Event 6", start: new Date("2024-01-01T11:00:00"), end: new Date("2024-01-01T12:00:00") },
+        { id: 7, title: "Event 7", start: new Date("2024-01-01T11:30:00"), end: new Date("2024-01-01T12:30:00") },
+        { id: 8, title: "Event 8", start: new Date("2024-01-01T12:00:00"), end: new Date("2024-01-01T13:30:00") },
+        { id: 9, title: "Event 9", start: new Date("2024-01-01T12:30:00"), end: new Date("2024-01-01T13:00:00") },
+        { id: 10, title: "Event 10", start: new Date("2024-01-01T13:00:00"), end: new Date("2024-01-01T14:00:00") },
+        { id: 11, title: "Event 11", start: new Date("2024-01-01T13:15:00"), end: new Date("2024-01-01T14:00:00") },
+      ];
+
+      const layouts = calculateEventLayouts(events);
+
+      layouts.forEach((layout) => {
+        const totalWidth = layout.leftOffsetPercent + layout.widthPercent;
+        expect(totalWidth).toBeLessThanOrEqual(100);
+      });
+
+      expect(layouts).toHaveLength(11);
+    });
+
+    it("should compress offset step for dense overlaps while maintaining cascade", () => {
+      const events: CalendarEvent[] = Array.from({ length: 12 }, (_, i) => ({
+        id: i + 1,
+        title: `Event ${i + 1}`,
+        start: new Date(`2024-01-01T10:${String(i * 5).padStart(2, '0')}:00`),
+        end: new Date(`2024-01-01T11:${String(i * 5).padStart(2, '0')}:00`),
+      }));
+
+      const layouts = calculateEventLayouts(events);
+
+      expect(layouts).toHaveLength(12);
+      
+      layouts.forEach((layout, index) => {
+        expect(layout.leftOffsetPercent + layout.widthPercent).toBeLessThanOrEqual(100);
+        
+        if (index > 0) {
+          expect(layout.leftOffsetPercent).toBeGreaterThan(layouts[index - 1].leftOffsetPercent);
+        }
+      });
+
+      const lastLayout = layouts[layouts.length - 1];
+      expect(lastLayout.leftOffsetPercent + lastLayout.widthPercent).toBeLessThanOrEqual(100);
+    });
+
+    it("should maintain full width for small overlap groups", () => {
+      const events: CalendarEvent[] = [
+        { id: 1, title: "Event 1", start: new Date("2024-01-01T10:00:00"), end: new Date("2024-01-01T11:00:00") },
+        { id: 2, title: "Event 2", start: new Date("2024-01-01T10:30:00"), end: new Date("2024-01-01T11:30:00") },
+        { id: 3, title: "Event 3", start: new Date("2024-01-01T11:00:00"), end: new Date("2024-01-01T12:00:00") },
+      ];
+
+      const layouts = calculateEventLayouts(events);
+
+      expect(layouts[0].widthPercent).toBe(80);
+      expect(layouts[1].widthPercent).toBe(80);
+      expect(layouts[2].widthPercent).toBe(80);
+      
+      expect(layouts[0].leftOffsetPercent).toBe(0);
+      expect(layouts[1].leftOffsetPercent).toBe(8);
+      expect(layouts[2].leftOffsetPercent).toBe(16);
+    });
   });
 
   describe("createLayoutMap", () => {

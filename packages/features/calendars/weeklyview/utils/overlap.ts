@@ -79,6 +79,7 @@ export function buildOverlapGroups(sortedEvents: CalendarEvent[]): CalendarEvent
 
 /**
  * Calculates layout information for all events including position and z-index
+ * Dynamically adjusts offset step to prevent overflow when many events overlap
  */
 export function calculateEventLayouts(
   events: CalendarEvent[],
@@ -95,11 +96,21 @@ export function calculateEventLayouts(
   const layouts: EventLayout[] = [];
 
   groups.forEach((group, groupIndex) => {
+    const groupSize = group.length;
+    const allowedOffsetSpace = 100 - baseWidthPercent;
+    const stepUsed = Math.min(
+      offsetStepPercent,
+      allowedOffsetSpace / Math.max(1, groupSize - 1)
+    );
+
     group.forEach((event, indexInGroup) => {
+      const leftOffset = indexInGroup * stepUsed;
+      const width = Math.min(baseWidthPercent, 100 - leftOffset);
+
       layouts.push({
         event,
-        leftOffsetPercent: indexInGroup * offsetStepPercent,
-        widthPercent: baseWidthPercent,
+        leftOffsetPercent: Number(leftOffset.toFixed(3)),
+        widthPercent: Number(width.toFixed(3)),
         baseZIndex: baseZIndex + indexInGroup,
         groupIndex,
         indexInGroup,
