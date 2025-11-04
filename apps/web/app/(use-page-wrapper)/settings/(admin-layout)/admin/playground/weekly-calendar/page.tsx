@@ -15,7 +15,7 @@ const getBaseProps = (events: CalendarEvent[]): CalendarComponentProps => ({
   startDate: dayjs("2025-01-06").toDate(), // Monday
   endDate: dayjs("2025-01-12").toDate(), // Sunday
   events,
-  startHour: 8,
+  startHour: 6,
   endHour: 18,
   gridCellsPerHour: 4,
   timezone: "UTC",
