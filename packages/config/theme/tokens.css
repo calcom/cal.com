@@ -91,7 +91,7 @@
   --border-color-semantic-error: var(--cal-border-semantic-error);
   --border-color-semantic-attention-subtle: var(--cal-border-semantic-attention-subtle);
   --border-color-semantic-error-subtle: var(--cal-border-semantic-error-subtle);
-  --border-color-booker: var(--cal-border-subtle);
+  --border-color-booker: var(--cal-border-booker, var(--cal-border-subtle));
 
   /* Cal.com Border Widths */
   --border-width-booker-width: var(--cal-border-booker-width, 1px);

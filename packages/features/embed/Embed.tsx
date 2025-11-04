@@ -714,7 +714,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   );
   const { data: userSettings } = trpc.viewer.me.get.useQuery();
 
-  const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
+  const teamSlug = eventTypeData?.team ? eventTypeData.team.slug : null;
 
   const s = (href: string) => {
     const _searchParams = new URLSearchParams(searchParams.toString());
@@ -921,7 +921,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     <DialogContent
       enableOverflow
       ref={dialogContentRef}
-      className="rounded-lg p-0.5 sm:max-w-7xl"
+      className="rounded-lg p-0.5 sm:max-w-7xl!"
       type="creation">
       <div className="flex">
         <div className="bg-cal-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
