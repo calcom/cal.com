@@ -1,33 +1,72 @@
 export enum ErrorCode {
-  PaymentCreationFailure = "payment_not_created_error",
-  NoAvailableUsersFound = "no_available_users_found_error",
-  ChargeCardFailure = "couldnt_charge_card_error",
+  // 400 Bad Request - Client errors, invalid input, validation failures
   RequestBodyWithouEnd = "request_body_end_time_internal_error",
-  AlreadySignedUpForBooking = "already_signed_up_for_this_booking_error",
-  FixedHostsUnavailableForBooking = "fixed_hosts_unavailable_for_booking",
-  RoundRobinHostsUnavailableForBooking = "round_robin_host_unavailable_for_booking",
-  EventTypeNotFound = "event_type_not_found_error",
-  BookingNotFound = "booking_not_found_error",
-  BookingSeatsFull = "booking_seats_full_error",
   MissingPaymentCredential = "missing_payment_credential_error",
   MissingPaymentAppId = "missing_payment_app_id_error",
-  NotEnoughAvailableSeats = "not_enough_available_seats_error",
   AvailabilityNotFoundInSchedule = "availability_not_found_in_schedule_error",
   CancelledBookingsCannotBeRescheduled = "cancelled_bookings_cannot_be_rescheduled",
-  UnableToSubscribeToThePlatform = "unable_to_subscribe_to_the_platform",
-  UpdatingOauthClientError = "updating_oauth_client_error",
-  CreatingOauthClientError = "creating_oauth_client_error",
   BookingTimeOutOfBounds = "booking_time_out_of_bounds_error",
-  BookingConflict = "booking_conflict_error",
+  BookingNotAllowedByRestrictionSchedule = "booking_not_allowed_by_restriction_schedule_error",
   BookerLimitExceeded = "booker_limit_exceeded_error",
   BookerLimitExceededReschedule = "booker_limit_exceeded_error_reschedule",
-  BookingNotAllowedByRestrictionSchedule = "booking_not_allowed_by_restriction_schedule_error",
-  RestrictionScheduleNotFound = "restriction_schedule_not_found_error",
   EventTypeNoHosts = "event_type_no_hosts",
   RequestBodyInvalid = "request_body_invalid_error",
+  ChargeCardFailure = "couldnt_charge_card_error",
+  InvalidInput = "invalid_input",
+  MissingRequiredField = "missing_required_field",
+  InvalidPhoneNumber = "invalid_phone_number",
+  InvalidTimeZone = "invalid_timezone",
+  InvalidOperation = "invalid_operation",
+  ConfigurationError = "configuration_error",
   PrivateLinkExpired = "private_link_expired",
   BookerEmailBlocked = "booker_email_blocked",
   BookerEmailRequiresLogin = "booker_email_requires_login",
   InvalidVerificationCode = "invalid_verification_code",
   UnableToValidateVerificationCode = "unable_to_validate_verification_code",
+
+  // 401 Unauthorized - Authentication required
+  Unauthorized = "unauthorized",
+
+  // 402 Payment Required - Payment needed to proceed
+  PaymentRequired = "payment_required",
+
+  // 403 Forbidden - Access denied, insufficient permissions
+  PermissionDenied = "permission_denied",
+  AccessDenied = "access_denied",
+  OperationNotAllowed = "operation_not_allowed",
+
+  // 404 Not Found - Resource does not exist
+  EventTypeNotFound = "event_type_not_found_error",
+  BookingNotFound = "booking_not_found_error",
+  RestrictionScheduleNotFound = "restriction_schedule_not_found_error",
+  ResourceNotFound = "resource_not_found",
+  AgentNotFound = "agent_not_found",
+  TeamNotFound = "team_not_found",
+  UserNotFound = "user_not_found",
+  CheckoutSessionNotFound = "checkout_session_not_found",
+  SubscriptionNotFound = "subscription_not_found",
+
+  // 409 Conflict - Resource conflicts, already exists, unavailable
+  NoAvailableUsersFound = "no_available_users_found_error",
+  FixedHostsUnavailableForBooking = "fixed_hosts_unavailable_for_booking",
+  RoundRobinHostsUnavailableForBooking = "round_robin_host_unavailable_for_booking",
+  AlreadySignedUpForBooking = "already_signed_up_for_this_booking_error",
+  BookingSeatsFull = "booking_seats_full_error",
+  NotEnoughAvailableSeats = "not_enough_available_seats_error",
+  BookingConflict = "booking_conflict_error",
+  PaymentCreationFailure = "payment_not_created_error",
+  ResourceAlreadyExists = "resource_already_exists",
+
+  // 500 Internal Server Error - Server-side errors, system failures
+  UnableToSubscribeToThePlatform = "unable_to_subscribe_to_the_platform",
+  UpdatingOauthClientError = "updating_oauth_client_error",
+  CreatingOauthClientError = "creating_oauth_client_error",
+  InternalServerError = "internal_server_error",
+  UnableToLoadUsers = "unable_to_load_users",
+  FailedToUpdateStatus = "failed_to_update_status",
+
+  // 503 Service Unavailable - External services, temporary failures
+  ResourceUnavailable = "resource_unavailable",
+  ExternalServiceError = "external_service_error",
+  ApiError = "api_error",
 }
