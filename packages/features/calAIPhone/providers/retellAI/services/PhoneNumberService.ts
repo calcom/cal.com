@@ -274,7 +274,7 @@ export class PhoneNumberService {
 
   private async validateAgentPermissions(userId: number, agentId?: string | null) {
     if (!agentId) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
     }
 
     let agent = null;

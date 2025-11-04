@@ -1,6 +1,6 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 
 import type {
@@ -38,11 +38,17 @@ export class CallService {
     dynamicVariables?: RetellDynamicVariables;
   }): Promise<AIPhoneServiceCall<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!data.fromNumber?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "From phone number is required and cannot be empty");
+      throw new ErrorWithCode(
+        ErrorCode.MissingRequiredField,
+        "From phone number is required and cannot be empty"
+      );
     }
 
     if (!data.toNumber?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "To phone number is required and cannot be empty");
+      throw new ErrorWithCode(
+        ErrorCode.MissingRequiredField,
+        "To phone number is required and cannot be empty"
+      );
     }
 
     const { fromNumber, toNumber, dynamicVariables } = data;
@@ -59,7 +65,10 @@ export class CallService {
         toNumber: data.toNumber,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Failed to create phone call from ${data.fromNumber} to ${data.toNumber}");
+      throw new ErrorWithCode(
+        ErrorCode.InvalidPhoneNumber,
+        "Failed to create phone call from ${data.fromNumber} to ${data.toNumber}"
+      );
     }
   }
 
@@ -79,7 +88,7 @@ export class CallService {
     eventTypeId: number;
   }) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
     }
 
     await this.validateCreditsForTestCall({ userId, teamId });
@@ -106,12 +115,18 @@ export class CallService {
     const agentPhoneNumber = agent.outboundPhoneNumbers?.[0]?.phoneNumber;
 
     if (!agentPhoneNumber) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent must have a phone number assigned to make calls.");
+      throw new ErrorWithCode(
+        ErrorCode.AgentNotFound,
+        "Agent must have a phone number assigned to make calls."
+      );
     }
 
     if (!this.retellAIService) {
       this.logger.error("RetellAIService not configured before createTestCall");
-      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Internal configuration error: AI phone service not initialized");
+      throw new ErrorWithCode(
+        ErrorCode.InvalidPhoneNumber,
+        "Internal configuration error: AI phone service not initialized"
+      );
     }
 
     const call = await this.createPhoneCall({
@@ -159,7 +174,7 @@ export class CallService {
     eventTypeId: number;
   }) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
     }
 
     await this.validateCreditsForTestCall({ userId, teamId });
@@ -231,7 +246,10 @@ export class CallService {
       });
 
       if (!hasCredits) {
-        throw new ErrorWithCode(ErrorCode.PermissionDenied, "Insufficient credits to make test call. Please purchase more credits.");
+        throw new ErrorWithCode(
+          ErrorCode.PermissionDenied,
+          "Insufficient credits to make test call. Please purchase more credits."
+        );
       }
     } catch (error) {
       // Re-throw HTTP errors (like insufficient credits) as-is

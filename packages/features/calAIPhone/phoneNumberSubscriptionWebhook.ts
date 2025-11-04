@@ -6,8 +6,8 @@ import { z } from "zod";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
@@ -49,7 +49,7 @@ async function getCheckoutSession(sessionId: string) {
 
 function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutSessionMetadata {
   if (session.payment_status !== "paid") {
-    throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Payment required");
+    throw new ErrorWithCode(ErrorCode.PaymentRequired, "Payment required");
   }
   if (!session.subscription) {
     throw new ErrorWithCode(ErrorCode.CheckoutSessionNotFound, "No subscription found in checkout session");

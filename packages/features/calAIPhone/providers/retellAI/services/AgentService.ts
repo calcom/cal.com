@@ -4,8 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
 import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/constants";
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 
@@ -44,7 +44,7 @@ export class AgentService {
 
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
     }
 
     try {
@@ -63,7 +63,7 @@ export class AgentService {
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
     }
 
     if (!data.eventTypeId || !data.userId) {
@@ -158,14 +158,18 @@ export class AgentService {
         agentId,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to update agent general tools ${agentId}: ${
-          error instanceof Error ? error.message : "Unknown error"}`);
+      throw new ErrorWithCode(
+        ErrorCode.InternalServerError,
+        `Failed to update agent general tools ${agentId}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   }
 
   async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
     }
 
     if (!eventTypeIds.length) {
@@ -230,7 +234,7 @@ export class AgentService {
 
   async cleanupUnusedTools(agentId: string, activeEventTypeIds: number[] = []) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
     }
 
     let mappedActiveEventTypeIds = activeEventTypeIds;
@@ -320,7 +324,7 @@ export class AgentService {
     }
   ): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
     }
 
     if (!data || Object.keys(data).length === 0) {
@@ -500,7 +504,10 @@ export class AgentService {
     }
 
     if (phoneNumberRecord.inboundAgentId) {
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Inbound agent already configured for this phone number");
+      throw new ErrorWithCode(
+        ErrorCode.AgentNotFound,
+        "Inbound agent already configured for this phone number"
+      );
     }
 
     const agentName = name || `Inbound Agent - ${workflowStepId}`;
@@ -534,7 +541,10 @@ export class AgentService {
         phoneNumberId: phoneNumberRecord.id,
       });
 
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}");
+      throw new ErrorWithCode(
+        ErrorCode.AgentNotFound,
+        "Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}"
+      );
     }
 
     return {
@@ -633,7 +643,10 @@ export class AgentService {
           throw error;
         }
 
-        throw new ErrorWithCode(ErrorCode.AgentNotFound, "Unable to update agent configuration. Please try again.");
+        throw new ErrorWithCode(
+          ErrorCode.AgentNotFound,
+          "Unable to update agent configuration. Please try again."
+        );
       }
     }
 
