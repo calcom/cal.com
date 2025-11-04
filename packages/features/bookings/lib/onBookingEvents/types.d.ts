@@ -20,5 +20,9 @@ export interface BookingCreatedPayload {
   };
 }
 
-// Add more fields here when needed
-type BookingRescheduledPayload = BookingCreatedPayload;
+export interface BookingRescheduledPayload extends BookingCreatedPayload {
+  oldBooking?: {
+    startTime: Date;
+    endTime: Date;
+  };
+}

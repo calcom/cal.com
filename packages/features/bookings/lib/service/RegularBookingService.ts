@@ -34,6 +34,7 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -412,6 +413,43 @@ function formatAvailabilitySnapshot(data: {
   };
 }
 
+function buildBookingCreatedPayload({
+  booking,
+  organizerUserId,
+  hashedLink,
+  isDryRun,
+}: {
+  booking: {
+    id: number;
+    startTime: Date;
+    endTime: Date;
+    status: BookingStatus;
+    userId: number | null;
+  };
+  organizerUserId: number;
+  hashedLink: string | null;
+  isDryRun: boolean;
+}) {
+  return {
+    config: {
+      isDryRun,
+    },
+    bookingFormData: {
+      hashedLink,
+    },
+    booking: {
+      id: booking.id,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      status: booking.status,
+      userId: booking.userId,
+      user: {
+        id: organizerUserId,
+      },
+    },
+  };
+}
+
 export interface IBookingServiceDependencies {
   cacheService: CacheService;
   checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService;
@@ -645,6 +683,19 @@ async function handler(
       const shouldShowPaymentForm = requiresPayment && !isPaidBooking;
 
       const firstPayment = shouldShowPaymentForm ? existingBooking.payment[0] : undefined;
+
+      // Create audit log for the existing booking if it doesn't already have one
+      // This handles the case where a booking was created but audit log creation failed
+      const bookingCreatedPayload = buildBookingCreatedPayload({
+        booking: existingBooking,
+        organizerUserId: existingBooking.userId ?? existingBooking.user?.id ?? 0,
+        hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
+        isDryRun,
+      });
+
+      // Call onBookingCreated to ensure audit log exists
+      // This is idempotent - if audit log already exists, it will be handled gracefully
+      await deps.bookingEventHandler.onBookingCreated(bookingCreatedPayload);
 
       const bookingResponse = {
         ...existingBooking,
@@ -2223,30 +2274,21 @@ async function handler(
     }
     : undefined;
 
-  const bookingFlowConfig = {
+  const bookingCreatedPayload = buildBookingCreatedPayload({
+    booking,
+    organizerUserId: organizerUser.id,
+    hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
     isDryRun,
-  };
-
-  const bookingCreatedPayload = {
-    config: bookingFlowConfig,
-    bookingFormData: {
-      // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
-      hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
-    },
-    booking: {
-      id: booking.id,
-      startTime: booking.startTime,
-      endTime: booking.endTime,
-      status: booking.status,
-      userId: booking.userId,
-      user: {
-        id: organizerUser.id,
-      },
-    }
-  };
+  });
 
   // Add more fields here when needed
-  const bookingRescheduledPayload = bookingCreatedPayload;
+  const bookingRescheduledPayload: BookingRescheduledPayload = {
+    ...bookingCreatedPayload,
+    oldBooking: originalRescheduledBooking ? {
+      startTime: originalRescheduledBooking.startTime,
+      endTime: originalRescheduledBooking.endTime,
+    } : undefined,
+  };
 
   // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
   if (originalRescheduledBooking) {

@@ -19,7 +19,7 @@ import type { BookingStatus } from "@calcom/prisma/enums";
 
 import type { Actor } from "../types/actor";
 import { getActorUserId } from "../types/actor";
-import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types";
+import type { BookingCreatedPayload, BookingRescheduledPayload } from "./types.d";
 
 interface BookingEventHandlerDeps {
   log: Logger<unknown>;
@@ -87,6 +87,29 @@ export class BookingEventHandlerService {
       return;
     }
     await this.onBookingCreatedOrRescheduled(payload);
+
+    try {
+      const auditData = {
+        primary: {
+          startTime: {
+            old: payload.oldBooking?.startTime.toISOString() ?? null,
+            new: payload.booking.startTime.toISOString(),
+          },
+          endTime: {
+            old: payload.oldBooking?.endTime.toISOString() ?? null,
+            new: payload.booking.endTime.toISOString(),
+          },
+        },
+      };
+      const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;
+      await this.bookingAuditService.onBookingRescheduled(
+        String(payload.booking.id),
+        userId,
+        auditData
+      );
+    } catch (error) {
+      this.log.error("Error while creating booking rescheduled audit", safeStringify(error));
+    }
   }
 
   /**
