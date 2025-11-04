@@ -3,7 +3,6 @@ import { useFormContext } from "react-hook-form";
 import { describe, expect, vi, beforeEach, test } from "vitest";
 
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { trpc } from "@calcom/trpc/react";
 
 import { useShouldBeDisabledDueToPrefill } from "./useShouldBeDisabledDueToPrefill";
 
@@ -18,46 +17,6 @@ vi.mock("react-hook-form", async () => {
     ...actual,
     useFormContext: vi.fn(),
   };
-});
-
-vi.mock("@calcom/trpc/react", () => ({
-  trpc: {
-    viewer: {
-      organizations: {
-        listCurrent: {
-          useQuery: vi.fn().mockReturnValue({ data: null }),
-        },
-      },
-    },
-  },
-}));
-
-describe("Organization-level autofill disable", () => {
-  test("should block autofill when organization setting is enabled", () => {
-    const field = {
-      ...defaultField,
-      disableOnPrefill: false,
-    };
-
-    const mockUseQuery = vi.fn().mockReturnValue({
-      data: {
-        organizationSettings: {
-          disableAutofillOnBookingPage: true,
-        },
-      },
-    });
-
-    vi.mocked(trpc.viewer.organizations.listCurrent.useQuery).mockImplementation(mockUseQuery);
-
-    mockScenario({
-      formState: buildFormStateWithNoErrors(),
-      responses: {},
-      searchParams: { name: "John Doe", email: "john@example.com" },
-    });
-
-    const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
-    expect(shouldBeDisabled).toBe(true);
-  });
 });
 
 const defaultField = {

@@ -45,7 +45,6 @@ function isEqual(searchParamValue: string | string[], formValue: string[] | stri
 export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
   const { getValues, formState } = useFormContext();
   const toPrefillValues = useRouterQuery();
-
   if (!field.disableOnPrefill) {
     return false;
   }

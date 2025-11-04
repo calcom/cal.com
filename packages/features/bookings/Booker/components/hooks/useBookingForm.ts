@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useInitialFormValues } from "./useInitialFormValues";
 
 export interface IUseBookingForm {
-  event?: Pick<BookerEvent, "bookingFields"> | null;
+  event?: Pick<BookerEvent, "bookingFields" | "team" | "owner"> | null;
   sessionEmail?: string | null;
   sessionName?: string | null;
   sessionUsername?: string | null;
