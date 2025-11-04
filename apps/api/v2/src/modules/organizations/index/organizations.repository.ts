@@ -1,5 +1,4 @@
 import { PlatformPlan } from "@/modules/billing/types";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable } from "@nestjs/common";
@@ -10,7 +9,6 @@ import { Prisma } from "@calcom/prisma/client";
 @Injectable()
 export class OrganizationsRepository extends OrganizationRepository {
   constructor(
-    private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
     private readonly stripeService: StripeService
   ) {
@@ -18,7 +16,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async findByIds(organizationIds: number[]) {
-    return this.dbRead.prisma.team.findMany({
+    return this.dbWrite.prisma.team.findMany({
       where: {
         id: {
           in: organizationIds,
@@ -29,7 +27,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async findByIdIncludeBilling(orgId: number) {
-    return this.dbRead.prisma.team.findUnique({
+    return this.dbWrite.prisma.team.findUnique({
       where: {
         id: orgId,
       },
@@ -64,7 +62,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async findTeamIdAndSlugFromClientId(clientId: string) {
-    return this.dbRead.prisma.team.findFirstOrThrow({
+    return this.dbWrite.prisma.team.findFirstOrThrow({
       where: {
         platformOAuthClient: {
           some: {
@@ -80,7 +78,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async findPlatformOrgFromUserId(userId: number) {
-    return this.dbRead.prisma.team.findFirstOrThrow({
+    return this.dbWrite.prisma.team.findFirstOrThrow({
       where: {
         orgProfiles: {
           some: {
@@ -99,7 +97,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async findOrgUser(organizationId: number, userId: number) {
-    return this.dbRead.prisma.user.findUnique({
+    return this.dbWrite.prisma.user.findUnique({
       where: {
         id: userId,
         profiles: {
@@ -112,7 +110,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async findOrgTeamUser(organizationId: number, teamId: number, userId: number) {
-    return this.dbRead.prisma.user.findUnique({
+    return this.dbWrite.prisma.user.findUnique({
       where: {
         id: userId,
         profiles: {
@@ -130,7 +128,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async fetchOrgAdminApiStatus(organizationId: number) {
-    return this.dbRead.prisma.organizationSettings.findUnique({
+    return this.dbWrite.prisma.organizationSettings.findUnique({
       where: {
         organizationId,
       },
@@ -160,7 +158,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async findOrgBySlug(slug: string) {
-    return this.dbRead.prisma.team.findFirst({
+    return this.dbWrite.prisma.team.findFirst({
       where: {
         slug,
         parentId: null,
@@ -170,7 +168,7 @@ export class OrganizationsRepository extends OrganizationRepository {
   }
 
   async findTeamByPlatformBillingId(billingId: number) {
-    return this.dbRead.prisma.team.findFirst({
+    return this.dbWrite.prisma.team.findFirst({
       where: {
         platformBilling: {
           id: billingId,

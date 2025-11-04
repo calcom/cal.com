@@ -15,7 +15,7 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
   constructor(
     private organizationsRepository: OrganizationsRepository,
     private readonly redisService: RedisService
-  ) { }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { organization?: Team }>();
@@ -54,7 +54,7 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
       }
     }
 
-    const org = await this.organizationsRepository.findById(Number(organizationId));
+    const org = await this.organizationsRepository.findById({ id: Number(organizationId) });
 
     if (org?.isOrganization && !org?.isPlatform) {
       const adminAPIAccessIsEnabledInOrg = await this.organizationsRepository.fetchOrgAdminApiStatus(
