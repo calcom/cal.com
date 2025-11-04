@@ -4176,6 +4176,14 @@
             }
           },
           {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "teamId",
             "required": true,
             "in": "path",
@@ -4248,6 +4256,14 @@
             }
           },
           {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
             "name": "teamId",
             "required": true,
             "in": "path",
@@ -4309,6 +4325,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           },
           {
@@ -4379,6 +4403,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           },
           {
