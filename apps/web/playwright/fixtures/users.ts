@@ -1,6 +1,7 @@
 import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { hashSync as hash } from "bcryptjs";
+import { uuid } from "short-uuid";
 import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
@@ -574,7 +575,7 @@ export const createUsersFixture = (
      * Use this method to get an email that can be automatically cleaned up from all the places in DB
      */
     trackEmail: ({ username, domain }: { username: string; domain: string }) => {
-      const email = `${username}-${v4().replace(/-/g, "").substring(0, 8)}@${domain}`;
+      const email = `${username}-${uuid().substring(0, 8)}@${domain}`;
       store.trackedEmails.push({
         email,
       });
