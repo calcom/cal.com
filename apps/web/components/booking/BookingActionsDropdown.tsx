@@ -384,6 +384,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
           bookingFromRoutingForm={isBookingFromRoutingForm}
+          isManagedEvent={booking.eventType?.parentId != null}
         />
       )}
       <EditLocationDialog

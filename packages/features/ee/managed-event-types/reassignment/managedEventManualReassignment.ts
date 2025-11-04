@@ -57,10 +57,8 @@ export async function managedEventManualReassignment({
 
   reassignLogger.info(`User ${reassignedById} initiating manual reassignment to user ${newUserId}`);
 
-  // 1. Validate the booking can be reassigned
   await validateManagedEventReassignment({ bookingId });
 
-  // 2. Find and validate target child event type
   const {
     currentChildEventType,
     parentEventType,
@@ -77,7 +75,6 @@ export async function managedEventManualReassignment({
     parentId: parentEventType.id,
   });
 
-  // 3. Get full event type details and user info
   const [currentEventTypeDetails, targetEventTypeDetails] = await Promise.all([
     getEventTypesFromDB(currentChildEventType.id),
     getEventTypesFromDB(targetChildEventType.id),
@@ -115,7 +112,6 @@ export async function managedEventManualReassignment({
     throw new Error(`User ${newUserId} not found`);
   }
 
-  // Fetch credentials separately like Round Robin does
   const newUserCredentials = await prisma.credential.findMany({
     where: { userId: newUserId },
     include: { user: { select: { email: true } } },
@@ -149,7 +145,6 @@ export async function managedEventManualReassignment({
     throw new Error("Original booking user not found");
   }
 
-  // 4. Get the full original booking with all relations
   const originalBookingFull = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
@@ -165,8 +160,6 @@ export async function managedEventManualReassignment({
     throw new Error("Original booking not found");
   }
 
-  // 5. Check availability of new user at booking time
-  // Transform user to IsFixedAwareUser format for availability checking
   const enrichedUsersResult = await enrichUsersWithDelegationCredentials({
     orgId,
     users: [withSelectedCalendars(newUser)],
@@ -189,12 +182,10 @@ export async function managedEventManualReassignment({
     );
     reassignLogger.info("Target user is available");
   } catch (error) {
-    // Log with reassignment context, then abort
     reassignLogger.error("Target user is not available at the booking time", error);
     throw error;
   }
 
-  // 6. Build the new booking data and cancellation data
   const { buildReassignmentBookingData } = await import("./lib/buildReassignmentBookingData");
   
   const { newBookingData, originalBookingCancellationData } = await buildReassignmentBookingData({
@@ -211,16 +202,15 @@ export async function managedEventManualReassignment({
     originalUserId: originalUser.id,
   });
 
-  // 7. Execute the reassignment in a transaction (cancel + create)
+  // Execute the reassignment in a transaction (cancel + create)
   const { newBooking, cancelledBooking } = await prisma.$transaction(async (tx) => {
-    // First, cancel the original booking - destructure to avoid type conflicts
+
     const cancelled = await tx.booking.update({
       where: originalBookingCancellationData.where,
       data: originalBookingCancellationData.data,
       select: originalBookingCancellationData.select,
     });
 
-    // Then, create the new booking - destructure to avoid type conflicts
     const created = await tx.booking.create({
       data: newBookingData,
       include: {
@@ -232,7 +222,6 @@ export async function managedEventManualReassignment({
       },
     });
 
-    // Update the cancelled booking metadata with new booking ID
     const existingReassignment =
       typeof cancelled.metadata === "object" &&
       cancelled.metadata &&
@@ -265,15 +254,12 @@ export async function managedEventManualReassignment({
     newBookingId: newBooking.id,
   });
 
-  // 8. Handle calendar events - delete from old user, create for new user
   const apps = eventTypeAppMetadataOptionalSchema.parse(targetEventTypeDetails?.metadata?.apps);
 
-  // Get translation functions for both users
   const { getTranslation } = await import("@calcom/lib/server/i18n");
   const originalUserT = await getTranslation(originalUser.locale ?? "en", "common");
   const newUserT = await getTranslation(newUser.locale ?? "en", "common");
 
-  // Delete calendar events from original user
   if (originalUser) {
     const originalUserCredentials = await getAllCredentialsIncludeServiceAccountKey(
       originalUser,
@@ -307,11 +293,8 @@ export async function managedEventManualReassignment({
       reassignLogger.info("Deleted calendar events from original user");
     } catch (error) {
       reassignLogger.error("Error deleting calendar events", error);
-      // Don't fail the reassignment if calendar deletion fails
     }
   }
-
-  // Create calendar events for new user
 
   const newUserWithCredentials = await enrichUserWithDelegationCredentialsIncludeServiceAccountKey({
     user: { ...newUser, credentials: newUserCredentials },
@@ -361,10 +344,8 @@ export async function managedEventManualReassignment({
     reassignLogger.info("Created calendar events for new user");
   } catch (error) {
     reassignLogger.error("Error creating calendar events for new user", error);
-    // Calendar event creation failure is serious - should we rollback?
   }
 
-  // 9. Cancel ALL workflow reminders for original booking
   try {
     const cancelResult = await cancelAllWorkflowRemindersForReassignment({
       bookingUid: originalBookingFull.uid,
@@ -372,10 +353,8 @@ export async function managedEventManualReassignment({
     reassignLogger.info(`Cancelled ${cancelResult.totalCancelled} workflow reminders (${cancelResult.emailCancelled} email, ${cancelResult.smsCancelled} SMS)`);
   } catch (error) {
     reassignLogger.error("Error cancelling workflow reminders", error);
-    // Don't throw - workflow cancellation failure shouldn't block reassignment
   }
 
-  // 10. Schedule workflow reminders for new booking
   if (targetEventTypeDetails.workflows && targetEventTypeDetails.workflows.length > 0) {
     try {
       const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
@@ -425,12 +404,10 @@ export async function managedEventManualReassignment({
     }
   }
 
-  // 11. Send notification emails (original user, new user, attendees)
   if (emailsEnabled) {
     try {
       const eventTypeMetadata = targetEventTypeDetails.metadata as EventTypeMetadata | undefined;
 
-      // Build CalendarEvent for emails
       const calEvent = {
         type: targetEventTypeDetails.slug,
         uid: newBooking.uid,
@@ -455,7 +432,6 @@ export async function managedEventManualReassignment({
         description: newBooking.description || undefined,
       };
 
-      // Send email to new host (booking scheduled)
       await sendReassignedScheduledEmailsAndSMS({
         calEvent,
         members: [
@@ -477,7 +453,7 @@ export async function managedEventManualReassignment({
       });
       reassignLogger.info("Sent scheduled email to new host");
 
-      // Send email to old host (booking reassigned/cancelled)
+
       if (originalUser) {
         const cancelledCalEvent = {
           ...calEvent,
@@ -508,7 +484,6 @@ export async function managedEventManualReassignment({
         reassignLogger.info("Sent reassignment email to original host");
       }
 
-      // Send email to attendees (host changed)
       if (dayjs(calEvent.startTime).isAfter(dayjs())) {
         await sendReassignedUpdatedEmailsAndSMS({
           calEvent,
@@ -518,11 +493,9 @@ export async function managedEventManualReassignment({
       }
     } catch (error) {
       reassignLogger.error("Error sending notification emails", error);
-      // Don't throw - emails are not critical for reassignment success
     }
   }
 
-  // 12. Record assignment reason
   try {
     const assignmentResult = await ManagedEventAssignmentReasonRecorder.managedEventReassignment({
       newBookingId: newBooking.id,
@@ -535,7 +508,6 @@ export async function managedEventManualReassignment({
     reassignLogger.info("Recorded assignment reason", assignmentResult);
   } catch (error) {
     reassignLogger.error("Error recording assignment reason", error);
-    // Don't throw - assignment reason recording failure shouldn't block reassignment
   }
 
   // TODO: 13. Send webhook event BOOKING_REASSIGNED
