@@ -1,5 +1,5 @@
 import async from "async";
-import type { ImmutableTree, JsonLogicResult, JsonTree } from "@react-awesome-query-builder/core";
+import type { ImmutableTree, JsonLogicResult, JsonTree, JsonItem } from "@react-awesome-query-builder/core";
 import type { Config } from "@react-awesome-query-builder/core";
 import { Utils as QbUtils } from "@react-awesome-query-builder/core";
 
@@ -78,11 +78,11 @@ function getErrorsFromImmutableTree(tree: ImmutableTree) {
   }
 
   const errors: string[][] = [];
-  Object.values(validatedQueryValue.children1).map((rule: JsonTree) => {
-    if (rule.type !== "rule") {
+  Object.values(validatedQueryValue.children1).map((item: JsonItem) => {
+    if (item.type !== "rule") {
       return;
     }
-    const valueError = rule.properties?.valueError;
+    const valueError = item.properties?.valueError;
     if (valueError) {
       // Sometimes there are null values in it. Filter them out with a type predicate.
       const filtered = valueError.filter((e: unknown): e is string => typeof e === "string" && e.length > 0);
