@@ -2,9 +2,9 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { z } from "zod";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useVerifyGuestEmails } from "@calcom/features/bookings/Booker/components/hooks/useVerifyGuestEmails";
 import { GuestVerificationAlert } from "@calcom/features/bookings/Booker/components/BookEventForm/GuestVerificationAlert";
+import { useVerifyGuestEmails } from "@calcom/features/bookings/Booker/components/hooks/useVerifyGuestEmails";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { MultiEmail } from "@calcom/ui/components/address";
