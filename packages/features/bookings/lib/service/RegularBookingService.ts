@@ -397,9 +397,26 @@ function buildTroubleshooterData({
 function formatAvailabilitySnapshot(data: {
   dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
   oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+  busy?: { start: Date | string; end: Date | string; title?: string; source?: string }[];
 }) {
+  const formattedBusy = data.busy?.map(({ start, end, source }) => ({
+    start: dayjs(start).toISOString(),
+    end: dayjs(end).toISOString(),
+    source: source || "unknown",
+  }));
+
+  // Create a summary of busy times by source for quick analysis
+  const busySummary = formattedBusy?.reduce(
+    (acc, busy) => {
+      acc.totalBusy++;
+      const sourceKey = busy.source;
+      acc.bySource[sourceKey] = (acc.bySource[sourceKey] || 0) + 1;
+      return acc;
+    },
+    { totalBusy: 0, bySource: {} as Record<string, number> }
+  );
+
   return {
-    ...data,
     dateRanges: data.dateRanges.map(({ start, end }) => ({
       start: start.toISOString(),
       end: end.toISOString(),
@@ -408,6 +425,8 @@ function formatAvailabilitySnapshot(data: {
       start: start.toISOString(),
       end: end.toISOString(),
     })),
+    busy: formattedBusy || [],
+    busySummary: busySummary || { totalBusy: 0, bySource: {} },
   };
 }
 
