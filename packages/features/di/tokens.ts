@@ -1,4 +1,5 @@
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
+import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
 
 import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
@@ -58,8 +59,8 @@ export const DI_TOKENS = {
   ATTRIBUTE_REPOSITORY_MODULE: Symbol("AttributeRepositoryModule"),
   MEMBERSHIP_SERVICE: Symbol("MembershipService"),
   MEMBERSHIP_SERVICE_MODULE: Symbol("MembershipServiceModule"),
-  BOOKING_AUDIT_SERVICE: Symbol("BookingAuditService"),
-  BOOKING_AUDIT_SERVICE_MODULE: Symbol("BookingAuditServiceModule"),
+  // Booking audit service tokens
+  ...BOOKING_AUDIT_DI_TOKENS,
   // Booking service tokens
   ...BOOKING_DI_TOKENS,
   ...HASHED_LINK_DI_TOKENS,
