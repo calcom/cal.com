@@ -375,6 +375,57 @@ const scenarios: Scenario[] = [
       },
     ],
   },
+  {
+    id: "event-durations",
+    title: "Event Duration Layout Tests",
+    description: "Events with different durations to test layout logic (eventDuration > 30 changes flex-col)",
+    expected:
+      "Events ≤30min show horizontal layout (title and time inline). Events >30min show vertical layout (title and time stacked).",
+    events: [
+      {
+        id: 40,
+        title: "3min Quick Chat",
+        start: makeDate(0, 9, 0),
+        end: makeDate(0, 9, 3),
+        options: { status: "ACCEPTED", color: "#3b82f6" },
+      },
+      {
+        id: 41,
+        title: "7min Standup",
+        start: makeDate(0, 9, 15),
+        end: makeDate(0, 9, 22),
+        options: { status: "ACCEPTED", color: "#10b981" },
+      },
+      {
+        id: 42,
+        title: "15min Check-in",
+        start: makeDate(0, 9, 30),
+        end: makeDate(0, 9, 45),
+        options: { status: "PENDING", color: "#f59e0b" },
+      },
+      {
+        id: 43,
+        title: "20min Review",
+        start: makeDate(0, 10, 0),
+        end: makeDate(0, 10, 20),
+        options: { status: "ACCEPTED", color: "#8b5cf6" },
+      },
+      {
+        id: 44,
+        title: "30min Discussion",
+        start: makeDate(0, 10, 30),
+        end: makeDate(0, 11, 0),
+        options: { status: "ACCEPTED", color: "#ec4899" },
+      },
+      {
+        id: 45,
+        title: "53min Workshop",
+        start: makeDate(0, 11, 15),
+        end: makeDate(0, 12, 8),
+        options: { status: "ACCEPTED", color: "#14b8a6" },
+      },
+    ],
+  },
 ];
 
 function ScenarioCard({ scenario }: { scenario: Scenario }) {
