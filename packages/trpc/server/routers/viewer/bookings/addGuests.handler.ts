@@ -1,6 +1,7 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
+import { sendPendingGuestConfirmationEmail } from "@calcom/emails/email-manager";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -47,32 +48,47 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
 
   const organizer = await getOrganizerData(booking.userId);
 
-  const uniqueGuests = await sanitizeAndFilterGuests(guests, booking);
+  const { regularGuests, pendingGuests } = await sanitizeAndFilterGuests(guests, booking);
 
-  const newGuestsDetails = uniqueGuests.map((guest) => ({
-    name: guest.name || "",
-    email: guest.email,
-    timeZone: guest.timeZone || organizer.timeZone,
-    locale: guest.language || organizer.locale,
-  }));
+  const bookingRepository = new BookingRepository(prisma);
 
-  const uniqueGuestEmails = uniqueGuests.map((guest) => guest.email);
+  // Handle regular guests (add as attendees)
+  if (regularGuests.length > 0) {
+    const newGuestsDetails = regularGuests.map((guest) => ({
+      name: guest.name || "",
+      email: guest.email,
+      timeZone: guest.timeZone || organizer.timeZone,
+      locale: guest.language || organizer.locale,
+    }));
 
-  const bookingAttendees = await updateBookingAttendees(
-    bookingId,
-    newGuestsDetails,
-    uniqueGuestEmails,
-    booking
-  );
+    const uniqueGuestEmails = regularGuests.map((guest) => guest.email);
 
-  const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
+    const bookingAttendees = await updateBookingAttendees(
+      bookingId,
+      newGuestsDetails,
+      uniqueGuestEmails,
+      booking
+    );
 
-  const evt = await buildCalendarEvent(booking, organizer, attendeesList);
+    const attendeesList = await prepareAttendeesList(bookingAttendees.attendees);
 
-  await updateCalendarEvent(booking, evt);
+    const evt = await buildCalendarEvent(booking, organizer, attendeesList);
 
-  if (emailsEnabled) {
-    await sendGuestNotifications(evt, booking, uniqueGuestEmails);
+    await updateCalendarEvent(booking, evt);
+
+    if (emailsEnabled) {
+      await sendGuestNotifications(evt, booking, uniqueGuestEmails);
+    }
+  }
+
+  // Handle pending guests (create pending guest records and send confirmation emails)
+  if (pendingGuests.length > 0 && emailsEnabled) {
+    await createPendingGuestsAndSendEmails({
+      booking,
+      pendingGuests,
+      organizer,
+      bookingRepository,
+    });
   }
 
   return { message: "Guests added" };
@@ -181,15 +197,22 @@ async function sanitizeAndFilterGuests(
     language?: string;
   }>,
   booking: Booking
-): Promise<
-  Array<{
+): Promise<{
+  regularGuests: Array<{
     email: string;
     name?: string;
     timeZone?: string;
     phoneNumber?: string;
     language?: string;
-  }>
-> {
+  }>;
+  pendingGuests: Array<{
+    email: string;
+    name?: string;
+    timeZone?: string;
+    phoneNumber?: string;
+    language?: string;
+  }>;
+}> {
   const guestEmails = guests.map((guest) => guest.email);
   const deduplicatedGuests = deduplicateGuestEmails(guestEmails);
   const blacklistedGuestEmails = getBlacklistedEmails();
@@ -201,25 +224,46 @@ async function sanitizeAndFilterGuests(
     guests.map((guest) => [extractBaseEmail(guest.email).toLowerCase(), guest])
   );
 
-  const uniqueGuestEmails = deduplicatedGuests.filter((email) => {
-    const baseGuestEmail = extractBaseEmail(email).toLowerCase();
-    return (
-      !booking.attendees.some(
-        (attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail
-      ) &&
-      !blacklistedGuestEmails.includes(baseGuestEmail) &&
-      !emailToRequiresVerification.get(baseGuestEmail)
-    );
-  });
+  const regularGuestEmails: string[] = [];
+  const pendingGuestEmails: string[] = [];
 
-  if (uniqueGuestEmails.length === 0) {
+  for (const email of deduplicatedGuests) {
+    const baseGuestEmail = extractBaseEmail(email).toLowerCase();
+
+    // Skip if already an attendee
+    if (
+      booking.attendees.some((attendee) => extractBaseEmail(attendee.email).toLowerCase() === baseGuestEmail)
+    ) {
+      continue;
+    }
+
+    // Skip if blacklisted
+    if (blacklistedGuestEmails.includes(baseGuestEmail)) {
+      continue;
+    }
+
+    // Check if requires verification
+    if (emailToRequiresVerification.get(baseGuestEmail)) {
+      pendingGuestEmails.push(email);
+    } else {
+      regularGuestEmails.push(email);
+    }
+  }
+
+  if (regularGuestEmails.length === 0 && pendingGuestEmails.length === 0) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "emails_must_be_unique_valid" });
   }
 
   // Return the full guest objects for unique emails
-  return uniqueGuestEmails
+  const regularGuests = regularGuestEmails
     .map((email) => emailToGuestMap.get(extractBaseEmail(email).toLowerCase()))
     .filter((guest): guest is NonNullable<typeof guest> => guest !== undefined);
+
+  const pendingGuests = pendingGuestEmails
+    .map((email) => emailToGuestMap.get(extractBaseEmail(email).toLowerCase()))
+    .filter((guest): guest is NonNullable<typeof guest> => guest !== undefined);
+
+  return { regularGuests, pendingGuests };
 }
 
 async function updateBookingAttendees(
@@ -318,6 +362,60 @@ async function updateCalendarEvent(booking: Booking, evt: CalendarEvent): Promis
   });
 
   await eventManager.updateCalendarAttendees(evt, booking);
+}
+
+async function createPendingGuestsAndSendEmails({
+  booking,
+  pendingGuests,
+  organizer,
+  bookingRepository,
+}: {
+  booking: Booking;
+  pendingGuests: Array<{
+    email: string;
+    name?: string;
+    timeZone?: string;
+    language?: string;
+  }>;
+  organizer: OrganizerData;
+  bookingRepository: BookingRepository;
+}): Promise<void> {
+  const pendingGuestsData = pendingGuests.map((guest) => ({
+    email: guest.email,
+    name: guest.name || "",
+    timeZone: guest.timeZone || organizer.timeZone,
+    locale: guest.language || organizer.locale || undefined,
+  }));
+
+  await bookingRepository.createPendingGuests({
+    bookingId: booking.id,
+    pendingGuests: pendingGuestsData,
+  });
+
+  const tAttendees = await getTranslation(organizer.locale ?? "en", "common");
+
+  for (const guest of pendingGuests) {
+    await sendPendingGuestConfirmationEmail({
+      language: tAttendees,
+      guest: {
+        email: guest.email,
+        name: guest.name || "",
+      },
+      booking: {
+        uid: booking.uid,
+        title: booking.title || "",
+      },
+      organizer: {
+        name: organizer.name || "",
+        email: organizer.email,
+      },
+    });
+  }
+
+  logger.info("Created pending guests and sent confirmation emails", {
+    count: pendingGuests.length,
+    bookingId: booking.id,
+  });
 }
 
 async function sendGuestNotifications(

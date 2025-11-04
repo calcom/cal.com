@@ -1173,6 +1173,28 @@ export class BookingRepository {
     });
   }
 
+  async createPendingGuests({
+    bookingId,
+    pendingGuests,
+  }: {
+    bookingId: number;
+    pendingGuests: Array<{ email: string; name: string; timeZone: string; locale?: string }>;
+  }): Promise<void> {
+    if (pendingGuests.length === 0) {
+      return;
+    }
+
+    await this.prismaClient.pendingGuest.createMany({
+      data: pendingGuests.map((guest) => ({
+        email: guest.email,
+        name: guest.name,
+        timeZone: guest.timeZone,
+        locale: guest.locale ?? "en",
+        bookingId,
+      })),
+    });
+  }
+
   async confirmPendingGuest({ bookingUid, guestEmail }: { bookingUid: string; guestEmail: string }) {
     const booking = await this.prismaClient.booking.findUnique({
       where: { uid: bookingUid },

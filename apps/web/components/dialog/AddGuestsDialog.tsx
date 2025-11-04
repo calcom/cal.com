@@ -3,6 +3,8 @@ import { useState } from "react";
 import { z } from "zod";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { useVerifyGuestEmails } from "@calcom/features/bookings/Booker/components/hooks/useVerifyGuestEmails";
+import { GuestVerificationAlert } from "@calcom/features/bookings/Booker/components/BookEventForm/GuestVerificationAlert";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { MultiEmail } from "@calcom/ui/components/address";
@@ -27,6 +29,11 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
   const utils = trpc.useUtils();
   const [multiEmailValue, setMultiEmailValue] = useState<string[]>([""]);
   const [isInvalidEmail, setIsInvalidEmail] = useState(false);
+
+  const { guestsRequireVerification, guestsRequiringCount, emailsRequiringVerification } =
+    useVerifyGuestEmails({
+      guestEmails: multiEmailValue,
+    });
 
   const addGuestsMutation = trpc.viewer.bookings.addGuests.useMutation({
     onSuccess: async () => {
@@ -71,6 +78,13 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
                 setValue={setMultiEmailValue}
               />
             </div>
+
+            <GuestVerificationAlert
+              guestsRequireVerification={guestsRequireVerification}
+              guestsRequiringCount={guestsRequiringCount}
+              emailsRequiringVerification={emailsRequiringVerification}
+              className="my-4"
+            />
 
             {isInvalidEmail && (
               <div className="my-4 flex text-sm text-red-700">
