@@ -397,7 +397,7 @@ function buildTroubleshooterData({
 function formatAvailabilitySnapshot(data: {
   dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
   oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
-  busy?: { start: Date | string; end: Date | string; title?: string; source?: string }[];
+  busy?: { start: Date | string; end: Date | string; title?: string; source?: string | null; userId?: number | null }[];
 }) {
   const formattedBusy = data.busy?.map(({ start, end, source }) => ({
     start: dayjs(start).toISOString(),
