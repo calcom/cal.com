@@ -3,9 +3,13 @@ import type { Logger } from "tslog";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
+import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
+import LimitManager from "@calcom/lib/intervalLimits/limitManager";
+import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -13,6 +17,7 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
@@ -90,6 +95,86 @@ const _ensureAvailableUsers = async (
         })
       : [];
 
+  const teamForBookingLimits =
+    eventType?.team ??
+    (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+
+  const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
+
+  let teamBookingLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
+  if (teamForBookingLimits && teamBookingLimits) {
+    const usersForTeamLimits = eventType.users.map((user) => ({ id: user.id, email: user.email }));
+    const eventTimeZone = eventType.schedule?.timeZone ?? input.timeZone;
+
+    const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
+      startDateTimeUtc.toISOString(),
+      endDateTimeUtc.toISOString(),
+      teamBookingLimits
+    );
+
+    const bookingRepo = new BookingRepository(prisma);
+    const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUsers({
+      users: usersForTeamLimits,
+      teamId: teamForBookingLimits.id,
+      startDate: limitDateFrom.toDate(),
+      endDate: limitDateTo.toDate(),
+      excludedUid: input.originalRescheduledBooking?.uid,
+      includeManagedEvents: teamForBookingLimits.includeManagedEventsInLimits,
+    });
+
+    const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
+      start: dayjs(startTime).toDate(),
+      end: dayjs(endTime).toDate(),
+      title,
+      source: `eventType-${eventTypeId}-booking-${id}`,
+      userId,
+    }));
+
+    teamBookingLimitsMap = new Map();
+
+    for (const user of usersForTeamLimits) {
+      const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
+      const limitManager = new LimitManager();
+
+      for (const key of descendingLimitKeys) {
+        const limit = teamBookingLimits?.[key];
+        if (!limit) continue;
+
+        const unit = intervalLimitKeyToUnit(key);
+        const periodStartDates: Dayjs[] = [];
+
+        let currentDate = startDateTimeUtc.tz(eventTimeZone);
+        const endDate = endDateTimeUtc.tz(eventTimeZone);
+
+        while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, unit)) {
+          periodStartDates.push(currentDate.startOf(unit));
+          currentDate = currentDate.add(1, unit);
+        }
+
+        for (const periodStart of periodStartDates) {
+          if (limitManager.isAlreadyBusy(periodStart, unit, eventTimeZone)) continue;
+
+          const periodEnd = periodStart.endOf(unit);
+          let totalBookings = 0;
+
+          for (const booking of userBusyTimes) {
+            if (!isBookingWithinPeriod(booking, periodStart, periodEnd, eventTimeZone)) {
+              continue;
+            }
+
+            totalBookings++;
+            if (totalBookings >= limit) {
+              limitManager.addBusyTime(periodStart, unit, eventTimeZone);
+              break;
+            }
+          }
+        }
+      }
+
+      teamBookingLimitsMap.set(user.id, limitManager.getBusyTimes());
+    }
+  }
+
   const usersAvailability = await userAvailabilityService.getUsersAvailability({
     users: eventType.users,
     query: {
@@ -109,6 +194,8 @@ const _ensureAvailableUsers = async (
       eventType,
       rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
       busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+      teamBookingLimits: teamBookingLimitsMap,
+      teamForBookingLimits: teamForBookingLimits,
     },
   });
 
