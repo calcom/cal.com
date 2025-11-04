@@ -145,7 +145,7 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
                 onClick={handleContinue}
                 loading={mutation.isPending}
                 disabled={mutation.isPending}>
-                {t("finish_and_start")}
+                {t("continue")}
               </Button>
             </div>
           </div>
