@@ -31,7 +31,7 @@ export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {
   });
 }
 
-export function getWorkflowTriggerOptions(t: TFunction) {
+export function getWorkflowTriggerOptions(t: TFunction, hasPaidPlan: boolean = false) {
   // TODO: remove this after workflows are supported
   const filterdWorkflowTriggerEvents = WORKFLOW_TRIGGER_EVENTS.filter(
     (event) =>
@@ -41,8 +41,15 @@ export function getWorkflowTriggerOptions(t: TFunction) {
 
   return filterdWorkflowTriggerEvents.map((triggerEvent) => {
     const triggerString = t(`${triggerEvent.toLowerCase()}_trigger`);
+    const isFormSubmittedTrigger =
+      triggerEvent === WorkflowTriggerEvents.FORM_SUBMITTED ||
+      triggerEvent === WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT;
 
-    return { label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1), value: triggerEvent };
+    return {
+      label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1),
+      value: triggerEvent,
+      needsTeamsUpgrade: !hasPaidPlan && isFormSubmittedTrigger,
+    };
   });
 }
 
@@ -55,7 +62,7 @@ function convertToTemplateOptions(
     return {
       label: t(`${template.toLowerCase()}`),
       value: template,
-      needsTeamsUpgrade: !hasPaidPlan,
+      needsTeamsUpgrade: !hasPaidPlan && template !== WorkflowTemplates.REMINDER,
     } as { label: string; value: any; needsTeamsUpgrade: boolean };
   });
 }
