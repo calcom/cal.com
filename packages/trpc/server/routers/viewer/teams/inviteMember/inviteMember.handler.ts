@@ -1,12 +1,8 @@
 import { type TFunction } from "i18next";
 
-import { BillingRepositoryFactory } from "@calcom/ee/billing/repository/billing/billingRepositoryFactory";
-import { TeamBillingDataRepositoryFactory } from "@calcom/ee/billing/repository/teamBillingData/teamBillingDataRepositoryFactory";
-import { TeamBillingServiceFactory } from "@calcom/ee/billing/service/teams/teamBillingServiceFactory";
-import { BillingProviderServiceFactory } from "@calcom/features/ee/billing/service/billingProvider/billingProviderServiceFactory";
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -232,17 +228,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     });
   }
 
-  const billingProviderService = BillingProviderServiceFactory.getService();
-  const teamBillingDataRepository = TeamBillingDataRepositoryFactory.getRepository(IS_TEAM_BILLING_ENABLED);
-  const billingRepository = BillingRepositoryFactory.getRepository(isTeamAnOrg, IS_TEAM_BILLING_ENABLED);
-
-  const teamBillingServiceFactory = new TeamBillingServiceFactory({
-    billingProviderService,
-    teamBillingDataRepository,
-    billingRepository,
-    isTeamBillingEnabled: IS_TEAM_BILLING_ENABLED,
-  });
-
+  const teamBillingServiceFactory = getTeamBillingServiceFactory();
   const teamBillingService = teamBillingServiceFactory.init(team);
   await teamBillingService.updateQuantity();
 
