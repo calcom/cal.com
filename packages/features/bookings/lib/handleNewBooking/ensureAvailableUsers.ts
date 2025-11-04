@@ -106,11 +106,17 @@ const _ensureAvailableUsers = async (
     const usersForTeamLimits = eventType.users.map((user) => ({ id: user.id, email: user.email }));
     const eventTimeZone = eventType.schedule?.timeZone ?? input.timeZone;
 
-    const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
+    let { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
       startDateTimeUtc.toISOString(),
       endDateTimeUtc.toISOString(),
       teamBookingLimits
     );
+
+    if (teamBookingLimits.PER_YEAR) {
+      const startInTz = startDateTimeUtc.tz(eventTimeZone);
+      limitDateFrom = dayjs.min(limitDateFrom, startInTz.startOf("year"));
+      limitDateTo = dayjs.max(limitDateTo, startInTz.endOf("year"));
+    }
 
     const bookingRepo = new BookingRepository(prisma);
     const bookings = await bookingRepo.getAllAcceptedTeamBookingsOfUsers({
