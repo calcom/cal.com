@@ -1199,8 +1199,20 @@ export class BookingRepository {
     const booking = await this.prismaClient.booking.findUnique({
       where: { uid: bookingUid },
       include: {
-        pendingGuests: true,
-        attendees: true,
+        pendingGuests: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
         user: {
           include: {
             credentials: true,

@@ -1234,7 +1234,9 @@ async function handler(
   }, [] as Invitee);
 
   if (pendingGuestEmails.length > 0) {
-    log.info("Guests placed in pending state", pendingGuestEmails);
+    log.info("Guests placed in pending state", {
+      count: pendingGuestEmails.length,
+    });
   }
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;

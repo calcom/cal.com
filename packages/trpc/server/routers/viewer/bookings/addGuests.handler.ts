@@ -272,7 +272,7 @@ async function updateBookingAttendees(
   uniqueGuestEmails: string[],
   booking: Booking
 ) {
-  const bookingResponses = booking.responses as BookingResponses;
+  const bookingResponses = (booking.responses || {}) as BookingResponses;
   const bookingRepository = new BookingRepository(prisma);
 
   return await bookingRepository.updateBookingAttendees({
