@@ -310,7 +310,7 @@ export class PhoneNumberService {
       if (teamId && agent.teamId !== teamId) {
         throw new ErrorWithCode(
           ErrorCode.AgentNotFound,
-          "Selected ${type} agent does not belong to the specified team."
+          `Selected ${type} agent does not belong to the specified team.`
         );
       }
     }
