@@ -91,22 +91,6 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
       icon: planIconByType.organization,
       variant: "organization" as const,
     },
-    {
-      id: "organization" as PlanType,
-      title: t("onboarding_plan_organization_title"),
-      badge: t("onboarding_plan_organization_badge"),
-      description: t("onboarding_plan_organization_description"),
-      icon: planIconByType.organization,
-      variant: "organization" as const,
-    },
-    {
-      id: "organization" as PlanType,
-      title: t("onboarding_plan_organization_title"),
-      badge: t("onboarding_plan_organization_badge"),
-      description: t("onboarding_plan_organization_description"),
-      icon: planIconByType.organization,
-      variant: "organization" as const,
-    },
   ];
 
   // Only show organization plan for company emails
@@ -133,8 +117,8 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
             </Button>
           }>
           {/* Card */}
-          <div className="bg-muted border-muted relative flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl border p-1">
-            <div className="rounded-inherit flex h-full w-full flex-col items-start overflow-clip">
+          <div className="bg-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
+            <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
               {/* Plan options */}
               <RadioAreaGroup.Group
                 value={selectedPlan ?? undefined}

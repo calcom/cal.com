@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 
-import classNames from "@calcom/ui/classNames";
 import { Icon, type IconName } from "@calcom/ui/components/icon";
 
 // Ring sizes - just the diameters, all centered on the icon
