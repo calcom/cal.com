@@ -54,7 +54,7 @@ export function BlocklistTable({ permissions }: BlocklistTableProps) {
       {activeView === "blocked" ? (
         <BlockedEntriesTable permissions={permissions} onAddClick={() => setShowCreateModal(true)} />
       ) : (
-        <PendingReportsTable permissions={permissions} />
+        <PendingReportsTable />
       )}
 
       <CreateBlocklistEntryModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />

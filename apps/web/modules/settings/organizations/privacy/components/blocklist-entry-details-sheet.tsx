@@ -91,7 +91,7 @@ export function BlocklistEntryDetailsSheet({
                     </p>
                   </div>
 
-                  {data.entry.bookingReports.length > 0 && (
+                  {data.entry.bookingReports && data.entry.bookingReports.length > 0 && (
                     <div>
                       <label className="text-default block text-sm font-semibold">
                         {t("related_booking")}
@@ -143,7 +143,11 @@ export function BlocklistEntryDetailsSheet({
           )}
         </SheetBody>
         <SheetFooter className="bg-muted px-6 py-5">
-          <Button type="button" color="secondary" onClick={() => handleDeleteBlocklistEntry(entry)}>
+          <Button
+            type="button"
+            color="secondary"
+            onClick={() => entry && handleDeleteBlocklistEntry(entry)}
+            disabled={!entry}>
             {t("remove_from_blocklist")}
           </Button>
         </SheetFooter>
