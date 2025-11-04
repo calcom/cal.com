@@ -80,10 +80,6 @@ export function useInitialFormValues({
   const formValues = useBookerStore((state) => state.formValues);
 
   // Check if organization has disabled autofill from URL parameters
-  // Check three scenarios:
-  // 1. Team event type where team is an organization (team.organizationSettings)
-  // 2. Team event type where team belongs to an organization (team.parent.organizationSettings)
-  // 3. Personal event type where owner belongs to an organization (owner.organization.organizationSettings)
   const isAutofillDisabledByOrg =
     eventType?.team?.organizationSettings?.disableAutofillOnBookingPage ??
     eventType?.team?.parent?.organizationSettings?.disableAutofillOnBookingPage ??
