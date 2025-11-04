@@ -1,5 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { TRPCError } from "@trpc/server";
+import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+
+import { HttpError } from "../http-error";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 import { performance } from "./perfObserver";
 
@@ -29,7 +33,13 @@ export function defaultResponder<T>(
         return res.json(result);
       }
     } catch (err) {
-      const error = getServerErrorFromUnknown(err);
+      let error: HttpError;
+      if (err instanceof TRPCError) {
+        const statusCode = getHTTPStatusCodeFromError(err);
+        error = new HttpError({ statusCode, message: err.message });
+      } else {
+        error = getServerErrorFromUnknown(err);
+      }
       // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
         console.error(error);
