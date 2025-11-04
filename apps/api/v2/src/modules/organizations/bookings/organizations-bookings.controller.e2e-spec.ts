@@ -600,6 +600,20 @@ describe("Organizations Bookings Endpoints 2024-08-13", () => {
           });
       });
 
+      it("should fail to get bookings by organizationId and Id of a user that does not exist", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings?userIds=972930`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(400);
+      });
+
+      it("should fail to get bookings by organizationId and Id of a user that does not belong to the org", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/organizations/${organization.id}/bookings?userIds=${nonOrgUser1.id}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(403);
+      });
+
       it("should get bookings by organizationId and non org event-type id", async () => {
         return request(app.getHttpServer())
           .get(`/v2/organizations/${organization.id}/bookings?eventTypeIds=${nonOrgEventTypeId}`)
