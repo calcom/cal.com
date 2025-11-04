@@ -284,7 +284,7 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
                 listingStatus={status}
                 recurringInfo={recurringInfo}
                 // uncomment this line to enable BookingDetailsSheet
-                onClick={() => setSelectedBookingId(booking.id)}
+                // onClick={() => setSelectedBookingId(booking.id)}
                 {...booking}
               />
             );
@@ -304,7 +304,7 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
         },
       }),
     ];
-  }, [user, status, t, permissions.canReadOthersBookings, setSelectedBookingId]);
+  }, [user, status, t, permissions.canReadOthersBookings]);
 
   const isEmpty = useMemo(() => !query.data?.bookings.length, [query.data]);
 
