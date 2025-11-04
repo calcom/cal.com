@@ -84,7 +84,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     }) &&
     dayjs.utc(seatedBooking.startTime).format() === evt.startTime
   ) {
-    throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.AlreadySignedUpForBooking);
+    throw new ErrorWithCode(ErrorCode.AlreadySignedUpForBooking);
   }
 
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule

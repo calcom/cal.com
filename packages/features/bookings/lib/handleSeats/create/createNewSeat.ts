@@ -53,7 +53,7 @@ const createNewSeat = async (
     eventType.seatsPerTimeSlot &&
     eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
   ) {
-    throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.BookingSeatsFull);
+    throw new ErrorWithCode(ErrorCode.BookingSeatsFull);
   }
 
   const videoCallReference = seatedBooking.references.find((reference) => reference.type.includes("_video"));
@@ -185,10 +185,10 @@ const createNewSeat = async (
     });
 
     if (!eventTypePaymentAppCredential) {
-      throw new ErrorWithCode(ErrorCode.MissingPaymentCredential, ErrorCode.MissingPaymentCredential);
+      throw new ErrorWithCode(ErrorCode.MissingPaymentCredential);
     }
     if (!eventTypePaymentAppCredential?.appId) {
-      throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.MissingPaymentAppId);
+      throw new ErrorWithCode(ErrorCode.MissingPaymentAppId);
     }
 
     const payment = await handlePayment({

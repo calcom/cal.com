@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { validateAndGetCorrectedUsernameInTeam } from "@calcom/features/auth/signup/utils/validateUsername";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 
 export async function findTokenByToken({ token }: { token: string }) {
@@ -17,7 +17,7 @@ export async function findTokenByToken({ token }: { token: string }) {
   });
 
   if (!foundToken) {
-    throw new ErrorWithCode(ErrorCode.InvalidInput, "Invalid Token");
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "Invalid Token");
   }
 
   return foundToken;

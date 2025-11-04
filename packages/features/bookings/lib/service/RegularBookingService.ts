@@ -1821,7 +1821,7 @@ async function handler(
       err.message
     );
     if (err.code === "P2002") {
-      throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.BookingConflict);
+      throw new ErrorWithCode(ErrorCode.BookingConflict);
     }
     throw err;
   }

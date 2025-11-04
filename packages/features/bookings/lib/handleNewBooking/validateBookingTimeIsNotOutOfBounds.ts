@@ -54,7 +54,7 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
     }
   }
 
-  if (timeOutOfBounds) throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.BookingTimeOutOfBounds);
+  if (timeOutOfBounds) throw new ErrorWithCode(ErrorCode.BookingTimeOutOfBounds);
 };
 
 export const validateBookingTimeIsNotOutOfBounds = withReporting(

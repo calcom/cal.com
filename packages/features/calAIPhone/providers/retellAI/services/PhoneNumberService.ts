@@ -1,5 +1,5 @@
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
@@ -95,7 +95,7 @@ export class PhoneNumberService {
         data,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Failed to create phone number");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to create phone number");
     }
   }
 
@@ -308,7 +308,10 @@ export class PhoneNumberService {
       }
 
       if (teamId && agent.teamId !== teamId) {
-        throw new ErrorWithCode(ErrorCode.AgentNotFound, "Selected ${type} agent does not belong to the specified team.");
+        throw new ErrorWithCode(
+          ErrorCode.AgentNotFound,
+          "Selected ${type} agent does not belong to the specified team."
+        );
       }
     }
   }
@@ -349,7 +352,7 @@ export class PhoneNumberService {
           requiresManualCleanup: true,
         });
 
-        throw new ErrorWithCode(ErrorCode.InternalServerError, compensationFailureMessage,);
+        throw new ErrorWithCode(ErrorCode.InternalServerError, compensationFailureMessage);
       }
     }
   }

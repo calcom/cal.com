@@ -54,7 +54,7 @@ const combineTwoSeatedBookings = async (
     attendeesToMove.length + newTimeSlotBooking.attendees.filter((attendee) => attendee.bookingSeat).length >
       eventType.seatsPerTimeSlot
   ) {
-    throw new ErrorWithCode(ErrorCode.InvalidInput, ErrorCode.NotEnoughAvailableSeats);
+    throw new ErrorWithCode(ErrorCode.NotEnoughAvailableSeats);
   }
 
   const moveAttendeeCalls = [];
