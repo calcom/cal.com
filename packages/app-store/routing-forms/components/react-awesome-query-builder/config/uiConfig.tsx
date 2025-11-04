@@ -1,10 +1,10 @@
-import type { ChangeEvent } from "react";
 import type {
   Settings,
   SelectWidgetProps,
   SelectWidget as SelectWidgetType,
   WidgetProps,
 } from "@react-awesome-query-builder/ui";
+import type { ChangeEvent } from "react";
 
 import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 
@@ -14,7 +14,11 @@ import type { ConfigFor } from "./types";
 
 export { ConfigFor } from "./types";
 
-const renderComponent = function <T1>(props: T1 | undefined, Component: React.FC<T1>, componentName?: string) {
+const renderComponent = function <T1>(
+  props: T1 | undefined,
+  Component: React.FC<T1>,
+  _componentName?: string
+) {
   if (!props) {
     return <div />;
   }
@@ -37,7 +41,6 @@ const {
   Provider,
   Icon,
 } = widgetsComponents;
-
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
 const TextAreaFactory = (props: WidgetProps | undefined) => renderComponent(props, TextAreaWidget);
@@ -122,14 +125,14 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
 
 // These are components and components reference when changed causes remounting of components. So, ensure that renderField and others are defined only once
 const sharedSettingsProps: Partial<Settings> = {
-  renderField: (props) => renderComponent(props, FieldSelect, 'FieldSelect'),
-  renderOperator: (props) => renderComponent(props, FieldSelect, 'FieldSelect(operator)'),
-  renderFunc: (props) => renderComponent(props, FieldSelect, 'FieldSelect(func)'),
-  renderConjs: (props) => renderComponent(props, Conjs, 'Conjs'),
-  renderButton: (props) => renderComponent(props, Button, 'Button'),
-  renderButtonGroup: (props) => renderComponent(props, ButtonGroup, 'ButtonGroup'),
-  renderProvider: (props) => renderComponent(props, Provider, 'Provider'),
-  renderIcon: (props) => renderComponent(props, Icon, 'Icon'),
+  renderField: (props) => renderComponent(props, FieldSelect, "FieldSelect"),
+  renderOperator: (props) => renderComponent(props, FieldSelect, "FieldSelect(operator)"),
+  renderFunc: (props) => renderComponent(props, FieldSelect, "FieldSelect(func)"),
+  renderConjs: (props) => renderComponent(props, Conjs, "Conjs"),
+  renderButton: (props) => renderComponent(props, Button, "Button"),
+  renderButtonGroup: (props) => renderComponent(props, ButtonGroup, "ButtonGroup"),
+  renderProvider: (props) => renderComponent(props, Provider, "Provider"),
+  renderIcon: (props) => renderComponent(props, Icon, "Icon"),
 };
 
 function withRenderFnsSettings(settings: Settings) {
