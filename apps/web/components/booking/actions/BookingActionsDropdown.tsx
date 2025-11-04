@@ -44,9 +44,11 @@ import {
 
 interface BookingActionsDropdownProps {
   booking: BookingItemProps;
+  context: "booking-list-item" | "booking-details-sheet";
+  size?: "xs" | "sm" | "base" | "lg";
 }
 
-export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps) {
+export function BookingActionsDropdown({ booking, context, size = "base" }: BookingActionsDropdownProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
@@ -236,9 +238,11 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
 
   const cancelEventAction = getCancelEventAction(actionContext);
 
+  const shouldShowEdit = shouldShowEditActions(actionContext);
   const baseEditEventActions = getEditEventActions(actionContext);
   const editEventActions: ActionType[] = baseEditEventActions.map((action) => ({
     ...action,
+    disabled: !shouldShowEdit || action.disabled, // Disable all edit actions if shouldn't show edit actions
     onClick:
       action.id === "reschedule_request"
         ? () => setIsOpenRescheduleDialog(true)
@@ -494,8 +498,28 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
     </>
   );
 
-  // Don't render dropdown if edit actions shouldn't be shown
-  if (!shouldShowEditActions(actionContext)) {
+  // Check if there are any available actions across all action groups
+  const hasAnyAvailableActions = () => {
+    // Check if any edit action is available
+    const hasAvailableEditAction = editEventActions.some((action) => !action.disabled);
+
+    // Check if any after event action is available
+    const hasAvailableAfterAction = afterEventActions.some((action) => !action.disabled);
+
+    // For booking-list-item context, only check edit and after event actions
+    if (context === "booking-list-item") {
+      return hasAvailableEditAction || hasAvailableAfterAction;
+    }
+
+    // For booking-details-sheet context, also check report and cancel actions
+    const isReportAvailable = !reportActionWithHandler.disabled;
+    const isCancelAvailable = !cancelEventAction.disabled;
+
+    return hasAvailableEditAction || hasAvailableAfterAction || isReportAvailable || isCancelAvailable;
+  };
+
+  // Don't render dropdown if no actions are available
+  if (!hasAnyAvailableActions()) {
     return dialogs;
   }
 
@@ -508,6 +532,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
             type="button"
             color="secondary"
             variant="icon"
+            size={size}
             StartIcon="ellipsis"
             data-testid="booking-actions-dropdown"
           />
