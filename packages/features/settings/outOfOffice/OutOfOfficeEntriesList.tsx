@@ -81,7 +81,7 @@ export default function OutOfOfficeEntriesList() {
     const urlParams = new URLSearchParams(searchParams ?? undefined);
     urlParams.delete("om");
     urlParams.delete("edit");
-    router.push(`${pathname}?${urlParams.toString()}`, { scroll: false });
+    router.replace(`${pathname}?${urlParams.toString()}`, { scroll: false });
     setCurrentlyEditingOutOfOfficeEntry(null);
   };
 
