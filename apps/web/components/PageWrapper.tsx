@@ -1,7 +1,6 @@
 "use client";
 
 import { DefaultSeo } from "next-seo";
-import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import Head from "next/head";
 import Script from "next/script";
@@ -24,7 +23,38 @@ export interface CalPageWrapper {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
 }
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const calSansUI = localFont({
+  src: [
+    {
+      path: "../fonts/cal-sans-ui/CalSansText-Light.ttf",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../fonts/cal-sans-ui/CalSansText-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../fonts/cal-sans-ui/CalSansText-Medium.ttf",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../fonts/cal-sans-ui/CalSansText-SemiBold.ttf",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../fonts/cal-sans-ui/CalSansText-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-inter",
+  preload: true,
+  display: "swap",
+});
 const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
@@ -74,13 +104,14 @@ function PageWrapper(props: AppProps) {
         id="page-status"
         // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
         // And we don't want it to error here anyways
-        // eslint-disable-next-line react/no-danger
+         
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
 
+      {/* eslint-disable-next-line react/no-unknown-property */}
       <style jsx global>{`
         :root {
-          --font-inter: ${interFont.style.fontFamily};
+          --font-inter: ${calSansUI.style.fontFamily};
           --font-cal: ${calFont.style.fontFamily};
         }
       `}</style>
