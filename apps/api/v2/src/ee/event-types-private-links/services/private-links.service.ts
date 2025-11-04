@@ -140,6 +140,9 @@ export class PrivateLinksService {
     }
 
     const fallbackOrigin = getOrgFullOrigin(null, { protocol: true }).replace(/\/$/, "");
+    if (eventTypeSlug) {
+      return `${fallbackOrigin}/d/${hashedLink}/${eventTypeSlug}`;
+    }
     return `${fallbackOrigin}/d/${hashedLink}`;
   }
 }
