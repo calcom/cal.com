@@ -90,12 +90,14 @@ export function createCalendarStore(initial?: Partial<CalendarComponentProps>): 
 
 export const CalendarStoreContext = React.createContext<StoreApi<CalendarStoreProps> | null>(null);
 
-export const globalCalendarStore = createCalendarStore();
-
 export function useCalendarStore<T>(
   selector: (state: CalendarStoreProps) => T,
   equalityFn?: (a: T, b: T) => boolean
 ): T {
-  const store = React.useContext(CalendarStoreContext) ?? globalCalendarStore;
+  const store = React.useContext(CalendarStoreContext);
+  if (!store) {
+    throw new Error("useCalendarStore must be used within a CalendarStoreProvider");
+  }
+
   return useStore(store, selector, equalityFn);
 }
