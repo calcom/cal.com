@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
 type OnboardingLayoutProps = {
@@ -21,38 +22,46 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
   };
 
   return (
-    <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip rounded-xl">
+    <div className="bg-muted flex min-h-screen w-full flex-col items-start overflow-clip rounded-[12px]">
       {/* Header */}
-      <div className="flex w-full items-center justify-between px-6 py-4">
+      <div className="3xl:max-w-[2000px] mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-6 lg:max-w-[1400px] lg:px-[176px] xl:max-w-[1600px] 2xl:max-w-[1800px]">
         <Logo className="h-5 w-auto" />
-
-        {/* Progress dots - centered */}
-        <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1">
-          {[1, 2, 3, 4].map((step) => (
-            <div
-              key={step}
-              className={`bg-${step <= currentStep ? "emphasis" : "subtle"} ${
-                step === currentStep ? "h-1.5 w-1.5" : "h-1 w-1"
-              } rounded-full`}
-            />
-          ))}
-        </div>
-
-        <div className="bg-muted flex items-center gap-2 rounded-full px-3 py-2">
-          <p className="text-emphasis text-sm font-medium leading-none">{userEmail}</p>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center">
+            <p className="text-default text-sm font-medium leading-none">{userEmail}</p>
+          </div>
+          <div className="relative h-[5px] w-[5px] shrink-0">
+            <Icon name="dot" className="text-muted h-[5px] w-[5px]" />
+          </div>
+          <Button onClick={handleSignOut} color="minimal" className="text-subtle h-7">
+            {t("sign_out")}
+          </Button>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="flex w-full flex-1 items-start justify-center px-6 py-8">
-        <div className="flex w-full max-w-[600px] flex-col gap-4">{children}</div>
+      <div className="mx-auto flex w-full max-w-[min(95%,1200px)] flex-1 justify-center px-6 py-10 lg:max-w-[min(90%,1400px)] lg:py-16 xl:max-w-[min(85%,1600px)] xl:py-20 2xl:max-w-[min(80%,1800px)] 2xl:py-24">
+        <div className="bg-default w-full overflow-hidden rounded-2xl py-10 pl-14 pr-0 lg:py-16 xl:py-20 2xl:py-24">
+          <div className="grid w-full grid-cols-[1fr] justify-items-center gap-14 [grid-template-areas:'content'] lg:grid-cols-[1fr_2fr] lg:justify-items-start lg:[grid-template-areas:'content_browser']">
+            {children}
+          </div>
+        </div>
       </div>
 
-      {/* Footer with signout button */}
-      <div className="flex w-full items-center justify-center px-6 py-6">
-        <Button onClick={handleSignOut} color="minimal">
-          {t("sign_out")}
-        </Button>
+      {/* Footer with progress dots */}
+      <div className="flex w-full items-center justify-center px-10 py-8">
+        <div className="flex items-center gap-2">
+          {[1, 2, 3, 4].map((step) => (
+            <div key={step} className="relative flex h-2 w-2 shrink-0 items-center justify-center">
+              <div
+                className={`absolute inset-0 rounded-full ${
+                  step <= currentStep ? "bg-emphasis" : "bg-muted"
+                }`}
+              />
+              {step <= currentStep && <div className="bg-emphasis absolute h-1 w-1 rounded-full" />}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

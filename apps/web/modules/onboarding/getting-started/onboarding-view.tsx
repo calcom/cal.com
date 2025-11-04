@@ -76,10 +76,13 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
     return true;
   });
 
+  const selectedPlanData = plans.find((plan) => plan.id === selectedPlan);
+
   return (
     <>
       <OnboardingContinuationPrompt />
       <OnboardingLayout userEmail={userEmail} currentStep={1}>
+        {/* Left column - Main content */}
         <div className="flex w-full flex-col gap-6">
           {/* Card */}
           <div className="bg-muted border-muted relative rounded-xl border p-1">
@@ -116,30 +119,27 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                       classNames={{
                         container: "flex w-full items-center gap-4 p-4 pl-5 pr-12 md:p-5 md:pr-14",
                       }}>
-                      <div className="flex w-full items-center gap-4">
-                        <PlanIcon icon={plan.icon} variant={plan.variant} />
-                        <div className="flex flex-1 flex-col gap-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-emphasis text-base font-semibold leading-5">{plan.title}</p>
-                            <Badge
-                              variant="gray"
-                              size="md"
-                              className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center">
-                              <span className="text-emphasis text-xs font-medium leading-3">
-                                {plan.badge}
-                              </span>
-                            </Badge>
-                          </div>
+                      <div className="flex w-full flex-col gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-emphasis text-base font-semibold leading-5">{plan.title}</p>
                           <Badge
                             variant="gray"
                             size="md"
-                            className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
-                            <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
+                            className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center">
+                            <span className="text-emphasis text-xs font-medium leading-3">
+                              {plan.badge}
+                            </span>
                           </Badge>
-                          <p className="text-subtle max-w-full text-sm font-normal leading-tight">
-                            {plan.description}
-                          </p>
                         </div>
+                        <Badge
+                          variant="gray"
+                          size="md"
+                          className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
+                          <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
+                        </Badge>
+                        <p className="text-subtle max-w-full text-sm font-normal leading-tight">
+                          {plan.description}
+                        </p>
                       </div>
                     </RadioAreaGroup.Item>
                   );
@@ -155,6 +155,15 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
             </div>
           </div>
         </div>
+
+        {/* Right column - Icon display */}
+        {selectedPlanData && (
+          <div className="hidden lg:flex lg:items-start lg:justify-center">
+            <div className="sticky top-8">
+              <PlanIcon icon={selectedPlanData.icon} variant={selectedPlanData.variant} />
+            </div>
+          </div>
+        )}
       </OnboardingLayout>
     </>
   );

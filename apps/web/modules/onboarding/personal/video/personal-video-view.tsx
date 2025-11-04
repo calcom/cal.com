@@ -10,6 +10,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { InstallableAppCard } from "../_components/InstallableAppCard";
 import { OnboardingCard } from "../_components/OnboardingCard";
 import { OnboardingLayout } from "../_components/OnboardingLayout";
@@ -117,46 +118,52 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={4}>
-      <OnboardingCard
-        title={t("connect_video_app")}
-        subtitle={t("video_app_connection_subtitle")}
-        isLoading={isPending}
-        footer={
-          <Button
-            color="primary"
-            className="rounded-[10px]"
-            onClick={handleContinue}
-            loading={mutation.isPending}
-            disabled={mutation.isPending}>
-            {t("finish_and_start")}
-          </Button>
-        }>
-        <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
-          {queryConnectedVideoApps?.items
-            .filter((app) => app.slug !== "daily-video")
-            .map((app) => {
-              const shouldAutoSetDefault =
-                !hasDefaultConferencingApp && app.appData?.location?.linkType === "dynamic";
+      {/* Left column - Main content */}
+      <div className="flex w-full flex-col gap-6">
+        <OnboardingCard
+          title={t("connect_video_app")}
+          subtitle={t("video_app_connection_subtitle")}
+          isLoading={isPending}
+          footer={
+            <Button
+              color="primary"
+              className="rounded-[10px]"
+              onClick={handleContinue}
+              loading={mutation.isPending}
+              disabled={mutation.isPending}>
+              {t("finish_and_start")}
+            </Button>
+          }>
+          <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
+            {queryConnectedVideoApps?.items
+              .filter((app) => app.slug !== "daily-video")
+              .map((app) => {
+                const shouldAutoSetDefault =
+                  !hasDefaultConferencingApp && app.appData?.location?.linkType === "dynamic";
 
-              return (
-                <InstallableAppCard
-                  key={app.slug}
-                  app={app}
-                  isInstalling={installingAppSlug === app.slug}
-                  onInstallClick={setInstallingAppSlug}
-                  installOptions={createInstallHandlers(app.slug, (appSlug) => {
-                    // Auto-set as default if it's the first connected video app
-                    if (shouldAutoSetDefault) {
-                      setDefaultConferencingApp.mutate({ slug: appSlug });
-                    }
-                  })}
-                />
-              );
-            })}
-        </div>
-      </OnboardingCard>
+                return (
+                  <InstallableAppCard
+                    key={app.slug}
+                    app={app}
+                    isInstalling={installingAppSlug === app.slug}
+                    onInstallClick={setInstallingAppSlug}
+                    installOptions={createInstallHandlers(app.slug, (appSlug) => {
+                      // Auto-set as default if it's the first connected video app
+                      if (shouldAutoSetDefault) {
+                        setDefaultConferencingApp.mutate({ slug: appSlug });
+                      }
+                    })}
+                  />
+                );
+              })}
+          </div>
+        </OnboardingCard>
 
-      <SkipButton onClick={handleSkip} disabled={mutation.isPending} />
+        <SkipButton onClick={handleSkip} disabled={mutation.isPending} />
+      </div>
+
+      {/* Right column - Browser view */}
+      <OnboardingBrowserView />
     </OnboardingLayout>
   );
 };

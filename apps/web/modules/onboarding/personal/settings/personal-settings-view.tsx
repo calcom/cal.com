@@ -15,6 +15,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";
 
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { OnboardingCard } from "../_components/OnboardingCard";
@@ -83,6 +84,7 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
     <>
       <OnboardingContinuationPrompt />
       <OnboardingLayout userEmail={userEmail} currentStep={1}>
+        {/* Left column - Main content */}
         <OnboardingCard
           title={t("welcome_to_cal_com")}
           subtitle={t("personal_settings_subtitle")}
@@ -139,6 +141,9 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
             </div>
           </div>
         </OnboardingCard>
+
+        {/* Right column - Browser view */}
+        <OnboardingBrowserView />
       </OnboardingLayout>
     </>
   );

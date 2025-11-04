@@ -6,6 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { InstallableAppCard } from "../_components/InstallableAppCard";
 import { OnboardingCard } from "../_components/OnboardingCard";
 import { OnboardingLayout } from "../_components/OnboardingLayout";
@@ -38,29 +39,35 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3}>
-      <OnboardingCard
-        title={t("connect_your_calendar")}
-        subtitle={t("connect_calendar_to_prevent_conflicts")}
-        isLoading={queryIntegrations.isPending}
-        footer={
-          <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-            {t("continue")}
-          </Button>
-        }>
-        <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
-          {queryIntegrations.data?.items?.map((app) => (
-            <InstallableAppCard
-              key={app.slug}
-              app={app}
-              isInstalling={installingAppSlug === app.slug}
-              onInstallClick={setInstallingAppSlug}
-              installOptions={createInstallHandlers(app.slug)}
-            />
-          ))}
-        </div>
-      </OnboardingCard>
+      {/* Left column - Main content */}
+      <div className="flex w-full flex-col gap-6">
+        <OnboardingCard
+          title={t("connect_your_calendar")}
+          subtitle={t("connect_calendar_to_prevent_conflicts")}
+          isLoading={queryIntegrations.isPending}
+          footer={
+            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+              {t("continue")}
+            </Button>
+          }>
+          <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
+            {queryIntegrations.data?.items?.map((app) => (
+              <InstallableAppCard
+                key={app.slug}
+                app={app}
+                isInstalling={installingAppSlug === app.slug}
+                onInstallClick={setInstallingAppSlug}
+                installOptions={createInstallHandlers(app.slug)}
+              />
+            ))}
+          </div>
+        </OnboardingCard>
 
-      <SkipButton onClick={handleSkip} />
+        <SkipButton onClick={handleSkip} />
+      </div>
+
+      {/* Right column - Browser view */}
+      <OnboardingBrowserView />
     </OnboardingLayout>
   );
 };

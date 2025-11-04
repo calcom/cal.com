@@ -12,6 +12,7 @@ import { Form, Label, TextField, ToggleGroup } from "@calcom/ui/components/form"
 import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { useCreateTeam } from "../../hooks/useCreateTeam";
 import { useOnboardingStore, type InviteRole } from "../../store/onboarding-store";
 
@@ -105,115 +106,123 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
 
       {/* Main content */}
       <div className="flex h-full w-full items-start justify-center px-6 py-8">
-        <div className="flex w-full max-w-[600px] flex-col gap-4">
-          {/* Card */}
-          <div className="bg-muted border-muted relative rounded-xl border p-1">
-            <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-              {/* Card Header */}
-              <div className="flex w-full gap-1.5 px-5 py-4">
-                <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">{t("invite_team_members")}</h1>
-                  <p className="text-subtle text-sm font-medium leading-tight">{t("team_invite_subtitle")}</p>
+        <div className="grid w-full max-w-[1200px] grid-cols-1 gap-6 lg:grid-cols-[1fr_auto]">
+          {/* Left column - Main content */}
+          <div className="flex w-full flex-col gap-4">
+            {/* Card */}
+            <div className="bg-muted border-muted relative rounded-xl border p-1">
+              <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
+                {/* Card Header */}
+                <div className="flex w-full gap-1.5 px-5 py-4">
+                  <div className="flex w-full flex-col gap-1">
+                    <h1 className="font-cal text-xl font-semibold leading-6">{t("invite_team_members")}</h1>
+                    <p className="text-subtle text-sm font-medium leading-tight">
+                      {t("team_invite_subtitle")}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Content */}
-              <div className="bg-default border-subtle w-full rounded-md border">
-                <div className="flex w-full flex-col gap-8 px-5 py-5">
-                  <Form form={form} handleSubmit={handleContinue} className="w-full">
-                    <div className="flex w-full flex-col gap-4">
-                      {/* Email inputs */}
-                      <div className="flex flex-col gap-2">
-                        <Label className="text-emphasis text-sm font-medium">{t("email")}</Label>
+                {/* Content */}
+                <div className="bg-default border-subtle w-full rounded-md border">
+                  <div className="flex w-full flex-col gap-8 px-5 py-5">
+                    <Form form={form} handleSubmit={handleContinue} className="w-full">
+                      <div className="flex w-full flex-col gap-4">
+                        {/* Email inputs */}
+                        <div className="flex flex-col gap-2">
+                          <Label className="text-emphasis text-sm font-medium">{t("email")}</Label>
 
-                        {fields.map((field, index) => (
-                          <div key={field.id} className="flex items-start gap-0.5">
-                            <div className="flex-1">
-                              <TextField
-                                labelSrOnly
-                                {...form.register(`invites.${index}.email`)}
-                                placeholder={`rick@cal.com`}
-                                type="email"
+                          {fields.map((field, index) => (
+                            <div key={field.id} className="flex items-start gap-0.5">
+                              <div className="flex-1">
+                                <TextField
+                                  labelSrOnly
+                                  {...form.register(`invites.${index}.email`)}
+                                  placeholder={`rick@cal.com`}
+                                  type="email"
+                                  size="sm"
+                                />
+                              </div>
+                              <Button
+                                type="button"
+                                color="minimal"
+                                variant="icon"
                                 size="sm"
-                              />
+                                className="h-7 w-7"
+                                disabled={fields.length === 1}
+                                onClick={() => remove(index)}>
+                                <Icon name="x" className="h-4 w-4" />
+                              </Button>
                             </div>
-                            <Button
-                              type="button"
-                              color="minimal"
-                              variant="icon"
-                              size="sm"
-                              className="h-7 w-7"
-                              disabled={fields.length === 1}
-                              onClick={() => remove(index)}>
-                              <Icon name="x" className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
+                          ))}
 
-                        {/* Add button */}
-                        <Button
-                          type="button"
-                          color="secondary"
-                          size="sm"
-                          StartIcon="plus"
-                          className="w-fit"
-                          onClick={() => append({ email: "", role: inviteRole })}>
-                          {t("add")}
-                        </Button>
-                      </div>
-
-                      {/* Role selector */}
-                      <div className="flex items-center justify-between">
-                        <div className="hidden items-center gap-2 md:flex">
-                          <span className="text-emphasis text-sm">{t("onboarding_invite_all_as")}</span>
-                          <ToggleGroup
-                            value={inviteRole}
-                            onValueChange={(value) => {
-                              if (value) {
-                                setInviteRole(value as InviteRole);
-                                // Update all invites with the new role
-                                fields.forEach((_, index) => {
-                                  form.setValue(`invites.${index}.role`, value as InviteRole);
-                                });
-                              }
-                            }}
-                            options={[
-                              { value: "MEMBER", label: t("members") },
-                              { value: "ADMIN", label: t("onboarding_admins") },
-                            ]}
-                          />
+                          {/* Add button */}
+                          <Button
+                            type="button"
+                            color="secondary"
+                            size="sm"
+                            StartIcon="plus"
+                            className="w-fit"
+                            onClick={() => append({ email: "", role: inviteRole })}>
+                            {t("add")}
+                          </Button>
                         </div>
-                        <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>
+
+                        {/* Role selector */}
+                        <div className="flex items-center justify-between">
+                          <div className="hidden items-center gap-2 md:flex">
+                            <span className="text-emphasis text-sm">{t("onboarding_invite_all_as")}</span>
+                            <ToggleGroup
+                              value={inviteRole}
+                              onValueChange={(value) => {
+                                if (value) {
+                                  setInviteRole(value as InviteRole);
+                                  // Update all invites with the new role
+                                  fields.forEach((_, index) => {
+                                    form.setValue(`invites.${index}.role`, value as InviteRole);
+                                  });
+                                }
+                              }}
+                              options={[
+                                { value: "MEMBER", label: t("members") },
+                                { value: "ADMIN", label: t("onboarding_admins") },
+                              ]}
+                            />
+                          </div>
+                          <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>
+                        </div>
                       </div>
-                    </div>
-                  </Form>
+                    </Form>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
+                  <Button
+                    type="submit"
+                    color="primary"
+                    className="rounded-[10px]"
+                    disabled={!hasValidInvites || isSubmitting}
+                    loading={isSubmitting}
+                    onClick={form.handleSubmit(handleContinue)}>
+                    {t("continue")}
+                  </Button>
                 </div>
               </div>
+            </div>
 
-              {/* Footer */}
-              <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button
-                  type="submit"
-                  color="primary"
-                  className="rounded-[10px]"
-                  disabled={!hasValidInvites || isSubmitting}
-                  loading={isSubmitting}
-                  onClick={form.handleSubmit(handleContinue)}>
-                  {t("continue")}
-                </Button>
-              </div>
+            {/* Skip button */}
+            <div className="flex w-full justify-center">
+              <button
+                onClick={handleSkip}
+                disabled={isSubmitting}
+                className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4 disabled:opacity-50">
+                {t("ill_do_this_later")}
+              </button>
             </div>
           </div>
 
-          {/* Skip button */}
-          <div className="flex w-full justify-center">
-            <button
-              onClick={handleSkip}
-              disabled={isSubmitting}
-              className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4 disabled:opacity-50">
-              {t("ill_do_this_later")}
-            </button>
-          </div>
+          {/* Right column - Browser view */}
+          <OnboardingBrowserView />
         </div>
       </div>
     </div>

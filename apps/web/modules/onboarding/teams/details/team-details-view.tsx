@@ -9,6 +9,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";
 import { Logo } from "@calcom/ui/components/logo";
 
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedTeamSlug } from "./validated-team-slug";
@@ -81,61 +82,69 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
 
       {/* Main content */}
       <div className="flex h-full w-full items-start justify-center px-6 py-8">
-        <div className="flex w-full max-w-[600px] flex-col gap-6">
-          {/* Card */}
-          <div className="bg-muted border-muted relative rounded-xl border p-1">
-            <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-              {/* Card Header */}
-              <div className="flex w-full gap-1.5 px-5 py-4">
-                <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">{t("create_your_team")}</h1>
-                  <p className="text-subtle text-sm font-medium leading-tight">
-                    {t("team_onboarding_details_subtitle")}
-                  </p>
+        <div className="grid w-full max-w-[1200px] grid-cols-1 gap-6 lg:grid-cols-[1fr_auto]">
+          {/* Left column - Main content */}
+          <div className="flex w-full flex-col gap-6">
+            {/* Card */}
+            <div className="bg-muted border-muted relative rounded-xl border p-1">
+              <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
+                {/* Card Header */}
+                <div className="flex w-full gap-1.5 px-5 py-4">
+                  <div className="flex w-full flex-col gap-1">
+                    <h1 className="font-cal text-xl font-semibold leading-6">{t("create_your_team")}</h1>
+                    <p className="text-subtle text-sm font-medium leading-tight">
+                      {t("team_onboarding_details_subtitle")}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Form */}
-              <div className="bg-default border-muted w-full rounded-[10px] border">
-                <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-                  <div className="flex w-full flex-col items-start">
-                    <div className="flex w-full gap-6 px-5 py-5">
-                      <div className="flex w-full flex-col gap-4 rounded-xl">
-                        {/* Team Name */}
-                        <div className="flex w-full flex-col gap-1.5">
-                          <Label className="text-emphasis text-sm font-medium leading-4">{t("team_name")}</Label>
-                          <TextField
-                            value={teamName}
-                            onChange={(e) => setTeamName(e.target.value)}
-                            placeholder="Acme Inc."
-                            className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
+                {/* Form */}
+                <div className="bg-default border-muted w-full rounded-[10px] border">
+                  <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
+                    <div className="flex w-full flex-col items-start">
+                      <div className="flex w-full gap-6 px-5 py-5">
+                        <div className="flex w-full flex-col gap-4 rounded-xl">
+                          {/* Team Name */}
+                          <div className="flex w-full flex-col gap-1.5">
+                            <Label className="text-emphasis text-sm font-medium leading-4">
+                              {t("team_name")}
+                            </Label>
+                            <TextField
+                              value={teamName}
+                              onChange={(e) => setTeamName(e.target.value)}
+                              placeholder="Acme Inc."
+                              className="border-default h-7 rounded-[10px] border px-2 py-1.5 text-sm"
+                            />
+                          </div>
+
+                          {/* Team Slug */}
+                          <ValidatedTeamSlug
+                            value={teamSlug}
+                            onChange={handleSlugChange}
+                            onValidationChange={setIsSlugValid}
                           />
                         </div>
-
-                        {/* Team Slug */}
-                        <ValidatedTeamSlug
-                          value={teamSlug}
-                          onChange={handleSlugChange}
-                          onValidationChange={setIsSlugValid}
-                        />
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Footer */}
-              <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button
-                  color="primary"
-                  className="rounded-[10px]"
-                  onClick={handleContinue}
-                  disabled={!isSlugValid || !teamName || !teamSlug}>
-                  {t("continue")}
-                </Button>
+                {/* Footer */}
+                <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
+                  <Button
+                    color="primary"
+                    className="rounded-[10px]"
+                    onClick={handleContinue}
+                    disabled={!isSlugValid || !teamName || !teamSlug}>
+                    {t("continue")}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Right column - Browser view */}
+          <OnboardingBrowserView />
         </div>
       </div>
     </div>
