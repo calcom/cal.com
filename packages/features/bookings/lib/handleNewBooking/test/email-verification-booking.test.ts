@@ -345,7 +345,7 @@ describe("handleNewBooking - Email Verification", () => {
     test(
       "should allow rescheduling without email verification even when requiresBookerEmailVerification is true",
       async () => {
-        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const handleNewBooking = getNewBookingHandler();
         const { verifyCodeUnAuthenticated } = await import("@calcom/trpc/server/routers/viewer/auth/util");
 
         const booker = getBooker({
