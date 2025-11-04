@@ -471,9 +471,9 @@ export class BookingsController_2024_04_15 {
           `Booking with UID=${rescheduleUid} does not exist. Cannot reschedule a non-existent booking.`
         );
       }
-      if (bookingInfo.status !== "ACCEPTED") {
+      if (bookingInfo.status !== "ACCEPTED" && bookingInfo.status !== "PENDING") {
         throw new BadRequestException(
-          `Booking with UID=${rescheduleUid} is not an upcoming booking (status: ${bookingInfo.status}). Only upcoming bookings can be rescheduled.`
+          `Booking with UID=${rescheduleUid} has invalid status (status: ${bookingInfo.status}). Only ACCEPTED or PENDING bookings can be rescheduled.`
         );
       }
       if (bookingInfo.eventTypeId !== eventTypeId) {
