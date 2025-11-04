@@ -66,7 +66,7 @@ export function EventList({ day }: Props) {
               width: `${layout.widthPercent}%`,
               zIndex,
               top: `calc(${eventStartDiff}*var(--one-minute-height))`,
-              height: `calc(${eventDuration}*var(--one-minute-height))`,
+              height: `max(15px, calc(${eventDuration}*var(--one-minute-height)))`,
               transform: isHovered ? "scale(1.02)" : "scale(1)",
               opacity: hoveredGroupIndex !== null && !isHovered && isInHoveredGroup ? 0.6 : 1,
             }}>
