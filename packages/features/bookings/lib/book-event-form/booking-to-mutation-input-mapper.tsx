@@ -1,9 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
-
 import dayjs from "@calcom/dayjs";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
-import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 
 import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
@@ -101,38 +98,62 @@ export const mapBookingToMutationInput = ({
   };
 };
 
-// This method is here to ensure that the types are correct (recurring count is required),
-// as well as generate a unique ID for the recurring bookings and turn one single booking
-// into an array of multiple bookings based on the recurring count.
-// Other than that it forwards the mapping to mapBookingToMutationInput.
+// // This method is here to ensure that the types are correct (recurring count is required),
+// // as well as generate a unique ID for the recurring bookings and turn one single booking
+// // into an array of multiple bookings based on the recurring count.
+// // Other than that it forwards the mapping to mapBookingToMutationInput.
+// export const mapRecurringBookingToMutationInput = (
+//   booking: BookingOptions,
+//   recurringCount: number,
+//   tracking?: Tracking
+// ): RecurringBookingCreateBody[] => {
+//   const recurringEventId = uuidv4();
+//   console.log("booking.event.recurringEvent", Object.keys(booking.event.recurringEvent || {}));
+//   const [, recurringDates] = parseRecurringDates(
+//     {
+//       startDate: booking.date,
+//       timeZone: booking.timeZone,
+//       recurringEvent: booking.event.recurringEvent,
+//       recurringCount,
+//       withDefaultTimeFormat: true,
+//     },
+//     booking.language
+//   );
+
+//   const input = mapBookingToMutationInput({ ...booking, bookingUid: undefined });
+
+//   return recurringDates.map((recurringDate) => ({
+//     ...input,
+//     start: dayjs(recurringDate).format(),
+//     end: dayjs(recurringDate)
+//       .add(booking.duration || booking.event.length, "minute")
+//       .format(),
+//     recurringEventId,
+//     schedulingType: booking.event.schedulingType || undefined,
+//     recurringCount: recurringDates.length,
+//     tracking,
+//   }));
+// };
+
+// now we will not split the booking into multiple occurrences here, since we will create only one booking in db against the recurring event id and store the rfc 5545 pattern in metadata
 export const mapRecurringBookingToMutationInput = (
   booking: BookingOptions,
-  recurringCount: number,
+  count: number,
   tracking?: Tracking
-): RecurringBookingCreateBody[] => {
-  const recurringEventId = uuidv4();
-  const [, recurringDates] = parseRecurringDates(
-    {
-      startDate: booking.date,
-      timeZone: booking.timeZone,
-      recurringEvent: booking.event.recurringEvent,
-      recurringCount,
-      withDefaultTimeFormat: true,
-    },
-    booking.language
-  );
+): RecurringBookingCreateBody => {
+  const input = mapBookingToMutationInput({
+    ...booking,
+    bookingUid: undefined,
+  });
 
-  const input = mapBookingToMutationInput({ ...booking, bookingUid: undefined });
-
-  return recurringDates.map((recurringDate) => ({
+  return {
     ...input,
-    start: dayjs(recurringDate).format(),
-    end: dayjs(recurringDate)
+    start: dayjs(booking.date).format(),
+    end: dayjs(booking.date)
       .add(booking.duration || booking.event.length, "minute")
       .format(),
-    recurringEventId,
     schedulingType: booking.event.schedulingType || undefined,
-    recurringCount: recurringDates.length,
     tracking,
-  }));
+    recurringCount: count,
+  };
 };

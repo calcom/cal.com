@@ -329,7 +329,7 @@ async function _deleteWebhookScheduledTriggers({
       if (userId) {
         where.eventType = { userId };
       } else {
-        where.eventType = { teamId };
+        where.eventType = { calIdTeamId: teamId };
       }
       await prisma.webhookScheduledTriggers.deleteMany({
         where: {

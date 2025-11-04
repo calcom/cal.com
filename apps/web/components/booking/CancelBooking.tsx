@@ -82,7 +82,7 @@ type Props = {
     name: string | null;
     slug: string | null;
   };
-  recurringEvent: RecurringEvent | null;
+  recurringEvent: RecurringEvent | undefined;
   team?: string | null;
   teamId?: number;
   setIsCancellationMode: (value: boolean) => void;
@@ -114,12 +114,16 @@ export default function CancelBooking(props: Props) {
     bookingCancelledEventProps,
     currentUserEmail,
     teamId,
+    recurringEvent,
   } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
   const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
   const [autoRefund, setAutoRefund] = useState<boolean>(false);
+
+  // Check if this is a recurring booking
+  const isRecurringBooking = !!recurringEvent;
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -259,7 +263,11 @@ export default function CancelBooking(props: Props) {
                   }
                 }}
                 loading={loading}>
-                {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
+                {isRecurringBooking && allRemainingBookings
+                  ? t("cancel_all_remaining")
+                  : isRecurringBooking
+                  ? t("cancel_this_instance")
+                  : t("cancel_event")}
               </Button>
             </div>
           </div>

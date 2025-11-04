@@ -23,7 +23,9 @@ export function getiCalEventAsString(
   let recurrenceRule: string | undefined = undefined;
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
   if (recurringEvent?.count) {
-    recurrenceRule = new RRule(recurringEvent).toString().replace("RRULE:", "");
+    const { exDates, rDates, ...rruleOptionsWithoutExDates } = recurringEvent;
+
+    recurrenceRule = new RRule(rruleOptionsWithoutExDates).toString().replace("RRULE:", "");
   }
 
   const uid = uuidv4();

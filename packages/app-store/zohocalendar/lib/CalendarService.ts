@@ -11,12 +11,44 @@ import type {
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  RecurringEvent,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
+
+/**
+ * Zoho Calendar API repeat format
+ * Based on: https://www.zoho.com/calendar/help/api/post-create-event.html
+ */
+interface ZohoRepeatObject {
+  freq: "daily" | "weekly" | "monthly" | "yearly";
+  interval?: string; // string format: "1", "2", etc.
+  count?: number | string;
+  until?: string; // Format: YYYYMMDDTHHmmss (e.g., "20241121T040000")
+  byday?: string; // Comma-separated: "MO,TU,WE" or positioned: "3FR" (3rd Friday), "-1MO" (last Monday)
+  bymonthday?: number; // Day of month (1-31)
+  bymonth?: number; // Month (1-12, used with yearly)
+  bysetpos?: number; // Position in set (1-4 or -1 for last, used with byday in monthly/yearly)
+}
+
+/**
+ * Zoho event instance from /byinstance API
+ */
+interface ZohoEventInstance {
+  uid: string;
+  recurrenceid: string; // Format: "20191101T090000Z"
+  dateandtime: {
+    timezone: string;
+    start: string;
+    end: string;
+  };
+  title: string;
+  etag: string | number;
+  // ... other fields
+}
 
 export default class ZohoCalendarService implements Calendar {
   private integrationName = "";
@@ -123,8 +155,37 @@ export default class ZohoCalendarService implements Calendar {
     }
 
     try {
+      this.log.debug("Creating event", {
+        hasRecurringEvent: !!event.recurringEvent,
+        hasExistingRecurringEvent: !!event.existingRecurringEvent,
+      });
+
+      // Note: Zoho doesn't support booking into existing recurring series via direct API
+      // The existingRecurringEvent feature would require fetching instances and updating
+      // which is not directly documented in Zoho's API
+      if (event.existingRecurringEvent) {
+        this.log.warn("Zoho Calendar API does not support booking into existing recurring series directly", {
+          recurringEventId: event.existingRecurringEvent.recurringEventId,
+        });
+        // Fall through to create a normal single event
+      }
+
+      const translatedEvent = this.translateEvent(event);
+
+      // Add recurrence if this is a recurring event
+      // Use 'repeat' array format per Zoho docs
+      if (event.recurringEvent) {
+        this.log.info("Creating new recurring event series", {
+          freq: event.recurringEvent.freq,
+          interval: event.recurringEvent.interval,
+          count: event.recurringEvent.count,
+        });
+
+        translatedEvent.repeat = this.mapRecurrenceToZohoFormat(event.recurringEvent);
+      }
+
       const query = stringify({
-        eventdata: JSON.stringify(this.translateEvent(event)),
+        eventdata: JSON.stringify(translatedEvent),
       });
 
       const eventResponse = await this.fetcher(`/calendars/${calendarId}/events?${query}`, {
@@ -132,8 +193,13 @@ export default class ZohoCalendarService implements Calendar {
       });
       eventRespData = await this.handleData(eventResponse, this.log);
       eventId = eventRespData.events[0].uid as string;
+
+      this.log.info("Event created successfully", {
+        eventId,
+        isRecurring: !!event.recurringEvent,
+      });
     } catch (error) {
-      this.log.error(error);
+      this.log.error("Error creating event", { error, event });
       throw error;
     }
 
@@ -146,9 +212,11 @@ export default class ZohoCalendarService implements Calendar {
         password: "",
         url: "",
         additionalInfo: {},
+        // For recurring events, store the event ID as the recurring event ID
+        ...(event.recurringEvent && { thirdPartyRecurringEventId: eventId }),
       };
     } catch (error) {
-      this.log.error(error);
+      this.log.error("Error processing event response", { error });
       await this.deleteEvent(eventId, event, calendarId);
       throw error;
     }
@@ -159,7 +227,12 @@ export default class ZohoCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId?: string) {
+  async updateEvent(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId?: string,
+    isRecurringInstanceReschedule?: boolean
+  ) {
     const eventId = uid;
     let eventRespData;
     const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
@@ -168,7 +241,26 @@ export default class ZohoCalendarService implements Calendar {
       this.log.error("no calendar id provided in updateEvent");
       throw new Error("no calendar id provided in updateEvent");
     }
+
     try {
+      this.log.debug("Updating event", {
+        uid,
+        isRecurringInstanceReschedule,
+        hasRescheduleInstance: !!event.rescheduleInstance,
+      });
+
+      // Handle recurring instance reschedule
+      if (isRecurringInstanceReschedule && event.rescheduleInstance) {
+        this.log.info("Detected recurring instance reschedule request", {
+          uid,
+          formerTime: event.rescheduleInstance.formerTime,
+          newTime: event.rescheduleInstance.newTime,
+        });
+
+        return await this.updateSpecificRecurringInstance(uid, event, calendarId);
+      }
+
+      // Normal event update logic
       // needed to fetch etag
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
       const existingEventData = await this.handleData(existingEventResponse, this.log);
@@ -184,8 +276,10 @@ export default class ZohoCalendarService implements Calendar {
         method: "PUT",
       });
       eventRespData = await this.handleData(eventResponse, this.log);
+
+      this.log.debug("Event updated successfully", { uid });
     } catch (error) {
-      this.log.error(error);
+      this.log.error("Error updating event", { error, uid });
       throw error;
     }
 
@@ -200,7 +294,7 @@ export default class ZohoCalendarService implements Calendar {
         additionalInfo: {},
       };
     } catch (error) {
-      this.log.error(error);
+      this.log.error("Error processing update response", { error });
       await this.deleteEvent(eventId, event);
       throw error;
     }
@@ -211,14 +305,40 @@ export default class ZohoCalendarService implements Calendar {
    * @param event
    * @returns
    */
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string) {
-    const [mainHostDestinationCalendar] = event.destinationCalendar ?? [];
+  async deleteEvent(
+    uid: string,
+    event?: CalendarEvent,
+    externalCalendarId?: string,
+    isRecurringInstanceCancellation?: boolean
+  ) {
+    const [mainHostDestinationCalendar] = event?.destinationCalendar ?? [];
     const calendarId = externalCalendarId || mainHostDestinationCalendar?.externalId;
     if (!calendarId) {
       this.log.error("no calendar id provided in deleteEvent");
       throw new Error("no calendar id provided in deleteEvent");
     }
+
     try {
+      this.log.info("deleteEvent called", {
+        uid,
+        isRecurringInstanceCancellation,
+        cancelledDatesCount: event?.cancelledDates?.length || 0,
+      });
+
+      // Handle instance-level cancellation
+      if (isRecurringInstanceCancellation && event?.cancelledDates && event.cancelledDates.length > 0) {
+        this.log.info("Processing instance cancellation", {
+          uid,
+          cancelledDatesCount: event.cancelledDates.length,
+        });
+
+        await this.cancelSpecificInstances(uid, event.cancelledDates, calendarId);
+        return;
+      }
+
+      // Handle full event deletion (default behavior)
+      this.log.info("Deleting entire event", { uid });
+
       // needed to fetch etag
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
       const existingEventData = await this.handleData(existingEventResponse, this.log);
@@ -230,8 +350,10 @@ export default class ZohoCalendarService implements Calendar {
         },
       });
       await this.handleData(response, this.log);
+
+      this.log.info("Event deleted successfully", { uid });
     } catch (error) {
-      this.log.error(error);
+      this.log.error("Error deleting event", { error, uid });
       throw error;
     }
   }
@@ -459,7 +581,7 @@ export default class ZohoCalendarService implements Calendar {
   }
 
   private translateEvent = (event: CalendarServiceEvent) => {
-    const zohoEvent = {
+    const zohoEvent: any = {
       title: event.title,
       description: event.calendarDescription,
       dateandtime: {
@@ -480,4 +602,372 @@ export default class ZohoCalendarService implements Calendar {
 
     return zohoEvent;
   };
+
+  /**
+   * Maps RecurringEvent to Zoho's 'repeat' array format
+   * Based on official docs: https://www.zoho.com/calendar/help/api/post-create-event.html
+   *
+   * Examples from Zoho docs:
+   * - Daily: [{"freq": "daily", "interval": "1", "count": 5}]
+   * - Weekly: [{"freq": "weekly", "interval": "1", "byday": "MO,TU", "until": "20241121T040000"}]
+   * - Monthly: [{"freq": "monthly", "byday": "-1TU", "interval": "1", "count": 2}] (Last Tuesday)
+   * - Yearly: [{"freq": "yearly", "byday": "3FR", "bymonth": 11}] (3rd Friday of November)
+   */
+  private mapRecurrenceToZohoFormat(recurringEvent: RecurringEvent): ZohoRepeatObject[] {
+    this.log.debug("Mapping recurring event to Zoho format", { recurringEvent });
+
+    try {
+      // Map frequency - RRule.Frequency enum: 0=YEARLY, 1=MONTHLY, 2=WEEKLY, 3=DAILY
+      const freqMap: Record<number, "daily" | "weekly" | "monthly" | "yearly"> = {
+        0: "yearly",
+        1: "monthly",
+        2: "weekly",
+        3: "daily",
+      };
+
+      const repeatObj: ZohoRepeatObject = {
+        freq: freqMap[recurringEvent.freq] || "daily",
+        interval: recurringEvent.interval ? String(recurringEvent.interval) : "1",
+      };
+
+      // Handle COUNT
+      if (recurringEvent.count) {
+        repeatObj.count = recurringEvent.count;
+      }
+
+      // Handle UNTIL - Zoho format: YYYYMMDDTHHmmss (no Z)
+      if (recurringEvent.until) {
+        repeatObj.until = dayjs(recurringEvent.until).format("YYYYMMDDTHHmmss");
+      }
+
+      // Handle BYDAY (days of week)
+      if (recurringEvent.byDay && recurringEvent.byDay.length > 0) {
+        // Check if we need positioned days (e.g., "3FR" for 3rd Friday)
+        if (recurringEvent.bySetPos && recurringEvent.bySetPos.length > 0) {
+          // Format: <position><day> e.g., "3FR", "-1MO" (last Monday)
+          const position = recurringEvent.bySetPos[0];
+          const day = recurringEvent.byDay[0]; // Use first day if multiple
+          repeatObj.byday = `${position}${day}`;
+          repeatObj.bysetpos = position;
+        } else {
+          // Simple days: "MO,TU,WE"
+          repeatObj.byday = recurringEvent.byDay.join(",");
+        }
+      }
+
+      // Handle BYMONTHDAY (day of month)
+      if (recurringEvent.byMonthDay && recurringEvent.byMonthDay.length > 0) {
+        repeatObj.bymonthday = recurringEvent.byMonthDay[0];
+      }
+
+      // Handle BYMONTH (for yearly events)
+      if (recurringEvent.byMonth && recurringEvent.byMonth.length > 0) {
+        repeatObj.bymonth = recurringEvent.byMonth[0];
+      }
+
+      const repeatArray = [repeatObj];
+
+      this.log.debug("Generated Zoho repeat array", { repeatArray });
+      return repeatArray;
+    } catch (error) {
+      this.log.error("Error building Zoho repeat from recurring event", { error, recurringEvent });
+      throw error;
+    }
+  }
+
+  /**
+   * Gets all instances of a recurring event using /byinstance API
+   * https://www.zoho.com/calendar/help/api/get-event-by-instance.html
+   */
+  private async getRecurringEventInstances(
+    calendarId: string,
+    eventUid: string,
+    startDate: string,
+    endDate: string
+  ): Promise<ZohoEventInstance[]> {
+    try {
+      // Format dates for Zoho API: yyyyMMddTHHmmssZ or yyyyMMdd
+      const range = {
+        start: `${dayjs(startDate).utc().format("YYYYMMDDTHHmmss")}Z`,
+        end: `${dayjs(endDate).utc().format("YYYYMMDDTHHmmss")}Z`,
+      };
+
+      const query = stringify({ range: JSON.stringify(range) });
+
+      this.log.debug("Fetching recurring event instances", {
+        eventUid,
+        range,
+      });
+
+      const response = await this.fetcher(`/calendars/${calendarId}/events/${eventUid}/byinstance?${query}`);
+      const data = await this.handleData(response, this.log);
+
+      if (!data.events || data.events.length === 0) {
+        this.log.warn("No instances found for recurring event", { eventUid });
+        return [];
+      }
+
+      return data.events as ZohoEventInstance[];
+    } catch (error) {
+      this.log.error("Error fetching recurring event instances", {
+        error,
+        eventUid,
+        calendarId,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Updates a specific recurring instance using Zoho's /byinstance API and recurrenceid
+   * Based on:
+   * - https://www.zoho.com/calendar/help/api/put-update-event.html
+   * - https://www.zoho.com/calendar/help/api/get-event-by-instance.html
+   *
+   * Process:
+   * 1. Use /byinstance API to get all instances
+   * 2. Find the instance matching formerTime
+   * 3. Update that instance with recurrenceid and recurrence_edittype="only"
+   */
+  private async updateSpecificRecurringInstance(
+    uid: string,
+    event: CalendarServiceEvent,
+    calendarId: string
+  ): Promise<NewCalendarEventType> {
+    try {
+      this.log.info("Updating specific recurring instance", {
+        uid,
+        formerTime: event.rescheduleInstance?.formerTime,
+        newTime: event.rescheduleInstance?.newTime,
+      });
+
+      // Fetch the event to check if it's recurring and get etag
+      const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
+      const existingEventData = await this.handleData(existingEventResponse, this.log);
+
+      if (!existingEventData.events || existingEventData.events.length === 0) {
+        throw new Error("Event not found");
+      }
+
+      const existingEvent = existingEventData.events[0];
+
+      // Check if this is a recurring event (has rrule field)
+      if (!existingEvent.rrule) {
+        this.log.warn("Event is not recurring, performing normal update", { uid });
+        return await this.updateEvent(uid, event, calendarId);
+      }
+
+      // Use /byinstance API to get all instances within a time window around the former time
+      const formerTime = new Date(event.rescheduleInstance!.formerTime);
+      const searchStart = dayjs(formerTime).subtract(1, "day").toISOString();
+      const searchEnd = dayjs(formerTime).add(1, "day").toISOString();
+
+      const instances = await this.getRecurringEventInstances(calendarId, uid, searchStart, searchEnd);
+
+      if (!instances || instances.length === 0) {
+        throw new Error(`No instances found for recurring event ${uid}`);
+      }
+
+      // Find the instance that matches the formerTime
+      const formerTimeMs = formerTime.getTime();
+      const targetInstance = instances.find((instance) => {
+        const instanceStartMs = new Date(instance.dateandtime.start).getTime();
+        return Math.abs(instanceStartMs - formerTimeMs) < 60000; // Within 1 minute
+      });
+
+      if (!targetInstance) {
+        this.log.error("Could not find matching instance", {
+          uid,
+          formerTime: event.rescheduleInstance!.formerTime,
+          availableInstances: instances.map((i) => i.dateandtime.start),
+        });
+        throw new Error(`Could not find instance at ${event.rescheduleInstance!.formerTime}`);
+      }
+
+      // The recurrenceid from the instance response
+      const recurrenceid = targetInstance.recurrenceid;
+
+      this.log.debug("Found target instance for update", {
+        recurrenceid,
+        instanceStart: targetInstance.dateandtime.start,
+      });
+
+      // Build the update payload with new event details
+      const translatedEvent = this.translateEvent(event);
+
+      const updatePayload = {
+        ...translatedEvent,
+        etag: existingEvent.etag,
+        recurrenceid: recurrenceid, // Use the recurrenceid from the instance
+        recurrence_edittype: "only", // Update only this occurrence
+      };
+
+      const query = stringify({
+        eventdata: JSON.stringify(updatePayload),
+      });
+
+      const eventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
+        method: "PUT",
+      });
+
+      const eventRespData = await this.handleData(eventResponse, this.log);
+
+      this.log.info("Successfully updated recurring instance", {
+        uid,
+        recurrenceid,
+        newStart: event.startTime,
+        newEnd: event.endTime,
+      });
+
+      return {
+        ...eventRespData.events[0],
+        uid: eventRespData.events[0].uid as string,
+        id: eventRespData.events[0].uid as string,
+        type: "zoho_calendar",
+        password: "",
+        url: "",
+        additionalInfo: {},
+      };
+    } catch (error) {
+      this.log.error("Error updating specific recurring instance", {
+        error,
+        uid,
+        formerTime: event.rescheduleInstance?.formerTime,
+        newTime: event.rescheduleInstance?.newTime,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Cancels specific instances of a recurring event using /byinstance API
+   * Based on:
+   * - https://www.zoho.com/calendar/help/api/delete-event.html
+   * - https://www.zoho.com/calendar/help/api/get-event-by-instance.html
+   *
+   * Process:
+   * 1. Use /byinstance API to get instances for each cancelled date
+   * 2. Delete each instance with its recurrenceid and recurrence_edittype="only"
+   */
+  private async cancelSpecificInstances(
+    uid: string,
+    cancelledDates: string[],
+    calendarId: string
+  ): Promise<void> {
+    try {
+      this.log.debug("Cancelling specific instances", {
+        uid,
+        cancelledDatesCount: cancelledDates.length,
+      });
+
+      // Fetch the master event to get etag and check if recurring
+      const masterEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
+      const masterEventData = await this.handleData(masterEventResponse, this.log);
+
+      if (!masterEventData.events || masterEventData.events.length === 0) {
+        throw new Error("Master recurring event not found");
+      }
+
+      const masterEvent = masterEventData.events[0];
+
+      // Check if this is a recurring event (has rrule field)
+      if (!masterEvent.rrule) {
+        this.log.warn("Event is not recurring, deleting entire event instead", { uid });
+        await this.deleteEvent(uid, undefined, calendarId);
+        return;
+      }
+
+      this.log.debug("Fetched master recurring event", {
+        uid,
+        hasRrule: !!masterEvent.rrule,
+      });
+
+      // For each cancelled date, fetch instances and delete the matching one
+      const cancellationResults = await Promise.allSettled(
+        cancelledDates.map(async (cancelledDate) => {
+          const cancelledDateTime = new Date(cancelledDate);
+
+          // Use /byinstance API to get instances around this date
+          const searchStart = dayjs(cancelledDateTime).subtract(1, "day").toISOString();
+          const searchEnd = dayjs(cancelledDateTime).add(1, "day").toISOString();
+
+          const instances = await this.getRecurringEventInstances(calendarId, uid, searchStart, searchEnd);
+
+          // Find the matching instance
+          const cancelledTimeMs = cancelledDateTime.getTime();
+          const targetInstance = instances.find((instance) => {
+            const instanceStartMs = new Date(instance.dateandtime.start).getTime();
+            return Math.abs(instanceStartMs - cancelledTimeMs) < 60000; // Within 1 minute
+          });
+
+          if (!targetInstance) {
+            this.log.warn("Could not find instance to cancel", {
+              cancelledDate,
+              availableInstances: instances.map((i) => i.dateandtime.start),
+            });
+            return;
+          }
+
+          // Delete this specific instance using recurrenceid
+          const recurrenceid = targetInstance.recurrenceid;
+
+          this.log.debug("Deleting instance", {
+            cancelledDate,
+            recurrenceid,
+          });
+
+          // Build eventdata with uid and recurrenceid
+          const eventdata = {
+            uid: uid,
+            recurrenceid: recurrenceid,
+            etag: masterEvent.etag,
+            recurrence_edittype: "only", // Delete only this occurrence
+          };
+
+          const query = stringify({
+            eventdata: JSON.stringify(eventdata),
+          });
+
+          const deleteResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}?${query}`, {
+            method: "DELETE",
+            headers: {
+              etag: String(masterEvent.etag),
+            },
+          });
+
+          await this.handleData(deleteResponse, this.log);
+
+          return {
+            cancelledDate,
+            recurrenceid,
+          };
+        })
+      );
+
+      const successfulCancellations = cancellationResults.filter(
+        (result) => result.status === "fulfilled"
+      ).length;
+      const failedCancellations = cancellationResults.filter((result) => result.status === "rejected");
+
+      this.log.info("Completed instance cancellations", {
+        uid,
+        totalRequested: cancelledDates.length,
+        successful: successfulCancellations,
+        failed: failedCancellations.length,
+      });
+
+      if (failedCancellations.length > 0) {
+        this.log.warn("Some instance cancellations failed", {
+          failures: failedCancellations.map((f) => (f as PromiseRejectedResult).reason),
+        });
+      }
+    } catch (error) {
+      this.log.error("Error cancelling specific instances", {
+        error,
+        uid,
+        cancelledDatesCount: cancelledDates.length,
+      });
+      throw error;
+    }
+  }
 }

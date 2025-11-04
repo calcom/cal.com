@@ -1,3 +1,4 @@
+import { getActualRecurringStartTime } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { TFunction } from "i18next";
 import React from "react";
 import { RRule } from "rrule";
@@ -21,7 +22,8 @@ export function getRecurringWhen({
 }) {
   if (recurringEvent) {
     const t = attendee.language.translate;
-    const rruleOptions = new RRule(recurringEvent).options;
+    const { exDates, rDates, ...rruleOptionsWithoutExDates } = recurringEvent;
+    const rruleOptions = new RRule(rruleOptionsWithoutExDates).options;
     const recurringEventConfig: RecurringEvent = {
       freq: rruleOptions.freq,
       count: rruleOptions.count || 1,
@@ -42,11 +44,22 @@ export function WhenInfo(props: {
   const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat } = props;
 
   function getRecipientStart(format: string) {
-    return dayjs(props.calEvent.startTime).tz(timeZone).locale(locale).format(format);
+    const startTime = recurringEvent
+      ? getActualRecurringStartTime(recurringEvent, props.calEvent.startTime)
+      : props.calEvent.startTime;
+
+    return dayjs(startTime).tz(timeZone).locale(locale).format(format);
   }
 
   function getRecipientEnd(format: string) {
-    return dayjs(props.calEvent.endTime).tz(timeZone).locale(locale).format(format);
+    const startTime = recurringEvent
+      ? getActualRecurringStartTime(recurringEvent, props.calEvent.startTime)
+      : props.calEvent.startTime;
+
+    const duration = dayjs(props.calEvent.endTime).diff(dayjs(props.calEvent.startTime));
+    const endTime = dayjs(startTime).add(duration, "millisecond");
+
+    return endTime.tz(timeZone).locale(locale).format(format);
   }
 
   const recurringInfo = getRecurringWhen({
@@ -59,13 +72,25 @@ export function WhenInfo(props: {
       <Info
         label={`${t("when")} ${recurringInfo !== "" ? ` - ${recurringInfo}` : ""}`}
         lineThrough={
-          !!props.calEvent.cancellationReason && !props.calEvent.cancellationReason.includes("$RCH$")
+          !recurringEvent &&
+          !!props.calEvent.cancellationReason &&
+          !props.calEvent.cancellationReason.includes("$RCH$")
         }
         description={
           <span data-testid="when">
-            {recurringEvent?.count ? `${t("starting")} ` : ""}
+            {recurringEvent?.count || recurringEvent?.until ? `${t("starting")} ` : ""}
             {getRecipientStart(`dddd, LL | ${timeFormat}`)} - {getRecipientEnd(timeFormat)}{" "}
             <span style={{ color: "#4B5563" }}>({timeZone})</span>
+            {recurringEvent?.exDates && recurringEvent.exDates.length > 0 && (
+              <span className="text-subtle ml-2">
+                • {t("excluding_dates_count", { count: recurringEvent.exDates.length })}
+              </span>
+            )}
+            {recurringEvent?.rDates && recurringEvent.rDates.length > 0 && (
+              <span className="text-subtle ml-2">
+                • +{recurringEvent.rDates.length} {t("additional")}
+              </span>
+            )}
           </span>
         }
         withSpacer

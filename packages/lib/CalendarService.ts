@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
+import { buildRRFromRE } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
@@ -28,6 +29,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
   TeamMember,
+  RecurringEvent,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -145,7 +147,28 @@ export default abstract class BaseCalendarService implements Calendar {
       const calendars = await this.listCalendars(event);
       const uid = uuidv4();
 
-      // We create local ICS files
+      this.log.debug("Creating event", {
+        uid,
+        hasRecurringEvent: !!event.recurringEvent,
+        hasExistingRecurringEvent: !!event.existingRecurringEvent,
+      });
+
+      // Handle existing recurring event (booking into an existing series)
+      if (event.existingRecurringEvent) {
+        this.log.info("Booking into existing recurring event series", {
+          recurringEventId: event.existingRecurringEvent.recurringEventId,
+          startTime: event.startTime,
+        });
+
+        return await this.createRecurringInstanceEvent(
+          event,
+          credentialId,
+          calendars,
+          event.existingRecurringEvent.recurringEventId
+        );
+      }
+
+      // Create base ICS string
       const { error, value: iCalString } = createEvent({
         uid,
         startInputType: "utc",
@@ -156,24 +179,36 @@ export default abstract class BaseCalendarService implements Calendar {
         location: getLocation(event),
         organizer: { email: event.organizer.email, name: event.organizer.name },
         attendees: this.getAttendees(event),
-        /** according to https://datatracker.ietf.org/doc/html/rfc2446#section-3.2.1, in a published iCalendar component.
-         * "Attendees" MUST NOT be present
-         * `attendees: this.getAttendees(event.attendees),`
-         * [UPDATE]: Since we're not using the PUBLISH method to publish the iCalendar event and creating the event directly on iCal,
-         * this shouldn't be an issue and we should be able to add attendees to the event right here.
-         */
         ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
       });
 
-      if (error || !iCalString)
-        throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
+      if (error || !iCalString) {
+        throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name}`);
+      }
+
+      // Add recurrence rules if this is a recurring event
+      let finalICalString = iCalString;
+      let thirdPartyRecurringEventId: string | null = null;
+
+      if (event.recurringEvent) {
+        this.log.info("Creating new recurring event series", {
+          uid,
+          freq: event.recurringEvent.freq,
+          interval: event.recurringEvent.interval,
+          count: event.recurringEvent.count,
+        });
+
+        const rruleStrings = this.mapRecurrenceToRRULE(event.recurringEvent);
+        finalICalString = this.addRecurrenceToICS(iCalString, rruleStrings);
+        thirdPartyRecurringEventId = uid; // The UID serves as the recurring event ID
+      }
 
       const mainHostDestinationCalendar = event.destinationCalendar
         ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
           event.destinationCalendar[0]
         : undefined;
 
-      // We create the event directly on iCal
+      // Create the event on CalDAV server
       const responses = await Promise.all(
         calendars
           .filter((c) =>
@@ -187,8 +222,8 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              // according to https://datatracker.ietf.org/doc/html/rfc4791#section-4.1, Calendar object resources contained in calendar collections MUST NOT specify the iCalendar METHOD property.
-              iCalString: iCalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              // Remove METHOD property as per RFC4791
+              iCalString: finalICalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               headers: this.headers,
             })
           )
@@ -200,6 +235,12 @@ export default abstract class BaseCalendarService implements Calendar {
         );
       }
 
+      this.log.info("Event created successfully", {
+        uid,
+        isRecurring: !!event.recurringEvent,
+        thirdPartyRecurringEventId,
+      });
+
       return {
         uid,
         id: uid,
@@ -207,22 +248,42 @@ export default abstract class BaseCalendarService implements Calendar {
         password: "",
         url: "",
         additionalInfo: {},
+        ...(thirdPartyRecurringEventId && { thirdPartyRecurringEventId }),
       };
     } catch (reason) {
-      logger.error(reason);
-
+      this.log.error("Error creating event", { error: reason, event });
       throw reason;
     }
   }
 
   async updateEvent(
     uid: string,
-    event: CalendarEvent
+    event: CalendarServiceEvent,
+    externalCalendarId?: string | null,
+    isRecurringInstanceReschedule?: boolean
   ): Promise<NewCalendarEventType | NewCalendarEventType[]> {
     try {
+      this.log.debug("Updating event", {
+        uid,
+        isRecurringInstanceReschedule,
+        hasRescheduleInstance: !!event.rescheduleInstance,
+      });
+
+      // Handle recurring instance reschedule
+      if (isRecurringInstanceReschedule && event.rescheduleInstance) {
+        this.log.info("Detected recurring instance reschedule request", {
+          uid,
+          formerTime: event.rescheduleInstance.formerTime,
+          newTime: event.rescheduleInstance.newTime,
+        });
+
+        return await this.updateSpecificRecurringInstance(uid, event);
+      }
+
+      // Normal event update logic
       const events = await this.getEventsByUID(uid);
 
-      /** We generate the ICS files */
+      // Generate the ICS files
       const { error, value: iCalString } = createEvent({
         uid,
         startInputType: "utc",
@@ -236,7 +297,7 @@ export default abstract class BaseCalendarService implements Calendar {
       });
 
       if (error) {
-        this.log.debug("Error creating iCalString");
+        this.log.debug("Error creating iCalString for update");
 
         return {
           uid,
@@ -247,15 +308,17 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
+
       return Promise.all(
         eventsToUpdate.map((eventItem) => {
           calendarEvent = eventItem;
           return updateCalendarObject({
             calendarObject: {
               url: calendarEvent.url,
-              // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
+              // ensures compliance with standard iCal string
               data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               etag: calendarEvent?.etag,
             },
@@ -289,16 +352,41 @@ export default abstract class BaseCalendarService implements Calendar {
         })
       );
     } catch (reason) {
-      this.log.error(reason);
+      this.log.error("Error updating event", { error: reason, uid });
       throw reason;
     }
   }
 
-  async deleteEvent(uid: string): Promise<void> {
+  async deleteEvent(
+    uid: string,
+    event?: CalendarEvent,
+    externalCalendarId?: string | null,
+    isRecurringInstanceCancellation?: boolean
+  ): Promise<void> {
     try {
-      const events = await this.getEventsByUID(uid);
+      this.log.info("deleteEvent called", {
+        uid,
+        isRecurringInstanceCancellation,
+        cancelledDatesCount: event?.cancelledDates?.length || 0,
+      });
 
+      // Handle instance-level cancellation
+      if (isRecurringInstanceCancellation && event?.cancelledDates && event.cancelledDates.length > 0) {
+        this.log.info("Processing instance cancellation", {
+          uid,
+          cancelledDatesCount: event.cancelledDates.length,
+        });
+
+        await this.cancelSpecificInstances(uid, event.cancelledDates);
+        return;
+      }
+
+      // Handle full event deletion (default behavior)
+      this.log.info("Deleting entire event", { uid });
+
+      const events = await this.getEventsByUID(uid);
       const eventsToDelete = events.filter((event) => event.uid === uid);
+
       await Promise.all(
         eventsToDelete.map((event) => {
           return deleteCalendarObject({
@@ -310,9 +398,10 @@ export default abstract class BaseCalendarService implements Calendar {
           });
         })
       );
-    } catch (reason) {
-      this.log.error(reason);
 
+      this.log.info("Event deleted successfully", { uid });
+    } catch (reason) {
+      this.log.error("Error deleting event", { error: reason, uid });
       throw reason;
     }
   }
@@ -714,5 +803,422 @@ export default abstract class BaseCalendarService implements Calendar {
       },
       headers: this.headers,
     });
+  }
+
+  /**
+   * Maps RecurringEvent to RRULE array format for iCalendar
+   */
+  private mapRecurrenceToRRULE(recurringEvent: RecurringEvent): string[] {
+    this.log.debug("Mapping recurring event to RRULE", { recurringEvent });
+
+    try {
+      // Use the same buildRRFromRE utility used by Google Calendar
+      const rruleStrings = buildRRFromRE(recurringEvent);
+      this.log.debug("Generated RRULE strings", { rruleStrings });
+      return rruleStrings;
+    } catch (error) {
+      this.log.error("Error building RRULE from recurring event", { error, recurringEvent });
+      throw error;
+    }
+  }
+
+  /**
+   * Adds recurrence rules to an ICS string
+   */
+  private addRecurrenceToICS(iCalString: string, rruleStrings: string[]): string {
+    try {
+      // Parse the ICS string
+      const jcalData = ICAL.parse(iCalString);
+      const vcalendar = new ICAL.Component(jcalData);
+      const vevent = vcalendar.getFirstSubcomponent("vevent");
+
+      if (!vevent) {
+        throw new Error("No VEVENT found in ICS string");
+      }
+
+      // Add each RRULE/EXDATE line as a property
+      rruleStrings.forEach((rruleLine) => {
+        if (rruleLine.startsWith("RRULE:")) {
+          const rruleValue = rruleLine.substring(6); // Remove "RRULE:" prefix
+          vevent.addPropertyWithValue("rrule", ICAL.Recur.fromString(rruleValue));
+          this.log.debug("Added RRULE to VEVENT", { rruleValue });
+        } else if (rruleLine.startsWith("EXDATE:")) {
+          const exdateValue = rruleLine.substring(7); // Remove "EXDATE:" prefix
+          // EXDATE can contain multiple dates separated by commas
+          const exdates = exdateValue.split(",");
+          exdates.forEach((exdate) => {
+            const time = ICAL.Time.fromString(exdate.trim());
+            vevent.addPropertyWithValue("exdate", time);
+          });
+          this.log.debug("Added EXDATE to VEVENT", { exdateValue });
+        }
+      });
+
+      return vcalendar.toString();
+    } catch (error) {
+      this.log.error("Error adding recurrence to ICS", { error, rruleStrings });
+      throw error;
+    }
+  }
+
+  /**
+   * Formats a date for RECURRENCE-ID in iCalendar format (YYYYMMDDTHHmmssZ)
+   */
+  private formatRecurrenceId(date: Date): string {
+    return `${dayjs(date).utc().format("YYYYMMDDTHHmmss")}Z`;
+  }
+
+  /**
+   * Creates an instance event for an existing recurring series
+   * This modifies a specific occurrence of the recurring event
+   */
+  private async createRecurringInstanceEvent(
+    event: CalendarServiceEvent,
+    credentialId: number,
+    calendars: IntegrationCalendar[],
+    recurringEventId: string
+  ): Promise<NewCalendarEventType> {
+    try {
+      const instanceUid = `${recurringEventId}_${Date.now()}`;
+
+      this.log.debug("Creating recurring instance event", {
+        instanceUid,
+        recurringEventId,
+        startTime: event.startTime,
+      });
+
+      // Create an instance event with RECURRENCE-ID
+      const recurrenceId = this.formatRecurrenceId(new Date(event.startTime));
+
+      const { error, value: iCalString } = createEvent({
+        uid: recurringEventId, // Use the same UID as the master event
+        startInputType: "utc",
+        start: convertDate(event.startTime),
+        duration: getDuration(event.startTime, event.endTime),
+        title: event.title,
+        description: event.calendarDescription,
+        location: getLocation(event),
+        organizer: { email: event.organizer.email, name: event.organizer.name },
+        attendees: this.getAttendees(event),
+        ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
+      });
+
+      if (error || !iCalString) {
+        throw new Error(`Error creating instance iCalString:=> ${error?.message} : ${error?.name}`);
+      }
+
+      // Add RECURRENCE-ID to the ICS to mark this as an exception/instance
+      const jcalData = ICAL.parse(iCalString);
+      const vcalendar = new ICAL.Component(jcalData);
+      const vevent = vcalendar.getFirstSubcomponent("vevent");
+
+      if (!vevent) {
+        throw new Error("No VEVENT found in instance ICS string");
+      }
+
+      const recurrenceTime = ICAL.Time.fromString(recurrenceId);
+      vevent.addPropertyWithValue("recurrence-id", recurrenceTime);
+
+      const finalICalString = vcalendar.toString();
+
+      const mainHostDestinationCalendar = event.destinationCalendar
+        ? event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
+          event.destinationCalendar[0]
+        : undefined;
+
+      // Create the instance event
+      const responses = await Promise.all(
+        calendars
+          .filter((c) =>
+            mainHostDestinationCalendar?.externalId
+              ? c.externalId === mainHostDestinationCalendar.externalId
+              : true
+          )
+          .map((calendar) =>
+            createCalendarObject({
+              calendar: {
+                url: calendar.externalId,
+              },
+              filename: `${instanceUid}.ics`,
+              iCalString: finalICalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              headers: this.headers,
+            })
+          )
+      );
+
+      if (responses.some((r) => !r.ok)) {
+        throw new Error(
+          `Error creating instance event: ${(await Promise.all(responses.map((r) => r.text()))).join(", ")}`
+        );
+      }
+
+      this.log.info("Recurring instance event created successfully", {
+        instanceUid,
+        recurringEventId,
+      });
+
+      return {
+        uid: instanceUid,
+        id: instanceUid,
+        type: this.integrationName,
+        password: "",
+        url: "",
+        additionalInfo: {},
+        thirdPartyRecurringEventId: recurringEventId,
+      };
+    } catch (error) {
+      this.log.error("Error creating recurring instance event", {
+        error,
+        recurringEventId,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Updates a specific recurring instance by creating an exception event with RECURRENCE-ID
+   */
+  private async updateSpecificRecurringInstance(
+    uid: string,
+    event: CalendarServiceEvent
+  ): Promise<NewCalendarEventType> {
+    try {
+      this.log.info("Updating specific recurring instance", {
+        uid,
+        formerTime: event.rescheduleInstance?.formerTime,
+        newTime: event.rescheduleInstance?.newTime,
+      });
+
+      // Parse the instance UID to extract the master event ID
+      // Format could be: {masterEventId}_{timestamp} or just the master ID
+      const masterEventId = uid.includes("_") ? uid.split("_")[0] : uid;
+
+      this.log.debug("Parsed recurring instance UID", {
+        originalUid: uid,
+        masterEventId,
+      });
+
+      // Calculate event duration to maintain it after reschedule
+      const eventDurationMs = new Date(event.endTime).getTime() - new Date(event.startTime).getTime();
+      const newStartTime = new Date(event.rescheduleInstance!.newTime);
+      const newEndTime = new Date(newStartTime.getTime() + eventDurationMs);
+
+      // The RECURRENCE-ID should reference the ORIGINAL start time
+      const originalRecurrenceId = this.formatRecurrenceId(new Date(event.rescheduleInstance!.formerTime));
+
+      // Create an exception event with the new time but original RECURRENCE-ID
+      const { error, value: iCalString } = createEvent({
+        uid: masterEventId, // Use the master event UID
+        startInputType: "utc",
+        start: convertDate(newStartTime.toISOString()),
+        duration: getDuration(newStartTime.toISOString(), newEndTime.toISOString()),
+        title: event.title,
+        description: event.calendarDescription || getRichDescription(event),
+        location: getLocation(event),
+        organizer: { email: event.organizer.email, name: event.organizer.name },
+        attendees: this.getAttendees(event),
+        ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
+      });
+
+      if (error || !iCalString) {
+        throw new Error(`Error creating exception iCalString:=> ${error?.message} : ${error?.name}`);
+      }
+
+      // Add RECURRENCE-ID to mark this as an exception
+      const jcalData = ICAL.parse(iCalString);
+      const vcalendar = new ICAL.Component(jcalData);
+      const vevent = vcalendar.getFirstSubcomponent("vevent");
+
+      if (!vevent) {
+        throw new Error("No VEVENT found in exception ICS string");
+      }
+
+      const recurrenceTime = ICAL.Time.fromString(originalRecurrenceId);
+      vevent.addPropertyWithValue("recurrence-id", recurrenceTime);
+
+      const finalICalString = vcalendar.toString();
+
+      // Get the calendars to update
+      const calendars = await this.listCalendars(event);
+      const exceptionUid = `${masterEventId}_${Date.now()}`;
+
+      // Create/update the exception event
+      const responses = await Promise.all(
+        calendars.map((calendar) =>
+          createCalendarObject({
+            calendar: {
+              url: calendar.externalId,
+            },
+            filename: `${exceptionUid}.ics`,
+            iCalString: finalICalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+            headers: this.headers,
+          })
+        )
+      );
+
+      if (responses.some((r) => !r.ok)) {
+        throw new Error(
+          `Error creating exception event: ${(await Promise.all(responses.map((r) => r.text()))).join(", ")}`
+        );
+      }
+
+      this.log.info("Successfully updated recurring instance", {
+        exceptionUid,
+        masterEventId,
+        newStart: newStartTime.toISOString(),
+        newEnd: newEndTime.toISOString(),
+      });
+
+      return {
+        uid: exceptionUid,
+        id: exceptionUid,
+        type: this.integrationName,
+        password: "",
+        url: "",
+        additionalInfo: {},
+      };
+    } catch (error) {
+      this.log.error("Error updating specific recurring instance", {
+        error,
+        uid,
+        formerTime: event.rescheduleInstance?.formerTime,
+        newTime: event.rescheduleInstance?.newTime,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Cancels specific instances of a recurring event by adding EXDATE entries
+   */
+  private async cancelSpecificInstances(uid: string, cancelledDates: string[]): Promise<void> {
+    try {
+      this.log.debug("Cancelling specific instances", {
+        uid,
+        cancelledDatesCount: cancelledDates.length,
+      });
+
+      // Fetch the master event
+      const events = await this.getEventsByUID(uid);
+      const masterEvent = events.find((e) => e.uid === uid && !e.recurrenceId);
+
+      if (!masterEvent) {
+        this.log.warn("Master event not found, attempting to delete all instances", { uid });
+        await this.deleteEvent(uid);
+        return;
+      }
+
+      // Fetch the event's ICS data
+      const calendars = await this.listCalendars();
+      let eventData: string | null = null;
+      let eventUrl: string | null = null;
+      let eventEtag: string | undefined;
+
+      for (const calendar of calendars) {
+        const objects = await fetchCalendarObjects({
+          calendar: { url: calendar.externalId },
+          objectUrls: [`${calendar.externalId}${uid}.ics`],
+          headers: this.headers,
+        });
+
+        if (objects.length > 0 && objects[0].data) {
+          eventData = objects[0].data;
+          eventUrl = objects[0].url;
+          eventEtag = objects[0].etag;
+          break;
+        }
+      }
+
+      if (!eventData || !eventUrl) {
+        throw new Error("Could not fetch master event data");
+      }
+
+      // Parse the ICS data
+      const jcalData = ICAL.parse(sanitizeCalendarObject({ data: eventData }));
+      const vcalendar = new ICAL.Component(jcalData);
+      const vevent = vcalendar.getFirstSubcomponent("vevent");
+
+      if (!vevent) {
+        throw new Error("No VEVENT found in master event");
+      }
+
+      // Check if it's a recurring event
+      const existingRRule = vevent.getFirstProperty("rrule");
+      if (!existingRRule) {
+        this.log.warn("Event is not recurring, deleting entire event instead", { uid });
+        await this.deleteEvent(uid);
+        return;
+      }
+
+      // Get existing EXDATEs
+      const existingExdates: ICAL.Time[] = [];
+      const exdateProperties = vevent.getAllProperties("exdate");
+      exdateProperties.forEach((prop) => {
+        const exdateValue = prop.getFirstValue();
+        if (exdateValue) {
+          existingExdates.push(exdateValue);
+        }
+      });
+
+      this.log.debug("Fetched existing event with recurrence", {
+        uid,
+        hasRRule: !!existingRRule,
+        existingExdatesCount: existingExdates.length,
+      });
+
+      // Convert cancelledDates to ICAL.Time and add them as EXDATEs
+      const newExdates = cancelledDates
+        .map((dateStr) => {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) {
+            this.log.warn("Invalid date string, skipping", { dateStr });
+            return null;
+          }
+          const formattedDate = this.formatRecurrenceId(date);
+          return ICAL.Time.fromString(formattedDate);
+        })
+        .filter(Boolean) as ICAL.Time[];
+
+      // Remove old EXDATE properties and add merged ones
+      exdateProperties.forEach((prop) => vevent.removeProperty(prop));
+
+      const allExdates = [...existingExdates, ...newExdates];
+      allExdates.forEach((exdate) => {
+        vevent.addPropertyWithValue("exdate", exdate);
+      });
+
+      this.log.info("Updating recurring event with new EXDATEs", {
+        uid,
+        addedCount: newExdates.length,
+        totalExdates: allExdates.length,
+      });
+
+      // Update the event on the CalDAV server
+      const updatedICalString = vcalendar.toString();
+      const response = await updateCalendarObject({
+        calendarObject: {
+          url: eventUrl,
+          data: updatedICalString.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+          etag: eventEtag,
+        },
+        headers: this.headers,
+      });
+
+      if (response.status < 200 || response.status >= 300) {
+        throw new Error(`Failed to update event with EXDATEs: ${response.status}`);
+      }
+
+      this.log.info("Successfully updated recurring event with cancelled instances", {
+        uid,
+        totalCancelled: cancelledDates.length,
+      });
+    } catch (error) {
+      this.log.error("Error updating recurring event with EXDATEs", {
+        error,
+        uid,
+        cancelledDatesCount: cancelledDates.length,
+      });
+      throw error;
+    }
   }
 }

@@ -483,22 +483,47 @@ export const sendCancelledEmailsAndSMS = async (
   if (typeof calEventLength !== "number") {
     logger.error(
       "`calEventLength` is not a number",
-      safeStringify({ calEventLength, calEventTitle: calEvent.title, bookingId: calEvent.bookingId })
+      safeStringify({
+        calEventLength,
+        calEventTitle: calEvent.title,
+        bookingId: calEvent.bookingId,
+      })
     );
   }
 
-  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
-    emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
+  logger.info("Sending cancellation notifications", {
+    bookingId: calEvent.bookingId,
+    isRecurringEvent: !!calEvent.recurringEvent,
+  });
 
+  // Send organizer emails
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsToSend.push(
+      sendEmail(
+        () =>
+          new OrganizerCancelledEmail({
+            calEvent: calendarEvent,
+          })
+      )
+    );
+
+    // Send to team members if applicable
     if (calendarEvent.team?.members) {
       for (const teamMember of calendarEvent.team.members) {
         emailsToSend.push(
-          sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
+          sendEmail(
+            () =>
+              new OrganizerCancelledEmail({
+                calEvent: calendarEvent,
+                teamMember,
+              })
+          )
         );
       }
     }
   }
 
+  // Send attendee emails
   if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
@@ -526,6 +551,7 @@ export const sendCancelledEmailsAndSMS = async (
   }
 
   await Promise.all(emailsToSend);
+
   const eventCancelledSms = new EventCancelledSMS(calEvent);
   await eventCancelledSms.sendSMSToAttendees();
 };

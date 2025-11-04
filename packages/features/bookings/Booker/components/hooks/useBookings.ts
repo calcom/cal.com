@@ -20,6 +20,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { RescheduleInstance } from "@calcom/prisma/zod/custom/booking";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -123,6 +124,7 @@ export const useBookings = ({
 
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
+  const instanceDate = useBookerStore((state) => state.instanceDate); //  Getting instanceDate
   const bookingData = useBookerStore((state) => state.bookingData);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const { t } = useLocale();
@@ -134,6 +136,8 @@ export const useBookings = ({
   const duration = useBookerStore((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
+  //  Check if this is a recurring instance reschedule
+  const isRecurringInstanceReschedule = Boolean(rescheduleUid && instanceDate);
 
   const bookingId = parseInt(getQueryParam("bookingId") ?? "0");
 
@@ -411,7 +415,24 @@ export const useBookings = ({
     metadata,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
-    handleBooking: createBookingMutation.mutate,
+    handleBooking: (bookingData) => {
+      //  Inject rescheduleInstance if this is a recurring instance reschedule
+      if (isRecurringInstanceReschedule && instanceDate && timeslot) {
+        const rescheduleInstance: RescheduleInstance = {
+          formerTime: instanceDate,
+          newTime: timeslot,
+        };
+
+        // Inject rescheduleInstance into booking data
+        createBookingMutation.mutate({
+          ...bookingData,
+          rescheduleInstance,
+        });
+      } else {
+        // Normal booking or non-recurring reschedule
+        createBookingMutation.mutate(bookingData);
+      }
+    },
     isBookingDryRun,
   });
 

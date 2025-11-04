@@ -85,13 +85,17 @@ export const zoomUserSettingsSchema = z.object({
 // append comma separated settings here, to retrieve only these specific settings
 const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording,waiting_room";
 
+/**
+ * Zoom Recurrence Type
+ * @link https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meetingCreate
+ */
 type ZoomRecurrence = {
-  end_date_time?: string;
-  type: 1 | 2 | 3;
-  end_times?: number;
-  repeat_interval?: number;
-  weekly_days?: number; // 1-7 Sunday = 1, Saturday = 7
-  monthly_day?: number; // 1-31
+  end_date_time?: string; // Recurrence end datetime (RFC3339)
+  type: 1 | 2 | 3; // 1=Daily, 2=Weekly, 3=Monthly
+  end_times?: number; // Number of occurrences
+  repeat_interval?: number; // Interval between occurrences
+  weekly_days?: number; // 1-7, Sunday=1, Saturday=7 (for weekly)
+  monthly_day?: number; // 1-31 (for monthly)
 };
 
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
@@ -141,7 +145,10 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           };
           break;
         default:
-          // Zoom does not support YEARLY, HOURLY or MINUTELY frequencies, don't do anything in those cases.
+          // Zoom does not support YEARLY, HOURLY or MINUTELY frequencies
+          log.warn("Zoom does not support this frequency, skipping recurrence", {
+            freq: recurringEvent.freq,
+          });
           return;
       }
 
@@ -176,9 +183,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     const recurrence = getRecurrence(event);
     const waitingRoomEnabled = userSettings?.in_meeting?.waiting_room ?? false;
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
-    return {
+    const meetingPayload = {
       topic: event.title,
-      type: 2, // Means that this is a scheduled meeting
+      type: recurrence ? 8 : 2, // 8=Recurring with fixed time, 2=Scheduled meeting
       start_time: dayjs(event.startTime).utc().format(),
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
@@ -203,6 +210,20 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       },
       ...recurrence,
     };
+    return meetingPayload;
+  };
+
+  /**
+   * Extracts occurrence ID from a UID that may be in format:
+   * - "meetingId" (delete entire series)
+   * - "meetingId:occurrenceId" (delete specific occurrence)
+   */
+  const extractOccurrenceId = (uid: string): { meetingId: string; occurrenceId?: string } => {
+    const parts = uid.split(":");
+    if (parts.length === 2) {
+      return { meetingId: parts[0], occurrenceId: parts[1] };
+    }
+    return { meetingId: uid };
   };
 
   /**
@@ -229,6 +250,105 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     );
 
     return null;
+  };
+
+  /**
+   * Deletes a specific occurrence of a recurring Zoom meeting
+   * @link https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meetingDelete
+   *
+   * Zoom uses occurrence_id query parameter to delete specific occurrence:
+   * DELETE /meetings/{meetingId}?occurrence_id={occurrenceId}
+   */
+  const deleteRecurringInstance = async (uid: string): Promise<void> => {
+    try {
+      const { meetingId, occurrenceId } = extractOccurrenceId(uid);
+
+      if (!occurrenceId) {
+        log.warn("No occurrence_id provided, deleting entire meeting series", { uid });
+        await fetchZoomApi(`meetings/${meetingId}`, {
+          method: "DELETE",
+        });
+        return;
+      }
+
+      log.info("Deleting Zoom recurring instance", {
+        meetingId,
+        occurrenceId,
+      });
+
+      // Delete specific occurrence using occurrence_id query parameter
+      await fetchZoomApi(`meetings/${meetingId}?occurrence_id=${occurrenceId}`, {
+        method: "DELETE",
+      });
+
+      log.info("Zoom recurring instance deleted successfully", {
+        meetingId,
+        occurrenceId,
+      });
+
+      return Promise.resolve();
+    } catch (err) {
+      log.error("Failed to delete recurring instance", {
+        error: err,
+        uid,
+      });
+      return Promise.reject(new Error("Failed to delete recurring instance"));
+    }
+  };
+
+  /**
+   * Updates a specific occurrence of a recurring Zoom meeting
+   * @link https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meetingUpdate
+   *
+   * Zoom uses occurrence_id query parameter to update specific occurrence:
+   * PATCH /meetings/{meetingId}?occurrence_id={occurrenceId}
+   */
+  const updateRecurringInstance = async (
+    uid: string,
+    occurrenceId: string,
+    event: CalendarEvent
+  ): Promise<VideoCallData> => {
+    try {
+      log.info("Updating Zoom recurring instance", {
+        uid,
+        occurrenceId,
+        newStart: event.startTime,
+        newEnd: event.endTime,
+      });
+
+      // Update specific occurrence using occurrence_id query parameter
+      await fetchZoomApi(`meetings/${uid}?occurrence_id=${occurrenceId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(await translateEvent(event)),
+      });
+
+      // Fetch updated occurrence details
+      // Note: Zoom returns the master meeting details, but the occurrence is updated
+      const updatedMeeting = await fetchZoomApi(`meetings/${uid}`);
+      const result = zoomEventResultSchema.parse(updatedMeeting);
+
+      log.info("Zoom recurring instance updated successfully", {
+        meetingId: uid,
+        occurrenceId,
+      });
+
+      return {
+        type: "zoom_video",
+        id: result.id.toString(),
+        password: result.password || "",
+        url: result.join_url,
+      };
+    } catch (err) {
+      log.error("Failed to update recurring instance", {
+        error: err,
+        uid,
+        occurrenceId,
+      });
+      return Promise.reject(new Error("Failed to update recurring instance"));
+    }
   };
 
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
@@ -383,18 +503,34 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         throw new Error("Unexpected error");
       }
     },
-    deleteMeeting: async (uid: string): Promise<void> => {
-      try {
-        await fetchZoomApi(`meetings/${uid}`, {
-          method: "DELETE",
-        });
-        return Promise.resolve();
-      } catch (err) {
-        return Promise.reject(new Error("Failed to delete meeting"));
-      }
-    },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       try {
+        log.debug("Updating Zoom meeting", {
+          uid: bookingRef.uid,
+          hasRescheduleInstance: !!event.rescheduleInstance,
+        });
+
+        // Check if this is a recurring instance update
+        if (event.rescheduleInstance) {
+          log.info("Detected recurring instance reschedule", {
+            uid: bookingRef.uid,
+            formerTime: event.rescheduleInstance.formerTime,
+            newTime: event.rescheduleInstance.newTime,
+          });
+
+          // For Zoom, we need to get the occurrence_id
+          // The occurrence_id is the original start time of the occurrence
+          const occurrenceId = `${dayjs(event.rescheduleInstance.formerTime)
+            .utc()
+            .format("YYYYMMDDTHHmmss")}Z`;
+
+          log.debug("Generated occurrence_id for Zoom", { occurrenceId });
+
+          // Use the updateRecurringInstance method
+          return await updateRecurringInstance(bookingRef.uid, occurrenceId, event);
+        }
+
+        // Standard meeting update
         await fetchZoomApi(`meetings/${bookingRef.uid}`, {
           method: "PATCH",
           headers: {
@@ -405,6 +541,10 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
 
         const updatedMeeting = await fetchZoomApi(`meetings/${bookingRef.uid}`);
         const result = zoomEventResultSchema.parse(updatedMeeting);
+
+        log.info("Zoom meeting updated successfully", {
+          meetingId: result.id,
+        });
 
         return {
           type: "zoom_video",
@@ -418,6 +558,32 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           safeStringify({ error: err, event: getPiiFreeCalendarEvent(event) })
         );
         return Promise.reject(new Error("Failed to update meeting"));
+      }
+    },
+
+    deleteMeeting: async (uid: string): Promise<void> => {
+      try {
+        log.debug("Deleting Zoom meeting", { uid });
+
+        // Check if uid contains occurrence info (format: meetingId:occurrenceId)
+        const { meetingId, occurrenceId } = extractOccurrenceId(uid);
+
+        if (occurrenceId) {
+          log.info("Deleting specific occurrence", { meetingId, occurrenceId });
+          // Use deleteRecurringInstance for specific occurrence
+          return await deleteRecurringInstance(uid);
+        }
+
+        // Delete entire meeting/series
+        await fetchZoomApi(`meetings/${meetingId}`, {
+          method: "DELETE",
+        });
+
+        log.info("Zoom meeting deleted successfully", { meetingId });
+        return Promise.resolve();
+      } catch (err) {
+        log.error("Failed to delete meeting", { error: err, uid });
+        return Promise.reject(new Error("Failed to delete meeting"));
       }
     },
   };

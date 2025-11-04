@@ -28,6 +28,7 @@ type StoreInitializeType = {
   verifiedEmail?: string | null;
   rescheduleUid?: string | null;
   rescheduledBy?: string | null;
+  instanceDate?: string | null; //  For recurring instance reschedule
   seatReferenceUid?: string;
   durationConfig?: number[] | null;
   org?: string | null;
@@ -138,6 +139,14 @@ export type BookerStore = {
   bookingUid: string | null;
   bookingData: GetBookingType | null;
   setBookingData: (bookingData: GetBookingType | null | undefined) => void;
+
+  /**
+   *  Instance date for recurring instance reschedule.
+   * This is the original occurrence date being rescheduled.
+   * Format is ISO 8601 string (e.g., "2025-11-17T16:30:00.000Z")
+   */
+  instanceDate: string | null;
+  setInstanceDate: (instanceDate: string | null) => void;
 
   /**
    * Method called by booker component to set initial data.
@@ -292,10 +301,21 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
   },
   // This is different from timeZone in timePreferencesStore, because timeZone in timePreferencesStore is the preferred timezone of the booker,
   // it is the timezone configured through query param. So, this is in a way the preference of the person who shared the link.
-  // it is the timezone configured through query param. So, this is in a way the preference of the person who shared the link.
   timezone: getQueryParam("cal.tz") ?? null,
   setTimezone: (timezone: string | null) => {
     set({ timezone });
+  },
+  // NEW: Instance date for recurring instance reschedule
+  instanceDate: getQueryParam("instanceDate") ?? null,
+  setInstanceDate: (instanceDate: string | null) => {
+    set({ instanceDate });
+    if (!get().isPlatform || get().allowUpdatingUrlParams) {
+      if (instanceDate) {
+        updateQueryParam("instanceDate", instanceDate);
+      } else {
+        removeQueryParam("instanceDate");
+      }
+    }
   },
   initialize: ({
     username,
@@ -304,6 +324,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
     eventId,
     rescheduleUid = null,
     rescheduledBy = null,
+    instanceDate = null,
     bookingUid = null,
     bookingData = null,
     layout,
@@ -327,6 +348,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
       get().month === month &&
       get().eventId === eventId &&
       get().rescheduleUid === rescheduleUid &&
+      get().instanceDate === instanceDate &&
       get().bookingUid === bookingUid &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout &&
@@ -345,6 +367,7 @@ export const useBookerStore = createWithEqualityFn<BookerStore>((set, get) => ({
       org,
       rescheduleUid,
       rescheduledBy,
+      instanceDate,
       bookingUid,
       bookingData,
       layout: layout || BookerLayouts.MONTH_VIEW,
@@ -463,6 +486,7 @@ export const useInitializeBookerStore = ({
   eventId,
   rescheduleUid = null,
   rescheduledBy = null,
+  instanceDate = null,
   bookingData = null,
   verifiedEmail = null,
   layout,
@@ -487,6 +511,7 @@ export const useInitializeBookerStore = ({
       eventId,
       rescheduleUid,
       rescheduledBy,
+      instanceDate,
       bookingData,
       layout,
       isTeamEvent,
@@ -511,6 +536,7 @@ export const useInitializeBookerStore = ({
     eventId,
     rescheduleUid,
     rescheduledBy,
+    instanceDate,
     bookingData,
     layout,
     isTeamEvent,
