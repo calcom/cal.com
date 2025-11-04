@@ -4,14 +4,14 @@ const { fontFamily } = require("tailwindcss/defaultTheme");
 
 module.exports = {
   content: [
-    "../../apps/web/pages/**/*.{js,ts,jsx,tsx}",
-    "../../apps/web/app/**/*.{js,ts,jsx,tsx}",
-    "../../apps/web/modules/**/*.{js,ts,jsx,tsx}",
-    "../../apps/web/components/**/*.{js,ts,jsx,tsx}",
-    "../../packages/app-store/!(node_modules)/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
-    "../../packages/features/!(node_modules)/**/*.{js,ts,jsx,tsx}",
-    "../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx}",
-    "../../packages/platform/atoms/!(node_modules)/**/*.{js,ts,jsx,tsx}",
+    "../../../apps/web/pages/**/*.{js,ts,jsx,tsx}",
+    "../../../apps/web/app/**/*.{js,ts,jsx,tsx}",
+    "../../../apps/web/modules/**/*.{js,ts,jsx,tsx}",
+    "../../../apps/web/components/**/*.{js,ts,jsx,tsx}",
+    "../../../packages/app-store/!(node_modules)/**/*{components,pages}/**/*.{js,ts,jsx,tsx}",
+    "../../../packages/features/!(node_modules)/**/*.{js,ts,jsx,tsx}",
+    "../../../packages/ui/!(node_modules)/**/*.{js,ts,jsx,tsx}",
+    "../../../packages/platform/atoms/!(node_modules)/**/*.{js,ts,jsx,tsx}",
     "**/*Html.ts",
     "**/ui/**/*.ts*",
   ],
