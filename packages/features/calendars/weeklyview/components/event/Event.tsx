@@ -12,6 +12,7 @@ type EventProps = {
   eventDuration: number;
   onEventClick?: (event: CalendarEvent) => void;
   disabled?: boolean;
+  isHovered?: boolean;
 };
 
 const eventClasses = cva(
@@ -43,6 +44,7 @@ export function Event({
   eventDuration,
   disabled,
   onEventClick,
+  isHovered = false,
 }: EventProps) {
   const selected = currentlySelectedEventId === event.id;
   const { options } = event;
@@ -59,8 +61,12 @@ export function Event({
             disabled,
             selected,
           }),
-          options?.className
-        )}>
+          options?.className,
+          isHovered && "shadow-lg ring-2 ring-brand-default ring-offset-0"
+        )}
+        style={{
+          transition: "all 150ms ease-out",
+        }}>
         {options?.color && (
           <div
             className="-ml-1.5 mr-1.5 h-full w-[3px] shrink-0"

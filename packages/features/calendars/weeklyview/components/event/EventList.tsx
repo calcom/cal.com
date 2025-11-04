@@ -34,6 +34,10 @@ export function EventList({ day }: Props) {
     return createLayoutMap(layouts);
   }, [dayEvents]);
 
+  // Find which overlap group the hovered event belongs to
+  const hoveredEventLayout = hoveredEventId ? layoutMap.get(hoveredEventId) : null;
+  const hoveredGroupIndex = hoveredEventLayout?.groupIndex ?? null;
+
   return (
     <>
       {dayEvents.map((event) => {
@@ -47,12 +51,13 @@ export function EventList({ day }: Props) {
         const eventStartDiff = (eventStartHour - (startHour || 0)) * 60 + eventStart.minute();
 
         const isHovered = hoveredEventId === event.id;
+        const isInHoveredGroup = hoveredGroupIndex !== null && layout.groupIndex === hoveredGroupIndex;
         const zIndex = isHovered ? 100 : layout.baseZIndex;
 
         return (
           <div
             key={`${event.id}-${eventStart.toISOString()}`}
-            className="absolute"
+            className="absolute transition-all duration-150 ease-out"
             data-testid={event.options?.["data-test-id"]}
             onMouseEnter={() => setHoveredEventId(event.id)}
             onMouseLeave={() => setHoveredEventId(null)}
@@ -62,8 +67,15 @@ export function EventList({ day }: Props) {
               zIndex,
               top: `calc(${eventStartDiff}*var(--one-minute-height))`,
               height: `calc(${eventDuration}*var(--one-minute-height))`,
+              transform: isHovered ? "scale(1.02)" : "scale(1)",
+              opacity: hoveredGroupIndex !== null && !isHovered && isInHoveredGroup ? 0.6 : 1,
             }}>
-            <Event event={event} eventDuration={eventDuration} onEventClick={eventOnClick} />
+            <Event
+              event={event}
+              eventDuration={eventDuration}
+              onEventClick={eventOnClick}
+              isHovered={isHovered}
+            />
           </div>
         );
       })}
