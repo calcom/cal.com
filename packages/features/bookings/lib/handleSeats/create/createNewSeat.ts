@@ -53,7 +53,7 @@ const createNewSeat = async (
     eventType.seatsPerTimeSlot &&
     eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
   ) {
-    throw new ErrorWithCode(ErrorCode.BookingSeatsFull);
+    throw new ErrorWithCode(ErrorCode.BookingSeatsFull, ErrorCode.BookingSeatsFull);
   }
 
   const videoCallReference = seatedBooking.references.find((reference) => reference.type.includes("_video"));
