@@ -1,3 +1,4 @@
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -25,7 +26,10 @@ import { PrivateLinksService } from "../services/private-links.service";
 @UseGuards(PermissionsGuard)
 @DocsTags("Event Types Private Links")
 export class EventTypesPrivateLinksController {
-  constructor(private readonly privateLinksService: PrivateLinksService) {}
+  constructor(
+    private readonly privateLinksService: PrivateLinksService,
+    private readonly eventTypesRepository: EventTypesRepository_2024_06_14
+  ) {}
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
@@ -37,7 +41,16 @@ export class EventTypesPrivateLinksController {
     @Body() body: CreatePrivateLinkInput,
     @GetUser("id") userId: number
   ): Promise<CreatePrivateLinkOutput> {
-    const privateLink = await this.privateLinksService.createPrivateLink(eventTypeId, userId, body);
+    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    const eventTypeSlug = eventType?.slug;
+
+    const privateLink = await this.privateLinksService.createPrivateLink(
+      eventTypeId,
+      userId,
+      body,
+      undefined,
+      eventTypeSlug
+    );
 
     return {
       status: SUCCESS_STATUS,
@@ -53,7 +66,14 @@ export class EventTypesPrivateLinksController {
   async getPrivateLinks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<GetPrivateLinksOutput> {
-    const privateLinks = await this.privateLinksService.getPrivateLinks(eventTypeId);
+    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    const eventTypeSlug = eventType?.slug;
+
+    const privateLinks = await this.privateLinksService.getPrivateLinks(
+      eventTypeId,
+      undefined,
+      eventTypeSlug
+    );
 
     return {
       status: SUCCESS_STATUS,
@@ -71,8 +91,16 @@ export class EventTypesPrivateLinksController {
     @Param("linkId") linkId: string,
     @Body() body: UpdatePrivateLinkBody
   ): Promise<UpdatePrivateLinkOutput> {
+    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+    const eventTypeSlug = eventType?.slug;
+
     const updateInput = { ...body, linkId };
-    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, updateInput);
+    const privateLink = await this.privateLinksService.updatePrivateLink(
+      eventTypeId,
+      updateInput,
+      undefined,
+      eventTypeSlug
+    );
 
     return {
       status: SUCCESS_STATUS,

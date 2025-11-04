@@ -24,14 +24,13 @@ import { randomString } from "test/utils/randomString";
 describe("Event Types Private Links Endpoints", () => {
   let app: INestApplication;
 
-  let oAuthClient: any;
-  let organization: any;
+  let organization: { id: number; name: string; slug: string };
   let userRepositoryFixture: UserRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
-  let user: any;
-  let eventType: any;
+  let user: { id: number; email: string; name: string; username: string };
+  let eventType: { id: number; title: string; slug: string; length: number };
 
   const userEmail = `private-links-user-${randomString()}@api.com`;
 
@@ -61,7 +60,7 @@ describe("Event Types Private Links Endpoints", () => {
       name: `private-links-organization-${randomString()}`,
       slug: `private-links-org-slug-${randomString()}`,
     });
-    oAuthClient = await createOAuthClient(organization.id);
+    await createOAuthClient(organization.id);
     user = await userRepositoryFixture.create({
       email: userEmail,
       name: `private-links-user-${randomString()}`,
@@ -111,6 +110,11 @@ describe("Event Types Private Links Endpoints", () => {
     expect(response.body.data.linkId).toBeDefined();
     expect(response.body.data.maxUsageCount).toBe(5);
     expect(response.body.data.usageCount).toBeDefined();
+
+    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
+    const linkId = response.body.data.linkId;
+    const expectedUrl = `${baseUrl}/d/${linkId}/${eventType.slug}`;
+    expect(response.body.data.bookingUrl).toBe(expectedUrl);
   });
 
   it("GET /v2/event-types/:eventTypeId/private-links - list private links", async () => {
@@ -122,10 +126,16 @@ describe("Event Types Private Links Endpoints", () => {
     expect(response.body.status).toBe(SUCCESS_STATUS);
     expect(Array.isArray(response.body.data)).toBe(true);
     expect(response.body.data.length).toBeGreaterThanOrEqual(1);
+
+    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
+    response.body.data.forEach((link: { bookingUrl: string; linkId: string }) => {
+      expect(link.bookingUrl).toBeDefined();
+      expect(link.bookingUrl).toContain(`${baseUrl}/d/`);
+      expect(link.bookingUrl).toContain(`/${eventType.slug}`);
+    });
   });
 
   it("PATCH /v2/event-types/:eventTypeId/private-links/:linkId - update private link", async () => {
-    // create a link first
     const createResp = await request(app.getHttpServer())
       .post(`/api/v2/event-types/${eventType.id}/private-links`)
       .set("Authorization", `Bearer whatever`)
@@ -142,6 +152,10 @@ describe("Event Types Private Links Endpoints", () => {
 
     expect(response.body.status).toBe(SUCCESS_STATUS);
     expect(response.body.data.maxUsageCount).toBe(10);
+
+    const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
+    const expectedUrl = `${baseUrl}/d/${linkId}/${eventType.slug}`;
+    expect(response.body.data.bookingUrl).toBe(expectedUrl);
   });
 
   it("DELETE /v2/event-types/:eventTypeId/private-links/:linkId - delete private link", async () => {
@@ -164,13 +178,14 @@ describe("Event Types Private Links Endpoints", () => {
   });
 
   afterAll(async () => {
-    // cleanup created entities
     try {
       if (eventType?.id) {
-        const repo = new EventTypesRepositoryFixture((app as any).select(AppModule));
+        const repo = new EventTypesRepositoryFixture((app as NestExpressApplication).select(AppModule));
         await repo.delete(eventType.id);
       }
-    } catch {}
+    } catch (error) {
+      console.error("Error cleaning up test data:", error);
+    }
     await app.close();
   });
 });
