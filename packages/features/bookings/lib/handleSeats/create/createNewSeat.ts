@@ -185,7 +185,7 @@ const createNewSeat = async (
     });
 
     if (!eventTypePaymentAppCredential) {
-      throw new ErrorWithCode(ErrorCode.MissingPaymentCredential);
+      throw new ErrorWithCode(ErrorCode.MissingPaymentCredential, ErrorCode.MissingPaymentCredential);
     }
     if (!eventTypePaymentAppCredential?.appId) {
       throw new ErrorWithCode(ErrorCode.MissingPaymentAppId);
