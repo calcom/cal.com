@@ -115,6 +115,11 @@ function getStatusCode(cause: Error | ErrorWithCode): number {
     case ErrorCode.InvalidTimeZone:
     case ErrorCode.InvalidOperation:
     case ErrorCode.ConfigurationError:
+    case ErrorCode.PrivateLinkExpired:
+    case ErrorCode.BookerEmailBlocked:
+    case ErrorCode.BookerEmailRequiresLogin:
+    case ErrorCode.InvalidVerificationCode:
+    case ErrorCode.UnableToValidateVerificationCode:
       return 400;
     // 401 Unauthorized
     case ErrorCode.Unauthorized:
