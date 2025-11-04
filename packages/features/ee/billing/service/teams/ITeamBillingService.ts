@@ -1,6 +1,9 @@
 import type { Team } from "@calcom/prisma/client";
 
-import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
+import {
+  SubscriptionStatus,
+  IBillingRepositoryCreateArgs,
+} from "../../repository/billing/IBillingRepository";
 
 export type TeamBillingInput = Pick<Team, "id" | "parentId" | "metadata" | "isOrganization">;
 export const TeamBillingPublishResponseStatus = {
@@ -21,4 +24,5 @@ export interface ITeamBillingService {
   updateQuantity(): Promise<void>;
   getSubscriptionStatus(): Promise<SubscriptionStatus | null>;
   endTrial(): Promise<boolean>;
+  saveTeamBilling(args: IBillingRepositoryCreateArgs): Promise<void>;
 }

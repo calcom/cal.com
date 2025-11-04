@@ -174,6 +174,7 @@ export class TeamBillingService implements ITeamBillingService {
       }
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
+      console.log("Hey we make it here");
       await this.billingProviderService.handleSubscriptionUpdate({
         subscriptionId,
         subscriptionItemId,
@@ -230,6 +231,6 @@ export class TeamBillingService implements ITeamBillingService {
     }
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
-    await this.billingRepository.create(args);
+    this.billingRepository.create(args);
   }
 }
