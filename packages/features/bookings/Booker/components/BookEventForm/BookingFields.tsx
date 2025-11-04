@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
+import { DefaultEventLocationTypeEnum } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
@@ -21,7 +22,7 @@ type TouchedFields = {
 
 type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
 const PhoneLocationSchema = z.object({
-  value: z.literal("phone"),
+  value: z.literal(DefaultEventLocationTypeEnum.Phone),
   optionValue: z.string().optional(),
 });
 export const BookingFields = ({
