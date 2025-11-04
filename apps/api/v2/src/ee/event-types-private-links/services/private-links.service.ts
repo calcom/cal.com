@@ -6,7 +6,7 @@ import {
 } from "@/ee/event-types-private-links/services/private-links-output.service";
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/platform-libraries/private-links";
 import { generateHashedLink, isLinkExpired } from "@calcom/platform-libraries/private-links";
 import { CreatePrivateLinkInput, PrivateLinkOutput, UpdatePrivateLinkInput } from "@calcom/platform-types";
 
@@ -138,7 +138,7 @@ export class PrivateLinksService {
       const origin = getOrgFullOrigin(orgSlug, { protocol: true }).replace(/\/$/, "");
       return `${origin}/d/${hashedLink}/${eventTypeSlug}`;
     }
-    
+
     const fallbackOrigin = getOrgFullOrigin(null, { protocol: true }).replace(/\/$/, "");
     return `${fallbackOrigin}/d/${hashedLink}`;
   }
