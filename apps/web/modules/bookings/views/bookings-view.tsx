@@ -473,6 +473,8 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
         onClose={() => setSelectedBookingId(null)}
         userTimeZone={user?.timeZone}
         userTimeFormat={user?.timeFormat === null ? undefined : user?.timeFormat}
+        userId={user?.id}
+        userEmail={user?.email}
         onPrevious={bookingNavigation.onPrevious}
         hasPrevious={bookingNavigation.hasPrevious}
         onNext={bookingNavigation.onNext}

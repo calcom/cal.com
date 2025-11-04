@@ -26,6 +26,9 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 
+import { BookingActionsDropdown } from "../../../components/booking/actions/BookingActionsDropdown";
+import { BookingActionsStoreProvider } from "../../../components/booking/actions/BookingActionsStoreProvider";
+import type { BookingListingStatus } from "../../../components/booking/types";
 import { buildBookingLink } from "../lib/buildBookingLink";
 import type { BookingOutput } from "../types";
 
@@ -37,17 +40,30 @@ interface BookingDetailsSheetProps {
   onClose: () => void;
   userTimeZone?: string;
   userTimeFormat?: number;
+  userId?: number;
+  userEmail?: string;
   onPrevious?: () => void;
   hasPrevious?: boolean;
   onNext?: () => void;
   hasNext?: boolean;
 }
 
-export function BookingDetailsSheet({
+export function BookingDetailsSheet(props: BookingDetailsSheetProps) {
+  return (
+    <BookingActionsStoreProvider>
+      <BookingDetailsSheetInner {...props} />
+    </BookingActionsStoreProvider>
+  );
+}
+
+function BookingDetailsSheetInner({
   booking,
   isOpen,
   onClose,
   userTimeZone,
+  userTimeFormat,
+  userId,
+  userEmail,
   onPrevious,
   hasPrevious = false,
   onNext,
@@ -210,6 +226,20 @@ export function BookingDetailsSheet({
             <Button color="secondary" size="sm" EndIcon="external-link" href={bookingLink} target="_blank">
               {t("view")}
             </Button>
+            <BookingActionsDropdown
+              booking={{
+                ...booking,
+                listingStatus: booking.status.toLowerCase() as BookingListingStatus,
+                recurringInfo: undefined,
+                loggedInUser: {
+                  userId,
+                  userTimeZone,
+                  userTimeFormat: userTimeFormat ?? null,
+                  userEmail,
+                },
+                isToday: false,
+              }}
+            />
           </div>
         </SheetFooter>
       </SheetContent>
