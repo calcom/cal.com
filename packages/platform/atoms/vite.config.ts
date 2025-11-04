@@ -78,7 +78,6 @@ export default defineConfig(({ mode }) => {
             react: "React",
             "react-dom": "ReactDOM",
             "react/jsx-runtime": "ReactJsxRuntime",
-            "@react-awesome-query-builder/ui": "ReactAwesomeQueryBuilderUI",
           },
         },
       },
