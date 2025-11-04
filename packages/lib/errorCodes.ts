@@ -62,7 +62,6 @@ export enum ErrorCode {
   UpdatingOauthClientError = "updating_oauth_client_error",
   CreatingOauthClientError = "creating_oauth_client_error",
   InternalServerError = "internal_server_error",
-  UnableToLoadUsers = "unable_to_load_users",
   FailedToUpdateStatus = "failed_to_update_status",
 
   // 503 Service Unavailable - External services, temporary failures
@@ -135,7 +134,6 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.UpdatingOauthClientError]: 500,
   [ErrorCode.CreatingOauthClientError]: 500,
   [ErrorCode.InternalServerError]: 500,
-  [ErrorCode.UnableToLoadUsers]: 500,
   [ErrorCode.FailedToUpdateStatus]: 500,
 
   // 503 Service Unavailable - External services, temporary failures
