@@ -13,7 +13,8 @@ export const listOtherTeamHandler = async ({ ctx: { user } }: ListOptions) => {
     return [];
   }
 
-  return await getOrganizationRepository().findTeamsInOrgIamNotPartOf({
+  const organizationRepository = getOrganizationRepository();
+  return await organizationRepository.findTeamsInOrgIamNotPartOf({
     userId: user.id,
     parentId: user?.organization?.id ?? null,
   });

@@ -36,7 +36,8 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
       });
 
     const domain = email.split("@")[1];
-    const organization = await getOrganizationRepository().getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+    const organizationRepository = getOrganizationRepository();
+    const organization = await organizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
 
     if (!organization)
       throw new TRPCError({

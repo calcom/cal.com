@@ -113,6 +113,7 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
   async createOrganization(
     organizationOnboarding: OrganizationOnboardingData
   ): Promise<{ organization: Team; owner: User }> {
+    const organizationRepository = getOrganizationRepository();
     log.info(
       "createOrganization (self-hosted)",
       safeStringify({
@@ -205,7 +206,7 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
 
     if (!organization.slug) {
       try {
-        const { slug } = await getOrganizationRepository().setSlug({
+        const { slug } = await organizationRepository.setSlug({
           id: organization.id,
           slug: organizationOnboarding.slug,
         });

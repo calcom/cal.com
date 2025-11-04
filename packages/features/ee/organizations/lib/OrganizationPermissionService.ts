@@ -39,7 +39,8 @@ export class OrganizationPermissionService {
    * If an onboarding is complete then it also means that org is created already.
    */
   async hasConflictingOrganization({ slug }: { slug: string }): Promise<boolean> {
-    return !!(await getOrganizationRepository().findBySlug({ slug }));
+    const organizationRepository = getOrganizationRepository(); 
+    return !!(await organizationRepository.findBySlug({ slug }));
   }
 
   async hasCompletedOnboarding(email: string): Promise<boolean> {

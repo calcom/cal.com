@@ -5,8 +5,9 @@ import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/
  * Note: Ensuring that one organization's member can't impersonate other organization's member isn't the job of this function
  */
 export async function ensureOrganizationIsReviewed(loggedInUserOrgId: number | undefined) {
+  const organizationRepository = getOrganizationRepository();
   if (loggedInUserOrgId) {
-    const org = await getOrganizationRepository().findByIdIncludeOrganizationSettings({
+    const org = await organizationRepository.findByIdIncludeOrganizationSettings({
       id: loggedInUserOrgId,
     });
 

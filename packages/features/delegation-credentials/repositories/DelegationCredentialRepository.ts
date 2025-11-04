@@ -137,7 +137,8 @@ export class DelegationCredentialRepository {
       prefix: ["findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey"],
     });
     log.debug("called with", { email });
-    const organization = await getOrganizationRepository().findByMemberEmail({ email });
+    const organizationRepository = getOrganizationRepository();
+    const organization = await organizationRepository.findByMemberEmail({ email });
     if (!organization) {
       log.debug("Email not found in any organization:", email);
       return null;

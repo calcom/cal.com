@@ -672,7 +672,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     }
 
     const existingMetadata = teamMetadataStrictSchema.parse(organization.metadata);
-    const updatedOrganization = await getOrganizationRepository().updateStripeSubscriptionDetails({
+    const organizationRepository = getOrganizationRepository();
+    const updatedOrganization = await organizationRepository.updateStripeSubscriptionDetails({
       id: organization.id,
       stripeSubscriptionId: paymentSubscriptionId,
       stripeSubscriptionItemId: paymentSubscriptionItemId,
@@ -682,7 +683,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
   }
 
   protected async hasConflictingOrganization({ slug, onboardingId }: { slug: string; onboardingId: string }) {
-    const organization = await getOrganizationRepository().findBySlugIncludeOnboarding({ slug });
+    const organizationRepository = getOrganizationRepository();
+    const organization = await organizationRepository.findBySlugIncludeOnboarding({ slug });
     if (!organization?.organizationOnboarding) {
       return false;
     }

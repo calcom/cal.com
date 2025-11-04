@@ -11,7 +11,8 @@ type AdminGetOptions = {
 };
 
 export const adminGetHandler = async ({ input }: AdminGetOptions) => {
-  return await getOrganizationRepository().adminFindById({ id: input.id });
+  const organizationRepository = getOrganizationRepository();
+  return await organizationRepository.adminFindById({ id: input.id });
 };
 
 export default adminGetHandler;

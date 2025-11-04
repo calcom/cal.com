@@ -24,11 +24,12 @@ const Page = async () => {
     redirect("/auth/login");
   }
   const organizationId = session?.user?.org?.id;
+  const organizationRepository = getOrganizationRepository();
   const otherTeams = organizationId
-    ? await getOrganizationRepository().findTeamsInOrgIamNotPartOf({
-        userId: session?.user.id,
-        parentId: organizationId,
-      })
+    ? await organizationRepository.findTeamsInOrgIamNotPartOf({
+      userId: session?.user.id,
+      parentId: organizationId,
+    })
     : [];
 
   return (

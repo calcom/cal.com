@@ -21,7 +21,8 @@ const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
 
 // TODO: To be unit tested
 export async function moveUserToMatchingOrg({ email }: { email: string }) {
-  const org = await getOrganizationRepository().findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
+  const organizationRepository = getOrganizationRepository();
+  const org = await organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email });
 
   if (!org) {
     return;

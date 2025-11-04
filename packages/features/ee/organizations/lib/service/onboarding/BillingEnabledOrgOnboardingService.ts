@@ -143,6 +143,7 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
     organizationOnboarding: OrganizationOnboardingData,
     paymentDetails?: { subscriptionId: string; subscriptionItemId: string }
   ): Promise<{ organization: Team; owner: User }> {
+    const organizationRepository = getOrganizationRepository();
     log.info(
       "createOrganization (billing-enabled)",
       safeStringify({
@@ -245,7 +246,7 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
 
     if (!organization.slug) {
       try {
-        const { slug } = await getOrganizationRepository().setSlug({
+        const { slug } = await organizationRepository.setSlug({
           id: organization.id,
           slug: organizationOnboarding.slug,
         });

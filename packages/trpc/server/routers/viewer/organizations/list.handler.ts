@@ -18,7 +18,8 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "You do not belong to an organization" });
   }
 
-  const currentOrg = await getOrganizationRepository().findCurrentOrg({
+  const organizationRepository = getOrganizationRepository();
+  const currentOrg = await organizationRepository.findCurrentOrg({
     userId: ctx.user.id,
     orgId: organizationId,
   });
