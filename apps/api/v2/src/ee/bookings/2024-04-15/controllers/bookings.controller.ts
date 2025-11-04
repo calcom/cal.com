@@ -205,26 +205,7 @@ export class BookingsController_2024_04_15 {
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
     try {
-      if (!body.rescheduleUid) {
-        await this.checkBookingRequiresAuthentication(req, body.eventTypeId);
-      } else {
-        const { bookingInfo } = await getBookingInfo(body.rescheduleUid);
-        if (!bookingInfo) {
-          throw new NotFoundException(
-            `Booking with UID=${body.rescheduleUid} does not exist. Cannot reschedule a non-existent booking.`
-          );
-        }
-        if (bookingInfo.status !== "ACCEPTED") {
-          throw new BadRequestException(
-            `Booking with UID=${body.rescheduleUid} is not an upcoming booking (status: ${bookingInfo.status}). Only upcoming bookings can be rescheduled.`
-          );
-        }
-        if (bookingInfo.eventTypeId !== body.eventTypeId) {
-          throw new BadRequestException(
-            `Booking with UID=${body.rescheduleUid} is for a different event type (eventTypeId: ${bookingInfo.eventTypeId}). Cannot reschedule to a different event type (eventTypeId: ${body.eventTypeId}).`
-          );
-        }
-      }
+      await this.checkBookingRequiresAuthentication(req, body.eventTypeId, body.rescheduleUid);
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -478,7 +459,31 @@ export class BookingsController_2024_04_15 {
     return oAuthClientParams.platformClientId;
   }
 
-  private async checkBookingRequiresAuthentication(req: Request, eventTypeId: number): Promise<void> {
+  private async checkBookingRequiresAuthentication(
+    req: Request,
+    eventTypeId: number,
+    rescheduleUid?: string
+  ): Promise<void> {
+    if (rescheduleUid) {
+      const { bookingInfo } = await getBookingInfo(rescheduleUid);
+      if (!bookingInfo) {
+        throw new NotFoundException(
+          `Booking with UID=${rescheduleUid} does not exist. Cannot reschedule a non-existent booking.`
+        );
+      }
+      if (bookingInfo.status !== "ACCEPTED") {
+        throw new BadRequestException(
+          `Booking with UID=${rescheduleUid} is not an upcoming booking (status: ${bookingInfo.status}). Only upcoming bookings can be rescheduled.`
+        );
+      }
+      if (bookingInfo.eventTypeId !== eventTypeId) {
+        throw new BadRequestException(
+          `Booking with UID=${rescheduleUid} is for a different event type (eventTypeId: ${bookingInfo.eventTypeId}). Cannot reschedule to a different event type (eventTypeId: ${eventTypeId}).`
+        );
+      }
+      return;
+    }
+
     const eventType = await this.eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
       id: eventTypeId,
     });
