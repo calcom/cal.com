@@ -68,7 +68,7 @@ services:
   calcom-api:
     container_name: calcom-api
     build:
-      context: ./calcom
+      context: .
       dockerfile: apps/api/v2/Dockerfile
       args:
         DATABASE_URL: ${DATABASE_URL}

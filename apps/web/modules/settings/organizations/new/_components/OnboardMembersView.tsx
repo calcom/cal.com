@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
 import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
@@ -52,7 +53,9 @@ const useOrgCreation = () => {
         await utils.viewer.organizations.listCurrent.invalidate();
         await session.update();
         reset();
-        window.location.href = `${window.location.origin}/settings/organizations/profile`;
+        // Set flag to show welcome modal (using both query param and sessionStorage for reliability)
+        setShowNewOrgModalFlag();
+        window.location.href = `${window.location.origin}/settings/organizations/profile?newOrganizationModal=true`;
       } else {
         // Unexpected state
         setServerErrorMessage("Unexpected response from server");

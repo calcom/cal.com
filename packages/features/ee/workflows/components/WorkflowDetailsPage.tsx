@@ -3,6 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
+import { useHasActiveTeamPlan } from "@calcom/features/billing/hooks/useHasPaidPlan";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -43,6 +44,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions, permissions } =
     props;
   const { t, i18n } = useLocale();
+  const { hasActiveTeamPlan } = useHasActiveTeamPlan();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [isDeleteStepDialogOpen, setIsDeleteStepDialogOpen] = useState(false);
@@ -84,12 +86,15 @@ export default function WorkflowDetailsPage(props: Props) {
             }
           }
 
+          const needsTeamsUpgrade = isFormTrigger(form.getValues("trigger")) && !hasActiveTeamPlan;
+
           return {
             ...option,
             label,
             creditsTeamId: teamId,
             isOrganization: isOrg,
             isCalAi: isCalAIAction(option.value),
+            needsTeamsUpgrade,
           };
         })
     : [];

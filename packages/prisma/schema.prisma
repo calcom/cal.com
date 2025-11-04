@@ -349,7 +349,7 @@ model TravelSchedule {
 // It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
   id                  Int                  @id @default(autoincrement())
-  uuid                String?              @unique @default(uuid()) @db.Uuid
+  uuid                String               @unique @default(uuid()) @db.Uuid
   username            String?
   name                String?
   /// @zod.import(["import { emailSchema } from '@calcom/lib/emailSchema'"]).custom.use(emailSchema)
@@ -2366,6 +2366,12 @@ enum BookingReportReason {
   OTHER
 }
 
+enum BookingReportStatus {
+  PENDING // Initial state - awaiting review
+  DISMISSED // User clicked "Don't block"
+  BLOCKED // Added to watchlist
+}
+
 model BookingReport {
   id             String              @id @default(uuid()) @db.Uuid
   bookingUid     String              @unique
@@ -2378,6 +2384,7 @@ model BookingReport {
   cancelled      Boolean             @default(false)
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+  status         BookingReportStatus @default(PENDING)
 
   watchlistId String? @db.Uuid
 

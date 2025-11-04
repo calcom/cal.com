@@ -8,11 +8,11 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { type IconName } from "@calcom/ui/components/icon";
-import { Logo } from "@calcom/ui/components/logo";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
 import { PlanIcon } from "../components/plan-icon";
+import { OnboardingLayout } from "../personal/_components/OnboardingLayout";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
@@ -77,28 +77,10 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
   });
 
   return (
-    <div className="bg-default flex min-h-screen w-full flex-col items-start overflow-clip">
+    <>
       <OnboardingContinuationPrompt />
-      {/* Header */}
-      <div className="flex w-full items-center justify-between px-6 py-4">
-        <Logo className="h-5 w-auto" />
-
-        {/* Progress dots - centered */}
-        <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1">
-          <div className="bg-emphasis h-1.5 w-1.5 rounded-full" />
-          <div className="bg-subtle h-1 w-1 rounded-full" />
-          <div className="bg-subtle h-1 w-1 rounded-full" />
-          <div className="bg-subtle h-1 w-1 rounded-full" />
-        </div>
-
-        <div className="bg-muted flex items-center gap-2 rounded-full px-3 py-2">
-          <p className="text-emphasis font-mediumu text-sm leading-none">{userEmail}</p>
-        </div>
-      </div>
-
-      {/* Main content */}
-      <div className="flex h-full w-full items-start justify-center px-6 py-8">
-        <div className="flex w-full max-w-[600px] flex-col gap-6">
+      <OnboardingLayout userEmail={userEmail} currentStep={1}>
+        <div className="flex w-full flex-col gap-6">
           {/* Card */}
           <div className="bg-muted border-muted relative rounded-xl border p-1">
             <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
@@ -173,7 +155,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </OnboardingLayout>
+    </>
   );
 };

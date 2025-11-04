@@ -3,10 +3,10 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import classNames from "@calcom/ui/classNames";
 
 import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
-import { useBookerTime } from "../../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../../state/store";
 import type { CalendarAvailableTimeslots } from "../../types/state";
 import type { GridCellToDateProps } from "../../utils";
@@ -33,13 +33,13 @@ export function EmptyCell(props: EmptyCellProps) {
 }
 
 type AvailableCellProps = {
+  timezone: string;
   availableSlots: CalendarAvailableTimeslots;
   day: GridCellToDateProps["day"];
   startHour: GridCellToDateProps["startHour"];
 };
 
-export function AvailableCellsForDay({ availableSlots, day, startHour }: AvailableCellProps) {
-  const { timezone } = useBookerTime();
+export function AvailableCellsForDay({ timezone, availableSlots, day, startHour }: AvailableCellProps) {
   const date = dayjs(day);
   const dateFormatted = date.format("YYYY-MM-DD");
   const slotsForToday = availableSlots && availableSlots[dateFormatted];
@@ -136,7 +136,7 @@ type CellProps = {
 };
 
 function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
-  const { timeFormat } = useBookerTime();
+  const { timeFormat } = useTimePreferences();
 
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
     (state) => ({
@@ -163,7 +163,7 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
         top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
       }}
       onClick={() => {
-        onEmptyCellClick && onEmptyCellClick(timeSlot.toDate());
+        onEmptyCellClick?.(timeSlot.toDate());
       }}>
       {!isDisabled && hoverEventDuration !== 0 && (
         <div
