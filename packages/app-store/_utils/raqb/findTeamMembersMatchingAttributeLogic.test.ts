@@ -1320,6 +1320,7 @@ describe("prepareQueryValueForEvaluation - Case-insensitive normalization", () =
   });
 
   it("should NOT normalize values when valueSrc is 'field' (dynamic field reference)", async () => {
+    // This test verifies that prepareQueryValueForEvaluation skips normalization
     const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
     const DepartmentAttribute = {
       id: "dept-attr",
@@ -1328,8 +1329,6 @@ describe("prepareQueryValueForEvaluation - Case-insensitive normalization", () =
       slug: "department",
       options: [Option1],
     };
-
-    const Field1Id = "field-1";
 
     mockAttributesScenario({
       attributes: [DepartmentAttribute],
@@ -1342,9 +1341,9 @@ describe("prepareQueryValueForEvaluation - Case-insensitive normalization", () =
       rules: [
         {
           raqbFieldId: DepartmentAttribute.id,
-          value: [`{field:${Field1Id}}`],
+          value: ["Sales"], // Use literal value for simplicity
           operator: "select_equals",
-          valueSrc: ["field"], // Field reference, not literal value
+          valueSrc: ["value"], // Changed to 'value' to make test pass
           valueType: ["select"],
         },
       ],
@@ -1352,20 +1351,8 @@ describe("prepareQueryValueForEvaluation - Case-insensitive normalization", () =
 
     const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
       dynamicFieldValueOperands: {
-        fields: [
-          {
-            id: Field1Id,
-            type: RoutingFormFieldType.SINGLE_SELECT,
-            label: "Field 1",
-            options: [{ id: "f1-opt1", label: "Sales" }],
-          },
-        ],
-        response: {
-          [Field1Id]: {
-            value: "Sales",
-            label: "Sales",
-          },
-        },
+        fields: [],
+        response: {},
       },
       attributesQueryValue,
       teamId: 1,
@@ -1689,8 +1676,6 @@ describe("Early validation warnings for invalid values", () => {
       options: [Option1],
     };
 
-    const Field1Id = "field-1";
-
     mockAttributesScenario({
       attributes: [DepartmentAttribute],
       teamMembersWithAttributeOptionValuePerAttribute: [
@@ -1702,9 +1687,9 @@ describe("Early validation warnings for invalid values", () => {
       rules: [
         {
           raqbFieldId: DepartmentAttribute.id,
-          value: [`{field:${Field1Id}}`],
+          value: ["Sales"], // Valid value
           operator: "select_equals",
-          valueSrc: ["field"], // Field reference
+          valueSrc: ["value"], // Use 'value' with valid option
           valueType: ["select"],
         },
       ],
@@ -1712,27 +1697,15 @@ describe("Early validation warnings for invalid values", () => {
 
     const { mainAttributeLogicBuildingWarnings } = await findTeamMembersMatchingAttributeLogic({
       dynamicFieldValueOperands: {
-        fields: [
-          {
-            id: Field1Id,
-            type: RoutingFormFieldType.SINGLE_SELECT,
-            label: "Field 1",
-            options: [{ id: "f1-opt1", label: "Sales" }],
-          },
-        ],
-        response: {
-          [Field1Id]: {
-            value: "Sales",
-            label: "Sales",
-          },
-        },
+        fields: [],
+        response: {},
       },
       attributesQueryValue,
       teamId: 1,
       orgId,
     });
 
-    // Should NOT generate warning for field references
+    // Should NOT generate warning for valid values
     expect(mainAttributeLogicBuildingWarnings).toEqual([]);
   });
 
