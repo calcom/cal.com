@@ -265,7 +265,7 @@ export default function BookingLogsView({ bookingUid }: BookingLogsViewProps) {
                                         {log.data && (
                                             <div>
                                                 <h4 className="font-medium text-gray-700 mb-2">Details:</h4>
-                                                <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto">
+                                                <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto text-gray-900">
                                                     {JSON.stringify(log.data, null, 2)}
                                                 </pre>
                                             </div>

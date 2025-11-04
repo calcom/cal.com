@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { prisma } from "@calcom/prisma";
-import type { Team, User, Membership, Profile } from "@calcom/prisma/client";
+import type { Team, User, Membership, Profile, Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
@@ -91,7 +91,7 @@ async function createTestTeam(data: {
       slug: uniqueSlug,
       isOrganization: data.isOrganization || false,
       parentId: data.parentId,
-      metadata: data.metadata,
+      metadata: data.metadata as Prisma.InputJsonValue,
     },
   });
 
