@@ -112,9 +112,11 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
           title="Select plan"
           subtitle={t("onboarding_welcome_question")}
           footer={
-            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-              {t("continue")}
-            </Button>
+            <div className="flex w-full justify-end gap-2">
+              <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+                {t("continue")}
+              </Button>
+            </div>
           }>
           {/* Card */}
           <div className="bg-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">

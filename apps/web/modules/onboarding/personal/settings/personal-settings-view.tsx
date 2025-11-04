@@ -117,25 +117,22 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
           title={t("add_your_details")}
           subtitle={t("personal_details_subtitle")}
           footer={
-            <div className="flex w-full items-center justify-between gap-4">
+            <div className="flex w-full items-center justify-end gap-4">
               <Button
                 color="minimal"
                 className="rounded-[10px]"
-                onClick={() => router.back()}
-                disabled={mutation.isPending}>
+                onClick={() => router.push("/onboarding/getting-started")}>
                 {t("back")}
               </Button>
-              <div className="flex items-center gap-4">
-                <Button
-                  type="submit"
-                  form="personal-settings-form"
-                  color="primary"
-                  className="rounded-[10px]"
-                  loading={mutation.isPending}
-                  disabled={mutation.isPending || !form.formState.isValid}>
-                  {t("continue")}
-                </Button>
-              </div>
+              <Button
+                type="submit"
+                form="personal-settings-form"
+                color="primary"
+                className="rounded-[10px]"
+                loading={mutation.isPending}
+                disabled={mutation.isPending || !form.formState.isValid}>
+                {t("continue")}
+              </Button>
             </div>
           }>
           <FormProvider {...form}>

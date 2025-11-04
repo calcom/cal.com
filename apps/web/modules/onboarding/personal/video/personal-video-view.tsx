@@ -123,31 +123,22 @@ export const PersonalVideoView = ({ userEmail }: PersonalVideoViewProps) => {
         subtitle={t("video_app_connection_subtitle")}
         isLoading={isPending}
         footer={
-          <div className="flex w-full items-center justify-between gap-4">
+          <div className="flex w-full items-center justify-end gap-4">
             <Button
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/personal/calendar")}
+              onClick={handleSkip}
               disabled={mutation.isPending}>
-              {t("back")}
+              {t("onboarding_skip_for_now")}
             </Button>
-            <div className="flex items-center gap-4">
-              <Button
-                color="minimal"
-                className="rounded-[10px]"
-                onClick={handleSkip}
-                disabled={mutation.isPending}>
-                {t("onboarding_skip_for_now")}
-              </Button>
-              <Button
-                color="primary"
-                className="rounded-[10px]"
-                onClick={handleContinue}
-                loading={mutation.isPending}
-                disabled={mutation.isPending}>
-                {t("continue")}
-              </Button>
-            </div>
+            <Button
+              color="primary"
+              className="rounded-[10px]"
+              onClick={handleContinue}
+              loading={mutation.isPending}
+              disabled={mutation.isPending}>
+              {t("continue")}
+            </Button>
           </div>
         }>
         <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">

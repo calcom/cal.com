@@ -44,30 +44,21 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
         subtitle={t("connect_calendar_to_prevent_conflicts")}
         isLoading={queryIntegrations.isPending}
         footer={
-          <div className="flex w-full items-center justify-between gap-4">
+          <div className="flex w-full items-center justify-end gap-4">
             <Button
               color="minimal"
               className="rounded-[10px]"
-              onClick={() => router.push("/onboarding/personal/settings")}
+              onClick={handleSkip}
               disabled={queryIntegrations.isPending}>
-              {t("back")}
+              {t("onboarding_skip_for_now")}
             </Button>
-            <div className="flex items-center gap-4">
-              <Button
-                color="minimal"
-                className="rounded-[10px]"
-                onClick={handleSkip}
-                disabled={queryIntegrations.isPending}>
-                {t("onboarding_skip_for_now")}
-              </Button>
-              <Button
-                color="primary"
-                className="rounded-[10px]"
-                onClick={handleContinue}
-                disabled={queryIntegrations.isPending}>
-                {t("continue")}
-              </Button>
-            </div>
+            <Button
+              color="primary"
+              className="rounded-[10px]"
+              onClick={handleContinue}
+              disabled={queryIntegrations.isPending}>
+              {t("continue")}
+            </Button>
           </div>
         }>
         <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
