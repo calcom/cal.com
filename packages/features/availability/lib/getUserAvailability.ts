@@ -474,6 +474,11 @@ export class UserAvailabilityService {
         dateOverrides: [],
         currentSeats: [],
         datesOutOfOffice: undefined,
+        cacheInfo: {
+          calendarsRead: false,
+          totalCalendarBusyTimes: 0,
+          calendarSources: [],
+        },
       };
     }
 
@@ -581,6 +586,21 @@ export class UserAvailabilityService {
     const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
     const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
 
+    const calendarsWereRead = user.credentials?.length > 0 && !bypassBusyCalendarTimes;
+    const calendarBusyTimes = detailedBusyTimes.filter((bt) => bt.source && !bt.source.startsWith("eventType-"));
+    const uniqueCalendarSources = new Set(calendarBusyTimes.map((bt) => bt.source).filter(Boolean));
+    const cacheInfo = calendarsWereRead
+      ? {
+          calendarsRead: true,
+          totalCalendarBusyTimes: calendarBusyTimes.length,
+          calendarSources: Array.from(uniqueCalendarSources) as string[],
+        }
+      : {
+          calendarsRead: false,
+          totalCalendarBusyTimes: 0,
+          calendarSources: [],
+        };
+
     const result = {
       busy: detailedBusyTimes,
       timeZone: finalTimezone,
@@ -590,6 +610,7 @@ export class UserAvailabilityService {
       dateOverrides,
       currentSeats,
       datesOutOfOffice,
+      cacheInfo,
     };
 
     log.debug(

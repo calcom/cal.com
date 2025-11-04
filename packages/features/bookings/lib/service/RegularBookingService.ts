@@ -1720,6 +1720,7 @@ async function handler(
           availabilitySnapshot: organizerUserAvailability?.availabilityData
             ? formatAvailabilitySnapshot(organizerUserAvailability.availabilityData)
             : null,
+          calendarReadInfo: organizerUserAvailability?.availabilityData?.cacheInfo ?? null,
         });
       }
 
