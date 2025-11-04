@@ -100,12 +100,15 @@ const customTemplate = (
   timeFormat?: TimeFormat,
   isBrandingDisabled?: boolean
 ) => {
-  const translatedDate = new Intl.DateTimeFormat(locale, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(variables.eventDate?.add(dayjs().tz(variables.timeZone).utcOffset(), "minute").toDate());
+  const eventDate = variables.eventDate;
+  const translatedDate = eventDate
+    ? new Intl.DateTimeFormat(locale, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }).format(eventDate.add(dayjs().tz(variables.timeZone).utcOffset(), "minute").toDate())
+    : "";
 
   let locationString = variables.location || "";
 
