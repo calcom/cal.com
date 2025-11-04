@@ -47,8 +47,7 @@ type RescheduleEmailAndSmsPayload = EmailAndSmsPayload & {
   additionalInformation: AdditionalInformation;
   additionalNotes: string | null | undefined;
   iCalUID: string;
-  users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
-    destinationCalendar: DestinationCalendar | null;
+  users: (Pick<User, "name" | "email"> & {
     isFixed?: boolean;
   })[];
   changedOrganizer?: boolean;

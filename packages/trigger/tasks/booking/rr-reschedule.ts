@@ -31,7 +31,6 @@ export const rrReschedule = schemaTask({
 
       if (originalBookingData.status === "CANCELLED" && !originalBookingData.rescheduled) {
         originalBookingData = null;
-
         return;
       }
 
