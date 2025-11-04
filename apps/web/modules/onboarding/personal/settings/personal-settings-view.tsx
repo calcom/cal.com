@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
@@ -35,17 +35,13 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
   const { personalDetails, setPersonalDetails } = useOnboardingStore();
 
   const avatarRef = useRef<HTMLInputElement>(null);
-  const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
   const [imageSrc, setImageSrc] = useState<string>("");
 
   useEffect(() => {
-    setName(personalDetails.name || userName || "");
-    setBio(personalDetails.bio || "");
     if (user) {
       setImageSrc(personalDetails.avatar || user.avatar || "");
     }
-  }, [personalDetails, userName, user]);
+  }, [personalDetails.avatar, user]);
 
   const formSchema = z.object({
     name: z
@@ -54,12 +50,14 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
+    bio: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: personalDetails.name || userName || "",
+      bio: personalDetails.bio || "",
     },
   });
 
@@ -94,13 +92,13 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
     // Save to store
     setPersonalDetails({
       name: data.name,
-      bio,
+      bio: data.bio || "",
     });
 
     // Save to backend
     await mutation.mutateAsync({
       name: data.name,
-      bio,
+      bio: data.bio || "",
     });
 
     router.push("/onboarding/personal/profile");
@@ -116,11 +114,8 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
       <OnboardingLayout userEmail={userEmail} currentStep={1}>
         {/* Left column - Main content */}
         <OnboardingCard
-          title={t("add_your_details") || "Add your details"}
-          subtitle={
-            t("personal_details_subtitle") ||
-            "Customize your booking pages with your name and bio. We'll display this info your public booking pages."
-          }
+          title={t("add_your_details")}
+          subtitle={t("personal_details_subtitle")}
           footer={
             <div className="flex w-full items-center justify-between gap-4">
               <Button
@@ -136,12 +131,13 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
                   className="rounded-[10px]"
                   onClick={() => router.push("/onboarding/personal/profile")}
                   disabled={mutation.isPending}>
-                  {t("skip_for_now") || "Skip for now"}
+                  {t("onboarding_skip_for_now")}
                 </Button>
                 <Button
+                  type="submit"
+                  form="personal-settings-form"
                   color="primary"
                   className="rounded-[10px]"
-                  onClick={handleContinue}
                   loading={mutation.isPending}
                   disabled={mutation.isPending || !form.formState.isValid}>
                   {t("continue")}
@@ -149,90 +145,85 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
               </div>
             </div>
           }>
-          {/* Form */}
-          <div className="flex w-full flex-col gap-6 px-5">
-            {/* Profile Picture */}
-            <div className="flex w-full flex-col gap-2">
-              <Label className="text-emphasis text-sm font-medium leading-4">
-                {t("profile_picture") || "Profile picture"}
-              </Label>
-              <div className="flex flex-row items-center justify-start gap-2 rtl:justify-end">
-                {user && (
-                  <div className="relative shrink-0">
-                    <UserAvatar size="lg" user={user} previewSrc={imageSrc} />
-                  </div>
+          <FormProvider {...form}>
+            <form
+              id="personal-settings-form"
+              onSubmit={handleContinue}
+              className="flex w-full flex-col gap-6 px-5">
+              {/* Profile Picture */}
+              <div className="flex w-full flex-col gap-2">
+                <Label className="text-emphasis text-sm font-medium leading-4">{t("profile_picture")}</Label>
+                <div className="flex flex-row items-center justify-start gap-2 rtl:justify-end">
+                  {user && (
+                    <div className="relative shrink-0">
+                      <UserAvatar size="lg" user={user} previewSrc={imageSrc} />
+                    </div>
+                  )}
+                  <input ref={avatarRef} type="hidden" name="avatar" id="avatar" defaultValue={imageSrc} />
+                  <ImageUploader
+                    target="avatar"
+                    id="avatar-upload"
+                    buttonMsg={t("upload")}
+                    handleAvatarChange={(newAvatar) => {
+                      if (avatarRef.current) {
+                        avatarRef.current.value = newAvatar;
+                      }
+                      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                        window.HTMLInputElement.prototype,
+                        "value"
+                      )?.set;
+                      nativeInputValueSetter?.call(avatarRef.current, newAvatar);
+                      const ev2 = new Event("input", { bubbles: true });
+                      avatarRef.current?.dispatchEvent(ev2);
+                      updateProfileHandler(newAvatar);
+                    }}
+                    imageSrc={imageSrc}
+                  />
+                </div>
+                <p className="text-subtle text-xs font-normal leading-3">{t("onboarding_logo_size_hint")}</p>
+              </div>
+
+              {/* Name */}
+              <div className="flex w-full flex-col gap-1.5">
+                <TextField label={t("your_name")} {...form.register("name")} placeholder="John Doe" />
+                {form.formState.errors.name && (
+                  <p className="text-error text-sm">{form.formState.errors.name.message}</p>
                 )}
-                <input ref={avatarRef} type="hidden" name="avatar" id="avatar" defaultValue={imageSrc} />
-                <ImageUploader
-                  target="avatar"
-                  id="avatar-upload"
-                  buttonMsg={t("upload") || "Upload"}
-                  handleAvatarChange={(newAvatar) => {
-                    if (avatarRef.current) {
-                      avatarRef.current.value = newAvatar;
+              </div>
+
+              {/* Username */}
+              <div className="flex w-full flex-col gap-1.5">
+                <UsernameAvailabilityField
+                  disabled={true}
+                  onSuccessMutation={async () => {
+                    // Refetch user to get updated username and save to store
+                    const updatedUser = await utils.viewer.me.get.fetch();
+                    if (updatedUser?.username) {
+                      setPersonalDetails({ username: updatedUser.username });
                     }
-                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-                      window.HTMLInputElement.prototype,
-                      "value"
-                    )?.set;
-                    nativeInputValueSetter?.call(avatarRef.current, newAvatar);
-                    const ev2 = new Event("input", { bubbles: true });
-                    avatarRef.current?.dispatchEvent(ev2);
-                    updateProfileHandler(newAvatar);
                   }}
-                  imageSrc={imageSrc}
                 />
               </div>
-              <p className="text-subtle text-xs font-normal leading-3">
-                {t("profile_picture_recommended_size") || "Recommended size 64x64px (max 10mb)"}
-              </p>
-            </div>
 
-            {/* Name */}
-            <div className="flex w-full flex-col gap-1.5">
-              <TextField
-                label={t("your_name") || "Your name"}
-                {...form.register("name")}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  form.setValue("name", e.target.value);
-                }}
-                placeholder="John Doe"
-              />
-              {form.formState.errors.name && (
-                <p className="text-error text-sm">{form.formState.errors.name.message}</p>
-              )}
-            </div>
-
-            {/* Username */}
-            <div className="flex w-full flex-col gap-1.5">
-              <UsernameAvailabilityField
-                onSuccessMutation={async () => {
-                  // Refetch user to get updated username and save to store
-                  const updatedUser = await utils.viewer.me.get.fetch();
-                  if (updatedUser?.username) {
-                    setPersonalDetails({ username: updatedUser.username });
-                  }
-                }}
-              />
-            </div>
-
-            {/* Bio */}
-            <div className="flex w-full flex-col gap-1.5">
-              <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("bio") || "Bio"}</Label>
-              <TextArea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder={t("bio_placeholder") || "Tell us about yourself"}
-                className="min-h-[108px]"
-              />
-            </div>
-          </div>
+              {/* Bio */}
+              <div className="flex w-full flex-col gap-1.5">
+                <Label className="text-emphasis mb-0 text-sm font-medium leading-4">{t("bio")}</Label>
+                <TextArea {...form.register("bio")} className="min-h-[108px]" />
+                {form.formState.errors.bio && (
+                  <p className="text-error text-sm">{form.formState.errors.bio.message}</p>
+                )}
+              </div>
+            </form>
+          </FormProvider>
         </OnboardingCard>
 
         {/* Right column - Browser view */}
-        <OnboardingBrowserView />
+        <OnboardingBrowserView
+          avatar={imageSrc || personalDetails.avatar || user.avatar}
+          name={form.watch("name") || personalDetails.name || user.name || undefined}
+          bio={form.watch("bio") || personalDetails.bio || undefined}
+          username={personalDetails.username || user.username || undefined}
+        />
       </OnboardingLayout>
     </>
   );

@@ -2,39 +2,40 @@
 
 import { Icon } from "@calcom/ui/components/icon";
 
-export const OnboardingBrowserView = () => {
+type OnboardingBrowserViewProps = {
+  avatar?: string | null;
+  name?: string;
+  bio?: string;
+  username?: string | null;
+};
+
+export const OnboardingBrowserView = ({ avatar, name, bio, username }: OnboardingBrowserViewProps) => {
   return (
     <div className="hidden h-full w-full lg:flex lg:items-start lg:justify-center">
-      <div className="sticky top-8 w-full max-w-[640px]">
+      <div className="sticky top-8 h-full w-full">
         {/* Browser container */}
-        <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-tl-2xl rounded-tr-2xl border border-b-0">
+        <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-l-2xl border">
           {/* Browser header */}
           <div className="border-subtle flex items-center gap-3 border-b bg-white p-3">
             {/* Navigation buttons */}
-            <div className="flex items-center gap-0.5 opacity-50">
-              <button className="bg-default border-default flex h-8 w-8 items-center justify-center rounded-[10px] border shadow-sm">
-                <Icon name="arrow-left" className="text-subtle h-4 w-4" />
-              </button>
-              <button className="bg-default border-default flex h-8 w-8 items-center justify-center rounded-[10px] border shadow-sm">
-                <Icon name="arrow-right" className="text-subtle h-4 w-4" />
-              </button>
-              <button className="bg-default border-default flex h-8 w-8 items-center justify-center rounded-[10px] border shadow-sm">
-                <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
-              </button>
+            <div className="flex items-center gap-4 opacity-50">
+              <Icon name="arrow-left" className="text-subtle h-4 w-4" />
+              <Icon name="arrow-right" className="text-subtle h-4 w-4" />
+              <Icon name="rotate-cw" className="text-subtle h-4 w-4" />
             </div>
 
             {/* Address bar */}
             <div className="bg-muted flex h-8 flex-1 items-center gap-2 rounded-full px-3">
               <Icon name="lock" className="text-subtle h-3.5 w-3.5" />
-              <span className="text-emphasis text-sm font-medium">cal.com/team/</span>
+              <span className="text-emphasis text-sm font-medium">
+                {username ? `cal.com/${username}` : "cal.com/"}
+              </span>
             </div>
 
             {/* User menu */}
-            <div className="flex items-center gap-1">
-              <div className="border-default h-[26px] w-[26px] rounded-full border" />
-              <button className="bg-default border-default flex h-8 w-8 items-center justify-center rounded-[10px] border opacity-40 shadow-sm">
-                <Icon name="more-vertical" className="text-subtle h-4 w-4" />
-              </button>
+            <div className="flex items-center gap-2">
+              <div className="bg-subtle border-subtle h-6 w-6 rounded-full border" />
+              <Icon name="menu" className="text-subtle h-4 w-4" />
             </div>
           </div>
 
@@ -44,13 +45,24 @@ export const OnboardingBrowserView = () => {
             <div className="bg-default border-muted flex flex-col overflow-hidden rounded-xl border">
               {/* First item - Active state */}
               <div className="flex flex-col gap-4 p-4">
-                {/* Avatar placeholder */}
-                <div className="bg-muted border-muted flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border" />
+                {/* Avatar */}
+                {avatar ? (
+                  <img
+                    src={avatar}
+                    alt={name || "Profile"}
+                    className="h-16 w-16 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="bg-muted border-muted flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border" />
+                )}
 
-                {/* Team info placeholder */}
+                {/* Name and bio */}
                 <div className="flex flex-col gap-2">
-                  <p className="font-cal text-xl leading-6 opacity-40">Team name</p>
-                  <p className="text-emphasis text-sm font-medium opacity-40">Bio</p>
+                  <p className={`font-cal text-xl leading-6 ${name ? "opacity-100" : "opacity-40"}`}>
+                    {name || "Team name"}
+                  </p>
+                  {bio && <p className="text-emphasis text-sm font-medium opacity-100">{bio}</p>}
+                  {!bio && <p className="text-emphasis text-sm font-medium opacity-40">Bio</p>}
                 </div>
               </div>
 
