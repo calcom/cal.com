@@ -1,6 +1,7 @@
 import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import type { TimeRange } from "@calcom/types/schedule";
 
+import type { BorderColor } from "./common";
 import type { CalendarEvent } from "./events";
 
 export type View = "month" | "week" | "day";
@@ -131,6 +132,21 @@ export type CalendarState = {
    * Timezone to use for displaying times in the calendar
    */
   timezone: string;
+  /**
+   * Show the background pattern for unavailable areas
+   * @default true
+   */
+  showBackgroundPattern?: boolean;
+  /**
+   * Show borders on the leftmost and rightmost sides of the calendar container
+   * @default true
+   */
+  showBorder?: boolean;
+  /**
+   * Border color for calendar cells
+   * @default "default"
+   */
+  borderColor?: BorderColor;
 };
 
 export type CalendarComponentProps = CalendarPublicActions & CalendarState & { isPending?: boolean };

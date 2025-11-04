@@ -43,7 +43,7 @@ export const deleteWatchlistEntryHandler = async ({ ctx, input }: DeleteWatchlis
 
   const watchlistRepo = new WatchlistRepository(prisma);
 
-  const { entry } = await watchlistRepo.findEntryWithAudit(input.id);
+  const { entry } = await watchlistRepo.findEntryWithAuditAndReports(input.id);
 
   if (!entry) {
     throw new TRPCError({
