@@ -1,4 +1,5 @@
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
+import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import type { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
   ORGANIZATION_SELF_SERVE_MIN_SEATS,
@@ -83,7 +84,7 @@ export class OrganizationPaymentService {
   protected user: OnboardingUser;
 
   constructor(user: OnboardingUser, permissionService?: OrganizationPermissionService) {
-    this.billingService = new StripeBillingService();
+    this.billingService = getBillingProviderService();
     this.permissionService = permissionService || new OrganizationPermissionService(user);
     this.user = user;
   }
