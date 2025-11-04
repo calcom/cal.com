@@ -6,6 +6,7 @@ export interface OverlapLayoutConfig {
   baseWidthPercent?: number;
   offsetStepPercent?: number;
   baseZIndex?: number;
+  safetyMarginPercent?: number;
 }
 
 export interface EventLayout {
@@ -21,7 +22,22 @@ const DEFAULT_CONFIG: Required<OverlapLayoutConfig> = {
   baseWidthPercent: 80,
   offsetStepPercent: 8,
   baseZIndex: 60,
+  safetyMarginPercent: 0.5,
 };
+
+/**
+ * Rounds a number to 3 decimal places using standard rounding
+ */
+function round3(value: number): number {
+  return Number(value.toFixed(3));
+}
+
+/**
+ * Floors a number to 3 decimal places (always rounds down)
+ */
+function floor3(value: number): number {
+  return Math.floor(value * 1000) / 1000;
+}
 
 /**
  * Sorts events by start time (ascending), then by end time (descending for longer events first)
@@ -80,12 +96,13 @@ export function buildOverlapGroups(sortedEvents: CalendarEvent[]): CalendarEvent
 /**
  * Calculates layout information for all events including position and z-index
  * Dynamically adjusts offset step to prevent overflow when many events overlap
+ * Uses safety margin and floor rounding to guarantee no overflow even with CSS box model effects
  */
 export function calculateEventLayouts(
   events: CalendarEvent[],
   config: OverlapLayoutConfig = {}
 ): EventLayout[] {
-  const { baseWidthPercent, offsetStepPercent, baseZIndex } = {
+  const { baseWidthPercent, offsetStepPercent, baseZIndex, safetyMarginPercent } = {
     ...DEFAULT_CONFIG,
     ...config,
   };
@@ -97,20 +114,25 @@ export function calculateEventLayouts(
 
   groups.forEach((group, groupIndex) => {
     const groupSize = group.length;
-    const allowedOffsetSpace = 100 - baseWidthPercent;
+    const allowedOffsetSpace = Math.max(0, 100 - baseWidthPercent - safetyMarginPercent);
     const stepUsed = Math.min(
       offsetStepPercent,
       allowedOffsetSpace / Math.max(1, groupSize - 1)
     );
 
     group.forEach((event, indexInGroup) => {
-      const leftOffset = indexInGroup * stepUsed;
-      const width = Math.min(baseWidthPercent, 100 - leftOffset);
+      const leftRaw = indexInGroup * stepUsed;
+      const left = round3(leftRaw);
+      
+      const maxWidthCap = 100 - left - safetyMarginPercent;
+      const widthCap = Math.min(baseWidthPercent, maxWidthCap);
+      
+      const width = floor3(Math.max(0, widthCap));
 
       layouts.push({
         event,
-        leftOffsetPercent: Number(leftOffset.toFixed(3)),
-        widthPercent: Number(width.toFixed(3)),
+        leftOffsetPercent: left,
+        widthPercent: width,
         baseZIndex: baseZIndex + indexInGroup,
         groupIndex,
         indexInGroup,

@@ -269,10 +269,31 @@ describe("overlap utility", () => {
 
       layouts.forEach((layout) => {
         const totalWidth = layout.leftOffsetPercent + layout.widthPercent;
-        expect(totalWidth).toBeLessThanOrEqual(100);
+        expect(totalWidth).toBeLessThanOrEqual(100 - 0.5);
       });
 
       expect(layouts).toHaveLength(11);
+    });
+
+    it("should respect safety margin with 20+ overlapping events", () => {
+      const events: CalendarEvent[] = Array.from({ length: 21 }, (_, i) => ({
+        id: i + 1,
+        title: `Event ${i + 1}`,
+        start: new Date(`2024-01-01T09:${String(i * 2).padStart(2, '0')}:00`),
+        end: new Date(`2024-01-01T10:${String(i * 2).padStart(2, '0')}:00`),
+      }));
+
+      const layouts = calculateEventLayouts(events);
+
+      expect(layouts).toHaveLength(21);
+      
+      layouts.forEach((layout) => {
+        const totalWidth = layout.leftOffsetPercent + layout.widthPercent;
+        expect(totalWidth).toBeLessThanOrEqual(100 - 0.5);
+      });
+
+      const lastLayout = layouts[layouts.length - 1];
+      expect(lastLayout.leftOffsetPercent + lastLayout.widthPercent).toBeLessThanOrEqual(99.5);
     });
 
     it("should compress offset step for dense overlaps while maintaining cascade", () => {
