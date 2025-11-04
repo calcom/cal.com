@@ -7,7 +7,7 @@ import {
   getFilteredRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -66,42 +66,91 @@ interface OutOfOfficeEntry {
 export default function OutOfOfficeEntriesList() {
   const { t } = useLocale();
   const pathname = usePathname();
+  const searchParams = useCompatSearchParams();
+  const router = useRouter();
+
+  const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
+    useState<BookingRedirectForm | null>(null);
+
+  const openModalParam = searchParams?.get("om");
+  const editingUuid = searchParams?.get("edit");
+  const openModal = !!openModalParam || !!editingUuid;
+
+  const closeModal = () => {
+    if (!pathname) return;
+    const urlParams = new URLSearchParams(searchParams ?? undefined);
+    urlParams.delete("om");
+    urlParams.delete("edit");
+    router.push(`${pathname}?${urlParams.toString()}`, { scroll: false });
+    setCurrentlyEditingOutOfOfficeEntry(null);
+  };
 
   if (!pathname) return null;
 
   return (
-    <SettingsHeader
-      title={t("out_of_office")}
-      description={t("out_of_office_description")}
-      CTA={
-        <div className="flex gap-2">
-          <OutOfOfficeToggleGroup />
-          <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
-        </div>
-      }>
-      <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
-        <OutOfOfficeEntriesListContent />
-      </DataTableProvider>
-    </SettingsHeader>
+    <>
+      <SettingsHeader
+        title={t("out_of_office")}
+        description={t("out_of_office_description")}
+        CTA={
+          <div className="flex gap-2">
+            <OutOfOfficeToggleGroup />
+            <CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />
+          </div>
+        }>
+        <DataTableProvider tableIdentifier={pathname} useSegments={useSegments}>
+          <OutOfOfficeEntriesListContent
+            currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
+            setCurrentlyEditingOutOfOfficeEntry={setCurrentlyEditingOutOfOfficeEntry}
+          />
+        </DataTableProvider>
+      </SettingsHeader>
+      {openModal && (
+        <CreateOrEditOutOfOfficeEntryModal
+          openModal={openModal}
+          closeModal={closeModal}
+          currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
+        />
+      )}
+    </>
   );
 }
 
-function OutOfOfficeEntriesListContent() {
+function OutOfOfficeEntriesListContent({
+  currentlyEditingOutOfOfficeEntry,
+  setCurrentlyEditingOutOfOfficeEntry,
+}: {
+  currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
+  setCurrentlyEditingOutOfOfficeEntry: (entry: BookingRedirectForm | null) => void;
+}) {
   const { t } = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [deletedEntry, setDeletedEntry] = useState(0);
-  const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
-    useState<BookingRedirectForm | null>(null);
-  const [openModal, setOpenModal] = useState(false);
-  const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
-    setCurrentlyEditingOutOfOfficeEntry(entry);
-    setOpenModal(true);
-  };
 
   const { searchTerm } = useDataTable();
   const searchParams = useCompatSearchParams();
   const selectedTab = searchParams?.get("type") ?? OutOfOfficeTab.MINE;
+  const editingUuid = searchParams?.get("edit");
 
+  const setOpenModal = (open: boolean, uuid?: string) => {
+    if (!pathname) return;
+    const urlParams = new URLSearchParams(searchParams ?? undefined);
+    if (open && uuid) {
+      urlParams.set("edit", uuid);
+    } else {
+      urlParams.delete("edit");
+    }
+    router.push(`${pathname}?${urlParams.toString()}`, { scroll: false });
+  };
+
+  const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
+    setCurrentlyEditingOutOfOfficeEntry(entry);
+    if (entry.uuid) {
+      setOpenModal(true, entry.uuid);
+    }
+  };
   const endDateRange = useFilterValue("dateRange", ZDateRangeFilterValue)?.data;
 
   const { data, isPending, fetchNextPage, isFetching, refetch, hasNextPage } =
@@ -129,6 +178,41 @@ function OutOfOfficeEntriesListContent() {
       isPending || isFetching ? new Array(5).fill(null) : data?.pages?.flatMap((page) => page.rows) ?? [],
     [data, selectedTab, isPending, isFetching, searchTerm]
   ) as OutOfOfficeEntry[];
+
+  useEffect(() => {
+    if (editingUuid && !currentlyEditingOutOfOfficeEntry) {
+      const entry = flatData.find((e) => e && e.uuid === editingUuid);
+      if (entry) {
+        const startDateOffset = -1 * entry.start.getTimezoneOffset();
+        const endDateOffset = -1 * entry.end.getTimezoneOffset();
+        const outOfOfficeEntryData: BookingRedirectForm = {
+          uuid: entry.uuid,
+          dateRange: {
+            startDate: dayjs(entry.start).subtract(startDateOffset, "minute").toDate(),
+            endDate: dayjs(entry.end).subtract(endDateOffset, "minute").startOf("d").toDate(),
+          },
+          startDateOffset,
+          endDateOffset,
+          toTeamUserId: entry.toUserId,
+          reasonId: entry.reason?.id ?? 1,
+          notes: entry.notes ?? undefined,
+          forUserId: entry.user?.id || null,
+          forUserName:
+            entry.user?.name ||
+            (entry.user?.email &&
+              (() => {
+                const emailName = entry.user?.email.split("@")[0];
+                return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+              })()),
+          forUserAvatar: entry.user?.avatarUrl,
+          toUserName: entry.toUser?.name || entry.toUser?.username,
+        };
+        setCurrentlyEditingOutOfOfficeEntry(outOfOfficeEntryData);
+      }
+    } else if (!editingUuid && currentlyEditingOutOfOfficeEntry) {
+      setCurrentlyEditingOutOfOfficeEntry(null);
+    }
+  }, [editingUuid, flatData, currentlyEditingOutOfOfficeEntry]);
 
   const memoColumns = useMemo(() => {
     const columnHelper = createColumnHelper<OutOfOfficeEntry>();
@@ -410,16 +494,6 @@ function OutOfOfficeEntriesListContent() {
           />
         }
       />
-      {openModal && (
-        <CreateOrEditOutOfOfficeEntryModal
-          openModal={openModal}
-          closeModal={() => {
-            setOpenModal(false);
-            setCurrentlyEditingOutOfOfficeEntry(null);
-          }}
-          currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
-        />
-      )}
     </>
   );
 }
