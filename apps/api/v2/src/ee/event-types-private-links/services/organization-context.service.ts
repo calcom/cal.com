@@ -20,7 +20,7 @@ export class OrganizationContextService {
     eventTypeId: number
   ): Promise<OrganizationEventTypeContext> {
     const organization = await this.organizationsRepository.findById(orgId);
-    const eventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+    const eventType = await this.teamsEventTypesRepository.getTeamEventTypeSlug(teamId, eventTypeId);
 
     return {
       orgSlug: organization?.slug || undefined,
