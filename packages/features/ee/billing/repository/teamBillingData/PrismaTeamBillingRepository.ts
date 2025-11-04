@@ -1,16 +1,18 @@
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 
 import type { ITeamBillingDataRepository } from "./ITeamBillingDataRepository";
 import { teamBillingSelect } from "./ITeamBillingDataRepository";
 
 export class PrismaTeamBillingDataRepository implements ITeamBillingDataRepository {
+  constructor(private prisma: PrismaClient) {}
+
   /** Fetch a single team with minimal data needed for billing */
   async find(teamId: number) {
-    return prisma.team.findUniqueOrThrow({ where: { id: teamId }, select: teamBillingSelect });
+    return this.prisma.team.findUniqueOrThrow({ where: { id: teamId }, select: teamBillingSelect });
   }
   /** Fetch a single team with minimal data needed for billing */
   async findBySubscriptionId(subscriptionId: string) {
-    const team = await prisma.team.findFirstOrThrow({
+    return this.prisma.team.findFirstOrThrow({
       where: {
         metadata: {
           path: ["subscriptionId"],
@@ -19,10 +21,9 @@ export class PrismaTeamBillingDataRepository implements ITeamBillingDataReposito
       },
       select: teamBillingSelect,
     });
-    return team;
   }
   /** Fetch multiple teams with minimal data needed for billing */
   async findMany(teamIds: number[]) {
-    return prisma.team.findMany({ where: { id: { in: teamIds } }, select: teamBillingSelect });
+    return this.prisma.team.findMany({ where: { id: { in: teamIds } }, select: teamBillingSelect });
   }
 }
