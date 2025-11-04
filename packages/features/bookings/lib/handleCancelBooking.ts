@@ -20,10 +20,10 @@ import {
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { ErrorWithCode } from "@calcom/lib/errors";
-import { ErrorCode } from "@calcom/lib/errorCodes";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
@@ -119,7 +119,10 @@ async function handler(input: CancelBookingInput) {
     isCancellationUserHost &&
     !skipCancellationReasonValidation
   ) {
-    throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Cancellation reason is required when you are the host");
+    throw new ErrorWithCode(
+      ErrorCode.MissingRequiredField,
+      "Cancellation reason is required when you are the host"
+    );
   }
 
   if (bookingToDelete.endTime && new Date() > new Date(bookingToDelete.endTime)) {
@@ -142,7 +145,10 @@ async function handler(input: CancelBookingInput) {
       ));
 
     if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
-      throw new ErrorWithCode(ErrorCode.UserNotFound, "User not a host of this event or an admin of the booking user");
+      throw new ErrorWithCode(
+        ErrorCode.Unauthorized,
+        "User not a host of this event or an admin of the booking user"
+      );
     }
   }
 
