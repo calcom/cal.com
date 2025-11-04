@@ -102,7 +102,7 @@ const _loadAndValidateUsers = async ({
     logger.warn({
       message: "NewBooking: Some of the users in this group do not allow dynamic booking",
     });
-    throw new ErrorWithCode(ErrorCode.UserNotFound, "Some of the users in this group do not allow dynamic booking");
+    throw new ErrorWithCode(ErrorCode.InvalidOperation, "Some of the users in this group do not allow dynamic booking");
   }
 
   // If this event was pre-relationship migration
