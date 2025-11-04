@@ -63,6 +63,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       credential: getPiiFreeCredential(credential),
       uid,
       calEvent: getPiiFreeCalendarEvent(calEvent),
+      hasRecurringEvent: !!calEvent.recurringEvent,
     })
   );
   if (!credential || !credential.appId) {
@@ -116,11 +117,9 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       safeStringify(err),
       safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
     );
-    // Default to calVideo
-    // const defaultMeeting = await createMeetingWithCalVideo(calEvent);
-    // if (defaultMeeting) {
-    //   calEvent.location = DailyLocationType;
-    // }
+
+    // Fallback to Jitsi
+    // Note: Jitsi creates permanent rooms, so recurring events work automatically
     const defaultMeeting = await createMeetingWithJitsiVideo(calEvent);
     if (defaultMeeting) {
       calEvent.location = JitsiLocationType;
@@ -151,6 +150,7 @@ const createMeetingWithJitsiVideo = async (calEvent: CalendarEvent) => {
       invalid: false,
     },
   ]);
+  // Jitsi adapter receives full calEvent including recurringEvent
   return videoAdapter?.createMeeting(calEvent);
 };
 
@@ -205,9 +205,13 @@ const deleteMeeting = async (
     const videoAdapter = (await getVideoAdapters([credential]))[0];
     log.debug(
       "Calling deleteMeeting for",
-      safeStringify({ credential: getPiiFreeCredential(credential), uid })
+      safeStringify({
+        credential: getPiiFreeCredential(credential),
+        uid,
+        isRecurringInstanceCancellation,
+      })
     );
-    // There are certain video apps with no video adapter defined. e.g. riverby,whereby
+    // There are certain video apps with no video adapter defined. e.g. riverby, whereby
     if (videoAdapter) {
       return videoAdapter.deleteMeeting(uid);
     }
@@ -237,6 +241,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       delegationCredentialId: null,
     },
   ]);
+  // Daily adapter receives full calEvent including recurringEvent
   return videoAdapter?.createMeeting(calEvent);
 };
 
