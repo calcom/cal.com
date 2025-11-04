@@ -16,11 +16,10 @@ import { OnboardingLayout } from "../personal/_components/OnboardingLayout";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
-  userName: string;
   userEmail: string;
 };
 
-export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => {
+export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
   const { selectedPlan, setSelectedPlan } = useOnboardingStore();
@@ -83,22 +82,18 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       <OnboardingContinuationPrompt />
       <OnboardingLayout userEmail={userEmail} currentStep={1}>
         {/* Left column - Main content */}
-        <div className="flex w-full flex-col gap-6">
+        <div className="flex w-full flex-col gap-6 py-6">
+          {/* Header Section */}
+          <div className="flex w-full flex-col gap-1">
+            <h1 className="font-cal text-2xl font-semibold leading-7">Select plan</h1>
+            <p className="text-subtle text-sm font-normal leading-normal">
+              {t("onboarding_welcome_question")}
+            </p>
+          </div>
+
           {/* Card */}
           <div className="bg-muted border-muted relative rounded-xl border p-1">
             <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-              {/* Card Header */}
-              <div className="flex w-full gap-1.5 px-5 py-4">
-                <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">
-                    {t("onboarding_welcome_message", { userName })}
-                  </h1>
-                  <p className="text-subtle text-sm font-medium leading-tight">
-                    {t("onboarding_welcome_question")}
-                  </p>
-                </div>
-              </div>
-
               {/* Plan options */}
               <RadioAreaGroup.Group
                 value={selectedPlan ?? undefined}
@@ -117,27 +112,22 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                         "pr-12 [&>button]:left-auto [&>button]:right-6 [&>button]:mt-0 [&>button]:transform"
                       )}
                       classNames={{
-                        container: "flex w-full items-center gap-4 p-4 pl-5 pr-12 md:p-5 md:pr-14",
+                        container: "flex w-full items-center gap-3 p-5 pr-12",
                       }}>
-                      <div className="flex w-full flex-col gap-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-emphasis text-base font-semibold leading-5">{plan.title}</p>
+                      <div className="flex w-full flex-col gap-1">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <p className="text-emphasis text-sm font-semibold leading-4">{plan.title}</p>
                           <Badge
                             variant="gray"
                             size="md"
                             className="hidden h-4 rounded-md px-1 py-1 md:flex md:items-center">
-                            <span className="text-emphasis text-xs font-medium leading-3">
-                              {plan.badge}
-                            </span>
+                            <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
                           </Badge>
                         </div>
-                        <Badge
-                          variant="gray"
-                          size="md"
-                          className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
+                        <Badge variant="gray" size="md" className="h-4 w-fit rounded-md px-1 py-1 md:hidden">
                           <span className="text-emphasis text-xs font-medium leading-3">{plan.badge}</span>
                         </Badge>
-                        <p className="text-subtle max-w-full text-sm font-normal leading-tight">
+                        <p className="text-subtle max-w-full text-sm font-medium leading-[1.25]">
                           {plan.description}
                         </p>
                       </div>
@@ -145,23 +135,21 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
                   );
                 })}
               </RadioAreaGroup.Group>
-
-              {/* Footer */}
-              <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-                  {t("continue")}
-                </Button>
-              </div>
             </div>
+          </div>
+
+          {/* Continue Button - Outside card but inside left column */}
+          <div className="flex w-full items-center justify-end">
+            <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
+              {t("continue")}
+            </Button>
           </div>
         </div>
 
         {/* Right column - Icon display */}
         {selectedPlanData && (
-          <div className="hidden lg:flex lg:items-start lg:justify-center">
-            <div className="sticky top-8">
-              <PlanIcon icon={selectedPlanData.icon} variant={selectedPlanData.variant} />
-            </div>
+          <div className="bg-muted border-subtle hidden w-full rounded-l-2xl border-b border-l border-t lg:flex lg:h-full lg:items-center lg:justify-center">
+            <PlanIcon icon={selectedPlanData.icon} variant={selectedPlanData.variant} />
           </div>
         )}
       </OnboardingLayout>

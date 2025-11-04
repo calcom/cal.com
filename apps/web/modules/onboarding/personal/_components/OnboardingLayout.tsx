@@ -41,8 +41,8 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
 
       {/* Main content */}
       <div className="mx-auto flex w-full max-w-[min(95%,1200px)] flex-1 justify-center px-6 py-10 lg:max-w-[min(90%,1400px)] lg:py-16 xl:max-w-[min(85%,1600px)] xl:py-20 2xl:max-w-[min(80%,1800px)] 2xl:py-24">
-        <div className="bg-default w-full overflow-hidden rounded-2xl py-10 pl-14 pr-0 lg:py-16 xl:py-20 2xl:py-24">
-          <div className="grid w-full grid-cols-[1fr] justify-items-center gap-14 [grid-template-areas:'content'] lg:grid-cols-[1fr_2fr] lg:justify-items-start lg:[grid-template-areas:'content_browser']">
+        <div className="bg-default border-subtle w-full overflow-hidden rounded-2xl border py-10 pl-14 pr-0 lg:py-16 xl:py-20 2xl:py-24">
+          <div className="grid h-full w-full grid-cols-[1fr] items-stretch justify-items-center gap-14 [grid-template-areas:'content'] lg:grid-cols-[1fr_2fr] lg:justify-items-start lg:[grid-template-areas:'content_browser']">
             {children}
           </div>
         </div>
