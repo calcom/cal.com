@@ -205,7 +205,26 @@ export class BookingsController_2024_04_15 {
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
     try {
-      await this.checkBookingRequiresAuthentication(req, body.eventTypeId);
+      if (!body.rescheduleUid) {
+        await this.checkBookingRequiresAuthentication(req, body.eventTypeId);
+      } else {
+        const { bookingInfo } = await getBookingInfo(body.rescheduleUid);
+        if (!bookingInfo) {
+          throw new NotFoundException(
+            `Booking with UID=${body.rescheduleUid} does not exist. Cannot reschedule a non-existent booking.`
+          );
+        }
+        if (bookingInfo.status !== "ACCEPTED") {
+          throw new BadRequestException(
+            `Booking with UID=${body.rescheduleUid} is not an upcoming booking (status: ${bookingInfo.status}). Only upcoming bookings can be rescheduled.`
+          );
+        }
+        if (bookingInfo.eventTypeId !== body.eventTypeId) {
+          throw new BadRequestException(
+            `Booking with UID=${body.rescheduleUid} is for a different event type (eventTypeId: ${bookingInfo.eventTypeId}). Cannot reschedule to a different event type (eventTypeId: ${body.eventTypeId}).`
+          );
+        }
+      }
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
