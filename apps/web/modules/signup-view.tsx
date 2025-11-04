@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm, useFormContext } from "react-hook-form";
 import { Toaster } from "sonner";
@@ -15,6 +15,7 @@ import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
+import type { TurnstileInstance } from "@calcom/features/auth/Turnstile";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -132,7 +133,6 @@ function UsernameField({
       });
     }
     checkUsername();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
 
   return (
@@ -192,6 +192,8 @@ export default function Signup({
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
+  const [turnstileKey, setTurnstileKey] = useState(0);
+  const turnstileRef = useRef<TurnstileInstance>(null);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -209,10 +211,16 @@ export default function Signup({
 
   useEffect(() => {
     if (redirectUrl) {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
+
+  // Test: Verify ref works through dynamic import
+  useEffect(() => {
+    if (CLOUDFLARE_SITE_ID) {
+      console.log("Turnstile ref available:", Boolean(turnstileRef.current));
+    }
+  }, []);
 
   const [userConsentToCookie, setUserConsentToCookie] = useState(false); // No need to be checked for user to proceed
 
@@ -243,6 +251,13 @@ export default function Signup({
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
+    if (CLOUDFLARE_SITE_ID && !_data.cfToken) {
+      formMethods.setError("apiError", {
+        message: "Please complete the verification again",
+      });
+      return;
+    }
+
     const { cfToken, ...data } = _data;
     await fetch("/api/auth/signup", {
       body: JSON.stringify({
@@ -258,6 +273,10 @@ export default function Signup({
     })
       .then(handleErrorsAndStripe)
       .then(async () => {
+        if (turnstileRef.current) {
+          turnstileRef.current.reset();
+        }
+
         if (process.env.NEXT_PUBLIC_GTM_ID)
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
@@ -299,7 +318,19 @@ export default function Signup({
         });
       })
       .catch((err) => {
-        formMethods.setError("apiError", { message: err.message });
+        const message =
+          err.message === "Invalid cloudflare token"
+            ? "Verification expired. Please try again."
+            : err.message;
+
+        formMethods.setError("apiError", { message });
+        if (turnstileRef.current) {
+          turnstileRef.current.reset();
+        } else {
+          // Fallback: force remount if ref doesn't work
+          setTurnstileKey((k) => k + 1);
+        }
+        formMethods.setValue("cfToken", undefined);
       });
   };
 
@@ -313,7 +344,7 @@ export default function Signup({
                 id="gtm-init-script"
                 // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
                 // And we don't want it to error here anyways
-                 
+
                 dangerouslySetInnerHTML={{
                   __html: `(function (w, d, s, l, i) {
                         w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
@@ -323,7 +354,6 @@ export default function Signup({
                 }}
               />
               <noscript
-                 
                 dangerouslySetInnerHTML={{
                   __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
                 }}
@@ -449,9 +479,17 @@ export default function Signup({
                   {/* Cloudflare Turnstile Captcha */}
                   {CLOUDFLARE_SITE_ID ? (
                     <TurnstileCaptcha
+                      key={turnstileKey}
+                      ref={turnstileRef}
                       appearance="interaction-only"
                       onVerify={(token) => {
                         formMethods.setValue("cfToken", token);
+                      }}
+                      onExpire={() => {
+                        formMethods.setValue("cfToken", undefined);
+                      }}
+                      onError={() => {
+                        formMethods.setValue("cfToken", undefined);
                       }}
                     />
                   ) : null}
@@ -488,7 +526,6 @@ export default function Signup({
                           showToast("error", t("username_required"));
                           return;
                         }
-                        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                         localStorage.setItem("username", username);
                         const sp = new URLSearchParams();
                         // @NOTE: don't remove username query param as it's required right now for stripe payment page
@@ -518,9 +555,7 @@ export default function Signup({
                         !!formMethods.formState.errors.email ||
                         !formMethods.getValues("email") ||
                         !formMethods.getValues("password") ||
-                        (CLOUDFLARE_SITE_ID &&
-                          !process.env.NEXT_PUBLIC_IS_E2E &&
-                          !formMethods.getValues("cfToken")) ||
+                        (CLOUDFLARE_SITE_ID && !process.env.NEXT_PUBLIC_IS_E2E && !watch("cfToken")) ||
                         isSubmitting ||
                         usernameTaken
                       }>
@@ -558,7 +593,6 @@ export default function Signup({
                         if (prepopulateFormValues?.username) {
                           // If username is present we save it in query params to check for premium
                           searchQueryParams.set("username", prepopulateFormValues.username);
-                          // eslint-disable-next-line @calcom/eslint/avoid-web-storage
                           localStorage.setItem("username", prepopulateFormValues.username);
                         }
                         if (token) {
