@@ -2,6 +2,7 @@ import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getHttpStatusForErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -95,79 +96,7 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
 function getStatusCode(cause: Error | ErrorWithCode): number {
   const errorCode = cause instanceof ErrorWithCode ? cause.code : cause.message;
 
-  switch (errorCode) {
-    // 400 Bad Request
-    case ErrorCode.RequestBodyWithouEnd:
-    case ErrorCode.MissingPaymentCredential:
-    case ErrorCode.MissingPaymentAppId:
-    case ErrorCode.AvailabilityNotFoundInSchedule:
-    case ErrorCode.CancelledBookingsCannotBeRescheduled:
-    case ErrorCode.BookingTimeOutOfBounds:
-    case ErrorCode.BookingNotAllowedByRestrictionSchedule:
-    case ErrorCode.BookerLimitExceeded:
-    case ErrorCode.BookerLimitExceededReschedule:
-    case ErrorCode.EventTypeNoHosts:
-    case ErrorCode.RequestBodyInvalid:
-    case ErrorCode.ChargeCardFailure:
-    case ErrorCode.InvalidInput:
-    case ErrorCode.MissingRequiredField:
-    case ErrorCode.InvalidPhoneNumber:
-    case ErrorCode.InvalidTimeZone:
-    case ErrorCode.InvalidOperation:
-    case ErrorCode.ConfigurationError:
-    case ErrorCode.PrivateLinkExpired:
-    case ErrorCode.BookerEmailBlocked:
-    case ErrorCode.BookerEmailRequiresLogin:
-    case ErrorCode.InvalidVerificationCode:
-    case ErrorCode.UnableToValidateVerificationCode:
-      return 400;
-    // 401 Unauthorized
-    case ErrorCode.Unauthorized:
-      return 401;
-    // 402 Payment Required
-    case ErrorCode.PaymentRequired:
-      return 402;
-    // 403 Forbidden
-    case ErrorCode.PermissionDenied:
-    case ErrorCode.AccessDenied:
-    case ErrorCode.OperationNotAllowed:
-      return 403;
-    // 409 Conflict
-    case ErrorCode.NoAvailableUsersFound:
-    case ErrorCode.FixedHostsUnavailableForBooking:
-    case ErrorCode.RoundRobinHostsUnavailableForBooking:
-    case ErrorCode.AlreadySignedUpForBooking:
-    case ErrorCode.BookingSeatsFull:
-    case ErrorCode.NotEnoughAvailableSeats:
-    case ErrorCode.BookingConflict:
-    case ErrorCode.PaymentCreationFailure:
-    case ErrorCode.ResourceAlreadyExists:
-      return 409;
-    // 404 Not Found
-    case ErrorCode.EventTypeNotFound:
-    case ErrorCode.BookingNotFound:
-    case ErrorCode.RestrictionScheduleNotFound:
-    case ErrorCode.ResourceNotFound:
-    case ErrorCode.AgentNotFound:
-    case ErrorCode.TeamNotFound:
-    case ErrorCode.UserNotFound:
-    case ErrorCode.CheckoutSessionNotFound:
-    case ErrorCode.SubscriptionNotFound:
-      return 404;
-    // 503 Service Unavailable
-    case ErrorCode.ResourceUnavailable:
-    case ErrorCode.ExternalServiceError:
-    case ErrorCode.ApiError:
-      return 503;
-    case ErrorCode.UnableToSubscribeToThePlatform:
-    case ErrorCode.UpdatingOauthClientError:
-    case ErrorCode.CreatingOauthClientError:
-    case ErrorCode.InternalServerError:
-    case ErrorCode.UnableToLoadUsers:
-    case ErrorCode.FailedToUpdateStatus:
-    default:
-      return 500;
-  }
+  return getHttpStatusForErrorCode(errorCode as ErrorCode);
 }
 
 function getHttpError<T extends Error>({ statusCode, cause }: { statusCode: number; cause: T }) {

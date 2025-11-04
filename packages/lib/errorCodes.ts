@@ -70,3 +70,80 @@ export enum ErrorCode {
   ExternalServiceError = "external_service_error",
   ApiError = "api_error",
 }
+
+export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
+  // 400 Bad Request - Client errors, invalid input, validation failures
+  [ErrorCode.RequestBodyWithouEnd]: 400,
+  [ErrorCode.MissingPaymentCredential]: 400,
+  [ErrorCode.MissingPaymentAppId]: 400,
+  [ErrorCode.AvailabilityNotFoundInSchedule]: 400,
+  [ErrorCode.CancelledBookingsCannotBeRescheduled]: 400,
+  [ErrorCode.BookingTimeOutOfBounds]: 400,
+  [ErrorCode.BookingNotAllowedByRestrictionSchedule]: 400,
+  [ErrorCode.BookerLimitExceeded]: 400,
+  [ErrorCode.BookerLimitExceededReschedule]: 400,
+  [ErrorCode.EventTypeNoHosts]: 400,
+  [ErrorCode.RequestBodyInvalid]: 400,
+  [ErrorCode.ChargeCardFailure]: 400,
+  [ErrorCode.InvalidInput]: 400,
+  [ErrorCode.MissingRequiredField]: 400,
+  [ErrorCode.InvalidPhoneNumber]: 400,
+  [ErrorCode.InvalidTimeZone]: 400,
+  [ErrorCode.InvalidOperation]: 400,
+  [ErrorCode.ConfigurationError]: 400,
+  [ErrorCode.PrivateLinkExpired]: 400,
+  [ErrorCode.BookerEmailBlocked]: 400,
+  [ErrorCode.BookerEmailRequiresLogin]: 400,
+  [ErrorCode.InvalidVerificationCode]: 400,
+  [ErrorCode.UnableToValidateVerificationCode]: 400,
+
+  // 401 Unauthorized - Authentication required
+  [ErrorCode.Unauthorized]: 401,
+
+  // 402 Payment Required - Payment needed to proceed
+  [ErrorCode.PaymentRequired]: 402,
+
+  // 403 Forbidden - Access denied, insufficient permissions
+  [ErrorCode.PermissionDenied]: 403,
+  [ErrorCode.AccessDenied]: 403,
+  [ErrorCode.OperationNotAllowed]: 403,
+
+  // 404 Not Found - Resource does not exist
+  [ErrorCode.EventTypeNotFound]: 404,
+  [ErrorCode.BookingNotFound]: 404,
+  [ErrorCode.RestrictionScheduleNotFound]: 404,
+  [ErrorCode.ResourceNotFound]: 404,
+  [ErrorCode.AgentNotFound]: 404,
+  [ErrorCode.TeamNotFound]: 404,
+  [ErrorCode.UserNotFound]: 404,
+  [ErrorCode.CheckoutSessionNotFound]: 404,
+  [ErrorCode.SubscriptionNotFound]: 404,
+
+  // 409 Conflict - Resource conflicts, already exists, unavailable
+  [ErrorCode.NoAvailableUsersFound]: 409,
+  [ErrorCode.FixedHostsUnavailableForBooking]: 409,
+  [ErrorCode.RoundRobinHostsUnavailableForBooking]: 409,
+  [ErrorCode.AlreadySignedUpForBooking]: 409,
+  [ErrorCode.BookingSeatsFull]: 409,
+  [ErrorCode.NotEnoughAvailableSeats]: 409,
+  [ErrorCode.BookingConflict]: 409,
+  [ErrorCode.PaymentCreationFailure]: 409,
+  [ErrorCode.ResourceAlreadyExists]: 409,
+
+  // 500 Internal Server Error - Server-side errors, system failures
+  [ErrorCode.UnableToSubscribeToThePlatform]: 500,
+  [ErrorCode.UpdatingOauthClientError]: 500,
+  [ErrorCode.CreatingOauthClientError]: 500,
+  [ErrorCode.InternalServerError]: 500,
+  [ErrorCode.UnableToLoadUsers]: 500,
+  [ErrorCode.FailedToUpdateStatus]: 500,
+
+  // 503 Service Unavailable - External services, temporary failures
+  [ErrorCode.ResourceUnavailable]: 503,
+  [ErrorCode.ExternalServiceError]: 503,
+  [ErrorCode.ApiError]: 503,
+};
+
+export function getHttpStatusForErrorCode(errorCode: ErrorCode): number {
+  return ERROR_CODE_TO_HTTP_STATUS[errorCode] ?? 500;
+}
