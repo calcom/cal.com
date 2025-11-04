@@ -227,6 +227,8 @@ function BookingDetailsSheetInner({
               {t("view")}
             </Button>
             <BookingActionsDropdown
+              context="booking-details-sheet"
+              size="sm"
               booking={{
                 ...booking,
                 listingStatus: booking.status.toLowerCase() as BookingListingStatus,
