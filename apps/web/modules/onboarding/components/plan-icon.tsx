@@ -130,10 +130,10 @@ export function PlanIcon({
   };
 
   return (
-    <div className="relative h-[282px] w-[465px] shrink-0 overflow-visible">
+    <div className="relative mx-auto h-[465px] w-[465px] shrink-0 overflow-visible">
       {/* Generate concentric rings centered on icon */}
       {RING_SIZES.map((size, index) => {
-        const opacity = [0.25, 0.3, 0.35, 0.4][index] || 0.3;
+        const opacity = [0.6, 0.5, 0.4, 0.35][index] || 0.3;
         return (
           <div
             key={index}
@@ -144,10 +144,6 @@ export function PlanIcon({
               border: "0.5px solid",
               borderColor: "var(--cal-border-default, #D3D3D3)",
               opacity: opacity,
-              maskImage:
-                "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
-              WebkitMaskImage:
-                "linear-gradient(180deg, transparent 0%, black 2%, black 50%, black 75%, transparent 100%)",
             }}
           />
         );

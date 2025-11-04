@@ -24,7 +24,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
   return (
     <div className="bg-muted flex min-h-screen w-full flex-col items-start overflow-clip rounded-[12px]">
       {/* Header */}
-      <div className="3xl:max-w-[2000px] mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-6 lg:max-w-[1400px] lg:px-[176px] xl:max-w-[1600px] 2xl:max-w-[1800px]">
+      <div className="3xl:max-w-[2000px] 4xl:max-w-[2400px] mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-6 lg:max-w-[1400px] lg:px-[176px] xl:max-w-[1600px] 2xl:max-w-[1800px]">
         <Logo className="h-5 w-auto" />
         <div className="flex items-center gap-2">
           <div className="flex items-center">
@@ -40,9 +40,9 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
       </div>
 
       {/* Main content */}
-      <div className="mx-auto flex w-full max-w-[min(95%,1200px)] flex-1 justify-center px-6 py-10 lg:max-w-[min(90%,1400px)] lg:py-16 xl:max-w-[min(85%,1600px)] xl:py-20 2xl:max-w-[min(80%,1800px)] 2xl:py-24">
-        <div className="bg-default border-subtle w-full overflow-hidden rounded-2xl border py-10 pl-14 pr-0 lg:py-16 xl:py-20 2xl:py-24">
-          <div className="grid h-full w-full grid-cols-[1fr] items-stretch justify-items-center gap-14 [grid-template-areas:'content'] lg:grid-cols-[2fr_3fr] lg:justify-items-start lg:[grid-template-areas:'content_browser']">
+      <div className="mx-auto flex w-full flex-1 items-center justify-center px-6 py-10">
+        <div className="bg-default border-subtle h-full max-h-[690px] overflow-hidden rounded-2xl border px-14 py-10">
+          <div className="grid h-full grid-cols-1 items-stretch gap-6 xl:grid-cols-[40%_60%] [&>*:nth-child(2)]:hidden xl:[&>*:nth-child(2)]:block">
             {children}
           </div>
         </div>

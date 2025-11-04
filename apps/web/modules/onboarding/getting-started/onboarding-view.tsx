@@ -172,7 +172,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
         </div>
 
         {/* Right column - Icon display */}
-        <div className="bg-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t lg:flex lg:items-center lg:justify-center">
+        <div className="bg-muted border-subtle hidden h-full w-full rounded-l-2xl border-b border-l border-t xl:flex xl:items-center xl:justify-center">
           <AnimatePresence mode="wait">
             {selectedPlanData && (
               <PlanIcon
