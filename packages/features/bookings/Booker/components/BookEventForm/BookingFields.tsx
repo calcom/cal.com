@@ -1,5 +1,6 @@
 import { useMemo, useRef } from "react";
 import { useFormContext } from "react-hook-form";
+import { z } from "zod";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
@@ -19,6 +20,10 @@ type TouchedFields = {
 };
 
 type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
+const PhoneLocationSchema = z.object({
+  value: z.literal("phone"),
+  optionValue: z.string().optional(),
+});
 export const BookingFields = ({
   fields,
   locations,
@@ -53,15 +58,9 @@ export const BookingFields = ({
 
   // Event-driven sync function
   const syncPhoneFields = (locationValue: unknown) => {
-    // Normalize the input shape
-    if (typeof locationValue !== "object" || !locationValue) return;
-    const { value: locationType, optionValue } = locationValue as {
-      value: string;
-      optionValue?: string;
-    };
-
-    // Only sync when location type is "phone"
-    if (locationType !== "phone") return;
+    const parsed = PhoneLocationSchema.safeParse(locationValue);
+    if (!parsed.success) return;
+    const { optionValue } = parsed.data;
     const phone = (optionValue ?? "").trim();
 
     // Skip if empty or same as last sync (avoid redundant updates during typing)
@@ -78,6 +77,7 @@ export const BookingFields = ({
         });
       }
     });
+
     lastSyncedPhoneRef.current = phone;
   };
 
