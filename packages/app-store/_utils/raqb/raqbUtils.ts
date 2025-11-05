@@ -247,6 +247,7 @@ export function getAttributesQueryBuilderConfigHavingListofLabels({
   const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
     Object.entries(attributesQueryBuilderConfig.fields).map(([raqbFieldId, raqbField]) => {
       const raqbFieldType = raqbField.type;
+      const originalFieldSettings = (raqbField as { fieldSettings?: { listValues?: { value: string; title: string }[] } }).fieldSettings;
 
       return [
         raqbFieldId,
@@ -254,8 +255,8 @@ export function getAttributesQueryBuilderConfigHavingListofLabels({
           ...raqbField,
           type: raqbFieldType,
           fieldSettings: {
-            ...raqbField.fieldSettings,
-            listValues: raqbField.fieldSettings.listValues?.map((option) => {
+            ...originalFieldSettings,
+            listValues: originalFieldSettings?.listValues?.map((option: { value: string; title: string }) => {
               return {
                 ...option,
                 // Use the title(which is the attributeOption.value) as the value of the raqb field so that it can be compatible for matching with the form field value

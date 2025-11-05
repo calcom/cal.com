@@ -1,4 +1,4 @@
-import { Utils as QbUtils } from "@react-awesome-query-builder/core";
+import { Utils as QbUtils, type Config } from "@react-awesome-query-builder/core";
 
 import { AttributeType } from "@calcom/prisma/enums";
 
@@ -97,7 +97,7 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
     ...initialConfigCopy,
     fields: fields,
   };
-  return QbUtils.ConfigUtils.extendConfig(config);
+  return QbUtils.ConfigUtils.extendConfig(config as unknown as Config);
 }
 
 function transformAttributesToCompatibleFormat(attributes: Attribute[]) {
@@ -176,5 +176,5 @@ export function getQueryBuilderConfigForAttributes({
     ...initialConfigCopy,
     fields: fields,
   };
-  return QbUtils.ConfigUtils.extendConfig(config);
+  return QbUtils.ConfigUtils.extendConfig(config as unknown as Config);
 }
