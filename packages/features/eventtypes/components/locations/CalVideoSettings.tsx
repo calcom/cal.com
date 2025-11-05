@@ -143,6 +143,23 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
               />
             )}
 
+            {!isPlatform && (
+              <Controller
+                name="canSendCalVideoTranscriptionEmails"
+                render={({ field: { onChange, value } }) => (
+                  <SettingsToggle
+                    title={t("send_cal_video_transcription_emails")}
+                    description={t("description_send_cal_video_transcription_emails")}
+                    labelClassName="text-sm leading-6 whitespace-normal break-words"
+                    checked={value}
+                    onCheckedChange={onChange}
+                    data-testid="send-cal-video-transcription-emails"
+                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                  />
+                )}
+              />
+            )}
+
             <TextField
               label={t("enter_redirect_url_on_exit_description")}
               defaultValue={calVideoSettings?.redirectUrlOnExit || ""}
