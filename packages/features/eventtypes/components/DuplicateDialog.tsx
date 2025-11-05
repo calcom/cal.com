@@ -10,8 +10,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { ErrorWithCode } from "@calcom/lib/errors";
-import { ErrorCode } from "@calcom/lib/errorCodes";
+import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -91,7 +90,7 @@ const DuplicateDialog = () => {
       );
     },
     onError: (err) => {
-      if (err instanceof ErrorWithCode) {
+      if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
@@ -152,7 +151,7 @@ const DuplicateDialog = () => {
                   </>
                 }
                 {...register("slug")}
-                 onChange={(e) => {
+                onChange={(e) => {
                   form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
                 }}
               />

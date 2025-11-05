@@ -6,8 +6,7 @@ import DateOverrideInputDialog from "@calcom/features/schedules/components/DateO
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ErrorWithCode } from "@calcom/lib/errors";
-import { ErrorCode } from "@calcom/lib/errorCodes";
+import { HttpError } from "@calcom/lib/http-error";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -142,7 +141,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
       showToast(t("success"), "success");
     },
     onError: (err) => {
-      if (err instanceof ErrorWithCode) {
+      if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
