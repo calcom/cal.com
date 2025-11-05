@@ -47,6 +47,10 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
             },
           },
         },
+        select: {
+          id: true,
+          slug: true,
+        },
       })
     : undefined;
 

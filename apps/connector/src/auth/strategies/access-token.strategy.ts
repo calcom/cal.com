@@ -44,11 +44,30 @@ export class AccessTokenStrategy {
       //     `Invalid request origin. Please add '${origin}' to the redirect URIs of OAuth client '${decodedAccessToken.clientId}'`
       //   );
       // }
-
       // Get the user who owns this access token
-      const userId = decodedAccessToken.userId;
+      let userId;
+      userId = decodedAccessToken.userId;
       if (!userId) {
-        throw new UnauthorizedError("No user associated with this access token");
+        const teamId = decodedAccessToken.teamId; //default to teamId 285 for testing
+        if (!teamId) {
+          throw new UnauthorizedError("No user associated with this access token");
+        }
+        //check for first owner of the team
+        const team = await this.prisma.calIdTeam.findUnique({
+          where: { id: Number(teamId) },
+          include: {
+            members: {
+              where: { role: "OWNER" },
+              take: 1,
+            },
+          },
+        });
+
+        if (!team || team.members.length === 0) {
+          throw new UnauthorizedError("No owner found for the team associated with this access token");
+        }
+
+        userId = team.members[0].userId;
       }
 
       const user = await this.getUserById(userId);
