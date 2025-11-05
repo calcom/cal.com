@@ -208,7 +208,7 @@ export function BookingDetailsSheet({
               </>
             )}
             <Button color="secondary" size="sm" EndIcon="external-link" href={bookingLink} target="_blank">
-              {t("view_confirmation")}
+              {t("view")}
             </Button>
           </div>
         </SheetFooter>

@@ -3958,7 +3958,6 @@
   "team_invite": "Team Invite",
   "slots": "Slots",
   "slots_taken": "{{takenSeats}}/{{totalSeats}} slots taken",
-  "view_confirmation": "View Confirmation",
   "team_invite_subtitle": "Invite team members to collaborate and schedule together",
   "team_onboarding_details_subtitle": "Add your team's name and create a unique URL for your team",
   "view_booking_details": "View Booking Details",
