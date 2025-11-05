@@ -38,8 +38,6 @@ export enum ErrorCode {
   BookingNotFound = "booking_not_found_error",
   RestrictionScheduleNotFound = "restriction_schedule_not_found_error",
   ResourceNotFound = "resource_not_found",
-  TeamNotFound = "team_not_found",
-  UserNotFound = "user_not_found",
 
   // 409 Conflict - Resource conflicts, already exists, unavailable
   NoAvailableUsersFound = "no_available_users_found_error",
