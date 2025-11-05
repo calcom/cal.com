@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails";
@@ -27,7 +26,10 @@ const attendeeRescheduleSeatedBooking = async (
     eventTypeId: eventType.id,
     team: eventType.team ?? null,
     owner: organizerUser ?? null,
-    organizationId: eventType.team?.parentId ?? null,
+    organizationId:
+      eventType.team?.parentId ??
+      (organizerUser as { organizationId?: number | null })?.organizationId ??
+      null,
   });
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };

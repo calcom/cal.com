@@ -139,7 +139,10 @@ const combineTwoSeatedBookings = async (
       eventTypeId: eventType.id,
       team: eventType.team ?? null,
       owner: organizerUser ?? null,
-      organizationId: eventType.team?.parentId ?? null,
+      organizationId:
+        eventType.team?.parentId ??
+        (organizerUser as { organizationId?: number | null })?.organizationId ??
+        null,
     });
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");

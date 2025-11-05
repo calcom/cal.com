@@ -117,6 +117,7 @@ async function cancelAttendeeSeat(
     try {
       await Promise.all(integrationsToUpdate);
     } catch (error) {
+      logger.error(`Error updating integrations for event: ${evt.bookingId}, bookingUid: ${evt.uid}`, safeStringify(error));
       // Shouldn't stop code execution if integrations fail
       // as integrations was already updated
     }
@@ -124,7 +125,16 @@ async function cancelAttendeeSeat(
     const tAttendees = await getTranslation(attendee.locale ?? "en", "common");
 
     await sendCancelledSeatEmailsAndSMS(
-      { ...evt, hideBranding: !!(bookingToDelete.eventType?.team?.hideBranding || bookingToDelete.eventType?.team?.parent?.hideBranding || bookingToDelete.user?.hideBranding) },
+      {
+        ...evt,
+        hideBranding:
+          evt.hideBranding ||
+          !!(
+            bookingToDelete.eventType?.team?.hideBranding ||
+            bookingToDelete.eventType?.team?.parent?.hideBranding ||
+            bookingToDelete.user?.hideBranding
+          ),
+      },
       {
         ...attendee,
         language: { translate: tAttendees, locale: attendee.locale ?? "en" },

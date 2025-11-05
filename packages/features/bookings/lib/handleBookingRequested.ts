@@ -72,10 +72,7 @@ export async function handleBookingRequested(args: {
   let hideBranding = false;
 
   if (!eventTypeId) {
-    log.warn("Booking missing eventTypeId, defaulting hideBranding to false", {
-      bookingId: booking.id,
-      userId: booking.userId,
-    });
+    log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
     hideBranding = false;
   } else {
     hideBranding = await shouldHideBrandingForEventWithPrisma({
