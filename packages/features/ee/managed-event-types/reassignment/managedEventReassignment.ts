@@ -22,12 +22,7 @@ interface ManagedEventReassignmentParams {
   emailsEnabled?: boolean;
 }
 
-/**
- * Automatically reassign a managed event booking to the best available user
- * 
- * Uses LuckyUserService to select the best user based on weights, priorities,
- * and least recently booked criteria, then delegates to manual reassignment.
- */
+
 export async function managedEventReassignment({
   bookingId,
   orgId,
@@ -41,10 +36,8 @@ export async function managedEventReassignment({
 
   reassignLogger.info(`User ${reassignedById} initiating auto-reassignment`);
 
-  // 1. Validate the booking can be reassigned
   await validateManagedEventReassignment({ bookingId });
 
-  // 2. Get the booking and current child event type
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     select: {
@@ -73,7 +66,6 @@ export async function managedEventReassignment({
     throw new Error("Booking is not on a managed event type");
   }
 
-  // 3. Get parent event type to verify it's MANAGED
   const parentEventType = await getEventTypesFromDB(currentChildEventType.parentId);
 
   if (!parentEventType) {
@@ -89,12 +81,11 @@ export async function managedEventReassignment({
     currentChildId: currentChildEventType.id,
   });
 
-  // 4. Get all child event types (sibling events for other users)
   const allChildEventTypes = await prisma.eventType.findMany({
     where: {
       parentId: currentChildEventType.parentId,
       userId: {
-        not: currentChildEventType.userId, // Exclude current user
+        not: currentChildEventType.userId,
       },
     },
     select: {
@@ -124,14 +115,12 @@ export async function managedEventReassignment({
 
   reassignLogger.info(`Found ${users.length} potential reassignment targets`);
 
-  // 5. Enrich users with selected calendars and delegation credentials
   const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
   const enrichedUsers = await enrichUsersWithDelegationCredentials({
     orgId,
     users: usersWithSelectedCalendars,
   });
 
-  // 6. Check availability for all users at the booking time
   const allUsers = enrichedUsers.map(user => ({
     ...user,
     isFixed: false,
@@ -153,13 +142,12 @@ export async function managedEventReassignment({
 
   reassignLogger.info(`${availableUsers.length} users available at booking time`);
 
-  // 7. Use LuckyUserService to select the best user
   const luckyUserService = getLuckyUserService();
   
   const selectedUser = await luckyUserService.getLuckyUser({
     availableUsers,
     eventType: parentEventType,
-    allRRHosts: [], // Not applicable for managed events
+    allRRHosts: [],
     routingFormResponse: null,
   });
 
@@ -169,7 +157,6 @@ export async function managedEventReassignment({
 
   reassignLogger.info(`Selected user ${selectedUser.id} for reassignment`);
 
-  // 8. Delegate to manual reassignment with auto-reassignment flag
   return await managedEventManualReassignment({
     bookingId,
     newUserId: selectedUser.id,

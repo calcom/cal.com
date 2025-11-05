@@ -37,11 +37,10 @@ export async function buildReassignmentBookingData({
   reassignedById,
   originalUserId,
 }: BuildReassignmentBookingDataParams) {
-  // Regenerate title with new host name using proper translation
+
   const bookerName =
     originalBooking.attendees.find((att) => !att.email.includes("@"))?.name || "Nameless";
   
-  // Get translation function for the new user's locale
   const newUserT = await getTranslation(newUser.locale || "en", "common");
   
   const newBookingTitle = getEventName({
@@ -58,7 +57,6 @@ export async function buildReassignmentBookingData({
     t: newUserT,
   });
 
-  // Build attendees data (copy from original)
   const attendeesData = originalBooking.attendees.map((attendee) => ({
     name: attendee.name,
     email: attendee.email,
@@ -67,11 +65,9 @@ export async function buildReassignmentBookingData({
     phoneNumber: attendee.phoneNumber,
   }));
 
-  // Generate a new unique UID for the reassigned booking
   const seed = `${newUser.username}:${dayjs(originalBooking.startTime).utc().format()}:${new Date().getTime()}:reassignment`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
-  // New booking data - return plain object without Prisma types  
   const newBookingData = {
     uid,
     userPrimaryEmail: newUser.email,
@@ -81,7 +77,7 @@ export async function buildReassignmentBookingData({
     endTime: originalBooking.endTime,
     description: originalBooking.description,
     customInputs: isPrismaObjOrUndefined(originalBooking.customInputs),
-    status: originalBooking.status, // Preserve status (ACCEPTED/PENDING)
+    status: originalBooking.status,
     location: originalBooking.location,
     eventType: {
       connect: { id: targetEventType.id },
@@ -93,15 +89,13 @@ export async function buildReassignmentBookingData({
       },
     },
     iCalUID: originalBooking.iCalUID || "",
-    iCalSequence: (originalBooking.iCalSequence || 0) + 1, // Increment sequence
+    iCalSequence: (originalBooking.iCalSequence || 0) + 1,
     user: {
       connect: { id: newUser.id },
     },
-    // Link payment if exists
     payment: originalBooking.payment.length > 0 && originalBooking.payment[0]?.id
       ? { connect: { id: originalBooking.payment[0].id } }
       : undefined,
-    // Store reassignment metadata
     metadata: {
       ...(typeof originalBooking.metadata === "object" && originalBooking.metadata !== null
         ? originalBooking.metadata
@@ -123,7 +117,6 @@ export async function buildReassignmentBookingData({
     }),
   };
 
-  // Original booking cancellation data - return plain object without Prisma types
   const originalBookingCancellationData = {
     where: { id: originalBooking.id },
     data: {

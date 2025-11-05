@@ -19,7 +19,7 @@ import { prisma } from "@calcom/prisma";
 import { userSelect } from "@calcom/prisma/selects/user";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
-import { cancelAllWorkflowRemindersForReassignment } from "./lib/handleWorkflowsUpdate";
+import { cancelWorkflowRemindersForReassignment } from "./lib/cancelWorkflowReminders";
 import ManagedEventAssignmentReasonRecorder, {
   ManagedEventReassignmentType,
 } from "./lib/ManagedEventAssignmentReasonRecorder";
@@ -36,12 +36,6 @@ interface ManagedEventManualReassignmentParams {
   isAutoReassignment?: boolean;
 }
 
-/**
- * Manually reassign a managed event booking to a specific user
- * 
- * This creates a new booking on the target user's child event type
- * and cancels the original booking, similar to rescheduling.
- */
 export async function managedEventManualReassignment({
   bookingId,
   newUserId,
@@ -347,7 +341,7 @@ export async function managedEventManualReassignment({
   }
 
   try {
-    const cancelResult = await cancelAllWorkflowRemindersForReassignment({
+    const cancelResult = await cancelWorkflowRemindersForReassignment({
       bookingUid: originalBookingFull.uid,
     });
     reassignLogger.info(`Cancelled ${cancelResult.totalCancelled} workflow reminders (${cancelResult.emailCancelled} email, ${cancelResult.smsCancelled} SMS)`);

@@ -66,7 +66,7 @@ async function getManagedEventUsersFromDB({
           },
         },
       },
-      take: limit + 1, // Take one more to determine if there's a next page
+      take: limit + 1,
       ...(cursor && { skip: 1, cursor: { id: cursor } }),
       orderBy: { owner: { name: "asc" } },
     }),
@@ -121,7 +121,6 @@ export const getManagedEventUsersToReassign = async ({
     throw new Error("Booking requires an event type to reassign users");
   }
 
-  // Get the child event type to find the parent
   const childEventType = await prisma.eventType.findUniqueOrThrow({
     where: { id: booking.eventTypeId },
     select: {
@@ -134,7 +133,6 @@ export const getManagedEventUsersToReassign = async ({
     throw new Error("Booking is not on a managed event type");
   }
 
-  // Get all users from sibling child event types
   const { users, totalCount, nextCursor } = await getManagedEventUsersFromDB({
     parentEventTypeId: childEventType.parentId,
     organizationId,
@@ -149,7 +147,6 @@ export const getManagedEventUsersToReassign = async ({
   try {
     const eventType = await getEventTypeFromDB(booking.eventTypeId, prisma);
     availableUsers = await ensureAvailableUsers(
-      // @ts-expect-error - TODO: We need to make sure nothing in the app needs the return type of getEventTypeFromDB as it fetches everything under the sun
       {
         users: users as IsFixedAwareUser[],
         ...eventType,

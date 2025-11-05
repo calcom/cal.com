@@ -38,7 +38,7 @@ export async function findTargetChildEventType({
   bookingId,
   newUserId,
 }: FindTargetChildEventTypeParams): Promise<FindTargetChildEventTypeResult> {
-  // 1. Get the booking
+
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     select: {
@@ -56,7 +56,6 @@ export async function findTargetChildEventType({
     throw new Error("Booking does not have an event type");
   }
 
-  // 2. Get the current child event type and check if it has a parent
   const currentChildEventType = await prisma.eventType.findUnique({
     where: { id: booking.eventTypeId },
     select: {
@@ -75,7 +74,6 @@ export async function findTargetChildEventType({
     throw new Error("Booking is not on a managed event type");
   }
 
-  // 3. Get and verify the parent event type
   const parentEventType = await getEventTypesFromDB(currentChildEventType.parentId);
 
   if (!parentEventType) {
@@ -86,7 +84,6 @@ export async function findTargetChildEventType({
     throw new Error("Parent event type must be a MANAGED type");
   }
 
-  // 4. Find the target child event type for the new user
   const targetChildEventType = await prisma.eventType.findUnique({
     where: {
       userId_parentId: {
@@ -108,12 +105,10 @@ export async function findTargetChildEventType({
     );
   }
 
-  // 5. Validate not reassigning to the same user
   if (currentChildEventType.userId === newUserId) {
     throw new Error("Cannot reassign to the same user");
   }
 
-  // 6. Ensure target child event type has parentId
   if (!targetChildEventType.parentId) {
     throw new Error("Target child event type is missing parentId");
   }

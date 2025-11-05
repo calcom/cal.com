@@ -4,15 +4,8 @@ import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums"; 
 
-const workflowLogger = logger.getSubLogger({ prefix: ["managedEventWorkflowsUpdate"] });
+const workflowLogger = logger.getSubLogger({ prefix: ["managedEventWorkflowsCancellation"] });
 
-/**
- * Handles workflow reminder updates for managed event reassignment
- * 
- * Since managed events create a NEW booking (not in-place update), we need to:
- * 1. Cancel all scheduled workflow reminders for the OLD booking
- * 2. NEW booking reminders are handled separately via WorkflowService.scheduleWorkflowsForNewBooking
- */
 export async function cancelOldBookingWorkflowReminders({
   bookingUid,
 }: {
@@ -20,7 +13,6 @@ export async function cancelOldBookingWorkflowReminders({
 }) {
   workflowLogger.info(`Cancelling workflow reminders for booking ${bookingUid}`);
 
-  // Find all scheduled EMAIL workflow reminders for the old booking
   const workflowReminders = await prisma.workflowReminder.findMany({
     where: {
       bookingUid,
@@ -64,7 +56,6 @@ export async function cancelOldBookingWorkflowReminders({
 
   workflowLogger.info(`Found ${workflowReminders.length} workflow reminders to cancel`);
 
-  // Delete all scheduled reminders
   const deletionPromises = workflowReminders.map((reminder) =>
     deleteScheduledEmailReminder(reminder.id).catch((error) => {
       workflowLogger.error(`Failed to delete reminder ${reminder.id}`, error);
@@ -80,11 +71,6 @@ export async function cancelOldBookingWorkflowReminders({
   };
 }
 
-/**
- * Cancels SMS workflow reminders for the old booking
- * 
- * Note: SMS reminders are handled differently from email reminders
- */
 export async function cancelOldBookingSMSReminders({
   bookingUid,
 }: {
@@ -92,7 +78,6 @@ export async function cancelOldBookingSMSReminders({
 }) {
   workflowLogger.info(`Cancelling SMS reminders for booking ${bookingUid}`);
 
-  // Mark SMS reminders as cancelled in the database
   const result = await prisma.workflowReminder.updateMany({
     where: {
       bookingUid,
@@ -114,10 +99,8 @@ export async function cancelOldBookingSMSReminders({
   };
 }
 
-/**
- * Main function to cancel all workflow reminders for a reassigned booking
- */
-export async function cancelAllWorkflowRemindersForReassignment({
+
+export async function cancelWorkflowRemindersForReassignment({
   bookingUid,
 }: {
   bookingUid: string;

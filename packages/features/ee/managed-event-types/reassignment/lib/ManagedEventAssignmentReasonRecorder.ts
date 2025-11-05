@@ -7,12 +7,6 @@ export enum ManagedEventReassignmentType {
   AUTO = "auto",
 }
 
-/**
- * Records assignment reasons for managed event reassignments
- * 
- * This is separate from Round Robin's AssignmentReasonRecorder to maintain
- * clear separation of concerns between different scheduling types.
- */
 export default class ManagedEventAssignmentReasonRecorder {
   /**
    * Record a managed event reassignment reason

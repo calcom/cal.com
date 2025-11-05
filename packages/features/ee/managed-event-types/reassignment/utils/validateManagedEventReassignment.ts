@@ -40,17 +40,14 @@ export async function validateManagedEventReassignment({
     throw new Error("Booking not found");
   }
 
-  // Check if booking is already cancelled
   if (booking.status === BookingStatus.CANCELLED) {
     throw new Error("Cannot reassign already cancelled booking");
   }
 
-  // Check if booking has already ended
   if (booking.endTime && new Date() > new Date(booking.endTime)) {
     throw new Error("Cannot reassign a booking that has already ended");
   }
 
-  // Phase 1 limitation: No recurring bookings
   if (booking.recurringEventId) {
     throw new Error(
       "Reassignment of recurring bookings is not yet supported for managed events"
