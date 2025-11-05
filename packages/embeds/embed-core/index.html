@@ -357,6 +357,9 @@
             If you render booking embed in me, I won't restrict you. The entire page is yours. Content is by
             default aligned center
           </div>
+          <button onclick="heavilyCustomizeUi()">
+            Heavily customize UI
+          </button>
           <button
             onclick="(function () {Cal.ns.second('ui', {cssVarsPerTheme:{light:{'cal-border-booker':'green', 'cal-border-booker-width':'20px'},dark:{'cal-border-booker':'red', 'cal-border-booker-width':'5px'}}})})()">
             Change booker border for dark and light themes
@@ -368,9 +371,6 @@
           <button
             onclick="(function () {Cal.ns.second('ui', {styles:{eventTypeListItem:{backgroundColor:'blue'}}})})()">
             Change <code>eventTypeListItem</code> bg color[Deprecated]
-          </button>
-          <button onclick="(function () {Cal.ns.second('ui', {styles:{body:{background:'red'}}})})()">
-            Change <code>body</code> bg color[Deprecated]
           </button>
           <button onclick="(function () {Cal.ns.second('ui', {styles:{align:'left'}})})()">
             Align left[Deprecated]
