@@ -16370,6 +16370,10 @@
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "price": {
+            "type": "number",
+            "description": "Price in cents."
+          },
           "locations": {
             "type": "array",
             "description": "Locations where the event will take place. If not provided, cal video link will be used as the location.",
@@ -17925,6 +17929,10 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "price": {
+            "type": "number",
+            "description": "Price in cents"
           },
           "locations": {
             "type": "array",
@@ -19508,6 +19516,10 @@
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
           },
+          "price": {
+            "type": "number",
+            "description": "Price in cents."
+          },
           "schedulingType": {
             "type": "string",
             "enum": ["collective", "roundRobin", "managed"],
@@ -20345,6 +20357,10 @@
             "type": "boolean",
             "default": false,
             "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "price": {
+            "type": "number",
+            "description": "Price in cents"
           },
           "hosts": {
             "description": "Hosts contain specific team members you want to assign to this event type, but if you want to assign all team members, use `assignAllTeamMembers: true` instead and omit this field. For platform customers the hosts can include userIds only of managed users. Provide either hosts or assignAllTeamMembers but not both",
