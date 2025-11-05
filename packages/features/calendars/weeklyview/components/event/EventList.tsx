@@ -34,6 +34,27 @@ export function EventList({ day }: Props) {
     return createLayoutMap(layouts);
   }, [dayEvents]);
 
+  const eventCalculations = useMemo(() => {
+    return new Map(
+      dayEvents.map((event) => {
+        const eventStart = dayjs(event.start);
+        const eventEnd = dayjs(event.end);
+        const eventDuration = eventEnd.diff(eventStart, "minutes");
+        const eventStartHour = eventStart.hour();
+        const eventStartDiff = (eventStartHour - (startHour || 0)) * 60 + eventStart.minute();
+
+        return [
+          event.id,
+          {
+            eventStart,
+            eventDuration,
+            eventStartDiff,
+          },
+        ];
+      })
+    );
+  }, [dayEvents, startHour]);
+
   // Find which overlap group the hovered event belongs to
   const hoveredEventLayout = hoveredEventId ? layoutMap.get(hoveredEventId) : null;
   const hoveredGroupIndex = hoveredEventLayout?.groupIndex ?? null;
@@ -44,11 +65,10 @@ export function EventList({ day }: Props) {
         const layout = layoutMap.get(event.id);
         if (!layout) return null;
 
-        const eventStart = dayjs(event.start);
-        const eventEnd = dayjs(event.end);
-        const eventDuration = eventEnd.diff(eventStart, "minutes");
-        const eventStartHour = eventStart.hour();
-        const eventStartDiff = (eventStartHour - (startHour || 0)) * 60 + eventStart.minute();
+        const calc = eventCalculations.get(event.id);
+        if (!calc) return null;
+
+        const { eventStart, eventDuration, eventStartDiff } = calc;
 
         const isHovered = hoveredEventId === event.id;
         const isInHoveredGroup = hoveredGroupIndex !== null && layout.groupIndex === hoveredGroupIndex;
