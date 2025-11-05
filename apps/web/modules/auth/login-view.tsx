@@ -24,11 +24,13 @@ import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetr
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 
+import { isOpenedInWebView as isWebView } from "@lib/isWebView";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
+import WebViewBlocker from "@components/webview-blocker";
 
 import type { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 
@@ -168,6 +170,11 @@ export default function Login({
     },
     [error]
   );
+  const [inWebView, setInWebView] = useState(false);
+
+  useEffect(() => {
+    setInWebView(isWebView());
+  }, []);
 
   return (
     <div className="bg-default flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -184,23 +191,28 @@ export default function Login({
           {!twoFactorRequired && (
             <>
               <div className="mb-4 space-y-2">
-                {isGoogleLoginEnabled && (
-                  <Button
-                    color="secondary"
-                    className="text-subtle bg-primary w-full justify-center rounded-md"
-                    disabled={formState.isSubmitting}
-                    data-testid="google"
-                    CustomStartIcon={<GoogleIcon />}
-                    onClick={async (e) => {
-                      e.preventDefault();
-                      setLastUsed("google");
-                      await signIn("google", {
-                        callbackUrl,
-                      });
-                    }}>
-                    <span>{t("signin_with_google")}</span>
-                    {lastUsed === "google" && <LastUsed />}
-                  </Button>
+                {inWebView ? (
+                  <WebViewBlocker />
+                ) : (
+                  isGoogleLoginEnabled && (
+                    <Button
+                      color="secondary"
+                      className="text-subtle bg-primary relative w-full justify-center rounded-md"
+                      disabled={formState.isSubmitting}
+                      data-testid="google"
+                      CustomStartIcon={<GoogleIcon />}
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        setLastUsed("google");
+                        await signIn("google", {
+                          callbackUrl,
+                        });
+                      }}>
+                      <span className="sm:hidden">{t("sign_in")}</span>
+                      <span className="hidden sm:inline">{t("signin_with_google")}</span>
+                      {lastUsed === "google" && <LastUsed />}
+                    </Button>
+                  )
                 )}
               </div>
 
@@ -259,7 +271,7 @@ export default function Login({
                 className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
                 data-testid="submit">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed />}
+                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-brand" />}
               </Button>
             </div>
           </form>

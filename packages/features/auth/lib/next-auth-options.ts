@@ -1,3 +1,4 @@
+import ImpersonationProvider from "@calid/features/modules/impersonation/ImpersonationProvider";
 import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -9,12 +10,12 @@ import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
 
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
-import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
@@ -38,6 +39,7 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
+import { getUtmParamsFromCookie } from "@calcom/lib/utm";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -511,6 +513,11 @@ export const getOptions = ({
                 team: true,
               },
             },
+            timeZone: true,
+            createdDate: true,
+            completedOnboarding: true,
+            bannerUrl: true,
+            emailVerified: true,
           },
         });
 
@@ -601,6 +608,11 @@ export const getOptions = ({
           locale: user?.locale,
           profileId: user.profile?.id ?? token.profileId ?? null,
           upId: user.profile?.upId ?? token.upId ?? null,
+          timeZone: user.timeZone,
+          createdDate: user.createdDate,
+          completedOnboarding: user.completedOnboarding,
+          customBrandingEnabled: !!user.bannerUrl,
+          emailVerified: user.emailVerified,
         } as JWT;
       }
 
@@ -703,6 +715,11 @@ export const getOptions = ({
           org: token?.org,
           orgAwareUsername: token.orgAwareUsername,
           locale: existingUser.locale,
+          timeZone: existingUser.timeZone,
+          createdDate: existingUser.createdDate,
+          completedOnboarding: existingUser.completedOnboarding,
+          customBrandingEnabled: !!existingUser.bannerUrl,
+          emailVerified: existingUser.emailVerified,
         } as JWT;
       }
 
@@ -738,6 +755,11 @@ export const getOptions = ({
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
           org: token?.org,
           locale: token.locale,
+          timeZone: token.timeZone,
+          createdDate: token.createdDate,
+          completedOnboarding: token.completedOnboarding,
+          customBrandingEnabled: !!token.customBrandingEnabled,
+          emailVerified: token.emailVerified,
         },
       };
       return calendsoSession;
@@ -916,6 +938,14 @@ export const getOptions = ({
               name: user.name,
             });
             const username = existingUserWithUsername ? usernameSlugRandom(user.name) : _username;
+
+            let utmParams;
+            try {
+              utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
+            } catch {
+              utmParams = {};
+            }
+
             // const username = getOrgUsernameFromEmail(user.name, getDomainFromEmail(user.email));
             await prisma.user.update({
               where: {
@@ -931,6 +961,7 @@ export const getOptions = ({
                 name: user.name,
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
+                ...(utmParams && { metadata: { utm: utmParams } }),
               },
             });
 
@@ -1009,6 +1040,14 @@ export const getOptions = ({
             : existingUserWithUsername
             ? usernameSlugRandom(user.name)
             : _username;
+
+          let utmParams;
+          try {
+            utmParams = getUtmParamsFromCookie((await cookies()).get("utm_params")?.value ?? "");
+          } catch {
+            utmParams = {};
+          }
+
           const newUser = await prisma.user.create({
             data: {
               // Slugify the incoming name and append a few random characters to
@@ -1028,6 +1067,7 @@ export const getOptions = ({
                 },
               }),
               creationSource: CreationSource.WEBAPP,
+              ...(utmParams && { metadata: { utm: utmParams } }),
             },
           });
           const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };

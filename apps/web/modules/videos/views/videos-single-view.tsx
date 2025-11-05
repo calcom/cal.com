@@ -138,7 +138,7 @@ export default function JoinCall(props: PageProps) {
         ) : (
           <img
             className="fixed z-10 hidden h-5 sm:inline-block"
-            src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
+            src={`${WEBSITE_URL}/calid-logo-icon.svg`}
             alt="Logo"
             style={{
               top: 47,

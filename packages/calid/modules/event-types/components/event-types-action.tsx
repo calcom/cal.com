@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@calid/features/ui/components/button";
 import {
   DropdownMenu,
@@ -8,6 +10,7 @@ import {
 } from "@calid/features/ui/components/dropdown-menu";
 import { Icon } from "@calid/features/ui/components/icon";
 import { Switch } from "@calid/features/ui/components/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
@@ -59,75 +62,6 @@ export const EventTypeActions = ({
 
   return (
     <div className="mr-2 flex items-center justify-end space-x-4">
-      {/* Hidden toggle */}
-      {(() => {
-        try {
-          const metadata = form?.getValues("metadata");
-          return !metadata?.managedEventConfig;
-        } catch (error) {
-          return true;
-        }
-      })() && (
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="hiddenSwitch"
-            disabled={eventTypesLockedByOrg}
-            tooltip={form.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
-            checked={(() => {
-              try {
-                const hidden = form?.watch("hidden");
-                return !hidden;
-              } catch (error) {
-                return true;
-              }
-            })()}
-            onCheckedChange={(e) => {
-              try {
-                form?.setValue("hidden", !e, { shouldDirty: true });
-              } catch (error) {
-                console.error("EventTypeActions - Error setting hidden value:", error);
-              }
-            }}
-          />
-        </div>
-      )}
-
-      {/* Action buttons */}
-      <ButtonGroup>
-        {!shouldHideRedirectAndCopy && (
-          <Button
-            color="secondary"
-            tooltip={t("preview")}
-            variant="icon"
-            href={permalink}
-            target="_blank"
-            rel="noreferrer"
-            StartIcon="external-link"
-          />
-        )}
-
-        {!shouldHideRedirectAndCopy && (
-          <Button
-            color="secondary"
-            variant="icon"
-            StartIcon="link"
-            tooltip={t("copy_link")}
-            onClick={() => {
-              navigator.clipboard.writeText(permalink);
-            }}
-          />
-        )}
-
-        <Button
-          color="destructive"
-          variant="icon"
-          StartIcon="trash"
-          tooltip={t("delete")}
-          disabled={!hasPermsToDelete}
-          onClick={onDeleteClick}
-        />
-      </ButtonGroup>
-
       {/* Mobile dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -171,6 +105,77 @@ export const EventTypeActions = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {/* Hidden toggle */}
+      {(() => {
+        try {
+          const metadata = form?.getValues("metadata");
+          return !metadata?.managedEventConfig;
+        } catch (error) {
+          return true;
+        }
+      })() && (
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="hiddenSwitch"
+            disabled={eventTypesLockedByOrg}
+            tooltip={form.watch("hidden") ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+            tooltipSide="bottom"
+            checked={(() => {
+              try {
+                const hidden = form?.watch("hidden");
+                return !hidden;
+              } catch (error) {
+                return true;
+              }
+            })()}
+            onCheckedChange={(e) => {
+              try {
+                form?.setValue("hidden", !e, { shouldDirty: true });
+              } catch (error) {
+                console.error("EventTypeActions - Error setting hidden value:", error);
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {/* Action buttons - hidden on mobile */}
+      <ButtonGroup containerProps={{ className: "hidden lg:flex" }}>
+        {!shouldHideRedirectAndCopy && (
+          <Tooltip content={t("preview")}>
+            <Button
+              color="secondary"
+              variant="icon"
+              href={permalink}
+              target="_blank"
+              rel="noreferrer"
+              StartIcon="external-link"
+            />
+          </Tooltip>
+        )}
+
+        {!shouldHideRedirectAndCopy && (
+          <Button
+            color="secondary"
+            variant="icon"
+            StartIcon="link"
+            tooltip={t("copy_link")}
+            onClick={() => {
+              navigator.clipboard.writeText(permalink);
+            }}
+          />
+        )}
+
+        <Button
+          color="destructive"
+          variant="icon"
+          StartIcon="trash"
+          tooltip={t("delete")}
+          disabled={!hasPermsToDelete}
+          onClick={onDeleteClick}
+        />
+      </ButtonGroup>
 
       <Button
         type="button"

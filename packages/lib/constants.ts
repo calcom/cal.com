@@ -97,11 +97,11 @@ export const MSTILE_ICON = "/mstile-150x150.png";
 export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
 export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
 export const ROADMAP = "https://roadmap.onehash.ai";
-export const DESKTOP_APP_LINK = "https://cal.com/download";
+export const DESKTOP_APP_LINK = "https://cal.id/download";
 export const JOIN_COMMUNITY = "https://github.com/calcom/cal.com/discussions";
 export const POWERED_BY_URL = "https://www.onehash.ai/cal";
-export const DOCS_URL = "https://cal.com/docs";
-export const DEVELOPER_DOCS = "https://cal.com/docs/developers";
+export const DOCS_URL = "https://cal.id/docs";
+export const DEVELOPER_DOCS = "https://cal.id/docs/developers";
 export const SEO_IMG_DEFAULT = `${CAL_URL}/og-image.png`;
 // The Dynamic OG Image is passed through Next's Image API to further optimize it.
 // This results in a 80% smaller image 🤯. It is however important that for the query
@@ -271,3 +271,5 @@ export const INNGEST_ID = process.env.INNGEST_ID ?? "onehash-cal";
 export const DEMO_URL = "https://app.cal.id/manas/demo";
 
 export const IS_PROD_DOMAIN = WEBAPP_URL.includes("cal.id");
+
+export const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID ;

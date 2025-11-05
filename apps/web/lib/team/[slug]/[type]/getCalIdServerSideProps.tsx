@@ -27,6 +27,28 @@ function hasApiV2RouteInEnv() {
 
 export const getCalIdServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
+
+  const selectedTime = req.cookies["selectedTime"] || "";
+  const slot = query.slot || "";
+  if (slot && slot !== selectedTime) {
+    const protocol = req.headers["x-forwarded-proto"] || "http";
+    const host = req.headers["host"];
+    const pathname = `/team/${params?.slug}/${params?.type}`;
+
+    // const originalUrl = resolvedUrl;
+    const fullUrl = `${protocol}://${host}${pathname}`;
+    if (fullUrl) {
+      const url = new URL(fullUrl);
+      url.searchParams.delete("slot");
+      return {
+        redirect: {
+          permanent: false,
+          destination: url.toString(),
+        },
+      };
+    }
+  }
+
   const session = await getServerSession({ req });
 
   try {

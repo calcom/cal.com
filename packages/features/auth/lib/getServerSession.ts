@@ -106,6 +106,7 @@ export async function getServerSession(options: {
       orgAwareUsername: token.orgAwareUsername,
       locale: user.locale ?? undefined,
       profile: user.profile,
+      metadata: user.metadata as Record<string, any>,
     },
     profileId: token.profileId,
     upId,

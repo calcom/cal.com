@@ -160,7 +160,7 @@
   --cal-text-error: hsla(0, 84%, 60%, 1); /* Keeping existing error text */
 
   /* Brand */
-  --cal-brand: hsla(221, 39%, 11%, 1); /* Keeping existing brand color */
+  --cal-brand: hsla(207, 100%, 45%, 1); /* Keeping existing brand color */
   --cal-brand-emphasis: hsla(0, 0%, 6%, 1); /* Keeping existing brand emphasis */
   --cal-brand-text: hsla(0, 0%, 100%, 1); /* white */
 }
@@ -712,4 +712,84 @@ select:focus {
 
 .data-\[state\=checked\]\:cal-bg-active[data-state="checked"] {
   background-color: var(--cal-bg-active);
+}
+
+/* Moving background animation for offer navigation item */
+@keyframes offerMovingBg {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.offer-moving-bg {
+  background: linear-gradient(
+    45deg,
+    #e0e7ff,
+    #ddd6fe,
+    #dbeafe,
+    #dcfce7,
+    #fef3c7,
+    #fce7f3,
+    #e0f2fe,
+    #f3e8ff
+  );
+  background-size: 400% 400%;
+  animation: offerMovingBg 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.offer-moving-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(59, 130, 246, 0.1),
+    rgba(139, 92, 246, 0.1),
+    rgba(6, 182, 212, 0.1),
+    rgba(34, 197, 94, 0.1),
+    rgba(245, 158, 11, 0.1),
+    rgba(236, 72, 153, 0.1),
+    rgba(14, 165, 233, 0.1),
+    rgba(168, 85, 247, 0.1)
+  );
+  background-size: 400% 400%;
+  animation: offerMovingBg 3s ease-in-out infinite reverse;
+  z-index: -1;
+}
+
+/* Override text color for offer moving background to ensure visibility */
+.offer-moving-bg[aria-current="page"] {
+  color: var(--cal-text-emphasis) !important;
+}
+
+.offer-moving-bg[aria-current="page"] span {
+  color: var(--cal-text-emphasis) !important;
+}
+
+.offer-moving-bg[aria-current="page"] .icon {
+  color: var(--cal-text-emphasis) !important;
+}
+
+/* In dark mode, always use black text for better contrast against the colorful background */
+.dark .offer-moving-bg {
+  color: #000000 !important;
+}
+
+.dark .offer-moving-bg span {
+  color: #000000 !important;
+}
+
+.dark .offer-moving-bg .icon {
+  color: #000000 !important;
 }

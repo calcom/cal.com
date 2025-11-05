@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@calid/features/ui/components/button";
-import { Icon } from "@calid/features/ui/components/icon";
 import { PasswordField, TextField } from "@calid/features/ui/components/input/input";
 import { Logo } from "@calid/features/ui/components/logo";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,33 +10,33 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
-import { useForm, useFormContext } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 import { z } from "zod";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import {
-  APP_NAME,
-  URL_PROTOCOL_REGEX,
   WEBAPP_URL,
   CLOUDFLARE_SITE_ID,
   WEBSITE_PRIVACY_POLICY_URL,
   WEBSITE_TERMS_URL,
 } from "@calcom/lib/constants";
-import { fetchUsername } from "@calcom/lib/fetchUsername";
-import { pushGTMEvent } from "@calcom/lib/gtm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
+import { captureAndStoreUtmParams } from "@calcom/lib/utm";
+import { localStorage } from "@calcom/lib/webstorage";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/components/alert";
 import { Form } from "@calcom/ui/components/form";
 
+import { isOpenedInWebView as isWebView } from "@lib/isWebView";
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
+
+import WebViewBlocker from "@components/webview-blocker";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(), // Needed to display API errors doesn't get passed to the API
@@ -49,100 +48,6 @@ const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile")
 type FormValues = z.infer<typeof signupSchema>;
 
 export type SignupProps = inferSSRProps<typeof getServerSideProps>;
-
-const FEATURES = [
-  {
-    title: "connect_all_calendars",
-    description: "connect_all_calendars_description",
-    i18nOptions: {
-      appName: APP_NAME,
-    },
-    icon: "calendar-heart" as const,
-  },
-  {
-    title: "set_availability",
-    description: "set_availbility_description",
-    icon: "users" as const,
-  },
-  {
-    title: "share_a_link_or_embed",
-    description: "share_a_link_or_embed_description",
-    icon: "link-2" as const,
-    i18nOptions: {
-      appName: APP_NAME,
-    },
-  },
-];
-
-function truncateDomain(domain: string) {
-  const maxLength = 25;
-  const cleanDomain = domain.replace(URL_PROTOCOL_REGEX, "");
-
-  if (cleanDomain.length <= maxLength) {
-    return cleanDomain;
-  }
-
-  return `${cleanDomain.substring(0, maxLength - 3)}.../`;
-}
-
-function UsernameField({
-  username,
-  setUsernameTaken,
-  orgSlug,
-  usernameTaken,
-  disabled,
-  ...props
-}: React.ComponentProps<typeof TextField> & {
-  username: string;
-  usernameTaken: boolean;
-  orgSlug?: string;
-  setUsernameTaken: (value: boolean) => void;
-}) {
-  const { t } = useLocale();
-  const { register, formState } = useFormContext<FormValues>();
-  const debouncedUsername = useDebounce(username, 600);
-
-  useEffect(() => {
-    if (formState.isSubmitting || formState.isSubmitSuccessful) return;
-
-    async function checkUsername() {
-      // If the username can't be changed, there is no point in doing the username availability check
-      if (disabled) return;
-      if (!debouncedUsername) {
-        setUsernameTaken(false);
-        return;
-      }
-      fetchUsername(debouncedUsername, orgSlug ?? null).then(({ data }) => {
-        setUsernameTaken(!data.available);
-      });
-    }
-    checkUsername();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
-
-  return (
-    <div>
-      <TextField
-        disabled={disabled}
-        {...props}
-        {...register("username")}
-        data-testid="signup-usernamefield"
-      />
-      {(!formState.isSubmitting || !formState.isSubmitted) && (
-        <div className="text-gray text-default flex items-center text-sm">
-          <div className="text-sm ">
-            {usernameTaken ? (
-              <div className="text-error flex items-center">
-                <Icon name="info" className="mr-1 inline-block h-4 w-4" />
-                <span>{t("already_in_use_error")}</span>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function addOrUpdateQueryParam(url: string, key: string, value: string) {
   const separator = url.includes("?") ? "&" : "?";
@@ -161,8 +66,6 @@ export default function Signup({
   emailVerificationEnabled,
 }: SignupProps) {
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
-  const [isSamlSignup, setIsSamlSignup] = useState(false);
-  const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
@@ -175,10 +78,12 @@ export default function Signup({
   });
   const {
     register,
-    watch,
     formState: { isSubmitting, errors, isSubmitSuccessful },
-    formState,
   } = formMethods;
+
+  useEffect(() => {
+    captureAndStoreUtmParams();
+  }, []);
 
   useEffect(() => {
     if (redirectUrl) {
@@ -186,12 +91,6 @@ export default function Signup({
       localStorage.setItem("onBoardingRedirect", redirectUrl);
     }
   }, [redirectUrl]);
-
-  const [userConsentToCookie, setUserConsentToCookie] = useState(false); // No need to be checked for user to proceed
-
-  function handleConsentChange(consent: boolean) {
-    setUserConsentToCookie(!consent);
-  }
 
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
 
@@ -231,8 +130,12 @@ export default function Signup({
     })
       .then(handleErrorsAndStripe)
       .then(async () => {
-        if (process.env.NEXT_PUBLIC_GTM_ID)
-          pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: "email_signup_success",
+          signup_method: "email",
+          email_address: data.email,
+        });
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
 
@@ -278,6 +181,12 @@ export default function Signup({
       });
   };
 
+  const [inWebView, setInWebView] = useState(false);
+
+  useEffect(() => {
+    setInWebView(isWebView());
+  }, []);
+
   return (
     <>
       <div className="bg-default flex min-h-screen flex-col items-center justify-center p-4">
@@ -291,37 +200,40 @@ export default function Signup({
 
               {/* Social Login Buttons */}
               <div className="mb-4 space-y-2">
-                {/* Google Button */}
-                {isGoogleLoginEnabled && (
-                  <Button
-                    color="secondary"
-                    loading={isGoogleLoading}
-                    CustomStartIcon={
-                      <img className="mr-3 h-5 w-5" src="/google-icon-colored.svg" alt="Google" />
-                    }
-                    className="text-subtle bg-primary w-full justify-center rounded-md"
-                    data-testid="continue-with-google-button"
-                    onClick={async () => {
-                      setIsSamlSignup(false);
-                      setIsGoogleLoading(true);
-                      const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
-                      const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
-                      const searchQueryParams = new URLSearchParams();
-                      if (prepopulateFormValues?.username) {
-                        searchQueryParams.set("username", prepopulateFormValues.username);
-                        localStorage.setItem("username", prepopulateFormValues.username);
+                {/* Google Button or WebView Blocker */}
+                {inWebView ? (
+                  <WebViewBlocker />
+                ) : (
+                  isGoogleLoginEnabled && (
+                    <Button
+                      color="secondary"
+                      loading={isGoogleLoading}
+                      CustomStartIcon={
+                        <img className="mr-3 h-5 w-5" src="/google-icon-colored.svg" alt="Google" />
                       }
-                      if (token) {
-                        searchQueryParams.set("email", prepopulateFormValues?.email);
-                      }
-                      const url = searchQueryParams.toString()
-                        ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
-                        : GOOGLE_AUTH_URL;
+                      className="text-subtle bg-primary w-full justify-center rounded-md"
+                      data-testid="continue-with-google-button"
+                      onClick={async () => {
+                        setIsGoogleLoading(true);
+                        const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                        const GOOGLE_AUTH_URL = `${baseUrl}/auth/sso/google`;
+                        const searchQueryParams = new URLSearchParams();
+                        if (prepopulateFormValues?.username) {
+                          searchQueryParams.set("username", prepopulateFormValues.username);
+                          localStorage.setItem("username", prepopulateFormValues.username);
+                        }
+                        if (token) {
+                          searchQueryParams.set("email", prepopulateFormValues?.email);
+                        }
+                        const url = searchQueryParams.toString()
+                          ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
+                          : GOOGLE_AUTH_URL;
 
-                      router.push(url);
-                    }}>
-                    {t("continue_with_google")}
-                  </Button>
+                        router.push(url);
+                      }}>
+                      {t("continue_with_google")}
+                    </Button>
+                  )
                 )}
                 {/* Divider */}
                 {isGoogleLoginEnabled && (
@@ -344,7 +256,8 @@ export default function Signup({
                   form={formMethods}
                   handleSubmit={async (values) => {
                     let updatedValues = values;
-                    if (!formMethods.getValues().username && isOrgInviteByLink && orgAutoAcceptEmail) {
+                    // Always generate username from email if not provided
+                    if (!formMethods.getValues().username) {
                       updatedValues = {
                         ...values,
                         username: getOrgUsernameFromEmail(values.email, orgAutoAcceptEmail),
@@ -352,19 +265,6 @@ export default function Signup({
                     }
                     await signUp(updatedValues);
                   }}>
-                  {/* Username */}
-                  <UsernameField
-                    orgSlug={orgSlug}
-                    label={t("username")}
-                    username={watch("username") || ""}
-                    usernameTaken={usernameTaken}
-                    disabled={!!orgSlug}
-                    setUsernameTaken={(value) => setUsernameTaken(value)}
-                    data-testid="signup-usernamefield"
-                    addOnLeading={truncateDomain(
-                      `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
-                    )}
-                  />
                   {/* Email */}
                   <TextField
                     id="signup-email"
@@ -408,15 +308,13 @@ export default function Signup({
                     className="bg-active border-active dark:border-default w-full justify-center py-3 dark:bg-gray-200"
                     loading={loadingSubmitState}
                     disabled={
-                      !!formMethods.formState.errors.username ||
                       !!formMethods.formState.errors.email ||
                       !formMethods.getValues("email") ||
                       !formMethods.getValues("password") ||
                       (CLOUDFLARE_SITE_ID &&
                         !process.env.NEXT_PUBLIC_IS_E2E &&
                         !formMethods.getValues("cfToken")) ||
-                      isSubmitting ||
-                      usernameTaken
+                      isSubmitting
                     }>
                     {t("create_account")}
                   </Button>

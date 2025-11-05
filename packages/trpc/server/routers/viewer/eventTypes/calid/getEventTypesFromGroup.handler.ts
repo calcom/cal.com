@@ -54,7 +54,7 @@ export const getEventTypesFromGroup = async ({
     };
 
     const [nonChildEventTypes, childEventTypes] = await Promise.all([
-      eventTypeRepo.findAllByUpId(
+      eventTypeRepo.findAllByUpIdForCalidTeam(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,
@@ -76,7 +76,7 @@ export const getEventTypesFromGroup = async ({
           cursor,
         }
       ),
-      eventTypeRepo.findAllByUpId(
+      eventTypeRepo.findAllByUpIdForCalidTeam(
         {
           upId: userProfile.upId,
           userId: ctx.user.id,

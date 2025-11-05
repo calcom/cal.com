@@ -6,7 +6,7 @@ import * as React from "react";
 
 import classNames from "@calcom/ui/classNames";
 
-import { Button } from "../../button";
+import { Button } from "@calid/features/ui/components/button";
 import { Calendar } from "./Calendar";
 
 type DatePickerWithRangeProps = {

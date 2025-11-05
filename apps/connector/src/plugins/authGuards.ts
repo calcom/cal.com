@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
 
 async function authGuardsPlugin(fastify: FastifyInstance): Promise<void> {
-  const { JWT_SECRET, API_KEY_PREFIX } = fastify.config;
+  const { API_KEY_PREFIX, JWT_SECRET } = fastify.config;
 
   // // Register traditional JWT for session-based auth
   // await fastify.register(jwt, {
@@ -26,6 +26,7 @@ async function authGuardsPlugin(fastify: FastifyInstance): Promise<void> {
   // Initialize enhanced auth guards with Prisma and config
   AuthGuards.initialize(fastify.prisma, {
     apiKeyPrefix: API_KEY_PREFIX,
+    jwt_secret: JWT_SECRET,
   });
 
   // Decorate fastify with auth methods

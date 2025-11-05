@@ -1,5 +1,5 @@
 import { Icon } from "@calid/features/ui/components/icon";
-import { TextField } from "@calid/features/ui/components/input/input";
+import { Input, TextField } from "@calid/features/ui/components/input/input";
 import { TextArea } from "@calid/features/ui/components/input/text-area";
 import dynamic from "next/dynamic";
 import type { ChangeEvent } from "react";
@@ -130,6 +130,38 @@ const TextWidget = (props: TextLikeComponentPropsRAQB) => {
     />
   );
 };
+
+
+const InputWidget = (props: TextLikeComponentPropsRAQB) => {
+  const {
+    value,
+    noLabel,
+    setValue,
+    readOnly,
+    placeholder,
+    customProps,
+    type = "text",
+    ...remainingProps
+  } = props;
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setValue(val);
+  };
+  const textValue = value || "";
+  return (
+    <Input
+      className="mb-2 w-full"
+      type={type}
+      value={textValue}
+      placeholder={placeholder}
+      disabled={readOnly}
+      onChange={onChange}
+      {...remainingProps}
+      {...customProps}
+    />
+  );
+};
+
 
 function NumberWidget({ value, setValue, ...remainingProps }: TextLikeComponentPropsRAQB) {
   return (
@@ -372,6 +404,7 @@ const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
   TextWidget,
+  InputWidget,
   TextAreaWidget,
   SelectWidget,
   NumberWidget,

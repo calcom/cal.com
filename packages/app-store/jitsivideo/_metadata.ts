@@ -10,12 +10,12 @@ export const metadata = {
   variant: "conferencing",
   categories: ["conferencing"],
   logo: "icon.svg",
-  publisher: "Cal.com",
+  publisher: "Cal ID",
   url: "https://jitsi.org/",
   slug: "jitsi",
   title: "Jitsi Meet",
   isGlobal: true,
-  email: "help@cal.com",
+  email: "support@cal.id",
   appData: {
     location: {
       linkType: "dynamic",

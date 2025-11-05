@@ -18,11 +18,11 @@ export const metadata = {
   category: "conferencing",
   categories: ["conferencing"],
   logo: "icon.svg",
-  publisher: "Cal.com",
+  publisher: "Cal ID",
   slug: "msteams",
   dirName: "office365video",
   url: "https://www.microsoft.com/en-ca/microsoft-teams/group-chat-software",
-  email: "help@cal.com",
+  email: "support@cal.id",
   isOAuth: true,
 } as AppMeta;
 

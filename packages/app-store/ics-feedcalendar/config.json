@@ -7,9 +7,9 @@
   "logo": "icon.svg",
   "variant": "calendar",
   "categories": ["calendar"],
-  "publisher": "Cal.com, Inc.",
-  "email": "help@cal.com",
-  "description": "Import events from an ICS Feed into [Cal.com](https://cal.com).",
+  "publisher": "Cal ID",
+  "email": "support@cal.id",
+  "description": "Import events from an ICS Feed into [Cal ID](https://cal.id).",
   "isTemplate": false,
   "__createdUsingCli": true
 }

@@ -195,17 +195,6 @@ const WorkflowListItem = React.memo(
             </div>
           </div>
 
-          {/* Edit button */}
-          {!workflow.readOnly && (
-            <div className="flex-none">
-              <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
-                <Button type="button" color="minimal" className="mr-4" EndIcon="external-link">
-                  <div className="hidden sm:block ltr:mr-2 rtl:ml-2">{t("edit")}</div>
-                </Button>
-              </Link>
-            </div>
-          )}
-
           {/* Toggle switch */}
           <Tooltip
             content={
@@ -226,6 +215,15 @@ const WorkflowListItem = React.memo(
               />
             </div>
           </Tooltip>
+
+          {/* Edit button */}
+          {!workflow.readOnly && (
+            <div className="flex-none">
+              <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
+                <Button color="secondary" StartIcon="pencil-line" variant="icon" tooltip={t("edit")} />
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -382,17 +380,12 @@ export const EventWorkflows = ({ eventType, workflows }: EventWorkflowsProps) =>
       {sortedWorkflows.length > 0 ? (
         <div>
           <div className="space-y-4">
-            {/* Header with stats and quick actions */}
-            <div className="flex items-center justify-between">
-              <span className="text-grey-700 text-sm font-medium">{activeWorkflowsCount} Active</span>
-              <div className="flex items-center space-x-1">
-                <a
-                  href="/workflows"
-                  className="flex items-center space-x-1 text-sm font-medium text-blue-600 hover:text-blue-500">
-                  <span>Create New Workflow</span>
-                  <Icon name="external-link" className="h-3 w-3" />
-                </a>
-              </div>
+            <div className="flex items-center justify-end">
+              <Button
+                StartIcon="plus"
+                onClick={() => createMutation.mutate({ calIdTeamId: eventType.calIdTeam?.id })}>
+                {t("create")}
+              </Button>
             </div>
 
             {/* Workflows List */}

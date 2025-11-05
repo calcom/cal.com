@@ -6,8 +6,8 @@
   "url": "https://example.com/link",
   "variant": "analytics",
   "categories": ["analytics"],
-  "publisher": "Cal.com, Inc.",
-  "email": "support@cal.com",
+  "publisher": "Cal ID",
+  "email": "support@cal.id",
   "description": "It is a template demoing a Booking Pages tracking app like GA4, Fathom and Plausible.",
   "extendsFeature": "EventType",
   "appData": {

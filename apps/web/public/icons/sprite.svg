@@ -56,6 +56,12 @@
   <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" ></path>
   <path d="m9 12 2 2 4-4" ></path>
 </symbol>
+<symbol class="lucide lucide-badge-percent" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="badge-percent">
+  <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" ></path>
+  <path d="m15 9-6 6" ></path>
+  <path d="M9 9h.01" ></path>
+  <path d="M15 15h.01" ></path>
+</symbol>
 <symbol class="lucide lucide-ban" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="ban">
   <circle cx="12" cy="12" r="10" ></circle>
   <path d="m4.9 4.9 14.2 14.2" ></path>

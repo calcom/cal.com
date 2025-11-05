@@ -67,11 +67,15 @@ const UserProfile = () => {
       // }
 
       await utils.viewer.me.get.refetch();
+      const data = utils.viewer.me.get.getData();
+
       const redirectUrl = localStorage.getItem("onBoardingRedirect");
       localStorage.removeItem("onBoardingRedirect");
       redirectUrl ? router.push(redirectUrl) : router.push("/event-types");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Mutation failed:", error);
+
       triggerToast(t("problem_saving_user_profile"), "error");
     },
   });

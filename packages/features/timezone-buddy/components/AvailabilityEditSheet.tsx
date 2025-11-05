@@ -1,3 +1,4 @@
+import { Fragment, useState, useRef, useEffect } from "react";
 import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -5,8 +6,10 @@ import { TimezoneSelect } from "@calcom/features/components/timezone-select";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import Schedule from "@calcom/features/schedules/components/Schedule";
+import { formatTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -125,19 +128,24 @@ type Data = RouterOutputs["viewer"]["availability"]["schedule"]["getScheduleByUs
 export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending: boolean }) {
   // This sheet will not be rendered without a selected user
   const userId = props.selectedUser?.id as number;
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const utils = trpc.useUtils();
 
   const { data: hasEditPermission, isPending: loadingPermissions } =
     trpc.viewer.teams.hasEditPermissionForUser.useQuery({
-      memberId: userId,
+      // memberId: userId,
+      calIdMemberId: userId,
     });
 
   const { data, isPending } = props;
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async () => {
-      await utils.viewer.availability.listTeam.invalidate();
+      // await utils.viewer.availability.listTeam.invalidate();
+      await utils.viewer.calidTeams.calidListTeam.invalidate();
       showToast(t("success"), "success");
     },
     onError: (err) => {
@@ -156,7 +164,57 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
     },
   });
 
+  const [status, setStatus] = useState<"past" | "upcoming">("upcoming"); // State for the dropdown selection
+
+  const query = trpc.viewer.bookings.get.useInfiniteQuery(
+    {
+      limit: 10,
+      filters: {
+        status,
+        ...(props.selectedUser && {
+          // teamMember: { id: props.selectedUser?.id, email: props.selectedUser?.email },
+          userIds: [props.selectedUser?.id],
+        }),
+      },
+    },
+
+    {
+      // first render has status `undefined`
+      enabled: !!hasEditPermission,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
   const watchTimezone = form.watch("timeZone");
+  const bookingsDivRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const div = bookingsDivRef.current;
+    const handleScroll = () => {
+      const div = bookingsDivRef.current;
+      if (div) {
+        const isAtBottom = div.scrollHeight - div.scrollTop <= div.clientHeight + 1;
+        if (isAtBottom) {
+          query.fetchNextPage();
+        }
+      }
+    };
+    if (hasEditPermission && div) {
+      div.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (div) {
+        div.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [hasEditPermission, query]);
+
+  useEffect(() => {
+    if (query.data) {
+      console.log("bookings", query.data.pages[0].bookings);
+      console.log("Selected user:", props.selectedUser); // Add this
+    }
+  }, [query.data]);
 
   const handleSubmit = ({ dateOverrides, ...values }: AvailabilityFormValues) => {
     updateMutation.mutate({
@@ -195,7 +253,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
             </div>
           )}
 
-          <SheetBody className="mt-4 flex flex-col space-y-4">
+          <SheetBody className="mt-4 flex flex-col space-y-4 overflow-y-auto overflow-x-hidden">
             <div>
               <Label className="text-emphasis">
                 <>{t("timezone")}</>
@@ -231,6 +289,90 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                 />
               )}
             </div>
+            {hasEditPermission && (
+              <Fragment>
+                <Label className="text-emphasis mt-4">{t("members_bookings")}</Label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as "past" | "upcoming")}
+                  className="bg-default text-default rounded-md !border !border-gray-300 px-3 py-2 text-sm dark:!border-gray-700">
+                  <option value="past">Past</option>
+                  <option value="upcoming">Upcoming</option>
+                </select>
+                <div
+                  className="max-h-[300px] flex-shrink-0 overflow-y-auto overflow-x-clip rounded-md border p-2"
+                  ref={bookingsDivRef}>
+                  <div>
+                    <div className=" h-full   py-2">
+                      {query.isFetching && !query.data ? (
+                        <div className="loader" />
+                      ) : query.data && query.data.pages[0]?.bookings?.length > 0 ? (
+                        <Fragment>
+                          {query?.data?.pages.map((page, i) => (
+                            <Fragment key={i}>
+                              {page.bookings.map((booking) => {
+                                const userTimeZone =
+                                  data.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+                                const date = dayjs(booking.startTime)
+                                  .tz(userTimeZone)
+                                  .locale(language)
+                                  .format("D MMM");
+                                const slotTime = `${formatTime(booking.startTime, 12, userTimeZone)} -
+                                ${formatTime(booking.endTime, 12, userTimeZone)}`;
+                                const joinLink = isPrismaObjOrUndefined(booking.metadata)?.videoCallUrl;
+                                return (
+                                  <div
+                                    className="flex w-full justify-between border-b border-b-gray-300   py-2"
+                                    key={booking.uid}>
+                                    <div className="flex flex-col gap-1">
+                                      <p className="text-sm ">
+                                        <span className="font-medium">{t("event_name")} : </span>
+                                        {booking.eventType.title}{" "}
+                                      </p>
+                                      <p className="text-sm ">
+                                        <span className="font-medium">{t("At")} : </span>
+                                        {slotTime} , {date}
+                                      </p>
+                                      <p className="flex gap-1 text-sm">
+                                        <span className="font-medium">{t("location")} : </span>
+                                        <p className="capitalize">
+                                          {booking.location?.replace("integrations:", "")}
+                                        </p>
+                                      </p>
+                                      <p className="text-sm ">
+                                        <span className="font-medium">{t("attendees")} : </span>
+
+                                        {booking.attendees.map((attendee) => attendee.name).join(",")}
+                                      </p>
+                                    </div>
+                                    <div className="flex  flex-col items-center justify-center">
+                                      {status === "upcoming" && joinLink && (
+                                        <Button
+                                          color="minimal"
+                                          onClick={() => window.open(joinLink as string, "_blank")}>
+                                          {t("join_meeting")}
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </Fragment>
+                          ))}
+                          {query.hasNextPage ? (
+                            <div className="loader" />
+                          ) : (
+                            <p className="text-emphasis mt-2 text-center text-sm">No More Bookings</p>
+                          )}
+                        </Fragment>
+                      ) : (
+                        <p className="text-emphasis">No Bookings</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Fragment>
+            )}
           </SheetBody>
           <SheetFooter>
             <SheetClose asChild>

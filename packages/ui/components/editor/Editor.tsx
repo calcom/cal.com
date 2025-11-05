@@ -1,8 +1,10 @@
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
+import { $generateHtmlFromNodes } from "@lexical/html";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
 import { ListItemNode, ListNode } from "@lexical/list";
 import { TRANSFORMERS } from "@lexical/markdown";
 import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
@@ -12,6 +14,7 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import { useEffect } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -62,7 +65,7 @@ export const Editor = (props: TextEditorProps) => {
   return (
     <div className="editor rounded-md">
       <LexicalComposer initialConfig={{ ...editorConfig }}>
-        <div className="editor-container hover:border-emphasis focus-within:shadow-outline-gray-focused !rounded-lg p-0 transition focus-within:ring-2">
+        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default !rounded-lg p-0 transition focus-within:border-none focus-within:ring-2">
           <ToolbarPlugin
             getText={props.getText}
             setText={props.setText}
@@ -111,8 +114,42 @@ export const Editor = (props: TextEditorProps) => {
           </div>
         </div>
         <EditablePlugin editable={editable} />
-        <PlainTextPlugin setText={props.setText} plainText={plainText} />
+        {plainText ? (
+          <PlainTextPlugin setText={props.setText} plainText={true} />
+        ) : (
+          <OnChangePlugin setText={props.setText} plainText={false} />
+        )}
       </LexicalComposer>
     </div>
   );
 };
+
+function OnChangePlugin({
+  setText,
+  plainText = false,
+}: {
+  setText: (text: string) => void;
+  plainText?: boolean;
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    return editor.registerUpdateListener(({ editorState }) => {
+      editorState.read(() => {
+        if (plainText) {
+          // For SMS - get plain text
+          const rootElement = editor.getRootElement();
+          if (rootElement === null) return;
+          const text = rootElement.textContent ?? "";
+          setText(text);
+        } else {
+          // For email - get HTML
+          const html = $generateHtmlFromNodes(editor);
+          setText(html);
+        }
+      });
+    });
+  }, [editor, setText, plainText]);
+
+  return null;
+}

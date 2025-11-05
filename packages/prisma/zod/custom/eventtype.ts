@@ -20,6 +20,7 @@ const calVideoSettingsSchema = z
 
 export const createEventTypeInput = z.object({
   title: z.string().min(1),
+  position: z.number().int().min(0).nullish(),
   slug: imports.eventTypeSlug,
   description: z.string().nullish(),
   length: z.number().int().min(MIN_EVENT_DURATION_MINUTES).max(MAX_EVENT_DURATION_MINUTES),

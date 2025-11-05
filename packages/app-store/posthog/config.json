@@ -6,8 +6,8 @@
   "url": "https://posthog.com",
   "variant": "analytics",
   "categories": ["analytics"],
-  "publisher": "Cal.com, Inc.",
-  "email": "help@cal.com",
+  "publisher": "Cal ID",
+  "email": "support@cal.id",
   "description": "PostHog is the all-in-one platform for building better products - with product analytics, feature flags, session recordings, a/b testing, heatmaps, and more.",
   "extendsFeature": "EventType",
   "appData": {

@@ -4,11 +4,11 @@
   "slug": "mirotalk",
   "type": "mirotalk_video",
   "logo": "icon.svg",
-  "url": "https://cal.com/",
+  "url": "https://cal.id/",
   "variant": "conferencing",
   "categories": ["conferencing"],
-  "publisher": "Cal.com, Inc.",
-  "email": "support@cal.com",
+  "publisher": "Cal ID",
+  "email": "support@cal.id",
   "appData": {
     "location": {
       "type": "integrations:{SLUG}_video",

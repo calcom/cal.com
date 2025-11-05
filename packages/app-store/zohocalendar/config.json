@@ -8,8 +8,8 @@
   "category": "calendar",
   "categories": ["calendar"],
   "logo": "icon.svg",
-  "publisher": "Cal.com",
-  "url": "https://cal.com/",
-  "email": "help@cal.com",
+  "publisher": "Cal ID",
+  "url": "https://cal.id/",
+  "email": "support@cal.id",
   "isAuth": true
 }

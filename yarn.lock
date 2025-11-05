@@ -3122,6 +3122,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/pabbly@workspace:packages/app-store/pabbly":
+  version: 0.0.0-use.local
+  resolution: "@calcom/pabbly@workspace:packages/app-store/pabbly"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/paypal@workspace:packages/app-store/paypal":
   version: 0.0.0-use.local
   resolution: "@calcom/paypal@workspace:packages/app-store/paypal"
@@ -3182,7 +3191,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@workspace:packages/platform/libraries":
+"@calcom/platform-libraries@workspace:*, @calcom/platform-libraries@workspace:packages/platform/libraries":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
@@ -3906,7 +3915,7 @@ __metadata:
   resolution: "@calid/connector@workspace:apps/connector"
   dependencies:
     "@calcom/lib": "workspace:*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.271"
+    "@calcom/platform-libraries": "workspace:*"
     "@calcom/prisma": "workspace:*"
     "@fastify/autoload": ^5.8.0
     "@fastify/cors": ^8.4.0
@@ -3937,6 +3946,7 @@ __metadata:
     "@dnd-kit/core": ^6.3.1
     "@dnd-kit/sortable": ^10.0.0
     "@dnd-kit/utilities": ^3.2.2
+    "@hookform/resolvers": ^2.9.7
     "@radix-ui/react-accordion": ^1.2.0
     "@radix-ui/react-alert-dialog": ^1.1.1
     "@radix-ui/react-aspect-ratio": 1.1.7
