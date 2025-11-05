@@ -1,12 +1,11 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import {
   sendCreditBalanceLimitReachedEmails,
   sendCreditBalanceLowWarningEmails,
 } from "@calcom/emails/email-manager";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
-import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -425,7 +424,7 @@ export class CreditService {
       const { totalMonthlyCredits } = await this._getAllCreditsForTeam({ teamId, tx });
       warningLimit = totalMonthlyCredits * 0.2;
     } else if (userId) {
-      const billingService = new StripeBillingService();
+      const billingService = getBillingProviderService();
       const teamMonthlyPrice = await billingService.getPrice(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || "");
       const pricePerSeat = teamMonthlyPrice.unit_amount ?? 0;
       warningLimit = (pricePerSeat / 2) * 0.2;
@@ -603,7 +602,7 @@ export class CreditService {
       return activeMembers * creditsPerSeat;
     }
 
-    const billingService = new StripeBillingService();
+    const billingService = getBillingProviderService();
     const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
     if (!priceId) {
