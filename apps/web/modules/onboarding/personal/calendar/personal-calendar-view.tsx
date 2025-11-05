@@ -1,13 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
 import { OnboardingCalendarBrowserView } from "../../components/onboarding-calendar-browser-view";
-import { useOnboardingStore } from "../../store/onboarding-store";
+import { useSubmitPersonalOnboarding } from "../../hooks/useSubmitPersonalOnboarding";
 import { InstallableAppCard } from "../_components/InstallableAppCard";
 import { OnboardingCard } from "../_components/OnboardingCard";
 import { OnboardingLayout } from "../_components/OnboardingLayout";
@@ -18,11 +16,9 @@ type PersonalCalendarViewProps = {
 };
 
 export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) => {
-  const router = useRouter();
   const { t } = useLocale();
   const { installingAppSlug, setInstallingAppSlug, createInstallHandlers } = useAppInstallation();
-  const { data: user } = trpc.viewer.me.get.useQuery();
-  const { personalDetails } = useOnboardingStore();
+  const { submitPersonalOnboarding, isSubmitting } = useSubmitPersonalOnboarding();
 
   const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
@@ -32,11 +28,11 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   });
 
   const handleContinue = () => {
-    router.push("/onboarding/personal/video");
+    submitPersonalOnboarding();
   };
 
   const handleSkip = () => {
-    router.push("/onboarding/personal/video");
+    submitPersonalOnboarding();
   };
 
   return (
@@ -52,14 +48,15 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
               color="minimal"
               className="rounded-[10px]"
               onClick={handleSkip}
-              disabled={queryIntegrations.isPending}>
+              disabled={queryIntegrations.isPending || isSubmitting}>
               {t("onboarding_skip_for_now")}
             </Button>
             <Button
               color="primary"
               className="rounded-[10px]"
               onClick={handleContinue}
-              disabled={queryIntegrations.isPending}>
+              loading={isSubmitting}
+              disabled={queryIntegrations.isPending || isSubmitting}>
               {t("continue")}
             </Button>
           </div>
