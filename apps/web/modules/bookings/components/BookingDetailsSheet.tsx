@@ -48,10 +48,16 @@ interface BookingDetailsSheetProps {
   hasNext?: boolean;
 }
 
+interface BookingDetailsSheetInnerProps extends Omit<BookingDetailsSheetProps, "booking"> {
+  booking: BookingOutput;
+}
+
 export function BookingDetailsSheet(props: BookingDetailsSheetProps) {
+  if (!props.booking) return null;
+
   return (
     <BookingActionsStoreProvider>
-      <BookingDetailsSheetInner {...props} />
+      <BookingDetailsSheetInner {...props} booking={props.booking} />
     </BookingActionsStoreProvider>
   );
 }
@@ -68,10 +74,8 @@ function BookingDetailsSheetInner({
   hasPrevious = false,
   onNext,
   hasNext = false,
-}: BookingDetailsSheetProps) {
+}: BookingDetailsSheetInnerProps) {
   const { t } = useLocale();
-
-  if (!booking) return null;
 
   const startTime = dayjs(booking.startTime).tz(userTimeZone);
   const endTime = dayjs(booking.endTime).tz(userTimeZone);
