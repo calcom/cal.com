@@ -16,7 +16,7 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
   const columnHelper = createColumnHelper<RowData>();
 
   return [
-    columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.eventType.id : null), {
       id: "eventTypeId",
       header: t("event_type"),
       enableColumnFilter: true,
@@ -28,7 +28,7 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         },
       },
     }),
-    columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.eventType.team?.id ?? null : null), {
       id: "teamId",
       header: t("team"),
       enableColumnFilter: true,
@@ -40,7 +40,7 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         },
       },
     }),
-    columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.user?.id ?? null : null), {
       id: "userId",
       header: t("member"),
       enableColumnFilter: permissions.canReadOthersBookings,
@@ -91,7 +91,7 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         },
       },
     }),
-    columnHelper.accessor((row) => row.type === "data" && row.booking.uid, {
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.uid : null), {
       id: "bookingUid",
       header: t("booking_uid"),
       enableColumnFilter: true,
