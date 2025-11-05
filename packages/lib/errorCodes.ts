@@ -57,6 +57,9 @@ export enum ErrorCode {
 
   // 500 Internal Server Error - Server-side errors, system failures
   InternalServerError = "internal_server_error",
+
+  // 503 Service Unavailable - External services, temporary failures
+  ServiceUnavailable = "service_unavailable",
 }
 
 export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
@@ -118,6 +121,9 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
 
   // 500 Internal Server Error - Server-side errors, system failures
   [ErrorCode.InternalServerError]: 500,
+
+  // 503 Service Unavailable - External services, temporary failures
+  [ErrorCode.ServiceUnavailable]: 503,
 };
 
 export function getHttpStatusForErrorCode(errorCode: ErrorCode): number {
