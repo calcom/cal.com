@@ -87,6 +87,8 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   eventOptions: { label: string; value: string; eventTypeId: number }[];
   setRoute: SetRoute;
 }) {
+  const actionValue = !isRouter(route) ? route.action.value : undefined;
+  
   useEffect(() => {
     if (isRouter(route)) {
       return;
@@ -107,7 +109,7 @@ function useEnsureEventTypeIdInRedirectUrlAction({
     setRoute(route.id, {
       action: { ...route.action, eventTypeId: matchingOption.eventTypeId },
     });
-  }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
+  }, [eventOptions, setRoute, route, actionValue]);
 }
 
 const hasRules = (route: EditFormRoute) => {
@@ -151,14 +153,14 @@ const buildEventsData = ({
     label: string;
     value: string;
     eventTypeId: number;
-    eventTypeAppMetadata?: Record<string, any>;
+    eventTypeAppMetadata?: Record<string, unknown>;
     isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
-      eventTypeAppMetadata?: Record<string, any>;
+      eventTypeAppMetadata?: Record<string, unknown>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -402,7 +404,7 @@ const Route = ({
     const isCustom =
       !isRouter(route) && !eventOptions.find((eventOption) => eventOption.value === route.action.value);
     setCustomEventTypeSlug(isCustom && !isRouter(route) ? route.action.value.split("/").pop() ?? "" : "");
-  }, []);
+  }, [route, eventOptions]);
 
   useEnsureEventTypeIdInRedirectUrlAction({
     route,
@@ -472,6 +474,26 @@ const Route = ({
     []
   );
 
+  const memoizedFormFieldsConfig = useMemo(
+    () =>
+      withRaqbSettingsAndWidgets({
+        config: formFieldsQueryBuilderConfig,
+        configFor: ConfigFor.FormFields,
+      }),
+    [formFieldsQueryBuilderConfig]
+  );
+
+  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = useMemo(
+    () =>
+      attributesQueryBuilderConfig
+        ? withRaqbSettingsAndWidgets({
+            config: attributesQueryBuilderConfig,
+            configFor: ConfigFor.Attributes,
+          })
+        : null,
+    [attributesQueryBuilderConfig]
+  );
+
   if (isRouter(route)) {
     return (
       <div>
@@ -525,15 +547,6 @@ const Route = ({
         }
       : undefined;
 
-  const memoizedFormFieldsConfig = useMemo(
-    () =>
-      withRaqbSettingsAndWidgets({
-        config: formFieldsQueryBuilderConfig,
-        configFor: ConfigFor.FormFields,
-      }),
-    [formFieldsQueryBuilderConfig]
-  );
-
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
     <div className="bg-default border-subtle cal-query-builder-container mt-2 rounded-2xl border p-2">
       <div className="ml-2 flex items-center gap-0.5">
@@ -556,17 +569,6 @@ const Route = ({
       />
     </div>
   ) : null;
-
-  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = useMemo(
-    () =>
-      attributesQueryBuilderConfig
-        ? withRaqbSettingsAndWidgets({
-            config: attributesQueryBuilderConfig,
-            configFor: ConfigFor.Attributes,
-          })
-        : null,
-    [attributesQueryBuilderConfig]
-  );
 
   const attributesQueryBuilder =
     // team member attributes are only available for organization teams
@@ -1176,20 +1178,22 @@ const Routes = ({
 }) => {
   const { routes: serializedRoutes } = hookForm.getValues();
   const { t } = useLocale();
+  const formValues = hookForm.getValues();
+  const fields = formValues.fields;
 
   const formFieldsQueryBuilderConfig = useMemo(
-    () => getQueryBuilderConfigForFormFields(hookForm.getValues()),
-    [hookForm.getValues().fields]
+    () => getQueryBuilderConfigForFormFields(formValues),
+    [formValues]
   );
   const attributesQueryBuilderConfig = useMemo(
     () =>
       attributes
         ? getQueryBuilderConfigForAttributes({
             attributes: attributes,
-            dynamicOperandFields: hookForm.getValues().fields,
+            dynamicOperandFields: fields,
           })
         : null,
-    [attributes, hookForm.getValues().fields]
+    [attributes, fields]
   );
 
   const { routes, setRoutes } = useRoutes({
@@ -1210,7 +1214,7 @@ const Routes = ({
     });
   };
 
-  const availableRouters =
+  const _availableRouters =
     allForms?.filtered
       .filter(({ form: router }) => {
         const routerValidInContext = areTheySiblingEntities({
