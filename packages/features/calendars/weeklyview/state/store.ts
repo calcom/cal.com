@@ -41,7 +41,7 @@ export function createCalendarStore(initial?: Partial<CalendarComponentProps>): 
       let events = state.events;
 
       if (state.sortEvents) {
-        events = state.events.sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf());
+        events = [...state.events].sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf());
       }
       const blockingDates = mergeOverlappingDateRanges(state.blockingDates || []); // We merge overlapping dates so we don't get duplicate blocking "Cells" in the UI
 
