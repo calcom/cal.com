@@ -514,13 +514,10 @@ export default class EventManager {
       credentialType
     );
 
-    if (videoCredential) {
+    // we only delete the meeting fully if it's not a recurring instance cancellation
+    if (videoCredential && !isRecurringInstanceCancellation) {
       // Full deletion for complete booking cancellation
-      await deleteMeeting(
-        videoCredential,
-        bookingRefUid
-        // isRecurringInstanceCancellation
-      );
+      await deleteMeeting(videoCredential, bookingRefUid);
     }
   }
 
@@ -801,7 +798,7 @@ export default class EventManager {
           this.deleteVideoEventForBookingReference({
             reference,
             event,
-            // isRecurringInstanceCancellation,
+            isRecurringInstanceCancellation,
           })
         );
       }

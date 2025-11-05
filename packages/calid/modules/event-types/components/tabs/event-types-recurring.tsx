@@ -282,7 +282,7 @@ export const EventRecurring: React.FC<RecurringEventProps> = ({
             <Alert
               className={classNames("mb-4", customClassNames?.experimentalAlert)}
               severity="warning"
-              title="Experimental: Recurring Events are currently experimental and causes some issues sometimes when checking for availability. We are working on fixing this."
+              title="Experimental Feature: Recurring Events are currently in beta. Please contact support if you encounter any issues."
             />
 
             <div className={recurringEventState && showPreview ? "space-y-4" : ""}>

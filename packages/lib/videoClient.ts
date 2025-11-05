@@ -197,11 +197,7 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = async (
-  credential: CredentialPayload | null,
-  uid: string,
-  isRecurringInstanceCancellation = false
-): Promise<unknown> => {
+const deleteMeeting = async (credential: CredentialPayload | null, uid: string): Promise<unknown> => {
   if (credential) {
     const videoAdapter = (await getVideoAdapters([credential]))[0];
     log.debug(
@@ -209,7 +205,6 @@ const deleteMeeting = async (
       safeStringify({
         credential: getPiiFreeCredential(credential),
         uid,
-        isRecurringInstanceCancellation,
       })
     );
     // There are certain video apps with no video adapter defined. e.g. riverby, whereby
