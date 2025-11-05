@@ -4,4 +4,6 @@ items:
   - 2.jpg
 ---
 
-Workflow automation for everyone. Use the [Cal.com](https://cal.com) Zapier app to automate your workflows when a booking is created, rescheduled, cancelled or when a meeting ended.<br /><br />**After Installation:** Have you lost your API key? You can always generate a new key on the <a href="/apps/zapier/setup">**<ins>Zapier Setup Page</ins>**</a>
+Connect Cal.com with 8,000+ apps through Zapier to automate your scheduling workflows. Set up triggers for booking events (created, rescheduled, cancelled, meeting ended) and integrate with popular tools like Slack, Gmail, Google Sheets, and more.
+
+**Get started:** Click "Visit" to access the Zapier integrations page and create your first automation workflow.
