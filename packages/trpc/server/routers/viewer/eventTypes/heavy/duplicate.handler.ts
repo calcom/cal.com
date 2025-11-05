@@ -94,11 +94,11 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       workflows,
       hashedLink,
       destinationCalendar,
-       
+
       id: _id,
-       
+
       webhooks: _webhooks,
-       
+
       schedule: _schedule,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
@@ -228,8 +228,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       // unique constraint violation
       throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Unique constraint violation while creating a duplicate event.",
+        code: "CONFLICT",
+        message: "duplicate_event_slug_conflict",
       });
     }
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error duplicating event type ${error}` });
