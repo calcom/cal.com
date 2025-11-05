@@ -44,6 +44,9 @@ export enum ErrorCode {
   NotEnoughAvailableSeats = "not_enough_available_seats_error",
   BookingConflict = "booking_conflict_error",
 
+  // 422 Unprocessable Entity - Invalid input data
+  InvalidInput = "invalid_input",
+
   // 500 Internal Server Error - Server-side errors, system failures
   UnableToSubscribeToThePlatform = "unable_to_subscribe_to_the_platform",
   UpdatingOauthClientError = "updating_oauth_client_error",
@@ -96,6 +99,9 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.BookingSeatsFull]: 409,
   [ErrorCode.NotEnoughAvailableSeats]: 409,
   [ErrorCode.BookingConflict]: 409,
+
+  // 422 Unprocessable Entity - Invalid input data
+  [ErrorCode.InvalidInput]: 422,
 
   // 500 Internal Server Error - Server-side errors, system failures
   [ErrorCode.UnableToSubscribeToThePlatform]: 500,
