@@ -104,7 +104,7 @@ export const useHandleBookEvent = ({
         rescheduledBy: rescheduledBy || undefined,
         bookingUid: (bookingData && bookingData.uid) || seatedEventData?.bookingUid || undefined,
         username: username || "",
-        metadata: metadata,
+        metadata,
         hashedLink,
         teamMemberEmail,
         crmOwnerRecordType,

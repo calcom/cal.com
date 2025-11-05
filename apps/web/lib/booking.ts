@@ -4,7 +4,6 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 export const getEventTypesFromDB = async (id: number) => {
@@ -80,6 +79,16 @@ export const getEventTypesFromDB = async (id: number) => {
           },
         },
       },
+      calIdTeamId: true,
+      calIdTeam: {
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          hideTeamBranding: true,
+          bannerUrl: true,
+        },
+      },
       calIdWorkflows: {
         select: {
           workflow: {
@@ -97,6 +106,7 @@ export const getEventTypesFromDB = async (id: number) => {
       parent: {
         select: {
           teamId: true,
+          calIdTeamId: true,
         },
       },
     },
@@ -110,8 +120,6 @@ export const getEventTypesFromDB = async (id: number) => {
   const { profile, ...restEventType } = eventType;
   const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
-
-  console.log("CalIdWorkflows: ", eventType.calIdWorkflows);
   return {
     isDynamic: false,
     ...restEventType,
@@ -204,25 +212,5 @@ export const handleSeatsEventTypeOnBooking = async (
     }
   }
 
-  // // @TODO: If handling teams, we need to do more check ups for this.
-  // if (bookingInfo?.user?.id === userId) {
-  //   return;
-  // }
   return bookingInfo;
 };
-
-export async function getRecurringBookings(recurringEventId: string | null) {
-  if (!recurringEventId) return null;
-  const recurringBookings = await prisma.booking.findMany({
-    where: {
-      recurringEventId,
-      status: {
-        in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
-      },
-    },
-    select: {
-      startTime: true,
-    },
-  });
-  return recurringBookings.map((obj) => obj.startTime.toString());
-}

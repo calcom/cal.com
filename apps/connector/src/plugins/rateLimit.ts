@@ -98,15 +98,16 @@ function createRateLimitByApiKey(fastify: FastifyInstance) {
       try {
         // Extract API key from Authorization header or query param
         const identifier = extractApiKeyIdentifier(request);
-        console.log("identifier", identifier);
+        //trim identifier to max length of 256 characters
+        const trimmedIdentifier = identifier ? identifier.substring(0, 255) : null;
 
-        if (!identifier) {
+        if (!trimmedIdentifier) {
           // No API key found, skip rate limiting or use IP as fallback
           const fallbackIdentifier = extractIpAddress(request);
           return performRateLimit(fastify.ratelimitInstance, fallbackIdentifier, reply, options);
         }
 
-        return performRateLimit(fastify.ratelimitInstance, identifier, reply, options);
+        return performRateLimit(fastify.ratelimitInstance, trimmedIdentifier, reply, options);
       } catch (error) {
         request.log.error({ error }, "Rate limit check failed");
         // Fail open - allow request if rate limit check fails

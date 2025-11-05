@@ -29,6 +29,12 @@ type GetOptions = {
     attendeeEmail?: string | TextFilterValue;
     attendeeName?: string | TextFilterValue;
     bookingUid?: string | undefined;
+    afterStartDate?: string;
+    beforeEndDate?: string;
+    afterUpdatedDate?: string;
+    beforeUpdatedDate?: string;
+    afterCreatedDate?: string;
+    beforeCreatedDate?: string;
   };
   sort?: SortOptions;
 };
@@ -36,6 +42,8 @@ type GetOptions = {
 const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, skip, sort }: GetOptions) => {
   const { prisma, user, kysely } = ctx;
 
+  // Call the main booking query handler
+  // All RFC 5545 pattern logic is handled there
   const { bookings, recurringInfo, totalCount } = await getBookings({
     user,
     prisma,

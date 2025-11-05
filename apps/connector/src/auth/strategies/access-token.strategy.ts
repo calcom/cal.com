@@ -1,7 +1,9 @@
 import type { AuthUser, UserRole } from "@/types";
 import { UnauthorizedError } from "@/utils";
+import jwt from "jsonwebtoken";
 
 import type { PrismaClient } from "@calcom/prisma";
+import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 export interface AccessTokenAuthResult {
   user: AuthUser;
@@ -18,33 +20,54 @@ export interface OAuthClient {
 }
 
 export class AccessTokenStrategy {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient, private jwt_secret: string) {
+    this.jwt_secret = jwt_secret;
+  }
 
   async authenticate(accessToken: string, origin?: string): Promise<AccessTokenAuthResult> {
     try {
       // Validate the access token format and expiration
-      const isValid = await this.validateAccessToken(accessToken);
-      if (!isValid) {
+      const decodedAccessToken = await this.decodeAccessToken(accessToken);
+      if (!decodedAccessToken || decodedAccessToken.token_type !== "Access Token") {
         throw new UnauthorizedError("Invalid or expired access token");
       }
 
       // Get the OAuth client associated with this token
-      const client = await this.getAccessTokenClient(accessToken);
+      const client = await this.getAccessTokenClient(decodedAccessToken.clientId);
       if (!client) {
         throw new UnauthorizedError("OAuth client not found for access token");
       }
 
-      // Validate origin if provided
-      if (origin && !this.isOriginAllowed(origin, client.redirectUris)) {
-        throw new UnauthorizedError(
-          `Invalid request origin. Please add '${origin}' to the redirect URIs of OAuth client '${client.id}'`
-        );
-      }
-
+      // // Validate origin if provided
+      // if (origin && !this.isOriginAllowed(origin, [client.redirectUri])) {
+      //   throw new UnauthorizedError(
+      //     `Invalid request origin. Please add '${origin}' to the redirect URIs of OAuth client '${decodedAccessToken.clientId}'`
+      //   );
+      // }
       // Get the user who owns this access token
-      const userId = await this.getAccessTokenOwnerId(accessToken);
+      let userId;
+      userId = decodedAccessToken.userId;
       if (!userId) {
-        throw new UnauthorizedError("No user associated with this access token");
+        const teamId = decodedAccessToken.teamId; //default to teamId 285 for testing
+        if (!teamId) {
+          throw new UnauthorizedError("No user associated with this access token");
+        }
+        //check for first owner of the team
+        const team = await this.prisma.calIdTeam.findUnique({
+          where: { id: Number(teamId) },
+          include: {
+            members: {
+              where: { role: "OWNER" },
+              take: 1,
+            },
+          },
+        });
+
+        if (!team || team.members.length === 0) {
+          throw new UnauthorizedError("No owner found for the team associated with this access token");
+        }
+
+        userId = team.members[0].userId;
       }
 
       const user = await this.getUserById(userId);
@@ -58,7 +81,7 @@ export class AccessTokenStrategy {
       return {
         user: this.mapToAuthUser(user),
         organizationId,
-        clientId: client.id,
+        clientId: decodedAccessToken.clientId,
       };
     } catch (error) {
       if (error instanceof UnauthorizedError) {
@@ -68,33 +91,28 @@ export class AccessTokenStrategy {
     }
   }
 
-  private async validateAccessToken(accessToken: string): Promise<boolean> {
+  private async decodeAccessToken(accessToken: string): Promise<OAuthTokenPayload | null> {
     try {
-      const token = await this.prisma.accessToken.findFirst({
-        where: {
-          secret: accessToken,
-          expiresAt: {
-            gt: new Date(), // Token must not be expired
-          },
-        },
-      });
+      const decodedAccessToken = jwt.verify(accessToken, this.jwt_secret) as OAuthTokenPayload;
 
-      return !!token;
+      return decodedAccessToken;
     } catch (error) {
-      return false;
+      return null;
     }
   }
 
-  private async getAccessTokenClient(accessToken: string): Promise<OAuthClient | null> {
+  private async getAccessTokenClient(clientId: string): Promise<{
+    redirectUri: string;
+  } | null> {
     try {
-      const tokenWithClient = await this.prisma.accessToken.findFirst({
-        where: { secret: accessToken },
-        include: {
-          client: true,
+      const tokenWithClient = await this.prisma.oAuthClient.findFirst({
+        where: { clientId },
+        select: {
+          redirectUri: true,
         },
       });
 
-      return tokenWithClient?.client || null;
+      return tokenWithClient || null;
     } catch (error) {
       return null;
     }

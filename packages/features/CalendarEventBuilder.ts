@@ -3,7 +3,13 @@ import type { TFunction } from "next-i18next";
 
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import type { CalendarEvent, Person, CalEventResponses, AppsStatus } from "@calcom/types/Calendar";
+import type {
+  CalendarEvent,
+  Person,
+  CalEventResponses,
+  AppsStatus,
+  RescheduleInstance,
+} from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 export class CalendarEventBuilder {
@@ -264,6 +270,14 @@ export class CalendarEventBuilder {
     this.event = {
       ...this.event,
       oneTimePassword,
+    };
+    return this;
+  }
+
+  withRescheduleInstance(rescheduleInstance?: RescheduleInstance) {
+    this.event = {
+      ...this.event,
+      rescheduleInstance,
     };
     return this;
   }

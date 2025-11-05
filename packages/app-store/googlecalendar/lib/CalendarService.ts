@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { buildRRFromRE, formatRecurrenceDate } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import type { calendar_v3 } from "@googleapis/calendar";
 import type { GaxiosResponse } from "googleapis-common";
-import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
 
 import { MeetLocationType } from "@calcom/app-store/locations";
@@ -22,6 +22,7 @@ import type {
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
+  RecurringEvent,
 } from "@calcom/types/Calendar";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
@@ -200,16 +201,19 @@ export default class GoogleCalendarService implements Calendar {
       payload["location"] = getLocation(calEvent);
     }
 
+    // if (calEvent.recurringEvent) {
+    //   const rule = new RRule({
+    //     freq: calEvent.recurringEvent.freq,
+    //     interval: calEvent.recurringEvent.interval,
+    //     count: calEvent.recurringEvent.count,
+    //   });
+
+    //   payload["recurrence"] = [rule.toString()];
+    // }
+
     if (calEvent.recurringEvent) {
-      const rule = new RRule({
-        freq: calEvent.recurringEvent.freq,
-        interval: calEvent.recurringEvent.interval,
-        count: calEvent.recurringEvent.count,
-      });
-
-      payload["recurrence"] = [rule.toString()];
+      payload["recurrence"] = this.mapRecurrenceToPayload(calEvent.recurringEvent);
     }
-
     if (calEvent.conferenceData && calEvent.location === MeetLocationType) {
       payload["conferenceData"] = calEvent.conferenceData;
     }
@@ -334,7 +338,26 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
+  async updateEvent(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId: string,
+    isRecurringInstanceReschedule?: boolean
+  ): Promise<any> {
+    //  Handle recurring instance reschedule
+    if (isRecurringInstanceReschedule && event.rescheduleInstance) {
+      this.log.info("Detected recurring instance reschedule request", {
+        uid,
+        formerTime: event.rescheduleInstance.formerTime,
+        newTime: event.rescheduleInstance.newTime,
+      });
+
+      return await this.updateSpecificRecurringInstance(uid, event, externalCalendarId);
+    }
+
+    //  Normal event update logic
+    this.log.debug("Updating normal event (not a recurring instance)");
+
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
       description: event.calendarDescription,
@@ -419,32 +442,69 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
-  async deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<void> {
+  async deleteEvent(
+    uid: string,
+    event: CalendarEvent,
+    externalCalendarId?: string | null,
+    isRecurringInstanceCancellation?: boolean
+  ): Promise<void> {
     const calendar = await this.authedCalendar();
-
     const selectedCalendar = externalCalendarId || "primary";
 
+    this.log.info("deleteEvent called", {
+      uid,
+      selectedCalendar,
+      isRecurringInstanceCancellation,
+      cancelledDatesCount: event.cancelledDates?.length || 0,
+    });
+
     try {
-      const event = await calendar.events.delete({
+      // Handle instance-level cancellation
+      if (isRecurringInstanceCancellation && event.cancelledDates && event.cancelledDates.length > 0) {
+        this.log.info("Processing instance cancellation", {
+          uid,
+          cancelledDatesCount: event.cancelledDates.length,
+        });
+
+        await this.cancelSpecificInstances(calendar, selectedCalendar, uid, event.cancelledDates);
+
+        return;
+      }
+
+      // Handle full event deletion (default behavior)
+      this.log.info("Deleting entire event", { uid, selectedCalendar });
+
+      const response = await calendar.events.delete({
         calendarId: selectedCalendar,
         eventId: uid,
         sendNotifications: false,
         sendUpdates: "none",
       });
-      return event?.data;
+
+      this.log.info("Event deleted successfully", { uid });
+      return response?.data;
     } catch (error) {
       this.log.error(
-        "There was an error deleting event from google calendar: ",
-        safeStringify({ error, event, externalCalendarId })
+        "There was an error deleting event from Google Calendar",
+        safeStringify({ error, event, externalCalendarId, uid })
       );
       const err = error as GoogleCalError;
+
       /**
-       *  410 is when an event is already deleted on the Google cal before on cal.com
-       *  404 is when the event is on a different calendar
+       * 410 - Event is already deleted
+       * 404 - Event not found (might be on different calendar)
        */
-      if (err.code === 410) return;
-      console.error("There was an error contacting google calendar service: ", err);
-      if (err.code === 404) return;
+      if (err.code === 410) {
+        this.log.warn("Event already deleted", { uid });
+        return;
+      }
+
+      if (err.code === 404) {
+        this.log.warn("Event not found", { uid, selectedCalendar });
+        return;
+      }
+
+      console.error("There was an error contacting Google Calendar service:", err);
       throw err;
     }
   }
@@ -1114,6 +1174,302 @@ export default class GoogleCalendarService implements Calendar {
     } catch (error) {
       // should not be reached because Google Cal always has a primary cal
       logger.error("Error getting primary calendar", { error });
+      throw error;
+    }
+  }
+
+  private mapRecurrenceToPayload(recurringEvent: RecurringEvent): string[] {
+    return buildRRFromRE(recurringEvent);
+  }
+
+  private async cancelSpecificInstances(
+    calendar: any,
+    calendarId: string,
+    eventId: string,
+    cancelledDates: string[]
+  ): Promise<void> {
+    try {
+      // Fetch the existing master event
+      const existingEventResponse = await calendar.events.get({
+        calendarId,
+        eventId,
+      });
+
+      if (!existingEventResponse.data) {
+        throw new Error("Event not found");
+      }
+
+      const existingEvent = existingEventResponse.data;
+      const currentRecurrence = existingEvent.recurrence || [];
+
+      this.log.debug("Fetched existing recurring event", {
+        eventId,
+        hasRecurrence: currentRecurrence.length > 0,
+        recurrence: currentRecurrence,
+      });
+
+      // Ensure it's a recurring event
+      if (!currentRecurrence.length) {
+        this.log.warn("Event is not recurring, deleting entire event instead", { eventId });
+
+        await calendar.events.delete({
+          calendarId,
+          eventId,
+          sendNotifications: false,
+          sendUpdates: "none",
+        });
+
+        return;
+      }
+
+      // Parse existing EXDATE lines (if any)
+      const exdateLines = currentRecurrence.filter((line: string) => line.startsWith("EXDATE"));
+      const existingExDates: string[] = [];
+
+      for (const exdateLine of exdateLines) {
+        // EXDATE may contain multiple comma-separated dates
+        const parts = exdateLine.split(":");
+        if (parts.length > 1) {
+          existingExDates.push(...parts[1].split(","));
+        }
+      }
+
+      // Convert cancelledDates → formatted UTC timestamps (RFC 5545)
+      const newExDates = cancelledDates
+        .map((dateStr) => {
+          const date = new Date(dateStr);
+          if (isNaN(date.getTime())) {
+            this.log.warn("Invalid date string, skipping", { dateStr });
+            return null;
+          }
+          return formatRecurrenceDate(date); // returns YYYYMMDDTHHmmssZ
+        })
+        .filter(Boolean) as string[];
+
+      // Merge existing + new EXDATEs (deduplicate)
+      const mergedExDates = Array.from(new Set([...existingExDates, ...newExDates]));
+
+      // Rebuild recurrence array:
+      // keep all existing lines except old EXDATEs, then add a new EXDATE line
+      const updatedRecurrence = [
+        ...currentRecurrence.filter((line: string) => !line.startsWith("EXDATE")),
+        `EXDATE:${mergedExDates.join(",")}`,
+      ];
+
+      this.log.info("Updating recurring event with new EXDATEs", {
+        eventId,
+        addedCount: newExDates.length,
+        totalExDates: mergedExDates.length,
+      });
+
+      // Patch the master event with the updated recurrence
+      await calendar.events.patch({
+        calendarId,
+        eventId,
+        requestBody: {
+          recurrence: updatedRecurrence,
+        },
+        sendNotifications: false,
+        sendUpdates: "none",
+      });
+
+      this.log.info("Successfully updated recurring event with cancelled instances", {
+        eventId,
+        totalCancelled: cancelledDates.length,
+      });
+    } catch (error) {
+      this.log.error(
+        "Error updating recurring event with EXDATEs",
+        safeStringify({ error, eventId, cancelledDatesCount: cancelledDates.length })
+      );
+
+      const err = error as GoogleCalError;
+
+      if (err.code === 404) {
+        this.log.warn("Event not found while updating EXDATEs", { eventId });
+        return;
+      }
+
+      if (err.code === 410) {
+        this.log.warn("Event already deleted, cannot update EXDATEs", { eventId });
+        return;
+      }
+
+      throw error;
+    }
+  }
+
+  private async updateSpecificRecurringInstance(
+    uid: string,
+    event: CalendarServiceEvent,
+    externalCalendarId: string
+  ): Promise<NewCalendarEventType> {
+    this.log.info("Updating specific recurring instance", {
+      instanceUid: uid,
+      formerTime: event.rescheduleInstance?.formerTime,
+      newTime: event.rescheduleInstance?.newTime,
+    });
+
+    const calendar = await this.authedCalendar();
+    const selectedCalendar = externalCalendarId || "primary";
+
+    try {
+      // 1. Parsing the instance UID to get the master event ID and instance date
+      // Instance UIDs are formatted as: {masterEventId}_{instanceDateTimeInFormat}
+      const uidParts = uid.split("_");
+      if (uidParts.length < 3) {
+        throw new Error(`Invalid recurring instance UID format: ${uid}`);
+      }
+
+      // Reconstruct the master event ID (everything except the last part which is the timestamp)
+      const masterEventId = uidParts.slice(0, -1).join("_");
+
+      this.log.debug("Parsed recurring instance UID", {
+        originalUid: uid,
+        masterEventId,
+        instanceDateTime: uidParts[uidParts.length - 1],
+      });
+
+      // 2. First, fetch the specific instance to get its current state
+      let instanceEvent: calendar_v3.Schema$Event;
+      try {
+        const instanceResponse = await calendar.events.get({
+          calendarId: selectedCalendar,
+          eventId: uid,
+        });
+        instanceEvent = instanceResponse.data;
+
+        this.log.debug("Fetched instance event", {
+          instanceId: instanceEvent.id,
+          currentStart: instanceEvent.start?.dateTime,
+          currentEnd: instanceEvent.end?.dateTime,
+        });
+      } catch (error) {
+        this.log.error("Failed to fetch instance event", safeStringify({ error, uid }));
+        throw new Error(`Could not fetch recurring instance: ${uid}`);
+      }
+
+      // 3. Calculate event duration to maintain it after reschedule
+      const eventDurationMs = new Date(event.endTime).getTime() - new Date(event.startTime).getTime();
+      const newStartTime = new Date(event.rescheduleInstance!.newTime);
+      const newEndTime = new Date(newStartTime.getTime() + eventDurationMs);
+
+      // 4. Build the update payload - IMPORTANT: Only include fields that should change
+      // Don't include conferenceData in the initial update as it can cause conflicts
+      const payload: calendar_v3.Schema$Event = {
+        summary: event.title,
+        description: event.calendarDescription,
+        start: {
+          dateTime: newStartTime.toISOString(),
+          timeZone: event.organizer.timeZone,
+        },
+        end: {
+          dateTime: newEndTime.toISOString(),
+          timeZone: event.organizer.timeZone,
+        },
+        attendees: this.getAttendees({ event, hostExternalCalendarId: externalCalendarId }),
+        reminders: {
+          useDefault: true,
+        },
+        guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      };
+
+      if (event.hideCalendarEventDetails) {
+        payload.visibility = "private";
+      }
+
+      if (event.location) {
+        payload.location = getLocation(event);
+      }
+
+      // Don't include conferenceData in PATCH for existing instances
+      // The conference link should already exist and will be preserved
+
+      // 5. Update the specific instance
+      this.log.info("Patching recurring instance", {
+        instanceUid: uid,
+        newStart: newStartTime.toISOString(),
+        newEnd: newEndTime.toISOString(),
+        selectedCalendar,
+      });
+
+      const patchResponse = await calendar.events.patch({
+        calendarId: selectedCalendar,
+        eventId: uid,
+        requestBody: payload,
+        sendUpdates: "none",
+        // Don't use conferenceDataVersion for instance updates
+      });
+
+      this.log.info("Successfully updated recurring instance", {
+        instanceId: patchResponse.data.id,
+        newStart: patchResponse.data.start?.dateTime,
+        newEnd: patchResponse.data.end?.dateTime,
+      });
+
+      // 6. If there's a hangout link and we need to update the description
+      if (patchResponse.data.id && patchResponse.data.hangoutLink && event.location === MeetLocationType) {
+        try {
+          await calendar.events.patch({
+            calendarId: selectedCalendar,
+            eventId: patchResponse.data.id,
+            requestBody: {
+              description: getRichDescription({
+                ...event,
+                additionalInformation: { hangoutLink: patchResponse.data.hangoutLink },
+              }),
+            },
+            sendUpdates: "none",
+          });
+
+          this.log.debug("Updated instance description with hangout link");
+        } catch (descError) {
+          // Don't fail the entire operation if description update fails
+          this.log.warn("Failed to update description with hangout link", safeStringify(descError));
+        }
+      }
+
+      return {
+        uid: "",
+        ...patchResponse.data,
+        id: patchResponse.data.id || "",
+        type: "google_calendar",
+        password: "",
+        url: "",
+        iCalUID: patchResponse.data.iCalUID,
+        additionalInfo: {
+          hangoutLink: patchResponse.data.hangoutLink || "",
+        },
+      };
+    } catch (error) {
+      this.log.error(
+        "Error updating specific recurring instance",
+        safeStringify({
+          error,
+          instanceUid: uid,
+          formerTime: event.rescheduleInstance?.formerTime,
+          newTime: event.rescheduleInstance?.newTime,
+          selectedCalendar,
+        })
+      );
+
+      const err = error as GoogleCalError;
+
+      // Provide more helpful error messages
+      if (err.code === 400) {
+        throw new Error(
+          `Bad request when updating recurring instance. This might be due to invalid attendee data or conference settings. UID: ${uid}`
+        );
+      }
+
+      if (err.code === 404) {
+        throw new Error(`Recurring instance not found: ${uid}`);
+      }
+
+      if (err.code === 410) {
+        throw new Error(`Recurring instance has been deleted: ${uid}`);
+      }
+
       throw error;
     }
   }

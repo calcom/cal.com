@@ -372,7 +372,8 @@ export const updateEvent = async (
   credential: CredentialForCalendarService,
   rawCalEvent: CalendarEvent,
   bookingRefUid: string | null,
-  externalCalendarId: string | null
+  externalCalendarId: string | null,
+  isRecurringInstanceReschedule?: boolean
 ): Promise<EventResult<NewCalendarEventType>> => {
   const formattedEvent = formatCalEvent(rawCalEvent);
   const calEvent = processEvent(formattedEvent);
@@ -381,13 +382,16 @@ export const updateEvent = async (
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
+
   log.debug(
     "Updating calendar event",
     safeStringify({
       bookingRefUid,
       calEvent: getPiiFreeCalendarEvent(calEvent),
+      isRecurringInstanceReschedule, // NEW: Log the flag
     })
   );
+
   if (bookingRefUid === "") {
     log.error(
       "updateEvent failed",
@@ -395,10 +399,11 @@ export const updateEvent = async (
       safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
     );
   }
+
   const updatedResult: NewCalendarEventType | NewCalendarEventType[] | undefined =
     calendar && bookingRefUid
       ? await calendar
-          .updateEvent(bookingRefUid, calEvent, externalCalendarId)
+          .updateEvent(bookingRefUid, calEvent, externalCalendarId, isRecurringInstanceReschedule)
           .then((event: NewCalendarEventType | NewCalendarEventType[]) => {
             success = true;
             return event;
@@ -454,11 +459,13 @@ export const deleteEvent = async ({
   bookingRefUid,
   event,
   externalCalendarId,
+  isRecurringInstanceCancellation,
 }: {
   credential: CredentialForCalendarService;
   bookingRefUid: string;
   event: CalendarEvent;
   externalCalendarId?: string | null;
+  isRecurringInstanceCancellation?: boolean;
 }): Promise<unknown> => {
   const calendar = await getCalendar(credential);
   log.debug(
@@ -469,7 +476,7 @@ export const deleteEvent = async ({
     })
   );
   if (calendar) {
-    return calendar.deleteEvent(bookingRefUid, event, externalCalendarId);
+    return calendar.deleteEvent(bookingRefUid, event, externalCalendarId, isRecurringInstanceCancellation);
   } else {
     log.error(
       "Could not do deleteEvent - No calendar adapter found",
