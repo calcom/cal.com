@@ -1,7 +1,7 @@
 import { z } from "zod";
 
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
@@ -123,7 +123,8 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
 
     // Get the Stripe subscription object
     const stripeSubscription = await stripe.subscriptions.retrieve(paymentSubscriptionId);
-    const { subscriptionStart } = StripeBillingService.extractSubscriptionDates(stripeSubscription);
+    const billingService = getBillingProviderService();
+    const { subscriptionStart } = billingService.extractSubscriptionDates(stripeSubscription);
 
     const internalTeamBillingService = new InternalTeamBilling(organization);
     await internalTeamBillingService.saveTeamBilling({
