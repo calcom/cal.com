@@ -23,6 +23,7 @@ const defaultState: CalendarComponentProps = {
   showBackgroundPattern: true,
   showBorder: true,
   borderColor: "default",
+  showTimezone: false,
 };
 
 export const useCalendarStore = create<CalendarStoreProps>((set) => ({

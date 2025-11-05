@@ -6,7 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
-import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { OnboardingCalendarBrowserView } from "../../components/onboarding-calendar-browser-view";
+import { useOnboardingStore } from "../../store/onboarding-store";
 import { InstallableAppCard } from "../_components/InstallableAppCard";
 import { OnboardingCard } from "../_components/OnboardingCard";
 import { OnboardingLayout } from "../_components/OnboardingLayout";
@@ -20,6 +21,8 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   const router = useRouter();
   const { t } = useLocale();
   const { installingAppSlug, setInstallingAppSlug, createInstallHandlers } = useAppInstallation();
+  const { data: user } = trpc.viewer.me.get.useQuery();
+  const { personalDetails } = useOnboardingStore();
 
   const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
@@ -75,7 +78,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
       </OnboardingCard>
 
       {/* Right column - Browser view */}
-      <OnboardingBrowserView />
+      <OnboardingCalendarBrowserView />
     </OnboardingLayout>
   );
 };
