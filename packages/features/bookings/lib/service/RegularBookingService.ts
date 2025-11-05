@@ -35,6 +35,7 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -1131,6 +1132,44 @@ async function handler(
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentialsIncludeServiceAccountKey(organizerUser, eventType);
+
+  // After getting the aggregate users availability, ensure that the single organizer is available
+  // Perform real-time 3rd party calendar overlap check for organizer (bypass cache)
+  const userAvailabilityService = getUserAvailabilityService();
+  try {
+    const conflictCheck = await userAvailabilityService.checkThirdPartyCalendarConflicts({
+      user: organizerUser,
+      eventType,
+      credentials: allCredentials,
+      dateFrom: reqBody.start,
+      dateTo: reqBody.end,
+      beforeEventBuffer: eventType.beforeEventBuffer,
+      afterEventBuffer: eventType.afterEventBuffer,
+    });
+
+    if (conflictCheck.hasConflict) {
+      loggerWithEventDetails.error(
+        "Organizer has a conflict in their 3rd party calendar after checking aggregate availability check",
+        {
+          organizerId: organizerUser.id,
+          selectedCalendars: conflictCheck.selectedCalendars,
+          conflictingBusyTimes: conflictCheck.conflictingBusyTimes,
+          requestedStart: reqBody.start,
+          requestedEnd: reqBody.end,
+        }
+      );
+      throw new Error(ErrorCode.NoAvailableUsersFound);
+    }
+  } catch (error) {
+    loggerWithEventDetails.error(
+      "3rd party calendar conflict check failed after aggregate availability check",
+      {
+        organizerId: organizerUser.id,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    );
+    throw new Error(ErrorCode.NoAvailableUsersFound);
+  }
 
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
   const attendeeInfoOnReschedule =
