@@ -114,29 +114,31 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                 <div className="flex flex-col gap-2">
                   <Label className="text-emphasis text-sm font-medium">{t("email")}</Label>
 
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="flex items-start gap-0.5">
-                      <div className="flex-1">
-                        <TextField
-                          labelSrOnly
-                          {...form.register(`invites.${index}.email`)}
-                          placeholder={`rick@cal.com`}
-                          type="email"
+                  <div className="scroll-bar flex max-h-72 flex-col gap-2 overflow-y-auto">
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="flex items-start gap-0.5">
+                        <div className="flex-1">
+                          <TextField
+                            labelSrOnly
+                            {...form.register(`invites.${index}.email`)}
+                            placeholder={`rick@cal.com`}
+                            type="email"
+                            size="sm"
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          color="minimal"
+                          variant="icon"
                           size="sm"
-                        />
+                          className="h-7 w-7"
+                          disabled={fields.length === 1}
+                          onClick={() => remove(index)}>
+                          <Icon name="x" className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        color="minimal"
-                        variant="icon"
-                        size="sm"
-                        className="h-7 w-7"
-                        disabled={fields.length === 1}
-                        onClick={() => remove(index)}>
-                        <Icon name="x" className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
 
                   {/* Add button */}
                   <Button
