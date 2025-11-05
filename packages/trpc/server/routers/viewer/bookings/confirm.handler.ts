@@ -91,6 +91,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           customReplyToEmail: true,
           metadata: true,
           locations: true,
+          calVideoSettings: true,
           team: {
             select: {
               id: true,

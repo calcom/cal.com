@@ -27,6 +27,7 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { CalVideoSettings } from "@calcom/features/eventtypes/lib/types";
 
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
@@ -63,6 +64,7 @@ export async function handleConfirmation(args: {
       workflows?: {
         workflow: Workflow;
       }[];
+      calVideoSettings?: CalVideoSettings | null;
     } | null;
     metadata?: Prisma.JsonValue;
     eventTypeId: number | null;
@@ -440,15 +442,6 @@ export async function handleConfirmation(args: {
 
     await Promise.all(scheduleTriggerPromises);
 
-    let calVideoSettings = null;
-   if (booking.eventTypeId) {
-     const eventTypeWithSettings = await prisma.eventType.findUnique({
-       where: { id: booking.eventTypeId },
-       select: { calVideoSettings: true },
-     });
-     calVideoSettings = eventTypeWithSettings?.calVideoSettings;
-   }
-
     await scheduleNoShowTriggers({
       booking: {
         startTime: booking.startTime,
@@ -462,7 +455,7 @@ export async function handleConfirmation(args: {
       teamId,
       orgId,
       oAuthClientId: platformClientParams?.platformClientId,
-      calVideoSettings: calVideoSettings,
+      calVideoSettings: booking.eventType?.calVideoSettings ?? null,
     });
 
     const eventTypeInfo: EventTypeInfo = {
