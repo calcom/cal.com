@@ -36,7 +36,7 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
     },
   });
   if (!user) {
-    throw new HttpError({ statusCode: 404, message: ErrorCode.ResourceNotFound });
+    throw new HttpError({ statusCode: 404, message: ErrorCode.UserNotFound });
   }
 
   if (user.identityProvider !== IdentityProvider.CAL) {
