@@ -247,7 +247,7 @@ export class CallService {
 
       if (!hasCredits) {
         throw new ErrorWithCode(
-          ErrorCode.PermissionDenied,
+          ErrorCode.Forbidden,
           "Insufficient credits to make test call. Please purchase more credits."
         );
       }

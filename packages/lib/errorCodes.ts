@@ -31,8 +31,7 @@ export enum ErrorCode {
   PaymentRequired = "payment_required",
 
   // 403 Forbidden - Access denied, insufficient permissions
-  PermissionDenied = "permission_denied",
-  OperationNotAllowed = "operation_not_allowed",
+  Forbidden = "forbidden",
 
   // 404 Not Found - Resource does not exist
   EventTypeNotFound = "event_type_not_found_error",
@@ -102,8 +101,7 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.PaymentRequired]: 402,
 
   // 403 Forbidden - Access denied, insufficient permissions
-  [ErrorCode.PermissionDenied]: 403,
-  [ErrorCode.OperationNotAllowed]: 403,
+  [ErrorCode.Forbidden]: 403,
 
   // 404 Not Found - Resource does not exist
   [ErrorCode.EventTypeNotFound]: 404,

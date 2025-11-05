@@ -101,7 +101,7 @@ export class CheckBookingLimitsService {
 
     if (bookingsInPeriod < limitingNumber) return;
 
-    throw new ErrorWithCode(ErrorCode.OperationNotAllowed, "booking_limit_reached");
+    throw new ErrorWithCode(ErrorCode.Forbidden, "booking_limit_reached");
   }
 
   checkBookingLimit = withReporting(this._checkBookingLimit.bind(this), "checkBookingLimit");

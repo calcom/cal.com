@@ -420,17 +420,13 @@ const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   const bookingRepo = new BookingRepository(prisma);
   const booking = await bookingRepo.findBookingByUidAndUserId({ bookingUid, userId });
 
-  if (!booking)
-    throw new ErrorWithCode(ErrorCode.PermissionDenied, "You are not allowed to access this booking");
+  if (!booking) throw new ErrorWithCode(ErrorCode.Forbidden, "You are not allowed to access this booking");
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isOngoing = isUpcoming && new Date() >= new Date(booking.startTime);
   const isBookingInPast = new Date(booking.endTime) < new Date();
   if (!isBookingInPast && !isOngoing) {
-    throw new ErrorWithCode(
-      ErrorCode.PermissionDenied,
-      "Cannot mark no-show before the meeting has started."
-    );
+    throw new ErrorWithCode(ErrorCode.Forbidden, "Cannot mark no-show before the meeting has started.");
   }
 };
 

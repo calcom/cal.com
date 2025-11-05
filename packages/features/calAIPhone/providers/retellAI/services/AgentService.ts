@@ -426,7 +426,7 @@ export class AgentService {
         teamId,
       });
       if (!canManage) {
-        throw new ErrorWithCode(ErrorCode.PermissionDenied, "You don");
+        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
       }
     }
 
@@ -476,7 +476,7 @@ export class AgentService {
         teamId,
       });
       if (!canManage) {
-        throw new ErrorWithCode(ErrorCode.PermissionDenied, "You don");
+        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
       }
     }
 

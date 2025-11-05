@@ -66,6 +66,6 @@ export async function checkDurationLimit({
 
     if (totalBookingDuration < limitingNumber) return;
 
-    throw new ErrorWithCode(ErrorCode.OperationNotAllowed, "duration_limit_reached");
+    throw new ErrorWithCode(ErrorCode.Forbidden, "duration_limit_reached");
   }
 }

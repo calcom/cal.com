@@ -267,7 +267,7 @@ export class PhoneNumberService {
         teamId,
       });
       if (!canManage) {
-        throw new ErrorWithCode(ErrorCode.PermissionDenied, "You don");
+        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
       }
     }
   }
@@ -285,7 +285,7 @@ export class PhoneNumberService {
       });
 
       if (!agent) {
-        throw new ErrorWithCode(ErrorCode.PermissionDenied, "You don");
+        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
       }
     }
     return agent;
@@ -304,7 +304,7 @@ export class PhoneNumberService {
       });
 
       if (!agent) {
-        throw new ErrorWithCode(ErrorCode.PermissionDenied, "You don");
+        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
       }
 
       if (teamId && agent.teamId !== teamId) {

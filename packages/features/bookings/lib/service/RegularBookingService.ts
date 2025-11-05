@@ -538,7 +538,7 @@ async function handler(
     });
   } catch (error) {
     if (error instanceof ErrorWithCode) {
-      throw new ErrorWithCode(ErrorCode.PermissionDenied, error.message);
+      throw new ErrorWithCode(ErrorCode.Forbidden, error.message);
     }
     throw error;
   }
