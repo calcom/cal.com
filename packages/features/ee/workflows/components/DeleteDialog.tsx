@@ -2,8 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ErrorWithCode } from "@calcom/lib/errors";
-import { ErrorCode } from "@calcom/lib/errorCodes";
+import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
@@ -28,7 +27,7 @@ export const DeleteDialog = (props: IDeleteDialog) => {
       setIsOpenDialog(false);
     },
     onError: (err) => {
-      if (err instanceof ErrorWithCode) {
+      if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
         setIsOpenDialog(false);
