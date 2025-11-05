@@ -386,12 +386,16 @@ export default class GoogleCalendarService implements Calendar {
     createdEventICalUID: string
   ): Promise<boolean> {
     try {
+      const OVERLAP_LOOKBACK_MS = 24 * 60 * 60 * 1000; // 24 hours
+      const lookbackTime = new Date(new Date(startTime).getTime() - OVERLAP_LOOKBACK_MS).toISOString();
+
       const eventsResponse = await calendar.events.list({
         calendarId: calendarId,
-        timeMin: startTime,
+        timeMin: lookbackTime,
         timeMax: endTime,
         singleEvents: true,
         showDeleted: false,
+        orderBy: "startTime",
       });
 
       const events = eventsResponse.data.items || [];
