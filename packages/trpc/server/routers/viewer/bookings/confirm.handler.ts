@@ -307,7 +307,20 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId,
       prisma,
       bookingId,
-      booking,
+      booking: {
+        ...booking,
+        eventType: booking.eventType
+          ? {
+              ...booking.eventType,
+              calVideoSettings: booking.eventType.calVideoSettings
+                ? {
+                    ...booking.eventType.calVideoSettings,
+                    redirectUrlOnExit: booking.eventType.calVideoSettings.redirectUrlOnExit ?? undefined,
+                  }
+                : null,
+            }
+          : null,
+      },
       emailsEnabled,
       platformClientParams,
     });
