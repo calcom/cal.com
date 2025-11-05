@@ -203,7 +203,7 @@ export class StripeBillingService implements IBillingProviderService {
     return price;
   }
 
-  static extractSubscriptionDates(subscription: {
+  extractSubscriptionDates(subscription: {
     start_date: number;
     trial_end?: number | null;
     cancel_at?: number | null;
@@ -216,13 +216,13 @@ export class StripeBillingService implements IBillingProviderService {
     return { subscriptionStart, subscriptionTrialEnd, subscriptionEnd };
   }
 
-  static mapStripeStatusToCalStatus = ({
+  mapStripeStatusToCalStatus({
     stripeStatus,
     subscriptionId,
   }: {
     stripeStatus: string;
     subscriptionId: string;
-  }) => {
+  }) {
     const log = logger.getSubLogger({ prefix: ["mapStripeStatusToCalStatus"] });
     const statusMap: Record<string, SubscriptionStatus> = {
       active: SubscriptionStatus.ACTIVE,
@@ -242,5 +242,5 @@ export class StripeBillingService implements IBillingProviderService {
     }
 
     return status || SubscriptionStatus.ACTIVE;
-  };
+  }
 }
