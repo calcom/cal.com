@@ -17465,7 +17465,8 @@
             "type": "object"
           },
           "price": {
-            "type": "number"
+            "type": "number",
+            "description": "Price in cents"
           },
           "currency": {
             "type": "string"
@@ -19766,7 +19767,8 @@
             "type": "object"
           },
           "price": {
-            "type": "number"
+            "type": "number",
+            "description": "Price in cents"
           },
           "currency": {
             "type": "string"

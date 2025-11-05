@@ -512,6 +512,13 @@ export class BaseCreateEventTypeInput {
       "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type.",
   })
   bookingRequiresAuthentication?: boolean;
+
+  @IsInt()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description: "Price in cents.",
+  })
+  price?: number;
 }
 export class CreateEventTypeInput_2024_06_14 extends BaseCreateEventTypeInput {
   @IsOptional()
