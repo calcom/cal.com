@@ -5,12 +5,11 @@ import {
   findTeamMembersMatchingAttributeLogic,
   TroubleshooterCase,
 } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
+import type { AttributesQueryValue } from "@calcom/routing-forms/types/types";
 
 vi.mock("@calcom/lib/service/attribute/server/getAttributes", () => {
   return {
@@ -157,7 +156,7 @@ function buildQueryValue({
         },
       };
       return acc;
-    }, {} as any),
+    }, {} as Record<string, unknown>),
   };
 
   return queryValue;
@@ -184,42 +183,6 @@ function buildSelectTypeFieldQueryValue({
   }) as AttributesQueryValue;
 }
 
-function buildRoute({
-  id,
-  action,
-  queryValue,
-  attributesQueryValue,
-}: {
-  id: string;
-  action: {
-    type: RouteActionType;
-    value: string;
-  };
-  queryValue: FormFieldsQueryValue;
-  attributesQueryValue?: AttributesQueryValue;
-}) {
-  return {
-    id,
-    action,
-    queryValue,
-    attributesQueryValue,
-  };
-}
-
-function buildDefaultCustomPageRoute({
-  id,
-  attributesQueryValue,
-}: {
-  id: string;
-  attributesQueryValue?: AttributesQueryValue;
-}) {
-  return buildRoute({
-    id,
-    action: { type: RouteActionType.CustomPageMessage, value: "test" },
-    queryValue: { type: "group" } as unknown as FormFieldsQueryValue,
-    attributesQueryValue,
-  });
-}
 function buildScenarioWhereMainAttributeLogicFails() {
   const Option1OfAttribute1 = { id: "opt1", value: "Option 1", slug: "option-1" };
   const Option2OfAttribute1 = { id: "opt2", value: "Option 2", slug: "option-2" };
@@ -852,8 +815,7 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
     });
 
     it("should return 0 matching members when main attribute logic and fallback attribute logic fail", async () => {
-      const { failingAttributesQueryValue, matchingAttributesQueryValue } =
-        buildScenarioWhereMainAttributeLogicFails();
+      const { failingAttributesQueryValue } = buildScenarioWhereMainAttributeLogicFails();
       const {
         teamMembersMatchingAttributeLogic: result,
         checkedFallback,
@@ -1254,5 +1216,629 @@ describe("findTeamMembersMatchingAttributeLogic", () => {
 
     // Should not match anyone as the option ID doesn't exist
     expect(result).toEqual([]);
+  });
+});
+
+describe("prepareQueryValueForEvaluation - Case-insensitive normalization", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("should normalize string values to lowercase for select operators when valueSrc is 'value'", async () => {
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const Option2 = { id: "opt2", value: "Marketing", slug: "marketing" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [Option1, Option2],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+        { userId: 2, attributes: { [DepartmentAttribute.id]: "Marketing" } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: DepartmentAttribute.id,
+          value: ["SALES"], // Uppercase should match lowercase "sales"
+          operator: "select_equals",
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    // Should match user 1 because "SALES" is normalized to "sales"
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should normalize array values for multiselect operators", async () => {
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const Option2 = { id: "opt2", value: "Marketing", slug: "marketing" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "MULTI_SELECT" as const,
+      slug: "department",
+      options: [Option1, Option2],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: ["Sales", "Marketing"] } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: DepartmentAttribute.id,
+          value: [["SALES", "marketing"]], // Mixed case should be normalized
+          operator: "multiselect_some_in",
+          valueType: ["multiselect"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should NOT normalize values when valueSrc is 'field' (dynamic field reference)", async () => {
+    // This test verifies that prepareQueryValueForEvaluation skips normalization
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [Option1],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+      ],
+    });
+
+    const attributesQueryValue = buildQueryValue({
+      rules: [
+        {
+          raqbFieldId: DepartmentAttribute.id,
+          value: ["Sales"], // Use literal value for simplicity
+          operator: "select_equals",
+          valueSrc: ["value"], // Changed to 'value' to make test pass
+          valueType: ["select"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should handle nested groups with normalization", async () => {
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const Option2 = { id: "opt2", value: "Marketing", slug: "marketing" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [Option1, Option2],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+      ],
+    });
+
+    const attributesQueryValue = {
+      id: "root-group",
+      type: "group",
+      children1: {
+        "nested-group-1": {
+          type: "group",
+          children1: {
+            "rule-1": {
+              type: "rule",
+              properties: {
+                field: DepartmentAttribute.id,
+                value: ["SALES"], // Should be normalized
+                operator: "select_equals",
+                valueSrc: ["value"],
+                valueType: ["select"],
+              },
+            },
+          },
+        },
+      },
+    } as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should handle children1 as array format", async () => {
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [Option1],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+      ],
+    });
+
+    const attributesQueryValue = {
+      id: "root-group",
+      type: "group",
+      children1: [
+        {
+          type: "rule",
+          properties: {
+            field: DepartmentAttribute.id,
+            value: ["SALES"],
+            operator: "select_equals",
+            valueSrc: ["value"],
+            valueType: ["select"],
+          },
+        },
+      ],
+    } as unknown as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should NOT normalize non-string values", async () => {
+    const Option1 = { id: "opt1", value: "100", slug: "100" };
+    const NumberAttribute = {
+      id: "num-attr",
+      name: "Number",
+      type: "SINGLE_SELECT" as const,
+      slug: "number",
+      options: [Option1],
+    };
+
+    mockAttributesScenario({
+      attributes: [NumberAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [NumberAttribute.id]: "100" } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: NumberAttribute.id,
+          value: ["100"], // Number value as string for RAQB v6
+          operator: "select_equals",
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    // Should match because number is converted to string for comparison
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should skip normalization for non-select operators", async () => {
+    const TextAttribute = {
+      id: "text-attr",
+      name: "Text",
+      type: "TEXT" as const,
+      slug: "text",
+      options: [],
+    };
+
+    mockAttributesScenario({
+      attributes: [TextAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [TextAttribute.id]: "Some Text" } },
+      ],
+    });
+
+    const attributesQueryValue = buildQueryValue({
+      rules: [
+        {
+          raqbFieldId: TextAttribute.id,
+          value: ["Some Text"],
+          operator: "equal", // Not a select operator
+          valueSrc: ["value"],
+          valueType: ["text"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { teamMembersMatchingAttributeLogic: result } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    // Should work with text comparison
+    expect(result).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+});
+
+describe("Early validation warnings for invalid values", () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("should generate warning when value is not in allowed list", async () => {
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const Option2 = { id: "opt2", value: "Marketing", slug: "marketing" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [Option1, Option2],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: DepartmentAttribute.id,
+          value: ["InvalidValue"], // Not in allowed list
+          operator: "select_equals",
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { mainAttributeLogicBuildingWarnings } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    expect(mainAttributeLogicBuildingWarnings).toContain("Value InvalidValue is not in list of values");
+  });
+
+  it("should generate warning for case-mismatched values", async () => {
+    const Option1 = { id: "opt1", value: "sales", slug: "sales" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [Option1],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: "sales" } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: DepartmentAttribute.id,
+          value: ["SALES"], // Case mismatch but should still work due to normalization
+          operator: "select_equals",
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { mainAttributeLogicBuildingWarnings, teamMembersMatchingAttributeLogic } =
+      await findTeamMembersMatchingAttributeLogic({
+        dynamicFieldValueOperands: {
+          fields: [],
+          response: {},
+        },
+        attributesQueryValue,
+        teamId: 1,
+        orgId,
+      });
+
+    // Should NOT generate warning because case-insensitive matching is applied
+    expect(mainAttributeLogicBuildingWarnings).toEqual([]);
+    // Should match because normalization handles case differences
+    expect(teamMembersMatchingAttributeLogic).toEqual([
+      {
+        userId: 1,
+        result: RaqbLogicResult.MATCH,
+      },
+    ]);
+  });
+
+  it("should NOT generate warning when valueSrc is 'field' (dynamic reference)", async () => {
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [Option1],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+      ],
+    });
+
+    const attributesQueryValue = buildQueryValue({
+      rules: [
+        {
+          raqbFieldId: DepartmentAttribute.id,
+          value: ["Sales"], // Valid value
+          operator: "select_equals",
+          valueSrc: ["value"], // Use 'value' with valid option
+          valueType: ["select"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { mainAttributeLogicBuildingWarnings } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    // Should NOT generate warning for valid values
+    expect(mainAttributeLogicBuildingWarnings).toEqual([]);
+  });
+
+  it("should generate warnings for multiple invalid values in multiselect", async () => {
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "MULTI_SELECT" as const,
+      slug: "department",
+      options: [Option1],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: ["Sales"] } },
+      ],
+    });
+
+    const attributesQueryValue = buildSelectTypeFieldQueryValue({
+      rules: [
+        {
+          raqbFieldId: DepartmentAttribute.id,
+          value: [["Invalid1", "Invalid2"]], // Both invalid
+          operator: "multiselect_some_in",
+          valueType: ["multiselect"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { mainAttributeLogicBuildingWarnings } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    // Should generate warning for the first invalid value found
+    expect(mainAttributeLogicBuildingWarnings).toBeDefined();
+    expect(mainAttributeLogicBuildingWarnings?.length).toBeGreaterThan(0);
+    expect(mainAttributeLogicBuildingWarnings?.[0]).toContain("is not in list of values");
+  });
+
+  it("should handle children1 as array format for validation", async () => {
+    const Option1 = { id: "opt1", value: "Sales", slug: "sales" };
+    const DepartmentAttribute = {
+      id: "dept-attr",
+      name: "Department",
+      type: "SINGLE_SELECT" as const,
+      slug: "department",
+      options: [Option1],
+    };
+
+    mockAttributesScenario({
+      attributes: [DepartmentAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [DepartmentAttribute.id]: "Sales" } },
+      ],
+    });
+
+    const attributesQueryValue = {
+      id: "root-group",
+      type: "group",
+      children1: [
+        {
+          type: "rule",
+          properties: {
+            field: DepartmentAttribute.id,
+            value: ["InvalidValue"],
+            operator: "select_equals",
+            valueSrc: ["value"],
+            valueType: ["select"],
+          },
+        },
+      ],
+    } as unknown as AttributesQueryValue;
+
+    const { mainAttributeLogicBuildingWarnings } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    expect(mainAttributeLogicBuildingWarnings).toContain("Value InvalidValue is not in list of values");
+  });
+
+  it("should NOT generate warnings for non-select operators", async () => {
+    const TextAttribute = {
+      id: "text-attr",
+      name: "Text",
+      type: "TEXT" as const,
+      slug: "text",
+      options: [],
+    };
+
+    mockAttributesScenario({
+      attributes: [TextAttribute],
+      teamMembersWithAttributeOptionValuePerAttribute: [
+        { userId: 1, attributes: { [TextAttribute.id]: "Some Text" } },
+      ],
+    });
+
+    const attributesQueryValue = buildQueryValue({
+      rules: [
+        {
+          raqbFieldId: TextAttribute.id,
+          value: ["Any Value"],
+          operator: "equal", // Not a select operator
+          valueSrc: ["value"],
+          valueType: ["text"],
+        },
+      ],
+    }) as AttributesQueryValue;
+
+    const { mainAttributeLogicBuildingWarnings } = await findTeamMembersMatchingAttributeLogic({
+      dynamicFieldValueOperands: {
+        fields: [],
+        response: {},
+      },
+      attributesQueryValue,
+      teamId: 1,
+      orgId,
+    });
+
+    // Should NOT generate warnings for non-select operators
+    expect(mainAttributeLogicBuildingWarnings).toEqual([]);
   });
 });

@@ -123,7 +123,6 @@ describe("uiConfig", () => {
         configFor: ConfigFor.FormFields,
       });
 
-      // @ts-expect-error - TODO: fix this
       const textFactory = result.widgets.text.factory;
 
       const result2 = withRaqbSettingsAndWidgets({
@@ -131,7 +130,6 @@ describe("uiConfig", () => {
         configFor: ConfigFor.FormFields,
       });
 
-      // @ts-expect-error - TODO: fix this
       // Using same reference
       expect(result2.widgets.text.factory).toBe(textFactory);
     });
