@@ -4,10 +4,10 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 // TODO: Use browser locale, implement Intl in Dayjs maybe?
 import "@calcom/dayjs/locales";
-import { useBookingLocation } from "@calcom/features/bookings/hooks";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { formatTime } from "@calcom/lib/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -195,6 +195,7 @@ function BookingListItem(booking: BookingItemProps) {
   const paymentAppData = getPaymentAppData(booking.eventType);
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
+  const locationVideoCallUrl = parsedBooking.metadata?.videoCallUrl;
 
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
@@ -202,12 +203,12 @@ function BookingListItem(booking: BookingItemProps) {
     booking.eventType.eventTypeColor &&
     booking.eventType.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
-  const { locationToDisplay, provider } = useBookingLocation({
-    location,
-    videoCallUrl: parsedBooking.metadata?.videoCallUrl,
+  const locationToDisplay = getSuccessPageLocationMessage(
+    locationVideoCallUrl ? locationVideoCallUrl : location,
     t,
-    bookingStatus: booking.status,
-  });
+    booking.status
+  );
+  const provider = guessEventLocationType(location);
 
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
