@@ -2,6 +2,7 @@ import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repos
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
+import { HashedLinkService } from "@/lib/services/hashed-link.service";
 import { LuckyUserService } from "@/lib/services/lucky-user.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
@@ -16,6 +17,7 @@ export class RegularBookingService extends BaseRegularBookingService {
     checkBookingAndDurationLimitsService: CheckBookingAndDurationLimitsService,
     prismaWriteService: PrismaWriteService,
     bookingRepository: PrismaBookingRepository,
+    hashedLinkService: HashedLinkService,
     luckyUserService: LuckyUserService,
     userRepository: PrismaUserRepository
   ) {
@@ -24,6 +26,7 @@ export class RegularBookingService extends BaseRegularBookingService {
       checkBookingAndDurationLimitsService,
       prismaClient: prismaWriteService.prisma as unknown as PrismaClient,
       bookingRepository,
+      hashedLinkService,
       luckyUserService,
       userRepository,
     });

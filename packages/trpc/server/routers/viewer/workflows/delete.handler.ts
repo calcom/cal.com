@@ -143,10 +143,6 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
       workflowStep: {
         workflowId: id,
       },
-      scheduled: true,
-      NOT: {
-        referenceId: null,
-      },
     },
   });
 

@@ -2,15 +2,19 @@ import { useId } from "react";
 
 import type dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import classNames from "@calcom/ui/classNames";
+
+import type { BorderColor } from "../../types/common";
 
 export const HorizontalLines = ({
   hours,
-  numberOfGridStopsPerCell,
   containerOffsetRef,
+  borderColor,
 }: {
   hours: dayjs.Dayjs[];
   numberOfGridStopsPerCell: number;
   containerOffsetRef: React.RefObject<HTMLDivElement>;
+  borderColor: BorderColor;
 }) => {
   const { timeFormat } = useTimePreferences();
   // We need to force the minute to zero, because otherwise in ex GMT+5.5, it would show :30 minute times (but at the positino of :00)
@@ -19,7 +23,10 @@ export const HorizontalLines = ({
 
   return (
     <div
-      className=" divide-default pointer-events-none relative z-[60] col-start-1 col-end-2 row-start-1 grid divide-y"
+      className={classNames(
+        "pointer-events-none relative z-[60] col-start-1 col-end-2 row-start-1 grid divide-y",
+        borderColor === "subtle" ? "divide-subtle" : "divide-default"
+      )}
       style={{
         gridTemplateRows: `repeat(${hours.length}, minmax(var(--gridDefaultSize),1fr)`,
       }}>
