@@ -31,8 +31,6 @@ import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { WipeMyCalActionButton } from "@calcom/web/components/apps/wipemycalother/wipeMyCalActionButton";
 
-import BookingListItem from "@components/booking/BookingListItem";
-
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
@@ -339,33 +337,9 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
 
           if (row.booking.eventType.team) {
             return (
-              <BookingListItem
-                key={booking.id}
-                isToday={isToday}
-                loggedInUser={{
-                  userId: user?.id,
-                  userTimeZone: user?.timeZone,
-                  userTimeFormat: user?.timeFormat,
-                  userEmail: user?.email,
-                }}
-                listingStatus={status}
-                recurringInfo={recurringInfo}
-                // uncomment this line to enable BookingDetailsSheet
-                // onClick={() => setSelectedBookingId(booking.id)}
-                {...booking}
-              />
-            );
-          } else if (props.row.original.type === "today") {
-            return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
-                {t("today")}
-              </p>
-            );
-          } else if (props.row.original.type === "next") {
-            return (
-              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
-                {t("next")}
-              </p>
+              <Badge variant="gray" size="sm">
+                {row.booking.eventType.team.name}
+              </Badge>
             );
           }
           return null;
