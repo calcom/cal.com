@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
+import { setShowWelcomeToCalcomModalFlag } from "@calcom/features/shell/hooks/useWelcomeToCalcomModal";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -55,7 +56,9 @@ export const useSubmitPersonalOnboarding = () => {
       }
 
       await utils.viewer.me.get.refetch();
-      router.push("/event-types");
+      // Set flag to show welcome modal after redirect
+      setShowWelcomeToCalcomModalFlag();
+      router.push("/event-types?welcomeToCalcomModal=true");
     },
     onError: (error) => {
       showToast(t("something_went_wrong"), "error");
