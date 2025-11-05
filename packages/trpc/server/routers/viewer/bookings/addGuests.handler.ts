@@ -4,6 +4,8 @@ import dayjs from "@calcom/dayjs";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/EventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -87,69 +89,41 @@ async function getBooking(bookingId: number) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
   }
 
-  // Fetch additional data needed for branding logic
-  // The repository method doesn't include eventType.team, eventType.owner, or user.organizationId/hideBranding
-  const [eventTypeWithTeam, userWithBranding] = await Promise.all([
-    booking.eventTypeId
-      ? prisma.eventType.findUnique({
-          where: { id: booking.eventTypeId },
-          select: {
-            id: true,
-            team: {
-              select: {
-                id: true,
-                name: true,
-                parentId: true,
-                hideBranding: true,
-                parent: {
-                  select: {
-                    id: true,
-                    hideBranding: true,
-                  },
-                },
-              },
-            },
-            owner: {
-              select: {
-                id: true,
-                hideBranding: true,
-              },
-            },
-          },
-        })
+  // Fetch additional data needed for branding logic via repositories
+  const teamRepository = new TeamRepository(prisma);
+  const userRepository = new UserRepository(prisma);
+  const eventTypeRepository = new EventTypeRepository(prisma);
+
+  const [teamBranding, userWithBranding, ownerBranding] = await Promise.all([
+    booking.eventType?.teamId
+      ? teamRepository.findTeamWithParentHideBranding({ teamId: booking.eventType.teamId })
       : Promise.resolve(null),
     booking.userId
-      ? prisma.user.findUnique({
-          where: { id: booking.userId },
-          select: {
-            id: true,
-            organizationId: true,
-            hideBranding: true,
-          },
-        })
+      ? userRepository.findUserWithHideBranding({ userId: booking.userId })
+      : Promise.resolve(null),
+    booking.eventTypeId
+      ? eventTypeRepository.findOwnerHideBranding({ eventTypeId: booking.eventTypeId })
       : Promise.resolve(null),
   ]);
 
   // Attach fetched data to booking object with proper type handling
-  if (eventTypeWithTeam && booking.eventType) {
+  if (teamBranding && booking.eventType) {
     (
       booking.eventType as typeof booking.eventType & {
-        team: typeof eventTypeWithTeam.team;
-        owner: typeof eventTypeWithTeam.owner;
+        team: typeof teamBranding;
       }
-    ).team = eventTypeWithTeam.team;
+    ).team = teamBranding;
+  }
+
+  if (ownerBranding && booking.eventType) {
     (
       booking.eventType as typeof booking.eventType & {
-        team: typeof eventTypeWithTeam.team;
-        owner: typeof eventTypeWithTeam.owner;
+        owner: NonNullable<typeof ownerBranding>["owner"] | null;
       }
-    ).owner = eventTypeWithTeam.owner;
+    ).owner = ownerBranding.owner ?? null;
   }
 
   if (userWithBranding && booking.user) {
-    (
-      booking.user as typeof booking.user & { organizationId: number | null; hideBranding: boolean | null }
-    ).organizationId = userWithBranding.organizationId;
     (
       booking.user as typeof booking.user & { organizationId: number | null; hideBranding: boolean | null }
     ).hideBranding = userWithBranding.hideBranding;
@@ -427,7 +401,7 @@ async function sendGuestNotifications(
     hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId,
       team,
-      owner: user ?? null,
+      owner: eventType?.owner ?? null,
       organizationId: organizationId,
     });
   }

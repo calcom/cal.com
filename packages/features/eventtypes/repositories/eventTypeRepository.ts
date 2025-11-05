@@ -1527,4 +1527,18 @@ export class EventTypeRepository {
       },
     });
   }
+
+  async findOwnerHideBranding({ eventTypeId }: { eventTypeId: number }) {
+    return this.prismaClient.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: {
+        owner: {
+          select: {
+            id: true,
+            hideBranding: true,
+          },
+        },
+      },
+    });
+  }
 }
