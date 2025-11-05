@@ -5,6 +5,7 @@ import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/rea
 import { useMemo, useState } from "react";
 
 import { DataTableWrapper, useDataTable } from "@calcom/features/data-table";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -120,14 +121,16 @@ export function BlockedEntriesTable({ permissions, onAddClick }: BlockedEntriesT
                   disabled={!permissions?.canCreate}>
                   {t("add")}
                 </Button>
-                <Button
-                  StartIcon="book"
-                  color="secondary"
-                  onClick={() =>
-                    window.open("https://cal.com/help/security/blocklist", "_blank", "noopener,noreferrer")
-                  }>
-                  {t("docs")}
-                </Button>
+                {IS_CALCOM && (
+                  <Button
+                    StartIcon="book"
+                    color="secondary"
+                    onClick={() =>
+                      window.open("https://cal.com/help/security/blocklist", "_blank", "noopener,noreferrer")
+                    }>
+                    {t("docs")}
+                  </Button>
+                )}
               </div>
             }
           />
