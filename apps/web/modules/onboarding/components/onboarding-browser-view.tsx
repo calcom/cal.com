@@ -11,11 +11,19 @@ type OnboardingBrowserViewProps = {
   name?: string;
   bio?: string;
   username?: string | null;
+  teamSlug?: string;
 };
 
-export const OnboardingBrowserView = ({ avatar, name, bio, username }: OnboardingBrowserViewProps) => {
+export const OnboardingBrowserView = ({
+  avatar,
+  name,
+  bio,
+  username,
+  teamSlug,
+}: OnboardingBrowserViewProps) => {
   const { t } = useLocale();
   const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
+  const displayUrl = teamSlug ? `${webappUrl}/team/${teamSlug}` : `${webappUrl}/${username}`;
 
   const events: Array<{
     title: string;
@@ -66,9 +74,7 @@ export const OnboardingBrowserView = ({ avatar, name, bio, username }: Onboardin
         </div>
         <div className="bg-muted flex w-full items-center gap-2 rounded-[32px] px-3 py-2">
           <Icon name="lock" className="text-subtle h-4 w-4" />
-          <p className="text-default text-sm font-medium leading-tight">
-            {webappUrl}/{username}
-          </p>
+          <p className="text-default text-sm font-medium leading-tight">{displayUrl}</p>
         </div>
         <Icon name="ellipsis-vertical" className="text-subtle h-4 w-4" />
       </div>

@@ -24,6 +24,7 @@ export function useCreateTeam() {
         name: teamDetails.name,
         slug: teamDetails.slug,
         logo: teamBrand.logo,
+        bio: teamDetails.bio,
         isOnboarding: true,
       });
 
