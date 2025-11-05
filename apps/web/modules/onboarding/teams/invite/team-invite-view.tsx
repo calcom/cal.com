@@ -10,7 +10,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
-import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { OnboardingInviteBrowserView } from "../../components/onboarding-invite-browser-view";
 import { useCreateTeam } from "../../hooks/useCreateTeam";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { CSVUploadModal } from "./csv-upload-modal";
@@ -25,7 +25,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
   const flags = useFlags();
 
   const store = useOnboardingStore();
-  const { setTeamInvites } = store;
+  const { setTeamInvites, teamDetails } = store;
   const { createTeam, isSubmitting } = useCreateTeam();
   const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
 
@@ -159,7 +159,7 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
         </div>
 
         {/* Right column - Browser view */}
-        <OnboardingBrowserView />
+        <OnboardingInviteBrowserView teamName={teamDetails.name} />
       </OnboardingLayout>
 
       {/* CSV Upload Modal */}
