@@ -123,7 +123,9 @@ export function BlockedEntriesTable({ permissions, onAddClick }: BlockedEntriesT
                 <Button
                   StartIcon="book"
                   color="secondary"
-                  onClick={() => window.open("https://cal.com/help/security/blocklist", "_blank")}>
+                  onClick={() =>
+                    window.open("https://cal.com/help/security/blocklist", "_blank", "noopener,noreferrer")
+                  }>
                   {t("docs")}
                 </Button>
               </div>
