@@ -1,10 +1,13 @@
+/** TODO: This file is imported in embed as well as webapp. Embed loads this css on the embedding page and thus any style that is generic enough could affect embedding user's webpage */
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
 @plugin "tailwindcss-radix";
+
 @plugin 'tailwind-scrollbar' {
   nocompatible: true;
 }
+
 @variant pwa (@media (display-mode: standalone));
 @variant todesktop (html.todesktop &);
 @variant mac (html.todesktop-platform-darwin &);
@@ -26,7 +29,6 @@
   --radius-cal-3xl: 1.5rem;
   --radius-cal-full: 9999px;
 
-  /* Cal.com Background Colors */
   --color-emphasis: var(--cal-bg-emphasis);
   --color-default: var(--cal-bg);
   --color-subtle: var(--cal-bg-subtle);
@@ -39,8 +41,8 @@
   --color-brand-default: var(--cal-brand);
   --color-brand-emphasis: var(--cal-brand-emphasis);
   --color-brand-muted: var(--cal-brand-muted);
-  --color-brand-subtle: var(--cal-brand-subtle,#9CA3AF);
-  --color-brand-accent: var(--cal-brand-accent,white);
+  --color-brand-subtle: var(--cal-brand-subtle, #9CA3AF);
+  --color-brand-accent: var(--cal-brand-accent, white);
   --color-semantic-info-subtle: var(--cal-bg-semantic-info-subtle);
   --color-semantic-info-emphasis: var(--cal-bg-semantic-info-emphasis);
   --color-semantic-success-subtle: var(--cal-bg-semantic-success-subtle);
@@ -159,8 +161,8 @@
   --fill-brand: var(--fill-brand);
 
   /* Cal.com Animations */
-  --animate-fade-in-up: fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21,1.02,.73,1) forwards;
-  --animate-fade-in-bottom: fade-in-bottom cubic-bezier(.21,1.02,.73,1) forwards;
+  --animate-fade-in-up: fade-in-up 600ms var(--animation-delay, 0ms) cubic-bezier(.21, 1.02, .73, 1) forwards;
+  --animate-fade-in-bottom: fade-in-bottom cubic-bezier(.21, 1.02, .73, 1) forwards;
   --animate-spinning: spinning 0.75s linear infinite;
   --animate-drawer-slide-left-and-fade: drawerSlideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-drawer-slide-right-and-fade: drawerSlideRightAndFade 150ms ease-in;
@@ -170,6 +172,7 @@
       opacity: 0;
       transform: translateY(10px);
     }
+
     to {
       opacity: 1;
       transform: none;
@@ -187,6 +190,7 @@
       opacity: 0;
       transform: translateX(100%);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
@@ -198,6 +202,7 @@
       opacity: 1;
       transform: translateX(0);
     }
+
     to {
       opacity: 0;
       transform: translateX(100%);
@@ -205,7 +210,8 @@
   }
 }
 
-:root {
+:root,
+:host {
   /* Background Standard */
   --cal-bg-emphasis: hsla(220, 13%, 91%, 1);
   --cal-bg: hsla(0, 0%, 100%, 1);

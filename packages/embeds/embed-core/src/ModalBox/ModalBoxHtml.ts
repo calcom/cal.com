@@ -56,7 +56,7 @@ function getStyle() {
     }
     /*Modal background is black only, so hardcode white */
     .loader {
-      --cal-brand-color:white;
+      --cal-brand:white;
     }
   </style>
       `;

@@ -14270,7 +14270,6 @@ hr {}
 
 /**
 * Add css variables here as well for light mode in addition to tailwind.config to avoid FOUC
-* Must update them here as well: packages/embeds/embed-core/src/addAppCssVars.ts
 */
 :root {
   /* Spacing Scale */

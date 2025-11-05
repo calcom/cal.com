@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import "../../../config/theme/tokens.css";
 
 @font-face {
   font-family: "Cal Sans";
