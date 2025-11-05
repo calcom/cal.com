@@ -13,12 +13,13 @@ type HasNoShowOptions = {
 };
 
 export const hasNoShowForEventTypeHandler = async ({ ctx, input }: HasNoShowOptions) => {
-  // Fetch event type to get teamId and orgId (team.parentId)
+  // Fetch event type to get teamId, orgId (team.parentId), and parentId (for managed children)
   const eventType = await ctx.prisma.eventType.findUnique({
     where: { id: input.eventTypeId },
     select: {
       id: true,
       teamId: true,
+      parentId: true,
       team: {
         select: {
           id: true,
@@ -35,19 +36,8 @@ export const hasNoShowForEventTypeHandler = async ({ ctx, input }: HasNoShowOpti
     };
   }
 
-  // Check for managed parent event type
-  const managedChildEventType = await ctx.prisma.eventType.findFirst({
-    where: {
-      id: input.eventTypeId,
-      parentId: {
-        not: null,
-      },
-    },
-    select: {
-      parentId: true,
-    },
-  });
-  const managedParentEventTypeId = managedChildEventType?.parentId ?? null;
+  // Use parentId directly from the event type (for managed children)
+  const managedParentEventTypeId = eventType.parentId ?? null;
 
   // Build teamIds array (include orgId if present)
   const teamIds: number[] = [];
@@ -84,8 +74,8 @@ export const hasNoShowForEventTypeHandler = async ({ ctx, input }: HasNoShowOpti
     webhookWhereConditions.push({ teamId: { in: teamIds } });
   }
 
-  // Query webhooks with host trigger
-  const hostWebhooks = await ctx.prisma.webhook.findMany({
+  // Query webhooks with host trigger (use findFirst to stop at first match)
+  const hostWebhook = await ctx.prisma.webhook.findFirst({
     where: {
       active: true,
       eventTriggers: {
@@ -98,8 +88,8 @@ export const hasNoShowForEventTypeHandler = async ({ ctx, input }: HasNoShowOpti
     },
   });
 
-  // Query webhooks with guest trigger
-  const guestWebhooks = await ctx.prisma.webhook.findMany({
+  // Query webhooks with guest trigger (use findFirst to stop at first match)
+  const guestWebhook = await ctx.prisma.webhook.findFirst({
     where: {
       active: true,
       eventTriggers: {
@@ -113,7 +103,7 @@ export const hasNoShowForEventTypeHandler = async ({ ctx, input }: HasNoShowOpti
   });
 
   return {
-    hasHostNoShow: hostWebhooks.length > 0,
-    hasGuestNoShow: guestWebhooks.length > 0,
+    hasHostNoShow: !!hostWebhook,
+    hasGuestNoShow: !!guestWebhook,
   };
 };
