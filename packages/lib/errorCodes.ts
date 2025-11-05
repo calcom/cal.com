@@ -56,11 +56,7 @@ export enum ErrorCode {
   ResourceAlreadyExists = "resource_already_exists",
 
   // 500 Internal Server Error - Server-side errors, system failures
-  UnableToSubscribeToThePlatform = "unable_to_subscribe_to_the_platform",
-  UpdatingOauthClientError = "updating_oauth_client_error",
-  CreatingOauthClientError = "creating_oauth_client_error",
   InternalServerError = "internal_server_error",
-  FailedToUpdateStatus = "failed_to_update_status",
 
   // 503 Service Unavailable - External services, temporary failures
   ResourceUnavailable = "resource_unavailable",
@@ -126,11 +122,7 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.ResourceAlreadyExists]: 409,
 
   // 500 Internal Server Error - Server-side errors, system failures
-  [ErrorCode.UnableToSubscribeToThePlatform]: 500,
-  [ErrorCode.UpdatingOauthClientError]: 500,
-  [ErrorCode.CreatingOauthClientError]: 500,
   [ErrorCode.InternalServerError]: 500,
-  [ErrorCode.FailedToUpdateStatus]: 500,
 
   // 503 Service Unavailable - External services, temporary failures
   [ErrorCode.ResourceUnavailable]: 503,

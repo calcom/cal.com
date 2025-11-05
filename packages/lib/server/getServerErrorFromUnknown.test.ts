@@ -90,7 +90,7 @@ describe("getServerErrorFromUnknown", () => {
   });
 
   test("Server-side ErrorCode should return 500", () => {
-    const error = new ErrorWithCode(ErrorCode.CreatingOauthClientError, "OAuth client creation failed");
+    const error = new ErrorWithCode(ErrorCode.InternalServerError, "OAuth client creation failed");
 
     const result = getServerErrorFromUnknown(error);
 

@@ -332,7 +332,7 @@ const handleMarkNoShow = async ({
     if (error instanceof Error) {
       logger.error(error.message);
     }
-    throw new ErrorWithCode(ErrorCode.FailedToUpdateStatus, "Failed to update no-show status");
+    throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to update no-show status");
   }
 };
 
