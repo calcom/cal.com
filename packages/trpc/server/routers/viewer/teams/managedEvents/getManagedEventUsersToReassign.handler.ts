@@ -1,6 +1,7 @@
 import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
+import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -90,12 +91,6 @@ async function getManagedEventUsersFromDB({
   };
 }
 
-async function getEventTypeFromDB(eventTypeId: number, prisma: PrismaClient) {
-  return prisma.eventType.findUniqueOrThrow({
-    where: { id: eventTypeId },
-  });
-}
-
 export const getManagedEventUsersToReassign = async ({
   ctx,
   input,
@@ -145,11 +140,14 @@ export const getManagedEventUsersToReassign = async ({
 
   let availableUsers: IsFixedAwareUser[] = [];
   try {
-    const eventType = await getEventTypeFromDB(booking.eventTypeId, prisma);
+    const eventType = await getEventTypesFromDB(booking.eventTypeId);
+    if (!eventType) {
+      throw new Error("Event type not found");
+    }
     availableUsers = await ensureAvailableUsers(
       {
-        users: users as IsFixedAwareUser[],
         ...eventType,
+        users: users as IsFixedAwareUser[],
       },
       {
         dateFrom: dayjs(booking.startTime).format(),
