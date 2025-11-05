@@ -130,10 +130,10 @@ export class PhoneNumberService {
     }
 
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Phone number is still active");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Phone number is still active");
     }
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.CANCELLED) {
-      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Phone number is already cancelled");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Phone number is already cancelled");
     }
 
     try {

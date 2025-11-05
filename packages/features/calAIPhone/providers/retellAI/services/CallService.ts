@@ -66,7 +66,7 @@ export class CallService {
         error,
       });
       throw new ErrorWithCode(
-        ErrorCode.InvalidPhoneNumber,
+        ErrorCode.InternalServerError,
         `Failed to create phone call from ${data.fromNumber} to ${data.toNumber}`
       );
     }
@@ -124,7 +124,7 @@ export class CallService {
     if (!this.retellAIService) {
       this.logger.error("RetellAIService not configured before createTestCall");
       throw new ErrorWithCode(
-        ErrorCode.InvalidPhoneNumber,
+        ErrorCode.InternalServerError,
         "Internal configuration error: AI phone service not initialized"
       );
     }

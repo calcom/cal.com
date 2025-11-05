@@ -42,7 +42,7 @@ export class BillingService {
     const phoneNumberPriceId = getPhoneNumberMonthlyPriceId();
 
     if (!phoneNumberPriceId) {
-      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Phone number price ID not configured");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Phone number price ID not configured");
     }
 
     const stripeCustomerId = await getStripeCustomerIdFromUserId(userId);
@@ -120,7 +120,7 @@ export class BillingService {
     }
 
     if (!phoneNumber.stripeSubscriptionId) {
-      throw new ErrorWithCode(ErrorCode.InvalidPhoneNumber, "Phone number doesn");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, "Phone number doesn");
     }
 
     try {
