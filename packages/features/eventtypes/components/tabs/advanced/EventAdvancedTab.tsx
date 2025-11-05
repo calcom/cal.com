@@ -1,4 +1,4 @@
-import { useState, Suspense, useMemo } from "react";
+import { useState, Suspense, useMemo, useEffect } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -434,9 +434,14 @@ export const EventAdvancedTab = ({
     !!formMethods.getValues("multiplePrivateLinks") &&
       formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
+  const watchedInterfaceLanguage = formMethods.watch("interfaceLanguage");
   const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
-    !!formMethods.getValues("interfaceLanguage")
+    watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined
   );
+
+  useEffect(() => {
+    setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
+  }, [watchedInterfaceLanguage]);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
 
   const bookingFields: Prisma.JsonObject = {};
@@ -784,7 +789,7 @@ export const EventAdvancedTab = ({
         <Controller
           name="interfaceLanguage"
           control={formMethods.control}
-          defaultValue={eventType.interfaceLanguage ?? ""}
+          defaultValue={eventType.interfaceLanguage ?? null}
           render={({ field: { value, onChange } }) => (
             <SettingsToggle
               labelClassName="text-sm"
@@ -817,7 +822,7 @@ export const EventAdvancedTab = ({
                   onChange={(option) => {
                     onChange(option?.value);
                   }}
-                  value={interfaceLanguageOptions.find((option) => option.value === value)}
+                  value={interfaceLanguageOptions.find((option) => option.value === value) || undefined}
                 />
               </div>
             </SettingsToggle>

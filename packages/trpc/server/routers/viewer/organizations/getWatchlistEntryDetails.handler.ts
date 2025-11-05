@@ -45,7 +45,7 @@ export const getWatchlistEntryDetailsHandler = async ({ ctx, input }: GetWatchli
   const watchlistRepo = new WatchlistRepository(prisma);
   const userRepo = new UserRepository(prisma);
 
-  const result = await watchlistRepo.findEntryWithAudit(input.id);
+  const result = await watchlistRepo.findEntryWithAuditAndReports(input.id);
 
   if (!result.entry) {
     throw new TRPCError({

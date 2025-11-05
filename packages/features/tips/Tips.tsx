@@ -1,4 +1,4 @@
-// eslint-disable-next-line no-restricted-imports
+ 
 import shuffle from "lodash/shuffle";
 import { useState, memo } from "react";
 
@@ -156,17 +156,7 @@ export const tips: Tip[] = [
   },
 ];
 
-const CalAIWorkflowsTip: Tip = {
-  id: 18,
-  thumbnailUrl: "https://img.youtube.com/vi/fMHW6jYPIb8/0.jpg",
-  title: "cal_ai_workflows",
-  description: "supercharge_your_workflows_with_cal_ai_description",
-  href: "/workflows",
-  coverPhoto: "/cal-ai-workflow-sidebar.jpg",
-  variant: "NewLaunchSidebarCard",
-};
-
-const reversedTips = [...shuffle(tips).slice(0).reverse(), CalAIWorkflowsTip];
+const reversedTips = [...shuffle(tips).slice(0).reverse()];
 
 function Tips() {
   const { t } = useLocale();
@@ -216,7 +206,6 @@ function Tips() {
         }}>
         {list.map((tip) => {
           const isTopTip = baseOriginalList.indexOf(tip) === 0;
-          const isCalAIWorkflowsTip = tip.title === "cal_ai_workflows";
           return (
             <div
               className="relative"
@@ -242,10 +231,8 @@ function Tips() {
                   learnMore={
                     isTopTip
                       ? {
-                          href: isCalAIWorkflowsTip
-                            ? "/workflow/new?action=calAi&templateWorkflowId=wf-11"
-                            : tip.href,
-                          text: isCalAIWorkflowsTip ? t("try_now") : t("learn_more"),
+                          href: tip.href,
+                          text: t("learn_more"),
                         }
                       : undefined
                   }
@@ -256,7 +243,6 @@ function Tips() {
                     tabIndex: isTopTip ? undefined : -1,
                     "aria-hidden": isTopTip ? undefined : "true",
                   }}
-                  buttonClassName={isCalAIWorkflowsTip ? "text-white" : undefined}
                 />
               </div>
             </div>

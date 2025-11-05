@@ -1,11 +1,11 @@
 "use client";
 
-import type { User } from "@calcom/prisma/client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
+import type { User } from "@calcom/prisma/client";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 const shouldShowOnboarding = (
@@ -31,6 +31,7 @@ export const ONBOARDING_NEXT_REDIRECT = {
 
 export function useRedirectToOnboardingIfNeeded() {
   const router = useRouter();
+  const pathname = usePathname();
   const { data: user, isLoading } = useMeQuery();
   const flags = useFlagMap();
 
@@ -38,14 +39,17 @@ export function useRedirectToOnboardingIfNeeded() {
     !user?.emailVerified && user?.identityProvider === "CAL" && flags["email-verification"];
 
   const shouldRedirectToOnboarding = user && shouldShowOnboarding(user);
-  const canRedirect = !isLoading && shouldRedirectToOnboarding && !needsEmailVerification;
+  // Don't redirect if already on an onboarding page (works for both old [[...step]] and v3 flows)
+  const isOnOnboardingPage = pathname?.startsWith("/onboarding/") || pathname?.startsWith("/getting-started");
+  const canRedirect =
+    !isLoading && shouldRedirectToOnboarding && !needsEmailVerification && !isOnOnboardingPage;
 
   useEffect(() => {
     if (canRedirect) {
       const gettingStartedPath = flags["onboarding-v3"] ? "/onboarding/getting-started" : "/getting-started";
       router.replace(gettingStartedPath);
     }
-  }, [canRedirect, router, flags]);
+  }, [canRedirect, router, flags, pathname]);
 
   return {
     isLoading,

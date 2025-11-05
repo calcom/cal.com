@@ -169,7 +169,7 @@ export const EventSetupTab = (
             className={classNames("pl-0", customClassNames?.titleSection?.urlInput?.input)}
             addOnLeading={
               isPlatform ? undefined : (
-                <>
+                <span className="max-w-24 md:max-w-56 inline-block overflow-hidden text-ellipsis whitespace-nowrap min-w-0">
                   {urlPrefix}/
                   {!isManagedEventType
                     ? team
@@ -177,7 +177,7 @@ export const EventSetupTab = (
                       : formMethods.getValues("users")[0].username
                     : t("username_placeholder")}
                   /
-                </>
+                </span>
               )
             }
             {...formMethods.register("slug", {
