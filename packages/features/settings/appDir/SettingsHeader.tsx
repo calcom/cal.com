@@ -36,7 +36,6 @@ export default function Header({
               <button
                 type="button"
                 onClick={() => window.history.back()}
-                aria-label="Go back"
                 className="inline-flex items-center"
               >
                 <Icon name="arrow-left" className="mr-7" />
