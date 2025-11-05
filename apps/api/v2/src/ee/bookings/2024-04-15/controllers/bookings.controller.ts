@@ -205,7 +205,11 @@ export class BookingsController_2024_04_15 {
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
     try {
-      await this.checkBookingRequiresAuthentication(req, body.eventTypeId);
+      if (body.rescheduleUid) {
+        await this.validateRescheduleBooking(body.rescheduleUid, body.eventTypeId);
+      } else {
+        await this.checkBookingRequiresAuthentication(req, body.eventTypeId);
+      }
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -457,6 +461,25 @@ export class BookingsController_2024_04_15 {
       return undefined;
     }
     return oAuthClientParams.platformClientId;
+  }
+
+  private async validateRescheduleBooking(rescheduleUid: string, eventTypeId: number): Promise<void> {
+    const { bookingInfo } = await getBookingInfo(rescheduleUid);
+    if (!bookingInfo) {
+      throw new NotFoundException(
+        `Booking with UID=${rescheduleUid} does not exist. Cannot reschedule a non-existent booking.`
+      );
+    }
+    if (bookingInfo.status !== "ACCEPTED" && bookingInfo.status !== "PENDING") {
+      throw new BadRequestException(
+        `Booking with UID=${rescheduleUid} has invalid status (status: ${bookingInfo.status}). Only ACCEPTED or PENDING bookings can be rescheduled.`
+      );
+    }
+    if (bookingInfo.eventTypeId !== eventTypeId) {
+      throw new BadRequestException(
+        `Booking with UID=${rescheduleUid} is for a different event type (eventTypeId: ${bookingInfo.eventTypeId}). Cannot reschedule to a different event type (eventTypeId: ${eventTypeId}).`
+      );
+    }
   }
 
   private async checkBookingRequiresAuthentication(req: Request, eventTypeId: number): Promise<void> {
