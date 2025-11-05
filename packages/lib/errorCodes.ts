@@ -17,6 +17,7 @@ export enum ErrorCode {
   BookerEmailRequiresLogin = "booker_email_requires_login",
   InvalidVerificationCode = "invalid_verification_code",
   UnableToValidateVerificationCode = "unable_to_validate_verification_code",
+  InvalidOperation = "invalid_operation",
 
   // 401 Unauthorized - Authentication required
   Unauthorized = "unauthorized",
@@ -72,6 +73,7 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.BookerEmailRequiresLogin]: 400,
   [ErrorCode.InvalidVerificationCode]: 400,
   [ErrorCode.UnableToValidateVerificationCode]: 400,
+  [ErrorCode.InvalidOperation]: 400,
 
   // 401 Unauthorized - Authentication required
   [ErrorCode.Unauthorized]: 401,

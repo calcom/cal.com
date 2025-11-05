@@ -99,7 +99,7 @@ async function handler(input: CancelBookingInput) {
    * We want to avoid deleting them by a subsequent cancellation attempt.
    */
   if (bookingToDelete.status === BookingStatus.CANCELLED) {
-    throw new ErrorWithCode(ErrorCode.InvalidInput, "This booking has already been cancelled.");
+    throw new ErrorWithCode(ErrorCode.InvalidOperation, "This booking has already been cancelled.");
   }
 
   if (!bookingToDelete.userId || !bookingToDelete.user) {
@@ -107,7 +107,7 @@ async function handler(input: CancelBookingInput) {
   }
 
   if (bookingToDelete.eventType?.disableCancelling) {
-    throw new ErrorWithCode(ErrorCode.InvalidInput, "This event type does not allow cancellations");
+    throw new ErrorWithCode(ErrorCode.InvalidOperation, "This event type does not allow cancellations");
   }
 
   const isCancellationUserHost =
@@ -126,7 +126,7 @@ async function handler(input: CancelBookingInput) {
   }
 
   if (bookingToDelete.endTime && new Date() > new Date(bookingToDelete.endTime)) {
-    throw new ErrorWithCode(ErrorCode.InvalidInput, "Cannot cancel a booking that has already ended");
+    throw new ErrorWithCode(ErrorCode.InvalidOperation, "Cannot cancel a booking that has already ended");
   }
 
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
@@ -146,7 +146,7 @@ async function handler(input: CancelBookingInput) {
 
     if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
       throw new ErrorWithCode(
-        ErrorCode.Forbidden,
+        ErrorCode.Unauthorized,
         "User not a host of this event or an admin of the booking user"
       );
     }
