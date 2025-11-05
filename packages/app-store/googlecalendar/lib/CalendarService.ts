@@ -293,8 +293,14 @@ export default class GoogleCalendarService implements Calendar {
 
         if (hasOverlap) {
           this.log.warn(
-            "Event overlaps with existing BUSY event, rolling back",
-            safeStringify({ eventId: event.id, selectedCalendar })
+            "Google Calendar event creation rolled back due to overlap with existing BUSY event",
+            safeStringify({
+              eventId: event.id,
+              iCalUID: event.iCalUID,
+              selectedCalendar,
+              startTime: calEvent.startTime,
+              endTime: calEvent.endTime,
+            })
           );
           try {
             await calendar.events.delete({
@@ -310,7 +316,7 @@ export default class GoogleCalendarService implements Calendar {
             );
           }
           throw new Error(
-            "Event creation failed: The selected time slot overlaps with an existing busy event in your calendar"
+            "Google Calendar event creation rolled back due to overlap with an existing busy event"
           );
         }
       }
@@ -411,15 +417,6 @@ export default class GoogleCalendarService implements Calendar {
         const hasTimeOverlap = evtStart < eventEnd && evtEnd > eventStart;
 
         if (hasTimeOverlap) {
-          this.log.warn(
-            "Found overlapping BUSY event",
-            safeStringify({
-              overlappingEventId: evt.id,
-              overlappingEventSummary: evt.summary,
-              overlappingEventICalUID: evt.iCalUID,
-              createdEventICalUID,
-            })
-          );
           return true;
         }
       }
