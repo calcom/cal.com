@@ -1,7 +1,6 @@
 import { type Container, createModule } from "@calcom/features/di/di";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-
-import { prisma, readonlyPrisma } from "./index";
+import { prisma, readonlyPrisma } from "@calcom/prisma";
 
 export const prismaModule = createModule();
 const token = DI_TOKENS.PRISMA_CLIENT;
