@@ -382,8 +382,8 @@ export class UserAvailabilityService {
     const getBusyTimesStart = dateFrom.toISOString();
     const getBusyTimesEnd = dateTo.toISOString();
 
-    const selectedCalendars = eventType?.useEventLevelSelectedCalendars
-      ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+    const selectedCalendars = eventType
+      ? this.getSelectedCalendars({ eventType, user })
       : user.userLevelSelectedCalendars;
 
     const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
@@ -680,4 +680,16 @@ export class UserAvailabilityService {
   }
 
   getUsersAvailability = withReporting(this._getUsersAvailability.bind(this), "getUsersAvailability");
+
+  private getSelectedCalendars({
+    eventType,
+    user,
+  }: {
+    eventType: { id: number; useEventLevelSelectedCalendars?: boolean };
+    user: NonNullable<GetUser>;
+  }) {
+    return eventType.useEventLevelSelectedCalendars
+      ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+      : user.userLevelSelectedCalendars;
+  }
 }
