@@ -30,11 +30,13 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
       {/* Logo and container - centered */}
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-8">
         <Logo className="h-5 w-auto shrink-0" />
-        <div className="border-subtle bg-default grid w-full max-w-[1130px] grid-cols-1 gap-6 rounded-2xl border px-12 py-10 xl:h-[690px] xl:grid-cols-[40%_60%]">
+        <div className="border-subtle bg-default grid w-full max-w-[1130px] grid-cols-1 gap-6 overflow-hidden rounded-2xl border px-12 py-10 xl:h-[690px] xl:grid-cols-[40%_1fr] xl:pl-10 xl:pr-0">
           {/* Column 1 - Always visible, 40% on xl+ */}
           <div className="flex min-h-0 flex-col">{column1}</div>
           {/* Column 2 - Hidden on mobile, visible on xl+, 60% on xl+ */}
-          {column2 && <div className="hidden min-h-0 flex-col xl:flex">{column2}</div>}
+          {column2 && (
+            <div className="hidden h-full max-h-full min-h-0 flex-col overflow-hidden xl:flex">{column2}</div>
+          )}
         </div>
       </div>
 
