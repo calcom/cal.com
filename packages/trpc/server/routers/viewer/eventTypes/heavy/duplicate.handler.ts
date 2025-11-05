@@ -226,10 +226,17 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
     };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      // unique constraint violation
+      
+      if (Array.isArray(error.meta?.target) && error.meta?.target.includes("slug")) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "duplicate_event_slug_conflict",
+        });
+      }
+      
       throw new TRPCError({
         code: "CONFLICT",
-        message: "duplicate_event_slug_conflict",
+        message: "Unique constraint violation while creating a duplicate event.",
       });
     }
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Error duplicating event type ${error}` });
