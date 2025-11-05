@@ -287,7 +287,8 @@ export default class GoogleCalendarService implements Calendar {
           calendar,
           selectedCalendar,
           calEvent.startTime,
-          calEvent.endTime
+          calEvent.endTime,
+          event.iCalUID || ""
         );
 
         if (hasOverlap) {
@@ -381,31 +382,47 @@ export default class GoogleCalendarService implements Calendar {
     calendar: calendar_v3.Calendar,
     calendarId: string,
     startTime: string,
-    endTime: string
+    endTime: string,
+    createdEventICalUID: string
   ): Promise<boolean> {
     try {
-      const freeBusyResponse = await calendar.freebusy.query({
-        requestBody: {
-          timeMin: startTime,
-          timeMax: endTime,
-          items: [{ id: calendarId }],
-        },
+      const OVERLAP_LOOKBACK_MS = 24 * 60 * 60 * 1000; // 24 hours
+      const lookbackTime = new Date(new Date(startTime).getTime() - OVERLAP_LOOKBACK_MS).toISOString();
+
+      const eventsResponse = await calendar.events.list({
+        calendarId: calendarId,
+        timeMin: lookbackTime,
+        timeMax: endTime,
+        singleEvents: true,
+        showDeleted: false,
+        orderBy: "startTime",
       });
 
-      const calendarBusyTimes = freeBusyResponse.data.calendars?.[calendarId]?.busy || [];
-
+      const events = eventsResponse.data.items || [];
       const eventStart = new Date(startTime).getTime();
       const eventEnd = new Date(endTime).getTime();
 
-      for (const busyTime of calendarBusyTimes) {
-        const busyStart = new Date(busyTime.start || "").getTime();
-        const busyEnd = new Date(busyTime.end || "").getTime();
-
-        if (busyStart === eventStart && busyEnd === eventEnd) {
+      for (const evt of events) {
+        if (evt.iCalUID === createdEventICalUID) {
           continue;
         }
 
-        return true;
+        if (evt.status === "cancelled") {
+          continue;
+        }
+
+        if (evt.transparency === "transparent") {
+          continue;
+        }
+
+        const evtStart = new Date(evt.start?.dateTime || evt.start?.date || "").getTime();
+        const evtEnd = new Date(evt.end?.dateTime || evt.end?.date || "").getTime();
+
+        const hasTimeOverlap = evtStart < eventEnd && evtEnd > eventStart;
+
+        if (hasTimeOverlap) {
+          return true;
+        }
       }
 
       return false;
