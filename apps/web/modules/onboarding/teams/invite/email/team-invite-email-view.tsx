@@ -14,7 +14,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
-import { OnboardingBrowserView } from "../../../components/onboarding-browser-view";
+import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
 import { useCreateTeam } from "../../../hooks/useCreateTeam";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
 
@@ -180,7 +180,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
       </div>
 
       {/* Right column - Browser view */}
-      <OnboardingBrowserView />
+      <OnboardingInviteBrowserView teamName={teamDetails.name} />
     </OnboardingLayout>
   );
 };
