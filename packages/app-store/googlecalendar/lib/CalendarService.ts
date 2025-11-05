@@ -380,69 +380,48 @@ export default class GoogleCalendarService implements Calendar {
     createdEventICalUID: string
   ): Promise<boolean> {
     try {
-      const freeBusyResponse = await calendar.freebusy.query({
-        requestBody: {
-          timeMin: startTime,
-          timeMax: endTime,
-          items: [{ id: calendarId }],
-        },
-      });
-
-      const calendarBusyTimes = freeBusyResponse.data.calendars?.[calendarId]?.busy || [];
-
-      if (calendarBusyTimes.length === 0) {
-        return false;
-      }
-
       const eventsResponse = await calendar.events.list({
         calendarId: calendarId,
         timeMin: startTime,
         timeMax: endTime,
         singleEvents: true,
+        showDeleted: false,
       });
 
       const events = eventsResponse.data.items || [];
+      const eventStart = new Date(startTime).getTime();
+      const eventEnd = new Date(endTime).getTime();
 
-      for (const busyTime of calendarBusyTimes) {
-        const busyStart = new Date(busyTime.start || "").getTime();
-        const busyEnd = new Date(busyTime.end || "").getTime();
-        const eventStart = new Date(startTime).getTime();
-        const eventEnd = new Date(endTime).getTime();
-
-        const hasTimeOverlap = busyStart < eventEnd && busyEnd > eventStart;
-
-        if (!hasTimeOverlap) {
+      for (const evt of events) {
+        if (evt.iCalUID === createdEventICalUID) {
           continue;
         }
 
-        const overlappingEvent = events.find((evt) => {
-          const evtStart = new Date(evt.start?.dateTime || evt.start?.date || "").getTime();
-          const evtEnd = new Date(evt.end?.dateTime || evt.end?.date || "").getTime();
-          return evtStart === busyStart && evtEnd === busyEnd;
-        });
-
-        if (!overlappingEvent) {
+        if (evt.status === "cancelled") {
           continue;
         }
 
-        if (overlappingEvent.iCalUID === createdEventICalUID) {
+        if (evt.transparency === "transparent") {
           continue;
         }
 
-        if (overlappingEvent.transparency === "transparent") {
-          continue;
-        }
+        const evtStart = new Date(evt.start?.dateTime || evt.start?.date || "").getTime();
+        const evtEnd = new Date(evt.end?.dateTime || evt.end?.date || "").getTime();
 
-        this.log.warn(
-          "Found overlapping BUSY event",
-          safeStringify({
-            overlappingEventId: overlappingEvent.id,
-            overlappingEventSummary: overlappingEvent.summary,
-            overlappingEventICalUID: overlappingEvent.iCalUID,
-            createdEventICalUID,
-          })
-        );
-        return true;
+        const hasTimeOverlap = evtStart < eventEnd && evtEnd > eventStart;
+
+        if (hasTimeOverlap) {
+          this.log.warn(
+            "Found overlapping BUSY event",
+            safeStringify({
+              overlappingEventId: evt.id,
+              overlappingEventSummary: evt.summary,
+              overlappingEventICalUID: evt.iCalUID,
+              createdEventICalUID,
+            })
+          );
+          return true;
+        }
       }
 
       return false;
