@@ -1,10 +1,7 @@
+import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
-import { BillingRepositoryFactory } from "@calcom/ee/billing/repository/billing/billingRepositoryFactory";
-import { TeamBillingDataRepositoryFactory } from "@calcom/ee/billing/repository/teamBillingData/teamBillingDataRepositoryFactory";
-import { TeamBillingServiceFactory } from "@calcom/ee/billing/service/teams/teamBillingServiceFactory";
-import { BillingProviderServiceFactory } from "@calcom/features/ee/billing/service/billingProvider/billingProviderServiceFactory";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -39,21 +36,7 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
     });
 
     for (const team of ownedTeams) {
-      const teamBillingDataRepository =
-        TeamBillingDataRepositoryFactory.getRepository(IS_TEAM_BILLING_ENABLED);
-      const billingRepository = BillingRepositoryFactory.getRepository(
-        team.isOrganization,
-        IS_TEAM_BILLING_ENABLED
-      );
-      const billingProviderService = BillingProviderServiceFactory.getService();
-
-      const teamBillingServiceFactory = new TeamBillingServiceFactory({
-        billingProviderService,
-        teamBillingDataRepository,
-        billingRepository,
-        isTeamBillingEnabled: IS_TEAM_BILLING_ENABLED,
-      });
-
+      const teamBillingServiceFactory = getTeamBillingServiceFactory();
       const teamBillingService = teamBillingServiceFactory.init(team);
 
       const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
