@@ -33,9 +33,14 @@ export default function Header({
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex items-center">
             {backButton && (
-              <a href="javascript:history.back()">
+              <button
+                type="button"
+                onClick={() => window.history.back()}
+                aria-label="Go back"
+                className="inline-flex items-center"
+              >
                 <Icon name="arrow-left" className="mr-7" />
-              </a>
+              </button>
             )}
             <div>
               {title ? (
