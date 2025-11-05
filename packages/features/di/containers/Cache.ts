@@ -1,5 +1,5 @@
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { prismaModule } from "@calcom/prisma/prisma.module";
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 
 import type { CacheService } from "../../../features/calendar-cache/lib/getShouldServeCache";
 import { createContainer } from "../di";
