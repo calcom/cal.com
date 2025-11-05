@@ -369,7 +369,7 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
 const Provider = ({ children }: ProviderProps) => children;
 
-function IconComponent({ type }: IconProps) {
+function IconComponent({ type: _type }: IconProps) {
   return null;
 }
 
