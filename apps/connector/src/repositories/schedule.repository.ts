@@ -1,10 +1,6 @@
-import type { PaginationQuery } from "@/types";
-import { NotFoundError } from "@/utils/error";
-
 import { UserRepository as OldUserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma, User, UserPermissionRole } from "@calcom/prisma/client";
-import { Schedule } from "@calcom/types/schedule";
+import type { Prisma, User } from "@calcom/prisma/client";
 
 import { BaseRepository } from "./base.repository";
 
@@ -51,7 +47,7 @@ export class ScheduleRepository extends BaseRepository<User> {
     scheduleId: number
   ) {
     try {
-      let args: Prisma.ScheduleUpdateArgs = { data: { ...body, userId }, where: { id: scheduleId } };
+      const args: Prisma.ScheduleUpdateArgs = { data: { ...body, userId }, where: { id: scheduleId } };
       // We create default availabilities for the schedule
       // We include the recently created availability
       args.include = { availability: true };

@@ -59,36 +59,67 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
           },
         },
       },
+
+      calIdTeams: {
+        where: {
+          acceptedInvitation: true,
+        },
+        select: {
+          role: true,
+          calIdTeam: {
+            select: {
+              id: true,
+              logoUrl: true,
+              name: true,
+              slug: true,
+              metadata: true,
+              members: {
+                select: {
+                  userId: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
   if (!user) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  let teamsData;
+  // let teamsData;
 
-  if (input?.includeOrg) {
-    teamsData = user.teams
-      .filter((membership) => membership.team.slug !== null)
-      .map((membership) => ({
-        ...membership,
-        team: {
-          ...membership.team,
-          metadata: teamMetadataSchema.parse(membership.team.metadata),
-        },
-      }));
-  } else {
-    teamsData = user.teams
-      .filter((membership) => !membership.team.isOrganization)
-      .map((membership) => ({
-        ...membership,
-        team: {
-          ...membership.team,
-          metadata: teamMetadataSchema.parse(membership.team.metadata),
-        },
-      }));
-  }
-
+  // if (input?.includeOrg) {
+  //   teamsData = user.calIdTeams
+  //     .filter((membership) => membership.calIdTeam.slug !== null)
+  //     .map((membership) => ({
+  //       ...membership,
+  //       calIdTeam: {
+  //         ...membership.calIdTeam,
+  //         metadata: teamMetadataSchema.parse(membership.calIdTeam.metadata),
+  //       },
+  //     }));
+  // } else {
+  //   teamsData = user.calIdTeams
+  //     .filter((membership) => !membership.calIdTeam.isOrganization)
+  //     .map((membership) => ({
+  //       ...membership,
+  //       calIdTeam: {
+  //         ...membership.calIdTeam,
+  //         metadata: teamMetadataSchema.parse(membership.calIdTeam.metadata),
+  //       },
+  //     }));
+  // }
+  const teamsData = user.calIdTeams
+    .filter((membership) => membership.calIdTeam.slug !== null)
+    .map((membership) => ({
+      ...membership,
+      calIdTeam: {
+        ...membership.calIdTeam,
+        metadata: teamMetadataSchema.parse(membership.calIdTeam.metadata),
+      },
+    }));
   return [
     {
       teamId: null,
@@ -100,12 +131,13 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       readOnly: false,
     },
     ...teamsData.map((membership) => ({
-      teamId: membership.team.id,
-      name: membership.team.name,
-      slug: membership.team.slug ? `team/${membership.team.slug}` : null,
-      image: membership.team?.parent
-        ? getPlaceholderAvatar(membership.team.parent.logoUrl, membership.team.parent.name)
-        : getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
+      teamId: membership.calIdTeam.id,
+      name: membership.calIdTeam.name,
+      slug: membership.calIdTeam.slug ? `team/${membership.calIdTeam.slug}` : null,
+      // image: membership.calIdTeam?.parent
+      //   ? getPlaceholderAvatar(membership.calIdTeam.parent.logoUrl, membership.calIdTeam.parent.name)
+      //   : getPlaceholderAvatar(membership.calIdTeam.logoUrl, membership.calIdTeam.name),
+      image: getPlaceholderAvatar(membership.calIdTeam.logoUrl, membership.calIdTeam.name),
       role: membership.role,
       readOnly: !withRoleCanCreateEntity(membership.role),
     })),

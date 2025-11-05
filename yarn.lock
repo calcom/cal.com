@@ -3191,7 +3191,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@workspace:*, @calcom/platform-libraries@workspace:packages/platform/libraries":
+"@calcom/platform-libraries@workspace:packages/platform/libraries":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
@@ -3915,7 +3915,7 @@ __metadata:
   resolution: "@calid/connector@workspace:apps/connector"
   dependencies:
     "@calcom/lib": "workspace:*"
-    "@calcom/platform-libraries": "workspace:*"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.271"
     "@calcom/prisma": "workspace:*"
     "@fastify/autoload": ^5.8.0
     "@fastify/cors": ^8.4.0
