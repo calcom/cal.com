@@ -326,7 +326,7 @@ export const buildEventForTeamEventType = async ({
 
   if (!updatedEvt) {
     throw new ErrorWithCode(
-      ErrorCode.MissingRequiredField,
+      ErrorCode.RequestBodyInvalid,
       "Failed to build event with destination calendar due to missing required fields"
     );
   }
@@ -562,7 +562,7 @@ async function handler(
   if (eventType.requiresBookerEmailVerification) {
     const verificationCode = reqBody.verificationCode;
     if (!verificationCode) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "email_verification_required");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "email_verification_required");
     }
 
     try {
@@ -722,7 +722,7 @@ async function handler(
   if (routedTeamMemberIds) {
     //routingFormResponseId could be 0 for dry run. So, we just avoid undefined value
     if (routingFormResponseId === undefined) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Missing routingFormResponseId");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Missing routingFormResponseId");
     }
     routingFormResponse = await deps.prismaClient.app_RoutingForms_FormResponse.findUnique({
       where: {
@@ -1362,7 +1362,7 @@ async function handler(
 
   if (!builtEvt) {
     throw new ErrorWithCode(
-      ErrorCode.MissingRequiredField,
+      ErrorCode.RequestBodyInvalid,
       "Failed to build calendar event due to missing required fields"
     );
   }
@@ -1376,7 +1376,7 @@ async function handler(
 
     if (!updatedEvt) {
       throw new ErrorWithCode(
-        ErrorCode.MissingRequiredField,
+        ErrorCode.RequestBodyInvalid,
         "Failed to build event with recurring event ID due to missing required fields"
       );
     }
@@ -1607,7 +1607,7 @@ async function handler(
 
       if (!updatedEvt) {
         throw new ErrorWithCode(
-          ErrorCode.MissingRequiredField,
+          ErrorCode.RequestBodyInvalid,
           "Failed to build event with new identifiers due to missing required fields"
         );
       }
@@ -1742,7 +1742,7 @@ async function handler(
 
       if (!updatedEvtWithUid) {
         throw new ErrorWithCode(
-          ErrorCode.MissingRequiredField,
+          ErrorCode.RequestBodyInvalid,
           "Failed to build event with UID due to missing required fields"
         );
       }
@@ -1755,7 +1755,7 @@ async function handler(
 
       if (!updatedEvtWithPassword) {
         throw new ErrorWithCode(
-          ErrorCode.MissingRequiredField,
+          ErrorCode.RequestBodyInvalid,
           "Failed to build event with one-time password due to missing required fields"
         );
       }
@@ -2286,7 +2286,7 @@ async function handler(
     });
 
     if (!eventTypePaymentAppCredential) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Missing payment credentials");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Missing payment credentials");
     }
 
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList

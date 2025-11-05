@@ -44,7 +44,7 @@ export class AgentService {
 
   async getAgent(agentId: string): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     try {
@@ -63,11 +63,11 @@ export class AgentService {
     data: { eventTypeId: number | null; timeZone: string; userId: number | null; teamId?: number | null }
   ) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     if (!data.eventTypeId || !data.userId) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Event type ID and user ID are required");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Event type ID and user ID are required");
     }
 
     if (!timeZoneSchema.safeParse(data.timeZone).success) {
@@ -169,7 +169,7 @@ export class AgentService {
 
   async removeToolsForEventTypes(agentId: string, eventTypeIds: number[]) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     if (!eventTypeIds.length) {
@@ -234,7 +234,7 @@ export class AgentService {
 
   async cleanupUnusedTools(agentId: string, activeEventTypeIds: number[] = []) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     let mappedActiveEventTypeIds = activeEventTypeIds;
@@ -324,11 +324,11 @@ export class AgentService {
     }
   ): Promise<AIPhoneServiceAgent<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     if (!data || Object.keys(data).length === 0) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Update data is required");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Update data is required");
     }
 
     try {

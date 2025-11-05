@@ -39,14 +39,14 @@ export class CallService {
   }): Promise<AIPhoneServiceCall<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!data.fromNumber?.trim()) {
       throw new ErrorWithCode(
-        ErrorCode.MissingRequiredField,
+        ErrorCode.RequestBodyInvalid,
         "From phone number is required and cannot be empty"
       );
     }
 
     if (!data.toNumber?.trim()) {
       throw new ErrorWithCode(
-        ErrorCode.MissingRequiredField,
+        ErrorCode.RequestBodyInvalid,
         "To phone number is required and cannot be empty"
       );
     }
@@ -88,7 +88,7 @@ export class CallService {
     eventTypeId: number;
   }) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     await this.validateCreditsForTestCall({ userId, teamId });
@@ -100,7 +100,7 @@ export class CallService {
 
     const toNumber = phoneNumber?.trim();
     if (!toNumber) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Phone number is required for test call");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is required for test call");
     }
 
     const agent = await this.deps.agentRepository.findByIdWithCallAccess({
@@ -174,7 +174,7 @@ export class CallService {
     eventTypeId: number;
   }) {
     if (!agentId?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     await this.validateCreditsForTestCall({ userId, teamId });

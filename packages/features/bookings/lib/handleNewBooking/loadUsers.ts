@@ -7,6 +7,7 @@ import {
 import { withSelectedCalendars, UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma, { userSelect } from "@calcom/prisma";
@@ -70,8 +71,8 @@ export const loadUsers = async ({
     return users;
   } catch (error) {
     log.error("Unable to load users", safeStringify(error));
-    if (error instanceof ErrorWithCode || error instanceof Prisma.PrismaClientKnownRequestError) {
-      throw new ErrorWithCode(ErrorCode.InvalidInput, error.message);
+    if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, error.message);
     }
     throw new ErrorWithCode(ErrorCode.InternalServerError, "Unable to load users");
   }

@@ -30,7 +30,7 @@ export class PhoneNumberService {
     data: AIPhoneServiceImportPhoneNumberParamsExtended
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!data || !data.phone_number?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Phone number is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is required and cannot be empty");
     }
 
     const { userId, agentId, teamId, ...rest } = data;
@@ -111,7 +111,7 @@ export class PhoneNumberService {
     deleteFromDB: boolean;
   }): Promise<void> {
     if (!phoneNumber?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Phone number is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is required and cannot be empty");
     }
 
     const phoneNumberToDelete = teamId
@@ -159,7 +159,7 @@ export class PhoneNumberService {
     phoneNumber: string
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!phoneNumber?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Phone number is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is required and cannot be empty");
     }
 
     try {
@@ -178,11 +178,11 @@ export class PhoneNumberService {
     data: { inbound_agent_id?: string | null; outbound_agent_id?: string | null }
   ): Promise<AIPhoneServicePhoneNumber<AIPhoneServiceProviderType.RETELL_AI>> {
     if (!phoneNumber?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Phone number is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is required and cannot be empty");
     }
 
     if (!data || Object.keys(data).length === 0) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Update data is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Update data is required and cannot be empty");
     }
 
     try {
@@ -211,7 +211,7 @@ export class PhoneNumberService {
     outboundAgentId?: string | null;
   }) {
     if (!phoneNumber?.trim()) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Phone number is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is required and cannot be empty");
     }
 
     const phoneNumberRecord = teamId
@@ -274,7 +274,7 @@ export class PhoneNumberService {
 
   private async validateAgentPermissions(userId: number, agentId?: string | null) {
     if (!agentId) {
-      throw new ErrorWithCode(ErrorCode.MissingRequiredField, "Agent ID is required and cannot be empty");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent ID is required and cannot be empty");
     }
 
     let agent = null;

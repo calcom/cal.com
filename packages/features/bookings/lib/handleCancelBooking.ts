@@ -120,7 +120,7 @@ async function handler(input: CancelBookingInput) {
     !skipCancellationReasonValidation
   ) {
     throw new ErrorWithCode(
-      ErrorCode.MissingRequiredField,
+      ErrorCode.RequestBodyInvalid,
       "Cancellation reason is required when you are the host"
     );
   }
