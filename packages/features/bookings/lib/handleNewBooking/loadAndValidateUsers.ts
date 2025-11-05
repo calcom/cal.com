@@ -103,7 +103,7 @@ const _loadAndValidateUsers = async ({
       message: "NewBooking: Some of the users in this group do not allow dynamic booking",
     });
     throw new ErrorWithCode(
-      ErrorCode.InvalidOperation,
+      ErrorCode.Unauthorized,
       "Some of the users in this group do not allow dynamic booking"
     );
   }
