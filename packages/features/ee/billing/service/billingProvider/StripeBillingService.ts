@@ -169,7 +169,7 @@ export class StripeBillingService implements IBillingProviderService {
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     if (!subscription || !subscription.status) return null;
 
-    return StripeBillingService.mapStripeStatusToCalStatus({
+    return this.mapStripeStatusToCalStatus({
       stripeStatus: subscription.status,
       subscriptionId,
     });

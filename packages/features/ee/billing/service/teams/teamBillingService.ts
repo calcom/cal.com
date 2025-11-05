@@ -1,4 +1,3 @@
-import { ITeamBillingDataRepository } from "ee/billing/repository/teamBillingData/ITeamBillingDataRepository";
 import type { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
@@ -17,6 +16,7 @@ import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
 } from "../../repository/billing/IBillingRepository";
+import { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import {
   TeamBillingPublishResponseStatus,
