@@ -453,6 +453,26 @@ export class TeamRepository {
     return !conflictingTeam;
   }
 
+  async getTeamByIdIfUserIsAdmin({ userId, teamId }: { userId: number; teamId: number }) {
+    return await this.prismaClient.team.findUnique({
+      where: {
+        id: teamId,
+      },
+      select: {
+        id: true,
+        metadata: true,
+        members: {
+          where: {
+            userId,
+            role: {
+              in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+            },
+          },
+        },
+      },
+    });
+  }
+
   async findOrgTeamsExcludingTeam({ parentId, excludeTeamId }: { parentId: number; excludeTeamId: number }) {
     return await this.prismaClient.team.findMany({
       where: {
