@@ -7,8 +7,8 @@ import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/W
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -55,7 +55,7 @@ async function cancelAttendeeSeat(
     (reference) => reference.referenceUid === seatReferenceUid
   );
 
-  if (!seatReference) throw new ErrorWithCode(ErrorCode.UserNotFound, "User not a part of this booking");
+  if (!seatReference) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "User not a part of this booking");
 
   await Promise.all([
     prisma.bookingSeat.delete({

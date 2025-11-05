@@ -343,7 +343,7 @@ export const buildEventForTeamEventType = async ({
 
   if (!teamEvt) {
     throw new ErrorWithCode(
-      ErrorCode.TeamNotFound,
+      ErrorCode.ResourceNotFound,
       "Failed to build team event due to missing required fields"
     );
   }
@@ -1394,7 +1394,7 @@ async function handler(
     });
 
     if (!teamEvt) {
-      throw new ErrorWithCode(ErrorCode.TeamNotFound, "Failed to build team event");
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Failed to build team event");
     }
 
     evt = teamEvt;

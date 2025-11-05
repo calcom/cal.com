@@ -38,11 +38,8 @@ export enum ErrorCode {
   BookingNotFound = "booking_not_found_error",
   RestrictionScheduleNotFound = "restriction_schedule_not_found_error",
   ResourceNotFound = "resource_not_found",
-  AgentNotFound = "agent_not_found",
   TeamNotFound = "team_not_found",
   UserNotFound = "user_not_found",
-  CheckoutSessionNotFound = "checkout_session_not_found",
-  SubscriptionNotFound = "subscription_not_found",
 
   // 409 Conflict - Resource conflicts, already exists, unavailable
   NoAvailableUsersFound = "no_available_users_found_error",
@@ -102,10 +99,6 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.BookingNotFound]: 404,
   [ErrorCode.RestrictionScheduleNotFound]: 404,
   [ErrorCode.ResourceNotFound]: 404,
-  [ErrorCode.TeamNotFound]: 404,
-  [ErrorCode.UserNotFound]: 404,
-  [ErrorCode.CheckoutSessionNotFound]: 404,
-  [ErrorCode.SubscriptionNotFound]: 404,
 
   // 409 Conflict - Resource conflicts, already exists, unavailable
   [ErrorCode.NoAvailableUsersFound]: 409,

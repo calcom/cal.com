@@ -52,7 +52,7 @@ function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutS
     throw new ErrorWithCode(ErrorCode.PaymentRequired, "Payment required");
   }
   if (!session.subscription) {
-    throw new ErrorWithCode(ErrorCode.CheckoutSessionNotFound, "No subscription found in checkout session");
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "No subscription found in checkout session");
   }
 
   const result = checkoutSessionMetadataSchema.safeParse(session.metadata);

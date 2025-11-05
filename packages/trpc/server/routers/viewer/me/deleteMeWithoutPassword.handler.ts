@@ -17,7 +17,7 @@ export const deleteMeWithoutPasswordHandler = async ({ ctx }: DeleteMeWithoutPas
     },
   });
   if (!user) {
-    throw new Error(ErrorCode.UserNotFound);
+    throw new Error(ErrorCode.ResourceNotFound);
   }
 
   if (user.identityProvider === IdentityProvider.CAL) {

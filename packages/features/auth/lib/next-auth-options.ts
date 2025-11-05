@@ -405,7 +405,7 @@ if (isSAMLLoginEnabled) {
               });
             }
           }
-          if (!user) throw new Error(ErrorCode.UserNotFound);
+          if (!user) throw new Error(ErrorCode.ResourceNotFound);
         }
         const [userProfile] = user?.allProfiles;
         return {

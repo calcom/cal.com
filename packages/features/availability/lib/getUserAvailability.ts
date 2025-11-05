@@ -318,7 +318,7 @@ export class UserAvailabilityService {
     const user = initialData?.user || (await this.getUser(where));
 
     if (!user) {
-      throw new ErrorWithCode(ErrorCode.UserNotFound, "No user found in getUserAvailability");
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "No user found in getUserAvailability");
     }
 
     let eventType: EventType | null = initialData?.eventType || null;
