@@ -73,12 +73,12 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
       slug: teamSlug,
       bio: teamBio,
     });
-    
+
     setTeamBrand({
       logo: teamLogo || null,
     });
-    
-    router.push("/onboarding/teams/brand");
+
+    router.push("/onboarding/teams/invite");
   };
 
   return (
@@ -164,12 +164,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
         </OnboardingCard>
 
         {/* Right column - Browser view */}
-        <OnboardingBrowserView 
-          teamSlug={teamSlug}
-          name={teamName}
-          bio={teamBio}
-          avatar={teamLogo || null}
-        />
+        <OnboardingBrowserView teamSlug={teamSlug} name={teamName} bio={teamBio} avatar={teamLogo || null} />
       </OnboardingLayout>
     </>
   );

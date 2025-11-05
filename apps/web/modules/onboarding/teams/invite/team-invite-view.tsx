@@ -95,7 +95,6 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
         <div className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center gap-1">
           <div className="bg-emphasis h-1 w-1 rounded-full" />
           <div className="bg-emphasis h-1 w-1 rounded-full" />
-          <div className="bg-emphasis h-1 w-1 rounded-full" />
           <div className="bg-emphasis h-1.5 w-1.5 rounded-full" />
         </div>
 
@@ -196,7 +195,14 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
                 </div>
 
                 {/* Footer */}
-                <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
+                <div className="flex w-full items-center justify-end gap-4 px-5 py-4">
+                  <Button
+                    color="minimal"
+                    className="rounded-[10px]"
+                    onClick={() => router.push("/onboarding/teams/details")}
+                    disabled={isSubmitting}>
+                    {t("back")}
+                  </Button>
                   <Button
                     type="submit"
                     color="primary"
