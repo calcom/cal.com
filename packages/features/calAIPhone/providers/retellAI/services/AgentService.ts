@@ -543,7 +543,7 @@ export class AgentService {
 
       throw new ErrorWithCode(
         ErrorCode.AgentNotFound,
-        "Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}"
+        `Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}`
       );
     }
 
