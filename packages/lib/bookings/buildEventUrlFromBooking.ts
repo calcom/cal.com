@@ -35,7 +35,7 @@ export async function buildEventUrlFromBooking(booking: {
 }) {
   const { eventType, dynamicGroupSlugRef, profileEnrichedBookingUser } = booking;
   const eventSlug = eventType.slug;
-  const eventTeam = eventType.team;
+  const eventTeam = eventType.calIdTeam;
   const bookingOrganizationId = getOrganizationIdOfBooking({ eventType, profileEnrichedBookingUser });
 
   const bookerUrl = await getBookerBaseUrl(bookingOrganizationId);
