@@ -23,7 +23,8 @@ export const OnboardingBrowserView = ({
 }: OnboardingBrowserViewProps) => {
   const { t } = useLocale();
   const webappUrl = WEBAPP_URL.replace(/^https?:\/\//, "");
-  const displayUrl = teamSlug ? `${webappUrl}/team/${teamSlug}` : `${webappUrl}/${username}`;
+  const displayUrl =
+    teamSlug !== undefined ? `${webappUrl}/team/${teamSlug || ""}` : `${webappUrl}/${username || ""}`;
 
   const events: Array<{
     title: string;
