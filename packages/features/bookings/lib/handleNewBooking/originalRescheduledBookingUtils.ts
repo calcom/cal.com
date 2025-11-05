@@ -14,7 +14,10 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
   }
 
   if (originalBooking.status === BookingStatus.CANCELLED && !originalBooking.rescheduled) {
-    throw new ErrorWithCode(ErrorCode.CancelledBookingsCannotBeRescheduled);
+    throw new ErrorWithCode(
+      ErrorCode.CancelledBookingsCannotBeRescheduled,
+      ErrorCode.CancelledBookingsCannotBeRescheduled
+    );
   }
 
   return originalBooking;
