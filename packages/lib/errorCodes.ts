@@ -1,5 +1,6 @@
 export enum ErrorCode {
   // 400 Bad Request - Client errors, invalid input, validation failures
+  ChargeCardFailure = "couldnt_charge_card_error",
   RequestBodyWithouEnd = "request_body_end_time_internal_error",
   MissingPaymentCredential = "missing_payment_credential_error",
   MissingPaymentAppId = "missing_payment_app_id_error",
@@ -11,17 +12,12 @@ export enum ErrorCode {
   BookerLimitExceededReschedule = "booker_limit_exceeded_error_reschedule",
   EventTypeNoHosts = "event_type_no_hosts",
   RequestBodyInvalid = "request_body_invalid_error",
-  ChargeCardFailure = "couldnt_charge_card_error",
-  InvalidInput = "invalid_input",
-  MissingRequiredField = "missing_required_field",
-  InvalidTimeZone = "invalid_timezone",
-  InvalidOperation = "invalid_operation",
-  ConfigurationError = "configuration_error",
   PrivateLinkExpired = "private_link_expired",
   BookerEmailBlocked = "booker_email_blocked",
   BookerEmailRequiresLogin = "booker_email_requires_login",
   InvalidVerificationCode = "invalid_verification_code",
   UnableToValidateVerificationCode = "unable_to_validate_verification_code",
+  MissingRequiredField = "missing_required_field",
 
   // 401 Unauthorized - Authentication required
   Unauthorized = "unauthorized",
@@ -39,25 +35,25 @@ export enum ErrorCode {
   ResourceNotFound = "resource_not_found",
 
   // 409 Conflict - Resource conflicts, already exists, unavailable
+  PaymentCreationFailure = "payment_not_created_error",
   NoAvailableUsersFound = "no_available_users_found_error",
+  AlreadySignedUpForBooking = "already_signed_up_for_this_booking_error",
   FixedHostsUnavailableForBooking = "fixed_hosts_unavailable_for_booking",
   RoundRobinHostsUnavailableForBooking = "round_robin_host_unavailable_for_booking",
-  AlreadySignedUpForBooking = "already_signed_up_for_this_booking_error",
   BookingSeatsFull = "booking_seats_full_error",
   NotEnoughAvailableSeats = "not_enough_available_seats_error",
   BookingConflict = "booking_conflict_error",
-  PaymentCreationFailure = "payment_not_created_error",
-  ResourceAlreadyExists = "resource_already_exists",
 
   // 500 Internal Server Error - Server-side errors, system failures
+  UnableToSubscribeToThePlatform = "unable_to_subscribe_to_the_platform",
+  UpdatingOauthClientError = "updating_oauth_client_error",
+  CreatingOauthClientError = "creating_oauth_client_error",
   InternalServerError = "internal_server_error",
-
-  // 503 Service Unavailable - External services, temporary failures
-  ServiceUnavailable = "service_unavailable",
 }
 
 export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   // 400 Bad Request - Client errors, invalid input, validation failures
+  [ErrorCode.ChargeCardFailure]: 400,
   [ErrorCode.RequestBodyWithouEnd]: 400,
   [ErrorCode.MissingPaymentCredential]: 400,
   [ErrorCode.MissingPaymentAppId]: 400,
@@ -69,17 +65,12 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.BookerLimitExceededReschedule]: 400,
   [ErrorCode.EventTypeNoHosts]: 400,
   [ErrorCode.RequestBodyInvalid]: 400,
-  [ErrorCode.ChargeCardFailure]: 400,
-  [ErrorCode.InvalidInput]: 400,
-  [ErrorCode.MissingRequiredField]: 400,
-  [ErrorCode.InvalidTimeZone]: 400,
-  [ErrorCode.InvalidOperation]: 400,
-  [ErrorCode.ConfigurationError]: 400,
   [ErrorCode.PrivateLinkExpired]: 400,
   [ErrorCode.BookerEmailBlocked]: 400,
   [ErrorCode.BookerEmailRequiresLogin]: 400,
   [ErrorCode.InvalidVerificationCode]: 400,
   [ErrorCode.UnableToValidateVerificationCode]: 400,
+  [ErrorCode.MissingRequiredField]: 400,
 
   // 401 Unauthorized - Authentication required
   [ErrorCode.Unauthorized]: 401,
@@ -97,21 +88,20 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.ResourceNotFound]: 404,
 
   // 409 Conflict - Resource conflicts, already exists, unavailable
+  [ErrorCode.PaymentCreationFailure]: 409,
   [ErrorCode.NoAvailableUsersFound]: 409,
+  [ErrorCode.AlreadySignedUpForBooking]: 409,
   [ErrorCode.FixedHostsUnavailableForBooking]: 409,
   [ErrorCode.RoundRobinHostsUnavailableForBooking]: 409,
-  [ErrorCode.AlreadySignedUpForBooking]: 409,
   [ErrorCode.BookingSeatsFull]: 409,
   [ErrorCode.NotEnoughAvailableSeats]: 409,
   [ErrorCode.BookingConflict]: 409,
-  [ErrorCode.PaymentCreationFailure]: 409,
-  [ErrorCode.ResourceAlreadyExists]: 409,
 
   // 500 Internal Server Error - Server-side errors, system failures
+  [ErrorCode.UnableToSubscribeToThePlatform]: 500,
+  [ErrorCode.UpdatingOauthClientError]: 500,
+  [ErrorCode.CreatingOauthClientError]: 500,
   [ErrorCode.InternalServerError]: 500,
-
-  // 503 Service Unavailable - External services, temporary failures
-  [ErrorCode.ServiceUnavailable]: 503,
 };
 
 export function getHttpStatusForErrorCode(errorCode: ErrorCode): number {
