@@ -8,9 +8,9 @@ import { HexColorPicker } from "react-colorful";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
-import { OnboardingCard } from "../../personal/_components/OnboardingCard";
-import { OnboardingLayout } from "../../personal/_components/OnboardingLayout";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationBrandViewProps = {

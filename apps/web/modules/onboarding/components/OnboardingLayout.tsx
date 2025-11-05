@@ -61,3 +61,4 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
     </div>
   );
 };
+

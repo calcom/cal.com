@@ -14,8 +14,8 @@ import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
 import { PlanIcon } from "../components/plan-icon";
-import { OnboardingCard } from "../personal/_components/OnboardingCard";
-import { OnboardingLayout } from "../personal/_components/OnboardingLayout";
+import { OnboardingCard } from "../components/OnboardingCard";
+import { OnboardingLayout } from "../components/OnboardingLayout";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {

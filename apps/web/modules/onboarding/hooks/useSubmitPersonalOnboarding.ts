@@ -1,9 +1,9 @@
 import { useRouter } from "next/navigation";
 
+import { setShowWelcomeToCalcomModalFlag } from "@calcom/features/shell/hooks/useWelcomeToCalcomModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { telemetryEventTypes } from "@calcom/lib/telemetry";
-import { setShowWelcomeToCalcomModalFlag } from "@calcom/features/shell/hooks/useWelcomeToCalcomModal";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 

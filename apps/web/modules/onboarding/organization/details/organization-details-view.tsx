@@ -8,8 +8,8 @@ import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
-import { OnboardingCard } from "../../personal/_components/OnboardingCard";
-import { OnboardingLayout } from "../../personal/_components/OnboardingLayout";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedOrganizationSlug } from "./validated-organization-slug";
 

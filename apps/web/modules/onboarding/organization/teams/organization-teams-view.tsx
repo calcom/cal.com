@@ -11,8 +11,8 @@ import { Form, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
-import { OnboardingCard } from "../../personal/_components/OnboardingCard";
-import { OnboardingLayout } from "../../personal/_components/OnboardingLayout";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationTeamsViewProps = {

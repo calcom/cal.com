@@ -38,3 +38,4 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
     </div>
   );
 };
+

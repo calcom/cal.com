@@ -7,8 +7,8 @@ import { Button } from "@calcom/ui/components/button";
 import { OnboardingCalendarBrowserView } from "../../components/onboarding-calendar-browser-view";
 import { useSubmitPersonalOnboarding } from "../../hooks/useSubmitPersonalOnboarding";
 import { InstallableAppCard } from "../_components/InstallableAppCard";
-import { OnboardingCard } from "../_components/OnboardingCard";
-import { OnboardingLayout } from "../_components/OnboardingLayout";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { useAppInstallation } from "../_components/useAppInstallation";
 
 type PersonalCalendarViewProps = {

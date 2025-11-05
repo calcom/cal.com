@@ -18,10 +18,10 @@ import { showToast } from "@calcom/ui/components/toast";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { useOnboardingStore } from "../../store/onboarding-store";
-import { OnboardingCard } from "../_components/OnboardingCard";
-import { OnboardingLayout } from "../_components/OnboardingLayout";
 
 type PersonalSettingsViewProps = {
   userEmail: string;
