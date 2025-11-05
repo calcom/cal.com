@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { ConfigType } from "@calcom/dayjs";
@@ -21,7 +22,6 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import { useBookingLocation } from "@calcom/features/bookings/hooks";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
@@ -352,25 +352,20 @@ export default function Success(props: PageProps) {
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
   });
-
-  const { locationToDisplay, provider } = useBookingLocation({
-    location,
-    videoCallUrl: locationVideoCallUrl,
+  const locationToDisplay = getSuccessPageLocationMessage(
+    locationVideoCallUrl ? locationVideoCallUrl : location,
     t,
-    bookingStatus: bookingInfo.status,
-  });
-
-  const { locationToDisplay: rescheduleLocationToDisplay, provider: rescheduleProvider } = useBookingLocation(
-    {
-      location: rescheduleLocation ?? "",
-      videoCallUrl: undefined,
-      t,
-      bookingStatus: bookingInfo.status,
-    }
+    bookingInfo.status
   );
 
-  const providerName = provider?.label;
-  const rescheduleProviderName = rescheduleProvider?.label;
+  const rescheduleLocationToDisplay = getSuccessPageLocationMessage(
+    rescheduleLocation ?? "",
+    t,
+    bookingInfo.status
+  );
+
+  const providerName = guessEventLocationType(location)?.label;
+  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
   const isReschedulable = !isCancelled;
 
