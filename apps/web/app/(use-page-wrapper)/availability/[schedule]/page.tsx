@@ -9,6 +9,7 @@ import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travel
 
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
+// Validate and parse the URL parameter (?schedule=...)
 const querySchema = z.object({
   schedule: z
     .string()
@@ -18,6 +19,7 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
+// Generate page metadata for SEO
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("availability"),
@@ -28,11 +30,13 @@ export const generateMetadata = async () => {
   );
 };
 
+// Main page component
 const Page = async ({ params }: PageProps) => {
   const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
   }
+
   const scheduleId = parsed.data.schedule;
 
   const [availabilityCaller, travelSchedulesCaller] = await Promise.all([
@@ -50,8 +54,12 @@ const Page = async ({ params }: PageProps) => {
   }
 
   return (
-    <AvailabilitySettingsWebWrapper scheduleData={scheduleData} travelSchedulesData={travelSchedulesData} />
+    <AvailabilitySettingsWebWrapper
+      scheduleData={scheduleData}
+      travelSchedulesData={travelSchedulesData}
+    />
   );
 };
 
 export default Page;
+
