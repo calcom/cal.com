@@ -256,6 +256,7 @@ const calVideoSettingsSchema = z
     redirectUrlOnExit: z.string().url().nullish(),
     enableAutomaticNoShowTrackingForHosts: z.boolean().nullish(),
     enableAutomaticNoShowTrackingForGuests: z.boolean().nullish(),
+    requireEmailForGuests: z.boolean().nullish(),
   })
   .optional()
   .nullable();
@@ -305,4 +306,5 @@ export interface CalVideoSettings {
   redirectUrlOnExit?: string;
   enableAutomaticNoShowTrackingForHosts?: boolean;
   enableAutomaticNoShowTrackingForGuests?: boolean;
+  requireEmailForGuests?: boolean;
 }

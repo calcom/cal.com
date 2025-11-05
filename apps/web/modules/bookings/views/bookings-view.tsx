@@ -8,6 +8,8 @@ import { useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import {
   DataTableProvider,
+  DataTableFilters,
+  DataTableSegment,
   type SystemFilterSegment,
   useDataTable,
   ColumnFilterType,
@@ -40,6 +42,7 @@ type BookingsProps = {
   permissions: {
     canReadOthersBookings: boolean;
   };
+  isCalendarViewEnabled: boolean;
 };
 
 function useSystemSegments(userId?: number) {
@@ -89,8 +92,10 @@ const viewParser = createParser({
   serialize: (value: "list" | "calendar") => value,
 });
 
-function BookingsContent({ status, permissions }: BookingsProps) {
-  const [view] = useQueryState("view", viewParser.withDefault("list"));
+function BookingsContent({ status, permissions, isCalendarViewEnabled }: BookingsProps) {
+  const [_view] = useQueryState("view", viewParser.withDefault("list"));
+  // Force view to be "list" if calendar view is disabled
+  const view = isCalendarViewEnabled ? _view : "list";
   const { t } = useLocale();
   const user = useMeQuery().data;
   const searchParams = useSearchParams();
@@ -400,10 +405,25 @@ function BookingsContent({ status, permissions }: BookingsProps) {
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
-          {query.status === "error" && (
-            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-          )}
-          {query.status !== "error" && (
+          {query.status === "error" ? (
+            <>
+              <div className="grid w-full items-center gap-2 pb-4">
+                <div className="flex w-full flex-col gap-2">
+                  <div className="flex w-full flex-wrap justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DataTableFilters.FilterBar table={table} />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DataTableFilters.ClearFiltersButton />
+                      <DataTableSegment.SaveButton />
+                      <DataTableSegment.Select />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+            </>
+          ) : (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
