@@ -1,9 +1,13 @@
+import {
+  BookingActionMap,
+  EmailsAndSmsSideEffectsPayload,
+} from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { Tasker } from "@calcom/lib/tasker/Tasker";
 import type { ILogger } from "@calcom/lib/tasker/types";
 
 import { BookingSyncTasker } from "./BookingSyncTasker";
 import { BookingTriggerDevTasker } from "./BookingTriggerTasker";
-import { IBookingTasker } from "./types";
+import { BookingTaskPayload, IBookingTasker } from "./types";
 
 export interface IBookingTaskerDependencies {
   primaryTasker: BookingTriggerDevTasker | BookingSyncTasker;
@@ -14,6 +18,20 @@ export interface IBookingTaskerDependencies {
 export class BookingTasker extends Tasker<IBookingTasker> {
   constructor(public readonly dependencies: IBookingTaskerDependencies) {
     super(dependencies);
+  }
+
+  public async send(emailAndSmsData: EmailsAndSmsSideEffectsPayload, payload: BookingTaskPayload) {
+    const { action, data } = emailAndSmsData;
+
+    if (action === BookingActionMap.rescheduled) {
+      if (data.eventType.schedulingType === "ROUND_ROBIN") return this.safeDispatch("rrReschedule", payload);
+      return this.safeDispatch("reschedule", payload);
+    }
+
+    if (action === BookingActionMap.confirmed) return this.safeDispatch("confirm", payload);
+    if (action === BookingActionMap.requested) return this.safeDispatch("request", payload);
+
+    this.logger.warn("Unknown email/SMS action requested.", { action });
   }
 }
 

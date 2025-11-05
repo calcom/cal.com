@@ -5,8 +5,7 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { prisma } from "@calcom/prisma";
-
-import { TriggerDevLogger } from "../../logger";
+import { TriggerDevLogger } from "@calcom/trigger/logger";
 
 export const confirm = schemaTask({
   id: "booking.confirm",

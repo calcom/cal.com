@@ -1217,6 +1217,7 @@ export class BookingRepository {
         eventType: {
           select: {
             id: true,
+            title: true,
             slug: true,
             description: true,
             hideCalendarNotes: true,
@@ -1291,6 +1292,13 @@ export class BookingRepository {
                 workflow: {
                   select: {
                     id: true,
+                    name: true,
+                    trigger: true,
+                    timeUnit: true,
+                    userId: true,
+                    teamId: true,
+                    steps: true,
+                    time: true,
                   },
                 },
               },

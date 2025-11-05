@@ -1,3 +1,4 @@
+import { EmailsAndSmsSideEffectsPayload } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import type { ILogger } from "@calcom/lib/tasker/types";
 
 import { BookingSyncTasker } from "./BookingSyncTasker";
@@ -9,7 +10,7 @@ export interface IBookingTaskerDependencies {
   logger: ILogger;
 }
 
-export type BookingTasksPayload = {
+export type BookingTaskPayload = {
   bookingId: number;
   conferenceCredentialId?: number;
   platformClientId?: string;
@@ -18,9 +19,24 @@ export type BookingTasksPayload = {
   platformBookingUrl?: string;
 };
 
+export type BookingSyncSendPayload = EmailsAndSmsSideEffectsPayload;
+
+export type BookingAsyncTasksPayload = BookingTaskPayload;
+
 export interface IBookingTasker {
-  request(payload: BookingTasksPayload): Promise<{ runId: string }>;
-  confirm(payload: BookingTasksPayload): Promise<{ runId: string }>;
-  reschedule(payload: BookingTasksPayload): Promise<{ runId: string }>;
-  rrReschedule(payload: BookingTasksPayload): Promise<{ runId: string }>;
+  request(payload: BookingAsyncTasksPayload): Promise<{ runId: string }>;
+  confirm(payload: BookingAsyncTasksPayload): Promise<{ runId: string }>;
+  reschedule(payload: BookingAsyncTasksPayload): Promise<{ runId: string }>;
+  rrReschedule(payload: BookingAsyncTasksPayload): Promise<{ runId: string }>;
 }
+
+type WithVoidReturns<T> = {
+  // Loop over every key 'K' in the type 'T'
+  [K in keyof T]: T[K] extends (...args: infer P) => unknown // Check if the property is a function
+    ? // If yes, create a new function with original parameters 'P' and 'void' return
+      (...args: P) => void
+    : // If not a function, keep the original type
+      T[K];
+};
+
+export type BookingTasks = WithVoidReturns<IBookingTasker>;

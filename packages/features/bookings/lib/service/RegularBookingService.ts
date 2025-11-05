@@ -34,6 +34,7 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import { BookingTasker } from "@calcom/features/bookings/lib/tasker/BookingTasker";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -94,7 +95,11 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { BookingRepository } from "../../repositories/BookingRepository";
-import { BookingActionMap, BookingEmailSmsHandler } from "../BookingEmailSmsHandler";
+import {
+  BookingActionMap,
+  BookingEmailSmsHandler,
+  EmailsAndSmsSideEffectsPayload,
+} from "../BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "../getBookingDataSchema";
@@ -419,6 +424,7 @@ export interface IBookingServiceDependencies {
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
+  bookingTasker: BookingTasker;
 }
 
 /**
@@ -543,6 +549,7 @@ async function handler(
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
+  let emailsAndSmsPayload: EmailsAndSmsSideEffectsPayload | null = null;
 
   try {
     await checkIfBookerEmailIsBlocked({
@@ -2048,8 +2055,8 @@ async function handler(
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
-    if (!noEmail && isConfirmedByDefault && !isDryRun) {
-      await emailsAndSmsHandler.send({
+    if (isConfirmedByDefault) {
+      emailsAndSmsPayload = structuredClone({
         action: BookingActionMap.rescheduled,
         data: {
           evt,
@@ -2171,24 +2178,23 @@ async function handler(
           });
         }
       }
-      if (!noEmail) {
-        if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
-          await emailsAndSmsHandler.send({
-            action: BookingActionMap.confirmed,
-            data: {
-              eventType: {
-                metadata: eventType.metadata,
-                schedulingType: eventType.schedulingType,
-              },
-              eventNameObject,
-              workflows,
-              evt,
-              additionalInformation,
-              additionalNotes,
-              customInputs,
+
+      if (!(eventType.seatsPerTimeSlot && rescheduleUid)) {
+        emailsAndSmsPayload = structuredClone({
+          action: BookingActionMap.confirmed,
+          data: {
+            eventType: {
+              metadata: eventType.metadata,
+              schedulingType: eventType.schedulingType,
             },
-          });
-        }
+            eventNameObject,
+            workflows,
+            evt,
+            additionalInformation,
+            additionalNotes,
+            customInputs,
+          },
+        });
       }
     }
   } else {
@@ -2209,19 +2215,17 @@ async function handler(
     !originalRescheduledBooking?.paid &&
     !!booking;
 
-  if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
+  if (!isConfirmedByDefault && !bookingRequiresPayment) {
     loggerWithEventDetails.debug(
       `Emails: Booking ${organizerUser.username} requires confirmation, sending request emails`,
       safeStringify({
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    if (!isDryRun) {
-      await emailsAndSmsHandler.send({
-        action: BookingActionMap.requested,
-        data: { evt, attendees: attendeesList, eventType, additionalNotes },
-      });
-    }
+    emailsAndSmsPayload = structuredClone({
+      action: BookingActionMap.requested,
+      data: { evt, attendees: attendeesList, eventType, additionalNotes },
+    });
   }
 
   if (booking.location?.startsWith("http")) {
@@ -2589,6 +2593,19 @@ async function handler(
       },
       isTeamEventType,
     });
+
+    if (!noEmail && emailsAndSmsPayload) {
+      // TODO: Add Team Feature Flag to enable booking tasker or not
+      await emailsAndSmsHandler.send(emailsAndSmsPayload);
+      await deps.bookingTasker.send(emailsAndSmsPayload, {
+        bookingId: booking.id,
+        conferenceCredentialId,
+        platformClientId,
+        platformRescheduleUrl,
+        platformCancelUrl,
+        platformBookingUrl,
+      });
+    }
   }
 
   // TODO: Refactor better so this booking object is not passed

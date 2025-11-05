@@ -14,7 +14,7 @@ const LogLevel = {
 
 export class TriggerDevLogger
   implements
-    Pick<TsLogger<any>, "log" | "silly" | "trace" | "debug" | "info" | "warn" | "error" | "getSubLogger">
+    Pick<TsLogger<unknown>, "log" | "silly" | "trace" | "debug" | "info" | "warn" | "error" | "getSubLogger">
 {
   private prefix = "";
   public settings: ITriggerDevLoggerSettings;
@@ -26,41 +26,41 @@ export class TriggerDevLogger
     };
   }
 
-  getSubLogger(settings?: ISettingsParam<any>, logObj?: any): TsLogger<any> {
+  getSubLogger(settings?: ISettingsParam<unknown>): TsLogger<unknown> {
     const subLogger = new TriggerDevLogger(this.settings);
     subLogger.prefix = settings?.name ?? this.prefix;
-    return subLogger as unknown as TsLogger<any>;
+    return subLogger as unknown as TsLogger<unknown>;
   }
 
-  log(...args: any[]): undefined {
+  log(...args: unknown[]): undefined {
     if (this.settings.minLevel <= LogLevel.INFO) this.logInternal("info", ...args);
   }
 
-  info(...args: any[]): undefined {
+  info(...args: unknown[]): undefined {
     if (this.settings.minLevel <= LogLevel.INFO) this.logInternal("info", ...args);
   }
 
-  debug(...args: any[]): undefined {
+  debug(...args: unknown[]): undefined {
     if (this.settings.minLevel <= LogLevel.DEBUG) this.logInternal("debug", ...args);
   }
 
-  trace(...args: any[]): undefined {
+  trace(...args: unknown[]): undefined {
     if (this.settings.minLevel <= LogLevel.DEBUG) this.logInternal("debug", ...args);
   }
 
-  warn(...args: any[]): undefined {
+  warn(...args: unknown[]): undefined {
     if (this.settings.minLevel <= LogLevel.WARN) this.logInternal("warn", ...args);
   }
 
-  error(...args: any[]): undefined {
+  error(...args: unknown[]): undefined {
     if (this.settings.minLevel <= LogLevel.ERROR) this.logInternal("error", ...args);
   }
 
-  silly(...args: any[]): undefined {
+  silly(...args: unknown[]): undefined {
     if (this.settings.minLevel <= LogLevel.DEBUG) this.logInternal("debug", ...args);
   }
 
-  private formatArgsAsString(args: any[]): string {
+  private formatArgsAsString(args: unknown[]): string {
     return args
       .map((arg) => {
         if (typeof arg === "string") return arg;
@@ -73,7 +73,7 @@ export class TriggerDevLogger
       .join(" ");
   }
 
-  private logInternal(level: "info" | "warn" | "error" | "debug", ...args: any[]): void {
+  private logInternal(level: "info" | "warn" | "error" | "debug", ...args: unknown[]): void {
     const message = this.prefix
       ? `${this.prefix} ${this.formatArgsAsString(args)}`
       : this.formatArgsAsString(args);
