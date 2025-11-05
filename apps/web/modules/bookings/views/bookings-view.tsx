@@ -8,6 +8,8 @@ import { useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import {
   DataTableProvider,
+  DataTableFilters,
+  DataTableSegment,
   type SystemFilterSegment,
   useDataTable,
   ColumnFilterType,
@@ -403,10 +405,25 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
-          {query.status === "error" && (
-            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-          )}
-          {query.status !== "error" && (
+          {query.status === "error" ? (
+            <>
+              <div className="grid w-full items-center gap-2 pb-4">
+                <div className="flex w-full flex-col gap-2">
+                  <div className="flex w-full flex-wrap justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DataTableFilters.FilterBar table={table} />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DataTableFilters.ClearFiltersButton />
+                      <DataTableSegment.SaveButton />
+                      <DataTableSegment.Select />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+            </>
+          ) : (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
