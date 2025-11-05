@@ -116,7 +116,7 @@ export class CallService {
 
     if (!agentPhoneNumber) {
       throw new ErrorWithCode(
-        ErrorCode.AgentNotFound,
+        ErrorCode.InternalServerError,
         "Agent must have a phone number assigned to make calls."
       );
     }

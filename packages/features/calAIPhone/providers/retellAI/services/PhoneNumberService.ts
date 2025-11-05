@@ -309,7 +309,7 @@ export class PhoneNumberService {
 
       if (teamId && agent.teamId !== teamId) {
         throw new ErrorWithCode(
-          ErrorCode.AgentNotFound,
+          ErrorCode.InternalServerError,
           `Selected ${type} agent does not belong to the specified team.`
         );
       }

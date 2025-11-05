@@ -102,7 +102,6 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.BookingNotFound]: 404,
   [ErrorCode.RestrictionScheduleNotFound]: 404,
   [ErrorCode.ResourceNotFound]: 404,
-  [ErrorCode.AgentNotFound]: 404,
   [ErrorCode.TeamNotFound]: 404,
   [ErrorCode.UserNotFound]: 404,
   [ErrorCode.CheckoutSessionNotFound]: 404,

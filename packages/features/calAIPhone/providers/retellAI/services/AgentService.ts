@@ -54,7 +54,7 @@ export class AgentService {
         agentId,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Failed to get agent ${agentId}");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to get agent ${agentId}`);
     }
   }
 
@@ -86,7 +86,7 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent does not have an LLM configured.");
+        throw new ErrorWithCode(ErrorCode.InternalServerError, "Agent does not have an LLM configured.");
       }
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
@@ -190,7 +190,7 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent does not have an LLM configured.");
+        throw new ErrorWithCode(ErrorCode.InternalServerError, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
@@ -228,7 +228,7 @@ export class AgentService {
         eventTypeIds,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Failed to remove tools for agent ${agentId}");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to remove tools for agent ${agentId}`);
     }
   }
 
@@ -251,7 +251,7 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent does not have an LLM configured.");
+        throw new ErrorWithCode(ErrorCode.InternalServerError, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
@@ -309,7 +309,7 @@ export class AgentService {
         mappedActiveEventTypeIds: RETELL_AI_TEST_MODE ? mappedActiveEventTypeIds : undefined,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Failed to cleanup tools for agent ${agentId}");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to cleanup tools for agent ${agentId}`);
     }
   }
 
@@ -340,7 +340,7 @@ export class AgentService {
         data,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Failed to update agent ${agentId}");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to update agent ${agentId}`);
     }
   }
 
@@ -383,7 +383,7 @@ export class AgentService {
       const llmId = getLlmId(retellAgent);
 
       if (!llmId) {
-        throw new ErrorWithCode(ErrorCode.AgentNotFound, "Agent does not have an LLM configured.");
+        throw new ErrorWithCode(ErrorCode.InternalServerError, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
@@ -401,7 +401,10 @@ export class AgentService {
         teamId,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.AgentNotFound, "Unable to fetch agent details. Please try again.");
+      throw new ErrorWithCode(
+        ErrorCode.InternalServerError,
+        "Unable to fetch agent details. Please try again."
+      );
     }
   }
 
@@ -505,7 +508,7 @@ export class AgentService {
 
     if (phoneNumberRecord.inboundAgentId) {
       throw new ErrorWithCode(
-        ErrorCode.AgentNotFound,
+        ErrorCode.InternalServerError,
         "Inbound agent already configured for this phone number"
       );
     }
@@ -542,7 +545,7 @@ export class AgentService {
       });
 
       throw new ErrorWithCode(
-        ErrorCode.AgentNotFound,
+        ErrorCode.InternalServerError,
         `Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}`
       );
     }
@@ -644,7 +647,7 @@ export class AgentService {
         }
 
         throw new ErrorWithCode(
-          ErrorCode.AgentNotFound,
+          ErrorCode.InternalServerError,
           "Unable to update agent configuration. Please try again."
         );
       }
