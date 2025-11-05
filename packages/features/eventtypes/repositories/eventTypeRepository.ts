@@ -770,6 +770,7 @@ export class EventTypeRepository {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          requireEmailForGuests: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;
@@ -1067,6 +1068,7 @@ export class EventTypeRepository {
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
+          requireEmailForGuests: true,
         },
       },
     } satisfies Prisma.EventTypeSelect;
