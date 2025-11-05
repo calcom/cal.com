@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
@@ -35,7 +34,10 @@ const moveSeatedBookingToNewTimeSlot = async (
     eventTypeId: eventType.id,
     team: eventType.team ?? null,
     owner: organizerUser ?? null,
-    organizationId: eventType.team?.parentId ?? null,
+    organizationId:
+      eventType.team?.parentId ??
+      (organizerUser as { organizationId?: number | null })?.organizationId ??
+      null,
   });
 
   let { evt } = rescheduleSeatedBookingObject;
