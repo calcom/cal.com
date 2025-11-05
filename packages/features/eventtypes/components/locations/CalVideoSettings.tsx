@@ -7,7 +7,6 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { CalVideoSettings as CalVideoSettingsType } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { UpgradeTeamsBadge } from "@calcom/ui/components/badge";
@@ -31,100 +30,13 @@ const CalVideoSettings = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [parent] = useAutoAnimate<HTMLDivElement>();
 
-  const { data: webhookData, isLoading: isLoadingWebhooks } = trpc.viewer.webhook.getByViewer.useQuery();
-  const { data: eventTypeSpecificWebhooks, isLoading: isLoadingEventTypeWebhooks } =
-    trpc.viewer.webhook.list.useQuery({ eventTypeId: eventTypeId ?? undefined }, { enabled: !!eventTypeId });
-  const { data: eventTypeData, isLoading: isLoadingEventType } = trpc.viewer.eventTypes.get.useQuery(
-    { id: eventTypeId ?? 0 },
+  const { data: noShowStatus } = trpc.viewer.webhook.hasNoShowForEventType.useQuery(
+    { eventTypeId: eventTypeId ?? 0 },
     { enabled: !!eventTypeId }
   );
 
-  // Extract webhooks with their group context (personal, team, org)
-  // We need the group context to identify team-level webhooks
-  const webhooksWithGroup =
-    webhookData?.webhookGroups.flatMap((group) =>
-      group.webhooks.map((webhook) => ({ webhook, groupTeamId: group.teamId }))
-    ) || [];
-
-  // Add event-type-specific webhooks to the list
-  // These are webhooks configured specifically for this event type
-  const eventTypeWebhooksWithGroup =
-    eventTypeSpecificWebhooks?.map((webhook) => ({
-      webhook,
-      groupTeamId: null, // Event-type-specific webhooks don't belong to a group
-    })) || [];
-
-  // Combine all webhooks and remove duplicates (in case same webhook appears in both queries)
-  const webhookIds = new Set<string>();
-  const allWebhooksWithGroup = [...webhooksWithGroup, ...eventTypeWebhooksWithGroup].filter(({ webhook }) => {
-    if (webhookIds.has(webhook.id)) {
-      return false;
-    }
-    webhookIds.add(webhook.id);
-    return true;
-  });
-
-  // Filter webhooks to only those relevant to this event type:
-  // 1. Event-type-specific webhooks (webhook.eventTypeId === eventTypeId)
-  // 2. Team-level webhooks (groupTeamId === eventType.team.id)
-  // 3. Org-level webhooks (groupTeamId === eventType.team?.parentId)
-  const eventTypeTeamId = eventTypeData?.team?.id;
-  const eventTypeOrgId = eventTypeData?.team?.parentId;
-
-  // Check for managed event type (parent event type)
-  // Note: parentId might be on eventType directly, but we'll check it when filtering
-
-  // Only filter webhooks if we have eventTypeId and data is loaded
-  const relevantWebhooks =
-    eventTypeId && !isLoadingEventType && !isLoadingWebhooks && !isLoadingEventTypeWebhooks
-      ? allWebhooksWithGroup
-          .filter(({ webhook, groupTeamId }) => {
-            // Only consider active webhooks
-            if (!webhook.active) {
-              return false;
-            }
-
-            // Event-type-specific webhook (for this event type)
-            if (webhook.eventTypeId && webhook.eventTypeId === eventTypeId) {
-              return true;
-            }
-
-            // Team-level or org-level webhook
-            // For team webhooks, use groupTeamId (from group context) as the primary source
-            // because webhook.teamId might not be set when webhooks are fetched from team.webhooks
-            const webhookTeamId = groupTeamId ?? webhook.teamId;
-            if (webhookTeamId && (webhookTeamId === eventTypeTeamId || webhookTeamId === eventTypeOrgId)) {
-              return true;
-            }
-
-            // User-level webhook (personal webhook)
-            // Applies to all event types for the user if:
-            // - The webhook has no eventTypeId (not event-type-specific)
-            // - The webhook has no teamId (not team-level)
-            // - The event type has no teamId (personal event type)
-            // - groupTeamId is null (personal webhook group)
-            if (
-              !webhook.eventTypeId &&
-              !webhook.teamId &&
-              !groupTeamId &&
-              !eventTypeTeamId &&
-              !eventTypeOrgId
-            ) {
-              return true;
-            }
-
-            return false;
-          })
-          .map(({ webhook }) => webhook)
-      : [];
-
-  const hasHostNoShowWebhook = relevantWebhooks.some((webhook) =>
-    webhook.eventTriggers?.includes(WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW)
-  );
-
-  const hasGuestNoShowWebhook = relevantWebhooks.some((webhook) =>
-    webhook.eventTriggers?.includes(WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW)
-  );
+  const hasHostNoShowWebhook = noShowStatus?.hasHostNoShow ?? false;
+  const hasGuestNoShowWebhook = noShowStatus?.hasGuestNoShow ?? false;
 
   return (
     <>
