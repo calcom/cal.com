@@ -717,7 +717,6 @@ export class UserAvailabilityService {
     beforeEventBuffer?: number;
     afterEventBuffer?: number;
   }) {
-    // Get selected calendars using the centralized logic
     const selectedCalendars = this.getSelectedCalendars({ eventType, user });
 
     log.info("Checking 3rd party calendar conflicts (real-time, no cache)", {
@@ -731,7 +730,6 @@ export class UserAvailabilityService {
       })),
     });
 
-    // Fetch busy times from 3rd party calendars only (bypass cache)
     const calendarBusyTimesResult = await getBusyCalendarTimes(
       credentials,
       dateFrom,
@@ -764,7 +762,6 @@ export class UserAvailabilityService {
       end: beforeEventBuffer ? dayjs(busyTime.end).add(beforeEventBuffer, "minute").toDate() : busyTime.end,
     }));
 
-    // Check for conflicts
     const hasConflict = checkForConflicts({
       busy: bufferedCalendarBusyTimes.map((bt) => ({
         start: bt.start,
