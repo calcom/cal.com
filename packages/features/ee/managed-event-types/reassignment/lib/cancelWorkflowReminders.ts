@@ -59,6 +59,7 @@ export async function cancelOldBookingWorkflowReminders({
   const deletionPromises = workflowReminders.map((reminder) =>
     deleteScheduledEmailReminder(reminder.id).catch((error) => {
       workflowLogger.error(`Failed to delete reminder ${reminder.id}`, error);
+      throw error;
     })
   );
 

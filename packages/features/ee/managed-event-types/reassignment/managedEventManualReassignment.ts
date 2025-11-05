@@ -16,6 +16,7 @@ import { withSelectedCalendars } from "@calcom/features/users/repositories/UserR
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userSelect } from "@calcom/prisma/selects/user";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
@@ -83,21 +84,7 @@ export async function managedEventManualReassignment({
       select: {
         ...userSelect,
         credentials: {
-          select: {
-            id: true,
-            type: true,
-            key: true,
-            userId: true,
-            teamId: true,
-            appId: true,
-            invalid: true,
-            user: {
-              select: {
-                email: true,
-              },
-            },
-            delegationCredentialId: true,
-          },
+          select: credentialForCalendarServiceSelect,
         },
       },
     });
@@ -115,21 +102,7 @@ export async function managedEventManualReassignment({
     where: { id: originalBooking.userId ?? undefined },
     include: {
       credentials: {
-        select: {
-          id: true,
-          type: true,
-          key: true,
-          userId: true,
-          teamId: true,
-          appId: true,
-          invalid: true,
-          user: {
-            select: {
-              email: true,
-            },
-          },
-          delegationCredentialId: true,
-        },
+        select: credentialForCalendarServiceSelect,
       },
       destinationCalendar: true,
     },
