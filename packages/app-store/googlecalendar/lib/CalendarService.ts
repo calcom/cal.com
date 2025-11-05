@@ -38,12 +38,12 @@ interface GoogleCalError extends Error {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
-// eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
+ 
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
 
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
-  typeof error === "object" && !!error && error.hasOwnProperty("config");
+  typeof error === "object" && !!error && Object.prototype.hasOwnProperty.call(error, "config");
 
 type GoogleChannelProps = {
   kind?: string | null;
@@ -196,7 +196,7 @@ export default class GoogleCalendarService implements Calendar {
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
     };
     if (calEvent.hideCalendarEventDetails) {
@@ -282,6 +282,39 @@ export default class GoogleCalendarService implements Calendar {
         }
       }
 
+      if (event && event.id) {
+        const hasOverlap = await this.checkForEventOverlap(
+          calendar,
+          selectedCalendar,
+          calEvent.startTime,
+          calEvent.endTime,
+          event.iCalUID || ""
+        );
+
+        if (hasOverlap) {
+          this.log.warn(
+            "Event overlaps with existing BUSY event, rolling back",
+            safeStringify({ eventId: event.id, selectedCalendar })
+          );
+          try {
+            await calendar.events.delete({
+              calendarId: selectedCalendar,
+              eventId: recurringEventId || event.id,
+              sendNotifications: false,
+              sendUpdates: "none",
+            });
+          } catch (deleteError) {
+            this.log.error(
+              "Failed to delete overlapping event during rollback",
+              safeStringify({ deleteError, eventId: event.id })
+            );
+          }
+          throw new Error(
+            "Event creation failed: The selected time slot overlaps with an existing busy event in your calendar"
+          );
+        }
+      }
+
       if (event && event.id && event.hangoutLink) {
         await calendar.events.patch({
           // Update the same event but this time we know the hangout link
@@ -339,6 +372,86 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
+  private async checkForEventOverlap(
+    calendar: calendar_v3.Calendar,
+    calendarId: string,
+    startTime: string,
+    endTime: string,
+    createdEventICalUID: string
+  ): Promise<boolean> {
+    try {
+      const freeBusyResponse = await calendar.freebusy.query({
+        requestBody: {
+          timeMin: startTime,
+          timeMax: endTime,
+          items: [{ id: calendarId }],
+        },
+      });
+
+      const calendarBusyTimes = freeBusyResponse.data.calendars?.[calendarId]?.busy || [];
+
+      if (calendarBusyTimes.length === 0) {
+        return false;
+      }
+
+      const eventsResponse = await calendar.events.list({
+        calendarId: calendarId,
+        timeMin: startTime,
+        timeMax: endTime,
+        singleEvents: true,
+      });
+
+      const events = eventsResponse.data.items || [];
+
+      for (const busyTime of calendarBusyTimes) {
+        const busyStart = new Date(busyTime.start || "").getTime();
+        const busyEnd = new Date(busyTime.end || "").getTime();
+        const eventStart = new Date(startTime).getTime();
+        const eventEnd = new Date(endTime).getTime();
+
+        const hasTimeOverlap = busyStart < eventEnd && busyEnd > eventStart;
+
+        if (!hasTimeOverlap) {
+          continue;
+        }
+
+        const overlappingEvent = events.find((evt) => {
+          const evtStart = new Date(evt.start?.dateTime || evt.start?.date || "").getTime();
+          const evtEnd = new Date(evt.end?.dateTime || evt.end?.date || "").getTime();
+          return evtStart === busyStart && evtEnd === busyEnd;
+        });
+
+        if (!overlappingEvent) {
+          continue;
+        }
+
+        if (overlappingEvent.iCalUID === createdEventICalUID) {
+          continue;
+        }
+
+        if (overlappingEvent.transparency === "transparent") {
+          continue;
+        }
+
+        this.log.warn(
+          "Found overlapping BUSY event",
+          safeStringify({
+            overlappingEventId: overlappingEvent.id,
+            overlappingEventSummary: overlappingEvent.summary,
+            overlappingEventICalUID: overlappingEvent.iCalUID,
+            createdEventICalUID,
+          })
+        );
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      this.log.error("Error checking for event overlap", safeStringify({ error }));
+      return false;
+    }
+  }
+
   async updateEvent(uid: string, event: CalendarServiceEvent, externalCalendarId: string): Promise<any> {
     const payload: calendar_v3.Schema$Event = {
       summary: event.title,
@@ -355,7 +468,7 @@ export default class GoogleCalendarService implements Calendar {
       reminders: {
         useDefault: true,
       },
-      guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      guestsCanSeeOtherGuests: event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
     };
 
     if (event.location) {
