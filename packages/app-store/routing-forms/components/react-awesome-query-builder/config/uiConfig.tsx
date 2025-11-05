@@ -8,7 +8,7 @@ import type { ChangeEvent } from "react";
 
 import { EmailField as EmailWidget } from "@calcom/ui/components/form";
 
-import widgetsComponents from "../widgets";
+import widgetsComponents, { SelectLikeComponentPropsRAQB } from "../widgets";
 import type { Widgets, WidgetsWithoutFactory } from "./types";
 import type { ConfigFor } from "./types";
 
@@ -51,14 +51,14 @@ const MultiSelectFactory = (
         listValues: { title: string; value: string }[];
       })
     | undefined
-) => renderComponent(props, MultiSelectWidget);
+) => renderComponent(props as unknown as SelectLikeComponentPropsRAQB<string[]>, MultiSelectWidget);
 const SelectFactory = (
   props:
     | (SelectWidgetProps & {
         listValues: { title: string; value: string }[];
       })
     | undefined
-) => renderComponent(props, SelectWidget);
+) => renderComponent(props as unknown as SelectLikeComponentPropsRAQB<string>, SelectWidget);
 
 const PhoneFactory = (props: WidgetProps | undefined) => {
   if (!props) {
