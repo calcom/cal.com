@@ -146,7 +146,7 @@ async function handler(input: CancelBookingInput) {
 
     if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
       throw new ErrorWithCode(
-        ErrorCode.Unauthorized,
+        ErrorCode.PermissionDenied,
         "User not a host of this event or an admin of the booking user"
       );
     }

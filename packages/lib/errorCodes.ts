@@ -32,7 +32,6 @@ export enum ErrorCode {
 
   // 403 Forbidden - Access denied, insufficient permissions
   PermissionDenied = "permission_denied",
-  AccessDenied = "access_denied",
   OperationNotAllowed = "operation_not_allowed",
 
   // 404 Not Found - Resource does not exist
@@ -104,7 +103,6 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
 
   // 403 Forbidden - Access denied, insufficient permissions
   [ErrorCode.PermissionDenied]: 403,
-  [ErrorCode.AccessDenied]: 403,
   [ErrorCode.OperationNotAllowed]: 403,
 
   // 404 Not Found - Resource does not exist

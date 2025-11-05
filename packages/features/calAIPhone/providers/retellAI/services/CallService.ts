@@ -67,7 +67,7 @@ export class CallService {
       });
       throw new ErrorWithCode(
         ErrorCode.InvalidPhoneNumber,
-        "Failed to create phone call from ${data.fromNumber} to ${data.toNumber}"
+        `Failed to create phone call from ${data.fromNumber} to ${data.toNumber}`
       );
     }
   }
