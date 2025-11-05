@@ -9,10 +9,6 @@ export class MeetingParticipant {
   @IsString()
   userId!: string | null;
 
-  @ApiProperty({ example: "participant456" })
-  @IsString()
-  participantId!: string;
-
   @ApiProperty({ example: "John Doe", nullable: true })
   @IsString()
   userName!: string | null;

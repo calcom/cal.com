@@ -8518,7 +8518,7 @@
       "post": {
         "operationId": "BookingsController_2024_08_13_cancelBooking",
         "summary": "Cancel a booking",
-        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    \n    \nCancelling normal bookings:\n    If the booking is not seated and not recurring, simply pass :bookingUid in the request URL `/bookings/:bookingUid/cancel` and optionally cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}`.\n\n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host or org admin of host - host can cancel booking for all attendees aka for every seat, this also applies to org admins. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n    \n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.\n    \n    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
+        "description": ":bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.\n    \n    \nCancelling normal bookings:\n    If the booking is not seated and not recurring, simply pass :bookingUid in the request URL `/bookings/:bookingUid/cancel` and optionally cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}`.\n\n    \nCancelling seated bookings:\n    It is possible to cancel specific seat within a booking as an attendee or all of the seats as the host.\n    \n1. As an attendee - provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and seatUid in the request body `{\"seatUid\": \"123-123-123\"}` . This will remove this particular attendance from the booking.\n    \n2. As the host or org admin of host - host can cancel booking for all attendees aka for every seat, this also applies to org admins. Provide :bookingUid in the request URL `/bookings/:bookingUid/cancel` and cancellationReason in the request body `{\"cancellationReason\": \"Will travel\"}` and `Authorization: Bearer token` request header where token is event type owner (host) credential. This will cancel the booking for all attendees.\n    \n    \nCancelling recurring seated bookings:\n    For recurring seated bookings it is not possible to cancel all of them with 1 call\n    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.\n\n    If you are cancelling a seated booking for an event type with 'show attendees' disabled, then to retrieve attendees in the response either set 'show attendees' to true on event type level or\n    you have to provide an authentication method of event type owner, host, team admin or owner or org admin or owner.\n\n    <Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -8990,6 +8990,54 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/BookingReferencesOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookings"]
+      }
+    },
+    "/v2/bookings/{bookingUid}/sessions": {
+      "get": {
+        "operationId": "BookingsController_2024_08_13_getVideoSessions",
+        "summary": "Get Video Meeting Sessions. Only supported for Cal Video",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to 2024-08-13. If not set to this value, the endpoint will default to an older version.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "default": "2024-08-13"
+            }
+          },
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingVideoSessionsOutput"
                 }
               }
             }
@@ -27339,6 +27387,86 @@
             "items": {
               "$ref": "#/components/schemas/BookingReference"
             }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "MeetingParticipant": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "nullable": true,
+            "example": "user123"
+          },
+          "userName": {
+            "type": "string",
+            "nullable": true,
+            "example": "John Doe"
+          },
+          "joinTime": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          }
+        },
+        "required": ["userId", "userName", "joinTime", "duration"]
+      },
+      "MeetingSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "session123"
+          },
+          "room": {
+            "type": "string",
+            "example": "daily-video-room-123"
+          },
+          "startTime": {
+            "type": "number",
+            "example": 1678901234
+          },
+          "duration": {
+            "type": "number",
+            "example": 3600
+          },
+          "ongoing": {
+            "type": "boolean",
+            "example": false
+          },
+          "maxParticipants": {
+            "type": "number",
+            "example": 10
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MeetingParticipant"
+            }
+          }
+        },
+        "required": ["id", "room", "startTime", "duration", "ongoing", "maxParticipants", "participants"]
+      },
+      "GetBookingVideoSessionsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MeetingSession"
+            }
+          },
+          "error": {
+            "type": "object"
           }
         },
         "required": ["status", "data"]

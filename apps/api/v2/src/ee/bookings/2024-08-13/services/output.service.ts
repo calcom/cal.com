@@ -530,7 +530,6 @@ export class OutputBookingsService_2024_08_13 {
       maxParticipants: session.max_participants,
       participants: session.participants.map((participant) => ({
         userId: participant.user_id,
-        participantId: participant.participant_id,
         userName: participant.user_name,
         joinTime: participant.join_time,
         duration: participant.duration,
