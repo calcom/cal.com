@@ -823,6 +823,7 @@ export class AvailableSlotsService {
     let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
     if (eventType && (bookingLimits || durationLimits)) {
       const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
+      const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
       busyTimesFromLimitsMap = await this.getBusyTimesFromLimitsForUsers(
         usersForLimits,
         bookingLimits,
@@ -831,7 +832,7 @@ export class AvailableSlotsService {
         endTime,
         typeof input.duration === "number" ? input.duration : undefined,
         eventType,
-        usersWithCredentials[0]?.timeZone || "UTC",
+        eventTimeZone,
         input.rescheduleUid || undefined
       );
     }
@@ -845,6 +846,7 @@ export class AvailableSlotsService {
     let teamBookingLimitsMap: Map<number, EventBusyDetails[]> | undefined = undefined;
     if (teamForBookingLimits && teamBookingLimits) {
       const usersForTeamLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
+      const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
       teamBookingLimitsMap = await this.getBusyTimesFromTeamLimitsForUsers(
         usersForTeamLimits,
         teamBookingLimits,
@@ -852,7 +854,7 @@ export class AvailableSlotsService {
         endTime,
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
-        usersWithCredentials[0]?.timeZone || "UTC",
+        eventTimeZone,
         input.rescheduleUid || undefined
       );
     }
