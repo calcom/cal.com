@@ -4,11 +4,13 @@ import { z } from "zod";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import {
   getBusyTimesFromLimits,
   getBusyTimesFromTeamLimits,
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
+import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
@@ -36,6 +38,7 @@ import type {
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { TimeRange } from "@calcom/types/schedule";
 
 import { findUsersForAvailabilityCheck } from "./findUsersForAvailabilityCheck";
@@ -692,4 +695,114 @@ export class UserAvailabilityService {
       ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
       : user.userLevelSelectedCalendars;
   }
+
+  /**
+   * Check if a user has conflicts in their 3rd party calendars only (ignores Cal.com data).
+   * Always bypasses cache to ensure real-time calendar checks.
+   */
+  async _checkThirdPartyCalendarConflicts({
+    user,
+    eventType,
+    credentials,
+    dateFrom,
+    dateTo,
+    beforeEventBuffer,
+    afterEventBuffer,
+  }: {
+    user: NonNullable<GetUser>;
+    eventType: { id: number; useEventLevelSelectedCalendars?: boolean };
+    credentials: CredentialForCalendarService[];
+    dateFrom: string;
+    dateTo: string;
+    beforeEventBuffer?: number;
+    afterEventBuffer?: number;
+  }) {
+    // Get selected calendars using the centralized logic
+    const selectedCalendars = this.getSelectedCalendars({ eventType, user });
+
+    log.info("Checking 3rd party calendar conflicts (real-time, no cache)", {
+      userId: user.id,
+      dateFrom,
+      dateTo,
+      selectedCalendars: selectedCalendars.map((cal) => ({
+        externalId: cal.externalId,
+        integration: cal.integration,
+        credentialId: cal.credentialId,
+      })),
+    });
+
+    // Fetch busy times from 3rd party calendars only (bypass cache)
+    const calendarBusyTimesResult = await getBusyCalendarTimes(
+      credentials,
+      dateFrom,
+      dateTo,
+      selectedCalendars,
+      false // shouldServeCache = false to force real-time API calls
+    );
+
+    if (!calendarBusyTimesResult.success) {
+      log.error("Failed to fetch calendar busy times for conflict check", {
+        userId: user.id,
+        username: user.username,
+        dateFrom,
+        dateTo,
+        calendarError: calendarBusyTimesResult.data,
+      });
+      // Return user-friendly error to frontend
+      throw new Error(ErrorCode.NoAvailableUsersFound);
+    }
+
+    const calendarBusyTimes = calendarBusyTimesResult.data;
+    const duration = dayjs(dateTo).diff(dateFrom, "minute");
+
+    // Apply buffers to the calendar busy times if provided
+    const bufferedCalendarBusyTimes = calendarBusyTimes.map((busyTime) => ({
+      ...busyTime,
+      start: afterEventBuffer
+        ? dayjs(busyTime.start).subtract(afterEventBuffer, "minute").toDate()
+        : busyTime.start,
+      end: beforeEventBuffer ? dayjs(busyTime.end).add(beforeEventBuffer, "minute").toDate() : busyTime.end,
+    }));
+
+    // Check for conflicts
+    const hasConflict = checkForConflicts({
+      busy: bufferedCalendarBusyTimes.map((bt) => ({
+        start: bt.start,
+        end: bt.end,
+        source: bt.source,
+      })),
+      time: dayjs(dateFrom),
+      eventLength: duration,
+    });
+
+    const selectedCalendarsToLog = selectedCalendars.map((cal) => ({
+      externalId: cal.externalId,
+      integration: cal.integration,
+    }));
+
+    log.debug("3rd party calendar conflict check result", {
+      userId: user.id,
+      hasConflict,
+      busyTimesCount: bufferedCalendarBusyTimes.length,
+      selectedCalendars: selectedCalendarsToLog,
+      conflictingBusyTimes: hasConflict
+        ? bufferedCalendarBusyTimes.map((bt) => ({
+            start: bt.start,
+            end: bt.end,
+            source: bt.source,
+          }))
+        : [],
+    });
+
+    return {
+      hasConflict,
+      conflictingBusyTimes: hasConflict ? bufferedCalendarBusyTimes : [],
+      selectedCalendars: selectedCalendarsToLog,
+    };
+  }
+
+  checkThirdPartyCalendarConflicts = withReporting(
+    this._checkThirdPartyCalendarConflicts.bind(this),
+    "checkThirdPartyCalendarConflicts"
+  );
 }
