@@ -237,7 +237,11 @@ export async function getRecurringBookings(recurringEventId: string | null) {
     },
     select: {
       startTime: true,
+      status: true,
     },
   });
-  return recurringBookings.map((obj) => obj.startTime.toString());
+  return recurringBookings.map((obj) => ({
+    startTime: obj.startTime.toString(),
+    status: obj.status,
+  }));
 }
