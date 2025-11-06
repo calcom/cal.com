@@ -1213,7 +1213,7 @@ export default function Success(props: PageProps) {
                     <div>
                       <p className="font-semibold">{t("google_new_spam_policy")}</p>
                       <span className="underline">
-                        <a target="_blank" href="https://cal.id/info/google-spam-policy">
+                        <a target="_blank" href="https://cal.id/google-spam-policy">
                           {t("resolve")}
                         </a>
                       </span>

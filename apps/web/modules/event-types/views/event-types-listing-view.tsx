@@ -472,10 +472,10 @@ export const InfiniteEventTypeList = ({
 
   const userTimezone = extractHostTimezone({
     userId: firstItem.userId,
-    teamId: firstItem?.teamId,
+    teamId: firstItem?.calIdTeam?.id,
     hosts: firstItem?.hosts,
     owner: firstItem?.owner,
-    team: firstItem?.team,
+    team: firstItem?.calIdTeam,
   });
 
   return (
