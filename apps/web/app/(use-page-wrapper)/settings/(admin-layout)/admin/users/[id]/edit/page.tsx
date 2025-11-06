@@ -5,7 +5,7 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { UsersEditView } from "@calcom/features/ee/users/pages/users-edit-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import prisma from "@calcom/prisma";
 
 const userIdSchema = z.object({ id: z.coerce.number() });

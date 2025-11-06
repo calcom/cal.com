@@ -10,6 +10,25 @@ export class PrismaApiKeyRepository {
     return new PrismaApiKeyRepository((await import("@calcom/prisma")).prisma);
   }
 
+  async findByHashedKey(hashedKey: string) {
+    return this.prismaClient.apiKey.findUnique({
+      where: { hashedKey },
+      select: {
+        id: true,
+        hashedKey: true,
+        userId: true,
+        expiresAt: true,
+        user: {
+          select: {
+            role: true,
+            locked: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
   async findApiKeysFromUserId({ userId }: { userId: number }) {
     const apiKeys = await this.prismaClient.apiKey.findMany({
       where: {
@@ -28,7 +47,7 @@ export class PrismaApiKeyRepository {
       orderBy: { createdAt: "desc" },
     });
     return apiKeys.filter((apiKey) => {
-      if (apiKey.note?.startsWith("Cal AI Phone API Key")) {
+      if (apiKey.note?.startsWith("Cal.ai Phone API Key")) {
         return false;
       }
       return true;
