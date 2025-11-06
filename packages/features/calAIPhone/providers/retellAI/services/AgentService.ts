@@ -1,4 +1,4 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { v4 as uuidv4 } from "uuid";
 
 import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
@@ -39,7 +39,7 @@ export class AgentService {
       userId,
       teamId,
       expiresAt: null,
-      note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
+      note: `Cal.ai Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
     });
   }
 
@@ -626,6 +626,7 @@ export class AgentService {
     voiceId,
     language,
     outboundEventTypeId,
+    timeZone,
     updateLLMConfiguration,
   }: {
     id: string;
@@ -638,6 +639,7 @@ export class AgentService {
     voiceId?: string;
     language?: Language;
     outboundEventTypeId?: number;
+    timeZone?: string;
     updateLLMConfiguration: (
       llmId: string,
       data: AIPhoneServiceUpdateModelParams<AIPhoneServiceProviderType.RETELL_AI>
@@ -716,8 +718,7 @@ export class AgentService {
       }
     }
 
-    // Update outbound event type ID in database if provided
-    if (outboundEventTypeId) {
+    if (outboundEventTypeId && agent.outboundEventTypeId !== outboundEventTypeId) {
       const eventTypeRepository = new EventTypeRepository(prisma);
 
       const outBoundEventType = await eventTypeRepository.findByIdMinimal({
@@ -737,6 +738,14 @@ export class AgentService {
           message: "You don't have permission to use this event type.",
         });
       }
+
+      const userTimeZone = timeZone || "UTC";
+      await this.updateToolsFromAgentId(agent.providerAgentId, {
+        eventTypeId: outboundEventTypeId,
+        timeZone: userTimeZone,
+        userId,
+        teamId,
+      });
 
       await this.deps.agentRepository.updateOutboundEventTypeId({
         agentId: id,

@@ -16,6 +16,7 @@ export const updateHandler = async ({ ctx, input }: UpdateHandlerOptions) => {
 
   const aiService = createDefaultAIPhoneServiceProvider();
   const userId = ctx.user.id;
+  const userTimeZone = ctx.user.timeZone || "UTC";
 
   const updatedPrompt = retellUpdates.generalPrompt ?? undefined;
 
@@ -30,5 +31,6 @@ export const updateHandler = async ({ ctx, input }: UpdateHandlerOptions) => {
     voiceId: retellUpdates.voiceId,
     language: retellUpdates.language,
     outboundEventTypeId,
+    timeZone: userTimeZone,
   });
 };

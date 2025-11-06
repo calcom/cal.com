@@ -332,6 +332,7 @@ export interface AIPhoneServiceProvider<T extends AIPhoneServiceProviderType = A
     voiceId?: string;
     language?: string;
     outboundEventTypeId?: number;
+    timeZone?: string;
   }): Promise<{ message: string }>;
 
   /**
