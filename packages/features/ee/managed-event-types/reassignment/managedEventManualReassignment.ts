@@ -13,6 +13,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import type { AdditionalInformation } from "@calcom/types/Calendar";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -280,14 +281,15 @@ export async function managedEventManualReassignment({
     const createManager = await newEventManager.create(evt);
     const results = createManager.results || [];
     
-    // Extract video call URL from calendar event creation results
+    // Extract video call URL from results and populate evt.additionalInformation
     if (results.length) {
       additionalInformation.hangoutLink = results[0]?.createdEvent?.hangoutLink;
       additionalInformation.conferenceData = results[0]?.createdEvent?.conferenceData;
       additionalInformation.entryPoints = results[0]?.createdEvent?.entryPoints;
-      
-      videoCallUrl = additionalInformation.hangoutLink || videoCallUrl;
+      evt.additionalInformation = additionalInformation;
     }
+
+    videoCallUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
     
     reassignLogger.info("Created calendar events for new user");
   } catch (error) {
