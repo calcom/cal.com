@@ -14,7 +14,7 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
   return (
     <div className="relative flex h-full min-h-0 w-full flex-col">
       {/* Card Header */}
-      <div className="flex w-full gap-1.5 px-5 py-4">
+      <div className="flex w-full gap-1.5 px-1 py-4">
         <div className="flex w-full flex-col gap-1">
           <h1 className="font-cal text-xl font-semibold leading-6">{title}</h1>
           <p className="text-subtle text-sm font-medium leading-tight">{subtitle}</p>
@@ -38,4 +38,3 @@ export const OnboardingCard = ({ title, subtitle, children, footer, isLoading }:
     </div>
   );
 };
-

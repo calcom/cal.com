@@ -9,7 +9,7 @@ import { Logo } from "@calcom/ui/components/logo";
 
 type OnboardingLayoutProps = {
   userEmail: string;
-  currentStep: 1 | 2 | 3;
+  currentStep: 1 | 2 | 3 | 4;
   children: ReactNode;
 };
 
@@ -43,7 +43,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, children }: Onboardin
       {/* Footer with progress dots and sign out */}
       <div className="flex w-full flex-col items-center justify-center gap-4 px-10 py-8">
         <div className="flex items-center gap-2">
-          {[1, 2, 3].map((step) => (
+          {[1, 2, 3, 4].map((step) => (
             <div key={step} className="relative flex h-2 w-2 shrink-0 items-center justify-center">
               <div
                 className={`absolute inset-0 rounded-full ${

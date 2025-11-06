@@ -6,42 +6,58 @@ import React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
+import { useFlags } from "@calcom/features/flags/hooks";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 
 import { EmailInviteForm } from "../../../components/EmailInviteForm";
+import { InviteOptions } from "../../../components/InviteOptions";
 import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
 import { RoleSelector } from "../../../components/RoleSelector";
-import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
-import { useCreateTeam } from "../../../hooks/useCreateTeam";
+import { OnboardingOrganizationBrowserView } from "../../../components/onboarding-organization-browser-view";
+import { useSubmitOnboarding } from "../../../hooks/useSubmitOnboarding";
 import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
+import { OrganizationCSVUploadModal } from "../csv-upload-modal";
 
-type TeamInviteEmailViewProps = {
+type OrganizationInviteEmailViewProps = {
   userEmail: string;
 };
 
 type FormValues = {
   invites: {
     email: string;
-    role: InviteRole;
+    team: string;
+    role: "MEMBER" | "ADMIN";
   }[];
 };
 
-export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => {
+export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEmailViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
+  const flags = useFlags();
 
   const store = useOnboardingStore();
-  const { teamInvites, setTeamInvites, teamDetails } = store;
-  const [inviteRole, setInviteRole] = React.useState<InviteRole>("MEMBER");
-  const { createTeam, isSubmitting } = useCreateTeam();
+  const usersEmailDomain = userEmail.split("@")[1];
+  const {
+    invites: storedInvites,
+    inviteRole,
+    setInvites,
+    setInviteRole,
+    organizationDetails,
+    organizationBrand,
+  } = store;
+  const { submitOnboarding, isSubmitting } = useSubmitOnboarding();
+  const [isCSVModalOpen, setIsCSVModalOpen] = React.useState(false);
+
+  const googleWorkspaceEnabled = flags["google-workspace-directory"];
 
   const formSchema = z.object({
     invites: z.array(
       z.object({
         email: z.string().email(t("invalid_email_address")),
+        team: z.string().min(1, t("onboarding_team_required")),
         role: z.enum(["MEMBER", "ADMIN"]),
       })
     ),
@@ -50,10 +66,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      invites:
-        teamInvites.length > 0
-          ? teamInvites.map((inv) => ({ email: inv.email, role: inv.role }))
-          : [{ email: "", role: inviteRole }],
+      invites: storedInvites.length > 0 ? storedInvites : [{ email: "", team: "", role: inviteRole }],
     },
   });
 
@@ -63,34 +76,48 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   });
 
   const handleContinue = async (data: FormValues) => {
-    const invitesWithTeam = data.invites.map((invite) => ({
-      email: invite.email,
-      team: teamDetails.name,
-      role: invite.role,
-    }));
-
-    setTeamInvites(invitesWithTeam);
-
-    // Create the team (will handle checkout redirect if needed)
-    await createTeam(store);
+    setInvites(data.invites);
+    await submitOnboarding(store, userEmail, data.invites);
   };
 
   const handleBack = () => {
-    router.push("/onboarding/teams/invite");
+    router.push("/onboarding/organization/invite");
+  };
+
+  const handleGoogleWorkspaceConnect = () => {
+    console.log("Connect Google Workspace");
+  };
+
+  const handleUploadCSV = () => {
+    setIsCSVModalOpen(true);
+  };
+
+  const handleCopyInviteLink = () => {
+    console.log("Copy invite link - disabled");
+  };
+
+  const handleInviteViaEmail = () => {
+    router.push("/onboarding/organization/invite/email");
   };
 
   const hasValidInvites = fields.some((_, index) => {
     const email = form.watch(`invites.${index}.email`);
-    return email && email.trim().length > 0;
+    const team = form.watch(`invites.${index}.team`);
+    return email && email.trim().length > 0 && team && team.trim().length > 0;
   });
+
+  const filteredTeams = store.teams.filter((team) => team.name && team.name.trim().length > 0);
+  const teams =
+    filteredTeams.length > 0
+      ? filteredTeams.map((team) => ({ value: team.name.toLowerCase(), label: team.name }))
+      : [];
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3}>
-      {/* Left column - Main content */}
       <div className="flex w-full flex-col gap-4">
         <OnboardingCard
-          title={t("invite_via_email")}
-          subtitle={t("team_invite_subtitle")}
+          title={t("onboarding_org_invite_title")}
+          subtitle={t("onboarding_org_invite_subtitle_email")}
           footer={
             <div className="flex w-full items-center justify-end gap-4">
               <Button color="minimal" className="rounded-[10px]" onClick={handleBack} disabled={isSubmitting}>
@@ -116,18 +143,20 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
                   append={append}
                   remove={remove}
                   defaultRole={inviteRole}
-                  emailPlaceholder="rick@cal.com"
+                  showTeamSelect
+                  teams={teams}
+                  emailPlaceholder={`dave@${usersEmailDomain}`}
                 />
 
                 <RoleSelector
                   value={inviteRole}
+                  showInfoBadge={true}
                   onValueChange={(value) => {
                     setInviteRole(value);
                     fields.forEach((_, index) => {
                       form.setValue(`invites.${index}.role`, value);
                     });
                   }}
-                  showInfoBadge
                 />
               </div>
             </Form>
@@ -135,8 +164,14 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
         </OnboardingCard>
       </div>
 
-      {/* Right column - Browser view */}
-      <OnboardingInviteBrowserView teamName={teamDetails.name} />
+      <OnboardingOrganizationBrowserView
+        avatar={organizationBrand.logo}
+        name={organizationDetails.name}
+        bio={organizationDetails.bio}
+        slug={organizationDetails.link}
+        bannerUrl={organizationBrand.banner}
+      />
+      <OrganizationCSVUploadModal isOpen={isCSVModalOpen} onClose={() => setIsCSVModalOpen(false)} />
     </OnboardingLayout>
   );
 };
