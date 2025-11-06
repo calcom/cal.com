@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
-import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import { BillingEnabledOrgOnboardingService } from "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -11,6 +10,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 
+import { getTeamBillingServiceFactory } from "../../di/containers/Billing";
 import type { SWHMap } from "./__handler";
 
 const invoicePaidSchema = z.object({
@@ -126,8 +126,9 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     const billingService = getBillingProviderService();
     const { subscriptionStart } = billingService.extractSubscriptionDates(stripeSubscription);
 
-    const internalTeamBillingService = new InternalTeamBilling(organization);
-    await internalTeamBillingService.saveTeamBilling({
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = teamBillingServiceFactory.init(organization);
+    await teamBillingService.saveTeamBilling({
       teamId: organization.id,
       subscriptionId: paymentSubscriptionId,
       subscriptionItemId: paymentSubscriptionItemId,
