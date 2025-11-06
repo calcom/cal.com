@@ -947,6 +947,7 @@
   "new_event_type_btn": "New event type",
   "new_event_type_heading": "Create your first event type",
   "new_event_type_description": "Event types enable you to share links that show available times on your calendar and allow people to make bookings with you.",
+  "new_team_event_type_description": "Event types enable the team to share links that show available times on their calendars and allow people to make bookings with the team.",
   "event_type_created_successfully": "{{eventTypeTitle}} event type created successfully",
   "no_call_history": "No call history",
   "no_call_history_description": "No matching call history found for the particular account/search query.",
