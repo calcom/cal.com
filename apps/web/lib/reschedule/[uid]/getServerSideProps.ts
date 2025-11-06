@@ -67,6 +67,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
               slug: true,
             },
           },
+          calIdTeam: {
+            select: {
+              slug: true,
+            }
+          },
           seatsPerTimeSlot: true,
           userId: true,
           owner: {
