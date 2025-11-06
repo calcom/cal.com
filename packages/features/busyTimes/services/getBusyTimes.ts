@@ -129,7 +129,7 @@ export class BusyTimesService {
       }
     } else {
       // explicit bypass: treat as no bookings
-      logger.debug(`Bypassing Cal.com internal bookings for user ${userId} when computing busy times`);
+      logger.debug("Bypassing Cal.com internal bookings when computing busy times");
       bookings = [];
     }
 
