@@ -11,6 +11,10 @@ describe("excludeOrRequireEmailSchema", () => {
       expect(parse("gmail.com").success).toBe(true);
     });
 
+    it("accepts uppercase domains", () => {
+      expect(parse("GMAIL.COM").success).toBe(true);
+    });
+
     it("accepts multi-level TLD domains (co.uk)", () => {
       expect(parse("hotmail.co.uk").success).toBe(true);
     });
