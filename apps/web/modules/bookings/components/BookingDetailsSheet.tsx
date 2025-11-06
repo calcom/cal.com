@@ -31,6 +31,8 @@ import { BookingActionsStoreProvider } from "../../../components/booking/actions
 import type { BookingListingStatus } from "../../../components/booking/types";
 import { buildBookingLink } from "../lib/buildBookingLink";
 import type { BookingOutput } from "../types";
+import { JoinMeetingButton } from "./JoinMeetingButton";
+import { useJoinableLocation } from "./useJoinableLocation";
 
 type BookingMetaData = z.infer<typeof bookingMetadataSchema>;
 
@@ -108,12 +110,11 @@ function BookingDetailsSheetInner({
   const parsedMetadata = bookingMetadataSchema.safeParse(booking.metadata ?? null);
   const bookingMetadata = parsedMetadata.success ? parsedMetadata.data : null;
 
-  // Get conference link info for Join button
-  const { locationToDisplay, provider, isLocationURL } = useBookingLocation({
+  const { isJoinable: shouldShowJoinButton } = useJoinableLocation({
     location: booking.location,
-    videoCallUrl: bookingMetadata?.videoCallUrl,
-    t,
+    metadata: booking.metadata,
     bookingStatus: booking.status,
+    t,
   });
 
   const recurringInfo =
@@ -204,35 +205,19 @@ function BookingDetailsSheetInner({
 
         <SheetFooter className="bg-muted border-subtle -mx-4 -mb-4 border-t pt-0 sm:-mx-6 sm:-my-6">
           <div className="flex w-full flex-row items-center justify-end gap-2 px-4 pb-4 pt-4">
-            {isLocationURL && locationToDisplay && (
-              <>
-                <Button
-                  color="secondary"
-                  size="sm"
-                  href={locationToDisplay}
-                  target="_blank"
-                  className="flex items-center gap-2">
-                  {provider?.iconUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={provider.iconUrl}
-                      className="h-4 w-4 flex-shrink-0 rounded-sm"
-                      alt={`${provider.label} logo`}
-                    />
-                  )}
-                  {provider?.label
-                    ? t("join_event_location", { eventLocationType: provider.label })
-                    : t("join_meeting")}
-                </Button>
-                <div className="border-subtle h-3 w-px border-r" />
-              </>
-            )}
-            <Button color="secondary" size="sm" EndIcon="external-link" href={bookingLink} target="_blank">
+            <JoinMeetingButton
+              size="sm"
+              location={booking.location}
+              metadata={booking.metadata}
+              bookingStatus={booking.status}
+              t={t}
+            />
+            {shouldShowJoinButton && <div className="border-subtle h-3 w-px border-r" />}
+            <Button color="secondary" EndIcon="external-link" href={bookingLink} target="_blank">
               {t("view")}
             </Button>
             <BookingActionsDropdown
               context="booking-details-sheet"
-              size="sm"
               booking={{
                 ...booking,
                 listingStatus: booking.status.toLowerCase() as BookingListingStatus,

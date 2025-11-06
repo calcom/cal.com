@@ -10,6 +10,7 @@ import {
   confirmReschedule,
   createNewSeatedEventType,
   createUserWithSeatedEventAndAttendees,
+  openBookingActionsDropdown,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
 } from "./lib/testUtils";
@@ -496,7 +497,7 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
 
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await openBookingActionsDropdown(page, 0);
     await page.locator('[data-testid="reschedule"]').click();
 
     await page.waitForURL((url) => {
@@ -554,15 +555,15 @@ test.describe("Reschedule for booking with seats", () => {
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
 
-    await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+    await openBookingActionsDropdown(page, 0);
     await page.waitForTimeout(2000);
     const href = await page.locator('[data-testid="reschedule"]').getAttribute("href");
     const url = new URL(href!, page.url());
-    const seatReferenceUid = url.searchParams.get('seatReferenceUid');
-    if(!seatReferenceUid) {
+    const seatReferenceUid = url.searchParams.get("seatReferenceUid");
+    if (!seatReferenceUid) {
       await page.reload();
       await page.waitForSelector('[data-testid="bookings"]');
-      await page.locator('[data-testid="booking-actions-dropdown"]').nth(0).click();
+      await openBookingActionsDropdown(page, 0);
       await page.waitForTimeout(2000);
     }
     await page.locator('[data-testid="reschedule"]').click();
