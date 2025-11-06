@@ -9,18 +9,18 @@ import * as twilio from "../../providers/twilio";
 import type { PartialCalIdWorkflowReminder } from "../../utils/getWorkflows";
 import { select } from "../../utils/getWorkflows";
 
-const removeExpiredNotifications = async (): Promise<void> => {
-  await prisma.calIdWorkflowReminder.deleteMany({
-    where: {
-      method: WorkflowMethods.WHATSAPP,
-      scheduledDate: {
-        lte: dayjs().toISOString(),
-      },
-      scheduled: false,
-      OR: [{ cancelled: null }, { cancelled: false }],
-    },
-  });
-};
+// const removeExpiredNotifications = async (): Promise<void> => {
+//   await prisma.calIdWorkflowReminder.deleteMany({
+//     where: {
+//       method: WorkflowMethods.WHATSAPP,
+//       scheduledDate: {
+//         lte: dayjs().toISOString(),
+//       },
+//       scheduled: false,
+//       OR: [{ cancelled: null }, { cancelled: false }],
+//     },
+//   });
+// };
 
 const fetchPendingMessages = async () => {
   return prisma.calIdWorkflowReminder.findMany({
@@ -29,6 +29,7 @@ const fetchPendingMessages = async () => {
       scheduled: false,
       scheduledDate: {
         lte: dayjs().add(7, "day").toISOString(),
+        gte: dayjs().toISOString(),
       },
       OR: [{ cancelled: null }, { cancelled: false }],
     },
@@ -126,6 +127,7 @@ const executeCancellationProcess = async (): Promise<void> => {
       cancelled: true,
       scheduledDate: {
         lte: dayjs().add(1, "hour").toISOString(),
+        gte: dayjs().toISOString(),
       },
     },
   });
@@ -164,7 +166,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ message: "Not authenticated" }, { status: 401 });
     }
 
-    await removeExpiredNotifications();
+    // await removeExpiredNotifications();
     await executeCancellationProcess();
 
     const scheduledMessagesCount = await processMessageQueue();
