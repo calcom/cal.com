@@ -6,7 +6,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { prisma } from "@calcom/prisma";
 import { TriggerDevLogger } from "@calcom/trigger/logger";
 
-import { BookingTaskService } from "../BookingTaskService";
+import { BookingEmailAndSmsTaskService } from "../BookingEmailAndSmsTaskService";
 
 export const reschedule = schemaTask({
   id: "booking.reschedule",
@@ -17,7 +17,7 @@ export const reschedule = schemaTask({
     const triggerDevLogger = new TriggerDevLogger();
     const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: triggerDevLogger });
     const bookingRepo = new BookingRepository(prisma);
-    const bookingTaskService = new BookingTaskService({
+    const bookingTaskService = new BookingEmailAndSmsTaskService({
       logger: triggerDevLogger,
       bookingRepository: bookingRepo,
       emailsAndSmsHandler: emailsAndSmsHandler,

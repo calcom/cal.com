@@ -1,9 +1,8 @@
-import { getOriginalRescheduledBooking } from "bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
-
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
+import { getOriginalRescheduledBooking } from "@calcom/features/bookings/lib/handleNewBooking/originalRescheduledBookingUtils";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
@@ -16,7 +15,7 @@ export interface IBookingTaskServiceDependencies {
   bookingRepository: BookingRepository;
 }
 
-export class BookingTaskService implements BookingTasks {
+export class BookingEmailAndSmsTaskService implements BookingTasks {
   constructor(
     public readonly dependencies: { logger: ITaskerDependencies["logger"] } & IBookingTaskServiceDependencies
   ) {}

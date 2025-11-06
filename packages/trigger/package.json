@@ -22,6 +22,7 @@
   },
   "exports": {
     ".": "./index.ts",
-    "./trigger": "./index.ts"
+    "./trigger": "./index.ts",
+    "./logger": "./logger.ts"
   }
 }

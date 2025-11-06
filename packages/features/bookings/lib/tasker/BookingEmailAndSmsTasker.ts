@@ -1,30 +1,32 @@
-import {
-  BookingActionMap,
-  EmailsAndSmsSideEffectsPayload,
-} from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
+import { BookingActionMap } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { Tasker } from "@calcom/lib/tasker/Tasker";
 import type { ILogger } from "@calcom/lib/tasker/types";
+import { SchedulingType } from "@calcom/prisma/client";
 
-import { BookingSyncTasker } from "./BookingSyncTasker";
-import { BookingTriggerDevTasker } from "./BookingTriggerTasker";
-import { BookingTaskPayload, IBookingTasker } from "./types";
+import { BookingEmailAndSmsSyncTasker } from "./BookingEmailAndSmsSyncTasker";
+import { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerTasker";
+import { BookingEmailAndSmsTaskPayload, IBookingEmailAndSmsTasker } from "./types";
 
 export interface IBookingTaskerDependencies {
-  primaryTasker: BookingTriggerDevTasker | BookingSyncTasker;
-  fallbackTasker: BookingSyncTasker;
+  primaryTasker: BookingEmailAndSmsTriggerDevTasker | BookingEmailAndSmsSyncTasker;
+  fallbackTasker: BookingEmailAndSmsSyncTasker;
   logger: ILogger;
 }
 
-export class BookingTasker extends Tasker<IBookingTasker> {
+export class BookingEmailAndSmsTasker extends Tasker<IBookingEmailAndSmsTasker> {
   constructor(public readonly dependencies: IBookingTaskerDependencies) {
     super(dependencies);
   }
 
-  public async send(emailAndSmsData: EmailsAndSmsSideEffectsPayload, payload: BookingTaskPayload) {
-    const { action, data } = emailAndSmsData;
+  public async send(data: {
+    action: string;
+    schedulingType: SchedulingType | null;
+    payload: BookingEmailAndSmsTaskPayload;
+  }) {
+    const { action, schedulingType, payload } = data;
 
     if (action === BookingActionMap.rescheduled) {
-      if (data.eventType.schedulingType === "ROUND_ROBIN") return this.safeDispatch("rrReschedule", payload);
+      if (schedulingType === "ROUND_ROBIN") return this.safeDispatch("rrReschedule", payload);
       return this.safeDispatch("reschedule", payload);
     }
 

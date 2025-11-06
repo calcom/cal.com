@@ -1,3 +1,4 @@
+import cloneDeep from "lodash/cloneDeep";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -34,7 +35,7 @@ import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
-import { BookingTasker } from "@calcom/features/bookings/lib/tasker/BookingTasker";
+import { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -424,7 +425,7 @@ export interface IBookingServiceDependencies {
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
-  bookingTasker: BookingTasker;
+  bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
 }
 
 /**
@@ -2056,7 +2057,7 @@ async function handler(
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
     if (isConfirmedByDefault) {
-      emailsAndSmsPayload = structuredClone({
+      emailsAndSmsPayload = cloneDeep({
         action: BookingActionMap.rescheduled,
         data: {
           evt,
@@ -2180,7 +2181,7 @@ async function handler(
       }
 
       if (!(eventType.seatsPerTimeSlot && rescheduleUid)) {
-        emailsAndSmsPayload = structuredClone({
+        emailsAndSmsPayload = cloneDeep({
           action: BookingActionMap.confirmed,
           data: {
             eventType: {
@@ -2222,7 +2223,7 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    emailsAndSmsPayload = structuredClone({
+    emailsAndSmsPayload = cloneDeep({
       action: BookingActionMap.requested,
       data: { evt, attendees: attendeesList, eventType, additionalNotes },
     });
@@ -2597,13 +2598,17 @@ async function handler(
     if (!noEmail && emailsAndSmsPayload) {
       // TODO: Add Team Feature Flag to enable booking tasker or not
       await emailsAndSmsHandler.send(emailsAndSmsPayload);
-      await deps.bookingTasker.send(emailsAndSmsPayload, {
-        bookingId: booking.id,
-        conferenceCredentialId,
-        platformClientId,
-        platformRescheduleUrl,
-        platformCancelUrl,
-        platformBookingUrl,
+      await deps.bookingEmailAndSmsTasker.send({
+        action: emailsAndSmsPayload.action,
+        schedulingType: emailsAndSmsPayload.data.eventType.schedulingType,
+        payload: {
+          bookingId: booking.id,
+          conferenceCredentialId,
+          platformClientId,
+          platformRescheduleUrl,
+          platformCancelUrl,
+          platformBookingUrl,
+        },
       });
     }
   }

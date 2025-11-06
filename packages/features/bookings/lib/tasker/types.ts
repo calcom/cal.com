@@ -1,16 +1,16 @@
 import { EmailsAndSmsSideEffectsPayload } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import type { ILogger } from "@calcom/lib/tasker/types";
 
-import { BookingSyncTasker } from "./BookingSyncTasker";
-import { BookingTriggerDevTasker } from "./BookingTriggerTasker";
+import { BookingEmailAndSmsSyncTasker } from "./BookingEmailAndSmsSyncTasker";
+import { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerTasker";
 
 export interface IBookingTaskerDependencies {
-  primaryTasker: BookingTriggerDevTasker | BookingSyncTasker;
-  fallbackTasker: BookingSyncTasker;
+  primaryTasker: BookingEmailAndSmsTriggerDevTasker | BookingEmailAndSmsSyncTasker;
+  fallbackTasker: BookingEmailAndSmsSyncTasker;
   logger: ILogger;
 }
 
-export type BookingTaskPayload = {
+export type BookingEmailAndSmsTaskPayload = {
   bookingId: number;
   conferenceCredentialId?: number;
   platformClientId?: string;
@@ -19,15 +19,15 @@ export type BookingTaskPayload = {
   platformBookingUrl?: string;
 };
 
-export type BookingSyncSendPayload = EmailsAndSmsSideEffectsPayload;
+export type BookingEmailAndSmsSyncSendPayload = EmailsAndSmsSideEffectsPayload;
 
-export type BookingAsyncTasksPayload = BookingTaskPayload;
+export type BookingEmailAndSmsAsyncTasksPayload = BookingEmailAndSmsTaskPayload;
 
-export interface IBookingTasker {
-  request(payload: BookingAsyncTasksPayload): Promise<{ runId: string }>;
-  confirm(payload: BookingAsyncTasksPayload): Promise<{ runId: string }>;
-  reschedule(payload: BookingAsyncTasksPayload): Promise<{ runId: string }>;
-  rrReschedule(payload: BookingAsyncTasksPayload): Promise<{ runId: string }>;
+export interface IBookingEmailAndSmsTasker {
+  request(payload: BookingEmailAndSmsAsyncTasksPayload): Promise<{ runId: string }>;
+  confirm(payload: BookingEmailAndSmsAsyncTasksPayload): Promise<{ runId: string }>;
+  reschedule(payload: BookingEmailAndSmsAsyncTasksPayload): Promise<{ runId: string }>;
+  rrReschedule(payload: BookingEmailAndSmsAsyncTasksPayload): Promise<{ runId: string }>;
 }
 
 type WithVoidReturns<T> = {
@@ -39,4 +39,4 @@ type WithVoidReturns<T> = {
       T[K];
 };
 
-export type BookingTasks = WithVoidReturns<IBookingTasker>;
+export type BookingTasks = WithVoidReturns<IBookingEmailAndSmsTasker>;
