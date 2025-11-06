@@ -1,10 +1,19 @@
 import type { CreateBookingMeta, CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+import logger from "@calcom/lib/logger";
+import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
+import { checkMultipleSlotAvailability } from "../handleNewBooking/checkMultipleSlotAvailability";
+import { getEventType } from "../handleNewBooking/getEventType";
+import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
+import { loadAndProcessUsersWithSeats } from "../handleNewBooking/loadAndProcessUsersWithSeats";
+import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
 import type { IBookingService } from "../interfaces/IBookingService";
-import type { RegularBookingService } from "./RegularBookingService";
+import type { IsFixedAwareUserWithCredentials, RegularBookingService } from "./RegularBookingService";
+
 
 export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;
@@ -26,9 +35,155 @@ export const handleNewRecurringBooking = async (
 
   let thirdPartyRecurringEventId = null;
 
-  // for round robin, the first slot needs to be handled first to define the lucky user
   const firstBooking = data[0];
   const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
+
+  const availabilityResults: Map<number, { isAvailable: boolean; reason?: string }> = new Map();
+
+  if (
+    allRecurringDates &&
+    allRecurringDates.length > 0 &&
+    firstBooking.eventTypeId &&
+    numSlotsToCheckForAvailability > 0
+  ) {
+    const eventTypeWithUsers = await getEventType({
+      eventTypeId: firstBooking.eventTypeId,
+      eventTypeSlug: firstBooking.eventTypeSlug,
+    });
+
+    const isTeamEvent =
+      eventTypeWithUsers.schedulingType === SchedulingType.COLLECTIVE ||
+      eventTypeWithUsers.schedulingType === SchedulingType.ROUND_ROBIN;
+
+    const loggerWithEventDetails = logger.getSubLogger({
+      prefix: ["[recurring-booking-availability]"],
+    });
+
+    const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await loadAndValidateUsers({
+      hostname: input.hostname,
+      forcedSlug: input.forcedSlug,
+      isPlatform: !!input.platformClientId,
+      eventType: eventTypeWithUsers,
+      eventTypeId: firstBooking.eventTypeId,
+      dynamicUserList: [],
+      logger: loggerWithEventDetails,
+      routedTeamMemberIds: null,
+      contactOwnerEmail: null,
+      rescheduleUid: null,
+      routingFormResponse: null,
+    });
+
+    const processedUsersResult = await loadAndProcessUsersWithSeats({
+      qualifiedRRUsers,
+      additionalFallbackRRUsers,
+      fixedUsers,
+      eventType: eventTypeWithUsers,
+      reqBodyStart: firstBooking.start,
+      prismaClient: deps.prismaClient,
+    });
+
+    const eventTypeWithProcessedUsers: Omit<getEventTypeResponse, "users"> & {
+      users: IsFixedAwareUserWithCredentials[];
+    } = {
+      ...eventTypeWithUsers,
+      users: processedUsersResult.users as IsFixedAwareUserWithCredentials[],
+      ...(eventTypeWithUsers.recurringEvent && {
+        recurringEvent: {
+          ...eventTypeWithUsers.recurringEvent,
+          count:
+            //  recurringCount ||
+            eventTypeWithUsers.recurringEvent.count,
+        },
+      }),
+    };
+
+    const fixedUsersForAvailability = isTeamEvent
+      ? processedUsersResult.users.filter((user) => user.isFixed)
+      : [];
+
+    console.log(`Checking availability for ${allRecurringDates.length} slots with single API call...`);
+
+    const timeSlots = allRecurringDates
+      .filter((date) => date.start && date.end)
+      .map((date) => ({
+        start: date.start,
+        end: date.end!,
+      }));
+
+    if (timeSlots.length > 0) {
+      if (isTeamEvent) {
+        for (const user of fixedUsersForAvailability) {
+          try {
+            const slotResults = await checkMultipleSlotAvailability(
+              { ...eventTypeWithProcessedUsers, users: [user] },
+              {
+                timeSlots,
+                timeZone: firstBooking.timeZone,
+                originalRescheduledBooking: null,
+              },
+              loggerWithEventDetails,
+              false
+            );
+
+            slotResults.forEach((result) => {
+              const existingResult = availabilityResults.get(result.slotIndex);
+              if (!result.isAvailable) {
+                availabilityResults.set(result.slotIndex, {
+                  isAvailable: false,
+                  reason: result.reason,
+                });
+              } else if (!existingResult) {
+                availabilityResults.set(result.slotIndex, {
+                  isAvailable: true,
+                });
+              }
+            });
+
+            console.log(`  ✓ Checked availability for user ${user.id}`);
+          } catch (error) {
+            console.log(`  ✗ Error checking user ${user.id}:`, error);
+            for (let i = 0; i < timeSlots.length; i++) {
+              availabilityResults.set(i, {
+                isAvailable: false,
+                reason: "Error checking availability",
+              });
+            }
+          }
+        }
+      } else {
+        try {
+          const slotResults = await checkMultipleSlotAvailability(
+            eventTypeWithProcessedUsers,
+            {
+              timeSlots,
+              timeZone: firstBooking.timeZone,
+              originalRescheduledBooking: null,
+            },
+            loggerWithEventDetails,
+            false
+          );
+
+          slotResults.forEach((result) => {
+            availabilityResults.set(result.slotIndex, {
+              isAvailable: result.isAvailable,
+              reason: result.reason,
+            });
+          });
+
+          const availableCount = slotResults.filter((r) => r.isAvailable).length;
+          console.log(`  ✓ Checked ${timeSlots.length} slots: ${availableCount} available`);
+        } catch (error) {
+          console.log("  ✗ Error checking availability:", error);
+          for (let i = 0; i < timeSlots.length; i++) {
+            availabilityResults.set(i, {
+              isAvailable: false,
+              reason: "Error checking availability",
+            });
+          }
+        }
+      }
+    }
+  }
 
   let luckyUsers = undefined;
 
@@ -84,6 +239,7 @@ export const handleNewRecurringBooking = async (
     //     }, {} as { [key: string]: AppsStatus });
     //   appsStatus = Object.values(calcAppsStatus);
     // }
+    const slotAvailability = availabilityResults.get(key);
 
     const recurringEventData = {
       ...booking,
@@ -95,6 +251,13 @@ export const handleNewRecurringBooking = async (
       currentRecurringIndex: key,
       noEmail: input.noEmail !== undefined ? input.noEmail : key !== 0,
       luckyUsers,
+      // Pass availability override if we have checked this slot
+      _availabilityOverride: slotAvailability
+        ? {
+            isAvailable: slotAvailability.isAvailable,
+            reason: slotAvailability.reason,
+          }
+        : undefined,
     };
 
     const promiseEachRecurringBooking = regularBookingService.createBooking({
@@ -126,6 +289,7 @@ export const handleNewRecurringBooking = async (
 
 export interface IRecurringBookingServiceDependencies {
   regularBookingService: RegularBookingService;
+  prismaClient: PrismaClient;
 }
 
 /**
