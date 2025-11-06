@@ -160,6 +160,7 @@ describe("Trigger Host No Show:", () => {
             id: 1,
             teamId: null,
             parentId: null,
+            calVideoSettings: null,
           },
           webhook: {
             ...TEST_WEBHOOK,
@@ -324,6 +325,7 @@ describe("Trigger Host No Show:", () => {
             id: 1,
             teamId: null,
             parentId: null,
+            calVideoSettings: null,
           },
           webhook: {
             ...TEST_WEBHOOK,
@@ -528,6 +530,7 @@ describe("Trigger Host No Show:", () => {
             id: 1,
             teamId: null,
             parentId: null,
+            calVideoSettings: null,
           },
           webhook: {
             ...TEST_WEBHOOK,

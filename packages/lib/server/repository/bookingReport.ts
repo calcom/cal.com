@@ -212,4 +212,14 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
       data: { status: params.status },
     });
   }
+
+  async countPendingReports(params: { organizationId: number }): Promise<number> {
+    return this.prismaClient.bookingReport.count({
+      where: {
+        organizationId: params.organizationId,
+        status: "PENDING",
+        watchlistId: null,
+      },
+    });
+  }
 }

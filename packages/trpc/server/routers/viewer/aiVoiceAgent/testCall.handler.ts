@@ -23,7 +23,7 @@ export const testCallHandler = async ({ ctx, input }: TestCallHandlerOptions) =>
   const featuresRepository = new FeaturesRepository(prisma);
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
   if (!calAIVoiceAgents) {
-    logger.warn("Cal AI voice agents are disabled - skipping AI phone call scheduling");
+    logger.warn("Cal.ai voice agents are disabled - skipping AI phone call scheduling");
     return;
   }
 

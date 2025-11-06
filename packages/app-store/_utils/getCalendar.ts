@@ -14,7 +14,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendar = async (
   credential: CredentialForCalendarService | null,
-  shouldServeCache?: boolean,
+  shouldServeCache?: boolean
 ): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
@@ -59,7 +59,7 @@ export const getCalendar = async (
     shouldServeCache = isCalendarSubscriptionCacheEnabled && isCalendarSubscriptionCacheEnabledForUser;
   }
   if (CalendarCacheEventService.isCalendarTypeSupported(calendarType) && shouldServeCache) {
-    log.debug(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
+    log.info(`Calendar Cache is enabled, using CalendarCacheService for credential ${credential.id}`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const originalCalendar = new CalendarService(credential as any);
     if (originalCalendar) {

@@ -180,12 +180,6 @@ export class GetAvailableSlotsInput_2024_04_15 {
   @IsBoolean()
   @IsOptional()
   @ApiHideProperty()
-  _shouldServeCache?: boolean;
-
-  @Transform(({ value }) => value && value.toLowerCase() === "true")
-  @IsBoolean()
-  @IsOptional()
-  @ApiHideProperty()
   _isDryRun?: boolean;
 
   @Transform(({ value }) => value && value.toLowerCase() === "true")

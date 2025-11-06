@@ -47,7 +47,7 @@ export class PrismaApiKeyRepository {
       orderBy: { createdAt: "desc" },
     });
     return apiKeys.filter((apiKey) => {
-      if (apiKey.note?.startsWith("Cal AI Phone API Key")) {
+      if (apiKey.note?.startsWith("Cal.ai Phone API Key")) {
         return false;
       }
       return true;

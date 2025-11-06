@@ -259,7 +259,6 @@ const BookerPlatformWrapperComponent = (
 
   const [routingParams, setRoutingParams] = useState<{
     routedTeamMemberIds?: number[];
-    _shouldServeCache?: boolean;
     skipContactOwner?: boolean;
     isBookingDryRun?: boolean;
   }>({});
@@ -272,15 +271,12 @@ const BookerPlatformWrapperComponent = (
     const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
     const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
 
-    const _cacheParam = searchParams?.get("cal.cache");
-    const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
     const isBookingDryRun =
       searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true" ||
       searchParams?.get("cal.sandbox")?.toLowerCase() === "true";
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
-      ...(_shouldServeCache ? { _shouldServeCache } : {}),
       ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
   }, [routingFormSearchParams]);
