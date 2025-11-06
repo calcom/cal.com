@@ -38,7 +38,6 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Checkbox } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
 import { DynamicLink } from "./BulkActions/DynamicLink";
@@ -124,6 +123,9 @@ export type UserListTableProps = {
     }[];
   };
   permissions?: MemberPermissions;
+  platformUserInfo?: {
+    isPlatformUser: boolean;
+  };
 };
 
 export function UserListTable(props: UserListTableProps) {
@@ -142,6 +144,7 @@ function UserListTableContent({
   teams,
   facetedTeamValues,
   permissions,
+  platformUserInfo,
 }: UserListTableProps) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
@@ -149,7 +152,7 @@ function UserListTableContent({
   const { t } = useLocale();
 
   const { data: session } = useSession();
-  const { isPlatformUser } = useGetUserAttributes();
+  const isPlatformUser = platformUserInfo?.isPlatformUser ?? false;
   const [state, dispatch] = useReducer(reducer, initialState);
   const [isDownloading, setIsDownloading] = useState(false);
   const [rowSelection, setRowSelection] = useState({});

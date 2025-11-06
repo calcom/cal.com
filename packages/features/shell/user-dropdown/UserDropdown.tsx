@@ -18,8 +18,6 @@ import {
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
-// TODO (Platform): we shouldnt be importing from web here
-import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import FreshChatProvider from "../../ee/support/lib/freshchat/FreshChatProvider";
 
@@ -34,10 +32,13 @@ declare global {
 
 interface UserDropdownProps {
   small?: boolean;
+  platformUserInfo?: {
+    isPlatformUser: boolean;
+  };
 }
 
-export function UserDropdown({ small }: UserDropdownProps) {
-  const { isPlatformUser } = useGetUserAttributes();
+export function UserDropdown({ small, platformUserInfo }: UserDropdownProps) {
+  const isPlatformUser = platformUserInfo?.isPlatformUser ?? false;
   const { t } = useLocale();
   const { data: user, isPending } = useMeQuery();
   const pathname = usePathname();
@@ -48,11 +49,12 @@ export function UserDropdown({ small }: UserDropdownProps) {
     //@ts-ignore
     const Beacon = window.Beacon;
     // window.Beacon is defined when user actually opens up HelpScout and username is available here. On every re-render update session info, so that it is always latest.
-    Beacon &&
+    if (Beacon) {
       Beacon("session-data", {
         username: user?.username || "Unknown",
         screenResolution: `${screen.width}x${screen.height}`,
       });
+    }
   });
 
   const [menuOpen, setMenuOpen] = useState(false);
