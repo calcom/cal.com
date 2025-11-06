@@ -133,17 +133,14 @@ export class BusyTimesService {
       bookings = [];
     }
 
-    // normalize bookings to an array so downstream code can safely use array methods
-    bookings = bookings ?? [];
-
     const bookingSeatCountMap: { [x: string]: number } = {};
-    const busyTimes = (bookings || []).reduce((aggregate: EventBusyDetails[], booking) => {
+    const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
       const { id, startTime, endTime, eventType, title, ...rest } = booking;
 
       const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
       const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
 
-  if (rest._count?.seatsReferences) {
+    if (rest._count?.seatsReferences) {
         const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
         bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
         bookingSeatCountMap[bookedAt]++;
