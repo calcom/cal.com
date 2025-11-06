@@ -18,7 +18,6 @@ import { Form } from "@calcom/ui/components/form";
 
 import { useBookerStore } from "../../store";
 import { formatEventFromTime } from "../../utils/dates";
-import { useBookerTime } from "../hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
@@ -75,16 +74,17 @@ export const BookEventForm = ({
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const bookingData = useBookerStore((state) => state.bookingData);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const instanceDate = useBookerStore((state) => state.instanceDate); // For determining reschedule type
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
-  const { timeFormat, timezone } = useBookerTime();
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t, i18n } = useLocale();
 
-  console.log("Billing address required: ", billingAddressRequired);
+  // Determine if this is a recurring instance reschedule
+  const isRecurringInstanceReschedule = Boolean(rescheduleUid && instanceDate);
 
   useEffect(() => {
     if (eventType && billingAddressRequired) {
@@ -294,7 +294,9 @@ export const BookEventForm = ({
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>
                 {rescheduleUid && bookingData
-                  ? t("reschedule")
+                  ? isRecurringInstanceReschedule
+                    ? t("reschedule_instance")
+                    : t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
                   ? isPaidEvent
                     ? t("pay_and_book")

@@ -16,7 +16,7 @@ export interface AuthRequest extends FastifyRequest {
 export class AuthGuards {
   private static combineAuthStrategy: CombinedAuthStrategy;
 
-  static initialize(prisma: any, config: { apiKeyPrefix: string }) {
+  static initialize(prisma: any, config: { apiKeyPrefix: string; jwt_secret: string }) {
     this.combineAuthStrategy = new CombinedAuthStrategy(prisma, config);
   }
 

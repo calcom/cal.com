@@ -99,6 +99,7 @@ export const EventMeta = ({
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
+  const instanceDate = useBookerStore((state) => state.instanceDate); // NEW: Get instanceDate
   const [seatedEventData, setSeatedEventData] = useBookerStore(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
@@ -111,6 +112,9 @@ export const EventMeta = ({
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
   );
+
+  // Determine if this is a recurring instance reschedule
+  const isRecurringInstanceReschedule = Boolean(rescheduleUid && instanceDate);
 
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's locked timezone
@@ -184,30 +188,69 @@ export const EventMeta = ({
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
-            {rescheduleUid && bookingData && (
+            {/*  Handle both regular reschedule and recurring instance reschedule */}
+            {rescheduleUid && (isRecurringInstanceReschedule ? instanceDate : bookingData) && (
               <EventMetaBlock icon="calendar">
-                {t("former_time")}
-                <br />
-                <span className="line-through" data-testid="former_time_p">
+                {isRecurringInstanceReschedule && (
+                  <>
+                    {/* Recurring Instance Reschedule */}
+                    <div className="space-y-1">
+                      <div className="text-subtle text-xs font-medium tracking-wide">
+                        {t("reschedule_recurring_event")}
+                      </div>
+                      <div>
+                        <span className="text-default text-sm">{t("former_time")}</span>
+                        <br />
+                        <span className="line-through" data-testid="former_time_instance">
+                          <FromToTime
+                            date={instanceDate}
+                            duration={selectedDuration || event.length}
+                            timeFormat={timeFormat}
+                            timeZone={timezone}
+                            language={i18n.language}
+                          />
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                )}
+                {!isRecurringInstanceReschedule && bookingData && (
+                  <>
+                    {/* Regular Reschedule */}
+                    {t("former_time")}
+                    <br />
+                    <span className="line-through" data-testid="former_time_p">
+                      <FromToTime
+                        date={bookingData.startTime.toString()}
+                        duration={null}
+                        timeFormat={timeFormat}
+                        timeZone={timezone}
+                        language={i18n.language}
+                      />
+                    </span>
+                  </>
+                )}
+              </EventMetaBlock>
+            )}
+            {selectedTimeslot && (
+              <EventMetaBlock icon="calendar">
+                {isRecurringInstanceReschedule && (
+                  <div className="space-y-1">
+                    <span className="text-default text-sm">{t("new_time")}</span>
+                    <br />
+                  </div>
+                )}
+                <span
+                  className={isRecurringInstanceReschedule ? "text-emphasis font-medium" : ""}
+                  data-testid={isRecurringInstanceReschedule ? "new_time_instance" : "selected_time"}>
                   <FromToTime
-                    date={bookingData.startTime.toString()}
-                    duration={null}
+                    date={selectedTimeslot}
+                    duration={selectedDuration || event.length}
                     timeFormat={timeFormat}
                     timeZone={timezone}
                     language={i18n.language}
                   />
                 </span>
-              </EventMetaBlock>
-            )}
-            {selectedTimeslot && (
-              <EventMetaBlock icon="calendar">
-                <FromToTime
-                  date={selectedTimeslot}
-                  duration={selectedDuration || event.length}
-                  timeFormat={timeFormat}
-                  timeZone={timezone}
-                  language={i18n.language}
-                />
               </EventMetaBlock>
             )}
             <EventDetails event={event} />

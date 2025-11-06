@@ -437,6 +437,7 @@ export default function Signup({
                       label={t("password")}
                       variant="floating"
                       showStrengthMeter={true}
+                      showStrengthColors={true}
                       showRequirements={true}
                       {...register("password")}
                       onPasswordChange={(value, checks, strength) => {

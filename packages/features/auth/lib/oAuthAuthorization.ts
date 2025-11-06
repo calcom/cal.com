@@ -35,7 +35,7 @@ export default async function isAuthorized(token: string, requiredScopes: string
   }
 
   if (decodedToken.teamId) {
-    const team = await prisma.team.findUnique({
+    const team = await prisma.calIdTeam.findUnique({
       where: {
         id: decodedToken.teamId,
       },

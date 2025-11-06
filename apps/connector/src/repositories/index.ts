@@ -7,3 +7,4 @@ export * from "./booking.repository";
 export * from "./secondary-email.repository";
 export * from "./travel-schedule.repository";
 export * from "./oauth-client.repository";
+export * from "./webhook.repository";

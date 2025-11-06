@@ -46,7 +46,7 @@ export const processPaymentRefund = async ({
   if (eventType?.owner) {
     credentialWhereClause.userId = eventType.owner.id;
   } else if (teamId) {
-    credentialWhereClause.teamId = teamId;
+    credentialWhereClause.calIdTeamId = teamId;
   }
 
   const paymentAppCredentials = await prisma.credential.findMany({

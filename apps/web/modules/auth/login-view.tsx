@@ -239,15 +239,19 @@ export default function Login({
       `}</style>
 
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] px-5">
-        <div className="md:max-w-[600px] w-full overflow-hidden rounded-3xl border-0 bg-white shadow-xl  m-0">
+        <div className="m-0 w-full overflow-hidden rounded-3xl border-0 bg-white shadow-xl  md:max-w-[600px]">
           <div className="min-h-[600px]">
             {/* Left Column - Login Form */}
             <div className="flex flex-col justify-center p-6 lg:p-12">
-              <div className="fade-in-up mb-8 center">
-                <h1 className="mb-2 text-2xl text-center md:text-left font-bold text-gray-900">
+              <div className="fade-in-up center mb-8">
+                <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 md:text-left">
                   {twoFactorRequired ? t("2fa_code") : t("welcome_back")}
                 </h1>
-                {!twoFactorRequired && <p className="font-medium text-center md:text-left sm:text-center text-gray-600">{t("sign_in_account")}</p>}
+                {!twoFactorRequired && (
+                  <p className="text-center font-medium text-gray-600 sm:text-center md:text-left">
+                    {t("sign_in_account")}
+                  </p>
+                )}
               </div>
 
               <FormProvider {...methods}>
@@ -355,16 +359,21 @@ export default function Login({
                     {errorMessage && <Alert severity="error" title={errorMessage} />}
 
                     {/* Sign In Button */}
-                    <Button
-                      type="submit"
-                      disabled={formState.isSubmitting}
-                      className="btn-premium-submit mt-6 w-full justify-center rounded-lg bg-[#007ee5] py-3 font-semibold text-white hover:bg-[#006ac1]"
-                      data-testid="submit">
-                      <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                      {lastUsed === "credentials" && !twoFactorRequired && (
-                        <LastUsed className="text-brand" />
+
+                    <div className="fade-in-up relative" style={{ animationDelay: "100ms" }}>
+                      <Button
+                        type="submit"
+                        disabled={formState.isSubmitting}
+                        className="btn-premium-submit mt-6 w-full justify-center rounded-lg bg-[#007ee5] py-3 font-semibold text-white hover:bg-[#006ac1]"
+                        data-testid="submit">
+                        <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
+                      </Button>
+                      {lastUsed === "credentials" && (
+                        <span className="absolute top-2 right-2 z-10 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-800">
+                          ⭐ Last Used
+                        </span>
                       )}
-                    </Button>
+                    </div>
                   </div>
                 </form>
 

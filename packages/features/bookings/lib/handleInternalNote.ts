@@ -55,7 +55,7 @@ export async function handleInternalNote({
   // "Preset"
   await prisma.internalNotePreset.findFirstOrThrow({
     where: {
-      teamId: teamId,
+      calIdTeamId: teamId,
       id: internalNote.id,
     },
   });

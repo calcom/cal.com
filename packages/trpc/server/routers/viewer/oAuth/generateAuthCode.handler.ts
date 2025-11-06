@@ -34,8 +34,8 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
   }
   const authorizationCode = generateAuthorizationCode();
 
-  const team = teamSlug
-    ? await prisma.team.findFirst({
+  const calIdTeam = teamSlug
+    ? await prisma.calIdTeam.findFirst({
         where: {
           slug: teamSlug,
           members: {
@@ -47,10 +47,14 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
             },
           },
         },
+        select: {
+          id: true,
+          slug: true,
+        },
       })
     : undefined;
 
-  if (teamSlug && !team) {
+  if (teamSlug && !calIdTeam) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
@@ -59,7 +63,7 @@ export const generateAuthCodeHandler = async ({ ctx, input }: AddClientOptions) 
       code: authorizationCode,
       clientId,
       userId: !teamSlug ? ctx.user.id : undefined,
-      teamId: team ? team.id : undefined,
+      calIdTeamId: calIdTeam ? calIdTeam.id : undefined,
       expiresAt: dayjs().add(10, "minutes").toDate(),
       scopes: scopes as [AccessScope],
     },

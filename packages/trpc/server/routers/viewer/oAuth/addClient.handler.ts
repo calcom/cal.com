@@ -32,7 +32,7 @@ export const addClientHandler = async ({ input }: AddClientOptions) => {
   return clientWithSecret;
 };
 
-const hashSecretKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");
+const hashSecretKey = (secret: string): string => createHash("sha256").update(secret).digest("hex");
 
 // Generate a random secret
 export const generateSecret = (secret = randomBytes(32).toString("hex")) => [hashSecretKey(secret), secret];

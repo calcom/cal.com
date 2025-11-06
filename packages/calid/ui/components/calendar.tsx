@@ -2,9 +2,6 @@
 
 import { cn } from "@calid/features/lib/cn";
 import { Icon } from "@calid/features/ui/components/icon";
-
-
-
 import * as React from "react";
 import { DayPicker } from "react-day-picker";
 
