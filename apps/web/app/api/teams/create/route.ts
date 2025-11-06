@@ -11,6 +11,7 @@ import {
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 // import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -23,6 +24,7 @@ const checkoutSessionMetadataSchema = z.object({
   teamName: z.string(),
   teamSlug: z.string(),
   userId: z.string().transform(Number),
+  isOnboarding: z.string().optional(),
 });
 
 const generateRandomString = () => {
@@ -69,6 +71,7 @@ async function getHandler(req: NextRequest) {
         teamName: checkoutSession?.metadata?.teamName ?? generateRandomString(),
         teamSlug: checkoutSession?.metadata?.teamSlug ?? generateRandomString(),
         userId: checkoutSession.metadata.userId,
+        isOnboarding: checkoutSession.metadata.isOnboarding,
       };
 
   const team = await prisma.team.create({
@@ -104,6 +107,16 @@ async function getHandler(req: NextRequest) {
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.TEAM,
       subscriptionStart,
+    });
+  }
+
+  // Check if this is from onboarding flow and redirect accordingly
+  const isOnboarding = checkoutSessionMetadata.isOnboarding === "true";
+
+  if (isOnboarding) {
+    // Redirect to event-types for onboarding flow
+    return NextResponse.redirect(new URL("/onboarding/personal/settings", WEBAPP_URL), {
+      status: 302,
     });
   }
 

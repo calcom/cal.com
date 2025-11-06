@@ -1,5 +1,11 @@
 ## 1.1.2
 
+## 1.12.1
+
+### Patch Changes
+
+- [#24786](https://github.com/calcom/cal.com/pull/24786) [`e47ddf9`](https://github.com/calcom/cal.com/commit/e47ddf983559816ab7ce9789eee97254124b1a4c) Thanks [@Ryukemeister](https://github.com/Ryukemeister)! - This PR updates Booker atom to have a new prop called handleCreateRecurringBooking for handling recurring events.
+
 ## 1.12.0
 
 ### Minor Changes
