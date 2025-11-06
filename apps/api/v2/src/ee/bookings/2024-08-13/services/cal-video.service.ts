@@ -1,5 +1,5 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
-import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { CalVideoOutputService } from "@/ee/bookings/2024-08-13/services/cal-video.output.service";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
 import {
@@ -14,8 +14,15 @@ export class CalVideoService {
   private readonly logger = new Logger("CalVideoService");
   constructor(
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
-    private readonly outputService: OutputBookingsService_2024_08_13
+    private readonly calVideoOutputService: CalVideoOutputService
   ) {}
+
+  private getVideoSessionsRoomName(references?: Array<{ type: string; meetingId?: string | null }>) {
+    return (
+      references?.filter((reference) => reference.type === "daily_video")?.pop()?.meetingId ??
+      undefined
+    );
+  }
 
   async getRecordings(bookingUid: string) {
     const booking = await this.bookingsRepository.getByUidWithBookingReference(bookingUid);
@@ -23,9 +30,7 @@ export class CalVideoService {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const roomName =
-      booking?.references?.filter((reference) => reference.type === "daily_video")?.pop()?.meetingId ??
-      undefined;
+    const roomName = this.getVideoSessionsRoomName(booking.references);
     if (!roomName) {
       throw new NotFoundException(`No Cal Video reference found with booking uid ${bookingUid}`);
     }
@@ -69,10 +74,7 @@ export class CalVideoService {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const roomName =
-      booking?.references?.filter((reference) => reference.type === "daily_video")?.pop()?.meetingId ??
-      undefined;
-
+    const roomName = this.getVideoSessionsRoomName(booking.references);
     if (!roomName) {
       throw new NotFoundException(`No Cal Video reference found with booking uid ${bookingUid}`);
     }
@@ -88,20 +90,12 @@ export class CalVideoService {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const roomName =
-      booking?.references?.filter((reference) => reference.type === "daily_video")?.pop()?.meetingId ??
-      undefined;
-
+    const roomName = this.getVideoSessionsRoomName(booking.references);
     if (!roomName) {
       throw new NotFoundException(`No Cal Video reference found with booking uid ${bookingUid}`);
     }
 
     const sessions = await getCalVideoMeetingSessionsByRoomName(roomName);
-
-    if (!sessions) {
-      return [];
-    }
-
-    return this.outputService.getOutputVideoSessions(sessions);
+    return this.calVideoOutputService.getOutputVideoSessions(sessions.data);
   }
 }

@@ -60,6 +60,8 @@ export const getMeetingInformationResponseSchema = z.object({
   data: z.array(meetingSessionSchema),
 });
 
+export type CalMeetingParticipant = z.infer<typeof meetingParticipantSchema>;
+export type CalMeetingSession = z.infer<typeof meetingSessionSchema>;
 export type TGetMeetingInformationResponsesSchema = z.infer<typeof getMeetingInformationResponseSchema>;
 
 export type TGetTranscriptAccessLink = z.infer<typeof ZGetTranscriptAccessLink>;

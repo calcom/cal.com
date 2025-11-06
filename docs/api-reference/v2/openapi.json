@@ -27391,7 +27391,7 @@
         },
         "required": ["status", "data"]
       },
-      "MeetingParticipant": {
+      "CalMeetingParticipant": {
         "type": "object",
         "properties": {
           "userId": {
@@ -27415,7 +27415,7 @@
         },
         "required": ["userId", "userName", "joinTime", "duration"]
       },
-      "MeetingSession": {
+      "CalMeetingSession": {
         "type": "object",
         "properties": {
           "id": {
@@ -27445,7 +27445,7 @@
           "participants": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MeetingParticipant"
+              "$ref": "#/components/schemas/CalMeetingParticipant"
             }
           }
         },
@@ -27462,7 +27462,7 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MeetingSession"
+              "$ref": "#/components/schemas/CalMeetingSession"
             }
           },
           "error": {

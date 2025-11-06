@@ -395,7 +395,7 @@ const getCalVideoMeetingSessionsByRoomName = async (roomName: string) => {
     dailyAppKeys = await getDailyAppKeys();
   } catch (e) {
     console.error("Error: Cal video provider is not installed.");
-    return;
+    return { data: [] };
   }
   const [videoAdapter] = await getVideoAdapters([
     {
@@ -411,7 +411,7 @@ const getCalVideoMeetingSessionsByRoomName = async (roomName: string) => {
     },
   ]);
 
-  return videoAdapter?.getMeetingInformation?.(roomName);
+  return videoAdapter?.getMeetingInformation?.(roomName) ?? { data: [] };
 };
 
 export {

@@ -4,7 +4,7 @@ import { IsEnum, ValidateNested, IsNumber, IsString, IsBoolean, IsArray } from "
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-export class MeetingParticipant {
+export class CalMeetingParticipant {
   @ApiProperty({ example: "user123", nullable: true })
   @IsString()
   userId!: string | null;
@@ -22,7 +22,7 @@ export class MeetingParticipant {
   duration!: number;
 }
 
-export class MeetingSession {
+export class CalMeetingSession {
   @ApiProperty({ example: "session123" })
   @IsString()
   id!: string;
@@ -47,11 +47,11 @@ export class MeetingSession {
   @IsNumber()
   maxParticipants!: number;
 
-  @ApiProperty({ type: [MeetingParticipant] })
+  @ApiProperty({ type: [CalMeetingParticipant] })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => MeetingParticipant)
-  participants!: MeetingParticipant[];
+  @Type(() => CalMeetingParticipant)
+  participants!: CalMeetingParticipant[];
 }
 
 export class GetBookingVideoSessionsOutput {
@@ -61,8 +61,8 @@ export class GetBookingVideoSessionsOutput {
 
   error?: Error;
 
-  @ApiProperty({ type: [MeetingSession] })
+  @ApiProperty({ type: [CalMeetingSession] })
   @ValidateNested({ each: true })
-  @Type(() => MeetingSession)
-  data!: MeetingSession[];
+  @Type(() => CalMeetingSession)
+  data!: CalMeetingSession[];
 }
