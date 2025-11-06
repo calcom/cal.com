@@ -16,7 +16,17 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import LocationSettingsContainer from "./LocationSettingsContainer";
 
-const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSettingsType }) => {
+const CalVideoSettings = ({
+  calVideoSettings,
+  locationLockedProps,
+}: {
+  calVideoSettings?: CalVideoSettingsType;
+  locationLockedProps?: {
+    disabled: boolean;
+    isLocked: boolean;
+    LockedIcon: React.ReactNode;
+  };
+}) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const isPlatform = useIsPlatform();
@@ -53,6 +63,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    {...(locationLockedProps || {})}
                   />
                 );
               }}
@@ -69,6 +80,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    {...(locationLockedProps || {})}
                   />
                 );
               }}
@@ -86,6 +98,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       onCheckedChange={onChange}
                       Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    {...(locationLockedProps || {})}
                     />
                   );
                 }}
@@ -103,6 +116,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    {...(locationLockedProps || {})}
                   />
                 );
               }}
@@ -120,6 +134,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       onCheckedChange={onChange}
                       Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    {...(locationLockedProps || {})}
                     />
                   );
                 }}
@@ -137,6 +152,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       onCheckedChange={onChange}
                       Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    {...(locationLockedProps || {})}
                     />
                   );
                 }}
@@ -154,6 +170,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                   onCheckedChange={onChange}
                   data-testid="send-cal-video-transcription-emails"
                   Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                  {...(locationLockedProps || {})}
                 />
               )}
             />
@@ -170,6 +187,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     onCheckedChange={onChange}
                     Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    {...(locationLockedProps || {})}
                   />
                 );
               }}
@@ -181,6 +199,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
               data-testid="calVideoSettings.redirectUrlOnExit"
               containerClassName="mt-4"
               className="leading-6"
+              {...(locationLockedProps || {})}
               {...formMethods.register("calVideoSettings.redirectUrlOnExit", {
                 setValueAs: (v) => (!v || v.trim() === "" ? null : v),
               })}
