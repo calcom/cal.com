@@ -1423,7 +1423,7 @@ describe("Event types Endpoints", () => {
       });
 
       await membershipsRepositoryFixture.create({
-        role: "MEMBER",
+        role: "ADMIN",
         user: { connect: { id: user.id } },
         team: { connect: { id: team.id } },
         accepted: true,
@@ -1443,11 +1443,55 @@ describe("Event types Endpoints", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
         .set("Authorization", `Bearer ${apiKeyString}`)
         .expect(200)
-        .then((response) => {
+        .then(async (response) => {
           const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data.id).toEqual(teamEventType.id);
           expect(responseBody.data.teamId).toEqual(team.id);
+          await teamRepositoryFixture.delete(team.id);
+        });
+    });
+
+    it("user can access a team event type as HOST even if membership role is MEMBER (using user's API key)", async () => {
+      const team = await teamRepositoryFixture.create({
+        name: `event-types-2024-06-14-host-team-${randomString()}`,
+        isOrganization: false,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: user.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      });
+
+      const teamEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        title: `event-types-2024-06-14-host-event-${randomString()}`,
+        slug: `event-types-2024-06-14-host-event-${randomString()}`,
+        length: 60,
+        locations: [],
+        schedulingType: "COLLECTIVE",
+        team: { connect: { id: team.id } },
+        hosts: {
+          create: [
+            {
+              user: { connect: { id: user.id } },
+            },
+          ],
+        },
+      });
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${teamEventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.id).toEqual(teamEventType.id);
+          expect(responseBody.data.teamId).toEqual(team.id);
+          await teamRepositoryFixture.delete(team.id);
         });
     });
 
