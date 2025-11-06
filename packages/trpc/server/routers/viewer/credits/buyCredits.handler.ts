@@ -1,4 +1,4 @@
-import { BillingProviderServiceFactory } from "@calcom/ee/billing/service/billingProvider/billingProviderServiceFactory";
+import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -70,7 +70,7 @@ export const buyCreditsHandler = async ({ ctx, input }: BuyCreditsOptions) => {
     }
   }
 
-  const billingService = BillingProviderServiceFactory.getService();
+  const billingService = getBillingProviderService();
 
   const { checkoutUrl } = await billingService.createOneTimeCheckout({
     priceId: process.env.NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID,
