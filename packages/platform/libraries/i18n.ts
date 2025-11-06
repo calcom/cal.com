@@ -1,5 +1,4 @@
 import { createInstance } from "i18next";
-import type { i18n as I18nInstance } from "i18next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchWithTimeout } from "@calcom/lib/fetchWithTimeout";
@@ -11,8 +10,7 @@ const path = require("path");
 const translationsPath = path.resolve(__dirname, "../../../../apps/web/public/static/locales/en/common.json");
 const englishTranslations: Record<string, string> = require(translationsPath);
 /* eslint-enable @typescript-eslint/no-require-imports */
-
-const translationCache = new Map<string, Record<string, string>>();
+const translationCache = new Map<string, Record<string, string>>([["en-common", englishTranslations]]);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const i18nInstanceCache = new Map<string, any>();
 const SUPPORTED_NAMESPACES = ["common"];
