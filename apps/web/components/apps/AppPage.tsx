@@ -115,8 +115,8 @@ export const AppPage = ({
 
   const handleAppInstall = () => {
     if (isRedirectApp(slug)) {
-      setIsLoading(true);
-      mutation.mutate({ type, variant, slug });
+      // For redirect apps, open the external URL directly
+      if (website) window.open(website, "_blank", "noopener,noreferrer");
       return;
     }
     setIsLoading(true);
