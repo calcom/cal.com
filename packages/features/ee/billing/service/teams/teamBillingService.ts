@@ -230,6 +230,6 @@ export class TeamBillingService implements ITeamBillingService {
     }
   }
   async saveTeamBilling(args: IBillingRepositoryCreateArgs) {
-    this.billingRepository.create(args);
+await this.billingRepository.create(args);
   }
 }
