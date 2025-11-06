@@ -22,6 +22,7 @@ type IconName =
   | "binary"
   | "blocks"
   | "bold"
+  | "book"
   | "book-open-check"
   | "book-open"
   | "book-user"

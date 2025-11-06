@@ -107,8 +107,23 @@ model CalVideoSettings {
   redirectUrlOnExit                    String?
   disableTranscriptionForGuests        Boolean  @default(false)
   disableTranscriptionForOrganizer     Boolean  @default(false)
+  requireEmailForGuests                Boolean  @default(false)
   createdAt                            DateTime @default(now())
   updatedAt                            DateTime @updatedAt
+}
+
+model VideoCallGuest {
+  id         String    @id @default(uuid())
+  bookingUid String
+  email      String
+  name       String
+  joinedAt   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([bookingUid, email])
+  @@index([bookingUid])
+  @@index([email])
 }
 
 model EventType {
