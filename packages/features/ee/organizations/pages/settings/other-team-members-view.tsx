@@ -15,7 +15,6 @@ import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import MakeTeamPrivateSwitch from "../../../teams/components/MakeTeamPrivateSwitch";
 import MemberListItem from "../components/MemberListItem";
@@ -159,7 +158,6 @@ const MembersView = () => {
       utils.viewer.organizations.getMembers.invalidate();
       utils.viewer.organizations.listOtherTeams.invalidate();
       utils.viewer.teams.list.invalidate();
-      revalidateTeamsList();
       utils.viewer.organizations.listOtherTeamMembers.invalidate();
     },
   });
