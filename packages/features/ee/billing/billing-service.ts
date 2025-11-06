@@ -45,6 +45,8 @@ export interface BillingService {
       metadata?: Record<string, string | number>;
       trial_period_days?: number;
     };
+    paymentMethodTypes?: string[];
+    billingAddressCollection?: "auto" | "required";
   }): Promise<{ checkoutUrl: string | null; sessionId: string }>;
 
   // Price management

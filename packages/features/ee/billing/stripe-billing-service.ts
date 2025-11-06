@@ -84,9 +84,11 @@ export class StripeBillingService implements BillingService {
       automaticTax,
       discounts,
       subscriptionData,
+      paymentMethodTypes,
+      billingAddressCollection,
     } = args;
 
-    const session = await this.stripe.checkout.sessions.create({
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       success_url: successUrl,
       cancel_url: cancelUrl,
@@ -103,7 +105,17 @@ export class StripeBillingService implements BillingService {
       automatic_tax: automaticTax,
       discounts,
       subscription_data: subscriptionData,
-    });
+    };
+
+    if (paymentMethodTypes) {
+      sessionParams.payment_method_types = paymentMethodTypes as Stripe.Checkout.SessionCreateParams.PaymentMethodType[];
+    }
+
+    if (billingAddressCollection) {
+      sessionParams.billing_address_collection = billingAddressCollection;
+    }
+
+    const session = await this.stripe.checkout.sessions.create(sessionParams);
 
     return {
       checkoutUrl: session.url,

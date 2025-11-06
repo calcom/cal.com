@@ -178,8 +178,6 @@ export class StripeService {
     const session = await stripe.checkout.sessions.create({
       customer,
       mode: "subscription",
-      payment_method_types: ["card", "us_bank_account"],
-      billing_address_collection: "required",
       allow_promotion_codes: true,
       success_url: `${this.webAppUrl}/api/teams/api/create?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${this.webAppUrl}/settings/my-account/profile`,

@@ -288,6 +288,8 @@ export class OrganizationPaymentService {
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
       },
+      paymentMethodTypes: ["card", "us_bank_account"],
+      billingAddressCollection: "required",
     });
   }
 
