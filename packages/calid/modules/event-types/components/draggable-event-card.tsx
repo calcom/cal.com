@@ -318,7 +318,7 @@ export const DraggableEventCard: React.FC<DraggableEventCardProps> = ({
                             if (location?.type === "integrations:jitsi") return t("jitsi");
                             if (location?.type === "integrations:zoom") return t("zoom");
                             if (location?.type === "integrations:google:meet") return t("google_meet");
-                            if (location?.type === "integrations:teams") return t("teams");
+                            if (location?.type === "integrations:office365_video") return t("teams");
                             if (location?.type === "integrations:webex") return t("webex");
                             if (location?.type === "inPerson") return t("in_person");
                             if (location?.type === "attendeeInPerson") return t("attendee_in_person");
