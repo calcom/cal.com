@@ -90,85 +90,83 @@ function VerifyEmailPage() {
       `}</style>
 
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
-        <div className="max-w-7xl items-center justify-center overflow-hidden rounded-3xl border-0 bg-white pl-[80px] shadow-xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            {/* Left Column - Email Verification Content */}
-            <div className="flex flex-col justify-center p-8 lg:p-12">
-              <div className="fade-in-up text-center" style={{ animationDelay: "100ms" }}>
-                {/* Email Icon */}
-                <div className="mb-6 flex justify-center">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#007ee5]/10">
-                    <svg
-                      className="h-10 w-10 text-[#007ee5]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
+        <div className="w-full items-center justify-center overflow-hidden rounded-3xl border-0 bg-white shadow-xl md:max-w-[600px]">
+          <div className="flex flex-col justify-center p-8 lg:p-12">
+            <div className="fade-in-up text-center" style={{ animationDelay: "100ms" }}>
+              {/* Email Icon */}
+              <div className="mb-6 flex justify-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#007ee5]/10">
+                  <svg
+                    className="h-10 w-10 text-[#007ee5]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
                 </div>
+              </div>
 
-                {/* Header */}
-                <h1 className="mb-2 text-2xl font-bold text-gray-900">{t("check_your_email")}</h1>
-                <p className="mx-auto mb-8 max-w-md text-gray-600">
-                  We've sent a verification link to{" "}
-                  <span className="font-semibold text-gray-900">{session?.user?.email}</span>
-                </p>
+              {/* Header */}
+              <h1 className="mb-2 text-2xl font-bold text-gray-900">{t("check_your_email")}</h1>
+              <div className="flex flex-col mb-8 ">
+                <p className="mx-auto max-w-md text-gray-600">We've sent a verification link to </p>
+                <span className="font-semibold text-gray-900">{session?.user?.email}</span>
+              </div>
 
-                {/* Action Buttons */}
+              {/* Action Buttons */}
+              <div
+                className="fade-in-up mb-6 flex flex-col gap-3 sm:flex-row sm:justify-center"
+                style={{ animationDelay: "200ms" }}>
+                <Button
+                  color="secondary"
+                  onClick={() => router.back()}
+                  className="btn-back justify-center rounded-lg border px-10 py-3 font-semibold">
+                  <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                    />
+                  </svg>
+                  Back
+                </Button>
+
+                <Button
+                  color="secondary"
+                  onClick={handleResendEmail}
+                  disabled={countdown > 0 || mutation.isPending}
+                  loading={mutation.isPending}
+                  className="justify-center rounded-lg px-12 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-70">
+                  {countdown > 0 ? `Resend Mail (${countdown}s)` : "Resend Mail"}
+                </Button>
+              </div>
+
+              {/* Confirmation Message */}
+              {showConfirm && (
                 <div
-                  className="fade-in-up mb-6 flex flex-col gap-3 sm:flex-row sm:justify-center"
-                  style={{ animationDelay: "200ms" }}>
-                  <Button
-                    color="secondary"
-                    onClick={() => router.back()}
-                    className="btn-back justify-center rounded-lg border px-10 py-3 font-semibold">
-                    <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  className="fade-in-up mb-4 rounded-lg bg-green-50 p-3"
+                  style={{ animationDelay: "300ms" }}>
+                  <p className="flex items-center justify-center text-sm font-medium text-green-700">
+                    <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
                       <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
                       />
                     </svg>
-                    Back
-                  </Button>
-
-                  <Button
-                    color="secondary"
-                    onClick={handleResendEmail}
-                    disabled={countdown > 0 || mutation.isPending}
-                    loading={mutation.isPending}
-                    className="justify-center rounded-lg px-20 py-3 font-semibold disabled:cursor-not-allowed disabled:opacity-70">
-                    {countdown > 0 ? `Resend Mail (${countdown}s)` : "Resend Mail"}
-                  </Button>
+                    New verification email sent!
+                  </p>
                 </div>
+              )}
 
-                {/* Confirmation Message */}
-                {showConfirm && (
-                  <div
-                    className="fade-in-up mb-4 rounded-lg bg-green-50 p-3"
-                    style={{ animationDelay: "300ms" }}>
-                    <p className="flex items-center justify-center text-sm font-medium text-green-700">
-                      <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      New verification email sent!
-                    </p>
-                  </div>
-                )}
-
-                {/* Login Link */}
-                <div className="fade-in-up mt-6" style={{ animationDelay: "400ms" }}>
+              {/* Login Link */}
+              {/* <div className="fade-in-up mt-6" style={{ animationDelay: "400ms" }}>
                   <div className="text-center">
                     <span className="font-medium text-gray-600">Already have an account? </span>
                     <Link
@@ -177,19 +175,8 @@ function VerifyEmailPage() {
                       Login
                     </Link>
                   </div>
-                </div>
-              </div>
+                </div> */}
             </div>
-
-            {/* Right Column - Image */}
-            <div
-              className="m-6 hidden h-[350px] items-center justify-center overflow-hidden rounded-2xl p-6 lg:flex"
-              style={{
-                backgroundImage:
-                  "url('https://images.pexels.com/photos/20716656/pexels-photo-20716656.jpeg')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}></div>
           </div>
         </div>
 

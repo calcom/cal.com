@@ -328,8 +328,8 @@ export default function Signup({
       `}</style>
 
       <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
-        <div className="w-full max-w-7xl overflow-hidden rounded-3xl border-0 bg-white shadow-xl">
-          <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-2">
+        <div className="md:max-w-[600px] w-full overflow-hidden rounded-3xl border-0 bg-white shadow-xl">
+          <div className="min-h-[600px]">
             {/* Left Column - Signup Form */}
             <div className="flex flex-col justify-center p-8 lg:p-12">
               <div className="fade-in-up mb-8">
@@ -557,15 +557,6 @@ export default function Signup({
                 </div>
               </div>
             </div>
-
-            {/* Right Column - Image */}
-            <div
-              className="m-6 hidden min-h-[600px] w-full items-center justify-center overflow-hidden rounded-2xl p-6 lg:flex"
-              style={{
-                backgroundImage: "url('https://images.pexels.com/photos/4049992/pexels-photo-4049992.jpeg')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}></div>
           </div>
         </div>
 

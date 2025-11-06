@@ -40,8 +40,8 @@ export function Logout(props: PageProps) {
   };
 
   return (
-    <div className="bg-default flex min-h-screen flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
-      <div className="border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] px-4 sm:px-6 lg:px-8">
+      <div className="bg-white border-default w-full max-w-lg rounded-2xl border p-8 shadow-xl">
         <div className="text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
             <Icon name="check" className="h-8 w-8 text-green-600" />

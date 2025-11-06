@@ -238,16 +238,16 @@ export default function Login({
         }
       `}</style>
 
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
-        <div className="w-full max-w-7xl overflow-hidden rounded-3xl border-0 bg-white shadow-xl">
-          <div className="grid min-h-[600px] grid-cols-1 lg:grid-cols-2">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] px-5">
+        <div className="md:max-w-[600px] w-full overflow-hidden rounded-3xl border-0 bg-white shadow-xl  m-0">
+          <div className="min-h-[600px]">
             {/* Left Column - Login Form */}
-            <div className="flex flex-col justify-center p-8 lg:p-12">
-              <div className="fade-in-up mb-8">
-                <h1 className="mb-2 text-2xl font-bold text-gray-900">
+            <div className="flex flex-col justify-center p-6 lg:p-12">
+              <div className="fade-in-up mb-8 center">
+                <h1 className="mb-2 text-2xl text-center md:text-left font-bold text-gray-900">
                   {twoFactorRequired ? t("2fa_code") : t("welcome_back")}
                 </h1>
-                {!twoFactorRequired && <p className="font-medium text-gray-600">{t("sign_in_account")}</p>}
+                {!twoFactorRequired && <p className="font-medium text-center md:text-left sm:text-center text-gray-600">{t("sign_in_account")}</p>}
               </div>
 
               <FormProvider {...methods}>
@@ -277,7 +277,7 @@ export default function Login({
                               <span className="hidden sm:inline">{t("signin_with_google")}</span>
                             </Button>
                             {lastUsed === "google" && (
-                              <span className="absolute -top-3 right-2 z-10 rounded-full bg-yellow-400 px-2.5 py-1 text-xs font-semibold text-gray-800 shadow">
+                              <span className="absolute -top-3 right-2 z-10 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-800">
                                 ⭐ Last Used
                               </span>
                             )}
@@ -288,7 +288,7 @@ export default function Login({
 
                     {/* Divider */}
                     {isGoogleLoginEnabled && (
-                      <div className="fade-in-up my-6" style={{ animationDelay: "200ms" }}>
+                      <div className="fade-in-up my-2" style={{ animationDelay: "200ms" }}>
                         <div className="relative flex items-center">
                           <div className="flex-grow border-t border-gray-200" />
                           <span className="px-4 text-sm font-medium text-gray-500">{t("or")}</span>
@@ -303,7 +303,7 @@ export default function Login({
                 <form
                   onSubmit={methods.handleSubmit(onSubmit)}
                   noValidate
-                  className="fade-in-up space-y-6"
+                  className="fade-in-up"
                   style={{ animationDelay: "300ms" }}>
                   <div>
                     <input
@@ -319,6 +319,7 @@ export default function Login({
                       <EmailField
                         id="email"
                         size="lg"
+                        noLabel={true}
                         variant="floating"
                         prefixIcon="mail"
                         defaultValue={totpEmail || (searchParams?.get("email") as string)}
@@ -360,7 +361,9 @@ export default function Login({
                       className="btn-premium-submit mt-6 w-full justify-center rounded-lg bg-[#007ee5] py-3 font-semibold text-white hover:bg-[#006ac1]"
                       data-testid="submit">
                       <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                      {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-brand" />}
+                      {lastUsed === "credentials" && !twoFactorRequired && (
+                        <LastUsed className="text-brand" />
+                      )}
                     </Button>
                   </div>
                 </form>
@@ -389,16 +392,6 @@ export default function Login({
             </div>
 
             {/* Right Column - Image */}
-            <div
-              className="relative m-6 hidden min-h-[600px] w-full items-center justify-center overflow-hidden rounded-2xl p-6 lg:flex"
-              style={{
-                backgroundImage:
-                  "url('https://images.pexels.com/photos/4049992/pexels-photo-4049992.jpeg?auto=compress&cs=tinysrgb&w=800')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}>
-              <div className="absolute inset-0 rounded-2xl bg-black/10"></div>
-            </div>
           </div>
         </div>
 
