@@ -286,7 +286,7 @@ function BookingsContent({ status, permissions, isCalendarViewEnabled }: Booking
                 listingStatus={status}
                 recurringInfo={recurringInfo}
                 // uncomment this line to enable BookingDetailsSheet
-                onClick={() => setSelectedBookingId(booking.id)}
+                // onClick={() => setSelectedBookingId(booking.id)}
                 {...booking}
               />
             );
