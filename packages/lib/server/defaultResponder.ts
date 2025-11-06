@@ -52,14 +52,14 @@ export function defaultResponder<T>(
     } catch (err) {
       tracingLogger.error(`${operation} request failed`, { error: err });
       const tracedError = TracedError.createFromError(err, traceContext);
-      const error = getServerErrorFromUnknown(tracedError);
+      const error = getServerErrorFromUnknown(err);
       // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
         console.error(error);
         const { captureException } = await import("@sentry/nextjs");
-        captureException(error);
+        captureException(tracedError);
       }
-      res.setHeader("X-Trace-Id", traceContext.traceId);
+      res.setHeader("X-Trace-Id", tracedError.traceId);
       return res
         .status(error.statusCode)
         .json({ message: error.message, url: error.url, method: error.method, data: error?.data || null });

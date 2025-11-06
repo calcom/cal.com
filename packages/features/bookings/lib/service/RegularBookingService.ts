@@ -1802,7 +1802,7 @@ async function handler(
 
         // Save description to bookingSeat
         const uniqueAttendeeId = uuid();
-        await prisma.bookingSeat.create({
+        await deps.prismaClient.bookingSeat.create({
           data: {
             referenceUid: uniqueAttendeeId,
             data: {
