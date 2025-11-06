@@ -73,7 +73,7 @@ export function InviteMemberModal(props: Props) {
           language: i18n.language,
           role: values.role,
           usernameOrEmail: values.emailOrUsername,
-          isPlatform: platformUser?.organization.isPlatform,
+          isPlatform: platformUser?.isPlatform,
           creationSource: CreationSource.WEBAPP,
         });
       }}
