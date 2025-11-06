@@ -30,7 +30,6 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import { TeamRole } from "./TeamPill";
 
@@ -60,7 +59,6 @@ export default function TeamListItem(props: Props) {
       showToast(t("success"), "success");
       utils.viewer.teams.get.invalidate();
       utils.viewer.teams.list.invalidate();
-      revalidateTeamsList();
       utils.viewer.teams.hasTeamPlan.invalidate();
       utils.viewer.teams.listInvites.invalidate();
       const userOrganizationId = orgId ?? undefined;

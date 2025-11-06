@@ -26,7 +26,6 @@ import { Select } from "@calcom/ui/components/form";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -90,10 +89,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
-    async onSuccess({ inviteLink }) {
+    async onSuccess() {
       trpcContext.viewer.teams.get.invalidate();
       trpcContext.viewer.teams.list.invalidate();
-      revalidateTeamsList();
     },
     onError: (error) => {
       showToast(error.message, "error");
@@ -388,7 +386,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   color="minimal"
                   className="me-2 ms-2"
                   onClick={() => {
-                    props.onSettingsOpen && props.onSettingsOpen();
+                    if (props.onSettingsOpen) {
+                      props.onSettingsOpen();
+                    }
                     newMemberFormMethods.reset();
                   }}
                   data-testid="edit-invite-link-button">
@@ -410,14 +410,17 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/
                       if (typeof ClipboardItem !== "undefined") {
                         const inviteLinkClipbardItem = new ClipboardItem({
-                          "text/plain": new Promise(async (resolve) => {
+                          "text/plain": new Promise((resolve) => {
                             // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
-                            const { inviteLink } = await createInviteMutation.mutateAsync({
-                              teamId: props.teamId,
-                              token: props.token,
-                            });
-                            showToast(t("invite_link_copied"), "success");
-                            resolve(new Blob([inviteLink], { type: "text/plain" }));
+                            createInviteMutation
+                              .mutateAsync({
+                                teamId: props.teamId,
+                                token: props.token,
+                              })
+                              .then(({ inviteLink }) => {
+                                showToast(t("invite_link_copied"), "success");
+                                resolve(new Blob([inviteLink], { type: "text/plain" }));
+                              });
                           }),
                         });
                         await navigator.clipboard.write([inviteLinkClipbardItem]);
