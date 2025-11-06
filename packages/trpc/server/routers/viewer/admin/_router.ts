@@ -3,6 +3,14 @@ import { router } from "../../../trpc";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
+import {
+  ZUpdateDeploymentSchema,
+  ZSendLicenseEmailSchema,
+  ZGetDeploymentStripeInfoSchema,
+  ZUpdateLicenseKeySchema,
+  ZGetLicenseKeyStripeInfoSchema,
+} from "./license/deploymentMutations.schema";
+import { ZListDeploymentsSchema } from "./license/listDeployments.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
@@ -18,10 +26,6 @@ import {
   workspacePlatformUpdateServiceAccountSchema,
   workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
-
-const NAMESPACE = "admin";
-
-const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const adminRouter = router({
   listPaginated: authedAdminProcedure.input(ZListMembersSchema).query(async (opts) => {
@@ -63,18 +67,14 @@ export const adminRouter = router({
     const { default: handler } = await import("./whitelistUserWorkflows.handler");
     return handler(opts);
   }),
-  getTeamsForFeature: authedAdminProcedure
-    .input(ZAdminGetTeamsForFeatureSchema)
-    .query(async (opts) => {
-      const { default: handler } = await import("./getTeamsForFeature.handler");
-      return handler(opts);
-    }),
-  assignFeatureToTeam: authedAdminProcedure
-    .input(ZAdminAssignFeatureToTeamSchema)
-    .mutation(async (opts) => {
-      const { default: handler } = await import("./assignFeatureToTeam.handler");
-      return handler(opts);
-    }),
+  getTeamsForFeature: authedAdminProcedure.input(ZAdminGetTeamsForFeatureSchema).query(async (opts) => {
+    const { default: handler } = await import("./getTeamsForFeature.handler");
+    return handler(opts);
+  }),
+  assignFeatureToTeam: authedAdminProcedure.input(ZAdminAssignFeatureToTeamSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./assignFeatureToTeam.handler");
+    return handler(opts);
+  }),
   unassignFeatureFromTeam: authedAdminProcedure
     .input(ZAdminUnassignFeatureFromTeamSchema)
     .mutation(async (opts) => {
@@ -104,5 +104,35 @@ export const adminRouter = router({
       const { default: handler } = await import("./workspacePlatform/toggleEnabled.handler");
       return handler(opts);
     }),
+  }),
+  license: router({
+    listDeployments: authedAdminProcedure.input(ZListDeploymentsSchema).query(async (opts) => {
+      const { default: handler } = await import("./license/listDeployments.handler");
+      return handler(opts);
+    }),
+    updateDeployment: authedAdminProcedure.input(ZUpdateDeploymentSchema).mutation(async (opts) => {
+      const { updateDeploymentHandler } = await import("./license/deploymentMutations.handler");
+      return updateDeploymentHandler(opts);
+    }),
+    sendLicenseEmail: authedAdminProcedure.input(ZSendLicenseEmailSchema).mutation(async (opts) => {
+      const { sendLicenseEmailHandler } = await import("./license/deploymentMutations.handler");
+      return sendLicenseEmailHandler(opts);
+    }),
+    getDeploymentStripeInfo: authedAdminProcedure
+      .input(ZGetDeploymentStripeInfoSchema)
+      .query(async (opts) => {
+        const { getDeploymentStripeInfoHandler } = await import("./license/deploymentMutations.handler");
+        return getDeploymentStripeInfoHandler(opts);
+      }),
+    updateLicenseKey: authedAdminProcedure.input(ZUpdateLicenseKeySchema).mutation(async (opts) => {
+      const { updateLicenseKeyHandler } = await import("./license/deploymentMutations.handler");
+      return updateLicenseKeyHandler(opts);
+    }),
+    getLicenseKeyStripeInfo: authedAdminProcedure
+      .input(ZGetLicenseKeyStripeInfoSchema)
+      .query(async (opts) => {
+        const { getLicenseKeyStripeInfoHandler } = await import("./license/deploymentMutations.handler");
+        return getLicenseKeyStripeInfoHandler(opts);
+      }),
   }),
 });
