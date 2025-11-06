@@ -4,6 +4,7 @@ import { CancelBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
 import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/mark-absent.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
+import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
@@ -3231,7 +3232,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           },
         });
 
-        const calVideoService = app.get("CalVideoService");
+        const calVideoService = app.get(CalVideoService);
         jest
           .spyOn(calVideoService, "getVideoSessions")
           .mockResolvedValue([
