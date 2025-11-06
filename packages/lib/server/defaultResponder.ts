@@ -1,9 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { TRPCError } from "@trpc/server";
+import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+
 import { type TraceContext } from "@calcom/lib/tracing";
 import { TracedError } from "@calcom/lib/tracing/error";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 
+import { HttpError } from "../http-error";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 import { performance } from "./perfObserver";
 
@@ -52,7 +56,13 @@ export function defaultResponder<T>(
     } catch (err) {
       tracingLogger.error(`${operation} request failed`, { error: err });
       const tracedError = TracedError.createFromError(err, traceContext);
-      const error = getServerErrorFromUnknown(err);
+      let error: HttpError;
+      if (err instanceof TRPCError) {
+        const statusCode = getHTTPStatusCodeFromError(err);
+        error = new HttpError({ statusCode, message: err.message });
+      } else {
+        error = getServerErrorFromUnknown(err);
+      }
       // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
         console.error(error);
