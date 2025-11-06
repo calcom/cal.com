@@ -5,7 +5,7 @@ import { DI_TOKENS } from "../tokens";
 import { billingProviderServiceModuleLoader } from "./BillingProviderService";
 import { billingRepositoryFactoryModuleLoader } from "./BillingRepositoryFactory";
 import { isTeamBillingEnabledModuleLoader } from "./IsTeamBillingEnabled";
-import { teamBillingDataRepositoryModuleLoader } from "./TeamBillingDataRepository";
+import { teamBillingDataRepositoryModuleLoader } from "./TeamBillingDataRepositoryFactory";
 
 const teamBillingServiceFactoryModule = createModule();
 const token = DI_TOKENS.TEAM_BILLING_SERVICE_FACTORY;
