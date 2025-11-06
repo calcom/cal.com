@@ -10,6 +10,8 @@ import { webhookRouter } from "@calcom/trpc/server/routers/viewer/webhook/_route
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
+import { revalidateWebhooksList } from "./actions";
+
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("webhooks"),
@@ -28,7 +30,7 @@ const WebhooksViewServerWrapper = async () => {
   const caller = await createRouterCaller(webhookRouter);
   const data = await caller.getByViewer();
 
-  return <WebhooksView data={data} />;
+  return <WebhooksView data={data} onInvalidate={revalidateWebhooksList} />;
 };
 
 export default WebhooksViewServerWrapper;
