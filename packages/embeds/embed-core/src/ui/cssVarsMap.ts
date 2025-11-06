@@ -12,16 +12,22 @@ import { UiConfig } from "../types";
  */
 const OLD_TO_NEW_CSS_VAR_MAP: Record<string, string> = {
     // Border radius variables: --cal-radius-* -> --radius-*
-    "cal-radius-none": "radius-none",
-    "cal-radius-sm": "radius-sm",
     "cal-radius": "radius",
+    "cal-radius-sm": "radius-sm",
     "cal-radius-md": "radius-md",
     "cal-radius-lg": "radius-lg",
     "cal-radius-xl": "radius-xl",
     "cal-radius-2xl": "radius-2xl",
     "cal-radius-3xl": "radius-3xl",
     "cal-radius-full": "radius-full",
-    // Add more mappings here as needed for other CSS variables that have changed
+    "cal-radius-none": "radius-none",
+    // We don't intentionally want to support all spacing variables, from just one variable our design system derives all the rest.
+    "cal-spacing-px": "spacing",
+    // No need to map the following
+    // Colors - Still using the old variable names --cal-bg-* and --cal-brand-*
+    // Border colors - Still using the old variable names --cal-border-*
+    // text colors - Still using the old variable names --cal-text-*
+    // fill colors - Still using the old variable names --cal-fill-*
 };
 
 /**

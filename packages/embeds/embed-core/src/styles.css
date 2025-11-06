@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import "@coss/ui/styles.css";
 @import "../../../config/theme/tokens.css";
 
 @font-face {

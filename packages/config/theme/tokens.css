@@ -1,4 +1,4 @@
-/** TODO: This file is imported in embed as well as webapp. Embed loads this css on the embedding page and thus any style that is generic enough could affect embedding user's webpage */
+/** This file is used in webapp as well as inside shadow DOM of embed elements. **/
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
@@ -17,6 +17,18 @@
 @theme inline {
   --font-sans: var(--font-inter);
   --font-cal: var(--font-cal);
+
+  /* Resets the preference from coss-ui to use single --radius variable for all radius values */
+  --radius-*: initial;
+  --radius: var(--radius);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-3xl: var(--radius-3xl);
+  --radius-full: var(--radius-full);
+  --radius-none: var(--radius-none);
 
   /* Cal.com Border Radius */
   --radius-cal-none: 0px;
@@ -212,6 +224,12 @@
 
 :root,
 :host {
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
   /* Background Standard */
   --cal-bg-emphasis: hsla(220, 13%, 91%, 1);
   --cal-bg: hsla(0, 0%, 100%, 1);

@@ -46,9 +46,22 @@ if (themeInParam && !theme) {
 
 const calLink = searchParams.get("cal-link");
 
+function fakeEvent({
+  namespace,
+  eventType,
+  data
+}) {
+  window.postMessage({
+    fullType: `CAL:${namespace}:${eventType}`,
+    namespace,
+    originator: "CAL",
+    type: eventType,
+    data,
+  })
+}
 
-window.heavilyCustomizeUi = function () {
-  Cal.ns.second("ui", {
+window.heavilyCustomizeUi = function ({ namespace }) {
+  Cal.ns[namespace]("ui", {
     theme: "light",
     cssVarsPerTheme: {
       light: {
@@ -71,6 +84,7 @@ window.heavilyCustomizeUi = function () {
         "cal-radius-2xl": "5px",
         "cal-radius-3xl": "6px",
         "cal-radius-full": "7px",
+        "cal-spacing-px": "5px",
         // More CSS variables are defined here
         // https://github.com/calcom/cal.com/blob/main/packages/config/tailwind-preset.js
       },
@@ -78,6 +92,14 @@ window.heavilyCustomizeUi = function () {
         // Set the similar variables as in light theme but for dark mode.
       },
     },
+  });
+};
+
+window.fakeErrorScenario = function ({ namespace }) {
+  fakeEvent({
+    namespace,
+    eventType: "linkFailed",
+    data: { code: 500 }
   });
 };
 
