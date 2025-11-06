@@ -65,7 +65,6 @@ export const LargeCalendar = ({
         start: new Date(booking.start),
         end: new Date(booking.end),
         options: {
-          borderColor: "black",
           status: booking.status.toUpperCase() as BookingStatus,
           "data-test-id": "troubleshooter-busy-event",
           className: "border-[1.5px]",

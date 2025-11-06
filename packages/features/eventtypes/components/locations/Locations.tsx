@@ -30,7 +30,6 @@ export type TLocationOptions = Pick<EventTypeSetupProps, "locationOptions">["loc
 export type TDestinationCalendar = { integration: string } | null;
 export type TPrefillLocation = { credentialId?: number; type: string };
 
-
 type LocationsProps = {
   team: { id: number } | null;
   destinationCalendar: TDestinationCalendar;
@@ -149,7 +148,7 @@ const Locations: React.FC<LocationsProps> = ({
   );
 
   useEffect(() => {
-    if (!!prefillLocation) {
+    if (prefillLocation) {
       const newLocationType = prefillLocation.value;
 
       const canAppendLocation = !validLocations.find((location) => location.type === newLocationType);
