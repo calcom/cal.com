@@ -3,6 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
@@ -38,16 +39,8 @@ export async function managedEventReassignment({
 
   await validateManagedEventReassignment({ bookingId });
 
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    select: {
-      id: true,
-      eventTypeId: true,
-      userId: true,
-      startTime: true,
-      endTime: true,
-    },
-  });
+  const bookingRepository = new BookingRepository(prisma);
+  const booking = await bookingRepository.findByIdForReassignment(bookingId);
 
   if (!booking || !booking.eventTypeId) {
     throw new Error("Booking or event type not found");

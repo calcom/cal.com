@@ -3001,7 +3001,7 @@
   "booking_reassigned": "Booking has been reassigned",
   "reassign": "Reassign",
   "reassign_to_another_rr_host": "Reassign booking to another available round robin host",
-  "reassign_managed_event_user": "Reassign managed event user",
+  "reassign_booking": "Reassign booking",
   "reassign_to_another_user": "Reassign booking to another available team member",
   "auto_reassign": "Auto Reassign",
   "auto_reassign_description": "Automatically reassign to another available team member",

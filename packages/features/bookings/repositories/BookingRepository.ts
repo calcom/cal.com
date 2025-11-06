@@ -1351,6 +1351,81 @@ export class BookingRepository {
     });
   }
 
+  async findByIdForReassignment(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        id: true,
+        eventTypeId: true,
+        userId: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+  }
+
+  async findByIdWithAttendeesPaymentAndReferences(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        customInputs: true,
+        responses: true,
+        startTime: true,
+        endTime: true,
+        metadata: true,
+        status: true,
+        location: true,
+        smsReminderNumber: true,
+        iCalUID: true,
+        iCalSequence: true,
+        eventTypeId: true,
+        userId: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+          },
+          orderBy: {
+            id: "asc",
+          },
+        },
+        user: true,
+        payment: {
+          select: {
+            id: true,
+          },
+        },
+        references: {
+          select: {
+            uid: true,
+            type: true,
+            externalCalendarId: true,
+            credentialId: true,
+            thirdPartyRecurringEventId: true,
+            delegationCredentialId: true,
+          },
+        },
+        eventType: true,
+        workflowReminders: {
+          select: {
+            id: true,
+            referenceId: true,
+            method: true,
+          },
+        },
+      },
+    });
+  }
+
   async updateBookingAttendees({
     bookingId,
     newAttendees,

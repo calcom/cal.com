@@ -38,8 +38,7 @@ export async function buildReassignmentBookingData({
   originalUserId,
 }: BuildReassignmentBookingDataParams) {
 
-  const bookerName =
-    originalBooking.attendees.find((att) => !att.email.includes("@"))?.name || "Nameless";
+  const bookerName = originalBooking.attendees[0]?.name || "Nameless";
   
   const newUserT = await getTranslation(newUser.locale || "en", "common");
   

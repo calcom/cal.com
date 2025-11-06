@@ -1,4 +1,3 @@
-import { enrichUsersWithDelegationCredentials } from "@calcom/app-store/delegationCredential";
 import { enrichUserWithDelegationCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
@@ -9,10 +8,10 @@ import {
 } from "@calcom/emails";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
-import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import type { AdditionalInformation } from "@calcom/types/Calendar";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -53,6 +52,8 @@ export async function managedEventManualReassignment({
   reassignLogger.info(`User ${reassignedById} initiating manual reassignment to user ${newUserId}`);
 
   await validateManagedEventReassignment({ bookingId });
+
+  const bookingRepository = new BookingRepository(prisma);
 
   const {
     currentChildEventType,
@@ -112,46 +113,15 @@ export async function managedEventManualReassignment({
     throw new Error("Original booking user not found");
   }
 
-  const originalBookingFull = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      attendees: true,
-      user: true,
-      payment: true,
-      references: true,
-      eventType: true,
-    },
-  });
+  const originalBookingFull = await bookingRepository.findByIdWithAttendeesPaymentAndReferences(bookingId);
 
   if (!originalBookingFull) {
     throw new Error("Original booking not found");
   }
 
-  const enrichedUsersResult = await enrichUsersWithDelegationCredentials({
-    orgId,
-    users: [withSelectedCalendars(newUser)],
-  });
-
-  const newUserAsFixedAwareUser = {
-    ...enrichedUsersResult[0],
-    isFixed: false,
-  } as IsFixedAwareUser;
-
-  try {
-    await ensureAvailableUsers(
-      { ...targetEventTypeDetails, users: [newUserAsFixedAwareUser] },
-      {
-        dateFrom: dayjs(originalBookingFull.startTime).format(),
-        dateTo: dayjs(originalBookingFull.endTime).format(),
-        timeZone: targetEventTypeDetails.timeZone || newUser.timeZone,
-      },
-      reassignLogger
-    );
-    reassignLogger.info("Target user is available");
-  } catch (error) {
-    reassignLogger.error("Target user is not available at the booking time", error);
-    throw error;
-  }
+  // Note: Unlike auto-reassignment, manual reassignment allows force reassigning to unavailable users
+  // The UI shows availability status and requires confirmation, but the admin can override
+  // This matches Round Robin manual reassignment behavior
 
   const { buildReassignmentBookingData } = await import("./lib/buildReassignmentBookingData");
   
@@ -269,8 +239,10 @@ export async function managedEventManualReassignment({
 
   const newEventManager = new EventManager(newUserWithCredentials, apps);
 
+  let videoCallUrl: string | null = null;
+  const additionalInformation: AdditionalInformation = {};
   try {
-    await newEventManager.create({
+    const evt = {
       organizer: {
         id: newUser.id,
         name: newUser.name || "",
@@ -307,17 +279,33 @@ export async function managedEventManualReassignment({
       } : undefined,
       location: newBooking.location || undefined,
       description: newBooking.description || undefined,
-    });
-    reassignLogger.info("Created calendar events for new user");
+    };
+
+    const createManager = await newEventManager.create(evt);
+    const results = createManager.results || [];
+    
+    // Extract video call URL following the same pattern as new booking creation
+    videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+
+    if (results.length) {
+      additionalInformation.hangoutLink = results[0]?.createdEvent?.hangoutLink;
+      additionalInformation.conferenceData = results[0]?.createdEvent?.conferenceData;
+      additionalInformation.entryPoints = results[0]?.createdEvent?.entryPoints;
+      
+      // Prefer hangoutLink over initial videoCallUrl
+      videoCallUrl = additionalInformation.hangoutLink || videoCallUrl;
+    }
+    
+    reassignLogger.info("Created calendar events for new user", { videoCallUrl });
   } catch (error) {
     reassignLogger.error("Error creating calendar events for new user", error);
   }
 
   try {
     const cancelResult = await cancelWorkflowRemindersForReassignment({
-      bookingUid: originalBookingFull.uid,
+      workflowReminders: originalBookingFull.workflowReminders,
     });
-    reassignLogger.info(`Cancelled ${cancelResult.totalCancelled} workflow reminders (${cancelResult.emailCancelled} email, ${cancelResult.smsCancelled} SMS)`);
+    reassignLogger.info(`Cancelled ${cancelResult.cancelledCount} workflow reminders`);
   } catch (error) {
     reassignLogger.error("Error cancelling workflow reminders", error);
   }
@@ -326,6 +314,9 @@ export async function managedEventManualReassignment({
     try {
       const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
       
+      const bookerBaseUrl = await getBookerBaseUrl(orgId);
+      const bookerUrl = `${bookerBaseUrl}/${newUser.username}/${targetEventTypeDetails.slug}`;
+
       await WorkflowService.scheduleWorkflowsForNewBooking({
         workflows: targetEventTypeDetails.workflows.map(w => w.workflow),
         smsReminderNumber: newBooking.smsReminderNumber || null,
@@ -356,7 +347,8 @@ export async function managedEventManualReassignment({
           location: newBooking.location || undefined,
           description: newBooking.description || undefined,
           eventType: { slug: targetEventTypeDetails.slug },
-          bookerUrl: `${newUser.username}/${targetEventTypeDetails.slug}`,
+          bookerUrl,
+          metadata: videoCallUrl ? { videoCallUrl, ...additionalInformation } : undefined,
         },
         hideBranding: !!targetEventTypeDetails.owner?.hideBranding,
         seatReferenceUid: undefined,
@@ -397,6 +389,7 @@ export async function managedEventManualReassignment({
         })),
         location: newBooking.location || undefined,
         description: newBooking.description || undefined,
+        metadata: videoCallUrl ? { videoCallUrl, ...additionalInformation } : undefined,
       };
 
       await sendReassignedScheduledEmailsAndSMS({
