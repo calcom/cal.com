@@ -1,7 +1,7 @@
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
 
-import type { BookingItemProps } from "./BookingListItem";
+import type { BookingItemProps } from "./types";
 
 export interface BookingActionContext {
   booking: BookingItemProps;
@@ -115,7 +115,9 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       icon: "clock",
       label: t("reschedule_booking"),
       href: `/reschedule/${booking.uid}${
-        booking.seatsReferences.length && isAttendee && seatReferenceUid ? `?seatReferenceUid=${seatReferenceUid}` : ""
+        booking.seatsReferences.length && isAttendee && seatReferenceUid
+          ? `?seatReferenceUid=${seatReferenceUid}`
+          : ""
       }`,
       disabled:
         (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
@@ -126,7 +128,9 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
+        isDisabledRescheduling ||
+        booking.seatsReferences.length > 0,
     },
     isBookingFromRoutingForm
       ? {
@@ -163,6 +167,18 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   ];
 
   return actions.filter(Boolean) as ActionType[];
+}
+
+export function getReportAction(context: BookingActionContext): ActionType {
+  const { booking, t } = context;
+
+  return {
+    id: "report",
+    label: t("report_booking"),
+    icon: "flag",
+    color: "destructive",
+    disabled: !!booking.report,
+  };
 }
 
 export function getAfterEventActions(context: BookingActionContext): ActionType[] {
@@ -205,9 +221,14 @@ export function shouldShowRecurringCancelAction(context: BookingActionContext): 
   return isTabRecurring && isRecurring;
 }
 
+export function shouldShowIndividualReportButton(context: BookingActionContext): boolean {
+  const { booking, isPending, isUpcoming, isCancelled, isRejected } = context;
+  const hasDropdown = shouldShowEditActions(context);
+  return !booking.report && !hasDropdown && (isCancelled || isRejected || (isPending && isUpcoming));
+}
+
 export function isActionDisabled(actionId: string, context: BookingActionContext): boolean {
-  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling, isPending, isConfirmed } =
-    context;
+  const { booking, isBookingInPast, isDisabledRescheduling, isDisabledCancelling } = context;
 
   switch (actionId) {
     case "reschedule":
@@ -227,7 +248,7 @@ export function isActionDisabled(actionId: string, context: BookingActionContext
 }
 
 export function getActionLabel(actionId: string, context: BookingActionContext): string {
-  const { booking, isTabRecurring, isRecurring, attendeeList, cardCharged, t } = context;
+  const { isTabRecurring, isRecurring, attendeeList, cardCharged, t } = context;
 
   switch (actionId) {
     case "reject":

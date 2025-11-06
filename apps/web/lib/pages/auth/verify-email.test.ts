@@ -1,4 +1,4 @@
-import { organizationScenarios } from "@calcom/lib/server/repository/__mocks__/organization";
+import { organizationScenarios } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -17,7 +17,7 @@ vi.mock("@calcom/prisma", () => {
   };
 });
 
-vi.mock("@calcom/features/ee/billing/stripe-billling-service", () => {
+vi.mock("@calcom/features/ee/billing/stripe-billing-service", () => {
   return {
     StripeBillingService: vi.fn(),
   };

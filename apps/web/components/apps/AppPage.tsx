@@ -115,8 +115,8 @@ export const AppPage = ({
 
   const handleAppInstall = () => {
     if (isRedirectApp(slug)) {
-      setIsLoading(true);
-      mutation.mutate({ type, variant, slug });
+      // For redirect apps, open the external URL directly
+      if (website) window.open(website, "_blank", "noopener,noreferrer");
       return;
     }
     setIsLoading(true);
@@ -160,13 +160,21 @@ export const AppPage = ({
     function refactorMeWithoutEffect() {
       const data = appDbQuery.data;
 
-      const credentialsCount = data?.credentials.length || 0;
-      setExistingCredentials(data?.credentials || []);
+      const credentials = data?.credentials || [];
+      setExistingCredentials(credentials);
+
+      const hasPersonalInstall = credentials.some((c) => !!c.userId && !c.teamId);
+      const installedTeamIds = new Set<number>();
+      for (const cred of credentials) {
+        if (cred.teamId) installedTeamIds.add(cred.teamId);
+      }
+
+      const totalInstalledTargets = (hasPersonalInstall ? 1 : 0) + installedTeamIds.size;
 
       const appInstalledForAllTargets =
         availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
-          ? credentialsCount >= data.userAdminTeams.length
-          : credentialsCount > 0;
+          ? totalInstalledTargets >= data.userAdminTeams.length + 1
+          : credentials.length > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
     [appDbQuery.data, availableForTeams]
@@ -244,7 +252,14 @@ export const AppPage = ({
               loading: isLoading,
             };
           }
-          return <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />;
+
+          return (
+            <InstallAppButtonChild
+              credentials={availableForTeams ? undefined : appDbQuery.data?.credentials}
+              paid={paid}
+              {...props}
+            />
+          );
         }}
       />
     );

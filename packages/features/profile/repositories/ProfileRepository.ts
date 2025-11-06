@@ -50,6 +50,9 @@ const organizationSelect = {
   bannerUrl: true,
   isPlatform: true,
   hideBranding: true,
+  brandColor: true,
+  darkBrandColor: true,
+  theme: true,
 };
 const organizationWithSettingsSelect = {
   ...organizationSelect,
@@ -57,6 +60,17 @@ const organizationWithSettingsSelect = {
     select: organizationSettingsSelect,
   },
 };
+
+const profileSelect = {
+  id: true,
+  uid: true,
+  userId: true,
+  organizationId: true,
+  username: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
 
 export enum LookupTarget {
   User,
@@ -485,6 +499,9 @@ export class ProfileRepository {
             isPrivate: true,
             isPlatform: true,
             hideBranding: true,
+            brandColor: true,
+            darkBrandColor: true,
+            theme: true,
             organizationSettings: {
               select: {
                 lockEventTypeCreationForUsers: true,
@@ -625,6 +642,15 @@ export class ProfileRepository {
         });
       });
     return profiles;
+  }
+
+  static async findFirstForUserId({ userId }: { userId: number }) {
+    return prisma.profile.findFirst({
+      where: {
+        userId: userId,
+      },
+      select: profileSelect,
+    });
   }
 
   static async findManyForOrg({ organizationId }: { organizationId: number }) {

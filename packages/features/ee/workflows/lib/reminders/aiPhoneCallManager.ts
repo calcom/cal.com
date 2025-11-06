@@ -1,9 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/SystemField";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import tasker from "@calcom/features/tasker";
+import { CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -140,7 +140,7 @@ export const scheduleAIPhoneCall = async (args: ScheduleAIPhoneCallArgs) => {
   const featuresRepository = new FeaturesRepository(prisma);
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
   if (!calAIVoiceAgents) {
-    logger.warn("Cal AI voice agents are disabled - skipping AI phone call scheduling");
+    logger.warn("Cal.ai voice agents are disabled - skipping AI phone call scheduling");
     return;
   }
 
@@ -259,7 +259,7 @@ const scheduleAIPhoneCallTask = async (args: ScheduleAIPhoneCallTaskArgs) => {
   const featuresRepository = new FeaturesRepository(prisma);
   const calAIVoiceAgents = await featuresRepository.checkIfFeatureIsEnabledGlobally("cal-ai-voice-agents");
   if (!calAIVoiceAgents) {
-    logger.warn("Cal AI voice agents are disabled - skipping AI phone call");
+    logger.warn("Cal.ai voice agents are disabled - skipping AI phone call");
     return;
   }
 
