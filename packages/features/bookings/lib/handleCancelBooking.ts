@@ -455,7 +455,7 @@ async function handler(input: CancelBookingInput) {
   const eventType = { ...bookingToDelete.eventType, workflows: eventTypeRelated };
 
   const workflows: CalIdWorkflow[] = eventType?.workflows?.map(
-    (workflow) => workflow.workflow as CalIdWorkflow
+    (workflow) => workflow as CalIdWorkflow
   );
 
   if (workflows.length > 0) {
