@@ -25,7 +25,7 @@ export class MeOutput {
 
   @IsString()
   @DocsProperty({ type: String, nullable: true })
-  name!: string;
+  name!: string | null;
 
   @IsInt()
   @DocsProperty()
