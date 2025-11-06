@@ -1,7 +1,7 @@
-import async from "async";
 import type { ImmutableTree, JsonLogicResult, JsonTree, JsonItem } from "@react-awesome-query-builder/core";
 import type { Config } from "@react-awesome-query-builder/core";
 import { Utils as QbUtils } from "@react-awesome-query-builder/core";
+import async from "async";
 
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import jsonLogic from "@calcom/lib/raqb/jsonLogic";
@@ -97,37 +97,38 @@ function prepareQueryValueForEvaluation(
   config: Config
 ): AttributesQueryValue {
   const clonedQueryValue = JSON.parse(JSON.stringify(queryValue)) as AttributesQueryValue;
-  
+
   if (!clonedQueryValue.children1) {
     return clonedQueryValue;
   }
-  
+
   const children = Array.isArray(clonedQueryValue.children1)
     ? clonedQueryValue.children1
     : Object.values(clonedQueryValue.children1);
-  
+
   children.forEach((child) => {
     if (child.type === "rule" && child.properties) {
       const { field, operator, value, valueSrc } = child.properties;
-      
+
       if (!field || !operator || !value) return;
-      
+
       const isSelectOperator = operator.includes("select_") || operator.includes("multiselect_");
       if (!isSelectOperator) return;
-      
-      const valuesToCheck = Array.isArray(value[0]) ? value[0] : (Array.isArray(value) ? value : [value]);
+
+      const valuesToCheck = Array.isArray(value[0]) ? value[0] : Array.isArray(value) ? value : [value];
       const valueSrcArray = valueSrc || [];
-      
+
       const normalizedValues = valuesToCheck.map((val, index) => {
-        const src = valueSrcArray[index] || (Array.isArray(valueSrc) && valueSrc.length === 1 ? valueSrc[0] : "value");
-        
+        const src =
+          valueSrcArray[index] || (Array.isArray(valueSrc) && valueSrc.length === 1 ? valueSrc[0] : "value");
+
         if (src === "value" && typeof val === "string") {
           return caseInsensitive(val);
         }
-        
+
         return val;
       });
-      
+
       if (Array.isArray(value[0])) {
         child.properties.value = [normalizedValues];
       } else if (Array.isArray(value)) {
@@ -137,7 +138,7 @@ function prepareQueryValueForEvaluation(
       prepareQueryValueForEvaluation(child as AttributesQueryValue, config);
     }
   });
-  
+
   return clonedQueryValue;
 }
 
@@ -152,7 +153,7 @@ function getJsonLogic({
     attributesQueryValue,
     attributesQueryBuilderConfig as unknown as Config
   );
-  
+
   const state = {
     tree: QbUtils.checkTree(
       QbUtils.loadTree(preparedQueryValue as JsonTree),
@@ -161,11 +162,11 @@ function getJsonLogic({
     ),
     config: attributesQueryBuilderConfig as unknown as Config,
   };
-  
+
   const jsonLogicQuery = QbUtils.jsonLogicFormat(state.tree, state.config);
   const logic = jsonLogicQuery.logic;
   const warnings = getErrorsFromImmutableTree(state.tree).flat();
-  
+
   if (!logic) {
     if (attributesQueryValue.children1 && Object.keys(attributesQueryValue.children1).length > 0) {
       return { logic, warnings: ["There is some error building the logic, please check the routes."] };
@@ -175,7 +176,13 @@ function getJsonLogic({
   return { logic, warnings };
 }
 
-function buildTroubleshooterData({ type, data }: { type: TroubleshooterCase; data: Record<string, unknown> }) {
+function buildTroubleshooterData({
+  type,
+  data,
+}: {
+  type: TroubleshooterCase;
+  data: Record<string, unknown>;
+}) {
   return {
     troubleshooter: {
       type,
@@ -236,50 +243,51 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     dynamicFieldValueOperands,
   } = data;
   const { concurrency, enablePerf, enableTroubleshooter } = options;
-  
+
   const earlyWarnings: string[] = [];
   if (_attributesQueryValue && _attributesQueryValue.type === "group" && _attributesQueryValue.children1) {
     const attributesQueryBuilderConfig = getAttributesQueryBuilderConfigHavingListofLabels({
       dynamicFieldValueOperands,
       attributes: attributesOfTheOrg,
     });
-    
-    const children = Array.isArray(_attributesQueryValue.children1) 
-      ? _attributesQueryValue.children1 
+
+    const children = Array.isArray(_attributesQueryValue.children1)
+      ? _attributesQueryValue.children1
       : Object.values(_attributesQueryValue.children1);
-    
+
     children.forEach((rule) => {
       if (rule.type !== "rule") return;
-      
+
       const properties = rule.properties;
       if (!properties) return;
-      
+
       const { field, operator, value, valueSrc } = properties;
       if (!field || !operator || !value) return;
-      
+
       const fieldConfig = attributesQueryBuilderConfig.fields[field];
       if (!fieldConfig?.fieldSettings?.listValues) return;
-      
+
       const allowedValues = new Set(
-        fieldConfig.fieldSettings.listValues.map((opt: { value: string | number; title: string }) => 
+        fieldConfig.fieldSettings.listValues.map((opt: { value: string | number; title: string }) =>
           typeof opt.value === "string" ? opt.value.toLowerCase() : String(opt.value).toLowerCase()
         )
       );
-      
+
       const isSelectOperator = operator.includes("select_") || operator.includes("multiselect_");
       if (!isSelectOperator) return;
-      
-      const valuesToCheck = Array.isArray(value[0]) ? value[0] : (Array.isArray(value) ? value : [value]);
+
+      const valuesToCheck = Array.isArray(value[0]) ? value[0] : Array.isArray(value) ? value : [value];
       const valueSrcArray = valueSrc || [];
-      
+
       let foundInvalidValue = false;
       for (let index = 0; index < valuesToCheck.length; index++) {
         if (foundInvalidValue) break;
-        
+
         const val = valuesToCheck[index];
-        const src = valueSrcArray[index] || (Array.isArray(valueSrc) && valueSrc.length === 1 ? valueSrc[0] : "value");
+        const src =
+          valueSrcArray[index] || (Array.isArray(valueSrc) && valueSrc.length === 1 ? valueSrc[0] : "value");
         if (src !== "value" || typeof val !== "string") continue;
-        
+
         const normalizedVal = val.toLowerCase();
         if (!allowedValues.has(normalizedVal)) {
           earlyWarnings.push(`Value ${val} is not in list of values`);
@@ -288,7 +296,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
       }
     });
   }
-  
+
   const attributesQueryValue = getAttributesQueryValue({
     attributesQueryValue: _attributesQueryValue ?? null,
     attributes: attributesOfTheOrg,
@@ -308,18 +316,19 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
     };
   }
 
-  const [attributesQueryBuilderConfig, ttgetAttributesQueryBuilderConfigHavingListofLabels] = pf(() =>
-    getAttributesQueryBuilderConfigHavingListofLabels({
-      dynamicFieldValueOperands,
-      attributes: attributesOfTheOrg,
-    })
+  const [attributesQueryBuilderConfig, ttgetAttributesQueryBuilderConfigHavingListofLabels] = pf(
+    () =>
+      getAttributesQueryBuilderConfigHavingListofLabels({
+        dynamicFieldValueOperands,
+        attributes: attributesOfTheOrg,
+      }) as unknown as Config
   );
 
   const { logic, warnings: logicBuildingWarnings } = getJsonLogic({
     attributesQueryValue,
     attributesQueryBuilderConfig: attributesQueryBuilderConfig as unknown as Config,
   });
-  
+
   const allWarnings = [...earlyWarnings, ...logicBuildingWarnings];
 
   if (!logic) {

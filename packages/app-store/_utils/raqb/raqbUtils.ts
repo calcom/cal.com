@@ -1,4 +1,11 @@
-import type { JsonGroup, JsonItem, JsonRule, JsonTree, JsonCaseGroup } from "@react-awesome-query-builder/core";
+import type {
+  JsonGroup,
+  JsonItem,
+  JsonRule,
+  JsonTree,
+  JsonCaseGroup,
+  BaseWidget,
+} from "@react-awesome-query-builder/core";
 import type { Config } from "@react-awesome-query-builder/core";
 import { Utils as QbUtils } from "@react-awesome-query-builder/core";
 
@@ -101,9 +108,7 @@ export function normalizeRaqbJsonTree(tree: JsonTree | null | undefined): Normal
       const children1Record: Record<string, JsonItem | JsonCaseGroup> = {};
       children1.forEach((child) => {
         if (child.id) {
-          const normalizedChild = child.type === "group" 
-            ? normalizeRaqbJsonTree(child as JsonTree) 
-            : child;
+          const normalizedChild = child.type === "group" ? normalizeRaqbJsonTree(child as JsonTree) : child;
           if (normalizedChild) {
             children1Record[child.id] = normalizedChild as JsonItem;
           }
@@ -122,9 +127,7 @@ export function normalizeRaqbJsonTree(tree: JsonTree | null | undefined): Normal
       const normalizedChildren: Record<string, JsonItem | JsonCaseGroup> = {};
       Object.entries(children1).forEach(([key, child]) => {
         if (child && typeof child === "object" && "type" in child) {
-          const normalizedChild = child.type === "group"
-            ? normalizeRaqbJsonTree(child as JsonTree)
-            : child;
+          const normalizedChild = child.type === "group" ? normalizeRaqbJsonTree(child as JsonTree) : child;
           if (normalizedChild) {
             normalizedChildren[key] = normalizedChild as JsonItem | JsonCaseGroup;
           }
@@ -238,7 +241,7 @@ export function getAttributesQueryBuilderConfigHavingListofLabels({
 }: {
   dynamicFieldValueOperands?: dynamicFieldValueOperands;
   attributes: Attribute[];
-}) {
+}): unknown {
   const attributesQueryBuilderConfig = getQueryBuilderConfigForAttributes({
     attributes,
     dynamicOperandFields: dynamicFieldValueOperands?.fields,
@@ -247,7 +250,9 @@ export function getAttributesQueryBuilderConfigHavingListofLabels({
   const attributesQueryBuilderConfigFieldsWithCompatibleListValues = Object.fromEntries(
     Object.entries(attributesQueryBuilderConfig.fields).map(([raqbFieldId, raqbField]) => {
       const raqbFieldType = raqbField.type;
-      const originalFieldSettings = (raqbField as { fieldSettings?: { listValues?: { value: string; title: string }[] } }).fieldSettings;
+      const originalFieldSettings = (
+        raqbField as { fieldSettings?: { listValues?: { value: string; title: string }[] } }
+      ).fieldSettings;
 
       return [
         raqbFieldId,
