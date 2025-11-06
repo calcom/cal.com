@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 
-import { buildFilterColumns } from "../columns/filterColumns";
+import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import type { RowData, BookingListingStatus } from "../types";
 import { BookingsCalendar } from "./BookingsCalendar";
 
@@ -32,15 +32,7 @@ export function BookingsCalendarContainer({ status, permissions, data }: Booking
     data,
     columns,
     initialState: {
-      columnVisibility: {
-        eventTypeId: false,
-        teamId: false,
-        userId: false,
-        attendeeName: false,
-        attendeeEmail: false,
-        dateRange: false,
-        bookingUid: false,
-      },
+      columnVisibility: getFilterColumnVisibility(),
     },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

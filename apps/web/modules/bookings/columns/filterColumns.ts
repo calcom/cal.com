@@ -1,3 +1,4 @@
+import type { VisibilityState } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 
 import { ColumnFilterType } from "@calcom/features/data-table";
@@ -10,6 +11,28 @@ interface BuildFilterColumnsParams {
     canReadOthersBookings: boolean;
   };
   status: string;
+}
+
+/**
+ * IDs of filter columns that should be hidden in the UI
+ * These columns are used for filtering but not displayed
+ */
+const FILTER_COLUMN_IDS = [
+  "eventTypeId",
+  "teamId",
+  "userId",
+  "attendeeName",
+  "attendeeEmail",
+  "dateRange",
+  "bookingUid",
+] as const;
+
+/**
+ * Gets the column visibility state for filter columns
+ * All filter columns are hidden by default as they only provide filtering functionality
+ */
+export function getFilterColumnVisibility(): VisibilityState {
+  return Object.fromEntries(FILTER_COLUMN_IDS.map((id) => [id, false]));
 }
 
 export function buildFilterColumns({ t, permissions, status }: BuildFilterColumnsParams) {
