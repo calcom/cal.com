@@ -174,7 +174,6 @@ export class TeamBillingService implements ITeamBillingService {
       }
       if (!subscriptionId) throw Error("missing subscriptionId");
       if (!subscriptionItemId) throw Error("missing subscriptionItemId");
-      console.log("Hey we make it here");
       await this.billingProviderService.handleSubscriptionUpdate({
         subscriptionId,
         subscriptionItemId,

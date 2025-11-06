@@ -138,7 +138,6 @@ export class StripeBillingService implements IBillingProviderService {
   async handleSubscriptionUpdate(args: Parameters<IBillingProviderService["handleSubscriptionUpdate"]>[0]) {
     const { subscriptionId, subscriptionItemId, membershipCount } = args;
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
-    console.log("subscription", subscription);
     const subscriptionQuantity = subscription.items.data.find(
       (sub) => sub.id === subscriptionItemId
     )?.quantity;
