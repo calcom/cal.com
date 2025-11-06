@@ -212,5 +212,9 @@ export const viewerOrganizationsRouter = router({
       const { default: handler } = await import("./dismissBookingReport.handler");
       return handler(opts);
     }),
+  pendingReportsCount: authedOrgAdminProcedure.query(async (opts) => {
+    const { default: handler } = await import("./pendingReportsCount.handler");
+    return handler(opts);
+  }),
 
 });
