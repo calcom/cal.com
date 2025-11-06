@@ -10,7 +10,7 @@ import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 async function handler(req: NextRequest) {
   const contentType = req.headers.get("content-type") || "";
-  if (!contentType.includes("application/x-www-form-urlencoded")) {
+  if (!contentType.toLowerCase().includes("application/x-www-form-urlencoded")) {
     return NextResponse.json(
       {
         error: "invalid_request",
