@@ -201,6 +201,8 @@ const generateTeamCheckoutSession = async ({
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
+    payment_method_types: ["card", "us_bank_account"],
+    billing_address_collection: "required",
     ...(dubCustomer?.discount?.couponId
       ? {
           discounts: [

@@ -20,8 +20,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { Prisma, Credential, User } from "@calcom/prisma/client";
 
 import { stripeKeysResponseSchema } from "./utils/stripeDataSchemas";
-
-import stringify = require("qs-stringify");
+import stringify from "qs-stringify";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -179,6 +178,8 @@ export class StripeService {
     const session = await stripe.checkout.sessions.create({
       customer,
       mode: "subscription",
+      payment_method_types: ["card", "us_bank_account"],
+      billing_address_collection: "required",
       allow_promotion_codes: true,
       success_url: `${this.webAppUrl}/api/teams/api/create?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${this.webAppUrl}/settings/my-account/profile`,
@@ -243,7 +244,7 @@ export class StripeService {
       });
 
       customerId = customersResponse.data[0].id;
-    } catch (error) {
+    } catch {
       const customer = await stripe.customers.create({ email: user.email });
       customerId = customer.id;
     }

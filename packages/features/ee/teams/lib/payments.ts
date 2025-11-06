@@ -63,6 +63,8 @@ export const generateTeamCheckoutSession = async ({
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
+    payment_method_types: ["card", "us_bank_account"],
+    billing_address_collection: "required",
     ...(dubCustomer?.discount?.couponId
       ? {
           discounts: [
@@ -174,6 +176,8 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
+    payment_method_types: ["card", "us_bank_account"],
+    billing_address_collection: "required",
     allow_promotion_codes: true,
     success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
