@@ -1,5 +1,6 @@
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/constants/constants";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { DatabaseEventType } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
 import { SystemField, CustomField } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
@@ -7,6 +8,7 @@ import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/ge
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -82,8 +84,11 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async getEventTypeByIdIfAuthorized(authUser: ApiAuthGuardUser, eventTypeId: number) {
-    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+  async getEventTypeByIdIfAuthorized(
+    authUser: ApiAuthGuardUser,
+    eventTypeId: number
+  ): Promise<DatabaseTeamEventType | ({ ownerId: number } & DatabaseEventType) | null> {
+    const eventType = await this.eventTypesRepository.getEventTypeByIdWithHosts(eventTypeId);
 
     if (!eventType) {
       return null;

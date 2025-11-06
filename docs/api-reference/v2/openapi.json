@@ -10039,7 +10039,7 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypeById",
         "summary": "Get an event type",
-        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n\nAccess control: This endpoint fetches an event type by ID and returns it only if the authenticated user is authorized. Authorization is granted to:\n- System admins\n- The event type owner\n- Hosts of the event type or users assigned to the event type\n- Team admins/owners of the team that owns the team event type\n- Organization admins/owners of the event type owner's organization\n- Organization admins/owners of the team's parent organization\n\nNote: Update and delete endpoints remain restricted to the event type owner only.",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n    \n    Access control: This endpoint fetches an event type by ID and returns it only if the authenticated user is authorized. Authorization is granted to:\n    - System admins\n    - The event type owner\n    - Hosts of the event type or users assigned to the event type\n    - Team admins/owners of the team that owns the team event type\n    - Organization admins/owners of the event type owner's organization\n    - Organization admins/owners of the team's parent organization\n\n    Note: Update and delete endpoints remain restricted to the event type owner only.",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -17626,6 +17626,380 @@
         },
         "required": ["status", "data"]
       },
+      "EventTypeTeam": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "bannerUrl",
+          "name",
+          "logoUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "theme"
+        ]
+      },
+      "TeamEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "lengthInMinutesOptions": {
+            "example": [15, 30, 60],
+            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string",
+            "example": "learn-the-secrets-of-masterchief"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of Argentina by making the best flan ever!"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OutputAddressLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputLinkLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputIntegrationLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
+                }
+              ]
+            }
+          },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/NameDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/EmailDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/LocationDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/PhoneFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/AddressFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NumberFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TextAreaFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/SelectFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiSelectFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/MultiEmailFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CheckboxGroupFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RadioGroupFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
+                }
+              ]
+            }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "slotInterval": {
+            "type": "object",
+            "example": 60,
+            "nullable": true
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "example": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number",
+            "example": 0
+          },
+          "afterEventBuffer": {
+            "type": "number",
+            "example": 0
+          },
+          "recurrence": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              }
+            ]
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "seatsPerTimeSlot": {
+            "type": "object",
+            "nullable": true
+          },
+          "forwardParamsSuccessRedirect": {
+            "type": "object",
+            "nullable": true
+          },
+          "successRedirectUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "isInstantEvent": {
+            "type": "boolean"
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
+          },
+          "bookingLimitsCount": {
+            "type": "object"
+          },
+          "bookerActiveBookingsLimit": {
+            "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean"
+          },
+          "bookingLimitsDuration": {
+            "type": "object"
+          },
+          "bookingWindow": {
+            "type": "array",
+            "description": "Limit how far in the future this event can be booked",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
+                }
+              ]
+            }
+          },
+          "bookerLayouts": {
+            "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
+          },
+          "confirmationPolicy": {
+            "type": "object"
+          },
+          "requiresBookerEmailVerification": {
+            "type": "boolean"
+          },
+          "hideCalendarNotes": {
+            "type": "boolean"
+          },
+          "color": {
+            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
+          },
+          "seats": {
+            "$ref": "#/components/schemas/Seats_2024_06_14"
+          },
+          "offsetStart": {
+            "type": "number"
+          },
+          "customName": {
+            "type": "string"
+          },
+          "destinationCalendar": {
+            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
+          },
+          "useDestinationCalendarEmail": {
+            "type": "boolean"
+          },
+          "hideCalendarEventDetails": {
+            "type": "boolean"
+          },
+          "hideOrganizerEmail": {
+            "type": "boolean",
+            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
+          },
+          "calVideoSettings": {
+            "description": "Cal video settings for the event type",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CalVideoSettings"
+              }
+            ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "bookingRequiresAuthentication": {
+            "type": "boolean",
+            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "ownerId": {
+            "type": "object",
+            "nullable": true
+          },
+          "parentEventTypeId": {
+            "type": "object",
+            "description": "For managed event types, parent event type is the event type that this event type is based on",
+            "nullable": true
+          },
+          "hosts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "assignAllTeamMembers": {
+            "type": "boolean"
+          },
+          "schedulingType": {
+            "type": "string",
+            "enum": ["roundRobin", "collective", "managed"]
+          },
+          "team": {
+            "$ref": "#/components/schemas/EventTypeTeam"
+          },
+          "emailSettings": {
+            "description": "Email settings for this event type. Only available for organization team event types.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
+              }
+            ]
+          },
+          "rescheduleWithSameRoundRobinHost": {
+            "type": "boolean",
+            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
+          }
+        },
+        "required": [
+          "id",
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "recurrence",
+          "metadata",
+          "price",
+          "currency",
+          "lockTimeZoneToggleOnBookingPage",
+          "forwardParamsSuccessRedirect",
+          "successRedirectUrl",
+          "isInstantEvent",
+          "scheduleId",
+          "hidden",
+          "bookingRequiresAuthentication",
+          "teamId",
+          "hosts",
+          "schedulingType",
+          "team"
+        ]
+      },
       "GetEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -17635,10 +18009,12 @@
             "example": "success"
           },
           "data": {
-            "nullable": true,
-            "allOf": [
+            "oneOf": [
               {
                 "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+              },
+              {
+                "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
               }
             ]
           }
@@ -19570,380 +19946,6 @@
           }
         },
         "required": ["lengthInMinutes", "title", "slug", "schedulingType"]
-      },
-      "EventTypeTeam": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "weekStart": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "theme": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "slug",
-          "bannerUrl",
-          "name",
-          "logoUrl",
-          "weekStart",
-          "brandColor",
-          "darkBrandColor",
-          "theme"
-        ]
-      },
-      "TeamEventTypeOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 1
-          },
-          "lengthInMinutes": {
-            "type": "number",
-            "example": 60
-          },
-          "lengthInMinutesOptions": {
-            "example": [15, 30, 60],
-            "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          },
-          "title": {
-            "type": "string",
-            "example": "Learn the secrets of masterchief!"
-          },
-          "slug": {
-            "type": "string",
-            "example": "learn-the-secrets-of-masterchief"
-          },
-          "description": {
-            "type": "string",
-            "example": "Discover the culinary wonders of Argentina by making the best flan ever!"
-          },
-          "locations": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/OutputAddressLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputLinkLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputIntegrationLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputPhoneLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputOrganizersDefaultAppLocation_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/OutputUnknownLocation_2024_06_14"
-                }
-              ]
-            }
-          },
-          "bookingFields": {
-            "type": "array",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/NameDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/EmailDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/LocationDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TitleDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NotesDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/GuestsDefaultFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/PhoneFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/AddressFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/NumberFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/TextAreaFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/SelectFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiSelectFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/MultiEmailFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CheckboxGroupFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RadioGroupFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/BooleanFieldOutput_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/UrlFieldOutput_2024_06_14"
-                }
-              ]
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "slotInterval": {
-            "type": "object",
-            "example": 60,
-            "nullable": true
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "example": 0
-          },
-          "beforeEventBuffer": {
-            "type": "number",
-            "example": 0
-          },
-          "afterEventBuffer": {
-            "type": "number",
-            "example": 0
-          },
-          "recurrence": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Recurrence_2024_06_14"
-              }
-            ]
-          },
-          "metadata": {
-            "type": "object"
-          },
-          "price": {
-            "type": "number"
-          },
-          "currency": {
-            "type": "string"
-          },
-          "lockTimeZoneToggleOnBookingPage": {
-            "type": "boolean"
-          },
-          "seatsPerTimeSlot": {
-            "type": "object",
-            "nullable": true
-          },
-          "forwardParamsSuccessRedirect": {
-            "type": "object",
-            "nullable": true
-          },
-          "successRedirectUrl": {
-            "type": "object",
-            "nullable": true
-          },
-          "isInstantEvent": {
-            "type": "boolean"
-          },
-          "seatsShowAvailabilityCount": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "scheduleId": {
-            "type": "number",
-            "nullable": true
-          },
-          "bookingLimitsCount": {
-            "type": "object"
-          },
-          "bookerActiveBookingsLimit": {
-            "$ref": "#/components/schemas/BookerActiveBookingsLimitOutput_2024_06_14"
-          },
-          "onlyShowFirstAvailableSlot": {
-            "type": "boolean"
-          },
-          "bookingLimitsDuration": {
-            "type": "object"
-          },
-          "bookingWindow": {
-            "type": "array",
-            "description": "Limit how far in the future this event can be booked",
-            "items": {
-              "oneOf": [
-                {
-                  "$ref": "#/components/schemas/BusinessDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/CalendarDaysWindow_2024_06_14"
-                },
-                {
-                  "$ref": "#/components/schemas/RangeWindow_2024_06_14"
-                }
-              ]
-            }
-          },
-          "bookerLayouts": {
-            "$ref": "#/components/schemas/BookerLayouts_2024_06_14"
-          },
-          "confirmationPolicy": {
-            "type": "object"
-          },
-          "requiresBookerEmailVerification": {
-            "type": "boolean"
-          },
-          "hideCalendarNotes": {
-            "type": "boolean"
-          },
-          "color": {
-            "$ref": "#/components/schemas/EventTypeColor_2024_06_14"
-          },
-          "seats": {
-            "$ref": "#/components/schemas/Seats_2024_06_14"
-          },
-          "offsetStart": {
-            "type": "number"
-          },
-          "customName": {
-            "type": "string"
-          },
-          "destinationCalendar": {
-            "$ref": "#/components/schemas/DestinationCalendar_2024_06_14"
-          },
-          "useDestinationCalendarEmail": {
-            "type": "boolean"
-          },
-          "hideCalendarEventDetails": {
-            "type": "boolean"
-          },
-          "hideOrganizerEmail": {
-            "type": "boolean",
-            "description": "Boolean to Hide organizer's email address from the booking screen, email notifications, and calendar events"
-          },
-          "calVideoSettings": {
-            "description": "Cal video settings for the event type",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/CalVideoSettings"
-              }
-            ]
-          },
-          "hidden": {
-            "type": "boolean"
-          },
-          "bookingRequiresAuthentication": {
-            "type": "boolean",
-            "description": "Boolean to require authentication for booking this event type via api. If true, only authenticated users who are the event-type owner or org/team admin/owner can book this event type."
-          },
-          "teamId": {
-            "type": "number"
-          },
-          "ownerId": {
-            "type": "object",
-            "nullable": true
-          },
-          "parentEventTypeId": {
-            "type": "object",
-            "description": "For managed event types, parent event type is the event type that this event type is based on",
-            "nullable": true
-          },
-          "hosts": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "assignAllTeamMembers": {
-            "type": "boolean"
-          },
-          "schedulingType": {
-            "type": "string",
-            "enum": ["roundRobin", "collective", "managed"]
-          },
-          "team": {
-            "$ref": "#/components/schemas/EventTypeTeam"
-          },
-          "emailSettings": {
-            "description": "Email settings for this event type. Only available for organization team event types.",
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/EmailSettings_2024_06_14"
-              }
-            ]
-          },
-          "rescheduleWithSameRoundRobinHost": {
-            "type": "boolean",
-            "description": "Rescheduled events will be assigned to the same host as initially scheduled."
-          }
-        },
-        "required": [
-          "id",
-          "lengthInMinutes",
-          "title",
-          "slug",
-          "description",
-          "locations",
-          "bookingFields",
-          "disableGuests",
-          "recurrence",
-          "metadata",
-          "price",
-          "currency",
-          "lockTimeZoneToggleOnBookingPage",
-          "forwardParamsSuccessRedirect",
-          "successRedirectUrl",
-          "isInstantEvent",
-          "scheduleId",
-          "hidden",
-          "bookingRequiresAuthentication",
-          "teamId",
-          "hosts",
-          "schedulingType",
-          "team"
-        ]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",
