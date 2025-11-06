@@ -18,10 +18,9 @@ import { CreationSource } from "@calcom/prisma/enums";
 async function handler(req: NextApiRequest & { userId?: number; traceContext: TraceContext }) {
   const userIp = getIP(req);
 
-  const traceContext = distributedTracing.updateTrace(req.traceContext, {
-    eventTypeId: req.body?.eventTypeId?.toString() || "null",
+  const tracingLogger = distributedTracing.getTracingLogger(req.traceContext, {
+    eventTypeId: req.body?.eventTypeId,
   });
-  const tracingLogger = distributedTracing.getTracingLogger(traceContext);
 
   tracingLogger.info("API book event request started", {
     eventTypeId: req.body?.eventTypeId,
@@ -67,9 +66,6 @@ async function handler(req: NextApiRequest & { userId?: number; traceContext: Tr
     },
   });
 
-  tracingLogger.info("API book event request completed successfully", {
-    bookingUid: booking?.uid,
-  });
   // const booking = await createBookingThroughFactory();
   return booking;
 
