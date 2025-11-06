@@ -188,6 +188,12 @@ export class PrismaAgentRepository {
         outboundEventTypeId: true,
         createdAt: true,
         updatedAt: true,
+        team: {
+          select: {
+            id: true,
+            parentId: true,
+          },
+        },
       },
       where: {
         providerAgentId,
