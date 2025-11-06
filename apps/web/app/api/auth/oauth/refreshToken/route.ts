@@ -9,6 +9,17 @@ import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClie
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 async function handler(req: NextRequest) {
+  const contentType = req.headers.get("content-type") || "";
+  if (!contentType.includes("application/x-www-form-urlencoded")) {
+    return NextResponse.json(
+      {
+        error: "invalid_request",
+        error_description: "content-type must be application/x-www-form-urlencoded",
+      },
+      { status: 400, headers: { "Cache-Control": "no-store", "Pragma": "no-cache" } }
+    );
+  }
+
   const { client_id, client_secret, grant_type } = await parseUrlFormData(req);
 
   if (!client_id || !client_secret) {
