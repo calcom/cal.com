@@ -529,7 +529,7 @@ async function handler(
     reroutingFormResponses,
     routingFormResponseId,
     _isDryRun: isDryRun = false,
-    _shouldServeCache,
+    _shouldServeCache: shouldServeCache = false,
     ...reqBody
   } = bookingData;
 
@@ -681,10 +681,10 @@ async function handler(
     }
   }
 
+  // const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
+
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
-
-  const shouldServeCache = false;
 
   tracingLogger.info(
     `Booking eventType ${eventTypeId} started`,
