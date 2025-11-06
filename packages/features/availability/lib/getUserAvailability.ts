@@ -54,6 +54,7 @@ const availabilitySchema = z
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
     bypassBusyCalendarTimes: z.boolean().optional(),
+    bypassCalcomBusyTimes: z.boolean().optional(),
     silentlyHandleCalendarFailures: z.boolean().optional(),
     shouldServeCache: z.boolean().optional(),
   })
@@ -111,6 +112,7 @@ type GetUserAvailabilityQuery = {
   duration?: number;
   returnDateOverrides: boolean;
   bypassBusyCalendarTimes: boolean;
+  bypassCalcomBusyTimes?: boolean;
   silentlyHandleCalendarFailures?: boolean;
   shouldServeCache?: boolean;
 };
@@ -297,6 +299,7 @@ export class UserAvailabilityService {
       duration,
       returnDateOverrides,
       bypassBusyCalendarTimes = false,
+      bypassCalcomBusyTimes = false,
       silentlyHandleCalendarFailures = false,
       shouldServeCache,
     } = availabilitySchema.parse(query);
@@ -460,6 +463,7 @@ export class UserAvailabilityService {
         duration,
         currentBookings: initialData?.currentBookings,
         bypassBusyCalendarTimes,
+        bypassCalcomBusyTimes,
         silentlyHandleCalendarFailures,
         shouldServeCache,
       });

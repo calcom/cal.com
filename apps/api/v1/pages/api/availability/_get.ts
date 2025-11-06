@@ -182,6 +182,7 @@ const availabilitySchema = z
     dateFrom: z.string(),
     dateTo: z.string(),
     eventTypeId: stringOrNumber.optional(),
+    bypassCalcomBusyTimes: z.boolean().optional(),
   })
   .refine(
     (data) => !!data.username || !!data.userId || !!data.teamId,
@@ -190,7 +191,7 @@ const availabilitySchema = z
 
 async function handler(req: NextApiRequest) {
   const { isSystemWideAdmin, userId: reqUserId } = req;
-  const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
+  const { username, userId, eventTypeId, dateTo, dateFrom, teamId, bypassCalcomBusyTimes } = availabilitySchema.parse(req.query);
   const userAvailabilityService = getUserAvailabilityService();
   if (!teamId)
     return userAvailabilityService.getUserAvailability({
@@ -201,6 +202,7 @@ async function handler(req: NextApiRequest) {
       userId,
       returnDateOverrides: true,
       bypassBusyCalendarTimes: false,
+      bypassCalcomBusyTimes: bypassCalcomBusyTimes ?? false,
     });
   const team = await prisma.team.findUnique({
     where: { id: teamId },

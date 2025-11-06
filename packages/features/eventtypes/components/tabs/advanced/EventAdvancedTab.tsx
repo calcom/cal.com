@@ -37,7 +37,6 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import {
   DEFAULT_LIGHT_BRAND_COLOR,
   DEFAULT_DARK_BRAND_COLOR,
-  APP_NAME,
   MAX_SEATS_PER_TIME_SLOT,
 } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
@@ -1339,6 +1338,21 @@ export const EventAdvancedTab = ({
           )}
         />
       </>
+      <Controller
+        name="bypassCalcomBusyTimes"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("bypass_calcom_busy_times")}
+            description={t("bypass_calcom_busy_times_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+
       <Controller
         name="eventTypeColor"
         render={() => (

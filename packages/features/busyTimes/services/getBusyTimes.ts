@@ -51,6 +51,7 @@ export class BusyTimesService {
         })[]
       | null;
     bypassBusyCalendarTimes: boolean;
+    bypassCalcomBusyTimes?: boolean;
     silentlyHandleCalendarFailures?: boolean;
     shouldServeCache?: boolean;
   }) {
@@ -115,26 +116,34 @@ export class BusyTimesService {
     // This function is called from multiple places but we aren't refactoring all of them at this moment
     // to avoid potential side effects.
     let bookings = params.currentBookings;
-
-    if (!bookings) {
-      const bookingRepo = this.dependencies.bookingRepo;
-      bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
-        userIdAndEmailMap: new Map([[userId, userEmail]]),
-        eventTypeId,
-        startDate: startTimeAdjustedWithMaxBuffer,
-        endDate: endTimeAdjustedWithMaxBuffer,
-        seatedEvent,
-      });
+    if (!params.bypassCalcomBusyTimes) {
+      if (!bookings) {
+        const bookingRepo = this.dependencies.bookingRepo;
+        bookings = await bookingRepo.findAllExistingBookingsForEventTypeBetween({
+          userIdAndEmailMap: new Map([[userId, userEmail]]),
+          eventTypeId,
+          startDate: startTimeAdjustedWithMaxBuffer,
+          endDate: endTimeAdjustedWithMaxBuffer,
+          seatedEvent,
+        });
+      }
+    } else {
+      // explicit bypass: treat as no bookings
+      logger.debug(`Bypassing Cal.com internal bookings for user ${userId} when computing busy times`);
+      bookings = [];
     }
 
+    // normalize bookings to an array so downstream code can safely use array methods
+    bookings = bookings ?? [];
+
     const bookingSeatCountMap: { [x: string]: number } = {};
-    const busyTimes = bookings.reduce((aggregate: EventBusyDetails[], booking) => {
+    const busyTimes = (bookings || []).reduce((aggregate: EventBusyDetails[], booking) => {
       const { id, startTime, endTime, eventType, title, ...rest } = booking;
 
       const minutesToBlockBeforeEvent = (eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0);
       const minutesToBlockAfterEvent = (eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0);
 
-      if (rest._count?.seatsReferences) {
+  if (rest._count?.seatsReferences) {
         const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
         bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
         bookingSeatCountMap[bookedAt]++;
