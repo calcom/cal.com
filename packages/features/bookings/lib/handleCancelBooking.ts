@@ -455,8 +455,10 @@ async function handler(input: CancelBookingInput) {
   const eventType = { ...bookingToDelete.eventType, workflows: eventTypeRelated };
 
   const workflows: CalIdWorkflow[] = eventType?.workflows?.map(
-    (workflow) => workflow.workflow as CalIdWorkflow
+    (workflow) => workflow as CalIdWorkflow
   );
+
+  console.log("Workflows to process for cancellation:", workflows);
 
   if (workflows.length > 0) {
     await sendCancelledReminders({
