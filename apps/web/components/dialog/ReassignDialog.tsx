@@ -231,7 +231,7 @@ export const ReassignDialog = ({
           setIsOpenDialog(open);
         }}>
         <DialogContent
-          title={isManagedEvent ? t("reassign_managed_event_user") : t("reassign_round_robin_host")}
+          title={isManagedEvent ? t("reassign_booking") : t("reassign_round_robin_host")}
           description={isManagedEvent ? t("reassign_to_another_user") : t("reassign_to_another_rr_host")}
           enableOverflow>
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>

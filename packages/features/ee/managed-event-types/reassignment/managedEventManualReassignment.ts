@@ -10,6 +10,7 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import type { AdditionalInformation } from "@calcom/types/Calendar";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -54,6 +55,7 @@ export async function managedEventManualReassignment({
   await validateManagedEventReassignment({ bookingId });
 
   const bookingRepository = new BookingRepository(prisma);
+  const userRepository = new UserRepository(prisma);
 
   const {
     currentChildEventType,
@@ -99,14 +101,8 @@ export async function managedEventManualReassignment({
     include: { user: { select: { email: true } } },
   });
 
-  const originalUser = await prisma.user.findUnique({
-    where: { id: originalBooking.userId ?? undefined },
-    include: {
-      credentials: {
-        select: credentialForCalendarServiceSelect,
-      },
-      destinationCalendar: true,
-    },
+  const originalUser = await userRepository.findByIdWithCredentialsAndCalendar({
+    userId: originalBooking.userId ?? 0,
   });
 
   if (!originalUser) {
@@ -296,7 +292,7 @@ export async function managedEventManualReassignment({
       videoCallUrl = additionalInformation.hangoutLink || videoCallUrl;
     }
     
-    reassignLogger.info("Created calendar events for new user", { videoCallUrl });
+    reassignLogger.info("Created calendar events for new user");
   } catch (error) {
     reassignLogger.error("Error creating calendar events for new user", error);
   }

@@ -1398,7 +1398,17 @@ export class BookingRepository {
             id: "asc",
           },
         },
-        user: true,
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            timeFormat: true,
+          },
+        },
         payment: {
           select: {
             id: true,

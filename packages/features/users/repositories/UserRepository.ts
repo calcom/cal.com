@@ -1165,4 +1165,23 @@ export class UserRepository {
       },
     });
   }
+
+  async findByIdWithCredentialsAndCalendar({ userId }: { userId: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        locale: true,
+        timeFormat: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        destinationCalendar: true,
+      },
+    });
+  }
 }
