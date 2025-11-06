@@ -23,7 +23,6 @@ import { Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 type PartialWorkflowType = Pick<
   WorkflowType,
@@ -50,7 +49,6 @@ const WorkflowListItem = (props: ItemProps) => {
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
       const offOn = isActive ? "off" : "on";
-      revalidateEventTypeEditPage(eventType.id);
       await utils.viewer.workflows.getAllActiveWorkflows.invalidate();
 
       await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
@@ -221,8 +219,7 @@ function EventWorkflowsTab(props: Props) {
           : allActiveWorkflows.concat(disabledWorkflows);
       setSortedWorkflows(allSortedWorkflows);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPending]);
+  }, [data?.workflows, workflows, isChildrenManagedEventType, eventType.teamId, workflowsDisableProps.isLocked, isManagedEventType]);
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
