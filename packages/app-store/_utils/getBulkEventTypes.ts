@@ -1,5 +1,8 @@
 import { prisma } from "@calcom/prisma";
-import { eventTypeLocations as eventTypeLocationsSchema } from "@calcom/prisma/zod-utils";
+import {
+  eventTypeLocations as eventTypeLocationsSchema,
+  eventTypeMetaDataSchemaWithoutApps,
+} from "@calcom/prisma/zod-utils";
 
 import { getAppFromLocationValue } from "../utils";
 
@@ -38,10 +41,26 @@ export const getBulkUserEventTypes = async (userId: number) => {
       id: true,
       title: true,
       locations: true,
+      metadata: true,
+      parentId: true,
     },
   });
 
-  return processEventTypes(eventTypes);
+  const filteredEventTypes = eventTypes.filter((eventType) => {
+    if (!eventType.parentId) {
+      return true;
+    }
+
+    const metadata = eventTypeMetaDataSchemaWithoutApps.safeParse(eventType.metadata);
+    if (!metadata.success || !metadata.data?.managedEventConfig) {
+      return true;
+    }
+
+    const unlockedFields = metadata.data.managedEventConfig.unlockedFields;
+    return unlockedFields?.locations !== undefined;
+  });
+
+  return processEventTypes(filteredEventTypes);
 };
 
 export const getBulkTeamEventTypes = async (teamId: number) => {

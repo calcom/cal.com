@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema, eventTypeMetaDataSchemaWithoutApps } from "@calcom/prisma/zod-utils";
 
 import type { LocationObject } from "../locations";
 import { getAppFromSlug } from "../utils";
@@ -36,10 +36,44 @@ export const bulkUpdateEventsToDefaultLocation = async ({
     },
   });
 
-  return await prisma.eventType.updateMany({
+  const eventTypesToUpdate = await prisma.eventType.findMany({
     where: {
       id: {
         in: eventTypeIds,
+      },
+      userId: user.id,
+    },
+    select: {
+      id: true,
+      metadata: true,
+      parentId: true,
+    },
+  });
+
+  const validEventTypeIds = eventTypesToUpdate
+    .filter((eventType) => {
+      if (!eventType.parentId) {
+        return true;
+      }
+
+      const metadata = eventTypeMetaDataSchemaWithoutApps.safeParse(eventType.metadata);
+      if (!metadata.success || !metadata.data?.managedEventConfig) {
+        return true;
+      }
+
+      const unlockedFields = metadata.data.managedEventConfig.unlockedFields;
+      return unlockedFields?.locations !== undefined;
+    })
+    .map((eventType) => eventType.id);
+
+  if (validEventTypeIds.length === 0) {
+    return { count: 0 };
+  }
+
+  return await prisma.eventType.updateMany({
+    where: {
+      id: {
+        in: validEventTypeIds,
       },
       userId: user.id,
     },
