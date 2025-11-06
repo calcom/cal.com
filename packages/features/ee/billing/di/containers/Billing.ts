@@ -1,5 +1,6 @@
 import { createContainer } from "@calcom/features/di/di";
 
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
 import type { StripeBillingService } from "../../service/billingProvider/StripeBillingService";
 import type { TeamBillingServiceFactory } from "../../service/teams/teamBillingServiceFactory";
 import { billingProviderServiceModuleLoader } from "../modules/BillingProviderService";
@@ -18,4 +19,8 @@ export function getTeamBillingServiceFactory(): TeamBillingServiceFactory {
 
 export function getBillingProviderService(): StripeBillingService {
   return billingContainer.get<StripeBillingService>(DI_TOKENS.BILLING_PROVIDER_SERVICE);
+}
+
+export function getTeamBillingDataRepository(): ITeamBillingDataRepository {
+  return billingContainer.get<ITeamBillingDataRepository>(DI_TOKENS.TEAM_BILLING_DATA_REPOSITORY);
 }
