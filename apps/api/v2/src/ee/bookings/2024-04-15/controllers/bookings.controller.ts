@@ -205,7 +205,8 @@ export class BookingsController_2024_04_15 {
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
     try {
-      await this.checkBookingRequiresAuthentication(req, body.eventTypeId);
+      await this.checkBookingRequiresAuthentication(req, body.eventTypeId, body.rescheduleUid);
+
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -459,13 +460,42 @@ export class BookingsController_2024_04_15 {
     return oAuthClientParams.platformClientId;
   }
 
-  private async checkBookingRequiresAuthentication(req: Request, eventTypeId: number): Promise<void> {
+  private async isValidRescheduleBooking(rescheduleUid: string, eventTypeId: number): Promise<boolean> {
+    const { bookingInfo } = await getBookingInfo(rescheduleUid);
+    if (!bookingInfo) {
+      return false;
+    }
+    if (bookingInfo.status !== "ACCEPTED" && bookingInfo.status !== "PENDING") {
+      return false;
+    }
+    if (bookingInfo.eventTypeId !== eventTypeId) {
+      return false;
+    }
+    return true;
+  }
+
+  private async checkBookingRequiresAuthentication(
+    req: Request,
+    eventTypeId: number,
+    rescheduleUid?: string
+  ): Promise<void> {
     const eventType = await this.eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
       id: eventTypeId,
     });
 
     if (!eventType?.bookingRequiresAuthentication) {
       return;
+    }
+
+    if (rescheduleUid) {
+      const isValidRescheduleBooking = await this.isValidRescheduleBooking(rescheduleUid, eventTypeId);
+      if (isValidRescheduleBooking) {
+        return;
+      } else {
+        throw new BadRequestException(
+          "Trying to reschedule an event-type which requires authentication but provided invalid rescheduleUid."
+        );
+      }
     }
 
     const userId = await this.getOwnerId(req);
@@ -478,8 +508,7 @@ export class BookingsController_2024_04_15 {
 
     const isEventTypeOwner = eventType.userId === userId;
     const isHost = eventType.hosts.some((host) => host.userId === userId);
-    const isTeamAdminOrOwner =
-      eventType.team?.members.some((member) => member.userId === userId) ?? false;
+    const isTeamAdminOrOwner = eventType.team?.members.some((member) => member.userId === userId) ?? false;
 
     let isOrgAdminOrOwner = false;
     if (eventType.team?.parentId) {
