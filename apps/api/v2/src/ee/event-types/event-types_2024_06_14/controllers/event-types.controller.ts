@@ -23,6 +23,7 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -107,13 +108,23 @@ export class EventTypesController_2024_06_14 {
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
     summary: "Get an event type",
-    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
+    description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>
+
+Access control: This endpoint fetches an event type by ID and returns it only if the authenticated user is authorized. Authorization is granted to:
+- System admins
+- The event type owner
+- Hosts of the event type or users assigned to the event type
+- Team admins/owners of the team that owns the team event type
+- Organization admins/owners of the event type owner's organization
+- Organization admins/owners of the team's parent organization
+
+Note: Update and delete endpoints remain restricted to the event type owner only.`,
   })
   async getEventTypeById(
     @Param("eventTypeId") eventTypeId: string,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: ApiAuthGuardUser
   ): Promise<GetEventTypeOutput_2024_06_14> {
-    const eventType = await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));
+    const eventType = await this.eventTypesService.getEventTypeByIdIfAuthorized(user, Number(eventTypeId));
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);

@@ -7,6 +7,7 @@ import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_202
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
@@ -17,6 +18,7 @@ import { SelectedCalendarsModule } from "@/modules/selected-calendars/selected-c
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
@@ -26,6 +28,8 @@ import { Module } from "@nestjs/common";
     EventTypesService_2024_06_14,
     InputEventTypesService_2024_06_14,
     OutputEventTypesService_2024_06_14,
+    EventTypeAccessService,
+    TeamsRepository,
     UsersRepository,
     UsersService,
     SchedulesRepository_2024_06_11,
@@ -42,6 +46,7 @@ import { Module } from "@nestjs/common";
     EventTypesRepository_2024_06_14,
     InputEventTypesService_2024_06_14,
     OutputEventTypesService_2024_06_14,
+    EventTypeAccessService,
   ],
 })
 export class EventTypesModule_2024_06_14 {}

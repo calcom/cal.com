@@ -10039,7 +10039,7 @@
       "get": {
         "operationId": "EventTypesController_2024_06_14_getEventTypeById",
         "summary": "Get an event type",
-        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>",
+        "description": "<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>\n\nAccess control: This endpoint fetches an event type by ID and returns it only if the authenticated user is authorized. Authorization is granted to:\n- System admins\n- The event type owner\n- Hosts of the event type or users assigned to the event type\n- Team admins/owners of the team that owns the team event type\n- Organization admins/owners of the event type owner's organization\n- Organization admins/owners of the team's parent organization\n\nNote: Update and delete endpoints remain restricted to the event type owner only.",
         "parameters": [
           {
             "name": "cal-api-version",
