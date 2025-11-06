@@ -1,13 +1,17 @@
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import logger from "@calcom/lib/logger";
-import type { WorkflowReminder } from "@calcom/prisma/client";
+import type { WorkflowMethods } from "@calcom/prisma/enums";
 
 const workflowLogger = logger.getSubLogger({ prefix: ["managedEventWorkflowsCancellation"] });
 
 export async function cancelWorkflowRemindersForReassignment({
   workflowReminders,
 }: {
-  workflowReminders: WorkflowReminder[];
+  workflowReminders: {
+    id: number;
+    referenceId: string | null;
+    method: WorkflowMethods;
+  }[];
 }) {
   workflowLogger.info(`Cancelling ${workflowReminders.length} workflow reminders`);
 

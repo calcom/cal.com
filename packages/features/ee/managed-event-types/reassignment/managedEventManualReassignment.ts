@@ -280,15 +280,12 @@ export async function managedEventManualReassignment({
     const createManager = await newEventManager.create(evt);
     const results = createManager.results || [];
     
-    // Extract video call URL following the same pattern as new booking creation
-    videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
-
+    // Extract video call URL from calendar event creation results
     if (results.length) {
       additionalInformation.hangoutLink = results[0]?.createdEvent?.hangoutLink;
       additionalInformation.conferenceData = results[0]?.createdEvent?.conferenceData;
       additionalInformation.entryPoints = results[0]?.createdEvent?.entryPoints;
       
-      // Prefer hangoutLink over initial videoCallUrl
       videoCallUrl = additionalInformation.hangoutLink || videoCallUrl;
     }
     

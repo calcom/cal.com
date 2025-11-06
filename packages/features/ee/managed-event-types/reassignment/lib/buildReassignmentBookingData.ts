@@ -12,9 +12,26 @@ import { BookingStatus } from "@calcom/prisma/enums";
 const translator = short();
 
 interface BuildReassignmentBookingDataParams {
-  originalBooking: Booking & {
-    attendees: Attendee[];
-    payment: Payment[];
+  originalBooking: Pick<
+    Booking,
+    | "id"
+    | "uid"
+    | "title"
+    | "description"
+    | "customInputs"
+    | "responses"
+    | "startTime"
+    | "endTime"
+    | "metadata"
+    | "status"
+    | "location"
+    | "smsReminderNumber"
+    | "iCalUID"
+    | "iCalSequence"
+    | "eventTypeId"
+  > & {
+    attendees: Pick<Attendee, "name" | "email" | "timeZone" | "locale" | "phoneNumber">[];
+    payment: Pick<Payment, "id">[];
     eventType: EventType | null;
   };
   targetEventType: {
