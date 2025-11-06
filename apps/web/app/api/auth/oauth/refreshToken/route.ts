@@ -1,5 +1,4 @@
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseUrlFormData } from "app/api/parseRequestData";
 import jwt from "jsonwebtoken";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -9,7 +8,11 @@ import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClie
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 async function handler(req: NextRequest) {
-  const { client_id, client_secret, grant_type } = await parseUrlFormData(req);
+  const form = await req.formData();
+
+  const client_id = form.get("client_id") as string | null
+  const client_secret = form.get("client_secret") as string | null
+  const grant_type = form.get("grant_type") as string | null
 
   if (!client_id || !client_secret) {
     return NextResponse.json({ message: "Missing client id or secret" }, { status: 400 });
