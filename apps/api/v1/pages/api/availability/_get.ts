@@ -182,7 +182,7 @@ const availabilitySchema = z
     dateFrom: z.string(),
     dateTo: z.string(),
     eventTypeId: stringOrNumber.optional(),
-    bypassCalcomBusyTimes: z.boolean().optional(),
+    bypassCalcomBusyTimes: z.coerce.boolean().optional(),
   })
   .refine(
     (data) => !!data.username || !!data.userId || !!data.teamId,
