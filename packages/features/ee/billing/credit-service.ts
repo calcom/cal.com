@@ -1,7 +1,6 @@
 import type { TFunction } from "i18next";
 
 import dayjs from "@calcom/dayjs";
-import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
 import {
   sendCreditBalanceLimitReachedEmails,
   sendCreditBalanceLowWarningEmails,
@@ -16,6 +15,9 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import prisma, { type PrismaTransaction } from "@calcom/prisma";
 import type { CreditUsageType } from "@calcom/prisma/enums";
 import { CreditType } from "@calcom/prisma/enums";
+
+import { getBillingProviderService, getTeamBillingServiceFactory } from "./di/containers/Billing";
+import { SubscriptionStatus } from "./repository/billing/IBillingRepository";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -587,10 +589,14 @@ export class CreditService {
 
     if (!team) return 0;
 
-    const teamBillingService = new InternalTeamBilling(team);
+    const teamBillingServiceFactory = getTeamBillingServiceFactory();
+    const teamBillingService = teamBillingServiceFactory.init(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
-    if (subscriptionStatus !== "active" && subscriptionStatus !== "past_due") {
+    if (
+      subscriptionStatus !== SubscriptionStatus.ACTIVE &&
+      subscriptionStatus !== SubscriptionStatus.PAST_DUE
+    ) {
       return 0;
     }
 
