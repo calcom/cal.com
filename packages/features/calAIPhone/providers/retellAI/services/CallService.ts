@@ -1,6 +1,7 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 
 import type {
@@ -109,14 +110,17 @@ export class CallService {
     });
 
     if (!agent) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to use it."
+      );
     }
 
     const agentPhoneNumber = agent.outboundPhoneNumbers?.[0]?.phoneNumber;
 
     if (!agentPhoneNumber) {
       throw new ErrorWithCode(
-        ErrorCode.InternalServerError,
+        ErrorCode.RequestBodyInvalid,
         "Agent must have a phone number assigned to make calls."
       );
     }
@@ -190,11 +194,14 @@ export class CallService {
     });
 
     if (!agent) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to use it."
+      );
     }
 
     if (!agent.providerAgentId) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent provider ID not found.");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Agent provider ID not found.");
     }
 
     const dynamicVariables = {
@@ -253,7 +260,7 @@ export class CallService {
       }
     } catch (error) {
       // Re-throw HTTP errors (like insufficient credits) as-is
-      if (error instanceof ErrorWithCode) {
+      if (error instanceof HttpError) {
         throw error;
       }
 
