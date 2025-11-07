@@ -105,3 +105,6 @@ packages/**/.yarn/ci-cache/
 
 # AI
 .claude
+
+# trigger.dev
+.trigger

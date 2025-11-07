@@ -3,8 +3,8 @@ import { z } from "zod";
 
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { TriggerDevLogger } from "@calcom/lib/triggerDevLogger";
 import { prisma } from "@calcom/prisma";
-import { TriggerDevLogger } from "@calcom/trigger/logger";
 
 import { BookingEmailAndSmsTaskService } from "../BookingEmailAndSmsTaskService";
 
