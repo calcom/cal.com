@@ -188,7 +188,7 @@ const createNewSeat = async (
       throw new ErrorWithCode(ErrorCode.MissingPaymentCredential, ErrorCode.MissingPaymentCredential);
     }
     if (!eventTypePaymentAppCredential?.appId) {
-      throw new ErrorWithCode(ErrorCode.MissingPaymentAppId);
+      throw new ErrorWithCode(ErrorCode.MissingPaymentAppId, ErrorCode.MissingPaymentAppId);
     }
 
     const payment = await handlePayment({
