@@ -1,5 +1,5 @@
 import { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
-import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
 import { moduleLoader as cacheModuleLoader } from "@calcom/features/di/modules/Cache";
 import { moduleLoader as checkBookingAndDurationLimitsModuleLoader } from "@calcom/features/di/modules/CheckBookingAndDurationLimits";
@@ -37,6 +37,6 @@ const loadModule = bindModuleToClassOnToken({
 export const moduleLoader = {
   token,
   loadModule,
-};
+} satisfies ModuleLoader;
 
 export type { RegularBookingService };

@@ -1,6 +1,6 @@
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { RegularBookingService } from "@calcom/features/bookings/lib/service/RegularBookingService";
-import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 
 import { BOOKING_DI_TOKENS } from "./tokens";
@@ -21,6 +21,6 @@ const loadModule = bindModuleToClassOnToken({
 export const moduleLoader = {
   token,
   loadModule,
-};
+} satisfies ModuleLoader;
 
 export type { RegularBookingService };

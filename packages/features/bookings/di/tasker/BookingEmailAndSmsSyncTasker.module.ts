@@ -1,5 +1,5 @@
 import { BookingEmailAndSmsSyncTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsSyncTasker";
-import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 
 import { moduleLoader as BookingEmailAndSmsTaskServiceModuleLoader } from "./BookingEmailAndSmsTaskService.module";
@@ -22,4 +22,4 @@ const loadModule = bindModuleToClassOnToken({
 export const moduleLoader = {
   token,
   loadModule,
-};
+} satisfies ModuleLoader;
