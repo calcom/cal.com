@@ -65,7 +65,7 @@ export const inputStyles = cva(
 
 // New container styles for floating variant
 export const floatingContainerStyles = cva(
-  ["relative border rounded-lg bg-white", "transition-all duration-300"],
+  ["relative border rounded-lg bg-default", "transition-all duration-300"],
   {
     variants: {
       state: {
@@ -86,10 +86,10 @@ export const floatingContainerStyles = cva(
 export const floatingLabelStyles = cn(
   "absolute text-gray-500 font-medium duration-300 transform pointer-events-none",
   "-translate-y-1/2 scale-100 top-1/2 left-10",
-  "peer-focus:scale-75 peer-focus:top-0 peer-focus:left-7 peer-focus:px-1 peer-focus:bg-white",
+  "peer-focus:scale-75 peer-focus:top-0 peer-focus:left-7 peer-focus:px-1 peer-focus:bg-white dark:peer-focus:bg-[#252525]",
   "peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:scale-75",
   "peer-[:not(:placeholder-shown)]:left-7 peer-[:not(:placeholder-shown)]:px-1",
-  "peer-[:not(:placeholder-shown)]:bg-white"
+  "peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-[#252525]"
 );
 
 export const Input = forwardRef<HTMLInputElement, InputProps & { variant?: "default" | "floating" }>(
@@ -218,7 +218,7 @@ export const InputField = forwardRef<
             className={cn(
               prefixIcon ? "py-3 pl-10 pr-4" : "px-4 py-3",
               addOnSuffix && "pr-10",
-              "text-gray-800",
+              "text-default bg-default",
               className
             )}
             {...passThrough}
@@ -492,7 +492,7 @@ const RequirementItem = ({ check, label }: { check: boolean; label: string }) =>
     <p
       className={cn(
         "flex items-center text-xs transition-all duration-300",
-        check ? "text-green-600" : "text-gray-600"
+        check ? "text-green-600" : "text-default"
       )}>
       <Icon
         name={check ? "check" : "circle"}
@@ -645,7 +645,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
             }}
             className={cn(
               prefixIcon ? "py-3 pl-10 pr-10" : "px-4 py-3 pr-10",
-              "font-medium text-gray-800",
+              "bg-default font-medium text-default",
               props.className
             )}
           />
@@ -668,7 +668,7 @@ export const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(fu
           <button
             type="button"
             onClick={toggleIsPasswordVisible}
-            className="absolute right-0 top-0 flex h-full items-center pr-3 text-gray-500 hover:text-gray-800 focus:outline-none">
+            className="absolute right-0 top-0 flex h-full items-center pr-3 text-gray-500 hover:text-gray-400 focus:outline-none">
             <Icon name={isPasswordVisible ? "eye-off" : "eye"} className="h-4 w-4" />
           </button>
         </div>

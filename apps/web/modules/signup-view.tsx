@@ -249,7 +249,7 @@ export default function Signup({
   const RequirementItem = ({ check, label }) => (
     <p
       className={`flex items-center text-xs transition-all duration-300 ${
-        check ? "text-green-600" : "text-gray-600"
+        check ? "text-green-600" : "text-gray-200"
       }`}>
       {check ? (
         <svg
@@ -327,14 +327,14 @@ export default function Signup({
         }
       `}</style>
 
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
-        <div className="md:max-w-[600px] w-full overflow-hidden rounded-3xl border-0 bg-white shadow-xl">
+      <div className="dark:bg-default flex  min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
+        <div className="bg-default dark:border-gray-550 w-full max-w-7xl overflow-hidden rounded-3xl border shadow-xl md:max-w-[600px] dark:shadow-none">
           <div className="min-h-[600px]">
             {/* Left Column - Signup Form */}
             <div className="flex flex-col justify-center p-8 lg:p-12">
               <div className="fade-in-up mb-8">
-                <h1 className="mb-2 text-2xl font-bold text-gray-900">{t("get_started")}</h1>
-                <p className="font-medium text-gray-600">Create your Cal ID account</p>
+                <h1 className="text-emphasis mb-2 text-2xl font-bold">{t("get_started")}</h1>
+                <p className="text-default font-medium">Create your Cal ID account</p>
               </div>
 
               {/* Social Login Buttons */}
@@ -355,7 +355,7 @@ export default function Signup({
                             alt="Google"
                           />
                         }
-                        className="google-btn-premium w-full justify-center rounded-lg border border-gray-300 px-4 py-3 font-semibold text-gray-700 shadow-sm hover:border-gray-400 hover:bg-gray-50"
+                        className="google-btn-premium w-full justify-center rounded-lg border border-gray-300 px-4 py-3 font-semibold shadow-sm hover:border-gray-400 hover:bg-gray-50"
                         data-testid="continue-with-google-button"
                         onClick={async () => {
                           setIsGoogleLoading(true);
@@ -377,7 +377,7 @@ export default function Signup({
                         }}>
                         {t("continue_with_google")}
                       </Button>
-                      <span className="absolute -top-3 right-2 z-10 rounded-full bg-[#007ee5] px-2.5 py-1 text-xs font-semibold text-white shadow">
+                      <span className="text-emphasis absolute -top-3 right-2 z-10 rounded-full bg-[#007ee5] px-2.5 py-1 text-xs font-semibold shadow">
                         ⭐ Popular
                       </span>
                     </div>
@@ -389,7 +389,7 @@ export default function Signup({
                   <div className="fade-in-up my-6" style={{ animationDelay: "200ms" }}>
                     <div className="relative flex items-center">
                       <div className="flex-grow border-t border-gray-200" />
-                      <span className="px-4 text-sm font-medium text-gray-500">{t("or")}</span>
+                      <span className="text-default px-4 text-sm font-medium">{t("or")}</span>
                       <div className="flex-grow border-t border-gray-200" />
                     </div>
                   </div>
@@ -440,60 +440,7 @@ export default function Signup({
                       showStrengthColors={true}
                       showRequirements={true}
                       {...register("password")}
-                      onPasswordChange={(value, checks, strength) => {
-                        // Optional: Access password validation state
-                        console.log("Password strength:", strength.label);
-                        console.log("All checks passed:", Object.values(checks).every(Boolean));
-                      }}
                     />
-
-                    {/* Password Strength Meter */}
-                    {passwordValue && (
-                      <>
-                        <div className="mt-2 flex items-center justify-between px-1">
-                          <span
-                            className={`text-sm font-semibold transition-colors duration-300 ${passwordStrength.textClass}`}>
-                            {passwordStrength.label}
-                          </span>
-                          <div className="flex items-center gap-1.5">
-                            {[0, 1, 2].map((index) => (
-                              <div
-                                key={index}
-                                className={`h-1.5 w-10 rounded-full transition-colors duration-300 ${
-                                  index < passwordStrength.bars ? passwordStrength.barClass : "bg-gray-200"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Password Requirements */}
-                        <div className="mt-2 space-y-1">
-                          <RequirementItem check={passwordChecks.length} label="At least 8 characters" />
-                          <RequirementItem
-                            check={passwordChecks.hasLower && passwordChecks.hasUpper}
-                            label="Mix of uppercase & lowercase"
-                          />
-                          <RequirementItem check={passwordChecks.hasNumber} label="At least one number" />
-                          <RequirementItem
-                            check={passwordChecks.hasSpecial}
-                            label="At least one special character"
-                          />
-                          {!passwordChecks.noRepeat && passwordValue.length > 0 && (
-                            <p className="flex items-center text-xs text-red-500">
-                              <svg className="mr-2 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path
-                                  fillRule="evenodd"
-                                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                              Avoid repeating characters (e.g., 'aaa')
-                            </p>
-                          )}
-                        </div>
-                      </>
-                    )}
                   </div>
 
                   {/* Cloudflare Turnstile Captcha */}
@@ -518,7 +465,7 @@ export default function Signup({
                   <Button
                     type="submit"
                     data-testid="signup-submit-button"
-                    className="btn-premium-submit mt-2 w-full justify-center rounded-lg bg-[#007ee5] py-3 font-semibold text-white hover:bg-[#006ac1]"
+                    className="w-full justify-center rounded-lg py-3 font-semibold "
                     loading={loadingSubmitState}
                     disabled={
                       !!formMethods.formState.errors.email ||
@@ -537,14 +484,14 @@ export default function Signup({
               {/* Already have an account & T&C */}
               <div className="fade-in-up mt-6" style={{ animationDelay: "400ms" }}>
                 <div className="text-center">
-                  <span className="font-medium text-gray-600">{t("already_have_account")} </span>
+                  <span className="text-default font-medium">{t("already_have_account")} </span>
                   <Link
                     href="/auth/login"
                     className="font-semibold text-[#007ee5] hover:text-[#006ac1] hover:underline">
                     {t("sign_in")}
                   </Link>
                 </div>
-                <div className="mt-4 text-center text-xs text-gray-500">
+                <div className="text-default mt-4 text-center text-xs">
                   By proceeding, you agree to our{" "}
                   <Link href={WEBSITE_TERMS_URL} className="font-medium text-[#007ee5] hover:underline">
                     {t("terms")}

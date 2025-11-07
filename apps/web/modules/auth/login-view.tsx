@@ -238,17 +238,17 @@ export default function Login({
         }
       `}</style>
 
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] px-5">
-        <div className="m-0 w-full overflow-hidden rounded-3xl border-0 bg-white shadow-xl  md:max-w-[600px]">
+      <div className="dark:bg-default flex  min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
+        <div className="bg-default dark:border-gray-550 w-full max-w-7xl overflow-hidden rounded-3xl border shadow-xl md:max-w-[600px] dark:shadow-none">
           <div className="min-h-[600px]">
             {/* Left Column - Login Form */}
             <div className="flex flex-col justify-center p-6 lg:p-12">
               <div className="fade-in-up center mb-8">
-                <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 md:text-left">
+                <h1 className="text-default mb-2 text-center text-2xl font-bold md:text-left">
                   {twoFactorRequired ? t("2fa_code") : t("welcome_back")}
                 </h1>
                 {!twoFactorRequired && (
-                  <p className="text-center font-medium text-gray-600 sm:text-center md:text-left">
+                  <p className="text-emphasis text-center font-medium sm:text-center md:text-left">
                     {t("sign_in_account")}
                   </p>
                 )}
@@ -268,7 +268,7 @@ export default function Login({
                               color="secondary"
                               disabled={formState.isSubmitting}
                               CustomStartIcon={<GoogleIcon />}
-                              className="google-btn-premium w-full justify-center rounded-lg border border-gray-300 px-4 py-3 font-semibold text-gray-700 shadow-sm hover:border-gray-400 hover:bg-gray-50"
+                              className="google-btn-premium w-full justify-center rounded-lg border border-gray-300 px-4 py-3 font-semibold shadow-sm hover:border-gray-400 hover:bg-gray-50"
                               data-testid="google"
                               onClick={async (e) => {
                                 e.preventDefault();
@@ -281,7 +281,7 @@ export default function Login({
                               <span className="hidden sm:inline">{t("signin_with_google")}</span>
                             </Button>
                             {lastUsed === "google" && (
-                              <span className="absolute -top-3 right-2 z-10 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-800">
+                              <span className="absolute -top-3 right-2 z-10 rounded-full border border-gray-200 bg-default px-2.5 py-1 text-xs font-semibold text-default">
                                 ⭐ Last Used
                               </span>
                             )}
@@ -345,7 +345,7 @@ export default function Login({
                         <Link
                           href="/auth/forgot-password"
                           tabIndex={-1}
-                          className="text-sm font-semibold text-[#007ee5] hover:text-[#006ac1] hover:underline">
+                          className="dark:text-emphasis text-sm font-semibold text-[#007ee5] hover:text-[#006ac1] hover:underline">
                           {t("forgot_password")}
                         </Link>
                       </div>
@@ -364,12 +364,12 @@ export default function Login({
                       <Button
                         type="submit"
                         disabled={formState.isSubmitting}
-                        className="btn-premium-submit mt-6 w-full justify-center rounded-lg bg-[#007ee5] py-3 font-semibold text-white hover:bg-[#006ac1]"
+                        className="w-full justify-center rounded-lg py-3 font-semibold "
                         data-testid="submit">
                         <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
                       </Button>
                       {lastUsed === "credentials" && (
-                        <span className="absolute top-2 right-2 z-10 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-800">
+                        <span className="bg-default absolute right-2 top-2 z-10 rounded-full border border-gray-200 px-2.5 py-1 text-xs font-semibold text-default">
                           ⭐ Last Used
                         </span>
                       )}
@@ -380,7 +380,7 @@ export default function Login({
                 {/* Footer */}
                 {!twoFactorRequired && process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && (
                   <div className="fade-in-up mt-6 text-center" style={{ animationDelay: "400ms" }}>
-                    <p className="font-medium text-gray-600">
+                    <p className="text-emphasis font-medium">
                       {t("dont_have_an_account")}{" "}
                       <Link
                         href={`${WEBAPP_URL}/signup`}
