@@ -272,7 +272,16 @@ export async function getRawEventType({
   prisma,
 }: Omit<getEventTypeByIdProps, "isTrpcCall">) {
   const eventTypeRepo = new EventTypeRepository(prisma);
-  const isUserInPlatformOrganization = currentOrganizationId ? !!(await OrganizationRepository.findById({ id: currentOrganizationId }))?.isPlatform : false;
+  
+  let isUserInPlatformOrganization = false;
+  if (currentOrganizationId) {
+    try {
+      const org = await OrganizationRepository.findByIdIncludeOrganizationSettings({ id: currentOrganizationId });
+      isUserInPlatformOrganization = !!(org?.isPlatform);
+    } catch {
+      isUserInPlatformOrganization = false;
+    }
+  }
 
   if (isUserOrganizationAdmin && currentOrganizationId && isUserInPlatformOrganization) {
     // Platform Organization Admin can access any event of the organization even without being a member of the sub-teams
