@@ -20,6 +20,7 @@ import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { TRPCError } from "@trpc/server";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 
 interface getEventTypeByIdProps {
   eventTypeId: number;
@@ -272,16 +273,8 @@ export async function getRawEventType({
   prisma,
 }: Omit<getEventTypeByIdProps, "isTrpcCall">) {
   const eventTypeRepo = new EventTypeRepository(prisma);
-  
-  let isUserInPlatformOrganization = false;
-  if (currentOrganizationId) {
-    try {
-      const org = await OrganizationRepository.findByIdIncludeOrganizationSettings({ id: currentOrganizationId });
-      isUserInPlatformOrganization = !!(org?.isPlatform);
-    } catch {
-      isUserInPlatformOrganization = false;
-    }
-  }
+  const organizationRepo = getOrganizationRepository();
+  const isUserInPlatformOrganization = currentOrganizationId ? !!(await organizationRepo.findById({ id: currentOrganizationId }))?.isPlatform : false;
 
   if (isUserOrganizationAdmin && currentOrganizationId && isUserInPlatformOrganization) {
     // Platform Organization Admin can access any event of the organization even without being a member of the sub-teams
