@@ -455,6 +455,7 @@ class BaseUpdateEventTypeInput {
   bookingRequiresAuthentication?: boolean;
 
   @IsInt()
+  @Min(0)
   @IsOptional()
   @DocsPropertyOptional({
     description: "Price in cents",

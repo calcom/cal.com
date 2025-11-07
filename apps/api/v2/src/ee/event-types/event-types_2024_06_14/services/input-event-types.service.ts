@@ -128,6 +128,7 @@ export class InputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail,
       disableGuests,
       bookerActiveBookingsLimit,
+      price,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -170,6 +171,7 @@ export class InputEventTypesService_2024_06_14 {
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,
+      price,
     };
 
     return eventType;
