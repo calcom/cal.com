@@ -375,7 +375,7 @@ export function BookingActionsDropdown({ booking }: BookingActionsDropdownProps)
       <RescheduleDialog
         isOpenDialog={isOpenRescheduleDialog}
         setIsOpenDialog={setIsOpenRescheduleDialog}
-        bookingUId={booking.uid}
+        bookingUid={booking.uid}
       />
       {isOpenReassignDialog && (
         <ReassignDialog
