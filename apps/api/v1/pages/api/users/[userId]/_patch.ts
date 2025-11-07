@@ -142,12 +142,9 @@ export async function patchHandler(req: NextApiRequest) {
   }
 
   const featuresRepository = new FeaturesRepository(prisma);
-  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally(
-    "email-verification"
-  );
+  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
-  const hasEmailBeenChanged =
-    typeof body.email === "string" && currentUser.email !== body.email;
+  const hasEmailBeenChanged = typeof body.email === "string" && currentUser.email !== body.email;
   const newEmail = typeof body.email === "string" ? body.email : undefined;
 
   const prismaData: Prisma.UserUpdateInput = { ...body };
@@ -168,12 +165,9 @@ export async function patchHandler(req: NextApiRequest) {
 
     if (emailVerification) {
       if (!secondaryEmail?.emailVerified) {
-        const userMetadata =
-          typeof currentUser.metadata === "object" && currentUser.metadata !== null
-            ? currentUser.metadata
-            : {};
         prismaData.metadata = {
-          ...userMetadata,
+          ...(typeof currentUser.metadata === "object" && currentUser.metadata ? currentUser.metadata : {}),
+          ...(typeof prismaData.metadata === "object" && prismaData.metadata ? prismaData.metadata : {}),
           emailChangeWaitingForVerification: newEmail.toLowerCase(),
         };
 
@@ -187,12 +181,7 @@ export async function patchHandler(req: NextApiRequest) {
     data: prismaData,
   });
 
-  if (
-    hasEmailBeenChanged &&
-    emailVerification &&
-    newEmail &&
-    !prismaData.email
-  ) {
+  if (hasEmailBeenChanged && emailVerification && newEmail && !prismaData.email) {
     await sendChangeOfEmailVerification({
       user: {
         username: data.username ?? "Nameless User",
