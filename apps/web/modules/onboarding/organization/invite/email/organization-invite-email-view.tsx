@@ -114,7 +114,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={3}>
-      <div className="flex w-full flex-col gap-4">
+      <div className="flex h-full w-full flex-col gap-4">
         <OnboardingCard
           title={t("onboarding_org_invite_title")}
           subtitle={t("onboarding_org_invite_subtitle_email")}
@@ -134,9 +134,9 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
               </Button>
             </div>
           }>
-          <div className="flex w-full flex-col gap-4 px-5">
-            <Form form={form} handleSubmit={handleContinue} className="w-full">
-              <div className="flex w-full flex-col gap-4">
+          <div className="flex h-full w-full flex-col gap-4">
+            <Form form={form} handleSubmit={handleContinue} className="h-full w-full">
+              <div className="flex h-full w-full flex-col gap-4">
                 <EmailInviteForm
                   form={form}
                   fields={fields}

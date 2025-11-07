@@ -37,9 +37,6 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   const [organizationBio, setOrganizationBio] = useState("");
   const [isSlugValid, setIsSlugValid] = useState(false);
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
-  const [showTopFade, setShowTopFade] = useState(false);
-  const [showBottomFade, setShowBottomFade] = useState(true);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Load from store on mount
   useEffect(() => {
@@ -64,29 +61,6 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
     setOrganizationLink(value);
     setIsSlugManuallyEdited(true);
   };
-
-  const checkScrollPosition = () => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const isAtTop = scrollTop <= 1; // Small threshold for rounding
-    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
-
-    setShowTopFade(!isAtTop && scrollHeight > clientHeight);
-    setShowBottomFade(!isAtBottom && scrollHeight > clientHeight);
-  };
-
-  // Check scroll position on mount and when content changes
-  useEffect(() => {
-    checkScrollPosition();
-    // Add resize observer to handle dynamic content changes
-    const resizeObserver = new ResizeObserver(checkScrollPosition);
-    if (scrollContainerRef.current) {
-      resizeObserver.observe(scrollContainerRef.current);
-    }
-    return () => resizeObserver.disconnect();
-  }, [organizationName, organizationLink, organizationBio]);
 
   const handleContinue = () => {
     if (!isSlugValid) {
@@ -120,20 +94,11 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
           </div>
         }>
         {/* Form */}
-        <div className="scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent scrollbar-thin relative flex">
+        <div className="relative flex">
           {/* Scrollable content container */}
-          <div
-            ref={scrollContainerRef}
-            onScroll={checkScrollPosition}
-            className="relative h-full w-full gap-6 overflow-y-scroll px-2 py-2">
+          <div className="relative h-full w-full gap-6 px-2 py-2">
             {/* Top fade overlay */}
-            {showTopFade && (
-              <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 h-12 bg-gradient-to-b from-white to-transparent" />
-            )}
-            {/* Bottom fade overlay */}
-            {showBottomFade && (
-              <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-12 bg-gradient-to-t from-white to-transparent" />
-            )}
+
             <div className="flex w-full flex-col gap-4 rounded-xl">
               {/* Organization Name */}
               <div className="flex w-full flex-col gap-1.5">
