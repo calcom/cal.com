@@ -1,7 +1,7 @@
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { ActionType } from "@calcom/ui/components/table";
 
-import type { BookingItemProps } from "./BookingListItem";
+import type { BookingItemProps } from "./types";
 
 export interface BookingActionContext {
   booking: BookingItemProps;
@@ -128,7 +128,9 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       disabled:
-        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) ||
+        isDisabledRescheduling ||
+        booking.seatsReferences.length > 0,
     },
     isBookingFromRoutingForm
       ? {

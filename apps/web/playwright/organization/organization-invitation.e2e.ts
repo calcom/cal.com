@@ -90,7 +90,7 @@ test.describe("Organization", () => {
 
     // This test is already covered by booking.e2e.ts where existing user is invited and his booking links are tested.
     // We can re-test here when we want to test some more scenarios.
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+     
     test("existing user invited to an organization", () => {});
 
     test("nonexisting user invited to a Team inside organization", async ({
@@ -313,7 +313,7 @@ test.describe("Organization", () => {
         await page.locator('[data-testid="continue-with-email-button"]').click();
         await expect(page.locator('[data-testid="signup-submit-button"]')).toBeVisible();
 
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+         
         await page.locator('input[name="username"]').fill(existingUser.username!);
         await page
           .locator('input[name="email"]')

@@ -517,5 +517,10 @@ const processEvent = (calEvent: CalendarEvent): CalendarServiceEvent => {
     calendarEvent.attendees = [];
   }
 
+  if (calEvent.seatsPerTimeSlot){
+    calendarEvent.responses = null;
+    calendarEvent.userFieldsResponses = null;
+  }
+
   return calendarEvent;
 };

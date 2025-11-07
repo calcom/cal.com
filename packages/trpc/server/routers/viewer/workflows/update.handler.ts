@@ -5,11 +5,11 @@ import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/re
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import tasker from "@calcom/features/tasker";
+import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import logger from "@calcom/lib/logger";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
-import { addPermissionsToWorkflow } from "@calcom/lib/server/repository/workflow-permissions";
 import { WorkflowRelationsRepository } from "@calcom/lib/server/repository/workflowRelations";
 import { WorkflowStepRepository } from "@calcom/lib/server/repository/workflowStep";
 import { prisma, type PrismaClient } from "@calcom/prisma";

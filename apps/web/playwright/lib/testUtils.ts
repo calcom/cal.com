@@ -4,7 +4,7 @@ import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
-// eslint-disable-next-line no-restricted-imports
+ 
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 import { v4 as uuid } from "uuid";
@@ -213,7 +213,7 @@ export async function setupManagedEvent({
     addManagedEventToTeamMates: true,
     managedEventUnlockedFields: unlockedFields,
   });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   const memberUser = users.get().find((u) => u.name === teamMateName)!;
   const { team } = await adminUser.getFirstTeamMembership();
   const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
@@ -275,11 +275,17 @@ export async function getInviteLink(page: Page) {
 export async function getEmailsReceivedByUser({
   emails,
   userEmail,
+  waitForEmailMs = 5000,
 }: {
   emails?: ReturnType<typeof createEmailsFixture>;
   userEmail: string;
+  waitForEmailMs?: number;
 }): Promise<Messages | null> {
   if (!emails) return null;
+
+  // Wait for email to be sent/received
+  await new Promise((resolve) => setTimeout(resolve, waitForEmailMs));
+
   const matchingEmails = await emails.search(userEmail, "to");
   if (!matchingEmails?.total) {
     console.log(
@@ -365,7 +371,7 @@ async function createUserWithSeatedEvent(users: Fixtures["users"]) {
       },
     ],
   });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+   
   const eventType = user.eventTypes.find((e) => e.slug === slug)!;
   return { user, eventType };
 }

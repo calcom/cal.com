@@ -11,6 +11,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/dayjs";
+import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -34,7 +35,6 @@ export default function JoinCall(props: PageProps) {
     booking,
     hasTeamPlan,
     calVideoLogo,
-    displayLogInOverlay,
     loggedInUserName,
     overrideName,
     showRecordingButton,
@@ -42,16 +42,27 @@ export default function JoinCall(props: PageProps) {
     enableAutomaticRecordingForOrganizer,
     showTranscriptionButton,
     rediectAttendeeToOnExit,
+    requireEmailForGuests,
+    isLoggedInUserPartOfMeeting,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
-  const [userNameForCall, setUserNameForCall] = useState<string | undefined>(
-    overrideName ?? loggedInUserName ?? undefined
-  );
-  const [isUserNameConfirmed, setIsUserNameConfirmed] = useState<boolean>(!displayLogInOverlay);
+  const [guestCredentials, setGuestCredentials] = useState<{
+    meetingPassword: string;
+    meetingUrl: string;
+    userName: string;
+  } | null>(null);
+
+  const userNameForCall = overrideName ?? loggedInUserName ?? undefined;
+  const hideLoginModal =
+    !!userNameForCall && (requireEmailForGuests ? !!loggedInUserName && isLoggedInUserPartOfMeeting : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
+  const activeMeetingPassword = guestCredentials?.meetingPassword ?? meetingPassword;
+  const activeMeetingUrl = guestCredentials?.meetingUrl ?? meetingUrl;
+  const activeUserName = guestCredentials?.userName ?? userNameForCall;
+
   const createCallFrame = useCallback(
-    (userName?: string) => {
+    (userName?: string, password?: string, url?: string) => {
       let callFrame: DailyCall | undefined;
 
       try {
@@ -76,9 +87,9 @@ export default function JoinCall(props: PageProps) {
             width: "100%",
             height: "100%",
           },
-          url: meetingUrl,
+          url: url ?? meetingUrl,
           userName: userName,
-          ...(typeof meetingPassword === "string" && { token: meetingPassword }),
+          ...(typeof (password ?? meetingPassword) === "string" && { token: password ?? meetingPassword }),
           ...(hasTeamPlan && {
             customTrayButtons: {
               ...(showRecordingButton
@@ -116,16 +127,15 @@ export default function JoinCall(props: PageProps) {
     },
     [meetingUrl, meetingPassword, hasTeamPlan, showRecordingButton, showTranscriptionButton, t]
   );
-
   useEffect(() => {
-    if (displayLogInOverlay && !loggedInUserName && !overrideName && !isUserNameConfirmed) {
+    if (!hideLoginModal && !guestCredentials) {
       return;
     }
 
     let callFrame: DailyCall | null = null;
 
     try {
-      callFrame = createCallFrame(userNameForCall) ?? null;
+      callFrame = createCallFrame(activeUserName, activeMeetingPassword, activeMeetingUrl) ?? null;
       setDaily(callFrame);
       setIsCallFrameReady(true);
 
@@ -146,27 +156,15 @@ export default function JoinCall(props: PageProps) {
       setIsCallFrameReady(false);
     };
   }, [
-    displayLogInOverlay,
-    isUserNameConfirmed,
-    userNameForCall,
+    hideLoginModal,
+    activeUserName,
+    activeMeetingPassword,
+    activeMeetingUrl,
     createCallFrame,
     loggedInUserName,
     overrideName,
+    guestCredentials,
   ]);
-
-  const handleJoinAsGuest = useCallback((guestName: string) => {
-    const trimmedName = guestName.trim();
-    if (!trimmedName) {
-      return;
-    }
-
-    setUserNameForCall(trimmedName);
-    setIsUserNameConfirmed(true);
-  }, []);
-
-  const handleUserNameConfirmed = useCallback(() => {
-    setIsUserNameConfirmed(true);
-  }, []);
 
   return (
     <DailyProvider callObject={daily}>
@@ -205,14 +203,16 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
-      {displayLogInOverlay && !isUserNameConfirmed && (
+      {!hideLoginModal && (
         <LogInOverlay
-          isLoggedIn={!!loggedInUserName}
+          isOpen={!hideLoginModal}
           bookingUid={booking.uid}
           loggedInUserName={loggedInUserName ?? undefined}
           overrideName={overrideName}
-          onJoinAsGuest={handleJoinAsGuest}
-          onUserNameConfirmed={handleUserNameConfirmed}
+          requireEmailForGuests={requireEmailForGuests}
+          onGuestCredentialsReceived={setGuestCredentials}
+          meetingPassword={meetingPassword}
+          meetingUrl={meetingUrl}
         />
       )}
 
@@ -291,46 +291,125 @@ function ProgressBar(props: ProgressBarProps) {
 }
 
 interface LogInOverlayProps {
-  isLoggedIn: boolean;
+  isOpen: boolean;
   bookingUid: string;
   loggedInUserName?: string;
   overrideName?: string;
-  onJoinAsGuest: (guestName: string) => void;
-  onUserNameConfirmed?: () => void;
+  requireEmailForGuests?: boolean;
+  onGuestCredentialsReceived: (credentials: {
+    meetingPassword: string;
+    meetingUrl: string;
+    userName: string;
+  }) => void;
+  meetingPassword?: string;
+  meetingUrl: string;
 }
 
 export function LogInOverlay(props: LogInOverlayProps) {
   const { t } = useLocale();
-  const { bookingUid, isLoggedIn, loggedInUserName, overrideName, onJoinAsGuest, onUserNameConfirmed } =
-    props;
+  const {
+    bookingUid,
+    isOpen: _open,
+    loggedInUserName,
+    overrideName,
+    requireEmailForGuests = false,
+    onGuestCredentialsReceived,
+    meetingPassword,
+    meetingUrl,
+  } = props;
 
-  const [isOpen, setIsOpen] = useState(!isLoggedIn);
+  const [isOpen, setIsOpen] = useState(_open);
   const [userName, setUserName] = useState(overrideName ?? loggedInUserName ?? "");
+  const [userEmail, setUserEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleContinueAsGuest = useCallback(async () => {
     const trimmedName = userName.trim();
+    const trimmedEmail = userEmail.trim();
+
     if (!trimmedName) {
+      setError(t("please_enter_name"));
       return;
+    }
+
+    if (requireEmailForGuests) {
+      if (!trimmedEmail) {
+        setError(t("please_enter_name_and_email"));
+        return;
+      }
+
+      if (!emailRegex.test(trimmedEmail)) {
+        setError(t("invalid_email_address"));
+        return;
+      }
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      onJoinAsGuest(trimmedName);
-      onUserNameConfirmed?.();
-      setIsOpen(false);
-    } catch (error) {
-      console.error("Error joining as guest:", error);
-      const errorMessage = error instanceof Error ? error.message : t("failed_to_join_call");
+      // Only create guest session if email is required and provided
+      if (requireEmailForGuests && trimmedEmail) {
+        const csrfResponse = await fetch("/api/csrf", { cache: "no-store" });
+        const { csrfToken } = await csrfResponse.json();
 
+        const response = await fetch("/api/video/guest-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bookingUid,
+            email: trimmedEmail,
+            name: trimmedName,
+            csrfToken,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorKey = errorData.error;
+          throw new Error(errorKey || "Failed to create guest session");
+        }
+
+        const { meetingPassword, meetingUrl } = await response.json();
+
+        onGuestCredentialsReceived({
+          meetingPassword,
+          meetingUrl,
+          userName: trimmedName,
+        });
+
+        setIsOpen(false);
+      } else {
+        // If email not required, use existing credentials from SSR props
+        if (!meetingPassword) {
+          throw new Error("Meeting password not available");
+        }
+
+        onGuestCredentialsReceived({
+          meetingPassword,
+          meetingUrl,
+          userName: trimmedName,
+        });
+
+        setIsOpen(false);
+      }
+    } catch (error) {
+      const errorKey = error instanceof Error ? error.message : "failed_to_join_call";
+      const errorMessage = t(errorKey) || errorKey;
       setError(errorMessage);
-    } finally {
       setIsLoading(false);
     }
-  }, [userName, onJoinAsGuest, onUserNameConfirmed, t]);
+  }, [
+    userName,
+    userEmail,
+    bookingUid,
+    requireEmailForGuests,
+    t,
+    onGuestCredentialsReceived,
+    meetingPassword,
+    meetingUrl,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -351,38 +430,81 @@ export function LogInOverlay(props: LogInOverlayProps) {
     [error]
   );
 
+  const handleEmailChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUserEmail(e.target.value);
+      if (error) {
+        setError(null);
+      }
+    },
+    [error]
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
         title={t("join_video_call")}
         description={t("choose_how_you_d_like_to_appear_on_the_call")}
-        className="bg-white text-black dark:bg-black dark:text-white sm:max-w-[480px]">
-        <div className="pb-4">
+        className="bg-black/80 p-6 sm:max-w-lg">
+        <div className="mt-2 pb-4">
           <div className="space-y-4">
             <div>
               <div className="font-semibold">{t("join_as_guest")}</div>
               <p className="text-subtle text-sm">{t("ideal_for_one_time_calls")}</p>
             </div>
 
-            <div className="flex gap-4">
-              <Input
-                type="text"
-                placeholder={t("your_name")}
-                className="w-full flex-1"
-                value={userName}
-                onChange={handleUserNameChange}
-                onKeyDown={handleKeyDown}
-                disabled={isLoading}
-                autoFocus
-              />
-              <Button color="secondary" onClick={handleContinueAsGuest} loading={isLoading}>
-                {t("continue")}
-              </Button>
-            </div>
+            {requireEmailForGuests ? (
+              <div className="flex flex-col gap-4">
+                <Input
+                  type="text"
+                  placeholder={t("your_name")}
+                  className="w-full flex-1"
+                  value={userName}
+                  onChange={handleUserNameChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  autoFocus
+                />
+
+                <Input
+                  type="email"
+                  placeholder={t("email_address")}
+                  className="w-full flex-1"
+                  value={userEmail}
+                  onChange={handleEmailChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                />
+
+                <Button
+                  color="secondary"
+                  className="w-fit self-end"
+                  onClick={handleContinueAsGuest}
+                  loading={isLoading}>
+                  {t("continue")}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-4">
+                <Input
+                  type="text"
+                  placeholder={t("your_name")}
+                  className="w-full flex-1"
+                  value={userName}
+                  onChange={handleUserNameChange}
+                  onKeyDown={handleKeyDown}
+                  disabled={isLoading}
+                  autoFocus
+                />
+                <Button color="secondary" onClick={handleContinueAsGuest} loading={isLoading}>
+                  {t("continue")}
+                </Button>
+              </div>
+            )}
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
+            <div className="mt-4 rounded-md bg-red-50 p-3 dark:bg-red-900/20">
               <div className="flex">
                 <div className="ml-3">
                   <p className="text-sm font-medium text-red-800 dark:text-red-200">{error}</p>
@@ -392,7 +514,7 @@ export function LogInOverlay(props: LogInOverlayProps) {
           )}
 
           {/* Divider */}
-          <hr className="my-5 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
+          <hr className="my-6 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
 
           <div className="mt-5 space-y-4">
             <div>
@@ -487,7 +609,6 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
               <div
                 className="prose-sm prose prose-invert"
-                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
               />
             </>

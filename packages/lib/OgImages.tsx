@@ -20,6 +20,7 @@ export interface AppImageProps {
   name: string;
   description: string;
   slug: string;
+  logoUrl: string;
 }
 
 export interface GenericImageProps {
@@ -48,6 +49,48 @@ const joinMultipleNames = (names: string[] = []) => {
 
 const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CAL_URL}${url}`);
 
+const OG_ASSETS = {
+  meeting: {
+    id: "meeting-og-image-v1", // Bump version when changing Meeting component structure/styling
+    logo: LOGO,
+    logoWidth: "350",
+    avatarSize: "160",
+    variant: "dark" as const,
+  },
+  app: {
+    id: "app-og-image-v1", // Bump version when changing App component structure/styling
+    logo: LOGO,
+    logoWidth: "150",
+    iconSize: "172",
+    variant: "light" as const,
+  },
+  generic: {
+    id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
+    logo: "cal-logo-word-black.svg",
+    logoWidth: "350",
+    variant: "light" as const,
+  },
+};
+
+export const getOGImageVersion = async (
+  type: keyof typeof OG_ASSETS,
+  additionalInputs?: Record<string, string>
+) => {
+  const versionInputs: Record<string, unknown> = {
+    ...OG_ASSETS[type],
+    ...(additionalInputs ?? {}),
+  };
+
+  const content = JSON.stringify(versionInputs, Object.keys(versionInputs).sort());
+
+  // Use Web Crypto API instead of Node.js crypto for Edge Runtime compatibility (`/api/social/og/image` is an Edge Runtime route)
+  const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(content));
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+  return hashHex.substring(0, 8);
+};
+
 /**
  * Test urls:
  * 1. 1 user http://localhost:3000/api/social/og/image?type=meeting&title=super%20long%20event%20title%20for%20testing%20purposes&meetingProfileName=Pro%20Example&meetingImage=http://localhost:3000/pro/avatar.png&names=Pro%20Example&usernames=pro
@@ -56,7 +99,11 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
  * 4. Team event (round robin) http://localhost:3000/api/social/og/image?type=meeting&title=Round%20Robin%20Seeded%20Team%20Event&meetingProfileName=Seeded%20Team
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
-export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
+export const constructMeetingImage = async ({
+  title,
+  users = [],
+  profile,
+}: MeetingImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "meeting",
     title,
@@ -72,6 +119,8 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
     params.append("usernames", user.username);
   });
 
+  params.set("v", await getOGImageVersion("meeting"));
+
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
@@ -79,22 +128,34 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
  * Test url:
  * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
  */
-export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
+export const constructAppImage = async ({
+  name,
+  slug,
+  logoUrl,
+  description,
+}: AppImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "app",
     name,
     slug,
     description,
+    logoUrl,
   });
+
+  params.set("v", await getOGImageVersion("app"));
+
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
-export const constructGenericImage = ({ title, description }: GenericImageProps) => {
+export const constructGenericImage = async ({ title, description }: GenericImageProps): Promise<string> => {
   const params = new URLSearchParams({
     type: "generic",
     title,
     description,
   });
+
+  params.set("v", await getOGImageVersion("generic"));
+
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
@@ -112,7 +173,14 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
   </div>
 );
 
+/**
+ * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
+ * remember to bump the version in OG_ASSETS.meeting.id (e.g., "meeting-og-image-v1" → "meeting-og-image-v2")
+ * to ensure proper cache invalidation.
+ */
 export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
+  const config = OG_ASSETS.meeting;
+
   // We filter attendees here based on whether they have an image and filter duplicates.
   // Users ALWAYS have an image (albeit a gray empty person avatar), so this mainly filters out
   // any non existing images for dynamic collectives, while at the same time removing them from
@@ -134,10 +202,10 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   const names = attendees.length > 0 ? attendees.map((user) => user.name) : [profile.name];
 
   return (
-    <Wrapper variant="dark">
+    <Wrapper variant={config.variant}>
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-          <img src={`${WEBAPP_URL}/${LOGO}`} width="350" alt="Logo" />
+          <img src={`${WEBAPP_URL}/${config.logo}`} width={config.logoWidth} alt="Logo" />
           {avatars.length > 0 && (
             <div style={{ color: "#111827" }} tw="font-bold text-[92px] mx-8 bottom-2">
               /
@@ -150,12 +218,13 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
                 key={avatar}
                 src={avatar}
                 alt="Profile picture"
-                width="160"
-                height="160"
+                width={config.avatarSize}
+                height={config.avatarSize}
               />
             ))}
             {avatars.length > 3 && (
-              <div tw="flex items-center justify-center w-[160px] h-[160px] rounded-full bg-black text-inverted text-[54px] font-bold">
+              <div
+                tw={`flex items-center justify-center w-[${config.avatarSize}px] h-[${config.avatarSize}px] rounded-full bg-black text-inverted text-[54px] font-bold`}>
                 <span tw="flex top-[-5px] left-[-5px]">+{avatars.length - 3}</span>
               </div>
             )}
@@ -178,10 +247,10 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   );
 };
 
-const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
+const VisualBlur = ({ logoUrl }: { logoUrl: string }) => {
   // Making a blur of a dark logo is very ugly. We use the filename to indicate,
   // when we don't want to render these blurry blob backgrounds.
-  if (visualSlug.indexOf("dark") > -1) return null;
+  if (logoUrl.indexOf("dark") > -1) return null;
 
   return (
     <div tw="flex relative">
@@ -191,7 +260,7 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
         style={{
           filter: "blur(98px)",
           backgroundColor: "rgba(255, 255, 255, 0.7)",
-          backgroundImage: `url(${WEBAPP_URL}${visualSlug})`,
+          backgroundImage: `url(${WEBAPP_URL}${logoUrl})`,
           backgroundSize: "400px 400px",
         }}
       />
@@ -202,7 +271,7 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
         style={{
           filter: "blur(150px)",
           backgroundColor: "rgba(255, 255, 255, 0.7)",
-          backgroundImage: `url(${WEBAPP_URL}${visualSlug})`,
+          backgroundImage: `url(${WEBAPP_URL}${logoUrl})`,
           backgroundSize: "630px 630px",
         }}
       />
@@ -210,60 +279,71 @@ const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
   );
 };
 
-export const App = ({ name, description, slug }: AppImageProps) => (
-  <Wrapper>
-    <img src={`${WEBAPP_URL}/${LOGO}`} width="150" alt="Logo" tw="absolute right-[48px] top-[48px]" />
+/**
+ * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
+ * remember to bump the version in OG_ASSETS.app.id (e.g., "app-og-image-v1" → "app-og-image-v2")
+ * to ensure proper cache invalidation.
+ */
+export const App = ({ name, description, logoUrl }: AppImageProps) => {
+  const config = OG_ASSETS.app;
 
-    <VisualBlur visualSlug={slug} />
+  return (
+    <Wrapper variant={config.variant}>
+      <img
+        src={`${WEBAPP_URL}/${config.logo}`}
+        width={config.logoWidth}
+        alt="Logo"
+        tw="absolute right-[48px] top-[48px]"
+      />
 
-    <div tw="flex items-center w-full">
-      <div tw="flex">
-        <img src={`${WEBAPP_URL}${slug}`} alt="App icon" width="172" height="172" />
-      </div>
-    </div>
-    <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">
-      <div tw="flex text-[64px] mb-7" style={{ fontFamily: "cal", fontWeight: 600 }}>
-        {name}
-      </div>
-      <div tw="flex text-[36px]" style={{ fontFamily: "inter" }}>
-        {description}
-      </div>
-    </div>
-  </Wrapper>
-);
+      <VisualBlur logoUrl={logoUrl} />
 
-export const Generic = ({ title, description }: GenericImageProps) => (
-  <Wrapper>
-    <div tw="h-full flex flex-col justify-start">
-      <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-        <img src={`${WEBAPP_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
-      </div>
-
-      <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
-        <div tw="flex w-[1040px]" style={{ fontFamily: "cal" }}>
-          {title}
+      <div tw="flex items-center w-full">
+        <div tw="flex">
+          <img
+            src={`${WEBAPP_URL}${logoUrl}`}
+            alt="App icon"
+            width={config.iconSize}
+            height={config.iconSize}
+          />
         </div>
-        <div tw="flex mt-3 w-[1040px]" style={{ fontFamily: "inter" }}>
+      </div>
+      <div style={{ color: "#111827" }} tw="flex mt-auto w-full flex-col">
+        <div tw="flex text-[64px] mb-7" style={{ fontFamily: "cal", fontWeight: 600 }}>
+          {name}
+        </div>
+        <div tw="flex text-[36px]" style={{ fontFamily: "inter" }}>
           {description}
         </div>
       </div>
-    </div>
-  </Wrapper>
-);
+    </Wrapper>
+  );
+};
 
-export const ScreenShot = ({ image, fallbackImage }: ScreenshotImageProps) => (
-  <Wrapper rotateBackground>
-    <div tw="relative h-full w-full flex flex-col justify-center items-center">
-      <div tw="relative mt-[140px] flex rounded-2xl" style={{ boxShadow: "0 0 45px -3px rgba(0,0,0,.3)" }}>
-        <img
-          src={fallbackImage}
-          tw="absolute inset-0 rounded-2xl"
-          width="1024"
-          height="576"
-          alt="screenshot"
-        />
-        <img src={image} width="1024" height="576" tw="rounded-2xl" alt="screenshot" />
+/**
+ * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
+ * remember to bump the version in OG_ASSETS.generic.id (e.g., "generic-og-image-v1" → "generic-og-image-v2")
+ * to ensure proper cache invalidation.
+ */
+export const Generic = ({ title, description }: GenericImageProps) => {
+  const config = OG_ASSETS.generic;
+
+  return (
+    <Wrapper variant={config.variant}>
+      <div tw="h-full flex flex-col justify-start">
+        <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
+          <img src={`${WEBAPP_URL}/${config.logo}`} width={config.logoWidth} alt="Logo" />
+        </div>
+
+        <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
+          <div tw="flex w-[1040px]" style={{ fontFamily: "cal" }}>
+            {title}
+          </div>
+          <div tw="flex mt-3 w-[1040px]" style={{ fontFamily: "inter" }}>
+            {description}
+          </div>
+        </div>
       </div>
-    </div>
-  </Wrapper>
-);
+    </Wrapper>
+  );
+};

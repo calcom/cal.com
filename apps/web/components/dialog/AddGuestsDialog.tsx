@@ -47,7 +47,8 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
     }
     const validationResult = ZAddGuestsInputSchema.safeParse(multiEmailValue);
     if (validationResult.success) {
-      addGuestsMutation.mutate({ bookingId, guests: multiEmailValue });
+      const guests = multiEmailValue.map((email) => ({ email }));
+      addGuestsMutation.mutate({ bookingId, guests });
     } else {
       setIsInvalidEmail(true);
     }

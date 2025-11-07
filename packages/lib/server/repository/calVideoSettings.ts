@@ -20,6 +20,7 @@ export class CalVideoSettingsRepository {
       disableTranscriptionForGuests?: boolean | null;
       disableTranscriptionForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
+      requireEmailForGuests?: boolean | null;
     };
   }) {
     return await prisma.calVideoSettings.create({
@@ -31,6 +32,7 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
         eventTypeId,
       },
     });
@@ -49,6 +51,7 @@ export class CalVideoSettingsRepository {
       enableAutomaticTranscription?: boolean | null;
       enableAutomaticRecordingForOrganizer?: boolean | null;
       redirectUrlOnExit?: string | null;
+      requireEmailForGuests?: boolean | null;
     };
   }) {
     return await prisma.calVideoSettings.upsert({
@@ -61,6 +64,7 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
         updatedAt: new Date(),
       },
       create: {
@@ -71,6 +75,7 @@ export class CalVideoSettingsRepository {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
         eventTypeId,
       },
     });

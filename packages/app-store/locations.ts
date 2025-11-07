@@ -2,7 +2,7 @@
  * TODO: Consolidate this file with BookingLocationService and add tests
  */
 import type { TFunction } from "i18next";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { z } from "zod";
 
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
@@ -312,7 +312,7 @@ export const privacyFilteredLocations = (locations: LocationObject[]): PrivacyFi
     if (location.displayLocationPublicly || !eventLocationType) {
       return location;
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+       
       const { address: _1, link: _2, hostPhoneNumber: _3, ...privacyFilteredLocation } = location;
       logger.debug("Applied Privacy Filter", location, privacyFilteredLocation);
       return privacyFilteredLocation;

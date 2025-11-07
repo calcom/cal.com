@@ -1,7 +1,6 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 import { forwardRef, useState } from "react";
 
@@ -17,17 +16,10 @@ import { useDataTable, useFilterableColumns } from "../../hooks";
 export interface AddFilterButtonProps<TData> {
   table: Table<TData>;
   variant?: "base" | "sm";
-  hideWhenFilterApplied?: boolean;
-  showWhenFilterApplied?: boolean;
 }
 
 function AddFilterButtonComponent<TData>(
-  {
-    table,
-    variant = "base",
-    hideWhenFilterApplied = false,
-    showWhenFilterApplied = false,
-  }: AddFilterButtonProps<TData>,
+  { table, variant = "base" }: AddFilterButtonProps<TData>,
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
@@ -38,14 +30,6 @@ function AddFilterButtonComponent<TData>(
   const availableColumns = filterableColumns.filter(
     (column) => !activeFilters?.some((filter) => filter.f === column.id)
   );
-
-  if (hideWhenFilterApplied && activeFilters?.length > 0) {
-    return null;
-  }
-
-  if (showWhenFilterApplied && activeFilters?.length === 0) {
-    return null;
-  }
 
   if (variant === "sm" && availableColumns.length === 0) {
     return null;

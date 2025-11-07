@@ -28,6 +28,7 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 // TODO: Prisma import would be used from DI in a followup PR when we remove `handler` export
 import prisma from "@calcom/prisma";
@@ -144,8 +145,18 @@ async function handler(input: CancelBookingInput) {
 
     const userIsOwnerOfEventType = bookingToDelete.eventType.owner?.id === userId;
 
-    if (!userIsHost && !userIsOwnerOfEventType) {
-      throw new HttpError({ statusCode: 401, message: "User not a host of this event" });
+    const userIsOrgAdminOfBookingUser =
+      userId &&
+      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+        userId,
+        bookingToDelete.userId
+      ));
+
+    if (!userIsHost && !userIsOwnerOfEventType && !userIsOrgAdminOfBookingUser) {
+      throw new HttpError({
+        statusCode: 401,
+        message: "User not a host of this event or an admin of the booking user",
+      });
     }
   }
 

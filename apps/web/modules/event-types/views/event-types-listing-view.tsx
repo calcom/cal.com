@@ -178,7 +178,7 @@ const Item = ({
   const content = () => (
     <div>
       <span
-        className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+        className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
         data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
@@ -212,7 +212,7 @@ const Item = ({
           <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
             <div>
               <span
-                className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+                className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
                 data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
@@ -877,12 +877,15 @@ const EmptyEventTypeList = ({
   return (
     <>
       <EmptyScreen
+        Icon="link"
         headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
+        description={t("new_team_event_type_description")}
+        className="mb-16"
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
             variant="button"
-            className="mt-5">
+          >
             {t("create")}
           </Button>
         }
@@ -1003,7 +1006,7 @@ const EventTypesPage = ({ userEventGroupsData, user }: Props) => {
     if (redirectUrl) {
       router.push(redirectUrl);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     setShowProfileBanner(

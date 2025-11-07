@@ -78,10 +78,10 @@ export class SelfHostedOrganizationOnboardingService extends BaseOnboardingServi
       invitedMembers: invitedMembersData,
       teams: teamsData,
       isPlatform: input.isPlatform,
-      logo: input.logo ?? null,
+      logo: organizationOnboarding.logo,
       bio: input.bio ?? null,
       brandColor: input.brandColor ?? null,
-      bannerUrl: input.bannerUrl ?? null,
+      bannerUrl: organizationOnboarding.bannerUrl,
       stripeCustomerId: null,
       isDomainConfigured: false,
     });

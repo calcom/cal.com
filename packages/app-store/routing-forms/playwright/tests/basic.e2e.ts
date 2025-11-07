@@ -947,8 +947,6 @@ test.describe("Routing Forms", () => {
       const newUser = await addNewUserToTeam({ users, teamId });
       await goToRoutingLinkAndSubmit({ page, formId });
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(2000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
@@ -965,8 +963,6 @@ test.describe("Routing Forms", () => {
       const newUser = await addNewUserToTeam({ users, teamId });
       await goToRoutingLinkAndSubmit({ page, formId });
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(2000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });

@@ -464,7 +464,7 @@ export const insightsRouter = router({
           timeZone,
           dateRanges,
         });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -475,7 +475,7 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getPopularEventsStats();
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -536,7 +536,7 @@ export const insightsRouter = router({
         }));
 
         return result;
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -550,7 +550,7 @@ export const insightsRouter = router({
           type: "cancelled",
           sortOrder: "DESC",
         });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -565,7 +565,7 @@ export const insightsRouter = router({
           sortOrder: "DESC",
           completed: true,
         });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -580,7 +580,7 @@ export const insightsRouter = router({
           sortOrder: "ASC",
           completed: true,
         });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -591,7 +591,7 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getMembersStatsWithCount({ type: "all", sortOrder: "DESC" });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -602,7 +602,7 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getMembersStatsWithCount({ type: "all", sortOrder: "ASC" });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -798,7 +798,7 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getMembersStatsWithCount({ type: "noShow", sortOrder: "DESC" });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -832,7 +832,7 @@ export const insightsRouter = router({
           offset: offset ?? 0,
           timeZone,
         });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -913,7 +913,7 @@ export const insightsRouter = router({
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
       try {
         return await insightsRoutingService.getFailedBookingsByFieldData();
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -949,7 +949,7 @@ export const insightsRouter = router({
           limit,
           searchQuery,
         });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -971,7 +971,7 @@ export const insightsRouter = router({
         ).format("YYYY-MM-DD")}.csv`;
 
         return { data: csvString, filename: downloadAs };
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -982,7 +982,7 @@ export const insightsRouter = router({
       });
 
       return routingForms;
-    } catch (e) {
+    } catch {
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
   }),
@@ -1000,7 +1000,7 @@ export const insightsRouter = router({
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
       try {
         return await insightsRoutingService.getRoutingFunnelData(dateRanges);
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -1014,7 +1014,7 @@ export const insightsRouter = router({
         return await insightsBookingService.getBookingsByHourStats({
           timeZone,
         });
-      } catch (e) {
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
@@ -1025,7 +1025,59 @@ export const insightsRouter = router({
 
       try {
         return await insightsBookingService.getRecentNoShowGuests();
-      } catch (e) {
+      } catch {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  noShowHostsOverTime: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { columnFilters, timeZone } = input;
+      const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
+
+      // Calculate timeView and dateRanges
+      const timeView = getTimeView(startDate, endDate);
+      const dateRanges = getDateRanges({
+        startDate,
+        endDate,
+        timeView,
+        timeZone,
+        weekStart: ctx.user.weekStart,
+      });
+
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+      try {
+        return await insightsBookingService.getNoShowHostsOverTimeStats({
+          timeZone,
+          dateRanges,
+        });
+      } catch {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  csatOverTime: userBelongsToTeamProcedure
+    .input(bookingRepositoryBaseInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { columnFilters, timeZone } = input;
+      const { startDate, endDate } = extractDateRangeFromColumnFilters(columnFilters);
+
+      // Calculate timeView and dateRanges
+      const timeView = getTimeView(startDate, endDate);
+      const dateRanges = getDateRanges({
+        startDate,
+        endDate,
+        timeView,
+        timeZone,
+        weekStart: ctx.user.weekStart,
+      });
+
+      const insightsBookingService = createInsightsBookingService(ctx, input);
+      try {
+        return await insightsBookingService.getCSATOverTimeStats({
+          timeZone,
+          dateRanges,
+        });
+      } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),

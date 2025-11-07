@@ -10,6 +10,7 @@ import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { CreditUsageType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -695,6 +696,48 @@ export const sendAddGuestsEmails = async (calEvent: CalendarEvent, newGuests: st
 
   await Promise.all(emailsToSend);
 };
+
+export const sendAddGuestsEmailsAndSMS = async (args: {
+  calEvent: CalendarEvent;
+  newGuests: string[];
+  eventTypeMetadata?: EventTypeMetadata;
+}) => {
+  const { calEvent, newGuests, eventTypeMetadata } = args;
+  const calendarEvent = formatCalEvent(calEvent);
+
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsAndSMSToSend.push(sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent })));
+
+    if (calendarEvent.team?.members) {
+      for (const teamMember of calendarEvent.team.members) {
+        emailsAndSMSToSend.push(
+          sendEmail(() => new OrganizerAddGuestsEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
+    }
+  }
+
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+    const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
+
+    for (const attendee of calendarEvent.attendees) {
+      if (newGuests.includes(attendee.email)) {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeScheduledEmail(calendarEvent, attendee)));
+
+        if (attendee.phoneNumber) {
+          emailsAndSMSToSend.push(eventScheduledSMS.sendSMSToAttendee(attendee));
+        }
+      } else {
+        emailsAndSMSToSend.push(sendEmail(() => new AttendeeAddGuestsEmail(calendarEvent, attendee)));
+      }
+    }
+  }
+
+  await Promise.all(emailsAndSMSToSend);
+};
+
 export const sendFeedbackEmail = async (feedback: Feedback) => {
   await sendEmail(() => new FeedbackEmail(feedback));
 };
@@ -810,28 +853,32 @@ export const sendCreditBalanceLowWarningEmails = async (input: {
     t: TFunction;
   };
   balance: number;
+  creditFor?: CreditUsageType;
 }) => {
-  const { team, balance, user } = input;
+  const { team, balance, user, creditFor } = input;
   if ((!team || !team.adminAndOwners.length) && !user) return;
 
   if (team) {
     const emailsToSend: Promise<unknown>[] = [];
 
     for (const admin of team.adminAndOwners) {
-      emailsToSend.push(sendEmail(() => new CreditBalanceLowWarningEmail({ user: admin, balance, team })));
+      emailsToSend.push(
+        sendEmail(() => new CreditBalanceLowWarningEmail({ user: admin, balance, team, creditFor }))
+      );
     }
 
     await Promise.all(emailsToSend);
   }
 
   if (user) {
-    await sendEmail(() => new CreditBalanceLowWarningEmail({ user, balance }));
+    await sendEmail(() => new CreditBalanceLowWarningEmail({ user, balance, creditFor }));
   }
 };
 
 export const sendCreditBalanceLimitReachedEmails = async ({
   team,
   user,
+  creditFor,
 }: {
   team?: {
     name: string;
@@ -849,6 +896,7 @@ export const sendCreditBalanceLimitReachedEmails = async ({
     email: string;
     t: TFunction;
   };
+  creditFor?: CreditUsageType;
 }) => {
   if ((!team || !team.adminAndOwners.length) && !user) return;
 
@@ -856,13 +904,15 @@ export const sendCreditBalanceLimitReachedEmails = async ({
     const emailsToSend: Promise<unknown>[] = [];
 
     for (const admin of team.adminAndOwners) {
-      emailsToSend.push(sendEmail(() => new CreditBalanceLimitReachedEmail({ user: admin, team })));
+      emailsToSend.push(
+        sendEmail(() => new CreditBalanceLimitReachedEmail({ user: admin, team, creditFor }))
+      );
     }
     await Promise.all(emailsToSend);
   }
 
   if (user) {
-    await sendEmail(() => new CreditBalanceLimitReachedEmail({ user }));
+    await sendEmail(() => new CreditBalanceLimitReachedEmail({ user, creditFor }));
   }
 };
 

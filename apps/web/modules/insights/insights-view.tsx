@@ -16,6 +16,7 @@ import {
   AverageEventDurationChart,
   BookingKPICards,
   BookingsByHourChart,
+  CSATOverTimeChart,
   EventTrendsChart,
   HighestNoShowHostTable,
   HighestRatedMembersTable,
@@ -25,6 +26,7 @@ import {
   MostCancelledBookingsTables,
   MostCompletedTeamMembersTable,
   LeastCompletedTeamMembersTable,
+  NoShowHostsOverTimeChart,
   PopularEventsTable,
   RecentNoShowGuestsChart,
   RecentFeedbackTable,
@@ -84,9 +86,7 @@ function InsightsPageContent() {
         className="flex flex-wrap items-center gap-2"
         data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
         <OrgTeamsFilter />
-        <DataTableFilters.AddFilterButton table={table} hideWhenFilterApplied />
-        <DataTableFilters.ActiveFilters table={table} />
-        <DataTableFilters.AddFilterButton table={table} variant="sm" showWhenFilterApplied />
+        <DataTableFilters.FilterBar table={table} />
         <DataTableFilters.ClearFiltersButton exclude={["startTime", "createdAt"]} />
         <div className="grow" />
         <Download />
@@ -104,6 +104,11 @@ function InsightsPageContent() {
         <BookingKPICards />
 
         <EventTrendsChart />
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <NoShowHostsOverTimeChart />
+          <CSATOverTimeChart />
+        </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
           <div className="sm:col-span-2">

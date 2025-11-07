@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type {
   EventTypeSetup,
   InputClassNames,
@@ -91,7 +92,13 @@ export default function RecurringEventController({
               descriptionClassName={customClassNames?.recurringToggle?.description}
               title={t("recurring_event")}
               {...recurringLocked}
-              description={t("recurring_event_description")}
+              description={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="recurring_event_description"
+                  href="https://cal.com/help/event-types/recurring-events"
+                />
+              }
               checked={!!recurringEventState}
               data-testid="recurring-event-check"
               disabled={(!recurringEventState && isSeatsOffered) || hasBookingLimitPerBooker}

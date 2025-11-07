@@ -1,4 +1,4 @@
-import { isValidPhoneNumber } from "libphonenumber-js";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
 import { v4 as uuidv4 } from "uuid";
 
 import { replaceEventTypePlaceholders } from "@calcom/features/ee/workflows/components/agent-configuration/utils/promptUtils";
@@ -37,7 +37,7 @@ export class AgentService {
       userId,
       teamId,
       expiresAt: null,
-      note: `Cal AI Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
+      note: `Cal.ai Phone API Key for agent ${userId} ${teamId ? `for team ${teamId}` : ""}`,
     });
   }
 

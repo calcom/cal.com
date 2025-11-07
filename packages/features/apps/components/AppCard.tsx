@@ -59,7 +59,8 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const handleAppInstall = () => {
     if (isRedirectApp(app.slug)) {
-      mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
+      // For redirect apps, open the external URL directly
+      if (app.url) window.open(app.url, "_blank", "noopener,noreferrer");
       return;
     }
     if (isConferencing(app.categories) && !app.concurrentMeetings) {
@@ -137,7 +138,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           data-testid={`app-store-app-card-${app.slug}`}>
           {t("details")}
         </Button>
-        {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
+        {app.isGlobal ||
+        (credentials && credentials.length > 0 && allowedMultipleInstalls) ||
+        (credentials && credentials.length > 0 && isRedirectApp(app.slug))
           ? !app.isGlobal && (
               <InstallAppButton
                 type={app.type}
@@ -186,7 +189,9 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
             )}
       </div>
       <div className="max-w-44 absolute right-0 mr-4 flex flex-wrap justify-end gap-1">
-        {appAdded > 0 ? <Badge variant="green">{t("installed", { count: appAdded })}</Badge> : null}
+        {appAdded > 0 && !isRedirectApp(app.slug) ? (
+          <Badge variant="green">{t("installed", { count: appAdded })}</Badge>
+        ) : null}
         {app.isTemplate && (
           <span className="bg-error rounded-md px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
