@@ -88,6 +88,11 @@
       "import": "./dist/private-links.js",
       "require": "./dist/private-links.cjs",
       "types": "./dist/private-links.d.ts"
+    },
+    "./pbac": {
+      "import": "./dist/pbac.js",
+      "require": "./dist/pbac.cjs",
+      "types": "./dist/pbac.d.ts"
     }
   },
   "typesVersions": {
@@ -124,6 +129,9 @@
       ],
       "private-links": [
         "dist/private-links.d.ts"
+      ],
+      "pbac": [
+        "dist/pbac.d.ts"
       ]
     }
   }
