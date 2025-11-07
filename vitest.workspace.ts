@@ -29,6 +29,11 @@ const workspaces = packagedEmbedTestsOnly
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
           setupFiles: ["setupVitest.ts"],
           globalSetup: ["./apps/api/v1/test/setup/globalSetup.ts"],
+          poolOptions: {
+            threads: {
+              singleThread: true,
+            },
+          },
         },
         resolve: {
           alias: {
@@ -48,6 +53,11 @@ const workspaces = packagedEmbedTestsOnly
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
           setupFiles: ["setupVitest.ts"],
           globalSetup: ["./apps/api/v1/test/setup/globalSetup.ts"],
+          poolOptions: {
+            threads: {
+              singleThread: true,
+            },
+          },
         },
         resolve: {
           alias: {
