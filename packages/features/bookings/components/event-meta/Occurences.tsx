@@ -25,14 +25,37 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
   const bookerState = useBookerStoreContext((state) => state.state);
   const { timezone, timeFormat } = useBookerTime();
   const [warning, setWarning] = useState(false);
-  // Set initial value in booker store.
+
+  const validateAndSetRecurringEventCount = (value: number | string) => {
+    const pattern = /^(?=.*[0-9])\S+$/;
+    const inputValue = typeof value === "string" ? parseInt(value) : value;
+    const valueStr = String(value);
+
+    const isValid =
+      pattern.test(valueStr) &&
+      !isNaN(inputValue) &&
+      inputValue >= 1 &&
+      maxOccurences !== null &&
+      inputValue <= maxOccurences;
+
+    if (isValid) {
+      setRecurringEventCount(inputValue);
+      setWarning(false);
+    } else {
+      setRecurringEventCount(maxOccurences);
+      setWarning(true);
+    }
+  };
+
   useEffect(() => {
     if (!event.recurringEvent?.count) return;
-    setOccurenceCount(occurenceCount || event.recurringEvent.count);
-    setRecurringEventCount(recurringEventCount || event.recurringEvent.count);
-    if (occurenceCount && (occurenceCount > event.recurringEvent.count || occurenceCount < 1))
-      setWarning(true);
-  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, setOccurenceCount, occurenceCount]);
+
+    if (occurenceCount) {
+      validateAndSetRecurringEventCount(occurenceCount);
+    } else {
+      setRecurringEventCount(maxOccurences);
+    }
+  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, occurenceCount]);
   if (!event.recurringEvent) return null;
 
   if (bookerState === "booking" && recurringEventCount && selectedTimeslot) {
@@ -75,20 +98,9 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
         defaultValue={occurenceCount || event.recurringEvent.count}
         data-testid="occurrence-input"
         onChange={(event) => {
-          const pattern = /^(?=.*[0-9])\S+$/;
           const inputValue = parseInt(event.target.value);
           setOccurenceCount(inputValue);
-          if (
-            !pattern.test(event.target.value) ||
-            inputValue < 1 ||
-            (maxOccurences && inputValue > maxOccurences)
-          ) {
-            setWarning(true);
-            setRecurringEventCount(maxOccurences);
-          } else {
-            setWarning(false);
-            setRecurringEventCount(inputValue);
-          }
+          validateAndSetRecurringEventCount(event.target.value);
         }}
       />
 

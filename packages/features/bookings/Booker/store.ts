@@ -3,13 +3,18 @@
 import { useEffect } from "react";
 import { createWithEqualityFn } from "zustand/traditional";
 
+
+
 import dayjs from "@calcom/dayjs";
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+
+
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
 import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
+
 
 /**
  * Arguments passed into store initializer, containing
@@ -421,8 +426,13 @@ export const createBookerStore = () =>
     },
     recurringEventCount: null,
     setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-    occurenceCount: null,
-    setOccurenceCount: (occurenceCount: number | null) => set({ occurenceCount }),
+    occurenceCount: Number(getQueryParam("occurenceCount")) || null,
+    setOccurenceCount: (occurenceCount: number | null) => {
+      set({ occurenceCount });
+      if (!get().isPlatform || get().allowUpdatingUrlParams) {
+        updateQueryParam("occurenceCount", occurenceCount ?? "");
+      }
+    },
     rescheduleUid: null,
     bookingData: null,
     bookingUid: null,
