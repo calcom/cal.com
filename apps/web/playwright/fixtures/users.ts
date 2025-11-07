@@ -6,7 +6,6 @@ import { v4 } from "uuid";
 
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
@@ -207,7 +206,6 @@ const createTeamAndAddUser = async (
     ? {
         create: [
           {
-            uid: ProfileRepository.generateProfileUid(),
             username: user.username ?? user.email.split("@")[0],
             user: {
               connect: {
@@ -916,7 +914,6 @@ const createUser = (
       organizationId,
       profiles: {
         create: {
-          uid: ProfileRepository.generateProfileUid(),
           username: profileUsername ? `${profileUsername}${suffixToMakeUsernameUnique}` : uname,
           organization: {
             connect: {

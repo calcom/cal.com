@@ -1,5 +1,4 @@
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
 import type { Team, OrganizationSettings } from "@calcom/prisma/client";
 
@@ -39,7 +38,6 @@ export async function joinAnyChildTeamOnOrgInvite({
     }),
     prisma.profile.upsert({
       create: {
-        uid: ProfileRepository.generateProfileUid(),
         userId: userId,
         organizationId: org.id,
         username: orgUsername,

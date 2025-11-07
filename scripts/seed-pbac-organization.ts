@@ -594,7 +594,6 @@ async function createProfile({
 }) {
   const profile = await prisma.profile.create({
     data: {
-      uid: uuid(),
       userId,
       organizationId,
       username,

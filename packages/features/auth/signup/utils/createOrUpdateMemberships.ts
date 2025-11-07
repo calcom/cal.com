@@ -1,5 +1,4 @@
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
 import type { Team, User, OrganizationSettings } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -37,7 +36,6 @@ export const createOrUpdateMemberships = async ({
         getOrgUsernameFromEmail(dbUser.email, team.organizationSettings?.orgAutoAcceptEmail ?? null);
       await tx.profile.upsert({
         create: {
-          uid: ProfileRepository.generateProfileUid(),
           userId: user.id,
           organizationId: team.id,
           username: orgUsername,

@@ -131,7 +131,6 @@ const associateUserAndOrg = async ({ teamId, userId, role, username }: Associate
 
   const profile = await prisma.profile.create({
     data: {
-      uid: uuid(),
       username,
       organizationId: teamId,
       userId,
