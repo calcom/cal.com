@@ -10,6 +10,7 @@ export const ZCreateInputSchema = z.object({
     .optional()
     .nullable()
     .transform((v) => v || null),
+  gclid: z.string().optional(),
 });
 
 export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;

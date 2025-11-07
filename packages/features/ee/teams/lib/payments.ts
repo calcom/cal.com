@@ -49,10 +49,12 @@ export const generateTeamCheckoutSession = async ({
   teamName,
   teamSlug,
   userId,
+  gclid,
 }: {
   teamName: string;
   teamSlug: string;
   userId: number;
+  gclid?: string;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -98,6 +100,7 @@ export const generateTeamCheckoutSession = async ({
       teamSlug,
       userId,
       dubCustomerId: userId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
+      ...(gclid && { gclid }), // Add Google Ads Click ID for conversion tracking
     },
   });
   return session;

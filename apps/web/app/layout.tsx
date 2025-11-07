@@ -5,6 +5,7 @@ import { headers, cookies } from "next/headers";
 import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { GclidTracker } from "@calcom/lib/analytics/GclidTracker";
 import { loadTranslations } from "@calcom/lib/server/i18n";
 import { IconSprites } from "@calcom/ui/components/icon";
 
@@ -115,8 +116,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <head nonce={nonce}>
         <style>{`
           :root {
-            --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
+            --font-inter: ${interFont.style.fontFamily.replace(/'/g, "")};
+            --font-cal: ${calFont.style.fontFamily.replace(/'/g, "")};
           }
         `}</style>
       </head>
@@ -137,6 +138,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
         }>
         <IconSprites />
+        <GclidTracker />
         <SpeculationRules
           // URLs In Navigation
           prerenderPathsOnHover={[

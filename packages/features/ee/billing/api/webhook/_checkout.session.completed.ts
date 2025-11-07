@@ -1,5 +1,8 @@
+import { GoogleAdsApi, services } from "google-ads-api";
+
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import stripe from "@calcom/features/ee/payments/server/stripe";
+import logger from "@calcom/lib/logger";
 import { PrismaAgentRepository } from "@calcom/lib/server/repository/PrismaAgentRepository";
 import { PrismaPhoneNumberRepository } from "@calcom/lib/server/repository/PrismaPhoneNumberRepository";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
@@ -10,8 +13,150 @@ import { CHECKOUT_SESSION_TYPES } from "../../constants";
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
 
+const log = logger.getSubLogger({ prefix: ["checkout.session.completed"] });
+
+/**
+ * Send conversion to Google Ads via Click Conversions API
+ * @see https://developers.google.com/google-ads/api/docs/conversions/upload-clicks
+ */
+async function sendGoogleAdsConversion(session: SWHMap["checkout.session.completed"]["data"]["object"]) {
+  const gclid = session.metadata?.gclid;
+
+  if (!gclid) {
+    log.debug("No gclid in session metadata, skipping Google Ads conversion tracking");
+    return;
+  }
+
+  const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID;
+  const conversionActionId = process.env.GOOGLE_ADS_CONVERSION_ACTION_ID;
+  const clientId = process.env.GOOGLE_ADS_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET;
+  const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
+  const refreshToken = process.env.GOOGLE_ADS_REFRESH_TOKEN;
+
+  if (!customerId || !conversionActionId || !clientId || !clientSecret || !developerToken || !refreshToken) {
+    log.warn("Google Ads conversion tracking not fully configured, skipping", {
+      hasCustomerId: !!customerId,
+      hasConversionActionId: !!conversionActionId,
+      hasClientId: !!clientId,
+      hasClientSecret: !!clientSecret,
+      hasDeveloperToken: !!developerToken,
+      hasRefreshToken: !!refreshToken,
+    });
+    return;
+  }
+
+  try {
+    // Calculate conversion value from Stripe session (Stripe uses cents)
+    const conversionValue = session.amount_total ? session.amount_total / 100 : 0;
+    const currency = session.currency?.toUpperCase() || "USD";
+
+    // Format datetime as required by Google Ads API: "yyyy-mm-dd HH:mm:ss+|-HH:mm"
+    // Google requires timezone-aware format, not ISO
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+
+    // Get timezone offset in format +HH:mm or -HH:mm
+    const timezoneOffset = -now.getTimezoneOffset();
+    const offsetHours = String(Math.floor(Math.abs(timezoneOffset) / 60)).padStart(2, "0");
+    const offsetMinutes = String(Math.abs(timezoneOffset) % 60).padStart(2, "0");
+    const offsetSign = timezoneOffset >= 0 ? "+" : "-";
+
+    const conversionDateTime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
+
+    log.info("Sending Google Ads conversion", {
+      gclid,
+      value: conversionValue,
+      currency,
+      orderId: session.id,
+      conversionDateTime,
+    });
+
+    const client = new GoogleAdsApi({
+      client_id: clientId,
+      client_secret: clientSecret,
+      developer_token: developerToken,
+    });
+
+    const customer = client.Customer({
+      customer_id: customerId,
+      refresh_token: refreshToken,
+      // login_customer_id: "7107634172",
+    });
+
+    const conversionAction = `customers/${customerId}/conversionActions/${conversionActionId}`;
+
+    const request = new services.UploadClickConversionsRequest({
+      customer_id: customerId,
+      partial_failure: true,
+      validate_only: true,
+      conversions: [
+        {
+          gclid: gclid ?? "abcdtesting",
+          order_id: session.id,
+          conversion_action: conversionAction,
+          conversion_date_time: conversionDateTime,
+          conversion_value: 20,
+          currency_code: currency,
+        },
+      ],
+    });
+
+    const response = await customer.conversionUploads.uploadClickConversions(request);
+
+    if (response.partial_failure_error) {
+      log.error("Partial failure uploading Google Ads conversion", {
+        error: response.partial_failure_error,
+        gclid,
+        sessionId: session.id,
+      });
+      return;
+    }
+
+    log.info("Google Ads conversion uploaded successfully", {
+      gclid,
+      value: conversionValue,
+      response: response,
+    });
+  } catch (error) {
+    log.error("Error sending Google Ads conversion", {
+      error,
+      gclid,
+      sessionId: session.id,
+    });
+  }
+}
+
 const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
   const session = data.object;
+
+  sendGoogleAdsConversion(session).catch((error) => {
+    log.error("Google Ads conversion tracking failed", error);
+  });
+
+  // Store gclid in subscription metadata for future conversion tracking on recurring payments
+  if (session.subscription && session.metadata?.gclid) {
+    try {
+      const subscriptionId =
+        typeof session.subscription === "string" ? session.subscription : session.subscription.id;
+
+      await stripe.subscriptions.update(subscriptionId, {
+        metadata: {
+          gclid: session.metadata.gclid,
+        },
+      });
+    } catch (error) {
+      log.error("Failed to store gclid in subscription metadata", {
+        error,
+        subscriptionId: session.subscription,
+      });
+    }
+  }
 
   if (session.metadata?.type === CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION) {
     return await handleCalAIPhoneNumberSubscription(session);

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { getGclid } from "@calcom/lib/analytics/gclid";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -58,6 +59,19 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
     },
   });
 
+  const handleFormSubmit = async (v: NewTeamFormValues) => {
+    if (!createTeamMutation.isPending) {
+      setServerErrorMessage(null);
+
+      const gclid = getGclid();
+
+      createTeamMutation.mutate({
+        ...v,
+        gclid: gclid || undefined,
+      });
+    }
+  };
+
   const FormButtons = () => (
     <>
       <Button
@@ -81,14 +95,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
 
   return (
     <>
-      <Form
-        form={newTeamFormMethods}
-        handleSubmit={(v) => {
-          if (!createTeamMutation.isPending) {
-            setServerErrorMessage(null);
-            createTeamMutation.mutate(v);
-          }
-        }}>
+      <Form form={newTeamFormMethods} handleSubmit={handleFormSubmit}>
         <div className="mb-8">
           {serverErrorMessage && (
             <div className="mb-4">

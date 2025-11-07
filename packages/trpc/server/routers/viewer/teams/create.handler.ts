@@ -22,10 +22,12 @@ const generateCheckoutSession = async ({
   teamSlug,
   teamName,
   userId,
+  gclid,
 }: {
   teamSlug: string;
   teamName: string;
   userId: number;
+  gclid?: string;
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) {
     console.info("Team billing is disabled, not generating a checkout session.");
@@ -36,6 +38,7 @@ const generateCheckoutSession = async ({
     teamSlug,
     teamName,
     userId,
+    gclid,
   });
 
   if (!checkoutSession.url)
@@ -80,6 +83,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       teamSlug: slug,
       teamName: name,
       userId: user.id,
+      gclid: input.gclid,
     });
 
     // If there is a checkout session, return it. Otherwise, it means it's disabled.

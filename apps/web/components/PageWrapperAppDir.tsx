@@ -8,6 +8,8 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 
 import AppProviders from "@lib/app-providers-app-dir";
 
+import { GoogleTagManagerComponent } from "@components/GTM";
+
 export type PageWrapperProps = Readonly<{
   children: React.ReactNode;
   requiresLicense: boolean;
@@ -46,7 +48,6 @@ function PageWrapper(props: PageWrapperProps) {
             id="page-status"
             // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
             // And we don't want it to error here anyways
-            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
           />
           {props.requiresLicense ? (
@@ -55,6 +56,7 @@ function PageWrapper(props: PageWrapperProps) {
             <>{props.children}</>
           )}
         </>
+        <GoogleTagManagerComponent />
       </AppProviders>
     </>
   );
