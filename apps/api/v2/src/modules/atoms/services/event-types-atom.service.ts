@@ -3,6 +3,7 @@ import { systemBeforeFieldEmail } from "@/ee/event-types/event-types_2024_06_14/
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
@@ -55,8 +56,9 @@ export class EventTypesAtomService {
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
     private readonly teamEventTypeService: TeamsEventTypesService,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
-  ) {}
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly organizationsService: OrganizationsService
+  ) { }
 
   private async getTeamSlug(teamId: number): Promise<string> {
     const team = await this.dbRead.prisma.team.findUnique({
@@ -77,12 +79,17 @@ export class EventTypesAtomService {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
 
+    const isUserInPlatformOrganization = organizationId
+      ? !!(await this.organizationsService.isPlatform(organizationId))
+      : false;
+
     const eventType = await getEventTypeById({
       currentOrganizationId: this.usersService.getUserMainOrgId(user),
       eventTypeId,
       userId: user.id,
       prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
+      isUserInPlatformOrganization,
       isTrpcCall: true,
     });
 

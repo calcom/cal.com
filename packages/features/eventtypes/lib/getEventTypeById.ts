@@ -28,6 +28,7 @@ interface getEventTypeByIdProps {
   isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
+  isUserInPlatformOrganization: boolean;
 }
 
 export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;
@@ -39,6 +40,7 @@ export const getEventTypeById = async ({
   prisma,
   isTrpcCall = false,
   isUserOrganizationAdmin,
+  isUserInPlatformOrganization,
 }: getEventTypeByIdProps) => {
   const userSelect = {
     name: true,
@@ -57,6 +59,7 @@ export const getEventTypeById = async ({
     eventTypeId,
     isUserOrganizationAdmin,
     currentOrganizationId,
+    isUserInPlatformOrganization,
     prisma,
   });
 
@@ -89,8 +92,8 @@ export const getEventTypeById = async ({
       ...child,
       owner: child.owner
         ? await userRepo.enrichUserWithItsProfile({
-            user: child.owner,
-          })
+          user: child.owner,
+        })
         : null,
     });
   }
@@ -135,24 +138,24 @@ export const getEventTypeById = async ({
     bookerUrl: restEventType.team
       ? await getBookerBaseUrl(restEventType.team.parentId)
       : restEventType.owner
-      ? await getBookerBaseUrl(currentOrganizationId)
-      : WEBSITE_URL,
+        ? await getBookerBaseUrl(currentOrganizationId)
+        : WEBSITE_URL,
     children: childrenWithUserProfile.flatMap((ch) =>
       ch.owner !== null
         ? {
-            ...ch,
-            owner: {
-              ...ch.owner,
-              avatar: getUserAvatarUrl(ch.owner),
-              email: ch.owner.email,
-              name: ch.owner.name ?? "",
-              username: ch.owner.username ?? "",
-              membership:
-                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
-                MembershipRole.MEMBER,
-            },
-            created: true,
-          }
+          ...ch,
+          owner: {
+            ...ch.owner,
+            avatar: getUserAvatarUrl(ch.owner),
+            email: ch.owner.email,
+            name: ch.owner.name ?? "",
+            username: ch.owner.username ?? "",
+            membership:
+              restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
+              MembershipRole.MEMBER,
+          },
+          created: true,
+        }
         : []
     ),
   };
@@ -223,19 +226,19 @@ export const getEventTypeById = async ({
   const isOrgEventType = !!eventTypeObject.team?.parentId;
   const teamMembers = eventTypeObject.team
     ? eventTeamMembershipsWithUserProfile
-        .filter((member) => member.accepted || isOrgEventType)
-        .map((member) => {
-          const user: typeof member.user & { avatar: string } = {
-            ...member.user,
-            avatar: getUserAvatarUrl(member.user),
-          };
-          return {
-            ...user,
-            profileId: user.profile.id,
-            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
-            membership: member.role,
-          };
-        })
+      .filter((member) => member.accepted || isOrgEventType)
+      .map((member) => {
+        const user: typeof member.user & { avatar: string } = {
+          ...member.user,
+          avatar: getUserAvatarUrl(member.user),
+        };
+        return {
+          ...user,
+          profileId: user.profile.id,
+          eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+          membership: member.role,
+        };
+      })
     : [];
 
   // Find the current users membership so we can check role to enable/disable deletion.
@@ -269,11 +272,13 @@ export async function getRawEventType({
   eventTypeId,
   isUserOrganizationAdmin,
   currentOrganizationId,
+  isUserInPlatformOrganization,
   prisma,
 }: Omit<getEventTypeByIdProps, "isTrpcCall">) {
   const eventTypeRepo = new EventTypeRepository(prisma);
 
-  if (isUserOrganizationAdmin && currentOrganizationId) {
+  if (isUserOrganizationAdmin && currentOrganizationId && isUserInPlatformOrganization) {
+    // Platform Organization Admin can access any event of the organization even without being a member of the sub-teams
     return await eventTypeRepo.findByIdForOrgAdmin({
       id: eventTypeId,
       organizationId: currentOrganizationId,

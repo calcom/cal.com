@@ -1,4 +1,5 @@
 import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -13,8 +14,9 @@ export class EventTypesRepository_2024_04_15 {
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
-    private usersService: UsersService
-  ) {}
+    private usersService: UsersService,
+    private organizationsService: OrganizationsService
+  ) { }
 
   async createUserEventType(
     userId: number,
@@ -50,12 +52,18 @@ export class EventTypesRepository_2024_04_15 {
     isUserOrganizationAdmin: boolean,
     eventTypeId: number
   ) {
+    const organizationId = this.usersService.getUserMainOrgId(user);
+    const isUserInPlatformOrganization = organizationId
+      ? !!(await this.organizationsService.isPlatform(organizationId))
+      : false;
+
     return await getEventTypeById({
-      currentOrganizationId: this.usersService.getUserMainOrgId(user),
+      currentOrganizationId: organizationId,
       eventTypeId,
       userId: user.id,
       prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
+      isUserInPlatformOrganization,
       isTrpcCall: true,
     });
   }
