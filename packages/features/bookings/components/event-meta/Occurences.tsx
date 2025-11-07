@@ -14,12 +14,12 @@ import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurringEvent"> }) => {
   const maxOccurences = event.recurringEvent?.count || null;
   const { t, i18n } = useLocale();
-  const [setRecurringEventCount, recurringEventCount, setOccurenceCount, occurenceCount] =
+  const [setRecurringEventCount, recurringEventCount, setRecurringEventCountQueryParam, recurringEventCountQueryParam] =
     useBookerStoreContext((state) => [
       state.setRecurringEventCount,
       state.recurringEventCount,
-      state.setOccurenceCount,
-      state.occurenceCount,
+      state.setRecurringEventCountQueryParam,
+      state.recurringEventCountQueryParam,
     ]);
   const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const bookerState = useBookerStoreContext((state) => state.state);
@@ -43,13 +43,13 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
   useEffect(() => {
     if (!event.recurringEvent?.count) return;
 
-    if (occurenceCount) {
-      validateAndSetRecurringEventCount(occurenceCount);
+    if (recurringEventCountQueryParam) {
+      validateAndSetRecurringEventCount(recurringEventCountQueryParam);
     } else {
       setRecurringEventCount(maxOccurences);
-      setOccurenceCount(maxOccurences);
+      setRecurringEventCountQueryParam(maxOccurences);
     }
-  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, occurenceCount]);
+  }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, recurringEventCountQueryParam]);
   if (!event.recurringEvent) return null;
 
   if (bookerState === "booking" && recurringEventCount && selectedTimeslot) {
@@ -89,11 +89,11 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
         type="number"
         min="1"
         max={event.recurringEvent.count}
-        defaultValue={occurenceCount || event.recurringEvent.count}
+        defaultValue={recurringEventCountQueryParam || event.recurringEvent.count}
         data-testid="occurrence-input"
         onChange={(event) => {
           const inputValue = parseInt(event.target.value);
-          setOccurenceCount(inputValue);
+          setRecurringEventCountQueryParam(inputValue);
           validateAndSetRecurringEventCount(event.target.value);
         }}
       />

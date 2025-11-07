@@ -130,8 +130,8 @@ export type BookerStore = {
   /**
    * Input occurrence count.
    */
-  occurenceCount: number | null;
-  setOccurenceCount(count: number | null): void;
+  recurringEventCountQueryParam: number | null;
+  setRecurringEventCountQueryParam(count: number | null): void;
   /**
    * The number of days worth of schedules to load.
    */
@@ -426,11 +426,14 @@ export const createBookerStore = () =>
     },
     recurringEventCount: null,
     setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
-    occurenceCount: Number(getQueryParam("recurringEventCount")) || null,
-    setOccurenceCount: (occurenceCount: number | null) => {
-      set({ occurenceCount });
+    recurringEventCountQueryParam: Number(getQueryParam("recurringEventCount")) || null,
+    setRecurringEventCountQueryParam: (recurringEventCountQueryParam: number | null) => {
+      set({ recurringEventCountQueryParam });
       if (!get().isPlatform || get().allowUpdatingUrlParams) {
-        const validCount = occurenceCount !== null && !isNaN(occurenceCount) ? occurenceCount : "";
+        const validCount =
+          recurringEventCountQueryParam !== null && !isNaN(recurringEventCountQueryParam)
+            ? recurringEventCountQueryParam
+            : "";
         updateQueryParam("recurringEventCount", validCount);
       }
     },
