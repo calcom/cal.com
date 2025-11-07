@@ -200,6 +200,7 @@ function generateFiles() {
             output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
           } else {
             const key = entryObjectKeyGetter(app);
+            const isMetadata = chosenConfig.fileToBeImported.includes("_metadata");
             if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
               output.push(
                 `"${key}": dynamic(() => import("${getModulePath(
@@ -208,7 +209,7 @@ function generateFiles() {
                 )}")),`
               );
             } else {
-              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+              output.push(`"${key}": createLazyMetadata("${getModulePath(app.path, chosenConfig.fileToBeImported)}", ${isMetadata}),`);
             }
           }
         }
@@ -242,6 +243,25 @@ function generateFiles() {
     })
   );
 
+  // Add lazy loading helper for metadataOutput
+  metadataOutput.push(`
+// Function to create lazy-loaded metadata
+const createLazyMetadata = (importPath: string, isMetadata = false) => {
+  return async () => {
+    try {
+      if (isMetadata) {
+        const module = await import(importPath);
+        return module.metadata;
+      }
+      return import(importPath);
+    } catch (error) {
+      console.warn(\`Failed to load metadata for \${importPath}:\`, error);
+      return null;
+    }
+  };
+};
+`);
+
   metadataOutput.push(
     ...getExportedObject("appStoreMetadata", {
       // Try looking for config.json and if it's not found use _metadata.ts to generate appStoreMetadata
@@ -255,6 +275,8 @@ function generateFiles() {
           importName: "metadata",
         },
       ],
+      lazyImport: true,
+      skipHelper: true,
     })
   );
 
