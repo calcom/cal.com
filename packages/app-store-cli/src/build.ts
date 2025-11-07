@@ -399,7 +399,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
     calendarOutput.push(
       exportLine.replace(
         "export const CalendarServiceMap = {",
-        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -436,7 +436,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
     analyticsOutput.push(
       exportLine.replace(
         "export const AnalyticsServiceMap = {",
-        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"
@@ -488,7 +488,7 @@ const createLazyMetadata = (importPath: string, isMetadata = false) => {
     videoOutput.push(
       exportLine.replace(
         "export const VideoApiAdapterMap = {",
-        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E ? {} : {"
+        "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
       ),
       ...objectContent,
       "};"

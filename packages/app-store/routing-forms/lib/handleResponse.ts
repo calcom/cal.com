@@ -1,16 +1,14 @@
 import { z } from "zod";
 
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { emailSchema } from "@calcom/lib/emailSchema";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
-
-import { TRPCError } from "@trpc/server";
 
 import isRouter from "../lib/isRouter";
 import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
@@ -29,7 +27,14 @@ const _handleResponse = async ({
   queueFormResponse,
   fetchCrm,
 }: {
-  response: z.infer<typeof ZResponseInputSchema>["response"];
+  response: Record<
+    string,
+    {
+      value: string | number | string[];
+      label: string;
+      identifier?: string;
+    }
+  >;
   identifierKeyedResponse: Record<string, string | string[]> | null;
   form: TargetRoutingFormForResponse;
   formFillerId: string;
@@ -41,9 +46,7 @@ const _handleResponse = async ({
   try {
     if (!form.fields) {
       // There is no point in submitting a form that doesn't have fields defined
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-      });
+      throw new HttpError({ statusCode: 400 });
     }
 
     const formTeamId = form.teamId;
@@ -58,8 +61,8 @@ const _handleResponse = async ({
       .map((f) => f.label);
 
     if (missingFields.length) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: `Missing required fields ${missingFields.join(", ")}`,
       });
     }
@@ -83,8 +86,8 @@ const _handleResponse = async ({
       .map((f) => ({ label: f.label, type: f.type, value: response[f.id]?.value }));
 
     if (invalidFields.length) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
+      throw new HttpError({
+        statusCode: 400,
         message: `Invalid value for fields ${invalidFields
           .map((f) => `'${f.label}' with value '${f.value}' should be valid ${f.type}`)
           .join(", ")}`,
@@ -100,8 +103,8 @@ const _handleResponse = async ({
     let timeTaken: Record<string, number | null> = {};
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
+        throw new HttpError({
+          statusCode: 400,
           message: "Chosen route is a router",
         });
       }
@@ -225,8 +228,9 @@ const _handleResponse = async ({
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {
-        throw new TRPCError({
-          code: "CONFLICT",
+        throw new HttpError({
+          statusCode: 409,
+          message: "Form response already exists",
         });
       }
     }

@@ -1,20 +1,21 @@
 import { z } from "zod";
 
+import type { EventLocationType } from "@calcom/app-store/locations";
+import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
-import type { EventLocationType } from "@calcom/lib/location";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import type { PeriodType } from "@calcom/prisma/enums";
-import { SchedulingType } from "@calcom/prisma/enums";
-import type {
-  BookerLayoutSettings,
-  customInputSchema,
-  eventTypeMetaDataSchemaWithTypedApps,
-  eventTypeBookingFields,
-  eventTypeColor,
+import { type PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import {
+  eventTypeLocations,
+  EventTypeMetaDataSchema,
+  eventTypeSlug,
+  type BookerLayoutSettings,
 } from "@calcom/prisma/zod-utils";
-import { eventTypeSlug, eventTypeLocations, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { customInputSchema } from "@calcom/prisma/zod-utils";
+import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs, RouterInputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
@@ -183,7 +184,7 @@ export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingF
 
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
-export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypes"]["heavy"]["update"];
+export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypesHeavy"]["update"];
 export type TabMap = {
   advanced: React.ReactNode;
   ai?: React.ReactNode;
@@ -253,6 +254,7 @@ const calVideoSettingsSchema = z
     disableTranscriptionForGuests: z.boolean().nullish(),
     disableTranscriptionForOrganizer: z.boolean().nullish(),
     redirectUrlOnExit: z.string().url().nullish(),
+    requireEmailForGuests: z.boolean().nullish(),
   })
   .optional()
   .nullable();
@@ -300,4 +302,5 @@ export interface CalVideoSettings {
   disableTranscriptionForGuests?: boolean;
   disableTranscriptionForOrganizer?: boolean;
   redirectUrlOnExit?: string;
+  requireEmailForGuests?: boolean;
 }

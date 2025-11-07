@@ -6,7 +6,6 @@ import { useDataTable } from "@calcom/features/data-table";
 import NoSSR from "@calcom/lib/components/NoSSR";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
-import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -41,9 +40,7 @@ const TimezoneBadgeContent = () => {
 
   return (
     <Tooltip content={timezoneData.tooltipContent}>
-      <Badge variant="gray" size="sm" data-testid="timezone-mismatch-badge">
-        <Icon name="info" />
-      </Badge>
+      <Icon name="info" data-testid="timezone-mismatch-badge" className="text-subtle" />
     </Tooltip>
   );
 };

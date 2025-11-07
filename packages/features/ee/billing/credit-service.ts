@@ -5,18 +5,18 @@ import {
   sendCreditBalanceLimitReachedEmails,
   sendCreditBalanceLowWarningEmails,
 } from "@calcom/emails/email-manager";
-import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
+import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { InternalTeamBilling } from "@calcom/features/ee/billing/teams/internal-team-billing";
+import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { cancelScheduledMessagesAndScheduleEmails } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-import prisma, { type PrismaTransaction } from "@calcom/prisma";
-import type { CreditUsageType } from "@calcom/prisma/enums";
-import { CreditType } from "@calcom/prisma/enums";
+import { prisma, type PrismaTransaction } from "@calcom/prisma";
+import { CreditUsageType, CreditType } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[CreditService]"] });
 
@@ -37,6 +37,7 @@ type LowCreditBalanceResultBase = {
     email: string;
     t: TFunction;
   };
+  creditFor?: CreditUsageType;
 };
 
 type LowCreditBalanceLimitReachedResult = LowCreditBalanceResultBase & {
@@ -136,6 +137,7 @@ export class CreditService {
             teamId: teamIdToCharge,
             userId: userIdToCharge,
             remainingCredits: remainingCredits ?? 0,
+            creditFor,
             tx,
           });
         }
@@ -166,7 +168,13 @@ export class CreditService {
       if (!IS_SMS_CREDITS_ENABLED) return true;
 
       if (teamId) {
-        const creditBalance = await CreditsRepository.findCreditBalance({ teamId }, tx);
+        // Check if this team belongs to an organization or is itself an organization
+        const orgId = await getOrgIdFromMemberOrTeamId({ teamId }, tx);
+
+        // Use organization credits if team belongs to org, otherwise use team's own credits
+        const teamIdToCheck = orgId ?? teamId;
+
+        const creditBalance = await CreditsRepository.findCreditBalance({ teamId: teamIdToCheck }, tx);
 
         const limitReached =
           creditBalance?.limitReachedAt &&
@@ -175,13 +183,13 @@ export class CreditService {
         if (!limitReached) return true;
 
         // check if team is still out of credits
-        const teamCredits = await this._getAllCreditsForTeam({ teamId, tx });
+        const teamCredits = await this._getAllCreditsForTeam({ teamId: teamIdToCheck, tx });
         const availableCredits = teamCredits.totalRemainingMonthlyCredits + teamCredits.additionalCredits;
 
         if (availableCredits > 0) {
           await CreditsRepository.updateCreditBalance(
             {
-              teamId,
+              teamId: teamIdToCheck,
               data: {
                 limitReachedAt: null,
                 warningSentAt: null,
@@ -215,8 +223,41 @@ export class CreditService {
     });
   }
 
+  /**
+   * Separates memberships into organization and team memberships.
+   * Organizations take precedence - if user belongs to any organization,
+   * only organization memberships are returned.
+   *
+   * @param memberships - User's accepted team memberships
+   * @param teams - Team data including isOrganization and parentId
+   * @returns Memberships to check (org memberships if any exist, otherwise team memberships)
+   */
+  private static filterMembershipsForCreditCheck<T extends { teamId: number }>(
+    memberships: T[],
+    teams: Array<{ id: number; isOrganization: boolean; parentId: number | null }>
+  ): T[] {
+    const teamMap = new Map(teams.map((t) => [t.id, t]));
+
+    const orgMemberships: T[] = [];
+    const teamMemberships: T[] = [];
+
+    for (const membership of memberships) {
+      const team = teamMap.get(membership.teamId);
+      if (team?.isOrganization && !team.parentId) {
+        orgMemberships.push(membership);
+      } else {
+        teamMemberships.push(membership);
+      }
+    }
+
+    // If user belongs to any organization, ONLY check organization credits
+    return orgMemberships.length > 0 ? orgMemberships : teamMemberships;
+  }
+
   /*
     If user has memberships, it always returns a team, even if all have limit reached. In that case, limitReached: true is returned
+    If user belongs to any organization, ONLY organization credits are checked (team memberships are ignored)
+    If user does not belong to an organization, team credits are checked
   */
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
     const memberships = await MembershipRepository.findAllAcceptedPublishedTeamMemberships(userId, tx);
@@ -225,11 +266,17 @@ export class CreditService {
       return null;
     }
 
-    //check if user is member of team that has available credits
-    for (const membership of memberships) {
-      const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
+    const teamRepository = new TeamRepository(prisma);
+    const teams = await teamRepository.findTeamsForCreditCheck({
+      teamIds: memberships.map((m) => m.teamId),
+    });
 
+    const membershipsToCheck = CreditService.filterMembershipsForCreditCheck(memberships, teams);
+
+    for (const membership of membershipsToCheck) {
+      const creditBalance = await CreditsRepository.findCreditBalance({ teamId: membership.teamId }, tx);
       const allCredits = await this._getAllCreditsForTeam({ teamId: membership.teamId, tx });
+
       const limitReached =
         creditBalance?.limitReachedAt &&
         dayjs(creditBalance.limitReachedAt).isAfter(dayjs().startOf("month"));
@@ -259,7 +306,7 @@ export class CreditService {
     }
 
     return {
-      teamId: memberships[0].teamId,
+      teamId: membershipsToCheck[0].teamId,
       availableCredits: 0,
       creditType: CreditType.ADDITIONAL,
       limitReached: true,
@@ -413,11 +460,13 @@ export class CreditService {
     teamId,
     userId,
     remainingCredits,
+    creditFor,
     tx,
   }: {
     teamId?: number | null;
     userId?: number | null;
     remainingCredits: number;
+    creditFor?: CreditUsageType;
     tx: PrismaTransaction;
   }): Promise<LowCreditBalanceResult> {
     let warningLimit = 0;
@@ -438,6 +487,11 @@ export class CreditService {
         creditBalance?.limitReachedAt &&
         (!teamId || dayjs(creditBalance?.limitReachedAt).isAfter(dayjs().startOf("month")))
       ) {
+        log.info("User or team has limit already reached this month", {
+          teamId,
+          userId,
+          creditBalance,
+        });
         return null; // user has limit already reached or team has already reached limit this month
       }
 
@@ -486,6 +540,7 @@ export class CreditService {
           user,
           teamId,
           userId,
+          creditFor,
         };
       }
 
@@ -512,6 +567,7 @@ export class CreditService {
         balance: remainingCredits,
         team: teamWithAdmins,
         user,
+        creditFor,
       };
     }
 
@@ -535,24 +591,33 @@ export class CreditService {
 
     try {
       if (result.type === "LIMIT_REACHED") {
-        await Promise.all([
+        const promises: Promise<unknown>[] = [
           sendCreditBalanceLimitReachedEmails({
             team: result.team,
             user: result.user,
+            creditFor: result.creditFor,
           }).catch((error) => {
             log.error("Failed to send credit limit reached email", error, { result });
           }),
-          cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
-            (error) => {
-              log.error("Failed to cancel scheduled messages", error, { result });
-            }
-          ),
-        ]);
+        ];
+
+        if (!result.creditFor || result.creditFor === CreditUsageType.SMS) {
+          promises.push(
+            cancelScheduledMessagesAndScheduleEmails({ teamId: result.teamId, userId: result.userId }).catch(
+              (error) => {
+                log.error("Failed to cancel scheduled messages", error, { result });
+              }
+            )
+          );
+        }
+
+        await Promise.all(promises);
       } else if (result.type === "WARNING") {
         await sendCreditBalanceLowWarningEmails({
           balance: result.balance,
           team: result.team,
           user: result.user,
+          creditFor: result.creditFor,
         }).catch((error) => {
           log.error("Failed to send credit warning email", error, { result });
         });
@@ -588,8 +653,6 @@ export class CreditService {
 
     if (!team) return 0;
 
-    let totalMonthlyCredits = 0;
-
     const teamBillingService = new InternalTeamBilling(team);
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
 
@@ -599,25 +662,25 @@ export class CreditService {
 
     const activeMembers = team.members.filter((member) => member.accepted).length;
 
-    const billingService = new StripeBillingService();
+    if (team.isOrganization) {
+      const orgMonthlyCredits = process.env.ORG_MONTHLY_CREDITS;
+      const creditsPerSeat = orgMonthlyCredits ? parseInt(orgMonthlyCredits) : 1000;
+      return activeMembers * creditsPerSeat;
+    }
 
-    const priceId = team.isOrganization
-      ? process.env.STRIPE_ORG_MONTHLY_PRICE_ID
-      : process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
+    const billingService = new StripeBillingService();
+    const priceId = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;
 
     if (!priceId) {
-      log.warn("Monthly price ID not configured", { teamId, isOrganization: team.isOrganization });
+      log.warn("Monthly price ID not configured", { teamId });
       return 0;
     }
 
-    const monthlyPrice = await billingService.getPrice(priceId || "");
+    const monthlyPrice = await billingService.getPrice(priceId);
     const pricePerSeat = monthlyPrice.unit_amount ?? 0;
+    const creditsPerSeat = pricePerSeat * 0.5;
 
-    // Teams get 50% of the price as credits, organizations get 20%
-    const creditMultiplier = team.isOrganization ? 0.2 : 0.5;
-    totalMonthlyCredits = activeMembers * pricePerSeat * creditMultiplier;
-
-    return totalMonthlyCredits;
+    return activeMembers * creditsPerSeat;
   }
 
   calculateCreditsFromPrice(price: number) {
@@ -653,6 +716,7 @@ export class CreditService {
         totalMonthlyCredits: 0,
         totalRemainingMonthlyCredits: 0,
         additionalCredits: creditBalance?.additionalCredits ?? 0,
+        totalCreditsUsedThisMonth: 0,
       };
     }
 
@@ -660,6 +724,7 @@ export class CreditService {
       totalMonthlyCredits: 0,
       totalRemainingMonthlyCredits: 0,
       additionalCredits: 0,
+      totalCreditsUsedThisMonth: 0,
     };
   }
 
@@ -679,10 +744,75 @@ export class CreditService {
     const totalMonthlyCreditsUsed =
       creditBalance?.expenseLogs.reduce((sum, log) => sum + (log?.credits ?? 0), 0) || 0;
 
+    const additionalCredits = creditBalance?.additionalCredits ?? 0;
+    const totalCreditsUsedThisMonth = totalMonthlyCreditsUsed;
+
     return {
       totalMonthlyCredits,
       totalRemainingMonthlyCredits: Math.max(totalMonthlyCredits - totalMonthlyCreditsUsed, 0),
-      additionalCredits: creditBalance?.additionalCredits ?? 0,
+      additionalCredits,
+      totalCreditsUsedThisMonth,
     };
+  }
+
+  async moveCreditsFromTeamToOrg({ teamId, orgId }: { teamId: number; orgId: number }) {
+    return await prisma.$transaction(async (tx) => {
+      // Get team's credit balance
+      const teamCreditBalance = await CreditsRepository.findCreditBalance({ teamId }, tx);
+
+      if (!teamCreditBalance || teamCreditBalance.additionalCredits <= 0) {
+        log.info("No credits to transfer from team to org", { teamId, orgId });
+        return;
+      }
+
+      // Get or create org's credit balance
+      let orgCreditBalance = await CreditsRepository.findCreditBalance({ teamId: orgId }, tx);
+
+      if (!orgCreditBalance) {
+        orgCreditBalance = await CreditsRepository.createCreditBalance(
+          {
+            teamId: orgId,
+          },
+          tx
+        );
+      }
+
+      const creditsToTransfer = teamCreditBalance.additionalCredits;
+
+      // Transfer credits from team to org
+      await CreditsRepository.updateCreditBalance(
+        {
+          teamId,
+          data: {
+            additionalCredits: 0,
+          },
+        },
+        tx
+      );
+
+      await CreditsRepository.updateCreditBalance(
+        {
+          teamId: orgId,
+          data: {
+            additionalCredits: {
+              increment: creditsToTransfer,
+            },
+          },
+        },
+        tx
+      );
+
+      log.info("Successfully transferred credits from team to org", {
+        teamId,
+        orgId,
+        creditsTransferred: creditsToTransfer,
+      });
+
+      return {
+        creditsTransferred: creditsToTransfer,
+        teamId,
+        orgId,
+      };
+    });
   }
 }

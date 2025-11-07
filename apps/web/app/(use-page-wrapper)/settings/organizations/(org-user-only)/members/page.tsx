@@ -70,6 +70,7 @@ const Page = async () => {
     userRole: session.user.org.role,
     actions: [
       CustomAction.ListMembers,
+      CustomAction.ListMembersPrivate,
       CustomAction.Invite,
       CustomAction.ChangeMemberRole,
       CustomAction.Remove,
@@ -77,6 +78,9 @@ const Page = async () => {
     ],
     fallbackRoles: {
       [CustomAction.ListMembers]: {
+        roles: fallbackRolesThatCanSeeMembers,
+      },
+      [CustomAction.ListMembersPrivate]: {
         roles: fallbackRolesThatCanSeeMembers,
       },
       [CustomAction.Invite]: {
@@ -96,7 +100,9 @@ const Page = async () => {
 
   // Map specific permissions to member actions
   const memberPermissions = {
-    canListMembers: permissions[CustomAction.ListMembers],
+    canListMembers: org.isPrivate
+      ? permissions[CustomAction.ListMembersPrivate]
+      : permissions[CustomAction.ListMembers],
     canInvite: permissions[CustomAction.Invite],
     canChangeMemberRole: permissions[CustomAction.ChangeMemberRole],
     canRemove: permissions[CustomAction.Remove],

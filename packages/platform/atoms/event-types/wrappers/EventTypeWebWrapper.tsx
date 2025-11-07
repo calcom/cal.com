@@ -9,6 +9,8 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/components/EventType";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
+import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
@@ -29,6 +31,21 @@ import { useEventTypeForm } from "../hooks/useEventTypeForm";
 import { useHandleRouteChange } from "../hooks/useHandleRouteChange";
 import { useTabsNavigations } from "../hooks/useTabsNavigations";
 
+type EventPermissions = {
+  eventTypes: {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
+  workflows: {
+    canRead: boolean;
+    canCreate: boolean;
+    canUpdate: boolean;
+    canDelete: boolean;
+  };
+};
+
 const ManagedEventTypeDialog = dynamic(
   () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
 );
@@ -38,8 +55,9 @@ const AssignmentWarningDialog = dynamic(
 );
 
 const EventSetupTab = dynamic(() =>
-  // import web wrapper when it's ready
-  import("./EventSetupTabWebWrapper").then((mod) => mod)
+    // import web wrapper when it's ready
+    import("./EventSetupTabWebWrapper").then((mod) => mod),
+  { loading: () => null }
 );
 
 const EventAvailabilityTab = dynamic(() =>
@@ -91,21 +109,47 @@ const EventAITab = dynamic(() =>
 export type EventTypeWebWrapperProps = {
   id: number;
   data: RouterOutputs["viewer"]["eventTypes"]["get"];
+  permissions?: EventPermissions;
 };
 
-export const EventTypeWebWrapper = ({ id, data: serverFetchedData }: EventTypeWebWrapperProps) => {
+export const EventTypeWebWrapper = ({
+  id,
+  data: serverFetchedData,
+  permissions = {
+    eventTypes: {
+      canRead: false,
+      canCreate: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+    workflows: {
+      canRead: false,
+      canCreate: false,
+      canUpdate: false,
+      canDelete: false,
+    },
+  },
+}: EventTypeWebWrapperProps) => {
   const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery(
     { id },
     { enabled: !serverFetchedData }
   );
 
   if (serverFetchedData) {
-    return <EventTypeWeb {...serverFetchedData} id={id} />;
+    return (
+      <EventPermissionProvider initialPermissions={permissions}>
+        <EventTypeWeb {...serverFetchedData} id={id} />
+      </EventPermissionProvider>
+    );
   }
 
   if (!eventTypeQueryData) return null;
 
-  return <EventTypeWeb {...eventTypeQueryData} id={id} />;
+  return (
+    <EventPermissionProvider initialPermissions={permissions}>
+      <EventTypeWeb {...eventTypeQueryData} id={id} />
+    </EventPermissionProvider>
+  );
 };
 
 const EventTypeWeb = ({
@@ -126,12 +170,15 @@ const EventTypeWeb = ({
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
-  const { data: eventTypeApps } = trpc.viewer.apps.integrations.useQuery({
+  const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
     onlyInstalled: true,
   });
-  const updateMutation = trpc.viewer.eventTypes.heavy.update.useMutation({
+
+  // Check workflow permissions
+  const { hasPermission: canReadWorkflows } = useWorkflowPermission("canRead");
+  const updateMutation = trpc.viewer.eventTypesHeavy.update.useMutation({
     onSuccess: async () => {
       const currentValues = form.getValues();
 
@@ -236,16 +283,24 @@ const EventTypeWeb = ({
         user={user}
         isUserLoading={isLoggedInUserPending}
         showToast={showToast}
+        orgId={orgBranding?.id ?? null}
       />
     ),
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows: allActiveWorkflows ? (
-      <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
-    ) : (
-      <></>
+    apps: (
+      <EventAppsTab
+        eventType={{ ...eventType, URL: permalink }}
+        eventTypeApps={eventTypeApps}
+        isPendingApps={isPendingApps}
+      />
     ),
+    workflows:
+      allActiveWorkflows && canReadWorkflows ? (
+        <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
+      ) : (
+        <></>
+      ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
     ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
@@ -358,6 +413,7 @@ const EventTypeWeb = ({
     team,
     eventTypeApps,
     allActiveWorkflows,
+    canReadWorkflows,
   });
 
   return (

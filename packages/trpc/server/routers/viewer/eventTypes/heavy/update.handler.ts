@@ -2,20 +2,21 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { HashedLinkRepository } from "@calcom/features/hashedLink/lib/repository/HashedLinkRepository";
+import { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import tasker from "@calcom/features/tasker";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { CalVideoSettingsRepository } from "@calcom/lib/server/repository/calVideoSettings";
-import { HashedLinkRepository } from "@calcom/lib/server/repository/hashedLinkRepository";
-import { MembershipRepository } from "@calcom/lib/server/repository/membership";
-import { ScheduleRepository } from "@calcom/lib/server/repository/schedule";
-import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
@@ -25,20 +26,19 @@ import {
   EventTypeAutoTranslatedField,
   RRTimestampBasis,
 } from "@calcom/prisma/enums";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
-import type { TUpdateInputSchema } from "./update.schema";
 import {
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
+import type { TUpdateInputSchema } from "./update.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 
@@ -139,6 +139,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           disableRecordingForGuests: true,
           enableAutomaticTranscription: true,
           enableAutomaticRecordingForOrganizer: true,
+          requireEmailForGuests: true,
           disableTranscriptionForGuests: true,
           disableTranscriptionForOrganizer: true,
           redirectUrlOnExit: true,
@@ -523,7 +524,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         trigger: WorkflowTriggerEvents.NEW_EVENT,
       },
       include: {
-        steps: true,
+        steps: {
+          select: {
+            action: true,
+          },
+        },
       },
     });
 
@@ -599,13 +604,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
         update: {
           ...aiPhoneCallConfig,
-          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
         },
         create: {
           ...aiPhoneCallConfig,
-          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
-          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          guestEmail: aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
           eventTypeId: id,
         },
       });
@@ -630,7 +635,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isCalVideoLocationActive = locations
     ? locations.some((location) => location.type === DailyLocationType)
     : parsedEventTypeLocations.success &&
-      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+    parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await CalVideoSettingsRepository.deleteCalVideoSettings(id);

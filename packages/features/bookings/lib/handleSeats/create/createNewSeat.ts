@@ -2,6 +2,7 @@
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
@@ -9,13 +10,12 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import EventManager from "@calcom/lib/EventManager";
+import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";

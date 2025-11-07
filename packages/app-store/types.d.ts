@@ -65,6 +65,7 @@ export type EventTypeAppCardComponentProps = {
     URL: string;
   };
   app: EventTypeAppCardApp;
+  onAppInstallSuccess: () => void;
   disabled?: boolean;
   LockedIcon?: JSX.Element | false;
   eventTypeFormMetadata?: z.infer<typeof EventTypeFormMetadataSchema>;

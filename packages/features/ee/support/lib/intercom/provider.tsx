@@ -1,13 +1,14 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, type FC } from "react";
 import { IntercomProvider } from "react-use-intercom";
 
 import { useBootIntercom } from "@calcom/ee/support/lib/intercom/useIntercom";
+import useHasPaidPlan from "@calcom/features/billing/hooks/useHasPaidPlan";
 import { IntercomContactForm } from "@calcom/features/ee/support/components/IntercomContactForm";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
-import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 
 declare global {
@@ -31,6 +32,9 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session } = useSession();
+
+  const isBeingImpersonated = !!session?.user?.impersonatedBy?.id;
 
   const shouldOpenSupport =
     pathname === "/event-types" && (searchParams?.has("openPlain") || searchParams?.has("openSupport"));
@@ -65,7 +69,7 @@ const Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const isOnboardingPage = pathname?.startsWith("/getting-started");
   const isCalVideoPage = pathname?.startsWith("/video/");
 
-  if (isOnboardingPage || isCalVideoPage) {
+  if (isOnboardingPage || isCalVideoPage || isBeingImpersonated) {
     return <>{children}</>;
   }
 
