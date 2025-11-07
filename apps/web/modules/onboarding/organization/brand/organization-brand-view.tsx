@@ -8,8 +8,9 @@ import { HexColorPicker } from "react-colorful";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 
-import { OnboardingCard } from "../../personal/_components/OnboardingCard";
-import { OnboardingLayout } from "../../personal/_components/OnboardingLayout";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationBrandViewProps = {
@@ -118,6 +119,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={2}>
+      {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_brand_title")}
         subtitle={t("onboarding_org_brand_subtitle")}
@@ -185,7 +187,9 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                         />
                       </div>
                     </div>
-                    <p className="text-subtle text-xs font-normal leading-3">{t("onboarding_logo_size_hint")}</p>
+                    <p className="text-subtle text-xs font-normal leading-3">
+                      {t("onboarding_logo_size_hint")}
+                    </p>
                   </div>
 
                   {/* Banner Upload */}
@@ -225,69 +229,14 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
                     </p>
                   </div>
                 </div>
-
-                {/* Right side - Preview */}
-                <div className="bg-muted border-muted flex hidden h-[328px] w-full grow overflow-hidden rounded-[10px] border p-5 md:block">
-                  <div className="flex flex-col gap-2.5">
-                    <p className="text-subtle text-sm font-medium leading-4">{t("preview")}</p>
-                    <div className="border-subtle bg-default relative flex w-[110%] flex-col gap-2.5 rounded-md border px-5 pb-5 pt-[74px]">
-                      {/* Banner preview */}
-                      <div className="bg-muted border-muted absolute left-1 top-1 h-[92px] w-[272px] overflow-hidden rounded-[4px] border">
-                        {bannerPreview && (
-                          <img
-                            src={bannerPreview}
-                            alt={t("onboarding_banner_preview_alt")}
-                            className="h-full w-full object-cover"
-                          />
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex flex-col gap-4">
-                        <div className="flex flex-col gap-3 p-1">
-                          <div className="flex flex-col gap-3">
-                            {/* Logo preview */}
-                            <div className="bg-muted z-20 h-9 w-9 shrink-0 overflow-hidden rounded-md border-2 border-[var(--cal-bg)]">
-                              {logoPreview && (
-                                <img
-                                  src={logoPreview}
-                                  alt={t("onboarding_logo_preview_alt")}
-                                  className="h-full w-full object-cover"
-                                />
-                              )}
-                            </div>
-                            <p className="text-subtle text-sm font-medium capitalize leading-4 ">
-                              {organizationDetails.name || t("onboarding_preview_nameless")}
-                            </p>
-                          </div>
-                          <div className="flex flex-col gap-3">
-                            <div className="flex flex-col gap-3">
-                              <p className="font-cal text-xl leading-5 tracking-[0.2px]">
-                                {t("onboarding_preview_example_title")}
-                              </p>
-                              <p className="text-subtle text-sm font-medium leading-5">
-                                {t("onboarding_preview_example_description")}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          {[134, 104, 84, 104].map((width, i) => (
-                            <div key={i} className="flex items-center gap-2 p-1">
-                              <div className="bg-subtle h-5 w-5 shrink-0 rounded-full" />
-                              <div className="bg-subtle h-2.5 rounded-full" style={{ width: `${width}px` }} />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </div>
       </OnboardingCard>
+
+      {/* Right column - Browser view */}
+      <OnboardingBrowserView />
     </OnboardingLayout>
   );
 };

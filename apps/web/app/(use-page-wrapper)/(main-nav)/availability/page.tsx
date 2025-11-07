@@ -6,7 +6,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
+import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
 import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
@@ -61,8 +61,9 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
   };
 
   const organizationId = session?.user?.profile?.organizationId ?? session?.user.org?.id;
+  const organizationRepository = getOrganizationRepository();
   const isOrgPrivate = organizationId
-    ? await OrganizationRepository.checkIfPrivate({
+    ? await organizationRepository.checkIfPrivate({
         orgId: organizationId,
       })
     : false;

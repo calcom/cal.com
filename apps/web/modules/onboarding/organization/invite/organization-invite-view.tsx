@@ -12,6 +12,7 @@ import { Form, Label, TextField, Select, ToggleGroup } from "@calcom/ui/componen
 import { Icon } from "@calcom/ui/components/icon";
 import { Logo } from "@calcom/ui/components/logo";
 
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { useSubmitOnboarding } from "../../hooks/useSubmitOnboarding";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
@@ -117,135 +118,55 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
 
       {/* Main content */}
       <div className="flex h-full w-full items-start justify-center px-6 py-8">
-        <div className="flex w-full max-w-[600px] flex-col gap-4">
-          {/* Card */}
-          <div className="bg-muted border-muted relative rounded-xl border p-1">
-            <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
-              {/* Card Header */}
-              <div className="flex w-full gap-1.5 px-5 py-4">
-                <div className="flex w-full flex-col gap-1">
-                  <h1 className="font-cal text-xl font-semibold leading-6">
-                    {t("onboarding_org_invite_title")}
-                  </h1>
-                  <p className="text-subtle text-sm font-medium leading-tight">
-                    {isEmailMode
-                      ? t("onboarding_org_invite_subtitle_email")
-                      : t("onboarding_org_invite_subtitle_full")}
-                  </p>
+        <div className="grid w-full max-w-[1200px] grid-cols-1 gap-6 lg:grid-cols-[1fr_auto]">
+          {/* Left column - Main content */}
+          <div className="flex w-full flex-col gap-4">
+            {/* Card */}
+            <div className="bg-muted border-muted relative rounded-xl border p-1">
+              <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
+                {/* Card Header */}
+                <div className="flex w-full gap-1.5 px-5 py-4">
+                  <div className="flex w-full flex-col gap-1">
+                    <h1 className="font-cal text-xl font-semibold leading-6">
+                      {t("onboarding_org_invite_title")}
+                    </h1>
+                    <p className="text-subtle text-sm font-medium leading-tight">
+                      {isEmailMode
+                        ? t("onboarding_org_invite_subtitle_email")
+                        : t("onboarding_org_invite_subtitle_full")}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Content */}
-              <div className="bg-default border-subtle w-full rounded-md border">
-                <div className="flex w-full flex-col gap-8 px-5 py-5">
-                  {!isEmailMode ? (
-                    // Coming soon
-                    // Initial invite options view
-                    <div className="flex w-full flex-col gap-4">
-                      <Button color="secondary" className="w-full justify-center" StartIcon="mail">
-                        {t("onboarding_connect_google_workspace")}
-                      </Button>
-
-                      <div className="flex items-center gap-2">
-                        <div className="bg-subtle h-px flex-1" />
-                        <span className="text-subtle text-xs">{t("onboarding_or_divider")}</span>
-                        <div className="bg-subtle h-px flex-1" />
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Button
-                          color="secondary"
-                          className="flex-1 justify-center"
-                          onClick={handleInviteViaEmail}>
-                          {t("invite_via_email")}
-                        </Button>
-                        <Button color="secondary" className="flex-1 justify-center" StartIcon="upload">
-                          {t("onboarding_upload_csv")}
-                        </Button>
-                        <Button color="secondary" className="flex-1 justify-center" StartIcon="link">
-                          {t("onboarding_copy_invite_link")}
-                        </Button>
-                      </div>
-
-                      {/* Role selector */}
-                      <div className="flex items-center justify-between">
-                        <div className="hidden items-center gap-2 md:flex">
-                          <span className="text-emphasis text-sm">{t("onboarding_invite_all_as")}</span>
-                          <ToggleGroup
-                            value={inviteRole}
-                            onValueChange={(value) => value && setInviteRole(value as "MEMBER" | "ADMIN")}
-                            options={[
-                              { value: "ADMIN", label: t("onboarding_admins") },
-                              { value: "MEMBER", label: t("members") },
-                            ]}
-                          />
-                        </div>
-                        <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    // Email invite form
-                    <Form form={form} handleSubmit={handleContinue} className="w-full">
+                {/* Content */}
+                <div className="bg-default border-subtle w-full rounded-md border">
+                  <div className="flex w-full flex-col gap-8 px-5 py-5">
+                    {!isEmailMode ? (
+                      // Coming soon
+                      // Initial invite options view
                       <div className="flex w-full flex-col gap-4">
-                        {/* Email and Team inputs */}
-                        <div className="flex flex-col gap-2">
-                          <div className="grid grid-cols-2">
-                            <Label
-                              className="text-emphasis mb-0 text-sm font-medium"
-                              htmlFor="invites.0.email">
-                              {t("email")}
-                            </Label>
-                            <Label
-                              className="text-emphasis mb-0 text-sm font-medium"
-                              htmlFor="invites.0.team">
-                              {t("team")}
-                            </Label>
-                          </div>
+                        <Button color="secondary" className="w-full justify-center" StartIcon="mail">
+                          {t("onboarding_connect_google_workspace")}
+                        </Button>
 
-                          {fields.map((field, index) => (
-                            <div key={field.id} className="flex items-start gap-0.5">
-                              <div className="grid flex-1 items-start gap-2 md:grid-cols-2 ">
-                                <TextField
-                                  labelSrOnly
-                                  {...form.register(`invites.${index}.email`)}
-                                  placeholder={`dave@${usersEmailDomain}`}
-                                  type="email"
-                                  size="sm"
-                                />
-                                <Select
-                                  size="sm"
-                                  options={teams}
-                                  value={teams.find((t) => t.value === form.watch(`invites.${index}.team`))}
-                                  onChange={(option) => {
-                                    if (option) {
-                                      form.setValue(`invites.${index}.team`, option.value);
-                                    }
-                                  }}
-                                  placeholder={t("select_team")}
-                                />
-                              </div>
-                              <Button
-                                type="button"
-                                color="minimal"
-                                variant="icon"
-                                size="sm"
-                                className="h-7 w-7"
-                                disabled={fields.length === 1}
-                                onClick={() => remove(index)}>
-                                <Icon name="x" className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
+                        <div className="flex items-center gap-2">
+                          <div className="bg-subtle h-px flex-1" />
+                          <span className="text-subtle text-xs">{t("onboarding_or_divider")}</span>
+                          <div className="bg-subtle h-px flex-1" />
+                        </div>
 
-                          {/* Add button */}
+                        <div className="flex items-center gap-2">
                           <Button
-                            type="button"
                             color="secondary"
-                            size="sm"
-                            StartIcon="plus"
-                            className="mt-2 w-fit"
-                            onClick={() => append({ email: "", team: "", role: "MEMBER" })}>
-                            {t("add")}
+                            className="flex-1 justify-center"
+                            onClick={handleInviteViaEmail}>
+                            {t("invite_via_email")}
+                          </Button>
+                          <Button color="secondary" className="flex-1 justify-center" StartIcon="upload">
+                            {t("onboarding_upload_csv")}
+                          </Button>
+                          <Button color="secondary" className="flex-1 justify-center" StartIcon="link">
+                            {t("onboarding_copy_invite_link")}
                           </Button>
                         </div>
 
@@ -257,42 +178,128 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                               value={inviteRole}
                               onValueChange={(value) => value && setInviteRole(value as "MEMBER" | "ADMIN")}
                               options={[
-                                { value: "MEMBER", label: t("members") },
                                 { value: "ADMIN", label: t("onboarding_admins") },
+                                { value: "MEMBER", label: t("members") },
                               ]}
                             />
                           </div>
                           <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>
                         </div>
                       </div>
-                    </Form>
-                  )}
+                    ) : (
+                      // Email invite form
+                      <Form form={form} handleSubmit={handleContinue} className="w-full">
+                        <div className="flex w-full flex-col gap-4">
+                          {/* Email and Team inputs */}
+                          <div className="flex flex-col gap-2">
+                            <div className="grid grid-cols-2">
+                              <Label
+                                className="text-emphasis mb-0 text-sm font-medium"
+                                htmlFor="invites.0.email">
+                                {t("email")}
+                              </Label>
+                              <Label
+                                className="text-emphasis mb-0 text-sm font-medium"
+                                htmlFor="invites.0.team">
+                                {t("team")}
+                              </Label>
+                            </div>
+
+                            {fields.map((field, index) => (
+                              <div key={field.id} className="flex items-start gap-0.5">
+                                <div className="grid flex-1 items-start gap-2 md:grid-cols-2 ">
+                                  <TextField
+                                    labelSrOnly
+                                    {...form.register(`invites.${index}.email`)}
+                                    placeholder={`dave@${usersEmailDomain}`}
+                                    type="email"
+                                    size="sm"
+                                  />
+                                  <Select
+                                    size="sm"
+                                    options={teams}
+                                    value={teams.find((t) => t.value === form.watch(`invites.${index}.team`))}
+                                    onChange={(option) => {
+                                      if (option) {
+                                        form.setValue(`invites.${index}.team`, option.value);
+                                      }
+                                    }}
+                                    placeholder={t("select_team")}
+                                  />
+                                </div>
+                                <Button
+                                  type="button"
+                                  color="minimal"
+                                  variant="icon"
+                                  size="sm"
+                                  className="h-7 w-7"
+                                  disabled={fields.length === 1}
+                                  onClick={() => remove(index)}>
+                                  <Icon name="x" className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+
+                            {/* Add button */}
+                            <Button
+                              type="button"
+                              color="secondary"
+                              size="sm"
+                              StartIcon="plus"
+                              className="mt-2 w-fit"
+                              onClick={() => append({ email: "", team: "", role: "MEMBER" })}>
+                              {t("add")}
+                            </Button>
+                          </div>
+
+                          {/* Role selector */}
+                          <div className="flex items-center justify-between">
+                            <div className="hidden items-center gap-2 md:flex">
+                              <span className="text-emphasis text-sm">{t("onboarding_invite_all_as")}</span>
+                              <ToggleGroup
+                                value={inviteRole}
+                                onValueChange={(value) => value && setInviteRole(value as "MEMBER" | "ADMIN")}
+                                options={[
+                                  { value: "MEMBER", label: t("members") },
+                                  { value: "ADMIN", label: t("onboarding_admins") },
+                                ]}
+                              />
+                            </div>
+                            <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>
+                          </div>
+                        </div>
+                      </Form>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
+                  <Button
+                    type={isEmailMode ? "submit" : "button"}
+                    color="primary"
+                    className="rounded-[10px]"
+                    disabled={(isEmailMode && !hasValidInvites) || isSubmitting}
+                    loading={isSubmitting}
+                    onClick={form.handleSubmit(handleContinue)}>
+                    {t("continue")}
+                  </Button>
                 </div>
               </div>
+            </div>
 
-              {/* Footer */}
-              <div className="flex w-full items-center justify-end gap-1 px-5 py-4">
-                <Button
-                  type={isEmailMode ? "submit" : "button"}
-                  color="primary"
-                  className="rounded-[10px]"
-                  disabled={(isEmailMode && !hasValidInvites) || isSubmitting}
-                  loading={isSubmitting}
-                  onClick={form.handleSubmit(handleContinue)}>
-                  {t("continue")}
-                </Button>
-              </div>
+            {/* Skip button */}
+            <div className="flex w-full justify-center">
+              <button
+                onClick={handleSkip}
+                className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4">
+                {t("ill_do_this_later")}
+              </button>
             </div>
           </div>
 
-          {/* Skip button */}
-          <div className="flex w-full justify-center">
-            <button
-              onClick={handleSkip}
-              className="text-subtle hover:bg-subtle rounded-[10px] px-2 py-1.5 text-sm font-medium leading-4">
-              {t("ill_do_this_later")}
-            </button>
-          </div>
+          {/* Right column - Browser view */}
+          <OnboardingBrowserView />
         </div>
       </div>
     </div>
