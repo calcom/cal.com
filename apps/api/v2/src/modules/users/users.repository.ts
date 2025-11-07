@@ -257,7 +257,10 @@ export class UsersRepository {
     });
   }
 
-  formatInput(_userInput: CreateManagedUserInput | UpdateManagedUserInput) {
+  formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
+    if (userInput.weekStart) {
+      userInput.weekStart = userInput.weekStart;
+    }
   }
 
   setDefaultSchedule(userId: number, scheduleId: number) {

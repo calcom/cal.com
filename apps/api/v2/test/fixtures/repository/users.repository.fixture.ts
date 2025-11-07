@@ -19,20 +19,18 @@ export class UserRepositoryFixture {
 
   async create(data: Prisma.UserCreateInput) {
     try {
+      // avoid uniq constraint in tests
       await this.deleteByEmail(data.email);
-    } catch (_e) {
-      void _e;
-    }
+    } catch {}
 
     return this.prismaWriteClient.user.create({ data });
   }
 
   async createOAuthManagedUser(email: Prisma.UserCreateInput["email"], oAuthClientId: string) {
     try {
+      // avoid uniq constraint in tests
       await this.deleteByEmail(email);
-    } catch (_e) {
-      void _e;
-    }
+    } catch {}
 
     return this.prismaWriteClient.user.create({
       data: {
