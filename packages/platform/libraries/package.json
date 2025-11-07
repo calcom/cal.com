@@ -79,6 +79,11 @@
       "require": "./dist/bookings.cjs",
       "types": "./dist/bookings.d.ts"
     },
+    "./organizations": {
+      "import": "./dist/organizations.js",
+      "require": "./dist/organizations.cjs",
+      "types": "./dist/organizations.d.ts"
+    },
     "./private-links": {
       "import": "./dist/private-links.js",
       "require": "./dist/private-links.cjs",
@@ -118,6 +123,9 @@
       ],
       "bookings": [
         "dist/bookings.d.ts"
+      ],
+      "organizations": [
+        "dist/organizations.d.ts"
       ],
       "private-links": [
         "dist/private-links.d.ts"
