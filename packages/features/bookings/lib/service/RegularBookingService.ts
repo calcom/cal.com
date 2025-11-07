@@ -43,6 +43,7 @@ import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/Workf
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
@@ -421,6 +422,7 @@ export interface IBookingServiceDependencies {
   userRepository: UserRepository;
   hashedLinkService: HashedLinkService;
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
+  featuresRepository: FeaturesRepository;
 }
 
 /**
@@ -2583,18 +2585,30 @@ async function handler(
 
     if (!noEmail && process.env.ENABLE_ASYNC_TASKER === "true") {
       // TODO: Add Team Feature Flag to enable booking tasker or not
-      await deps.bookingEmailAndSmsTasker.send({
-        action: bookingEmailsAndSmsTaskerAction,
-        schedulingType: evtWithMetadata.eventType.schedulingType,
-        payload: {
-          bookingId: booking.id,
-          conferenceCredentialId,
-          platformClientId,
-          platformRescheduleUrl,
-          platformCancelUrl,
-          platformBookingUrl,
-        },
-      });
+      try {
+        if (orgId) {
+          const hasTeamFeature = await deps.featuresRepository.checkIfTeamHasFeature(
+            orgId,
+            "booking-email-sms-tasker"
+          );
+          if (hasTeamFeature) {
+            await deps.bookingEmailAndSmsTasker.send({
+              action: bookingEmailsAndSmsTaskerAction,
+              schedulingType: evtWithMetadata.eventType.schedulingType,
+              payload: {
+                bookingId: booking.id,
+                conferenceCredentialId,
+                platformClientId,
+                platformRescheduleUrl,
+                platformCancelUrl,
+                platformBookingUrl,
+              },
+            });
+          }
+        }
+      } catch (err) {
+        loggerWithEventDetails.error("bookingEmailAndSmsTasker error", err);
+      }
     }
   }
 

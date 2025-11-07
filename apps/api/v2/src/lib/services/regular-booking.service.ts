@@ -1,4 +1,5 @@
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
+import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { CacheService } from "@/lib/services/cache.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
@@ -21,7 +22,8 @@ export class RegularBookingService extends BaseRegularBookingService {
     hashedLinkService: HashedLinkService,
     luckyUserService: LuckyUserService,
     userRepository: PrismaUserRepository,
-    bookingEmailAndSmsTasker: BookingEmailAndSmsTasker
+    bookingEmailAndSmsTasker: BookingEmailAndSmsTasker,
+    featuresRepository: PrismaFeaturesRepository
   ) {
     super({
       cacheService,
@@ -32,6 +34,7 @@ export class RegularBookingService extends BaseRegularBookingService {
       luckyUserService,
       userRepository,
       bookingEmailAndSmsTasker,
+      featuresRepository,
     });
   }
 }
