@@ -1,14 +1,11 @@
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { StripeBillingService } from "./StripeBillingService";
 
-vi.mock("stripe");
-
 describe("StripeBillingService", () => {
   let stripeBillingService: StripeBillingService;
-  // eslint-disable-next-line
-  let stripeMock: any;
+  let stripeMock: Partial<Stripe>;
 
   beforeEach(() => {
     stripeMock = {
@@ -16,16 +13,14 @@ describe("StripeBillingService", () => {
         cancel: vi.fn(),
         retrieve: vi.fn(),
         update: vi.fn(),
-      },
+      } as Partial<Stripe.SubscriptionsResource>,
       checkout: {
         sessions: {
           retrieve: vi.fn(),
-        },
-      },
+        } as Partial<Stripe.Checkout.SessionsResource>,
+      } as Partial<Stripe.CheckoutResource>,
     };
-    // eslint-disable-next-line
-    (Stripe as any).mockImplementation(() => stripeMock);
-    stripeBillingService = new StripeBillingService();
+    stripeBillingService = new StripeBillingService(stripeMock as Stripe);
   });
 
   it("should cancel a subscription", async () => {
