@@ -377,7 +377,7 @@ export default function Signup({
                         }}>
                         {t("continue_with_google")}
                       </Button>
-                      <span className="text-emphasis absolute -top-3 right-2 z-10 rounded-full bg-[#007ee5] px-2.5 py-1 text-xs font-semibold shadow">
+                      <span className="text-white absolute -top-3 right-2 z-10 rounded-full bg-[#007ee5] px-2.5 py-1 text-xs font-semibold shadow">
                         ⭐ Popular
                       </span>
                     </div>
