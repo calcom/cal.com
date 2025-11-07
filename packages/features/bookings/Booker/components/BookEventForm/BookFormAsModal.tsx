@@ -4,6 +4,7 @@ import React from "react";
 import { useEventTypeById } from "@calcom/atoms/hooks/event-types/private/useEventTypeById";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { EventOccurences } from "@calcom/features/bookings/components/event-meta/Occurences";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
@@ -16,8 +17,25 @@ import { useBookerTime } from "../hooks/useBookerTime";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
   const { data } = useEvent();
+  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const recurringEvent = (
+    data as { recurringEvent?: Parameters<typeof EventOccurences>[0]["event"]["recurringEvent"] }
+  )?.recurringEvent;
+  const recurringEventContent =
+    recurringEvent && !rescheduleUid ? (
+      <div className="mb-4 mt-2 max-h-[40vh] overflow-y-auto pr-1 sm:hidden">
+        <EventOccurences event={{ recurringEvent }} />
+      </div>
+    ) : null;
 
-  return <BookEventFormWrapperComponent child={children} eventLength={data?.length} onCancel={onCancel} />;
+  return (
+    <BookEventFormWrapperComponent
+      child={children}
+      eventLength={data?.length}
+      onCancel={onCancel}
+      recurringEventContent={recurringEventContent}
+    />
+  );
 };
 
 const PlatformBookEventFormWrapper = ({
@@ -29,19 +47,36 @@ const PlatformBookEventFormWrapper = ({
 }) => {
   const eventId = useBookerStoreContext((state) => state.eventId);
   const { data } = useEventTypeById(eventId);
+  const rescheduleUid = useBookerStoreContext((state) => state.rescheduleUid);
+  const recurringEvent = (
+    data as { recurringEvent?: Parameters<typeof EventOccurences>[0]["event"]["recurringEvent"] }
+  )?.recurringEvent;
+  const recurringEventContent =
+    recurringEvent && !rescheduleUid ? (
+      <div className="mb-4 mt-2 max-h-[40vh] overflow-y-auto pr-1 sm:hidden">
+        <EventOccurences event={{ recurringEvent }} />
+      </div>
+    ) : null;
 
   return (
-    <BookEventFormWrapperComponent child={children} eventLength={data?.lengthInMinutes} onCancel={onCancel} />
+    <BookEventFormWrapperComponent
+      child={children}
+      eventLength={data?.lengthInMinutes}
+      onCancel={onCancel}
+      recurringEventContent={recurringEventContent}
+    />
   );
 };
 
 export const BookEventFormWrapperComponent = ({
   child,
   eventLength,
+  recurringEventContent,
 }: {
   onCancel: () => void;
   child: ReactNode;
   eventLength?: number;
+  recurringEventContent?: ReactNode;
 }) => {
   const { i18n, t } = useLocale();
   const selectedTimeslot = useBookerStoreContext((state) => state.selectedTimeslot);
@@ -68,6 +103,7 @@ export const BookEventFormWrapperComponent = ({
           </Badge>
         )}
       </div>
+      {recurringEventContent}
       {child}
     </>
   );
