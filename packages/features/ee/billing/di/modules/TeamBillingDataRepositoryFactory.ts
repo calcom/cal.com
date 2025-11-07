@@ -12,11 +12,12 @@ const teamBillingDataRepositoryFactoryModule = createModule();
 const token = DI_TOKENS.TEAM_BILLING_DATA_REPOSITORY;
 teamBillingDataRepositoryFactoryModule.bind(token).toFactory((resolve: ResolveFunction) => {
   const isTeamBillingEnabled = resolve(DI_TOKENS.IS_TEAM_BILLING_ENABLED);
-  const prisma = resolve(GLOBAL_DI_TOKENS.PRISMA_CLIENT) as PrismaClient;
 
   if (!isTeamBillingEnabled) {
     return new StubTeamBillingDataRepository();
   }
+
+  const prisma = resolve(GLOBAL_DI_TOKENS.PRISMA_CLIENT) as PrismaClient;
   return new PrismaTeamBillingDataRepository(prisma);
 });
 

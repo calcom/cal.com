@@ -141,7 +141,6 @@ export class StripeBillingService implements IBillingProviderService {
     const subscriptionQuantity = subscription.items.data.find(
       (sub) => sub.id === subscriptionItemId
     )?.quantity;
-    console.log("subscriptionQuantity", subscriptionQuantity);
     if (!subscriptionQuantity) throw new Error("Subscription not found");
     await this.stripe.subscriptions.update(subscriptionId, {
       items: [{ quantity: membershipCount, id: subscriptionItemId }],

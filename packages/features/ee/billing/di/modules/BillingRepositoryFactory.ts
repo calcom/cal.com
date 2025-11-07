@@ -8,17 +8,19 @@ import { PrismaOrganizationBillingRepository } from "../../repository/billing/Pr
 import { PrismaTeamBillingRepository } from "../../repository/billing/PrismaTeamBillingRepository";
 import { StubBillingRepository } from "../../repository/billing/StubBillingRepository";
 import { DI_TOKENS } from "../tokens";
+import { isTeamBillingEnabledModuleLoader } from "./IsTeamBillingEnabled";
 
 const billingRepositoryFactoryModule = createModule();
 const token = DI_TOKENS.BILLING_REPOSITORY_FACTORY;
 billingRepositoryFactoryModule.bind(token).toFactory((resolve: ResolveFunction) => {
-  const prisma = resolve(GLOBAL_DI_TOKENS.PRISMA_CLIENT) as PrismaClient;
   const isTeamBillingEnabled = resolve(DI_TOKENS.IS_TEAM_BILLING_ENABLED);
 
   return (isOrganization: boolean): IBillingRepository => {
     if (!isTeamBillingEnabled) {
       return new StubBillingRepository();
     }
+
+    const prisma = resolve(GLOBAL_DI_TOKENS.PRISMA_CLIENT) as PrismaClient;
 
     if (isOrganization) {
       return new PrismaOrganizationBillingRepository(prisma);
@@ -31,8 +33,9 @@ billingRepositoryFactoryModule.bind(token).toFactory((resolve: ResolveFunction) 
 export const billingRepositoryFactoryModuleLoader: ModuleLoader = {
   token,
   loadModule: (container: Container) => {
-    // Load Prisma dependency first
+    // Load dependencies first
     prismaModuleLoader.loadModule(container);
+    isTeamBillingEnabledModuleLoader.loadModule(container);
 
     // Then load this module
     container.load(DI_TOKENS.BILLING_REPOSITORY_FACTORY_MODULE, billingRepositoryFactoryModule);
