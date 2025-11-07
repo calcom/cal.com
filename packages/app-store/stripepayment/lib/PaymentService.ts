@@ -2,12 +2,12 @@ import Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import tasker from "@calcom/features/tasker";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -386,7 +386,8 @@ export class PaymentService implements IAbstractPaymentService {
   ): Promise<void> {
     // Get delay from event type metadata or environment variable (default: 10 minutes)
     const delayMinutes =
-      eventTypeMetadata?.paymentAwaitingEmailDelayMinutes ??
+      (eventTypeMetadata?.apps?.stripe as { paymentAwaitingEmailDelayMinutes?: number } | undefined)
+        ?.paymentAwaitingEmailDelayMinutes ??
       parseInt(process.env.AWAITING_PAYMENT_EMAIL_DELAY_MINUTES || "10", 10);
 
     const scheduledAt = dayjs().add(delayMinutes, "minutes").toDate();
