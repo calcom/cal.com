@@ -116,11 +116,17 @@ export class BillingService {
         });
 
     if (!phoneNumber) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Phone number not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Phone number not found or you don't have permission to cancel it."
+      );
     }
 
     if (!phoneNumber.stripeSubscriptionId) {
-      throw new ErrorWithCode(ErrorCode.InternalServerError, "Phone number doesn");
+      throw new ErrorWithCode(
+        ErrorCode.RequestBodyInvalid,
+        "Phone number doesn't have an active subscription."
+      );
     }
 
     try {
@@ -169,7 +175,7 @@ export class BillingService {
     } catch (error) {
       this.logger.error("Error cancelling phone number subscription:", { error });
       throw new ErrorWithCode(
-        ErrorCode.ResourceNotFound,
+        ErrorCode.InternalServerError,
         "Failed to cancel subscription. Please try again or contact support."
       );
     }
