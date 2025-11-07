@@ -12,7 +12,7 @@ import { Icon } from "@calcom/ui/components/icon";
 
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
-import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { OnboardingTeamsBrowserView } from "../../components/onboarding-teams-browser-view";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationTeamsViewProps = {
@@ -26,7 +26,7 @@ type FormValues = {
 export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { teams: storedTeams, setTeams } = useOnboardingStore();
+  const { teams: storedTeams, setTeams, organizationBrand, organizationDetails } = useOnboardingStore();
 
   const formSchema = z.object({
     teams: z.array(
@@ -145,7 +145,12 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
       </OnboardingCard>
 
       {/* Right column - Browser view */}
-      <OnboardingBrowserView />
+      <OnboardingTeamsBrowserView
+        teams={form.watch("teams")}
+        organizationLogo={organizationBrand.logo}
+        organizationName={organizationDetails.name}
+        organizationBanner={organizationBrand.banner}
+      />
     </OnboardingLayout>
   );
 };
