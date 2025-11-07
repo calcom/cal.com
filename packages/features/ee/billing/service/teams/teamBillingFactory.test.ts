@@ -1,35 +1,48 @@
-import prismaMock from "../../../../../../tests/libs/__mocks__/prismaMock";
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import { StubTeamBillingService } from "./stubTeamBillingService";
 import { TeamBillingService } from "./teamBillingService";
-
-vi.mock("@calcom/ee/billing/di/containers/Billing");
+import { TeamBillingServiceFactory } from "./teamBillingServiceFactory";
 
 describe("TeamBilling", () => {
   const mockTeam = { id: 1, metadata: null, isOrganization: true, parentId: null, name: "" };
   const mockTeams = [mockTeam, { id: 2, metadata: null, isOrganization: false, parentId: 1, name: "" }];
 
-  let mockFactory: {
-    init: ReturnType<typeof vi.fn>;
-    initMany: ReturnType<typeof vi.fn>;
-    findAndInit: ReturnType<typeof vi.fn>;
-    findAndInitMany: ReturnType<typeof vi.fn>;
-  };
+  let mockBillingProviderService: IBillingProviderService;
+  let mockTeamBillingDataRepository: ITeamBillingDataRepository;
+  let mockBillingRepository: IBillingRepository;
+  let factory: TeamBillingServiceFactory;
 
-  beforeEach(async () => {
+  const createMockBillingProviderService = (): IBillingProviderService => ({
+    handleSubscriptionCancel: vi.fn(),
+    handleSubscriptionUpdate: vi.fn(),
+    checkoutSessionIsPaid: vi.fn(),
+    getSubscriptionStatus: vi.fn(),
+    handleEndTrial: vi.fn(),
+    createCustomer: vi.fn(),
+    createPrice: vi.fn(),
+    getPrice: vi.fn(),
+    getCheckoutSession: vi.fn(),
+    createCheckoutSession: vi.fn(),
+  });
+
+  const createMockTeamBillingDataRepository = (): ITeamBillingDataRepository => ({
+    find: vi.fn(),
+    findMany: vi.fn(),
+  });
+
+  const createMockBillingRepository = (): IBillingRepository => ({
+    create: vi.fn(),
+  });
+
+  beforeEach(() => {
     vi.resetAllMocks();
-
-    mockFactory = {
-      init: vi.fn(),
-      initMany: vi.fn(),
-      findAndInit: vi.fn(),
-      findAndInitMany: vi.fn(),
-    };
-
-    const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
-    vi.mocked(getTeamBillingServiceFactory).mockReturnValue(mockFactory);
+    mockBillingProviderService = createMockBillingProviderService();
+    mockTeamBillingDataRepository = createMockTeamBillingDataRepository();
+    mockBillingRepository = createMockBillingRepository();
   });
 
   afterEach(() => {
@@ -37,28 +50,27 @@ describe("TeamBilling", () => {
   });
 
   describe("init", () => {
-    it("should return TeamBillingService when team billing is enabled", async () => {
-      const mockTeamBillingService = new TeamBillingService({
-        team: mockTeam,
-        billingProviderService: {} as never,
-        teamBillingDataRepository: {} as never,
-        billingRepository: {} as never,
+    it("should return TeamBillingService when team billing is enabled", () => {
+      factory = new TeamBillingServiceFactory({
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepositoryFactory: () => mockBillingRepository,
+        isTeamBillingEnabled: true,
       });
-      mockFactory.init.mockReturnValue(mockTeamBillingService);
 
-      const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
-      const factory = getTeamBillingServiceFactory();
       const result = factory.init(mockTeam);
       
       expect(result).toBeInstanceOf(TeamBillingService);
     });
 
-    it("should return StubTeamBillingService when team billing is disabled", async () => {
-      const mockStubService = new StubTeamBillingService(mockTeam);
-      mockFactory.init.mockReturnValue(mockStubService);
+    it("should return StubTeamBillingService when team billing is disabled", () => {
+      factory = new TeamBillingServiceFactory({
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepositoryFactory: () => mockBillingRepository,
+        isTeamBillingEnabled: false,
+      });
 
-      const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
-      const factory = getTeamBillingServiceFactory();
       const result = factory.init(mockTeam);
 
       expect(result).toBeInstanceOf(StubTeamBillingService);
@@ -66,15 +78,14 @@ describe("TeamBilling", () => {
   });
 
   describe("initMany", () => {
-    it("should initialize multiple TeamBillingServices", async () => {
-      const mockServices = [
-        new StubTeamBillingService(mockTeams[0]),
-        new StubTeamBillingService(mockTeams[1]),
-      ];
-      mockFactory.initMany.mockReturnValue(mockServices);
+    it("should initialize multiple TeamBillingServices", () => {
+      factory = new TeamBillingServiceFactory({
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepositoryFactory: () => mockBillingRepository,
+        isTeamBillingEnabled: false,
+      });
 
-      const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
-      const factory = getTeamBillingServiceFactory();
       const result = factory.initMany(mockTeams);
 
       expect(result).toHaveLength(2);
@@ -85,48 +96,39 @@ describe("TeamBilling", () => {
 
   describe("findAndInit", () => {
     it("should find and initialize a single TeamBillingService", async () => {
-      const mockTeamBillingService = new TeamBillingService({
-        team: mockTeam,
-        billingProviderService: {} as never,
-        teamBillingDataRepository: {} as never,
-        billingRepository: {} as never,
+      factory = new TeamBillingServiceFactory({
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepositoryFactory: () => mockBillingRepository,
+        isTeamBillingEnabled: true,
       });
-      mockFactory.findAndInit.mockResolvedValue(mockTeamBillingService);
 
-      prismaMock.team.findUniqueOrThrow.mockResolvedValue(mockTeam);
+      vi.mocked(mockTeamBillingDataRepository.find).mockResolvedValue(mockTeam);
 
-      const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
-      const factory = getTeamBillingServiceFactory();
       const result = await factory.findAndInit(1);
 
+      expect(mockTeamBillingDataRepository.find).toHaveBeenCalledWith(1);
       expect(result).toBeInstanceOf(TeamBillingService);
     });
   });
 
   describe("findAndInitMany", () => {
     it("should find and initialize multiple team billings", async () => {
-      const mockServices = [
-        new TeamBillingService({
-          team: mockTeam,
-          billingProviderService: {} as never,
-          teamBillingDataRepository: {} as never,
-          billingRepository: {} as never,
-        }),
-        new TeamBillingService({
-          team: { ...mockTeam, id: 2 },
-          billingProviderService: {} as never,
-          teamBillingDataRepository: {} as never,
-          billingRepository: {} as never,
-        }),
-      ];
-      mockFactory.findAndInitMany.mockResolvedValue(mockServices);
+      factory = new TeamBillingServiceFactory({
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepositoryFactory: () => mockBillingRepository,
+        isTeamBillingEnabled: true,
+      });
 
-      prismaMock.team.findMany.mockResolvedValue([mockTeam, { ...mockTeam, id: 2 }]);
+      vi.mocked(mockTeamBillingDataRepository.findMany).mockResolvedValue([
+        mockTeam,
+        { ...mockTeam, id: 2 },
+      ]);
 
-      const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
-      const factory = getTeamBillingServiceFactory();
       const result = await factory.findAndInitMany([1, 2]);
 
+      expect(mockTeamBillingDataRepository.findMany).toHaveBeenCalledWith([1, 2]);
       expect(result).toHaveLength(2);
       expect(result[0]).toBeInstanceOf(TeamBillingService);
       expect(result[1]).toBeInstanceOf(TeamBillingService);

@@ -51,7 +51,7 @@ const mockBillingService = {
   }),
 };
 
-vi.mock("@calcom/ee/billing/di/containers/Billing", () => ({
+vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
   getBillingProviderService: vi.fn(() => mockBillingService),
   getTeamBillingServiceFactory: vi.fn(),
   getTeamBillingDataRepository: vi.fn(),
