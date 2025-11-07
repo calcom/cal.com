@@ -456,6 +456,7 @@ const AppearanceView = ({
                           target="metadata.headerUrl"
                           id="svg-upload"
                           buttonMsg={t("upload_image")}
+                          fieldName="Header"
                           mimeType="image/svg+xml"
                           height={600}
                           width={3200}
@@ -491,7 +492,7 @@ const AppearanceView = ({
             </div>
           </Form>
 
-          <div className="border-subtle mt-6 rounded-md border p-6">
+          <div className="border-subtle mb-16 mt-6 rounded-md border p-6">
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               title={t("disable_branding")}
@@ -544,9 +545,10 @@ const AppearanceView = ({
                           <div className="flex items-center gap-3">
                             <div className="w-[105px]">
                               <CustomBannerUploader
-                                height={100}
+                                height={400}
                                 width={400}
                                 target="logo"
+                                fieldName="Logo"
                                 // uploadInstruction={t("org_logo_instructions", { height: 100, width: 400 })}
                                 id="logo-upload"
                                 buttonMsg={t("upload_logo")}
@@ -619,6 +621,7 @@ const AppearanceView = ({
                               <div className="flex  gap-2">
                                 <CustomImageUploader
                                   target="avatar"
+                                  fieldName="favicon"
                                   id="avatar-upload"
                                   buttonMsg={t("upload_favicon")}
                                   handleAvatarChange={(newAvatar) => {

@@ -121,7 +121,7 @@ export const EventDuration = ({
                 selectedDuration === duration
                   ? "bg-brand-default text-brand"
                   : "text-default border-subtle hover:text-emphasis border",
-                "mr-2 cursor-pointer rounded-2xl px-2 py-1 text-xs leading-tight transition"
+                "cursor-pointer rounded-2xl px-2 py-1 text-xs leading-tight transition"
               )}>
               <div className="w-max">{getDurationFormatted(duration, t)}</div>
             </li>
