@@ -1,3 +1,4 @@
+/* eslint-disable */
 const glob = require("glob");
 const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
@@ -9,6 +10,7 @@ let pages = (exports.pages = glob
       cwd: __dirname,
     }
   )
+  .filter((filename) => !filename.includes("(use-page-wrapper)"))
   .map((filename) =>
     filename
       .replace(

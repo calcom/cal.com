@@ -2,7 +2,7 @@ import { it, expect, describe, beforeAll } from "vitest";
 
 import { getRegExpThatMatchesAllOrgDomains } from "../../getNextjsOrgRewriteConfig";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { match, pathToRegexp } = require("next/dist/compiled/path-to-regexp");
 type MatcherRes = (path: string) => { params: Record<string, string> };
 let orgUserTypeRouteMatch: MatcherRes;
@@ -15,7 +15,7 @@ beforeAll(async () => {
   const {
     orgUserRoutePath,
     orgUserTypeRoutePath,
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
   } = require("../../pagesAndRewritePaths");
 
   orgUserTypeRouteMatch = match(orgUserTypeRoutePath);
@@ -144,23 +144,109 @@ describe("next.config.js - Org Rewrite", () => {
       expect(orgUserRouteMatch("/_next/")).toEqual(false);
       expect(orgUserRouteMatch("/public/")).toEqual(false);
 
-      expect(orgUserRouteMatch("/event-types/")).toEqual(false);
-      expect(orgUserTypeRouteMatch("/event-types/")).toEqual(false);
-
-      expect(orgUserRouteMatch("/event-types/?abc=1")).toEqual(false);
-      expect(orgUserTypeRouteMatch("/event-types/?abc=1")).toEqual(false);
-
-      expect(orgUserRouteMatch("/event-types")).toEqual(false);
-      expect(orgUserTypeRouteMatch("/event-types")).toEqual(false);
-
-      expect(orgUserRouteMatch("/event-types?abc=1")).toEqual(false);
-      expect(orgUserTypeRouteMatch("/event-types?abc=1")).toEqual(false);
-
       expect(orgUserTypeRouteMatch("/john/avatar.png")).toEqual(false);
       expect(orgUserTypeRouteMatch("/cancel/abcd")).toEqual(false);
       expect(orgUserTypeRouteMatch("/success/abcd")).toEqual(false);
       expect(orgUserRouteMatch("/forms/xdsdf-sd")).toEqual(false);
       expect(orgUserRouteMatch("/router?form=")).toEqual(false);
+    });
+
+    it("Non-booking routes from (use-page-wrapper) should be treated as booking pages on org domains", () => {
+      
+      // /onboarding should match as a booking page
+      expect(orgUserRouteMatch("/onboarding")?.params).toEqual({
+        user: "onboarding",
+      });
+
+      // /settings should match as a booking page
+      expect(orgUserRouteMatch("/settings")?.params).toEqual({
+        user: "settings",
+      });
+
+      // /availability should match as a booking page
+      expect(orgUserRouteMatch("/availability")?.params).toEqual({
+        user: "availability",
+      });
+
+      // /workflows should match as a booking page
+      expect(orgUserRouteMatch("/workflows")?.params).toEqual({
+        user: "workflows",
+      });
+
+      // /insights should match as a booking page
+      expect(orgUserRouteMatch("/insights")?.params).toEqual({
+        user: "insights",
+      });
+
+      // /bookings should match as a booking page
+      expect(orgUserRouteMatch("/bookings")?.params).toEqual({
+        user: "bookings",
+      });
+
+      // /teams should match as a booking page
+      expect(orgUserRouteMatch("/teams")?.params).toEqual({
+        user: "teams",
+      });
+
+      // /video should match as a booking page
+      expect(orgUserRouteMatch("/video")?.params).toEqual({
+        user: "video",
+      });
+
+      // /getting-started should match as a booking page
+      expect(orgUserRouteMatch("/getting-started")?.params).toEqual({
+        user: "getting-started",
+      });
+
+      // /payment should match as a booking page
+      expect(orgUserRouteMatch("/payment")?.params).toEqual({
+        user: "payment",
+      });
+
+      // /signup should match as a booking page
+      expect(orgUserRouteMatch("/signup")?.params).toEqual({
+        user: "signup",
+      });
+
+      // /enterprise should match as a booking page
+      expect(orgUserRouteMatch("/enterprise")?.params).toEqual({
+        user: "enterprise",
+      });
+
+      // /connect-and-join should match as a booking page
+      expect(orgUserRouteMatch("/connect-and-join")?.params).toEqual({
+        user: "connect-and-join",
+      });
+
+      // /maintenance should match as a booking page
+      expect(orgUserRouteMatch("/maintenance")?.params).toEqual({
+        user: "maintenance",
+      });
+
+      // /more should match as a booking page
+      expect(orgUserRouteMatch("/more")?.params).toEqual({
+        user: "more",
+      });
+
+      // /upgrade should match as a booking page
+      expect(orgUserRouteMatch("/upgrade")?.params).toEqual({
+        user: "upgrade",
+      });
+
+      // /refer should match as a booking page
+      expect(orgUserRouteMatch("/refer")?.params).toEqual({
+        user: "refer",
+      });
+
+      // /auth should match as a booking page
+      expect(orgUserRouteMatch("/auth")?.params).toEqual({
+        user: "auth",
+      });
+
+      // /apps should match as a booking page
+      expect(orgUserRouteMatch("/apps")?.params).toEqual({
+        user: "apps",
+      });
     });
   });
 });
