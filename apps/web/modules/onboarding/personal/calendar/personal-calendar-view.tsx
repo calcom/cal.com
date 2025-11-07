@@ -1,15 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 
+import { OnboardingCalendarBrowserView } from "../../components/onboarding-calendar-browser-view";
+import { useSubmitPersonalOnboarding } from "../../hooks/useSubmitPersonalOnboarding";
 import { InstallableAppCard } from "../_components/InstallableAppCard";
-import { OnboardingCard } from "../_components/OnboardingCard";
-import { OnboardingLayout } from "../_components/OnboardingLayout";
-import { SkipButton } from "../_components/SkipButton";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { useAppInstallation } from "../_components/useAppInstallation";
 
 type PersonalCalendarViewProps = {
@@ -17,9 +16,9 @@ type PersonalCalendarViewProps = {
 };
 
 export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) => {
-  const router = useRouter();
   const { t } = useLocale();
   const { installingAppSlug, setInstallingAppSlug, createInstallHandlers } = useAppInstallation();
+  const { submitPersonalOnboarding, isSubmitting } = useSubmitPersonalOnboarding();
 
   const queryIntegrations = trpc.viewer.apps.integrations.useQuery({
     variant: "calendar",
@@ -29,23 +28,38 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   });
 
   const handleContinue = () => {
-    router.push("/onboarding/personal/video");
+    submitPersonalOnboarding();
   };
 
   const handleSkip = () => {
-    router.push("/onboarding/personal/video");
+    submitPersonalOnboarding();
   };
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={3}>
+    <OnboardingLayout userEmail={userEmail} currentStep={2}>
+      {/* Left column - Main content */}
       <OnboardingCard
         title={t("connect_your_calendar")}
         subtitle={t("connect_calendar_to_prevent_conflicts")}
         isLoading={queryIntegrations.isPending}
         footer={
-          <Button color="primary" className="rounded-[10px]" onClick={handleContinue}>
-            {t("continue")}
-          </Button>
+          <div className="flex w-full items-center justify-end gap-4">
+            <Button
+              color="minimal"
+              className="rounded-[10px]"
+              onClick={handleSkip}
+              disabled={queryIntegrations.isPending || isSubmitting}>
+              {t("onboarding_skip_for_now")}
+            </Button>
+            <Button
+              color="primary"
+              className="rounded-[10px]"
+              onClick={handleContinue}
+              loading={isSubmitting}
+              disabled={queryIntegrations.isPending || isSubmitting}>
+              {t("continue")}
+            </Button>
+          </div>
         }>
         <div className="scroll-bar grid max-h-[45vh] grid-cols-1 gap-3 overflow-y-scroll sm:grid-cols-2">
           {queryIntegrations.data?.items?.map((app) => (
@@ -60,7 +74,8 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
         </div>
       </OnboardingCard>
 
-      <SkipButton onClick={handleSkip} />
+      {/* Right column - Browser view */}
+      <OnboardingCalendarBrowserView />
     </OnboardingLayout>
   );
 };

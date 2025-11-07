@@ -1,6 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
+import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
 import { HashedLinkRepository } from "../lib/repository/HashedLinkRepository";
 
