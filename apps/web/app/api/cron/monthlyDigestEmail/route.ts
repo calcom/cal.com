@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { sendMonthlyDigestEmails } from "@calcom/emails/email-manager";
+import { sendMonthlyDigestEmails } from "@calcom/emails";
 import { EventsInsights } from "@calcom/features/insights/server/events";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
