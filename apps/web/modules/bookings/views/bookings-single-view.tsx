@@ -100,7 +100,14 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
 
-  const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
+  const {
+    eventType,
+    bookingInfo,
+    previousBooking,
+    requiresLoginToUpdate,
+    rescheduledToUid,
+    canViewHiddenData,
+  } = props;
 
   const {
     allRemainingBookings,
@@ -381,7 +388,6 @@ export default function Success(props: PageProps) {
   const isRescheduled = bookingInfo?.rescheduled;
 
   const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-  const _canCancelAndReschedule = !eventType?.disableCancelling && !eventType?.disableRescheduling;
 
   const canCancel = !eventType?.disableCancelling;
   const canReschedule = !eventType?.disableRescheduling;
@@ -574,14 +580,16 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {isCancelled && bookingInfo?.cancelledBy && (
-                          <>
-                            <div className="font-medium">{t("cancelled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0">
-                              <p className="break-words">{bookingInfo?.cancelledBy}</p>
-                            </div>
-                          </>
-                        )}
+                        {isCancelled &&
+                          bookingInfo?.cancelledBy &&
+                          !(bookingInfo.eventType?.hideOrganizerEmail && !isHost) && (
+                            <>
+                              <div className="font-medium">{t("cancelled_by")}</div>
+                              <div className="col-span-2 mb-6 last:mb-0">
+                                <p className="break-words">{bookingInfo?.cancelledBy}</p>
+                              </div>
+                            </>
+                          )}
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
@@ -715,7 +723,7 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {!!utmParams && isHost && (
+                        {!!utmParams && canViewHiddenData && (
                           <>
                             <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
                             <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">

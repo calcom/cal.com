@@ -3,8 +3,13 @@
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import path from "path";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // https://vitejs.dev/guide/build.html#library-mode
 export default defineConfig({
@@ -32,6 +37,7 @@ export default defineConfig({
         repositories: resolve(__dirname, "./repositories.ts"),
         bookings: resolve(__dirname, "./bookings.ts"),
         "private-links": resolve(__dirname, "./private-links.ts"),
+        pbac: resolve(__dirname, "./pbac.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",

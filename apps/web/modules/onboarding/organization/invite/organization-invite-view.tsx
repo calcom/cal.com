@@ -63,7 +63,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const handleSubmitOnboarding = async (invitesData: FormValues["invites"]) => {
     // Save invites to store before submitting
     setInvites(invitesData);
-    await submitOnboarding(store, userEmail);
+    await submitOnboarding(store, userEmail, invitesData);
   };
 
   const handleContinue = async (data?: FormValues) => {
@@ -188,14 +188,22 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                     <Form form={form} handleSubmit={handleContinue} className="w-full">
                       <div className="flex w-full flex-col gap-4">
                         {/* Email and Team inputs */}
-                        <div className="flex flex-col">
-                          <div className="grid grid-cols-2 gap-2">
-                            <Label className="text-emphasis text-sm font-medium">{t("email")}</Label>
-                            <Label className="text-emphasis text-sm font-medium">{t("team")}</Label>
+                        <div className="flex flex-col gap-2">
+                          <div className="grid grid-cols-2">
+                            <Label
+                              className="text-emphasis mb-0 text-sm font-medium"
+                              htmlFor="invites.0.email">
+                              {t("email")}
+                            </Label>
+                            <Label
+                              className="text-emphasis mb-0 text-sm font-medium"
+                              htmlFor="invites.0.team">
+                              {t("team")}
+                            </Label>
                           </div>
 
                           {fields.map((field, index) => (
-                            <div key={field.id} className="flex items-start gap-0.5 pt-2 md:pt-0">
+                            <div key={field.id} className="flex items-start gap-0.5">
                               <div className="grid flex-1 items-start gap-2 md:grid-cols-2 ">
                                 <TextField
                                   labelSrOnly

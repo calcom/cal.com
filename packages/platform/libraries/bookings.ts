@@ -8,4 +8,5 @@ export type {
   InstantBookingCreateResult,
   RegularBookingCreateResult,
 } from "@calcom/features/bookings/lib/dto/types";
+export { PrismaOrgMembershipRepository } from "@calcom/lib/server/repository/PrismaOrgMembershipRepository";
 export { addGuestsHandler } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
