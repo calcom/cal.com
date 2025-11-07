@@ -27,16 +27,9 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
   const [warning, setWarning] = useState(false);
 
   const validateAndSetRecurringEventCount = (value: number | string) => {
-    const pattern = /^(?=.*[0-9])\S+$/;
-    const inputValue = typeof value === "string" ? parseInt(value) : value;
-    const valueStr = String(value);
-
+    const inputValue = parseInt(value as string);
     const isValid =
-      pattern.test(valueStr) &&
-      !isNaN(inputValue) &&
-      inputValue >= 1 &&
-      maxOccurences !== null &&
-      inputValue <= maxOccurences;
+      !isNaN(inputValue) && inputValue >= 1 && maxOccurences !== null && inputValue <= maxOccurences;
 
     if (isValid) {
       setRecurringEventCount(inputValue);
