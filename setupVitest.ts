@@ -1,4 +1,3 @@
-import "dotenv/config";
 import matchers from "@testing-library/jest-dom/matchers";
 import ResizeObserver from "resize-observer-polyfill";
 import { vi, expect } from "vitest";
@@ -14,7 +13,7 @@ fetchMocker.enableMocks();
 expect.extend(matchers);
 
 class MockExchangeCalendarService implements CalendarService {
-  constructor() { }
+  constructor() {}
   async createEvent() {
     return {
       uid: "mock",
@@ -35,7 +34,7 @@ class MockExchangeCalendarService implements CalendarService {
       additionalInfo: {},
     };
   }
-  async deleteEvent() { }
+  async deleteEvent() {}
   async getAvailability() {
     return [];
   }
@@ -62,9 +61,9 @@ class MockPaymentService {
   constructor(credentials?: any) {
     this.credentials = credentials;
   }
-
+  
   private credentials: any;
-
+  
   async create(
     payment: any,
     bookingId: number,
@@ -79,7 +78,7 @@ class MockPaymentService {
   ) {
     const { default: prismaMock } = await import("./tests/libs/__mocks__/prisma");
     const externalId = "mock_payment_external_id";
-
+    
     const paymentCreateData = {
       uid: MOCK_PAYMENT_UID,
       appId: null,
@@ -97,7 +96,7 @@ class MockPaymentService {
     const createdPayment = await prismaMock.payment.create({
       data: paymentCreateData,
     });
-
+    
     return createdPayment;
   }
   async collectCard() {

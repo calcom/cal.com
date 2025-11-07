@@ -34,7 +34,6 @@ describe("pagesAndRewritePaths", () => {
     ];
 
     it("should include all required routes", () => {
-      console.log(pages)
       BEFORE_REWRITE_EXCLUDE_PAGES.forEach((route) => {
         expect(pages).toContain(route);
       });
