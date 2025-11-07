@@ -10,9 +10,9 @@ import { Button } from "@calcom/ui/components/button";
 import { type IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 
+import { OnboardingLayout } from "../components/OnboardingLayout";
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
 import { PlanIcon } from "../components/plan-icon";
-import { OnboardingLayout } from "../personal/_components/OnboardingLayout";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
@@ -64,7 +64,7 @@ export const OnboardingView = ({ userName, userEmail }: OnboardingViewProps) => 
       badge: t("onboarding_plan_organization_badge"),
       description: t("onboarding_plan_organization_description"),
       icon: planIconByType.organization,
-      variant: "double" as const,
+      variant: "organization" as const,
     },
   ];
 
