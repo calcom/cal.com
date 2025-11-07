@@ -47,6 +47,7 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
       validateAndSetRecurringEventCount(occurenceCount);
     } else {
       setRecurringEventCount(maxOccurences);
+      setOccurenceCount(maxOccurences);
     }
   }, [setRecurringEventCount, event.recurringEvent, recurringEventCount, occurenceCount]);
   if (!event.recurringEvent) return null;
