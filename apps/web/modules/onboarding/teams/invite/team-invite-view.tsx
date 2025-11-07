@@ -104,7 +104,6 @@ export const TeamInviteView = ({ userEmail }: TeamInviteViewProps) => {
                   <Button
                     color="secondary"
                     className="h-8 w-full rounded-[10px]"
-                    StartIcon="google"
                     onClick={handleGoogleWorkspaceConnect}
                     disabled={isSubmitting}>
                     {t("connect_google_workspace")}

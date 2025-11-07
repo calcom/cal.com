@@ -17,10 +17,10 @@ import { showToast } from "@calcom/ui/components/toast";
 
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { OnboardingCard } from "../../components/OnboardingCard";
-import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { OnboardingContinuationPrompt } from "../../components/onboarding-continuation-prompt";
 import { useOnboardingStore } from "../../store/onboarding-store";
 
 type PersonalSettingsViewProps = {
@@ -184,7 +184,6 @@ export const PersonalSettingsView = ({ userEmail, userName }: PersonalSettingsVi
               {/* Username */}
               <div className="flex w-full flex-col gap-1.5">
                 <UsernameAvailabilityField
-                  disabled={true}
                   onSuccessMutation={async () => {
                     // Refetch user to get updated username and save to store
                     const updatedUser = await utils.viewer.me.get.fetch();
