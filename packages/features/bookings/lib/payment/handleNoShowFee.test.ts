@@ -21,7 +21,7 @@ vi.mock("@calcom/app-store/payment.services.generated", () => ({
   },
 }));
 
-vi.mock("@calcom/emails", () => ({
+vi.mock("@calcom/emails/billing-email-service", () => ({
   sendNoShowFeeChargedEmail: vi.fn(),
 }));
 
