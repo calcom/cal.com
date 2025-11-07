@@ -1463,23 +1463,4 @@ export class BookingRepository {
       },
     });
   }
-
-  async addBookingReferences({
-    bookingId,
-    references,
-  }: {
-    bookingId: number;
-    references: Prisma.BookingReferenceCreateInput[];
-  }) {
-    await this.prismaClient.booking.update({
-      where: { id: bookingId },
-      data: {
-        references: {
-          createMany: {
-            data: references,
-          },
-        },
-      },
-    });
-  }
 }

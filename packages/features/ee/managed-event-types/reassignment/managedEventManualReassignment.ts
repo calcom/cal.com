@@ -12,6 +12,7 @@ import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBook
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
@@ -107,10 +108,6 @@ export async function managedEventManualReassignment({
   if (!originalBookingFull) {
     throw new Error("Original booking not found");
   }
-
-  // Note: Unlike auto-reassignment, manual reassignment allows force reassigning to unavailable users
-  // The UI shows availability status and requires confirmation, but the admin can override
-  // This matches Round Robin manual reassignment behavior
 
   const { buildReassignmentBookingData } = await import("./lib/buildReassignmentBookingData");
   
@@ -228,6 +225,22 @@ export async function managedEventManualReassignment({
 
   const newEventManager = new EventManager(newUserWithCredentials, apps);
 
+  // Determine the proper location and conferenceCredentialId for the new event type
+  let bookingLocation = newBooking.location || null;
+  let conferenceCredentialId: number | null = null;
+
+  const locationResult = BookingLocationService.getLocationForHost({
+    hostMetadata: newUser.metadata,
+    eventTypeLocations: targetEventTypeDetails.locations || [],
+    isManagedEventType: false,
+    isTeamEventType: !!targetEventTypeDetails.team,
+  });
+
+  bookingLocation = locationResult.bookingLocation;
+  if (locationResult.requiresActualLink) {
+    conferenceCredentialId = locationResult.conferenceCredentialId;
+  }
+
   let videoCallUrl: string | null = null;
   let videoCallData: CalendarEvent["videoCallData"] = undefined;
   const additionalInformation: AdditionalInformation = {};
@@ -273,9 +286,10 @@ export async function managedEventManualReassignment({
             id: targetEventTypeDetails.team.id || 0,
           }
         : undefined,
-      location: newBooking.location || undefined,
+      location: bookingLocation || undefined,
       description: newBooking.description || undefined,
       hideOrganizerEmail: targetEventTypeDetails.hideOrganizerEmail,
+      conferenceCredentialId: conferenceCredentialId ?? undefined,
     };
 
     const createManager = await newEventManager.create(evt);
@@ -299,16 +313,49 @@ export async function managedEventManualReassignment({
 
     videoCallData = evt.videoCallData;
     
-    if (referencesToCreate.length > 0) {
-      try {
-        await bookingRepository.addBookingReferences({
-          bookingId: newBooking.id,
-          references: referencesToCreate,
-        });
-        reassignLogger.info(`Created ${referencesToCreate.length} booking references for new calendar events`);
-      } catch (error) {
-        reassignLogger.error("Error creating booking references", error);
-      }
+    // Update booking with location, references, and metadata in a single database call
+    try {
+      const responses = {
+        ...(typeof newBooking.responses === "object" && newBooking.responses),
+        location: {
+          value: bookingLocation,
+          optionValue: "",
+        },
+      };
+
+      const bookingMetadataUpdate = {
+        videoCallUrl: videoCallUrl || undefined,
+      };
+
+      const referencesToCreateForDb = referencesToCreate.map((reference) => {
+        const { credentialId, ...restReference } = reference;
+        return {
+          ...restReference,
+          ...(credentialId && credentialId > 0 ? { credentialId } : {}),
+        };
+      });
+
+      await bookingRepository.updateLocationById({
+        where: { id: newBooking.id },
+        data: {
+          location: bookingLocation,
+          metadata: {
+            ...(typeof newBooking.metadata === "object" && newBooking.metadata ? newBooking.metadata : {}),
+            ...bookingMetadataUpdate,
+          },
+          referencesToCreate: referencesToCreateForDb,
+          responses,
+          iCalSequence: (newBooking.iCalSequence || 0) + 1,
+        },
+      });
+      
+      reassignLogger.info("Updated booking location and created calendar references", {
+        location: bookingLocation,
+        referencesCount: referencesToCreate.length,
+        videoCallUrl: videoCallUrl || null,
+      });
+    } catch (error) {
+      reassignLogger.error("Error updating booking location and references", error);
     }
     
     reassignLogger.info("Created calendar events for new user");
@@ -359,7 +406,7 @@ export async function managedEventManualReassignment({
             timeZone: att.timeZone,
             language: { translate: newUserT, locale: att.locale ?? "en" },
           })),
-          location: newBooking.location || undefined,
+          location: bookingLocation || undefined,
           description: newBooking.description || undefined,
           eventType: { slug: targetEventTypeDetails.slug },
           bookerUrl,
@@ -402,7 +449,7 @@ export async function managedEventManualReassignment({
           timeZone: att.timeZone,
           language: { translate: newUserT, locale: att.locale ?? "en" },
         })),
-        location: newBooking.location || undefined,
+        location: bookingLocation || undefined,
         description: newBooking.description || undefined,
         videoCallData,
         additionalInformation,
