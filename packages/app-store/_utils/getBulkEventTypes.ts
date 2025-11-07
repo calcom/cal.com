@@ -83,7 +83,7 @@ export const filterEventTypesWhereLocationUpdateIsAllowed = <
     }
 
     const unlockedFields = metadata.data.managedEventConfig.unlockedFields;
-    return unlockedFields?.locations !== undefined;
+    return unlockedFields?.locations === true;
   });
   return filteredEventTypes;
 };
