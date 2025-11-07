@@ -22,16 +22,29 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-
-
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14, BookerLayoutsInputEnum_2024_06_14, ConfirmationPolicyEnum, NoticeThresholdUnitEnum, FrequencyInput } from "@calcom/platform-enums";
+import {
+  BookingWindowPeriodInputTypeEnum_2024_06_14,
+  BookerLayoutsInputEnum_2024_06_14,
+  ConfirmationPolicyEnum,
+  NoticeThresholdUnitEnum,
+  FrequencyInput,
+} from "@calcom/platform-enums";
 import { SchedulingType } from "@calcom/platform-libraries";
-import { type ApiSuccessResponse, type CreateEventTypeInput_2024_06_14, type EventTypeOutput_2024_06_14, type GuestsDefaultFieldOutput_2024_06_14, type NameDefaultFieldInput_2024_06_14, type NotesDefaultFieldInput_2024_06_14, type SplitNameDefaultFieldOutput_2024_06_14, type UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import {
+  BaseConfirmationPolicy_2024_06_14,
+  type ApiSuccessResponse,
+  type CreateEventTypeInput_2024_06_14,
+  type EventTypeOutput_2024_06_14,
+  type GuestsDefaultFieldOutput_2024_06_14,
+  type NameDefaultFieldInput_2024_06_14,
+  type NotesDefaultFieldInput_2024_06_14,
+  type SplitNameDefaultFieldOutput_2024_06_14,
+  type UpdateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
 import { FAILED_RECURRING_EVENT_TYPE_WITH_BOOKER_LIMITS_ERROR_MESSAGE } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/validators/CantHaveRecurrenceAndBookerActiveBookingsLimit";
 import { REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR } from "@calcom/platform-types/utils/RequiresOneOfPropertiesWhenNotDisabled";
 import type { PlatformOAuthClient, Team, User, Schedule, EventType } from "@calcom/prisma/client";
-
 
 const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
   if (a.slug < b.slug) return -1;
@@ -504,6 +517,7 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} between {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: true,
+        price: 100,
       };
 
       return request(app.getHttpServer())
@@ -578,6 +592,7 @@ describe("Event types Endpoints", () => {
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
           expect(createdEventType.bookingRequiresAuthentication).toEqual(true);
+          expect(createdEventType.price).toEqual(body.price);
           eventType = responseBody.data;
         });
     });
@@ -1194,6 +1209,7 @@ describe("Event types Endpoints", () => {
         },
         customName: `{Event type title} betweennnnnnnnnnn {Organiser} and {Scheduler}`,
         bookingRequiresAuthentication: false,
+        price: 200,
       };
 
       return request(app.getHttpServer())
@@ -1277,6 +1293,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.calVideoSettings?.disableTranscriptionForOrganizer).toEqual(
             body.calVideoSettings?.disableTranscriptionForOrganizer
           );
+          expect(updatedEventType.price).toEqual(body.price);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -1298,9 +1315,57 @@ describe("Event types Endpoints", () => {
           eventType.color = updatedEventType.color;
           eventType.bookingFields = updatedEventType.bookingFields;
           eventType.calVideoSettings = updatedEventType.calVideoSettings;
+          eventType.price = updatedEventType.price;
 
           expect(updatedEventType.bookingRequiresAuthentication).toEqual(false);
         });
+    });
+
+    it("should update event type stripe price", async () => {
+      const eventTypeWithStripe = await eventTypesRepositoryFixture.create(
+        {
+          title: "Test Event Type with Stripe",
+          slug: "test-event-stripe-" + randomString(),
+          length: 30,
+          price: 500,
+          metadata: {
+            apps: {
+              stripe: {
+                price: 500,
+                enabled: true,
+                currency: "usd",
+                credentialId: 541560,
+                refundPolicy: "never",
+                appCategories: ["payment"],
+                paymentOption: "ON_BOOKING",
+              },
+            },
+          },
+        },
+        user.id
+      );
+
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        price: 1000,
+      };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventTypeWithStripe.id}`)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+      const updatedEventType = responseBody.data;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(updatedEventType.price).toEqual(1000);
+      expect(
+        (updatedEventType.metadata as { apps: { stripe: { price: number } } })?.apps?.stripe?.price
+      ).toEqual(1000);
+
+      await eventTypesRepositoryFixture.delete(eventTypeWithStripe.id);
     });
 
     it("should not allow to update event type with scheduleId user does not own", async () => {
@@ -1780,7 +1845,7 @@ describe("Event types Endpoints", () => {
             .then(async (response) => {
               const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
               const updatedEventType = responseBody.data;
-              const policy = updatedEventType.confirmationPolicy as any;
+              const policy = updatedEventType.confirmationPolicy as BaseConfirmationPolicy_2024_06_14;
               expect(policy?.type).toEqual(ConfirmationPolicyEnum.ALWAYS);
               expect(policy?.blockUnconfirmedBookingsInBooker).toEqual(false);
               expect(policy?.noticeThreshold).toBeUndefined();
@@ -1808,7 +1873,7 @@ describe("Event types Endpoints", () => {
             .then(async (response) => {
               const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
               const updatedEventType = responseBody.data;
-              const policy = updatedEventType.confirmationPolicy as any;
+              const policy = updatedEventType.confirmationPolicy as BaseConfirmationPolicy_2024_06_14;
               expect(policy?.type).toEqual(ConfirmationPolicyEnum.TIME);
               expect(policy?.noticeThreshold).toEqual({
                 unit: NoticeThresholdUnitEnum.MINUTES,

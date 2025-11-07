@@ -308,7 +308,7 @@ class BaseEventTypeOutput_2024_06_14 {
   metadata!: Record<string, unknown>;
 
   @IsInt()
-  @DocsProperty()
+  @DocsProperty({ description: "Price in cents" })
   price!: number;
 
   @IsString()

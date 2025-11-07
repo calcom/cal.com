@@ -128,6 +128,7 @@ export class InputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail,
       disableGuests,
       bookerActiveBookingsLimit,
+      price,
       ...rest
     } = inputEventType;
     const confirmationPolicyTransformed = this.transformInputConfirmationPolicy(confirmationPolicy);
@@ -170,6 +171,7 @@ export class InputEventTypesService_2024_06_14 {
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,
+      price,
     };
 
     return eventType;
@@ -208,6 +210,7 @@ export class InputEventTypesService_2024_06_14 {
       useDestinationCalendarEmail,
       disableGuests,
       bookerActiveBookingsLimit,
+      price,
       ...rest
     } = inputEventType;
     const eventTypeDb = await this.eventTypesRepository.getEventTypeWithMetaData(eventTypeId);
@@ -234,6 +237,10 @@ export class InputEventTypesService_2024_06_14 {
       multipleDuration: lengthInMinutesOptions,
     };
 
+    if (price !== undefined && metadata.apps?.stripe) {
+      metadata.apps.stripe.price = price;
+    }
+
     const eventType = {
       ...rest,
       length: lengthInMinutes,
@@ -256,6 +263,7 @@ export class InputEventTypesService_2024_06_14 {
       eventName: customName,
       useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
       ...maxActiveBookingsPerBooker,
+      price,
     };
 
     return eventType;
