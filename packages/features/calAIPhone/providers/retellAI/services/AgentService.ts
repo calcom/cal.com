@@ -72,7 +72,7 @@ export class AgentService {
     }
 
     if (!timeZoneSchema.safeParse(data.timeZone).success) {
-      throw new ErrorWithCode(ErrorCode.InvalidInput, "Invalid time zone");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid time zone");
     }
 
     let eventTypeId = data.eventTypeId;
@@ -87,7 +87,7 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new ErrorWithCode(ErrorCode.InternalServerError, "Agent does not have an LLM configured.");
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent does not have an LLM configured.");
       }
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
 
@@ -191,7 +191,7 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new ErrorWithCode(ErrorCode.InternalServerError, "Agent does not have an LLM configured.");
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
@@ -252,7 +252,7 @@ export class AgentService {
       const llmId = getLlmId(agent);
 
       if (!llmId) {
-        throw new ErrorWithCode(ErrorCode.InternalServerError, "Agent does not have an LLM configured.");
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
@@ -300,7 +300,7 @@ export class AgentService {
         removedTools: [],
       };
     } catch (error) {
-      if (error instanceof ErrorWithCode) {
+      if (error instanceof HttpError) {
         throw error;
       }
 
@@ -387,7 +387,7 @@ export class AgentService {
       const llmId = getLlmId(retellAgent);
 
       if (!llmId) {
-        throw new ErrorWithCode(ErrorCode.InternalServerError, "Agent does not have an LLM configured.");
+        throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent does not have an LLM configured.");
       }
 
       const llmDetails = await this.deps.retellRepository.getLLM(llmId);
@@ -495,7 +495,7 @@ export class AgentService {
 
     const isPhoneNumberValid = isValidPhoneNumber(phoneNumber);
     if (!isPhoneNumberValid) {
-      throw new ErrorWithCode(ErrorCode.InvalidInput, "Invalid phone number");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid phone number");
     }
 
     let phoneNumberRecord;
