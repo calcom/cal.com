@@ -20,6 +20,8 @@ jobs:
   changes:
     name: Detect changes
     runs-on: buildjet-2vcpu-ubuntu-2204
+    # Skip this workflow for the consolidated CI test branch
+    if: ${{ github.event.pull_request.head.ref != 'devin/consolidate-github-actions-1762536826' }}
     permissions:
       pull-requests: read
     outputs:
@@ -43,6 +45,8 @@ jobs:
     needs: [changes]
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Check for E2E label
+    # Skip this workflow for the consolidated CI test branch
+    if: ${{ github.event.pull_request.head.ref != 'devin/consolidate-github-actions-1762536826' }}
     permissions:
       pull-requests: read
     outputs:
