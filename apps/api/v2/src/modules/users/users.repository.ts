@@ -257,10 +257,7 @@ export class UsersRepository {
     });
   }
 
-  formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
-    if (userInput.weekStart) {
-      userInput.weekStart = userInput.weekStart;
-    }
+  formatInput(_userInput: CreateManagedUserInput | UpdateManagedUserInput) {
   }
 
   setDefaultSchedule(userId: number, scheduleId: number) {
@@ -431,6 +428,21 @@ export class UsersRepository {
             email: true,
           },
         },
+      },
+    });
+  }
+
+  async findVerifiedSecondaryEmail(userId: number, email: string) {
+    return this.dbRead.prisma.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId: userId,
+          email: email,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
       },
     });
   }

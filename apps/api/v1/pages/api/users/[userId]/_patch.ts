@@ -1,5 +1,7 @@
 import type { NextApiRequest } from "next";
 
+import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { HttpError } from "@calcom/lib/http-error";
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -130,10 +132,76 @@ export async function patchHandler(req: NextApiRequest) {
     });
   }
 
+  const currentUser = await prisma.user.findUnique({
+    where: { id: query.userId },
+    select: { email: true, username: true, metadata: true },
+  });
+
+  if (!currentUser) {
+    throw new HttpError({ statusCode: 404, message: "User not found" });
+  }
+
+  const featuresRepository = new FeaturesRepository(prisma);
+  const emailVerification = await featuresRepository.checkIfFeatureIsEnabledGlobally(
+    "email-verification"
+  );
+
+  const hasEmailBeenChanged =
+    typeof body.email === "string" && currentUser.email !== body.email;
+  const newEmail = typeof body.email === "string" ? body.email : undefined;
+
+  const prismaData: Prisma.UserUpdateInput = { ...body };
+
+  if (hasEmailBeenChanged && newEmail) {
+    const secondaryEmail = await prisma.secondaryEmail.findUnique({
+      where: {
+        userId_email: {
+          userId: query.userId,
+          email: newEmail,
+        },
+      },
+      select: {
+        id: true,
+        emailVerified: true,
+      },
+    });
+
+    if (emailVerification) {
+      if (!secondaryEmail?.emailVerified) {
+        const userMetadata =
+          typeof currentUser.metadata === "object" && currentUser.metadata !== null
+            ? currentUser.metadata
+            : {};
+        prismaData.metadata = {
+          ...userMetadata,
+          emailChangeWaitingForVerification: newEmail.toLowerCase(),
+        };
+
+        delete prismaData.email;
+      }
+    }
+  }
+
   const data = await prisma.user.update({
     where: { id: query.userId },
-    data: body,
+    data: prismaData,
   });
+
+  if (
+    hasEmailBeenChanged &&
+    emailVerification &&
+    newEmail &&
+    !prismaData.email
+  ) {
+    await sendChangeOfEmailVerification({
+      user: {
+        username: data.username ?? "Nameless User",
+        emailFrom: currentUser.email,
+        emailTo: newEmail,
+      },
+    });
+  }
+
   const user = schemaUserReadPublic.parse(data);
   return { user };
 }

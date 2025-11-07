@@ -19,18 +19,20 @@ export class UserRepositoryFixture {
 
   async create(data: Prisma.UserCreateInput) {
     try {
-      // avoid uniq constraint in tests
       await this.deleteByEmail(data.email);
-    } catch {}
+    } catch (_e) {
+      void _e;
+    }
 
     return this.prismaWriteClient.user.create({ data });
   }
 
   async createOAuthManagedUser(email: Prisma.UserCreateInput["email"], oAuthClientId: string) {
     try {
-      // avoid uniq constraint in tests
       await this.deleteByEmail(email);
-    } catch {}
+    } catch (_e) {
+      void _e;
+    }
 
     return this.prismaWriteClient.user.create({
       data: {
@@ -48,5 +50,15 @@ export class UserRepositoryFixture {
 
   async deleteByEmail(email: User["email"]) {
     return this.prismaWriteClient.user.delete({ where: { email } });
+  }
+
+  async createSecondaryEmail(userId: User["id"], email: string, emailVerified: Date | null) {
+    return this.prismaWriteClient.secondaryEmail.create({
+      data: {
+        userId,
+        email,
+        emailVerified,
+      },
+    });
   }
 }
