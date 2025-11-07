@@ -89,8 +89,8 @@ function VerifyEmailPage() {
         }
       `}</style>
 
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
-        <div className="w-full items-center justify-center overflow-hidden rounded-3xl border-0 bg-white shadow-xl md:max-w-[600px]">
+      <div className="dark:bg-default flex  min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
+        <div className="bg-default dark:border-gray-550 w-full max-w-7xl overflow-hidden rounded-3xl border shadow-xl md:max-w-[600px] dark:shadow-none">
           <div className="flex flex-col justify-center p-8 lg:p-12">
             <div className="fade-in-up text-center" style={{ animationDelay: "100ms" }}>
               {/* Email Icon */}
@@ -112,10 +112,10 @@ function VerifyEmailPage() {
               </div>
 
               {/* Header */}
-              <h1 className="mb-2 text-2xl font-bold text-gray-900">{t("check_your_email")}</h1>
-              <div className="flex flex-col mb-8 ">
-                <p className="mx-auto max-w-md text-gray-600">We've sent a verification link to </p>
-                <span className="font-semibold text-gray-900">{session?.user?.email}</span>
+              <h1 className="mb-2 text-2xl font-bold text-emphasis">{t("check_your_email")}</h1>
+              <div className="mb-8 flex flex-col ">
+                <p className="mx-auto max-w-md text-default">We've sent a verification link to </p>
+                <span className="font-semibold text-emphasis">{session?.user?.email}</span>
               </div>
 
               {/* Action Buttons */}

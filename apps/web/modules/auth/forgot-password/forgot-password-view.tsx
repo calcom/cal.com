@@ -76,18 +76,18 @@ export default function ForgotPassword(props: PageProps) {
   const Success = () => {
     return (
       <div className="fade-in-up text-center">
-        <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <Icon name="mail" className="h-8 w-8 text-green-600" />
+        <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full bg-[#007ee5]/10">
+          <Icon name="mail" className="h-8 w-8 text-active" />
         </div>
-        <h1 className="mb-2 text-2xl font-bold text-gray-900">{t("email_sent_raw")}</h1>
-        <p className="mb-4 font-medium text-gray-600">
+        <h1 className="mb-2 text-2xl font-bold text-default">{t("email_sent_raw")}</h1>
+        <p className="text-emphasis mb-4 font-medium">
           A password reset link has been sent to <br />
-          <strong className="font-semibold text-gray-800">{email}</strong>
+          <strong className="text-emphasis font-semibold">{email}</strong>
         </p>
-        <p className="mb-8 text-sm text-gray-600">{t("password_reset_leading")}</p>
+        <p className="text-default mb-8 text-sm">{t("password_reset_leading")}</p>
         <Button
           color="primary"
-          className="btn-premium-submit w-full justify-center rounded-lg bg-[#007ee5] py-3 font-semibold text-white hover:bg-[#006ac1]"
+          className="w-full justify-center rounded-lg py-3"
           href="/auth/login">
           <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -153,29 +153,20 @@ export default function ForgotPassword(props: PageProps) {
         }
       `}</style>
 
-      <div className="flex min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
-        <div className="w-full max-w-7xl overflow-hidden rounded-3xl border-0 bg-white shadow-xl md:max-w-[600px]">
+      <div className="dark:bg-default flex  min-h-screen flex-col items-center justify-center bg-[#F0F5FF] p-4">
+        <div className="bg-default dark:border-gray-550 w-full max-w-7xl overflow-hidden rounded-3xl border shadow-xl md:max-w-[600px] dark:shadow-none">
           <div className="flex flex-col justify-center p-8 lg:p-12">
             {success ? (
               <Success />
             ) : (
               <>
                 <div className="fade-in-up mb-8 flex items-start gap-3">
-                  <Link
-                    href="/auth/login"
-                    className="mt-1 rounded-full bg-blue-50/50 p-0.5 px-2 text-gray-500 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-800">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                      />
-                    </svg>
+                  <Link href="/auth/login" className="text-emphasis mt-1 rounded-full p-0.5">
+                    <Icon name="arrow-left" className="h-5 w-5" />
                   </Link>
                   <div className="flex flex-col">
-                    <h1 className="mb-2 text-2xl font-bold text-gray-900">{t("account_recovery")}</h1>
-                    <p className="font-medium text-gray-600">{t("forgot_password_description")}</p>
+                    <h1 className="text-emphasis mb-2 text-2xl font-bold">{t("account_recovery")}</h1>
+                    <p className="text-default font-medium">{t("forgot_password_description")}</p>
                   </div>
                 </div>
 
@@ -198,13 +189,13 @@ export default function ForgotPassword(props: PageProps) {
                       placeholder="Email Id"
                       required
                     />
-                    <p className="mt-2 text-sm font-medium text-gray-600">
+                    <p className="text-emphasis mt-2 text-sm font-medium">
                       We will send a password reset link to this email address.
                     </p>
                   </div>
 
                   <Button
-                    className="btn-premium-submit w-full justify-center rounded-lg bg-[#007ee5] py-3 font-semibold text-white hover:bg-[#006ac1]"
+                    className="w-full justify-center py-3 "
                     type="button"
                     color="primary"
                     disabled={loading}
