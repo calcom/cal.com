@@ -83,4 +83,6 @@ export interface IBookingReportRepository {
     status: BookingReportStatus;
     organizationId?: number;
   }): Promise<void>;
+
+  countPendingReports(params: { organizationId: number }): Promise<number>;
 }
