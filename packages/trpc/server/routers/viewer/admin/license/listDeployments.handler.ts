@@ -1,5 +1,6 @@
 import AdminLicenseKeyService from "@calcom/features/ee/common/server/AdminLicenseKeyService";
 import type { ListDeploymentsQuery } from "@calcom/features/ee/common/server/types/admin";
+
 import { TRPCError } from "@trpc/server";
 
 type ListDeploymentsOptions = {
@@ -20,7 +21,7 @@ type ListDeploymentsOptions = {
 };
 
 export const listDeploymentsHandler = async ({ input }: ListDeploymentsOptions) => {
-  const adminSignatureToken = process.env.ADMIN_SIGNATURE_TOKEN;
+  const adminSignatureToken = process.env.CAL_SIGNATURE_TOKEN;
 
   if (!adminSignatureToken) {
     throw new TRPCError({
@@ -53,4 +54,3 @@ export const listDeploymentsHandler = async ({ input }: ListDeploymentsOptions) 
 };
 
 export default listDeploymentsHandler;
-

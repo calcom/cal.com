@@ -3,6 +3,7 @@ import type {
   UpdateDeploymentRequest,
   UpdateKeyRequest,
 } from "@calcom/features/ee/common/server/types/admin";
+
 import { TRPCError } from "@trpc/server";
 
 type UpdateDeploymentOptions = {
@@ -21,7 +22,7 @@ type UpdateDeploymentOptions = {
 };
 
 export const updateDeploymentHandler = async ({ input }: UpdateDeploymentOptions) => {
-  const adminSignatureToken = process.env.ADMIN_SIGNATURE_TOKEN;
+  const adminSignatureToken = process.env.CAL_SIGNATURE_TOKEN;
 
   if (!adminSignatureToken) {
     throw new TRPCError({
@@ -62,7 +63,7 @@ type SendLicenseEmailOptions = {
 };
 
 export const sendLicenseEmailHandler = async ({ input }: SendLicenseEmailOptions) => {
-  const adminSignatureToken = process.env.ADMIN_SIGNATURE_TOKEN;
+  const adminSignatureToken = process.env.CAL_SIGNATURE_TOKEN;
 
   if (!adminSignatureToken) {
     throw new TRPCError({
@@ -96,7 +97,7 @@ type GetDeploymentStripeInfoOptions = {
 };
 
 export const getDeploymentStripeInfoHandler = async ({ input }: GetDeploymentStripeInfoOptions) => {
-  const adminSignatureToken = process.env.ADMIN_SIGNATURE_TOKEN;
+  const adminSignatureToken = process.env.CAL_SIGNATURE_TOKEN;
 
   if (!adminSignatureToken) {
     throw new TRPCError({
@@ -138,7 +139,7 @@ type UpdateLicenseKeyOptions = {
 };
 
 export const updateLicenseKeyHandler = async ({ input }: UpdateLicenseKeyOptions) => {
-  const adminSignatureToken = process.env.ADMIN_SIGNATURE_TOKEN;
+  const adminSignatureToken = process.env.CAL_SIGNATURE_TOKEN;
 
   if (!adminSignatureToken) {
     throw new TRPCError({
@@ -179,7 +180,7 @@ type GetLicenseKeyStripeInfoOptions = {
 };
 
 export const getLicenseKeyStripeInfoHandler = async ({ input }: GetLicenseKeyStripeInfoOptions) => {
-  const adminSignatureToken = process.env.ADMIN_SIGNATURE_TOKEN;
+  const adminSignatureToken = process.env.CAL_SIGNATURE_TOKEN;
 
   if (!adminSignatureToken) {
     throw new TRPCError({
@@ -200,4 +201,3 @@ export const getLicenseKeyStripeInfoHandler = async ({ input }: GetLicenseKeyStr
     });
   }
 };
-
