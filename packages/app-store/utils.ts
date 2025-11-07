@@ -18,19 +18,40 @@ export type LocationOption = {
   disabled?: boolean;
 };
 
-const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
-  const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata] as AppMeta;
+// Cache for loaded app metadata
+const appMetadataCache = new Map<string, AppMeta>();
 
-  store[key] = metadata;
+// Lazy loading cache for ALL_APPS_MAP
+let ALL_APPS_MAP: Record<string, AppMeta> | null = null;
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  delete store[key]["/*"];
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  delete store[key]["__createdUsingCli"];
-  return store;
-}, {} as Record<string, AppMeta>);
+async function getAllAppsMap(): Promise<Record<string, AppMeta>> {
+  if (ALL_APPS_MAP) return ALL_APPS_MAP;
+
+  ALL_APPS_MAP = {};
+  const appKeys = Object.keys(appStoreMetadata);
+
+  await Promise.all(
+    appKeys.map(async (key) => {
+      const metadataLoader = appStoreMetadata[key as keyof typeof appStoreMetadata];
+      if (metadataLoader && typeof metadataLoader === 'function') {
+        const metadata = await metadataLoader();
+        if (metadata) {
+          ALL_APPS_MAP![key] = metadata;
+
+          // Clean up metadata
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          delete ALL_APPS_MAP![key]["/*"];
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          delete ALL_APPS_MAP![key]["__createdUsingCli"];
+        }
+      }
+    })
+  );
+
+  return ALL_APPS_MAP;
+}
 
 export type CredentialDataWithTeamName = CredentialForCalendarService & {
   team?: {
@@ -38,14 +59,25 @@ export type CredentialDataWithTeamName = CredentialForCalendarService & {
   } | null;
 };
 
-export const ALL_APPS = Object.values(ALL_APPS_MAP);
+// Export ALL_APPS as a getter that loads lazily
+export const getAllApps = async (): Promise<AppMeta[]> => {
+  const appsMap = await getAllAppsMap();
+  return Object.values(appsMap);
+};
+
+// For backward compatibility, provide a synchronous version that throws an error
+// This forces consumers to migrate to the async version
+export const ALL_APPS = (() => {
+  throw new Error("ALL_APPS is now async. Use getAllApps() instead.");
+})();
 
 /**
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
  */
-function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
-  const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
+async function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
+  const appsMap = await getAllAppsMap();
+  const apps = Object.values(appsMap).reduce((reducedArray, appMeta) => {
     const appCredentials = credentials.filter((credential) => credential.appId === appMeta.slug);
 
     if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
@@ -106,20 +138,25 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
   return apps;
 }
 
-export function getLocalAppMetadata() {
-  return ALL_APPS;
+export async function getLocalAppMetadata() {
+  return await getAllApps();
 }
 
-export function hasIntegrationInstalled(type: App["type"]): boolean {
-  return ALL_APPS.some((app) => app.type === type && !!app.installed);
+export async function hasIntegrationInstalled(type: App["type"]): Promise<boolean> {
+  const apps = await getAllApps();
+  return apps.some((app) => app.type === type && !!app.installed);
 }
 
-export function getAppName(name: string): string | null {
-  return ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP]?.name ?? null;
+export async function getAppName(name: string): Promise<string | null> {
+  const appsMap = await getAllAppsMap();
+  return appsMap[name]?.name ?? null;
 }
 
-export function getAppType(name: string): string {
-  const type = ALL_APPS_MAP[name as keyof typeof ALL_APPS_MAP].type;
+export async function getAppType(name: string): Promise<string> {
+  const appsMap = await getAllAppsMap();
+  const type = appsMap[name]?.type;
+
+  if (!type) return "Unknown";
 
   if (type.endsWith("_calendar")) {
     return "Calendar";
@@ -130,12 +167,14 @@ export function getAppType(name: string): string {
   return "Unknown";
 }
 
-export function getAppFromSlug(slug: string | undefined): AppMeta | undefined {
-  return ALL_APPS.find((app) => app.slug === slug);
+export async function getAppFromSlug(slug: string | undefined): Promise<AppMeta | undefined> {
+  const apps = await getAllApps();
+  return apps.find((app) => app.slug === slug);
 }
 
-export function getAppFromLocationValue(type: string): AppMeta | undefined {
-  return ALL_APPS.find((app) => app?.appData?.location?.type === type);
+export async function getAppFromLocationValue(type: string): Promise<AppMeta | undefined> {
+  const apps = await getAllApps();
+  return apps.find((app) => app?.appData?.location?.type === type);
 }
 
 /**
