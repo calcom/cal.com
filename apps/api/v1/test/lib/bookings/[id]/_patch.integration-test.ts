@@ -6,34 +6,14 @@ import { describe, it, expect, beforeAll } from "vitest";
 import prisma from "@calcom/prisma";
 
 import handler from "../../../../pages/api/bookings/[id]/_patch";
+import { setupOrganizationSettings } from "../../utils/setupOrganizationSettings";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
 describe("PATCH /api/bookings", () => {
   beforeAll(async () => {
-    const acmeOrg = await prisma.team.findFirst({
-      where: {
-        slug: "acme",
-        isOrganization: true,
-      },
-    });
-
-    if (acmeOrg) {
-      await prisma.organizationSettings.upsert({
-        where: {
-          organizationId: acmeOrg.id,
-        },
-        update: {
-          isAdminAPIEnabled: true,
-        },
-        create: {
-          organizationId: acmeOrg.id,
-          orgAutoAcceptEmail: "acme.com",
-          isAdminAPIEnabled: true,
-        },
-      });
-    }
+    await setupOrganizationSettings();
   });
   it("Returns 403 when user has no permission to the booking", async () => {
     const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });

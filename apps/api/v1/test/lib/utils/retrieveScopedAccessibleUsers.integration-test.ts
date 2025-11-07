@@ -6,31 +6,11 @@ import {
   getAccessibleUsers,
   retrieveOrgScopedAccessibleUsers,
 } from "../../../lib/utils/retrieveScopedAccessibleUsers";
+import { setupOrganizationSettings } from "./setupOrganizationSettings";
 
 describe("retrieveScopedAccessibleUsers tests", () => {
   beforeAll(async () => {
-    const acmeOrg = await prisma.team.findFirst({
-      where: {
-        slug: "acme",
-        isOrganization: true,
-      },
-    });
-
-    if (acmeOrg) {
-      await prisma.organizationSettings.upsert({
-        where: {
-          organizationId: acmeOrg.id,
-        },
-        update: {
-          isAdminAPIEnabled: true,
-        },
-        create: {
-          organizationId: acmeOrg.id,
-          orgAutoAcceptEmail: "acme.com",
-          isAdminAPIEnabled: true,
-        },
-      });
-    }
+    await setupOrganizationSettings();
   });
   describe("getAccessibleUsers", () => {
     it("Does not return members when only admin user ID is supplied", async () => {
