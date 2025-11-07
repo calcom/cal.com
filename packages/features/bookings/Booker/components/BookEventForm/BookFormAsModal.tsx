@@ -72,7 +72,7 @@ export const BookEventFormWrapperComponent = ({
         {recurringEventCount && recurringEventCount > 1 && (
           <Badge variant="grayWithoutHover" startIcon="refresh-ccw" size="lg">
             <span>
-              {t("repeats_up_to", {
+              {t("repeats_num_times", {
                 count: recurringEventCount,
               })}
             </span>
