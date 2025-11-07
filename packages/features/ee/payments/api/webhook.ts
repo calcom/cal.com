@@ -5,6 +5,7 @@ import type Stripe from "stripe";
 import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -12,7 +13,6 @@ import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import tasker from "@calcom/features/tasker";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -60,8 +60,10 @@ export async function handleStripePaymentSuccess(event: Stripe.Event) {
       await tasker.cancelWithReference(payment.booking.uid, "sendAwaitingPaymentEmail");
       log.debug(`Cancelled scheduled awaiting payment email for booking ${payment.bookingId}`);
     } catch (error) {
-      // Task might not exist if payment completed very quickly, which is fine
-      log.debug(`No scheduled awaiting payment email to cancel for booking ${payment.bookingId}`);
+      log.warn(
+        { bookingId: payment.bookingId, error },
+        `Failed to cancel awaiting payment task - email may still be sent but will be suppressed by task handler`
+      );
     }
   }
 
@@ -85,8 +87,10 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
     await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");
     log.debug(`Cancelled scheduled awaiting payment email for booking ${payment.bookingId}`);
   } catch (error) {
-    // Task might not exist if payment completed very quickly, which is fine
-    log.debug(`No scheduled awaiting payment email to cancel for booking ${payment.bookingId}`);
+    log.warn(
+      { bookingId: payment.bookingId, error },
+      `Failed to cancel awaiting payment task - email may still be sent but will be suppressed by task handler`
+    );
   }
 
   const bookingData: Prisma.BookingUpdateInput = {

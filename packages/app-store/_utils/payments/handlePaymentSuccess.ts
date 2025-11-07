@@ -1,5 +1,6 @@
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
+import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
@@ -7,7 +8,6 @@ import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirma
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 import { PlatformOAuthClientRepository } from "@calcom/features/platform-oauth-client/platform-oauth-client.repository";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import tasker from "@calcom/features/tasker";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -26,8 +26,10 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
     await tasker.cancelWithReference(booking.uid, "sendAwaitingPaymentEmail");
     log.debug(`Cancelled scheduled awaiting payment email for booking ${bookingId}`);
   } catch (error) {
-    // Task might not exist if payment completed very quickly, which is fine
-    log.debug(`No scheduled awaiting payment email to cancel for booking ${bookingId}`);
+    log.warn(
+      { bookingId, error },
+      `Failed to cancel awaiting payment task - email may still be sent but will be suppressed by task handler`
+    );
   }
 
   if (booking.location) evt.location = booking.location;
