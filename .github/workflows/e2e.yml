@@ -12,7 +12,7 @@ env:
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
-  DATABASE_URL: ${{ env.DATABASE_URL }}?schema=shard_${{ matrix.shard }}
+  DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}?schema=shard_${{ matrix.shard }}
   DATABASE_DIRECT_URL: ${{ env.DATABASE_DIRECT_URL }}?schema=shard_${{ matrix.shard }}
   DEPLOYSENTINEL_API_KEY: ${{ secrets.DEPLOYSENTINEL_API_KEY }}
   E2E_TEST_APPLE_CALENDAR_EMAIL: ${{ secrets.E2E_TEST_APPLE_CALENDAR_EMAIL }}
