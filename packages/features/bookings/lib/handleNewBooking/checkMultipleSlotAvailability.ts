@@ -1,5 +1,7 @@
 import type { Logger } from "tslog";
 
+
+
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
@@ -12,6 +14,9 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 
+
+
+import { ensureAvailableUsers } from "./ensureAvailableUsers";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
 import type { IsFixedAwareUser } from "./types";
@@ -31,6 +36,13 @@ type SlotAvailabilityResult = {
   isAvailable: boolean;
   reason?: string;
 };
+
+/**
+ * Maximum date range in months for using the optimized single-query approach.
+ * If the date range exceeds this threshold, we'll use parallel queries for each slot.
+ * This prevents performance issues with very large date ranges.
+ */
+const MAX_DATE_RANGE_FOR_BATCH_QUERY_MONTHS = 3;
 
 const getDateTimeInUtc = (timeInput: string, timeZone?: string) => {
   return timeZone === "Etc/GMT" ? dayjs.utc(timeInput) : dayjs(timeInput).tz(timeZone).utc();
@@ -62,11 +74,59 @@ const hasDateRangeForBooking = (
   return dateRangeForBooking;
 };
 
+const checkSlotsInParallel = async (
+  eventType: Omit<getEventTypeResponse, "users"> & {
+    users: IsFixedAwareUser[];
+  },
+  timeSlots: TimeSlot[],
+  timeZone: string,
+  originalRescheduledBooking: BookingType | undefined,
+  loggerWithEventDetails: Logger<unknown>,
+  shouldServeCache?: boolean
+): Promise<SlotAvailabilityResult[]> => {
+  loggerWithEventDetails.info(`Checking ${timeSlots.length} slots in parallel due to large date range`);
+
+  const slotChecks = timeSlots.map(async (slot, slotIndex): Promise<SlotAvailabilityResult> => {
+    try {
+      await ensureAvailableUsers(
+        eventType,
+        {
+          dateFrom: slot.start,
+          dateTo: slot.end,
+          timeZone,
+          originalRescheduledBooking,
+        },
+        loggerWithEventDetails,
+        shouldServeCache
+      );
+
+      return {
+        slotIndex,
+        isAvailable: true,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Error checking availability";
+      loggerWithEventDetails.debug(`Slot ${slotIndex} unavailable:`, errorMessage);
+
+      return {
+        slotIndex,
+        isAvailable: false,
+        reason: errorMessage,
+      };
+    }
+  });
+
+  const results = await Promise.all(slotChecks);
+
+  return results.sort((a, b) => a.slotIndex - b.slotIndex);
+};
+
 /**
  * Check availability for multiple time slots with a single API call.
  * Fetches busy times for the entire date range once, then checks each slot against those busy times.
  */
-export const checkMultipleSlotAvailability = async ( eventType: Omit<getEventTypeResponse, "users"> & {
+export const checkRecurringSlotsAvailability = async (
+  eventType: Omit<getEventTypeResponse, "users"> & {
     users: IsFixedAwareUser[];
   },
   input: {
@@ -92,6 +152,27 @@ export const checkMultipleSlotAvailability = async ( eventType: Omit<getEventTyp
 
   const startDateTimeUtc = getDateTimeInUtc(minStartTime.format(), timeZone);
   const endDateTimeUtc = getDateTimeInUtc(maxEndTime.format(), timeZone);
+
+  const dateRangeDiffInMonths = endDateTimeUtc.diff(startDateTimeUtc, "months", true);
+  const shouldUseParallelQueries = dateRangeDiffInMonths > MAX_DATE_RANGE_FOR_BATCH_QUERY_MONTHS;
+
+  loggerWithEventDetails.debug(
+    `Date range: ${dateRangeDiffInMonths.toFixed(2)} months. Using ${
+      shouldUseParallelQueries ? "parallel" : "batch"
+    } query approach.`
+  );
+
+  // If date range is too large, use parallel queries for each slot
+  if (shouldUseParallelQueries) {
+    return await checkSlotsInParallel(
+      eventType,
+      timeSlots,
+      timeZone,
+      originalRescheduledBooking,
+      loggerWithEventDetails,
+      shouldServeCache
+    );
+  }
 
   const originalBookingDuration = getOriginalBookingDuration(originalRescheduledBooking);
 
@@ -137,7 +218,6 @@ export const checkMultipleSlotAvailability = async ( eventType: Omit<getEventTyp
     },
   });
 
-
   const piiFreeInputDataForLogging = safeStringify({
     startDateTimeUtc,
     endDateTimeUtc,
@@ -146,9 +226,7 @@ export const checkMultipleSlotAvailability = async ( eventType: Omit<getEventTyp
     originalRescheduledBooking: originalRescheduledBooking
       ? {
           ...originalRescheduledBooking,
-          user: originalRescheduledBooking?.user
-            ? getPiiFreeUser(originalRescheduledBooking.user)
-            : null,
+          user: originalRescheduledBooking?.user ? getPiiFreeUser(originalRescheduledBooking.user) : null,
         }
       : undefined,
   });
@@ -317,9 +395,7 @@ export const checkMultipleSlotAvailability = async ( eventType: Omit<getEventTyp
           break;
         }
       } catch {
-        loggerWithEventDetails.error(
-          `Error checking conflicts for user ${user.id} at slot ${slotIndex}`
-        );
+        loggerWithEventDetails.error(`Error checking conflicts for user ${user.id} at slot ${slotIndex}`);
         allUsersAvailable = false;
         unavailableReason = `Error checking conflicts for user ${user.id}`;
         break;

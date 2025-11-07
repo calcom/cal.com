@@ -6,14 +6,15 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
-import { checkMultipleSlotAvailability } from "../handleNewBooking/checkMultipleSlotAvailability";
+
+
+import { checkRecurringSlotsAvailability } from "../handleNewBooking/checkRecurringSlotsAvailability";
 import { getEventType } from "../handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
 import { loadAndProcessUsersWithSeats } from "../handleNewBooking/loadAndProcessUsersWithSeats";
 import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
 import type { IBookingService } from "../interfaces/IBookingService";
 import type { IsFixedAwareUserWithCredentials, RegularBookingService } from "./RegularBookingService";
-
 
 export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;
@@ -114,7 +115,7 @@ export const handleNewRecurringBooking = async (
       if (isTeamEvent) {
         for (const user of fixedUsersForAvailability) {
           try {
-            const slotResults = await checkMultipleSlotAvailability(
+            const slotResults = await checkRecurringSlotsAvailability(
               { ...eventTypeWithProcessedUsers, users: [user] },
               {
                 timeSlots,
@@ -152,7 +153,7 @@ export const handleNewRecurringBooking = async (
         }
       } else {
         try {
-          const slotResults = await checkMultipleSlotAvailability(
+          const slotResults = await checkRecurringSlotsAvailability(
             eventTypeWithProcessedUsers,
             {
               timeSlots,
