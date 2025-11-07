@@ -72,7 +72,7 @@ export function SettingsToggle({
                 </div>
                 {description && (
                   <p
-                    className={classNames("text-subtle -mt-2 text-sm leading-normal", descriptionClassName)}
+                    className={classNames("text-subtle text-sm leading-normal", descriptionClassName)}
                     data-testid={`${rest["data-testid"]}-description`}>
                     {description}
                   </p>

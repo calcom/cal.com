@@ -25,6 +25,7 @@ type BannerUploaderProps = {
   handleAvatarChange: (imageSrc: string) => void;
   imageSrc?: string;
   target: string;
+  fieldName: string;
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
@@ -36,6 +37,7 @@ type BannerUploaderProps = {
 function CropContainer({
   onCropComplete,
   imageSrc,
+  aspect
 }: {
   imageSrc: string;
   onCropComplete: (croppedAreaPixels: Area) => void;
@@ -55,7 +57,7 @@ function CropContainer({
           image={imageSrc}
           crop={crop}
           zoom={zoom}
-          aspect={3}
+          aspect={aspect}
           onCropChange={setCrop}
           onCropComplete={(croppedArea, croppedAreaPixels) => onCropComplete(croppedAreaPixels)}
           onZoomChange={setZoom}
@@ -75,6 +77,7 @@ function CropContainer({
 
 export default function BannerUploader({
   target,
+  fieldName,
   id,
   mimeType,
   buttonMsg,
@@ -161,15 +164,15 @@ export default function BannerUploader({
       <DialogContent
         size="lg"
         className="sm:w-[45rem] sm:max-w-[45rem]"
-        title={t("upload_target", { target })}
+        title={t("upload_target", { target: fieldName || target })}
         enableOverflow={true}>
         <DialogHeader>
-          <DialogTitle>{t("upload_target", { target })}</DialogTitle>
+          <DialogTitle>{t("upload_target", { target: fieldName || target })}</DialogTitle>
         </DialogHeader>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
-              <div className="bg-muted flex h-60 w-full items-center justify-start">
+              <div className="bg-muted flex h-60 w-full items-center justify-center">
                 {!imageSrc ? (
                   // <p className="text-emphasis w-full text-center text-sm sm:text-xs">
                   //   {t("no_target", { target })}
@@ -177,11 +180,11 @@ export default function BannerUploader({
                   <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img className="h-full w-full" src={imageSrc} alt={target} />
+                  <img className="h-full w-auto object-contain" src={imageSrc} alt={target} />
                 )}
               </div>
             )}
-            {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
+            {result && <CropContainer aspect={width / height} imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
             <label
               data-testid="open-upload-image-filechooser"
               className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">

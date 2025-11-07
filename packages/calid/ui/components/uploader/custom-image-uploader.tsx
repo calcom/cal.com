@@ -29,6 +29,7 @@ type ImageUploaderProps = {
   handleAvatarChange: (imageSrc: string) => void;
   imageSrc?: string;
   target: string;
+  fieldName: string;
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
@@ -78,6 +79,7 @@ function CropContainer({
 
 export default function ImageUploader({
   target,
+  fieldName,
   id,
   buttonMsg,
   handleAvatarChange,
@@ -148,10 +150,10 @@ export default function ImageUploader({
       <DialogContent
         size="md"
         className="sm:w-[30rem] sm:max-w-[30rem]"
-        title={t("upload_target", { target })}
+        title={t("upload_target", { fieldName })}
         enableOverflow={true}>
         <DialogHeader>
-          <DialogTitle>{t("upload_target", { target })}</DialogTitle>
+          <DialogTitle>{t("upload_target", { target: fieldName })}</DialogTitle>
         </DialogHeader>
         <div className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">

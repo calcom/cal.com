@@ -151,7 +151,7 @@ export function UserPage(props: PageProps) {
           )}>
           <div
             className={classNames(
-              "border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
+              "border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-6"
             )}
             style={{
               backgroundImage: headerUrl ? `url(${headerUrl})` : undefined,
