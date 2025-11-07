@@ -1,5 +1,7 @@
-/* eslint-disable @typescript-eslint/no-require-imports, no-undef, no-useless-escape */
+/* global require, exports, __dirname */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const glob = require("glob");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
 // Pages found here are excluded from redirects in beforeFiles in next.config.js
@@ -10,7 +12,7 @@ const bookingRoutes = glob.sync("app/(booking-page-wrapper)/**/[^_]*.{tsx,js,ts}
 
 const nonWrapperRoutes = glob.sync("{pages,app}/**/[^_]*.{tsx,js,ts}", {
   cwd: __dirname,
-  ignore: ["app/(*)/**"],
+  ignore: ["app/\\(*/**"],
 });
 
 let pages = (exports.pages = [...new Set([...bookingRoutes, ...nonWrapperRoutes])]
@@ -72,11 +74,11 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
 }
 
 // To handle /something
-exports.orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9\-_]+)`;
+exports.orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9_-]+)`;
 // To handle /something/somethingelse
 exports.orgUserTypeRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes(
   "/"
-)})[^/]+)/:type((?!avatar\.png)[^/]+)`;
+)})[^/]+)/:type((?!avatar[.]png)[^/]+)`;
 
 // To handle /something/somethingelse/embed
 exports.orgUserTypeEmbedRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/")})[^/]+)/:type/embed`;
