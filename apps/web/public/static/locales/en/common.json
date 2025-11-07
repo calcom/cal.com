@@ -3680,7 +3680,7 @@
   "reschedule_last_booking_offer": "Offer to reschedule the last booking to the new time slot",
   "booker_upcoming_limit_reached": "You've reached the limit of {{count}} upcoming bookings for this event type",
   "booker_limit_exceeded_error_reschedule": "You already have a booking for this event on {{date}}. Would you like to reschedule to the new selected time?",
-  "duration_min_error": "Duration must be at least {{min}} minute(s)",
+  "duration_min_error": "Duration must be greater than or equal to 1 minute",
   "duration_max_error": "Duration cannot exceed {{max}} minutes (24 hours)",
   "booking_not_allowed_by_restriction_schedule_error": "Booking outside restriction schedule availability.",
   "restriction_schedule_not_found_error": "Restriction schedule not found",
