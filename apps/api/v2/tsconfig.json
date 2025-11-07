@@ -14,7 +14,7 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
-      "@prisma/client/*": ["./client/*"],
+      "@calcom/prisma/client": ["../../../packages/prisma/generated/prisma/client"],
       "@calcom/prisma/enums": ["../../../packages/prisma/enums"],
       "@calcom/platform-constants": ["../../../packages/platform/constants/index.ts"],
       "@calcom/platform-types": ["../../../packages/platform/types/index.ts"],
@@ -29,7 +29,8 @@
       "@calcom/platform-libraries/conferencing": ["../../../packages/platform/libraries/conferencing.ts"],
       "@calcom/platform-libraries/repositories": ["../../../packages/platform/libraries/repositories.ts"],
       "@calcom/platform-libraries/bookings": ["../../../packages/platform/libraries/bookings.ts"],
-      "@calcom/platform-libraries/private-links": ["../../../packages/platform/libraries/private-links.ts"]
+      "@calcom/platform-libraries/private-links": ["../../../packages/platform/libraries/private-links.ts"],
+      "@calcom/platform-libraries/organizations": ["../../../packages/platform/libraries/organizations.ts"]
     },
     "incremental": true,
     "skipLibCheck": true,
