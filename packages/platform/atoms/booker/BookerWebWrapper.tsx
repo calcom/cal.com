@@ -165,6 +165,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     isTeamEvent: props.isTeamEvent ?? !!event.data?.team,
     useApiV2: props.useApiV2,
   });
+
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,

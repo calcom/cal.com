@@ -111,6 +111,7 @@ export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]
     scheduled: true,
     scheduledDate: {
       lte: dayjs().add(1, "hour").toISOString(),
+      gte: dayjs().toISOString(),
     },
   };
 
@@ -207,6 +208,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialCalIdWorkflow
     scheduled: false,
     scheduledDate: {
       lte: dayjs().add(2, "hour").toISOString(),
+      gte: dayjs().toISOString(),
     },
     OR: [{ cancelled: null }, { cancelled: false }],
   };
