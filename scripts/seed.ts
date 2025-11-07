@@ -167,7 +167,7 @@ async function createPlatformAndSetupUser({
 
   const membershipRole = MembershipRole.OWNER;
 
-  if (!!team) {
+  if (team) {
     await associateUserAndOrg({
       teamId: team.id,
       userId: platformUser.id,
@@ -1030,7 +1030,7 @@ async function main() {
     },
   });
 
-  if (!!(process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD)) {
+  if (process.env.E2E_TEST_CALCOM_QA_EMAIL && process.env.E2E_TEST_CALCOM_QA_PASSWORD) {
     await createUserAndEventType({
       user: {
         email: process.env.E2E_TEST_CALCOM_QA_EMAIL || "qa@example.com",
@@ -1046,7 +1046,7 @@ async function main() {
         },
       ],
       credentials: [
-        !!process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
+        process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
           ? {
               type: "google_calendar",
               key: JSON.parse(process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS) as Prisma.JsonObject,
@@ -1203,6 +1203,8 @@ async function main() {
       },
     ]
   );
+
+  console.log("test");
 
   await createOrganizationAndAddMembersAndTeams({
     org: {
@@ -1535,7 +1537,7 @@ async function main() {
 
 async function runSeed() {
   await prisma.$connect();
-  
+
   await mainAppStore();
   await main();
   await mainHugeEventTypesSeed();
