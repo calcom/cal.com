@@ -430,7 +430,8 @@ export const createBookerStore = () =>
     setOccurenceCount: (occurenceCount: number | null) => {
       set({ occurenceCount });
       if (!get().isPlatform || get().allowUpdatingUrlParams) {
-        updateQueryParam("recurringEventCount", occurenceCount ?? "");
+        const validCount = occurenceCount !== null && !isNaN(occurenceCount) ? occurenceCount : "";
+        updateQueryParam("recurringEventCount", validCount);
       }
     },
     rescheduleUid: null,
