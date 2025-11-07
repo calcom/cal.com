@@ -56,7 +56,6 @@ vi.mock("../getSalesforceAppKeys", () => ({
 }));
 
 // Helper to create mock credential
-// Silly comment to fire test
 const createMockCredential = () => {
   return {
     id: 1,
