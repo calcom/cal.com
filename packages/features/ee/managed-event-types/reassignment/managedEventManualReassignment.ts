@@ -12,7 +12,7 @@ import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBook
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import type { AdditionalInformation } from "@calcom/types/Calendar";
+import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
@@ -239,7 +239,7 @@ export async function managedEventManualReassignment({
   let videoCallUrl: string | null = null;
   const additionalInformation: AdditionalInformation = {};
   try {
-    const evt = {
+    const evt: CalendarEvent = {
       organizer: {
         id: newUser.id,
         name: newUser.name || "",
@@ -263,17 +263,21 @@ export async function managedEventManualReassignment({
         timeZone: att.timeZone,
         language: { translate: newUserT, locale: att.locale ?? "en" },
       })),
-      team: targetEventTypeDetails.team ? {
-        members: [{
-          id: newUser.id,
-          email: newUser.email,
-          name: newUser.name || "",
-          timeZone: newUser.timeZone,
-          language: { translate: newUserT, locale: newUser.locale ?? "en" },
-        }],
-        name: targetEventTypeDetails.team.name || "",
-        id: targetEventTypeDetails.team.id || 0,
-      } : undefined,
+      team: targetEventTypeDetails.team
+        ? {
+            members: [
+              {
+                id: newUser.id,
+                email: newUser.email,
+                name: newUser.name || "",
+                timeZone: newUser.timeZone,
+                language: { translate: newUserT, locale: newUser.locale ?? "en" },
+              },
+            ],
+            name: targetEventTypeDetails.team.name || "",
+            id: targetEventTypeDetails.team.id || 0,
+          }
+        : undefined,
       location: newBooking.location || undefined,
       description: newBooking.description || undefined,
     };
@@ -362,7 +366,7 @@ export async function managedEventManualReassignment({
     try {
       const eventTypeMetadata = targetEventTypeDetails.metadata as EventTypeMetadata | undefined;
 
-      const calEvent = {
+      const calEvent: CalendarEvent = {
         type: targetEventTypeDetails.slug,
         uid: newBooking.uid,
         title: newBooking.title,
@@ -384,7 +388,9 @@ export async function managedEventManualReassignment({
         })),
         location: newBooking.location || undefined,
         description: newBooking.description || undefined,
-        metadata: videoCallUrl ? { videoCallUrl, ...additionalInformation } : undefined,
+        videoCallData: evt.videoCallData,
+        additionalInformation,
+        metadata: videoCallUrl ? { videoCallUrl } : undefined,
       };
 
       await sendReassignedScheduledEmailsAndSMS({
