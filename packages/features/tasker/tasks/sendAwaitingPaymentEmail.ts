@@ -7,6 +7,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 
 const log = logger.getSubLogger({ prefix: ["sendAwaitingPaymentEmail"] });
 
@@ -74,9 +75,23 @@ export async function sendAwaitingPaymentEmail(payload: string): Promise<void> {
     }
 
     // Filter attendees if this is for a specific seat
-    const attendeesToEmail = attendeeSeatId
-      ? evt.attendees.filter((attendee) => attendee.bookingSeat?.referenceUid === attendeeSeatId)
-      : evt.attendees;
+    let attendeesToEmail = evt.attendees;
+    if (attendeeSeatId) {
+      const attendeeRepository = new AttendeeRepository(prisma);
+      const seatAttendees = await attendeeRepository.findByBookingIdAndSeatReference(
+        bookingId,
+        attendeeSeatId
+      );
+      const seatEmails = new Set(seatAttendees.map((a) => (a.email || "").toLowerCase()));
+      attendeesToEmail = evt.attendees.filter((attendee) =>
+        seatEmails.has((attendee.email || "").toLowerCase())
+      );
+
+      if (attendeesToEmail.length === 0) {
+        log.warn(`No attendees found for seat ${attendeeSeatId} in booking ${bookingId}, skipping email`);
+        return;
+      }
+    }
 
     // Get payment details needed for the email
     const paymentRecord = await prisma.payment.findUnique({
