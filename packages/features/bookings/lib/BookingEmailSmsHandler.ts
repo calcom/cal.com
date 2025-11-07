@@ -34,6 +34,11 @@ export const BookingActionMap = {
   requested: "BOOKING_REQUESTED",
 } as const;
 
+export type BookingActionType =
+  | (typeof BookingActionMap)["confirmed"]
+  | (typeof BookingActionMap)["rescheduled"]
+  | (typeof BookingActionMap)["requested"];
+
 type EmailAndSmsPayload = {
   evt: CalendarEvent;
   eventType: {

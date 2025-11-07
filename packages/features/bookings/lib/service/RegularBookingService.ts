@@ -1,4 +1,3 @@
-import cloneDeep from "lodash/cloneDeep";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -96,11 +95,7 @@ import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { BookingRepository } from "../../repositories/BookingRepository";
-import {
-  BookingActionMap,
-  BookingEmailSmsHandler,
-  EmailsAndSmsSideEffectsPayload,
-} from "../BookingEmailSmsHandler";
+import { BookingActionMap, BookingEmailSmsHandler, type BookingActionType } from "../BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "../getBookingDataSchema";
@@ -487,7 +482,7 @@ async function handler(
     skipEventLimitsCheck = false,
     skipCalendarSyncTaskCreation = false,
   } = input;
-
+  let bookingEmailsAndSmsTaskerAction: BookingActionType = BookingActionMap.requested;
   const isPlatformBooking = !!platformClientId;
 
   const eventType = await getEventType({
@@ -536,7 +531,6 @@ async function handler(
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: loggerWithEventDetails });
-  let emailsAndSmsPayload: EmailsAndSmsSideEffectsPayload | null = null;
 
   try {
     await checkIfBookerEmailIsBlocked({
@@ -1251,9 +1245,9 @@ async function handler(
   // This ensures that createMeeting isn't called for static video apps as bookingLocation becomes just a regular value for them.
   const { bookingLocation, conferenceCredentialId } = organizerOrFirstDynamicGroupMemberDefaultLocationUrl
     ? {
-      bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
-      conferenceCredentialId: undefined,
-    }
+        bookingLocation: organizerOrFirstDynamicGroupMemberDefaultLocationUrl,
+        conferenceCredentialId: undefined,
+      }
     : getLocationValueForDB(locationBodyString, eventType.locations);
 
   log.info("locationBodyString", locationBodyString);
@@ -1299,8 +1293,8 @@ async function handler(
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
     : organizerUser.destinationCalendar
-      ? [organizerUser.destinationCalendar]
-      : null;
+    ? [organizerUser.destinationCalendar]
+    : null;
 
   let organizerEmail = organizerUser.email || "Email-less";
   if (eventType.useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
@@ -1919,14 +1913,14 @@ async function handler(
     }
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
-        evt,
-        originalRescheduledBooking.uid,
-        undefined,
-        changedOrganizer,
-        previousHostDestinationCalendar,
-        isBookingRequestedReschedule,
-        skipDeleteEventsAndMeetings
-      )
+          evt,
+          originalRescheduledBooking.uid,
+          undefined,
+          changedOrganizer,
+          previousHostDestinationCalendar,
+          isBookingRequestedReschedule,
+          skipDeleteEventsAndMeetings
+        )
       : placeholderCreatedEvent;
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -2042,8 +2036,8 @@ async function handler(
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
-    if (isConfirmedByDefault) {
-      emailsAndSmsPayload = cloneDeep({
+    if (!noEmail && isConfirmedByDefault && !isDryRun) {
+      await emailsAndSmsHandler.send({
         action: BookingActionMap.rescheduled,
         data: {
           evt,
@@ -2058,6 +2052,7 @@ async function handler(
           changedOrganizer,
         },
       });
+      bookingEmailsAndSmsTaskerAction = BookingActionMap.rescheduled;
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
@@ -2165,23 +2160,25 @@ async function handler(
           });
         }
       }
-
-      if (!(eventType.seatsPerTimeSlot && rescheduleUid)) {
-        emailsAndSmsPayload = cloneDeep({
-          action: BookingActionMap.confirmed,
-          data: {
-            eventType: {
-              metadata: eventType.metadata,
-              schedulingType: eventType.schedulingType,
+      if (!noEmail) {
+        if (!isDryRun && !(eventType.seatsPerTimeSlot && rescheduleUid)) {
+          await emailsAndSmsHandler.send({
+            action: BookingActionMap.confirmed,
+            data: {
+              eventType: {
+                metadata: eventType.metadata,
+                schedulingType: eventType.schedulingType,
+              },
+              eventNameObject,
+              workflows,
+              evt,
+              additionalInformation,
+              additionalNotes,
+              customInputs,
             },
-            eventNameObject,
-            workflows,
-            evt,
-            additionalInformation,
-            additionalNotes,
-            customInputs,
-          },
-        });
+          });
+          bookingEmailsAndSmsTaskerAction = BookingActionMap.confirmed;
+        }
       }
     }
   } else {
@@ -2202,17 +2199,20 @@ async function handler(
     !originalRescheduledBooking?.paid &&
     !!booking;
 
-  if (!isConfirmedByDefault && !bookingRequiresPayment) {
+  if (!isConfirmedByDefault && noEmail !== true && !bookingRequiresPayment) {
     loggerWithEventDetails.debug(
       `Emails: Booking ${organizerUser.username} requires confirmation, sending request emails`,
       safeStringify({
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    emailsAndSmsPayload = cloneDeep({
-      action: BookingActionMap.requested,
-      data: { evt, attendees: attendeesList, eventType, additionalNotes },
-    });
+    if (!isDryRun) {
+      await emailsAndSmsHandler.send({
+        action: BookingActionMap.requested,
+        data: { evt, attendees: attendeesList, eventType, additionalNotes },
+      });
+      bookingEmailsAndSmsTaskerAction = BookingActionMap.requested;
+    }
   }
 
   if (booking.location?.startsWith("http")) {
@@ -2221,8 +2221,8 @@ async function handler(
 
   const metadata = videoCallUrl
     ? {
-      videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
-    }
+        videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl,
+      }
     : undefined;
 
   const bookingFlowConfig = {
@@ -2311,9 +2311,9 @@ async function handler(
         ...eventType,
         metadata: eventType.metadata
           ? {
-            ...eventType.metadata,
-            apps: eventType.metadata?.apps as Prisma.JsonValue,
-          }
+              ...eventType.metadata,
+              apps: eventType.metadata?.apps as Prisma.JsonValue,
+            }
           : {},
       },
       paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
@@ -2581,12 +2581,11 @@ async function handler(
       isTeamEventType,
     });
 
-    if (!noEmail && emailsAndSmsPayload) {
+    if (!noEmail && process.env.ENABLE_ASYNC_TASKER === "true") {
       // TODO: Add Team Feature Flag to enable booking tasker or not
-      await emailsAndSmsHandler.send(emailsAndSmsPayload);
-      /* await deps.bookingEmailAndSmsTasker.send({
-        action: emailsAndSmsPayload.action,
-        schedulingType: emailsAndSmsPayload.data.eventType.schedulingType,
+      await deps.bookingEmailAndSmsTasker.send({
+        action: bookingEmailsAndSmsTaskerAction,
+        schedulingType: evtWithMetadata.eventType.schedulingType,
         payload: {
           bookingId: booking.id,
           conferenceCredentialId,
@@ -2595,7 +2594,7 @@ async function handler(
           platformCancelUrl,
           platformBookingUrl,
         },
-      }); */
+      });
     }
   }
 
@@ -2627,7 +2626,7 @@ async function handler(
  * We are open to renaming it to something more descriptive.
  */
 export class RegularBookingService implements IBookingService {
-  constructor(private readonly deps: IBookingServiceDependencies) { }
+  constructor(private readonly deps: IBookingServiceDependencies) {}
 
   async createBooking(input: { bookingData: CreateRegularBookingData; bookingMeta?: CreateBookingMeta }) {
     return handler({ bookingData: input.bookingData, ...input.bookingMeta }, this.deps);
