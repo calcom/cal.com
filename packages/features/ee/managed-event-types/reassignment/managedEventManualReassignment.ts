@@ -13,12 +13,10 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { userSelect } from "@calcom/prisma/selects/user";
+
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 import { cancelWorkflowRemindersForReassignment } from "./lib/cancelWorkflowReminders";
@@ -83,15 +81,9 @@ export async function managedEventManualReassignment({
     throw new Error("Failed to load event type details");
   }
 
-    const newUser = await prisma.user.findUnique({
-      where: { id: newUserId },
-      select: {
-        ...userSelect,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-      },
-    });
+  const newUser = await userRepository.findByIdWithCredentialsAndCalendar({
+    userId: newUserId,
+  });
 
   if (!newUser) {
     throw new Error(`User ${newUserId} not found`);
@@ -253,6 +245,8 @@ export async function managedEventManualReassignment({
       title: newBooking.title,
       type: targetEventTypeDetails.slug,
       uid: newBooking.uid,
+      iCalUID: newBooking.iCalUID,
+      destinationCalendar: newUser.destinationCalendar ? [newUser.destinationCalendar] : [],
       attendees: newBooking.attendees.map((att: {
         name: string;
         email: string;
@@ -281,22 +275,41 @@ export async function managedEventManualReassignment({
         : undefined,
       location: newBooking.location || undefined,
       description: newBooking.description || undefined,
+      hideOrganizerEmail: targetEventTypeDetails.hideOrganizerEmail,
     };
 
     const createManager = await newEventManager.create(evt);
     const results = createManager.results || [];
+    const referencesToCreate = createManager.referencesToCreate || [];
     
-    // Extract video call URL from results and populate evt.additionalInformation
+    // Extract videoCallUrl from evt.videoCallData first (Cal Video, Teams, etc.)
+    videoCallUrl = evt.videoCallData?.url ?? null;
+
+    // Extract additional information from calendar creation results
     if (results.length) {
       additionalInformation.hangoutLink = results[0]?.createdEvent?.hangoutLink;
       additionalInformation.conferenceData = results[0]?.createdEvent?.conferenceData;
       additionalInformation.entryPoints = results[0]?.createdEvent?.entryPoints;
       evt.additionalInformation = additionalInformation;
+
+      // Prefer hangoutLink over videoCallData.url
+      videoCallUrl = additionalInformation.hangoutLink || videoCallUrl;
     }
 
-    // Capture videoCallData for emails (e.g., Cal Video, Teams)
+
     videoCallData = evt.videoCallData;
-    videoCallUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
+    
+    if (referencesToCreate.length > 0) {
+      try {
+        await bookingRepository.addBookingReferences({
+          bookingId: newBooking.id,
+          references: referencesToCreate,
+        });
+        reassignLogger.info(`Created ${referencesToCreate.length} booking references for new calendar events`);
+      } catch (error) {
+        reassignLogger.error("Error creating booking references", error);
+      }
+    }
     
     reassignLogger.info("Created calendar events for new user");
   } catch (error) {
@@ -393,6 +406,7 @@ export async function managedEventManualReassignment({
         description: newBooking.description || undefined,
         videoCallData,
         additionalInformation,
+        schedulingType: null,
       };
 
       await sendReassignedScheduledEmailsAndSMS({

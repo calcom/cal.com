@@ -1358,6 +1358,7 @@ export class BookingRepository {
       },
       select: {
         id: true,
+        uid: true,
         eventTypeId: true,
         userId: true,
         startTime: true,
@@ -1459,6 +1460,25 @@ export class BookingRepository {
           },
         },
         responses: updatedResponses,
+      },
+    });
+  }
+
+  async addBookingReferences({
+    bookingId,
+    references,
+  }: {
+    bookingId: number;
+    references: Prisma.BookingReferenceCreateInput[];
+  }) {
+    await this.prismaClient.booking.update({
+      where: { id: bookingId },
+      data: {
+        references: {
+          createMany: {
+            data: references,
+          },
+        },
       },
     });
   }
