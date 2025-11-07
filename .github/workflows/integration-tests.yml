@@ -5,6 +5,7 @@ permissions:
   contents: read
 env:
   NODE_OPTIONS: --max-old-space-size=4096
+  SKIP_DB_MIGRATIONS: "1"
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
