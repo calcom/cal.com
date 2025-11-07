@@ -70,8 +70,6 @@ jobs:
         ports:
           - 8025:8025
           - 1025:1025
-    strategy:
-      fail-fast: false
     steps:
       - uses: docker/login-action@v3
         with:
