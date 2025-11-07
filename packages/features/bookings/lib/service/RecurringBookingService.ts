@@ -4,7 +4,6 @@ import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 
 
@@ -15,6 +14,7 @@ import { loadAndProcessUsersWithSeats } from "../handleNewBooking/loadAndProcess
 import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
 import type { IBookingService } from "../interfaces/IBookingService";
 import type { IsFixedAwareUserWithCredentials, RegularBookingService } from "./RegularBookingService";
+
 
 export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;
@@ -102,7 +102,6 @@ export const handleNewRecurringBooking = async (
       ? processedUsersResult.users.filter((user) => user.isFixed)
       : [];
 
-    console.log(`Checking availability for ${allRecurringDates.length} slots with single API call...`);
 
     const timeSlots = allRecurringDates
       .filter((date) => date.start && date.end)
