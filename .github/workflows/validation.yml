@@ -1,0 +1,47 @@
+name: Validation (Type Check, Lint, Unit Tests)
+on:
+  workflow_call:
+env:
+  NODE_OPTIONS: --max-old-space-size=4096
+  LINGO_DOT_DEV_API_KEY: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
+permissions:
+  actions: write
+  contents: read
+jobs:
+  validation:
+    name: Validation
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      
+      # Type Check
+      - name: Show info
+        run: node -e "console.log(require('v8').getHeapStatistics())"
+      - name: Configure TSC problem matcher
+        run: |
+          echo "::remove-matcher owner=tsc::"
+          echo "::add-matcher::.github/matchers/tsc-absolute.json"
+      - name: Type Check
+        run: yarn type-check:ci
+      
+      # Lint
+      - name: Lint
+        run: yarn lint
+        continue-on-error: true
+      
+      # Unit Tests
+      - name: Unit Tests
+        run: yarn test -- --no-isolate
+      
+      - name: Unit Tests (Timezone Dependent)
+        run: TZ=America/Los_Angeles yarn test -- --timeZoneDependentTestsOnly --no-isolate
+      
+      # API v2 Unit Tests
+      - name: API v2 Unit Tests
+        working-directory: apps/api/v2
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          yarn workspace @calcom/platform-libraries build && yarn test

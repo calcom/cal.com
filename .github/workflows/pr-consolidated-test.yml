@@ -1,19 +1,16 @@
-name: PR Update
+name: PR Consolidated Test (Branch Only)
 
 on:
-  pull_request_target:
-    types: [opened, synchronize, reopened, labeled]
+  push:
     branches:
-      - main
-      - gh-actions-test-branch
-  workflow_dispatch:
+      - devin/consolidate-github-actions-1762536826
 
 permissions:
   actions: write
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
