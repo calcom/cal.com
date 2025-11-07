@@ -2,7 +2,7 @@ import { it, expect, describe, beforeAll } from "vitest";
 
 import { getRegExpThatMatchesAllOrgDomains } from "../../getNextjsOrgRewriteConfig";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { match, pathToRegexp } = require("next/dist/compiled/path-to-regexp");
 type MatcherRes = (path: string) => { params: Record<string, string> };
 let orgUserTypeRouteMatch: MatcherRes;
@@ -15,7 +15,6 @@ beforeAll(async () => {
   const {
     orgUserRoutePath,
     orgUserTypeRoutePath,
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
   } = require("../../pagesAndRewritePaths");
 
   orgUserTypeRouteMatch = match(orgUserTypeRoutePath);
@@ -161,6 +160,16 @@ describe("next.config.js - Org Rewrite", () => {
       expect(orgUserTypeRouteMatch("/success/abcd")).toEqual(false);
       expect(orgUserRouteMatch("/forms/xdsdf-sd")).toEqual(false);
       expect(orgUserRouteMatch("/router?form=")).toEqual(false);
+    });
+
+    it("Whitelisted routes should match on org domains", () => {
+      expect(orgUserRouteMatch("/onboarding")?.params).toEqual({
+        user: "onboarding",
+      });
+      expect(orgUserTypeRouteMatch("/onboarding/30min")?.params).toEqual({
+        user: "onboarding",
+        type: "30min",
+      });
     });
   });
 });
