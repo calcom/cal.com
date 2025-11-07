@@ -369,7 +369,7 @@ export default function Login({
                         <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
                       </Button>
                       {lastUsed === "credentials" && (
-                        <span className="bg-default absolute right-2 top-2 z-10 rounded-full border border-gray-200 px-2.5 py-1 text-xs font-semibold text-default">
+                        <span className="bg-default absolute right-2 -top-3 z-10 rounded-full border border-gray-200 px-2.5 py-1 text-xs font-semibold text-default">
                           ⭐ Last Used
                         </span>
                       )}
