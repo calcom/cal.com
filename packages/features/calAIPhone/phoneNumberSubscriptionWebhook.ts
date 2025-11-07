@@ -8,6 +8,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
@@ -58,7 +59,7 @@ function validateAndExtractMetadata(session: Stripe.Checkout.Session): CheckoutS
   const result = checkoutSessionMetadataSchema.safeParse(session.metadata);
   if (!result.success) {
     log.error(`Invalid checkout session metadata: ${safeStringify(result.error.issues)}`);
-    throw new ErrorWithCode(ErrorCode.InvalidInput, "Invalid checkout session metadata");
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Invalid checkout session metadata");
   }
 
   return result.data;
@@ -78,7 +79,7 @@ function handleError(error: unknown) {
   const url = new URL(`${WEBAPP_URL}/workflows`);
   url.searchParams.set("error", "true");
 
-  if (error instanceof ErrorWithCode) {
+  if (error instanceof HttpError) {
     url.searchParams.set("message", error.message);
   } else {
     url.searchParams.set("message", "An error occurred while processing your subscription");

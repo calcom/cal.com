@@ -80,7 +80,7 @@ export class BotDetectionService {
 
     if (verification.isBot) {
       log.warn("Bot detected - blocking request", verificationDetails);
-      throw new ErrorWithCode(ErrorCode.Unauthorized, "Access denied");
+      throw new ErrorWithCode(ErrorCode.Forbidden, "Access denied");
     }
   }
 }
