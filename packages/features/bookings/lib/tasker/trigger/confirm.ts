@@ -8,7 +8,7 @@ import { TriggerDevLogger } from "@calcom/trigger/logger";
 
 import { BookingEmailAndSmsTaskService } from "../BookingEmailAndSmsTaskService";
 
-export const reschedule = schemaTask({
+export const confirm = schemaTask({
   id: "booking.confirm",
   schema: z.object({
     bookingId: z.number(),
