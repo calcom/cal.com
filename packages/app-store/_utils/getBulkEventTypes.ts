@@ -46,19 +46,7 @@ export const getBulkUserEventTypes = async (userId: number) => {
     },
   });
 
-  const filteredEventTypes = eventTypes.filter((eventType) => {
-    if (!eventType.parentId) {
-      return true;
-    }
-
-    const metadata = eventTypeMetaDataSchemaWithoutApps.safeParse(eventType.metadata);
-    if (!metadata.success || !metadata.data?.managedEventConfig) {
-      return true;
-    }
-
-    const unlockedFields = metadata.data.managedEventConfig.unlockedFields;
-    return unlockedFields?.locations !== undefined;
-  });
+  const filteredEventTypes = filterEventTypesWhereLocationUpdateIsAllowed(eventTypes);
 
   return processEventTypes(filteredEventTypes);
 };
@@ -77,4 +65,25 @@ export const getBulkTeamEventTypes = async (teamId: number) => {
   });
 
   return processEventTypes(eventTypes);
+};
+
+export const filterEventTypesWhereLocationUpdateIsAllowed = <
+  T extends { parentId: number | null; metadata: unknown }
+>(
+  eventTypes: T[]
+): T[] => {
+  const filteredEventTypes = eventTypes.filter((eventType) => {
+    if (!eventType.parentId) {
+      return true;
+    }
+
+    const metadata = eventTypeMetaDataSchemaWithoutApps.safeParse(eventType.metadata);
+    if (!metadata.success || !metadata.data?.managedEventConfig) {
+      return true;
+    }
+
+    const unlockedFields = metadata.data.managedEventConfig.unlockedFields;
+    return unlockedFields?.locations !== undefined;
+  });
+  return filteredEventTypes;
 };

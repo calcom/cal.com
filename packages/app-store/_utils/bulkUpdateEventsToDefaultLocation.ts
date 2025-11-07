@@ -1,9 +1,10 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
-import { userMetadata as userMetadataSchema, eventTypeMetaDataSchemaWithoutApps } from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { LocationObject } from "../locations";
 import { getAppFromSlug } from "../utils";
+import { filterEventTypesWhereLocationUpdateIsAllowed } from "./getBulkEventTypes";
 
 export const bulkUpdateEventsToDefaultLocation = async ({
   eventTypeIds,
@@ -50,21 +51,9 @@ export const bulkUpdateEventsToDefaultLocation = async ({
     },
   });
 
-  const validEventTypeIds = eventTypesToUpdate
-    .filter((eventType) => {
-      if (!eventType.parentId) {
-        return true;
-      }
-
-      const metadata = eventTypeMetaDataSchemaWithoutApps.safeParse(eventType.metadata);
-      if (!metadata.success || !metadata.data?.managedEventConfig) {
-        return true;
-      }
-
-      const unlockedFields = metadata.data.managedEventConfig.unlockedFields;
-      return unlockedFields?.locations !== undefined;
-    })
-    .map((eventType) => eventType.id);
+  const validEventTypeIds = filterEventTypesWhereLocationUpdateIsAllowed(eventTypesToUpdate).map(
+    (eventType) => eventType.id
+  );
 
   if (validEventTypeIds.length === 0) {
     return { count: 0 };
