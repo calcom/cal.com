@@ -37,7 +37,11 @@ export class EventTypesPrivateLinksController {
     @Body() body: CreatePrivateLinkInput,
     @GetUser("id") userId: number
   ): Promise<CreatePrivateLinkOutput> {
-    const privateLink = await this.privateLinksService.createPrivateLink(eventTypeId, userId, body);
+    const privateLink = await this.privateLinksService.createPrivateLink(
+      eventTypeId,
+      userId,
+      body
+    );
 
     return {
       status: SUCCESS_STATUS,
@@ -72,7 +76,10 @@ export class EventTypesPrivateLinksController {
     @Body() body: UpdatePrivateLinkBody
   ): Promise<UpdatePrivateLinkOutput> {
     const updateInput = { ...body, linkId };
-    const privateLink = await this.privateLinksService.updatePrivateLink(eventTypeId, updateInput);
+    const privateLink = await this.privateLinksService.updatePrivateLink(
+      eventTypeId,
+      updateInput
+    );
 
     return {
       status: SUCCESS_STATUS,

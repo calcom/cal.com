@@ -4,8 +4,10 @@ import {
   PrivateLinksOutputService,
   type PrivateLinkData,
 } from "@/ee/event-types-private-links/services/private-links-output.service";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 
+import { getOrgFullOrigin } from "@calcom/platform-libraries/private-links";
 import { generateHashedLink, isLinkExpired } from "@calcom/platform-libraries/private-links";
 import { CreatePrivateLinkInput, PrivateLinkOutput, UpdatePrivateLinkInput } from "@calcom/platform-types";
 
@@ -14,13 +16,16 @@ export class PrivateLinksService {
   constructor(
     private readonly inputService: PrivateLinksInputService,
     private readonly outputService: PrivateLinksOutputService,
-    private readonly repo: PrivateLinksRepository
+    private readonly repo: PrivateLinksRepository,
+    private readonly eventTypesRepository: EventTypesRepository_2024_06_14
   ) {}
 
   async createPrivateLink(
     eventTypeId: number,
     userId: number,
-    input: CreatePrivateLinkInput
+    input: CreatePrivateLinkInput,
+    orgSlug?: string,
+    eventTypeSlug?: string
   ): Promise<PrivateLinkOutput> {
     try {
       const transformedInput = this.inputService.transformCreateInput(input);
@@ -29,14 +34,16 @@ export class PrivateLinksService {
         expiresAt: transformedInput.expiresAt ?? null,
         maxUsageCount: transformedInput.maxUsageCount ?? null,
       });
+      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
+      const bookingUrl = this.generateBookingUrl(created.link, orgSlug, resolvedSlug);
       const mapped: PrivateLinkData = {
         id: created.link,
         eventTypeId,
-        isExpired: isLinkExpired(created as any),
-        bookingUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com"}/d/${created.link}`,
+        isExpired: isLinkExpired(created),
+        bookingUrl,
         expiresAt: created.expiresAt ?? null,
-        maxUsageCount: (created as any).maxUsageCount ?? null,
-        usageCount: (created as any).usageCount ?? 0,
+        maxUsageCount: created.maxUsageCount ?? null,
+        usageCount: created.usageCount ?? 0,
       };
       return this.outputService.transformToOutput(mapped);
     } catch (error) {
@@ -47,14 +54,19 @@ export class PrivateLinksService {
     }
   }
 
-  async getPrivateLinks(eventTypeId: number): Promise<PrivateLinkOutput[]> {
+  async getPrivateLinks(
+    eventTypeId: number,
+    orgSlug?: string,
+    eventTypeSlug?: string
+  ): Promise<PrivateLinkOutput[]> {
     try {
       const links = await this.repo.listByEventTypeId(eventTypeId);
+      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
       const mapped: PrivateLinkData[] = links.map((l) => ({
         id: l.link,
         eventTypeId,
-        isExpired: isLinkExpired(l as any),
-        bookingUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com"}/d/${l.link}`,
+        isExpired: isLinkExpired(l),
+        bookingUrl: this.generateBookingUrl(l.link, orgSlug, resolvedSlug),
         expiresAt: l.expiresAt ?? null,
         maxUsageCount: l.maxUsageCount ?? null,
         usageCount: l.usageCount ?? 0,
@@ -68,7 +80,12 @@ export class PrivateLinksService {
     }
   }
 
-  async updatePrivateLink(eventTypeId: number, input: UpdatePrivateLinkInput): Promise<PrivateLinkOutput> {
+  async updatePrivateLink(
+    eventTypeId: number,
+    input: UpdatePrivateLinkInput,
+    orgSlug?: string,
+    eventTypeSlug?: string
+  ): Promise<PrivateLinkOutput> {
     try {
       const transformedInput = this.inputService.transformUpdateInput(input);
       const updatedResult = await this.repo.update(eventTypeId, {
@@ -76,16 +93,18 @@ export class PrivateLinksService {
         expiresAt: transformedInput.expiresAt ?? null,
         maxUsageCount: transformedInput.maxUsageCount ?? null,
       });
-      if (!updatedResult || (updatedResult as any).count === 0) {
+      if (!updatedResult || updatedResult.count === 0) {
         throw new NotFoundException("Updated link not found");
       }
       const updated = await this.repo.findWithEventTypeDetails(transformedInput.linkId);
       if (!updated) throw new NotFoundException("Updated link not found");
+      const resolvedSlug = await this.resolveEventTypeSlug(eventTypeId, eventTypeSlug);
+      const bookingUrl = this.generateBookingUrl(updated.link, orgSlug, resolvedSlug);
       const mapped: PrivateLinkData = {
         id: updated.link,
         eventTypeId,
-        isExpired: isLinkExpired(updated as any),
-        bookingUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com"}/d/${updated.link}`,
+        isExpired: isLinkExpired(updated),
+        bookingUrl,
         expiresAt: updated.expiresAt ?? null,
         maxUsageCount: updated.maxUsageCount ?? null,
         usageCount: updated.usageCount ?? 0,
@@ -117,5 +136,27 @@ export class PrivateLinksService {
       }
       throw new BadRequestException("Failed to delete private link");
     }
+  }
+
+  private async resolveEventTypeSlug(
+    eventTypeId: number,
+    providedSlug?: string
+  ): Promise<string | undefined> {
+    if (providedSlug) return providedSlug;
+    const slug = await this.eventTypesRepository.getEventTypeSlugById(eventTypeId);
+    return slug ?? undefined;
+  }
+
+  private generateBookingUrl(hashedLink: string, orgSlug?: string, eventTypeSlug?: string): string {
+    if (orgSlug && eventTypeSlug) {
+      const origin = getOrgFullOrigin(orgSlug, { protocol: true }).replace(/\/$/, "");
+      return `${origin}/d/${hashedLink}/${eventTypeSlug}`;
+    }
+
+    const fallbackOrigin = process.env.NEXT_PUBLIC_WEBAPP_URL || "https://cal.com";
+    if (eventTypeSlug) {
+      return `${fallbackOrigin}/d/${hashedLink}/${eventTypeSlug}`;
+    }
+    return `${fallbackOrigin}/d/${hashedLink}`;
   }
 }
