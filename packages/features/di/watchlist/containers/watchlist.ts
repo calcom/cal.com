@@ -13,7 +13,7 @@ import type { GlobalBlockingService } from "@calcom/features/watchlist/lib/servi
 import type { OrganizationBlockingService } from "@calcom/features/watchlist/lib/service/OrganizationBlockingService";
 import type { WatchlistAuditService } from "@calcom/features/watchlist/lib/service/WatchlistAuditService";
 import type { WatchlistService } from "@calcom/features/watchlist/lib/service/WatchlistService";
-import { moduleLoader as prismaModuleLoader } from "@calcom/prisma/prisma.module";
+import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 
 import { WATCHLIST_DI_TOKENS } from "../Watchlist.tokens";
 import { watchlistModule } from "../modules/Watchlist.module";

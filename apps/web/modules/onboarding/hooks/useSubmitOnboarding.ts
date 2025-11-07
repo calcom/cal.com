@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { setShowNewOrgModalFlag } from "@calcom/features/ee/organizations/hooks/useWelcomeModal";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -16,20 +17,17 @@ export const useSubmitOnboarding = () => {
 
   const intentToCreateOrg = trpc.viewer.organizations.intentToCreateOrg.useMutation();
 
-  const submitOnboarding = async (store: OnboardingState, userEmail: string) => {
+  const submitOnboarding = async (
+    store: OnboardingState,
+    userEmail: string,
+    invitesToSubmit: OnboardingState["invites"]
+  ) => {
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const {
-        selectedPlan,
-        organizationDetails,
-        organizationBrand,
-        teams,
-        invites,
-        inviteRole,
-        resetOnboarding,
-      } = store;
+      const { selectedPlan, organizationDetails, organizationBrand, teams, inviteRole, resetOnboarding } =
+        store;
 
       if (selectedPlan !== "organization") {
         throw new Error("Only organization plan is currently supported");
@@ -46,7 +44,7 @@ export const useSubmitOnboarding = () => {
         }));
 
       // Prepare invites data
-      const invitedMembersData = invites
+      const invitedMembersData = invitesToSubmit
         .filter((invite) => invite.email.trim().length > 0)
         .map((invite) => ({
           email: invite.email,
@@ -80,7 +78,8 @@ export const useSubmitOnboarding = () => {
       // No checkout URL means billing is disabled (self-hosted flow)
       // Organization has already been created by the backend
       showToast("Organization created successfully!", "success");
-      // TODO: after this redirect we need to hard refresh the page to see org
+      // Set flag to show welcome modal after personal onboarding redirect
+      setShowNewOrgModalFlag();
       skipToPersonal(resetOnboarding);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to create organization";
