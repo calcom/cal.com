@@ -5,10 +5,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import * as billingModule from "../..";
-import { BillingRepositoryFactory } from "../../repository/billing/billingRepositoryFactory";
+import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
+import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
+import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import { TeamBillingService } from "./teamBillingService";
-import { TeamBillingPublishResponseStatus } from "./teamBillingService.interface";
+import { TeamBillingPublishResponseStatus } from "./ITeamBillingService";
 
 vi.mock("@calcom/lib/constants", async () => {
   const actual = await vi.importActual("@calcom/lib/constants");
@@ -18,19 +19,10 @@ vi.mock("@calcom/lib/constants", async () => {
   };
 });
 
-vi.mock("..", () => ({
-  default: {
-    handleSubscriptionCancel: vi.fn(),
-    handleSubscriptionUpdate: vi.fn(),
-    checkoutSessionIsPaid: vi.fn(),
-  },
-}));
-
 vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
   purchaseTeamOrOrgSubscription: vi.fn(),
 }));
 
-vi.mock("../../repository/billing/billingRepositoryFactory");
 const mockTeam = {
   id: 1,
   metadata: {
@@ -42,9 +34,37 @@ const mockTeam = {
   parentId: null,
 };
 
+const createMockBillingProviderService = (): IBillingProviderService => ({
+  handleSubscriptionCancel: vi.fn(),
+  handleSubscriptionUpdate: vi.fn(),
+  checkoutSessionIsPaid: vi.fn(),
+  getSubscriptionStatus: vi.fn(),
+  handleEndTrial: vi.fn(),
+  createCustomer: vi.fn(),
+  createPrice: vi.fn(),
+  getPrice: vi.fn(),
+  getCheckoutSession: vi.fn(),
+  createCheckoutSession: vi.fn(),
+});
+
+const createMockTeamBillingDataRepository = (): ITeamBillingDataRepository => ({
+  find: vi.fn(),
+});
+
+const createMockBillingRepository = (): IBillingRepository => ({
+  create: vi.fn(),
+});
+
 describe("TeamBillingService", () => {
+  let mockBillingProviderService: IBillingProviderService;
+  let mockTeamBillingDataRepository: ITeamBillingDataRepository;
+  let mockBillingRepository: IBillingRepository;
+
   beforeEach(() => {
     vi.resetAllMocks();
+    mockBillingProviderService = createMockBillingProviderService();
+    mockTeamBillingDataRepository = createMockTeamBillingDataRepository();
+    mockBillingRepository = createMockBillingRepository();
   });
 
   afterEach(() => {
@@ -52,11 +72,17 @@ describe("TeamBillingService", () => {
   });
 
   describe("cancel", () => {
-    const teamBillingService = new TeamBillingService(mockTeam);
     it("should cancel the subscription and downgrade the team", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
       await teamBillingService.cancel();
 
-      expect(billingModule.default.handleSubscriptionCancel).toHaveBeenCalledWith("sub_123");
+      expect(mockBillingProviderService.handleSubscriptionCancel).toHaveBeenCalledWith("sub_123");
       expect(prismaMock.team.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: {
@@ -67,9 +93,15 @@ describe("TeamBillingService", () => {
   });
 
   describe("publish", () => {
-    const teamBillingService = new TeamBillingService(mockTeam);
     it("should create a checkout session and update the team", async () => {
-      vi.spyOn(billingModule.default, "checkoutSessionIsPaid").mockResolvedValue(false);
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
+      vi.mocked(mockBillingProviderService.checkoutSessionIsPaid).mockResolvedValue(false);
       vi.mocked(purchaseTeamOrOrgSubscription).mockResolvedValue({
         url: "http://checkout.url",
       });
@@ -89,7 +121,13 @@ describe("TeamBillingService", () => {
       });
     });
     it("should return upgrade url if upgrade is required", async () => {
-      const teamBillingService = new TeamBillingService(mockTeam);
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
       const mockUrl = `${WEBAPP_URL}/api/teams/${mockTeam.id}/upgrade?session_id=cs_789`;
       vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
         url: mockUrl,
@@ -113,7 +151,13 @@ describe("TeamBillingService", () => {
         ...mockTeam,
         isOrganization: false,
       };
-      const teamBillingService = new TeamBillingService(mockTeamNotOrg);
+      const teamBillingService = new TeamBillingService({
+        team: mockTeamNotOrg,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
       prismaMock.membership.count.mockResolvedValue(10);
       vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
         url: "http://checkout.url",
@@ -123,7 +167,7 @@ describe("TeamBillingService", () => {
 
       await teamBillingService.updateQuantity();
 
-      expect(billingModule.default.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      expect(mockBillingProviderService.handleSubscriptionUpdate).toHaveBeenCalledWith({
         subscriptionId: "sub_123",
         subscriptionItemId: "si_456",
         membershipCount: 10,
@@ -131,7 +175,13 @@ describe("TeamBillingService", () => {
     });
 
     it("should not update if membership count is less than minimum for organizations", async () => {
-      const teamBillingService = new TeamBillingService(mockTeam);
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
       prismaMock.membership.count.mockResolvedValue(2);
       vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
         url: "http://checkout.url",
@@ -141,14 +191,25 @@ describe("TeamBillingService", () => {
 
       await teamBillingService.updateQuantity();
 
-      expect(billingModule.default.handleSubscriptionUpdate).not.toHaveBeenCalled();
+      expect(mockBillingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
     });
   });
 
   describe("checkIfTeamPaymentRequired", () => {
-    const teamBillingService = new TeamBillingService(mockTeam);
     it("should return payment required if no paymentId", async () => {
-      teamBillingService.team.metadata.paymentId = undefined;
+      const teamWithoutPaymentId = {
+        ...mockTeam,
+        metadata: {
+          ...mockTeam.metadata,
+          paymentId: undefined,
+        },
+      };
+      const teamBillingService = new TeamBillingService({
+        team: teamWithoutPaymentId,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
 
       const result = await teamBillingService.checkIfTeamPaymentRequired();
 
@@ -156,8 +217,14 @@ describe("TeamBillingService", () => {
     });
 
     it("should return payment required if checkout session is not paid", async () => {
-      vi.spyOn(billingModule.default, "checkoutSessionIsPaid").mockResolvedValue(false);
-      const teamBillingService = new TeamBillingService(mockTeam);
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
+      vi.mocked(mockBillingProviderService.checkoutSessionIsPaid).mockResolvedValue(false);
 
       const result = await teamBillingService.checkIfTeamPaymentRequired();
 
@@ -165,8 +232,14 @@ describe("TeamBillingService", () => {
     });
 
     it("should return upgrade URL if checkout session is paid", async () => {
-      vi.spyOn(billingModule.default, "checkoutSessionIsPaid").mockResolvedValue(true);
-      const teamBillingService = new TeamBillingService(mockTeam);
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
+      vi.mocked(mockBillingProviderService.checkoutSessionIsPaid).mockResolvedValue(true);
       const result = await teamBillingService.checkIfTeamPaymentRequired();
 
       expect(result).toEqual({
@@ -178,15 +251,7 @@ describe("TeamBillingService", () => {
   });
 
   describe("saveTeamBilling", () => {
-    const mockOrgRepository = {
-      create: vi.fn(),
-    };
-
-    const mockTeamRepository = {
-      create: vi.fn(),
-    };
-
-    it("should delegate to organization billing repository when team is an organization", async () => {
+    it("should delegate to billing repository when team is an organization", async () => {
       const mockOrgTeam = {
         id: 1,
         metadata: {},
@@ -210,19 +275,21 @@ describe("TeamBillingService", () => {
         updatedAt: new Date(),
       };
 
-      mockOrgRepository.create.mockResolvedValue(mockCreatedRecord);
-      vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(
-        mockOrgRepository as unknown as ReturnType<typeof BillingRepositoryFactory.getRepository>
-      );
+      vi.mocked(mockBillingRepository.create).mockResolvedValue(mockCreatedRecord);
 
-      const teamBillingService = new TeamBillingService(mockOrgTeam);
+      const teamBillingService = new TeamBillingService({
+        team: mockOrgTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
       await teamBillingService.saveTeamBilling(mockBillingArgs);
 
-      expect(BillingRepositoryFactory.getRepository).toHaveBeenCalledWith(true);
-      expect(mockOrgRepository.create).toHaveBeenCalledWith(mockBillingArgs);
+      expect(mockBillingRepository.create).toHaveBeenCalledWith(mockBillingArgs);
     });
 
-    it("should delegate to team billing repository when team is not an organization", async () => {
+    it("should delegate to billing repository when team is not an organization", async () => {
       const mockRegularTeam = {
         id: 2,
         metadata: {},
@@ -246,16 +313,18 @@ describe("TeamBillingService", () => {
         updatedAt: new Date(),
       };
 
-      mockTeamRepository.create.mockResolvedValue(mockCreatedRecord);
-      vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(
-        mockTeamRepository as unknown as ReturnType<typeof BillingRepositoryFactory.getRepository>
-      );
+      vi.mocked(mockBillingRepository.create).mockResolvedValue(mockCreatedRecord);
 
-      const teamBillingService = new TeamBillingService(mockRegularTeam);
+      const teamBillingService = new TeamBillingService({
+        team: mockRegularTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
       await teamBillingService.saveTeamBilling(mockBillingArgs);
 
-      expect(BillingRepositoryFactory.getRepository).toHaveBeenCalledWith(false);
-      expect(mockTeamRepository.create).toHaveBeenCalledWith(mockBillingArgs);
+      expect(mockBillingRepository.create).toHaveBeenCalledWith(mockBillingArgs);
     });
 
     it("should pass all billing arguments correctly to repository", async () => {
@@ -282,15 +351,18 @@ describe("TeamBillingService", () => {
         updatedAt: new Date(),
       };
 
-      mockTeamRepository.create.mockResolvedValue(mockCreatedRecord);
-      vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(
-        mockTeamRepository as unknown as ReturnType<typeof BillingRepositoryFactory.getRepository>
-      );
+      vi.mocked(mockBillingRepository.create).mockResolvedValue(mockCreatedRecord);
 
-      const teamBillingService = new TeamBillingService(mockTeam);
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
+
       await teamBillingService.saveTeamBilling(mockBillingArgs);
 
-      expect(mockTeamRepository.create).toHaveBeenCalledWith(
+      expect(mockBillingRepository.create).toHaveBeenCalledWith(
         expect.objectContaining({
           teamId: 3,
           subscriptionId: "sub_detailed_789",
@@ -320,12 +392,14 @@ describe("TeamBillingService", () => {
       };
 
       const repositoryError = new Error("Database constraint violation");
-      mockTeamRepository.create.mockRejectedValue(repositoryError);
-      vi.mocked(BillingRepositoryFactory.getRepository).mockReturnValue(
-        mockTeamRepository as unknown as ReturnType<typeof BillingRepositoryFactory.getRepository>
-      );
+      vi.mocked(mockBillingRepository.create).mockRejectedValue(repositoryError);
 
-      const teamBillingService = new TeamBillingService(mockTeam);
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+      });
 
       await expect(teamBillingService.saveTeamBilling(mockBillingArgs)).rejects.toThrow(
         "Database constraint violation"
