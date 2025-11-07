@@ -1177,6 +1177,7 @@ export class UserRepository {
         timeZone: true,
         locale: true,
         timeFormat: true,
+        metadata: true,
         credentials: {
           select: credentialForCalendarServiceSelect,
         },
