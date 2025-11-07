@@ -7,13 +7,20 @@ import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/ma
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14 } from "@/lib/api-versions";
+import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
+import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
 import { RegularBookingService } from "@/lib/services/regular-booking.service";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
+import {
+  AuthOptionalUser,
+  GetOptionalUser,
+} from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
@@ -38,6 +45,8 @@ import {
   NotFoundException,
   UseGuards,
   BadRequestException,
+  UnauthorizedException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
@@ -113,7 +122,9 @@ export class BookingsController_2024_04_15 {
     private readonly usersService: UsersService,
     private readonly regularBookingService: RegularBookingService,
     private readonly recurringBookingService: RecurringBookingService,
-    private readonly instantBookingCreateService: InstantBookingCreateService
+    private readonly instantBookingCreateService: InstantBookingCreateService,
+    private readonly eventTypeRepository: PrismaEventTypeRepository,
+    private readonly teamRepository: PrismaTeamRepository
   ) {}
 
   @Get("/")
@@ -166,8 +177,12 @@ export class BookingsController_2024_04_15 {
   }
 
   @Get("/:bookingUid/reschedule")
-  async getBookingForReschedule(@Param("bookingUid") bookingUid: string): Promise<ApiResponse<unknown>> {
-    const booking = await getBookingForReschedule(bookingUid);
+  @UseGuards(OptionalApiAuthGuard)
+  async getBookingForReschedule(
+    @Param("bookingUid") bookingUid: string,
+    @GetOptionalUser() user: AuthOptionalUser
+  ): Promise<ApiResponse<unknown>> {
+    const booking = await getBookingForReschedule(bookingUid, user?.id);
 
     if (!booking) {
       throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
@@ -190,6 +205,8 @@ export class BookingsController_2024_04_15 {
       clientId?.toString() || (await this.getOAuthClientIdFromEventType(body.eventTypeId));
     const { orgSlug, locationUrl } = body;
     try {
+      await this.checkBookingRequiresAuthentication(req, body.eventTypeId, body.rescheduleUid);
+
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed);
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
@@ -318,11 +335,9 @@ export class BookingsController_2024_04_15 {
           recurringEvent.recurringEventId = recurringEventId;
         }
       }
-
       const bookingRequest = await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed);
-
       const createdBookings: BookingResponse[] = await this.recurringBookingService.createBooking({
-        bookingData: bookingRequest.body,
+        bookingData: body.map((booking) => ({ ...booking, creationSource: CreationSource.API_V2 })),
         bookingMeta: {
           userId: bookingRequest.userId,
           hostname: bookingRequest.headers?.host || "",
@@ -331,6 +346,7 @@ export class BookingsController_2024_04_15 {
           platformCancelUrl: bookingRequest.platformCancelUrl,
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
+          noEmail: bookingRequest.body.noEmail,
         },
       });
 
@@ -444,6 +460,76 @@ export class BookingsController_2024_04_15 {
     return oAuthClientParams.platformClientId;
   }
 
+  private async isValidRescheduleBooking(rescheduleUid: string, eventTypeId: number): Promise<boolean> {
+    const { bookingInfo } = await getBookingInfo(rescheduleUid);
+    if (!bookingInfo) {
+      return false;
+    }
+    if (bookingInfo.status !== "ACCEPTED" && bookingInfo.status !== "PENDING") {
+      return false;
+    }
+    if (bookingInfo.eventTypeId !== eventTypeId) {
+      return false;
+    }
+    return true;
+  }
+
+  private async checkBookingRequiresAuthentication(
+    req: Request,
+    eventTypeId: number,
+    rescheduleUid?: string
+  ): Promise<void> {
+    const eventType = await this.eventTypeRepository.findByIdIncludeHostsAndTeamMembers({
+      id: eventTypeId,
+    });
+
+    if (!eventType?.bookingRequiresAuthentication) {
+      return;
+    }
+
+    if (rescheduleUid) {
+      const isValidRescheduleBooking = await this.isValidRescheduleBooking(rescheduleUid, eventTypeId);
+      if (isValidRescheduleBooking) {
+        return;
+      } else {
+        throw new BadRequestException(
+          "Trying to reschedule an event-type which requires authentication but provided invalid rescheduleUid."
+        );
+      }
+    }
+
+    const userId = await this.getOwnerId(req);
+
+    if (!userId) {
+      throw new UnauthorizedException(
+        "This event type requires authentication. Please provide valid credentials."
+      );
+    }
+
+    const isEventTypeOwner = eventType.userId === userId;
+    const isHost = eventType.hosts.some((host) => host.userId === userId);
+    const isTeamAdminOrOwner = eventType.team?.members.some((member) => member.userId === userId) ?? false;
+
+    let isOrgAdminOrOwner = false;
+    if (eventType.team?.parentId) {
+      const orgTeam = await this.teamRepository.getTeamByIdIfUserIsAdmin({
+        userId,
+        teamId: eventType.team.parentId,
+      });
+      isOrgAdminOrOwner = !!orgTeam;
+    } else if (eventType.team?.isOrganization) {
+      isOrgAdminOrOwner = isTeamAdminOrOwner;
+    }
+
+    const isAuthorized = isEventTypeOwner || isHost || isTeamAdminOrOwner || isOrgAdminOrOwner;
+
+    if (!isAuthorized) {
+      throw new ForbiddenException(
+        "You are not authorized to book this event type. You must be the event type owner, a host, a team admin/owner, or an organization admin/owner."
+      );
+    }
+  }
+
   private async getOAuthClientsParams(clientId: string, isEmbed = false): Promise<OAuthRequestParams> {
     const res = { ...DEFAULT_PLATFORM_PARAMS };
 
@@ -503,7 +589,10 @@ export class BookingsController_2024_04_15 {
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
-  async setPlatformAttendeesEmails(requestBody: any, oAuthClientId: string): Promise<void> {
+  async setPlatformAttendeesEmails(
+    requestBody: { responses?: { email?: string; guests?: string[] } },
+    oAuthClientId: string
+  ): Promise<void> {
     if (requestBody?.responses?.email) {
       requestBody.responses.email = await this.platformBookingsService.getPlatformAttendeeEmail(
         requestBody.responses.email,
@@ -565,6 +654,9 @@ export class BookingsController_2024_04_15 {
 
     if (err instanceof Error) {
       const error = err as Error;
+      if (err instanceof HttpException) {
+        throw new HttpException(err.getResponse(), err.getStatus());
+      }
       if (Object.values(ErrorCode).includes(error.message as unknown as ErrorCode)) {
         throw new HttpException(error.message, 400);
       }

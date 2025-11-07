@@ -18,7 +18,6 @@ import { createRecurringBooking } from "@calcom/features/bookings/lib/create-rec
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
-import { useBookingSuccessRedirect } from "../../../lib/bookingSuccessRedirect";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -27,6 +26,7 @@ import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui/components/toast";
 
+import { useBookingSuccessRedirect } from "../../../lib/bookingSuccessRedirect";
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {

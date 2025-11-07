@@ -1,6 +1,6 @@
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import {
@@ -23,7 +23,6 @@ import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/sc
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
-import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type {
   CreateRegularBookingData,
@@ -34,14 +33,18 @@ import type { CheckBookingAndDurationLimitsService } from "@calcom/features/book
 import { handlePayment } from "@calcom/features/bookings/lib/handlePayment";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { CacheService } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -57,8 +60,6 @@ import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
-import type { BookingRepository } from "../../repositories/BookingRepository";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown, ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -66,11 +67,10 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { HashedLinkService } from "@calcom/features/hashedLink/services/hashedLinkService";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import type { DestinationCalendar, Prisma, User, AssignmentReasonEnum } from "@calcom/prisma/client";
@@ -93,6 +93,7 @@ import type {
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
+import type { BookingRepository } from "../../repositories/BookingRepository";
 import { BookingActionMap, BookingEmailSmsHandler } from "../BookingEmailSmsHandler";
 import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
@@ -417,6 +418,7 @@ export interface IBookingServiceDependencies {
   bookingRepository: BookingRepository;
   luckyUserService: LuckyUserService;
   userRepository: UserRepository;
+  hashedLinkService: HashedLinkService;
 }
 
 /**
@@ -479,19 +481,6 @@ async function handler(
     skipCalendarSyncTaskCreation = false,
   } = input;
 
-  const {
-    /**
-     * TODO: In a followup PR, we aim to remove prisma dependency and instead inject the repositories as dependencies.
-     * This would require moving multiple queries to appropriate repositories.
-     */
-    prismaClient: prisma,
-    bookingRepository,
-    userRepository,
-    cacheService,
-    checkBookingAndDurationLimitsService,
-    luckyUserService,
-  } = deps;
-
   const isPlatformBooking = !!platformClientId;
 
   const eventType = await getEventType({
@@ -531,7 +520,6 @@ async function handler(
     reroutingFormResponses,
     routingFormResponseId,
     _isDryRun: isDryRun = false,
-    _shouldServeCache,
     ...reqBody
   } = bookingData;
 
@@ -639,7 +627,7 @@ async function handler(
   ) {
     const requiresPayment = !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
 
-    const existingBooking = await bookingRepository.getValidBookingFromEventTypeForAttendee({
+    const existingBooking = await deps.bookingRepository.getValidBookingFromEventTypeForAttendee({
       eventTypeId,
       bookerEmail,
       bookerPhoneNumber,
@@ -676,10 +664,10 @@ async function handler(
     }
   }
 
-  const shouldServeCache = await cacheService.getShouldServeCache(_shouldServeCache, eventType.team?.id);
-
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
+
+  const shouldServeCache = false;
 
   loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
@@ -745,7 +733,7 @@ async function handler(
     if (routingFormResponseId === undefined) {
       throw new HttpError({ statusCode: 400, message: "Missing routingFormResponseId" });
     }
-    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+    routingFormResponse = await deps.prismaClient.app_RoutingForms_FormResponse.findUnique({
       where: {
         id: routingFormResponseId,
       },
@@ -788,7 +776,7 @@ async function handler(
   });
 
   if (!skipEventLimitsCheck) {
-    await checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
+    await deps.checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
       eventType,
       reqBodyStart: reqBody.start,
       reqBodyRescheduleUid: reqBody.rescheduleUid,
@@ -800,7 +788,7 @@ async function handler(
   let availableUsers: IsFixedAwareUser[] = [];
 
   if (eventType.seatsPerTimeSlot) {
-    const booking = await prisma.booking.findFirst({
+    const booking = await deps.prismaClient.booking.findFirst({
       where: {
         eventTypeId: eventType.id,
         startTime: new Date(dayjs(reqBody.start).utc().format()),
@@ -1008,7 +996,7 @@ async function handler(
             memberId: eventTypeWithUsers.users[0].id ?? null,
             teamId: eventType.teamId,
           });
-          const newLuckyUser = await luckyUserService.getLuckyUser({
+          const newLuckyUser = await deps.luckyUserService.getLuckyUser({
             // find a lucky user that is not already in the luckyUsers array
             availableUsers: freeUsers,
             // only hosts from the same group
@@ -1205,7 +1193,7 @@ async function handler(
     : [];
 
   const guestEmails = (reqGuests || []).map((email) => extractBaseEmail(email).toLowerCase());
-  const guestUsers = await userRepository.findManyByEmailsWithEmailVerificationSettings({
+  const guestUsers = await deps.userRepository.findManyByEmailsWithEmailVerificationSettings({
     emails: guestEmails,
   });
 
@@ -1289,7 +1277,7 @@ async function handler(
   });
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = getICalSequence(originalRescheduledBooking);
-  const organizerOrganizationProfile = await prisma.profile.findFirst({
+  const organizerOrganizationProfile = await deps.prismaClient.profile.findFirst({
     where: {
       userId: organizerUser.id,
     },
@@ -1646,7 +1634,8 @@ async function handler(
 
   const changedOrganizer =
     !!originalRescheduledBooking &&
-    (eventType.schedulingType === SchedulingType.ROUND_ROBIN || eventType.schedulingType === SchedulingType.COLLECTIVE) &&
+    (eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+      eventType.schedulingType === SchedulingType.COLLECTIVE) &&
     originalRescheduledBooking.userId !== evt.organizer.id;
 
   const skipDeleteEventsAndMeetings = changedOrganizer;
@@ -1724,7 +1713,7 @@ async function handler(
         await usersRepository.updateLastActiveAt(booking.userId);
         const organizerUserAvailability = availableUsers.find((user) => user.id === booking?.userId);
 
-        logger.info(`Booking created`, {
+        criticalLogger.info(`Booking created`, {
           bookingUid: booking.uid,
           selectedCalendarIds: organizerUser.allSelectedCalendars?.map((c) => c.id) ?? [],
           availabilitySnapshot: organizerUserAvailability?.availabilityData
@@ -1792,7 +1781,7 @@ async function handler(
 
         // Save description to bookingSeat
         const uniqueAttendeeId = uuid();
-        await prisma.bookingSeat.create({
+        await deps.prismaClient.bookingSeat.create({
           data: {
             referenceUid: uniqueAttendeeId,
             data: {
@@ -2158,7 +2147,7 @@ async function handler(
 
         if (!isDryRun && evt.iCalUID !== booking.iCalUID) {
           // The eventManager could change the iCalUID. At this point we can update the DB record
-          await prisma.booking.update({
+          await deps.prismaClient.booking.update({
             where: {
               id: booking.id,
             },
@@ -2231,6 +2220,33 @@ async function handler(
     }
     : undefined;
 
+  const bookingFlowConfig = {
+    isDryRun,
+  };
+
+  const bookingCreatedPayload = {
+    config: bookingFlowConfig,
+    bookingFormData: {
+      // FIXME: It looks like hasHashedBookingLink is set to true based on the value of hashedLink when sending the request. So, technically we could remove hasHashedBookingLink usage completely
+      hashedLink: hasHashedBookingLink ? reqBody.hashedLink ?? null : null,
+    },
+  };
+
+  // Add more fields here when needed
+  const bookingRescheduledPayload = bookingCreatedPayload;
+
+  const bookingEventHandler = new BookingEventHandlerService({
+    log: loggerWithEventDetails,
+    hashedLinkService: deps.hashedLinkService,
+  });
+
+  // TODO: Incrementally move all stuff that happens after a booking is created to these handlers
+  if (originalRescheduledBooking) {
+    await bookingEventHandler.onBookingRescheduled(bookingRescheduledPayload);
+  } else {
+    await bookingEventHandler.onBookingCreated(bookingCreatedPayload);
+  }
+
   const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
@@ -2254,7 +2270,7 @@ async function handler(
   if (bookingRequiresPayment) {
     loggerWithEventDetails.debug(`Booking ${organizerUser.username} requires payment`);
     // Load credentials.app.categories
-    const credentialPaymentAppCategories = await prisma.credential.findMany({
+    const credentialPaymentAppCategories = await deps.prismaClient.credential.findMany({
       where: {
         ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
         app: {
@@ -2468,28 +2484,11 @@ async function handler(
     });
   }
 
-  try {
-    const hashedLinkService = new HashedLinkService();
-    if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
-      await hashedLinkService.validateAndIncrementUsage(reqBody.hashedLink as string);
-    }
-  } catch (error) {
-    loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
-
-    // Handle repository errors and convert to HttpErrors
-    if (error instanceof Error) {
-      throw new HttpError({ statusCode: 410, message: error.message });
-    }
-
-    // For unexpected errors, provide a generic message
-    throw new HttpError({ statusCode: 500, message: "Failed to process booking link" });
-  }
-
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
   try {
     if (!isDryRun) {
-      await prisma.booking.update({
+      await deps.prismaClient.booking.update({
         where: {
           uid: booking.uid,
         },

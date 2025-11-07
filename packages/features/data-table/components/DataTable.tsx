@@ -4,7 +4,6 @@ import type { Row } from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type { Table as ReactTableType, Header, HeaderGroup } from "@tanstack/react-table";
 import { useVirtualizer, type Virtualizer, type VirtualItem } from "@tanstack/react-virtual";
-// eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
 import { useEffect, useState, memo, useMemo } from "react";
 
@@ -24,6 +23,8 @@ import {
 
 import { useColumnSizingVars } from "../hooks";
 import { useColumnResizing } from "../hooks/useColumnResizing";
+import type { SeparatorRow } from "../lib/separator";
+import { isSeparatorRow } from "../lib/separator";
 
 export type DataTablePropsFromWrapper<TData> = {
   table: ReactTableType<TData>;
@@ -40,6 +41,9 @@ export type DataTablePropsFromWrapper<TData> = {
   rowClassName?: string;
   paginationMode?: "infinite" | "standard";
   hasWrapperContext?: boolean;
+  hideSeparatorsOnSort?: boolean;
+  hideSeparatorsOnFilter?: boolean;
+  separatorClassName?: string;
 };
 
 export type DataTableProps<TData> = DataTablePropsFromWrapper<TData> & {
@@ -66,6 +70,9 @@ export function DataTable<TData>({
   rowClassName,
   paginationMode = "infinite",
   hasWrapperContext = false,
+  hideSeparatorsOnSort = true,
+  hideSeparatorsOnFilter = false,
+  separatorClassName,
   ...rest
 }: DataTableProps<TData> & React.ComponentPropsWithoutRef<"div">) {
   const { rows } = table.getRowModel();
@@ -196,6 +203,10 @@ export function DataTable<TData>({
               onRowMouseclick={onRowMouseclick}
               paginationMode={paginationMode}
               rowClassName={rowClassName}
+              hideSeparatorsOnSort={hideSeparatorsOnSort}
+              hideSeparatorsOnFilter={hideSeparatorsOnFilter}
+              separatorClassName={separatorClassName}
+              tableContainerRef={tableContainerRef}
             />
           ) : (
             <DataTableBody
@@ -208,6 +219,10 @@ export function DataTable<TData>({
               onRowMouseclick={onRowMouseclick}
               paginationMode={paginationMode}
               rowClassName={rowClassName}
+              hideSeparatorsOnSort={hideSeparatorsOnSort}
+              hideSeparatorsOnFilter={hideSeparatorsOnFilter}
+              separatorClassName={separatorClassName}
+              tableContainerRef={tableContainerRef}
             />
           )}
         </TableNew>
@@ -228,7 +243,11 @@ const MemoizedTableBody = memo(
     prev.isPending === next.isPending &&
     prev.onRowMouseclick === next.onRowMouseclick &&
     prev.paginationMode === next.paginationMode &&
-    prev.rowClassName === next.rowClassName
+    prev.rowClassName === next.rowClassName &&
+    prev.hideSeparatorsOnSort === next.hideSeparatorsOnSort &&
+    prev.hideSeparatorsOnFilter === next.hideSeparatorsOnFilter &&
+    prev.separatorClassName === next.separatorClassName &&
+    prev.tableContainerRef === next.tableContainerRef
 ) as typeof DataTableBody;
 
 type DataTableBodyProps<TData> = {
@@ -241,6 +260,10 @@ type DataTableBodyProps<TData> = {
   onRowMouseclick?: (row: Row<TData>) => void;
   paginationMode?: "infinite" | "standard";
   rowClassName?: string;
+  hideSeparatorsOnSort?: boolean;
+  hideSeparatorsOnFilter?: boolean;
+  separatorClassName?: string;
+  tableContainerRef: React.RefObject<HTMLDivElement>;
 };
 
 type RowToRender<TData> = {
@@ -248,9 +271,22 @@ type RowToRender<TData> = {
   virtualItem?: VirtualItem;
 };
 
+function SeparatorRowRenderer({ separator, className }: { separator: SeparatorRow; className?: string }) {
+  return (
+    <div
+      className={classNames(
+        "bg-muted text-emphasis w-full px-3 py-2 font-semibold",
+        separator.className,
+        className
+      )}>
+      {separator.label}
+    </div>
+  );
+}
+
 function DataTableBody<TData>({
   table,
-  rowVirtualizer,
+  rowVirtualizer: _rowVirtualizer,
   rows,
   testId,
   variant,
@@ -258,21 +294,45 @@ function DataTableBody<TData>({
   onRowMouseclick,
   paginationMode,
   rowClassName,
+  hideSeparatorsOnSort = true,
+  hideSeparatorsOnFilter = false,
+  separatorClassName,
+  tableContainerRef,
 }: DataTableBodyProps<TData> & { paginationMode?: "infinite" | "standard" }) {
   const { t } = useLocale();
-  const virtualItems = rowVirtualizer.getVirtualItems();
-  const tableHeight = paginationMode === "infinite" ? rowVirtualizer.getTotalSize() : "auto";
 
-  const rowsToRender = useMemo<RowToRender<TData>[]>(
-    () =>
-      paginationMode === "infinite"
-        ? virtualItems.map((virtualItem) => ({
-            row: rows[virtualItem.index] as Row<TData>,
-            virtualItem,
-          }))
-        : rows.map((row) => ({ row })),
-    [paginationMode, virtualItems, rows]
-  );
+  const hasActiveSorting = table.getState().sorting.length > 0;
+  const hasActiveFilters = table.getState().columnFilters.length > 0;
+
+  const filteredRows = useMemo(() => {
+    if ((hideSeparatorsOnSort && hasActiveSorting) || (hideSeparatorsOnFilter && hasActiveFilters)) {
+      return rows.filter((row) => !isSeparatorRow(row.original));
+    }
+    return rows;
+  }, [rows, hideSeparatorsOnSort, hideSeparatorsOnFilter, hasActiveSorting, hasActiveFilters]);
+
+  const filteredRowVirtualizer = useVirtualizer({
+    count: filteredRows.length,
+    estimateSize: () => 100,
+    getScrollElement: () => tableContainerRef.current,
+    measureElement:
+      typeof window !== "undefined" && navigator.userAgent.indexOf("Firefox") === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
+    overscan: 10,
+  });
+
+  const virtualItems = filteredRowVirtualizer.getVirtualItems();
+  const tableHeight = paginationMode === "infinite" ? filteredRowVirtualizer.getTotalSize() : "auto";
+
+  const rowsToRender = useMemo<RowToRender<TData>[]>(() => {
+    return paginationMode === "infinite"
+      ? virtualItems.map((virtualItem) => ({
+          row: filteredRows[virtualItem.index] as Row<TData>,
+          virtualItem,
+        }))
+      : filteredRows.map((row) => ({ row }));
+  }, [paginationMode, virtualItems, filteredRows]);
 
   if (!isPending && rowsToRender.length === 0) {
     return (
@@ -291,50 +351,74 @@ function DataTableBody<TData>({
       className="border-subtle relative grid border-t"
       data-testid={testId}
       style={{ height: tableHeight }}>
-      {rowsToRender.map(({ row, virtualItem }) => (
-        <TableRow
-          ref={virtualItem ? (node) => rowVirtualizer.measureElement(node) : undefined}
-          key={row.id}
-          data-index={virtualItem?.index} //needed for dynamic row height measurement
-          data-state={row.getIsSelected() && "selected"}
-          onClick={() => onRowMouseclick && onRowMouseclick(row)}
-          style={{
-            display: "flex",
-            ...(virtualItem && {
-              position: "absolute",
-              transform: `translateY(${virtualItem.start}px)`,
-              width: "100%",
-            }),
-          }}
-          className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
-          {row.getVisibleCells().map((cell) => {
-            const column = cell.column;
-            return (
-              <TableCell
-                key={cell.id}
-                data-testid={`data-table-td-${cell.column.id}`}
-                style={{
-                  ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
-                  ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
-                  width: `var(--col-${kebabCase(cell.column.id)}-size)`,
-                }}
-                className={classNames(
-                  "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
-                  variant === "compact" && "p-0",
-                  column.getIsPinned() &&
-                    "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
-                )}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </TableCell>
-            );
-          })}
-        </TableRow>
-      ))}
+      {rowsToRender.map(({ row, virtualItem }) => {
+        const isSeparator = isSeparatorRow(row.original);
+
+        if (isSeparator) {
+          return (
+            <TableRow
+              ref={virtualItem ? (node) => filteredRowVirtualizer.measureElement(node) : undefined}
+              key={row.id}
+              data-index={virtualItem?.index}
+              style={{
+                display: "flex",
+                width: "100%",
+                ...(virtualItem && {
+                  position: "absolute",
+                  transform: `translateY(${virtualItem.start}px)`,
+                }),
+              }}
+              className="hover:bg-subtle border-subtle flex w-full border-b">
+              <SeparatorRowRenderer separator={row.original as SeparatorRow} className={separatorClassName} />
+            </TableRow>
+          );
+        }
+
+        return (
+          <TableRow
+            ref={virtualItem ? (node) => filteredRowVirtualizer.measureElement(node) : undefined}
+            key={row.id}
+            data-index={virtualItem?.index} // needed for dynamic row height measurement
+            data-state={row.getIsSelected() && "selected"}
+            onClick={() => onRowMouseclick && onRowMouseclick(row)}
+            style={{
+              display: "flex",
+              ...(virtualItem && {
+                position: "absolute",
+                transform: `translateY(${virtualItem.start}px)`,
+                width: "100%",
+              }),
+            }}
+            className={classNames(onRowMouseclick && "hover:cursor-pointer", "group", rowClassName)}>
+            {row.getVisibleCells().map((cell) => {
+              const column = cell.column;
+              return (
+                <TableCell
+                  key={cell.id}
+                  data-testid={`data-table-td-${cell.column.id}`}
+                  style={{
+                    ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
+                    ...(column.getIsPinned() === "right" && { right: `${column.getStart("right")}px` }),
+                    width: `var(--col-${kebabCase(cell.column.id)}-size)`,
+                  }}
+                  className={classNames(
+                    "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle flex shrink-0 items-center overflow-hidden",
+                    variant === "compact" && "p-0",
+                    column.getIsPinned() &&
+                      "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
+                  )}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        );
+      })}
     </TableBody>
   );
 }
 
-const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
+const TableHeadLabel = <TData,>({ header }: { header: Header<TData, unknown> }) => {
   const [open, setOpen] = useState(false);
   const { t } = useLocale();
 

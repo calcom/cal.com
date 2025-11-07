@@ -2,8 +2,8 @@ import type { z } from "zod";
 
 import { getDefaultLocations } from "@calcom/app-store/_utils/getDefaultLocations";
 import { DailyLocationType } from "@calcom/app-store/constants";
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -92,6 +92,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         disableTranscriptionForGuests: calVideoSettings.disableTranscriptionForGuests ?? false,
         disableTranscriptionForOrganizer: calVideoSettings.disableTranscriptionForOrganizer ?? false,
         redirectUrlOnExit: calVideoSettings.redirectUrlOnExit ?? null,
+        requireEmailForGuests: calVideoSettings.requireEmailForGuests ?? false,
       },
     };
   }
