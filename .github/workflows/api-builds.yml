@@ -1,0 +1,122 @@
+name: API Builds (v1 & v2)
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  SKIP_DB_MIGRATIONS: "1"
+  ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
+  CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+  E2E_TEST_APPLE_CALENDAR_EMAIL: ${{ secrets.E2E_TEST_APPLE_CALENDAR_EMAIL }}
+  E2E_TEST_APPLE_CALENDAR_PASSWORD: ${{ secrets.E2E_TEST_APPLE_CALENDAR_PASSWORD }}
+  E2E_TEST_CALCOM_QA_EMAIL: ${{ secrets.E2E_TEST_CALCOM_QA_EMAIL }}
+  E2E_TEST_CALCOM_QA_PASSWORD: ${{ secrets.E2E_TEST_CALCOM_QA_PASSWORD }}
+  E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS: ${{ secrets.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS }}
+  E2E_TEST_CALCOM_GCAL_KEYS: ${{ secrets.E2E_TEST_CALCOM_GCAL_KEYS }}
+  GOOGLE_API_CREDENTIALS: ${{ secrets.CI_GOOGLE_API_CREDENTIALS }}
+  GOOGLE_LOGIN_ENABLED: ${{ vars.CI_GOOGLE_LOGIN_ENABLED }}
+  NEXTAUTH_SECRET: ${{ secrets.CI_NEXTAUTH_SECRET }}
+  NEXTAUTH_URL: ${{ secrets.CI_NEXTAUTH_URL }}
+  NEXT_PUBLIC_API_V2_URL: ${{ secrets.CI_NEXT_PUBLIC_API_V2_URL }}
+  NEXT_PUBLIC_API_V2_ROOT_URL: ${{ secrets.CI_NEXT_PUBLIC_API_V2_ROOT_URL }}
+  NEXT_PUBLIC_IS_E2E: ${{ vars.CI_NEXT_PUBLIC_IS_E2E }}
+  NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED: ${{ vars.CI_NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED }}
+  NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
+  NEXT_PUBLIC_WEBAPP_URL: ${{ vars.CI_NEXT_PUBLIC_WEBAPP_URL }}
+  NEXT_PUBLIC_WEBSITE_URL: ${{ vars.CI_NEXT_PUBLIC_WEBSITE_URL }}
+  PAYMENT_FEE_FIXED: ${{ vars.CI_PAYMENT_FEE_FIXED }}
+  PAYMENT_FEE_PERCENTAGE: ${{ vars.CI_PAYMENT_FEE_PERCENTAGE }}
+  SAML_ADMINS: ${{ secrets.CI_SAML_ADMINS }}
+  SAML_DATABASE_URL: ${{ secrets.CI_SAML_DATABASE_URL }}
+  STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
+  STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
+  STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
+  SENDGRID_API_KEY: ${{ secrets.CI_SENDGRID_API_KEY }}
+  SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  build-apis:
+    name: Build APIs (v1 & v2)
+    runs-on: buildjet-8vcpu-ubuntu-2204
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/dangerous-git-checkout
+      - uses: ./.github/actions/yarn-install
+      
+      # Build API v1
+      - name: Cache API v1 production build
+        uses: buildjet/cache@v4
+        id: cache-api-v1-build
+        env:
+          cache-name: api-v1-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('apps/api/v1/**.[jt]s', 'apps/api/v1/**.[jt]sx', '!**/node_modules') }}
+          key-3: ${{ github.event.pull_request.number || github.ref }}
+          key-4: ${{ github.sha }}
+        with:
+          path: |
+            ${{ github.workspace }}/apps/api/v1/.next
+            **/.turbo/**
+            **/dist/**
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+      
+      - name: Log Cache Hit (API v1)
+        if: steps.cache-api-v1-build.outputs.cache-hit == 'true'
+        run: echo "Cache hit for API v1 build. Skipping build."
+      
+      - name: Build API v1
+        if: steps.cache-api-v1-build.outputs.cache-hit != 'true'
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          yarn turbo run build --filter=@calcom/api...
+        shell: bash
+      
+      # Build API v2
+      - name: Cache API v2 production build
+        uses: buildjet/cache@v4
+        id: cache-api-v2-build
+        env:
+          cache-name: api-v2-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('apps/api/v2/**.[jt]s', 'apps/api/v2/**.[jt]sx', '!**/node_modules') }}
+          key-3: ${{ github.event.pull_request.number || github.ref }}
+          key-4: ${{ github.sha }}
+        with:
+          path: |
+            **/dist/**
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
+      
+      - name: Log Cache Hit (API v2)
+        if: steps.cache-api-v2-build.outputs.cache-hit == 'true'
+        run: echo "Cache hit for API v2 build. Skipping build."
+      
+      - name: Build API v2
+        if: steps.cache-api-v2-build.outputs.cache-hit != 'true'
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          yarn workspace @calcom/api-v2 run generate-schemas &&
+          rm -rf apps/api/v2/node_modules &&
+          yarn install &&
+          yarn workspace @calcom/api-v2 run build
+        shell: bash
+  
+  # Wrapper jobs to preserve existing check names for branch protection
+  build-api-v1:
+    name: Build API v1 (wrapper)
+    runs-on: ubuntu-latest
+    needs: [build-apis]
+    steps:
+      - run: echo "API v1 build completed via consolidated job"
+  
+  build-api-v2:
+    name: Build API v2 (wrapper)
+    runs-on: ubuntu-latest
+    needs: [build-apis]
+    steps:
+      - run: echo "API v2 build completed via consolidated job"
