@@ -69,7 +69,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
   });
 
   if (!seatedBooking && rescheduleUid) {
-    throw new ErrorWithCode(ErrorCode.ResourceNotFound, ErrorCode.BookingNotFound);
+    throw new ErrorWithCode(ErrorCode.BookingNotFound, ErrorCode.BookingNotFound);
   }
 
   // We might be trying to create a new booking
