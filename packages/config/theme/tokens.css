@@ -18,8 +18,7 @@
   --font-sans: var(--font-inter);
   --font-cal: var(--font-cal);
 
-  /* Resets the preference from coss-ui to use single --radius variable for all radius values */
-  --radius-*: initial;
+  /* Resets the preference from coss-ui which was to "use single --radius variable for all radius values" */
   --radius: var(--radius);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -27,8 +26,6 @@
   --radius-xl: var(--radius-xl);
   --radius-2xl: var(--radius-2xl);
   --radius-3xl: var(--radius-3xl);
-  --radius-full: var(--radius-full);
-  --radius-none: var(--radius-none);
 
   /* Cal.com Border Radius */
   --radius-cal-none: 0px;
@@ -229,6 +226,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-none: 0px;
 
   /* Background Standard */
   --cal-bg-emphasis: hsla(220, 13%, 91%, 1);
