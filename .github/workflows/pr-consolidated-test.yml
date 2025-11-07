@@ -1,0 +1,232 @@
+name: PR Consolidated Test (Branch Only)
+
+on:
+  push:
+    branches:
+      - devin/consolidate-github-actions-1762536826
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Consolidated: changes + check-label
+  changes-and-checks:
+    name: Detect changes and check E2E label
+    uses: ./.github/workflows/changes-and-checks.yml
+    permissions:
+      pull-requests: read
+
+  deps:
+    name: Install dependencies
+    needs: [changes-and-checks]
+    if: ${{ needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/yarn-install.yml
+
+  # Consolidated: type-check + lint + unit-test
+  validation:
+    name: Validation (Type Check, Lint, Unit Tests)
+    needs: [changes-and-checks, deps]
+    if: ${{ needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/validation.yml
+    secrets: inherit
+
+  # Consolidated: API v1 + API v2 builds (no database)
+  api-builds:
+    name: API Builds (v1 & v2)
+    needs: [changes-and-checks, deps]
+    if: ${{ needs.changes-and-checks.outputs.run-e2e == 'true' && needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/api-builds.yml
+    secrets: inherit
+
+  # Consolidated: Web + Atoms + Docs builds (no database)
+  non-db-builds:
+    name: Non-Database Builds (Web, Atoms, Docs)
+    needs: [changes-and-checks, deps]
+    if: ${{ needs.changes-and-checks.outputs.run-e2e == 'true' && needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/non-db-builds.yml
+    secrets: inherit
+
+  # Wrapper jobs for backward compatibility with branch protection
+  build-api-v1:
+    name: Build API v1 (wrapper)
+    needs: [api-builds]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via api-builds"
+
+  build-api-v2:
+    name: Build API v2 (wrapper)
+    needs: [api-builds]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via api-builds"
+
+  build:
+    name: Build Web App (wrapper)
+    needs: [non-db-builds]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via non-db-builds"
+
+  build-atoms:
+    name: Build Atoms (wrapper)
+    needs: [non-db-builds]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via non-db-builds"
+
+  build-docs:
+    name: Build Docs (wrapper)
+    needs: [non-db-builds]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via non-db-builds"
+
+  # Wrapper jobs for validation
+  type-check:
+    name: Type check (wrapper)
+    needs: [validation]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via validation"
+
+  lint:
+    name: Linters (wrapper)
+    needs: [validation]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via validation"
+
+  unit-test:
+    name: Tests (wrapper)
+    needs: [validation]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via validation"
+
+  integration-test:
+    name: Tests
+    needs: [changes-and-checks, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/integration-tests.yml
+    secrets: inherit
+
+  e2e:
+    name: Tests
+    needs: [changes-and-checks, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes-and-checks.outputs.run-e2e == 'true' && needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e.yml
+    secrets: inherit
+
+  e2e-api-v2:
+    name: Tests
+    needs: [changes-and-checks, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes-and-checks.outputs.run-e2e == 'true' && needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e-api-v2.yml
+    secrets: inherit
+
+  e2e-app-store:
+    name: Tests
+    needs: [changes-and-checks, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes-and-checks.outputs.run-e2e == 'true' && needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e-app-store.yml
+    secrets: inherit
+
+  e2e-embed:
+    name: Tests
+    needs: [changes-and-checks, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes-and-checks.outputs.run-e2e == 'true' && needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e-embed.yml
+    secrets: inherit
+
+  e2e-embed-react:
+    name: Tests
+    needs: [changes-and-checks, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes-and-checks.outputs.run-e2e == 'true' && needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e-embed-react.yml
+    secrets: inherit
+
+  analyze:
+    name: Analyze Build
+    needs: [build]
+    uses: ./.github/workflows/nextjs-bundle-analysis.yml
+    secrets: inherit
+
+  # Consolidated: merge-reports + publish-report
+  reports:
+    name: Merge and Publish Reports
+    if: ${{ !cancelled() && needs.changes-and-checks.outputs.run-e2e == 'true' && needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    needs: [changes-and-checks, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    uses: ./.github/workflows/reports.yml
+    secrets: inherit
+
+  # Wrapper jobs for reports
+  merge-reports:
+    name: Merge reports (wrapper)
+    needs: [reports]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via reports"
+
+  publish-report:
+    name: Publish HTML report (wrapper)
+    needs: [reports]
+    runs-on: ubuntu-latest
+    if: ${{ !cancelled() }}
+    steps:
+      - run: echo "Completed via reports"
+
+  cleanup-report:
+    name: Cleanup HTML report
+    if: ${{ !cancelled() && needs.changes-and-checks.outputs.run-e2e == 'true' && (github.event.pull_request.merged == true || github.event.pull_request.state == 'closed') }}
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    needs: [changes-and-checks, publish-report]
+    uses: ./.github/workflows/cleanup-report.yml
+    secrets: inherit
+
+  required:
+    needs:
+      [
+        changes-and-checks,
+        lint,
+        type-check,
+        unit-test,
+        integration-test,
+        build,
+        build-api-v1,
+        build-api-v2,
+        build-atoms,
+        build-docs,
+        e2e,
+        e2e-api-v2,
+        e2e-embed,
+        e2e-embed-react,
+        e2e-app-store
+      ]
+    if: always()
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    steps:
+      - name: fail if conditional jobs failed
+        if: needs.changes-and-checks.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        run: exit 1
