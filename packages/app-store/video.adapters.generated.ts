@@ -5,15 +5,15 @@
 export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E
   ? {}
   : {
-      dailyvideo: import("./dailyvideo/lib/VideoApiAdapter"),
-      huddle01video: import("./huddle01video/lib/VideoApiAdapter"),
-      jelly: import("./jelly/lib/VideoApiAdapter"),
-      jitsivideo: import("./jitsivideo/lib/VideoApiAdapter"),
-      nextcloudtalk: import("./nextcloudtalk/lib/VideoApiAdapter"),
-      office365video: import("./office365video/lib/VideoApiAdapter"),
-      shimmervideo: import("./shimmervideo/lib/VideoApiAdapter"),
-      sylapsvideo: import("./sylapsvideo/lib/VideoApiAdapter"),
-      tandemvideo: import("./tandemvideo/lib/VideoApiAdapter"),
-      webex: import("./webex/lib/VideoApiAdapter"),
-      zoomvideo: import("./zoomvideo/lib/VideoApiAdapter"),
+      dailyvideo: createLazyMetadata("./dailyvideo/lib/VideoApiAdapter", false),
+      huddle01video: createLazyMetadata("./huddle01video/lib/VideoApiAdapter", false),
+      jelly: createLazyMetadata("./jelly/lib/VideoApiAdapter", false),
+      jitsivideo: createLazyMetadata("./jitsivideo/lib/VideoApiAdapter", false),
+      nextcloudtalk: createLazyMetadata("./nextcloudtalk/lib/VideoApiAdapter", false),
+      office365video: createLazyMetadata("./office365video/lib/VideoApiAdapter", false),
+      shimmervideo: createLazyMetadata("./shimmervideo/lib/VideoApiAdapter", false),
+      sylapsvideo: createLazyMetadata("./sylapsvideo/lib/VideoApiAdapter", false),
+      tandemvideo: createLazyMetadata("./tandemvideo/lib/VideoApiAdapter", false),
+      webex: createLazyMetadata("./webex/lib/VideoApiAdapter", false),
+      zoomvideo: createLazyMetadata("./zoomvideo/lib/VideoApiAdapter", false),
     };

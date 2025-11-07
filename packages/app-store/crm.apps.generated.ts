@@ -3,10 +3,10 @@
     Don't modify this file manually.
 **/
 export const CrmServiceMap = {
-  closecom: import("./closecom/lib/CrmService"),
-  hubspot: import("./hubspot/lib/CrmService"),
-  "pipedrive-crm": import("./pipedrive-crm/lib/CrmService"),
-  salesforce: import("./salesforce/lib/CrmService"),
-  "zoho-bigin": import("./zoho-bigin/lib/CrmService"),
-  zohocrm: import("./zohocrm/lib/CrmService"),
+  closecom: createLazyMetadata("./closecom/lib/CrmService", false),
+  hubspot: createLazyMetadata("./hubspot/lib/CrmService", false),
+  "pipedrive-crm": createLazyMetadata("./pipedrive-crm/lib/CrmService", false),
+  salesforce: createLazyMetadata("./salesforce/lib/CrmService", false),
+  "zoho-bigin": createLazyMetadata("./zoho-bigin/lib/CrmService", false),
+  zohocrm: createLazyMetadata("./zohocrm/lib/CrmService", false),
 };

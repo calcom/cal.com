@@ -5,15 +5,15 @@
 export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E
   ? {}
   : {
-      applecalendar: import("./applecalendar/lib/CalendarService"),
-      caldavcalendar: import("./caldavcalendar/lib/CalendarService"),
-      exchange2013calendar: import("./exchange2013calendar/lib/CalendarService"),
-      exchange2016calendar: import("./exchange2016calendar/lib/CalendarService"),
-      exchangecalendar: import("./exchangecalendar/lib/CalendarService"),
-      feishucalendar: import("./feishucalendar/lib/CalendarService"),
-      googlecalendar: import("./googlecalendar/lib/CalendarService"),
-      "ics-feedcalendar": import("./ics-feedcalendar/lib/CalendarService"),
-      larkcalendar: import("./larkcalendar/lib/CalendarService"),
-      office365calendar: import("./office365calendar/lib/CalendarService"),
-      zohocalendar: import("./zohocalendar/lib/CalendarService"),
+      applecalendar: createLazyMetadata("./applecalendar/lib/CalendarService", false),
+      caldavcalendar: createLazyMetadata("./caldavcalendar/lib/CalendarService", false),
+      exchange2013calendar: createLazyMetadata("./exchange2013calendar/lib/CalendarService", false),
+      exchange2016calendar: createLazyMetadata("./exchange2016calendar/lib/CalendarService", false),
+      exchangecalendar: createLazyMetadata("./exchangecalendar/lib/CalendarService", false),
+      feishucalendar: createLazyMetadata("./feishucalendar/lib/CalendarService", false),
+      googlecalendar: createLazyMetadata("./googlecalendar/lib/CalendarService", false),
+      "ics-feedcalendar": createLazyMetadata("./ics-feedcalendar/lib/CalendarService", false),
+      larkcalendar: createLazyMetadata("./larkcalendar/lib/CalendarService", false),
+      office365calendar: createLazyMetadata("./office365calendar/lib/CalendarService", false),
+      zohocalendar: createLazyMetadata("./zohocalendar/lib/CalendarService", false),
     };
