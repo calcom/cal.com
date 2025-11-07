@@ -1,3 +1,4 @@
+// only test to fire workflow
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
