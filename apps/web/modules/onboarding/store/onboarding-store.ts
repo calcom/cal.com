@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import { onboardingIndexedDBStorage } from "./onboarding-storage";
+
 export type PlanType = "personal" | "team" | "organization";
 export type InviteRole = "MEMBER" | "ADMIN";
 
@@ -29,6 +31,7 @@ export interface Invite {
 export interface TeamDetails {
   name: string;
   slug: string;
+  bio: string;
 }
 
 export interface TeamBrand {
@@ -102,6 +105,7 @@ const initialState = {
   teamDetails: {
     name: "",
     slug: "",
+    bio: "",
   },
   teamBrand: {
     color: "#000000",
@@ -160,7 +164,8 @@ export const useOnboardingStore = create<OnboardingState>()(
       resetOnboarding: () => set(initialState),
     }),
     {
-      name: "cal-onboarding-storage", // localStorage key
+      name: "cal-onboarding-storage", // Storage key
+      storage: onboardingIndexedDBStorage, // Use IndexedDB instead of localStorage for larger capacity
       // Optional: Only persist certain fields
       partialize: (state) => ({
         selectedPlan: state.selectedPlan,

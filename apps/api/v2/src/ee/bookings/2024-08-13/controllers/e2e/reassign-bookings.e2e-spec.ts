@@ -58,11 +58,15 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let teamRoundRobinEventTypeId: number;
     let teamRoundRobinFixedHostEventTypeId: number;
     let teamRoundRobinNonFixedEventTypeId: number;
+    let teamRoundRobinWithRescheduleReasonEventTypeId: number;
 
     let teamRoundRobinNonFixedEventTypeTitle: string;
     let teamRoundRobinFixedHostEventTypeTitle: string;
+    let teamRoundRobinWithRescheduleReasonEventTypeTitle: string;
 
     let roundRobinBooking: Booking;
+    let rescheduleReasonBookingUid: string;
+    let rescheduleReasonBookingInitialHostId: number;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -389,6 +393,74 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
       });
 
+      const teamEventTypeWithRescheduleReason = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team.id },
+        },
+        users: {
+          connect: [{ id: teamUser1.id }, { id: teamUser2.id }],
+        },
+        title: `reassign-bookings-2024-08-13-reschedule-reason-event-type-${randomString()}`,
+        slug: `reassign-bookings-2024-08-13-reschedule-reason-event-type-${randomString()}`,
+        length: 60,
+        assignAllTeamMembers: false,
+        bookingFields: [
+          {
+            name: "rescheduleReason",
+            type: "textarea",
+            defaultLabel: "Reason for rescheduling",
+            required: true,
+            sources: [
+              {
+                id: "default",
+                type: "default",
+                label: "Default",
+              },
+            ],
+            editable: "system",
+            views: [
+              {
+                id: "reschedule",
+                label: "Reschedule View",
+              },
+            ],
+          },
+        ],
+        locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+      });
+
+      teamRoundRobinWithRescheduleReasonEventTypeId = teamEventTypeWithRescheduleReason.id;
+      teamRoundRobinWithRescheduleReasonEventTypeTitle = teamEventTypeWithRescheduleReason.title;
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser1.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: teamEventTypeWithRescheduleReason.id,
+          },
+        },
+      });
+
+      await hostsRepositoryFixture.create({
+        isFixed: false,
+        user: {
+          connect: {
+            id: teamUser2.id,
+          },
+        },
+        eventType: {
+          connect: {
+            id: teamEventTypeWithRescheduleReason.id,
+          },
+        },
+      });
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -555,6 +627,100 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
           const expectedReassignedTitle = `${teamRoundRobinFixedHostEventTypeTitle} between ${team.name} and Alice`;
           expect(reassigned?.title).toEqual(expectedReassignedTitle);
+        });
+    });
+
+    it("should preserve attendee name when reassigning round robin host manually with rescheduleReason required", async () => {
+      const bookingBody: CreateBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2050, 0, 10, 13, 0, 0)).toISOString(),
+        eventTypeId: teamRoundRobinWithRescheduleReasonEventTypeId,
+        attendee: {
+          name: "David",
+          email: "david@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "en",
+        },
+        meetingUrl: "https://meet.google.com/abc-def-ghi",
+      };
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(bookingBody)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201);
+
+      const bookingUid = createResponse.body.data.uid;
+      rescheduleReasonBookingUid = bookingUid;
+      const booking = await bookingsRepositoryFixture.getByUid(bookingUid);
+
+      expect(booking).toBeDefined();
+      expect(booking?.userId).toBeDefined();
+      const initialHostId = booking!.userId!;
+      rescheduleReasonBookingInitialHostId = initialHostId;
+
+      const expectedInitialTitle = `${teamRoundRobinWithRescheduleReasonEventTypeTitle} between ${
+        booking?.userId === teamUser1.id ? teamUser1.name : teamUser2.name
+      } and David`;
+      expect(booking?.title).toEqual(expectedInitialTitle);
+      expect(booking?.title).not.toContain("Nameless");
+
+      const reassignToHostId = initialHostId === teamUser1.id ? teamUser2.id : teamUser1.id;
+      const reassignToHostName = reassignToHostId === teamUser1.id ? teamUser1.name : teamUser2.name;
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reassign/${reassignToHostId}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ReassignBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+
+          const data: ReassignBookingOutput_2024_08_13["data"] = responseBody.data;
+          expect(data.bookingUid).toEqual(bookingUid);
+          expect(data.reassignedTo.id).toEqual(reassignToHostId);
+
+          const reassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
+          expect(reassigned?.userId).toEqual(reassignToHostId);
+
+          const expectedReassignedTitle = `${teamRoundRobinWithRescheduleReasonEventTypeTitle} between ${reassignToHostName} and David`;
+          expect(reassigned?.title).toEqual(expectedReassignedTitle);
+          expect(reassigned?.title).not.toContain("Nameless");
+        });
+    });
+
+    it("should preserve attendee name when reassigning round robin host automatically with rescheduleReason required", async () => {
+      const bookingUid = rescheduleReasonBookingUid;
+      const booking = await bookingsRepositoryFixture.getByUid(bookingUid);
+
+      expect(booking).toBeDefined();
+      expect(booking?.userId).toBeDefined();
+
+      const currentHostId = booking!.userId!;
+      const initialHostId = rescheduleReasonBookingInitialHostId;
+      const initialHostName = initialHostId === teamUser1.id ? teamUser1.name : teamUser2.name;
+
+      expect(currentHostId).not.toEqual(initialHostId);
+
+      return request(app.getHttpServer())
+        .post(`/v2/bookings/${bookingUid}/reassign`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ReassignBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+
+          const data: ReassignBookingOutput_2024_08_13["data"] = responseBody.data;
+          expect(data.bookingUid).toEqual(bookingUid);
+          expect(data.reassignedTo.id).toEqual(initialHostId);
+
+          const autoReassigned = await bookingsRepositoryFixture.getByUid(bookingUid);
+          expect(autoReassigned?.userId).toEqual(initialHostId);
+
+          const expectedAutoReassignedTitle = `${teamRoundRobinWithRescheduleReasonEventTypeTitle} between ${initialHostName} and David`;
+          expect(autoReassigned?.title).toEqual(expectedAutoReassignedTitle);
+          expect(autoReassigned?.title).not.toContain("Nameless");
         });
     });
 
