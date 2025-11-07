@@ -28,6 +28,7 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
           setupFiles: ["setupVitest.ts"],
+          globalSetup: ["./apps/api/v1/test/setup/globalSetup.ts"],
         },
         resolve: {
           alias: {
@@ -46,6 +47,7 @@ const workspaces = packagedEmbedTestsOnly
           // TODO: Ignore the api until tests are fixed
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
           setupFiles: ["setupVitest.ts"],
+          globalSetup: ["./apps/api/v1/test/setup/globalSetup.ts"],
         },
         resolve: {
           alias: {
