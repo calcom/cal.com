@@ -26,6 +26,27 @@ describe("pagesAndRewritePaths", () => {
     });
   });
 
+  describe("Top-level app routes must be reserved (not treated as booking pages)", () => {
+    const TOP_LEVEL_APP_ROUTES = [
+      "api",
+      "icons",
+      "cache",
+      "routing-forms",
+      "reschedule",
+      "error",
+      "not-found",
+    ];
+
+    it("should include top-level app routes to prevent them from being treated as user slugs on org domains", () => {
+      TOP_LEVEL_APP_ROUTES.forEach((route) => {
+        expect(
+          pages,
+          `Top-level app route '${route}' must be in pages array to prevent /acme.cal.com/${route} from being treated as a booking page`
+        ).toContain(route);
+      });
+    });
+  });
+
   describe("Only booking routes should be excluded from org rewrites", () => {
     const BOOKING_ROUTES = [
       "booking",

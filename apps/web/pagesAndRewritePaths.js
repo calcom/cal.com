@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable @typescript-eslint/no-require-imports, no-undef, no-useless-escape */
 const glob = require("glob");
 const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
@@ -10,7 +10,7 @@ const bookingRoutes = glob.sync("app/(booking-page-wrapper)/**/[^_]*.{tsx,js,ts}
 
 const nonWrapperRoutes = glob.sync("{pages,app}/**/[^_]*.{tsx,js,ts}", {
   cwd: __dirname,
-  ignore: ["app/(*)/**"], // Exclude all wrapper groups like (use-page-wrapper), (booking-page-wrapper)
+  ignore: ["app/(*)/**"],
 });
 
 let pages = (exports.pages = [...new Set([...bookingRoutes, ...nonWrapperRoutes])]
