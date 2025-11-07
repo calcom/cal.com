@@ -126,7 +126,10 @@ export class PhoneNumberService {
         });
 
     if (!phoneNumberToDelete) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Phone number not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Phone number not found or you don't have permission to delete it."
+      );
     }
 
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
@@ -229,7 +232,10 @@ export class PhoneNumberService {
         });
 
     if (!phoneNumberRecord) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Phone number not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Phone number not found or you don't have permission to update it."
+      );
     }
 
     await this.validateAgentAccess(userId, teamId, inboundAgentId, "inbound");

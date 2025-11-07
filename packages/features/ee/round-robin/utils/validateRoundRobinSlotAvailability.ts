@@ -54,7 +54,7 @@ async function validateFixedHostsAvailability(
   if (existingSlotReservation > 0) {
     throw new ErrorWithCode(
       ErrorCode.BookingConflict,
-      `Can't reserve the slot because the round robin event type has no available hosts left at this time slot.`
+      "Can't reserve the slot because the round robin event type has no available hosts left at this time slot."
     );
   }
 
@@ -85,7 +85,7 @@ async function validateNonFixedHostsAvailability(
   if (existingSlotReservations === hosts.length) {
     throw new ErrorWithCode(
       ErrorCode.BookingConflict,
-      `Can't reserve the slot because the round robin event type has no available hosts left at this time slot.`
+      "Can't reserve the slot because the round robin event type has no available hosts left at this time slot."
     );
   }
 }
