@@ -166,8 +166,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     useApiV2: props.useApiV2,
   });
 
-  console.log("Schedule is: ", schedule)
-
   const bookings = useBookings({
     event,
     hashedLink: props.hashedLink,
