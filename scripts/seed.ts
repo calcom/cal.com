@@ -1204,8 +1204,6 @@ async function main() {
     ]
   );
 
-  console.log("test");
-
   await createOrganizationAndAddMembersAndTeams({
     org: {
       orgData: {
