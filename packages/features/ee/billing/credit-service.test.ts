@@ -12,8 +12,8 @@ import { CreditsRepository } from "@calcom/lib/server/repository/credits";
 import { CreditType } from "@calcom/prisma/enums";
 
 import { CreditService } from "./credit-service";
-import { StripeBillingService } from "./stripe-billing-service";
-import { InternalTeamBilling } from "./teams/internal-team-billing";
+import { StripeBillingService } from "./service/billingProvider/StripeBillingService";
+import { TeamBillingService } from "./service/teams/teamBillingService";
 
 const MOCK_TX = {
   team: {
@@ -436,7 +436,7 @@ describe("CreditService", () => {
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("trialing"),
         };
-        vi.spyOn(InternalTeamBilling.prototype, "getSubscriptionStatus").mockImplementation(
+        vi.spyOn(TeamBillingService.prototype, "getSubscriptionStatus").mockImplementation(
           mockTeamBillingService.getSubscriptionStatus
         );
 
@@ -457,7 +457,7 @@ describe("CreditService", () => {
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
         };
-        vi.spyOn(InternalTeamBilling.prototype, "getSubscriptionStatus").mockImplementation(
+        vi.spyOn(TeamBillingService.prototype, "getSubscriptionStatus").mockImplementation(
           mockTeamBillingService.getSubscriptionStatus
         );
 
@@ -486,7 +486,7 @@ describe("CreditService", () => {
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
         };
-        vi.spyOn(InternalTeamBilling.prototype, "getSubscriptionStatus").mockImplementation(
+        vi.spyOn(TeamBillingService.prototype, "getSubscriptionStatus").mockImplementation(
           mockTeamBillingService.getSubscriptionStatus
         );
 
@@ -509,7 +509,7 @@ describe("CreditService", () => {
         const mockTeamBillingService = {
           getSubscriptionStatus: vi.fn().mockResolvedValue("active"),
         };
-        vi.spyOn(InternalTeamBilling.prototype, "getSubscriptionStatus").mockImplementation(
+        vi.spyOn(TeamBillingService.prototype, "getSubscriptionStatus").mockImplementation(
           mockTeamBillingService.getSubscriptionStatus
         );
 
