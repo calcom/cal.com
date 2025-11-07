@@ -2584,7 +2584,7 @@ async function handler(
     if (!noEmail && emailsAndSmsPayload) {
       // TODO: Add Team Feature Flag to enable booking tasker or not
       await emailsAndSmsHandler.send(emailsAndSmsPayload);
-      await deps.bookingEmailAndSmsTasker.send({
+      /* await deps.bookingEmailAndSmsTasker.send({
         action: emailsAndSmsPayload.action,
         schedulingType: emailsAndSmsPayload.data.eventType.schedulingType,
         payload: {
@@ -2595,7 +2595,7 @@ async function handler(
           platformCancelUrl,
           platformBookingUrl,
         },
-      });
+      }); */
     }
   }
 
