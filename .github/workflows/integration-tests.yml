@@ -81,6 +81,17 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
+      - name: Wait for Postgres
+        run: |
+          echo "Waiting for Postgres to be ready..."
+          until pg_isready -h postgres -p 5432 -U postgres; do
+            echo "Still waiting..."
+            sleep 2
+          done
+          echo "Postgres is ready!"
+
+      - name: Debug DB URL
+        run: echo "DATABASE_URL=$DATABASE_URL"
       - name: Run Tests
         run: yarn test -- --integrationTestsOnly
       # TODO: Generate test results so we can upload them
