@@ -21,14 +21,14 @@ export class BookingEmailAndSmsSyncTasker implements IBookingEmailAndSmsTasker {
 
   async confirm(payload: Parameters<IBookingEmailAndSmsTasker["confirm"]>[0]) {
     this.dependencies.logger.info(`confirm booking task ${payload.bookingId}`);
-    await this.dependencies.bookingTaskService.request(payload);
+    await this.dependencies.bookingTaskService.confirm(payload);
     const runId = `sync_${nanoid(10)}`;
     return { runId };
   }
 
   async reschedule(payload: Parameters<IBookingEmailAndSmsTasker["reschedule"]>[0]) {
     this.dependencies.logger.info(`reschedule booking task ${payload.bookingId}`);
-    await this.dependencies.bookingTaskService.request(payload);
+    await this.dependencies.bookingTaskService.reschedule(payload);
     const runId = `sync_${nanoid(10)}`;
     return { runId };
   }
