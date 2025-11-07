@@ -70,20 +70,15 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
     },
   });
 
-<<<<<<< HEAD
   const {
     fields,
     append: appendField,
     remove,
   } = useFieldArray({
-=======
-  const { fields, append, remove } = useFieldArray({
->>>>>>> e6b975da62 (organization brand customistaion)
     control: form.control,
     name: "invites",
   });
 
-<<<<<<< HEAD
   // Wrapper to ensure team is always provided when appending
   const append = (value: { email: string; team?: string; role: InviteRole }) => {
     appendField({
@@ -93,8 +88,6 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
     });
   };
 
-=======
->>>>>>> e6b975da62 (organization brand customistaion)
   const handleContinue = async (data: FormValues) => {
     setInvites(data.invites);
     await submitOnboarding(store, userEmail, data.invites);
