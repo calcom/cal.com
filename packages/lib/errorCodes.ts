@@ -44,6 +44,7 @@ export enum ErrorCode {
   NotEnoughAvailableSeats = "not_enough_available_seats_error",
   BookingConflict = "booking_conflict_error",
   ResourceAlreadyExists = "user_already_exists_error",
+  ResourceConflict = "resource_conflict_error",
 
   // 422 Unprocessable Entity - Invalid input data
   InvalidInput = "invalid_input",
@@ -101,6 +102,7 @@ export const ERROR_CODE_TO_HTTP_STATUS: Record<ErrorCode, number> = {
   [ErrorCode.NotEnoughAvailableSeats]: 409,
   [ErrorCode.BookingConflict]: 409,
   [ErrorCode.ResourceAlreadyExists]: 409,
+  [ErrorCode.ResourceConflict]: 409,
 
   // 422 Unprocessable Entity - Invalid input data
   [ErrorCode.InvalidInput]: 422,

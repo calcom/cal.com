@@ -6,6 +6,7 @@ import { RETELL_AI_TEST_MODE, RETELL_AI_TEST_EVENT_TYPE_MAP } from "@calcom/lib/
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { PrismaApiKeyRepository } from "@calcom/lib/server/repository/PrismaApiKeyRepository";
 
@@ -150,7 +151,7 @@ export class AgentService {
 
       await this.deps.retellRepository.updateLLM(llmId, { general_tools: updatedGeneralTools });
     } catch (error) {
-      if (error instanceof ErrorWithCode) {
+      if (error instanceof HttpError) {
         throw error;
       }
 
@@ -219,7 +220,7 @@ export class AgentService {
         });
       }
     } catch (error) {
-      if (error instanceof ErrorWithCode) {
+      if (error instanceof HttpError) {
         throw error;
       }
 
@@ -375,7 +376,10 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to view it."
+      );
     }
 
     try {
@@ -390,7 +394,7 @@ export class AgentService {
 
       return RetellAIServiceMapper.formatAgentDetails(agent, retellAgent, llmDetails);
     } catch (error) {
-      if (error instanceof ErrorWithCode) {
+      if (error instanceof HttpError) {
         throw error;
       }
 
@@ -429,7 +433,10 @@ export class AgentService {
         teamId,
       });
       if (!canManage) {
-        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
+        throw new ErrorWithCode(
+          ErrorCode.Forbidden,
+          "You don't have permission to create agents for this team."
+        );
       }
     }
 
@@ -479,7 +486,10 @@ export class AgentService {
         teamId,
       });
       if (!canManage) {
-        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
+        throw new ErrorWithCode(
+          ErrorCode.Forbidden,
+          "You don't have permission to create agents for this team."
+        );
       }
     }
 
@@ -503,12 +513,15 @@ export class AgentService {
     }
 
     if (!phoneNumberRecord) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Phone number not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Phone number not found or you don't have access to it"
+      );
     }
 
     if (phoneNumberRecord.inboundAgentId) {
       throw new ErrorWithCode(
-        ErrorCode.InternalServerError,
+        ErrorCode.InvalidOperation,
         "Inbound agent already configured for this phone number"
       );
     }
@@ -545,7 +558,7 @@ export class AgentService {
       });
 
       throw new ErrorWithCode(
-        ErrorCode.InternalServerError,
+        ErrorCode.ResourceConflict,
         `Inbound agent was configured by another request. Conflicting agent: ${conflictingAgentId}`
       );
     }
@@ -590,7 +603,10 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to update it."
+      );
     }
 
     const updatedPrompt =
@@ -642,7 +658,7 @@ export class AgentService {
           error,
         });
 
-        if (error instanceof ErrorWithCode) {
+        if (error instanceof HttpError) {
           throw error;
         }
 
@@ -674,7 +690,10 @@ export class AgentService {
     });
 
     if (!agent) {
-      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Agent not found or you don");
+      throw new ErrorWithCode(
+        ErrorCode.ResourceNotFound,
+        "Agent not found or you don't have permission to delete it."
+      );
     }
 
     try {

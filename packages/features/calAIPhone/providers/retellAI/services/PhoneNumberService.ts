@@ -130,10 +130,10 @@ export class PhoneNumberService {
     }
 
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.ACTIVE) {
-      throw new ErrorWithCode(ErrorCode.InternalServerError, "Phone number is still active");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is still active");
     }
     if (phoneNumberToDelete.subscriptionStatus === PhoneNumberSubscriptionStatus.CANCELLED) {
-      throw new ErrorWithCode(ErrorCode.InternalServerError, "Phone number is already cancelled");
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Phone number is already cancelled");
     }
 
     try {
@@ -169,7 +169,7 @@ export class PhoneNumberService {
         phoneNumber,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to get phone number ");
+      throw new ErrorWithCode(ErrorCode.InternalServerError, `Failed to get phone number '${phoneNumber}'`);
     }
   }
 
@@ -193,7 +193,10 @@ export class PhoneNumberService {
         data,
         error,
       });
-      throw new ErrorWithCode(ErrorCode.InternalServerError, "Failed to update phone number ");
+      throw new ErrorWithCode(
+        ErrorCode.InternalServerError,
+        `Failed to update phone number '${phoneNumber}'`
+      );
     }
   }
 
@@ -267,7 +270,10 @@ export class PhoneNumberService {
         teamId,
       });
       if (!canManage) {
-        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
+        throw new ErrorWithCode(
+          ErrorCode.Forbidden,
+          "You don't have permission to import phone numbers for this team."
+        );
       }
     }
   }
@@ -285,7 +291,7 @@ export class PhoneNumberService {
       });
 
       if (!agent) {
-        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
+        throw new ErrorWithCode(ErrorCode.Forbidden, "You don't have permission to use the selected agent.");
       }
     }
     return agent;
@@ -304,12 +310,15 @@ export class PhoneNumberService {
       });
 
       if (!agent) {
-        throw new ErrorWithCode(ErrorCode.Forbidden, "You don");
+        throw new ErrorWithCode(
+          ErrorCode.Forbidden,
+          `You don't have permission to use the selected ${type} agent.`
+        );
       }
 
       if (teamId && agent.teamId !== teamId) {
         throw new ErrorWithCode(
-          ErrorCode.InternalServerError,
+          ErrorCode.Forbidden,
           `Selected ${type} agent does not belong to the specified team.`
         );
       }
