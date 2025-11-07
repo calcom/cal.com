@@ -4,7 +4,7 @@ const glob = require("glob");
 const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 
 // Top-level route names that are explicitly allowed for org rewrite (whitelist)
- 
+
 const topLevelRouteNamesWhitelistedForRewrite = exports.topLevelRouteNamesWhitelistedForRewrite = [
   // We don't allow all dashboard route names to be used as slug because people are probably accustomed to access links like acme.cal.com/workflows, acme.cal.com/event-types etc.
   // So, we carefully allow, what is absolutely needed.
@@ -94,10 +94,12 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
 }
 
 // To handle /something
-exports.orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9-_]+)`;
+exports.orgUserRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/?$")})[a-zA-Z0-9\-_]+)`;
 
 // To handle /something/somethingelse
-exports.orgUserTypeRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/")})[^/]+)/:type((?!avatar.png)[^/]+)`;
+exports.orgUserTypeRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes(
+  "/"
+)})[^/]+)/:type((?!avatar\.png)[^/]+)`;
 
 // To handle /something/somethingelse/embed
 exports.orgUserTypeEmbedRoutePath = `/:user((?!${getRegExpMatchingAllReservedRoutes("/")})[^/]+)/:type/embed`;
