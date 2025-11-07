@@ -237,6 +237,7 @@ export async function managedEventManualReassignment({
   const newEventManager = new EventManager(newUserWithCredentials, apps);
 
   let videoCallUrl: string | null = null;
+  let videoCallData: CalendarEvent["videoCallData"] = undefined;
   const additionalInformation: AdditionalInformation = {};
   try {
     const evt: CalendarEvent = {
@@ -293,6 +294,8 @@ export async function managedEventManualReassignment({
       evt.additionalInformation = additionalInformation;
     }
 
+    // Capture videoCallData for emails (e.g., Cal Video, Teams)
+    videoCallData = evt.videoCallData;
     videoCallUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
     
     reassignLogger.info("Created calendar events for new user");
@@ -388,9 +391,8 @@ export async function managedEventManualReassignment({
         })),
         location: newBooking.location || undefined,
         description: newBooking.description || undefined,
-        videoCallData: evt.videoCallData,
+        videoCallData,
         additionalInformation,
-        metadata: videoCallUrl ? { videoCallUrl } : undefined,
       };
 
       await sendReassignedScheduledEmailsAndSMS({
