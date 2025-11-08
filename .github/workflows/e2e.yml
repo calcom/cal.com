@@ -96,7 +96,7 @@ jobs:
       - uses: ./.github/actions/cache-db
         with:
           path: backups/e2e-shard-${{ matrix.shard }}.sql
-          DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}?schema=shard_${{ matrix.shard }}
+          DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
       - uses: ./.github/actions/cache-build
 
       - name: Run Tests
