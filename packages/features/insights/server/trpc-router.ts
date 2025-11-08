@@ -857,7 +857,6 @@ export const insightsRouter = router({
   routingFormResponses: userBelongsToTeamProcedure
     .input(insightsRoutingServicePaginatedInputSchema)
     .query(async ({ ctx, input }) => {
-      console.log("💡 TEST", JSON.stringify(input, null, 2));
       const insightsRoutingService = createInsightsRoutingService(ctx, input);
       return await insightsRoutingService.getTableData({
         sorting: input.sorting,
