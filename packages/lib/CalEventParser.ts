@@ -410,7 +410,9 @@ export const getRichDescription = (
 
 export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellationReason">, t: TFunction) => {
   if (!calEvent.cancellationReason) return "";
-  const sanitized = calEvent.cancellationReason.replace("$RCH$", "").trim();
+  const sanitized = calEvent.cancellationReason.startsWith("$RCH$")
+    ? calEvent.cancellationReason.substring(5).trim()
+    : calEvent.cancellationReason;
   return `${t("cancellation_reason")}:\n${sanitized}`;
 };
 
