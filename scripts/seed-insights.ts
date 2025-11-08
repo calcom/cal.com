@@ -195,7 +195,7 @@ async function main() {
     });
   }
 
-  const insightsTeamMembers = await prisma.membership.findMany({
+  let insightsTeamMembers = await prisma.membership.findMany({
     where: {
       teamId: insightsTeam.id,
     },
@@ -203,6 +203,30 @@ async function main() {
       user: true,
     },
   });
+
+  // If the team exists but has no members, add org members to it
+  if (insightsTeamMembers.length === 0) {
+    await prisma.membership.createMany({
+      data: orgMembers.map((member) => ({
+        teamId: insightsTeam!.id,
+        userId: member.user.id,
+        role: member.role,
+        accepted: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })),
+    });
+
+    // Refetch the members
+    insightsTeamMembers = await prisma.membership.findMany({
+      where: {
+        teamId: insightsTeam.id,
+      },
+      include: {
+        user: true,
+      },
+    });
+  }
 
   // Create event types for the team
   let teamEvents = await prisma.eventType.findMany({
@@ -367,26 +391,25 @@ async function main() {
 }
 
 async function runMain() {
-  await main()
-    .catch(async (e) => {
-      console.error(e);
-      await prisma.user.deleteMany({
-        where: {
-          email: {
-            in: ["insights@example", "insightsuser@example.com"],
-          },
+  await main().catch(async (e) => {
+    console.error(e);
+    await prisma.user.deleteMany({
+      where: {
+        email: {
+          in: ["insights@example", "insightsuser@example.com"],
         },
-      });
-
-      await prisma.team.deleteMany({
-        where: {
-          slug: "insights",
-        },
-      });
-
-      await prisma.$disconnect();
-      process.exit(1);
+      },
     });
+
+    await prisma.team.deleteMany({
+      where: {
+        slug: "insights",
+      },
+    });
+
+    await prisma.$disconnect();
+    process.exit(1);
+  });
 }
 
 /**
@@ -525,19 +548,18 @@ async function createPerformanceData() {
 }
 
 async function runPerformanceData() {
-  await createPerformanceData()
-    .catch(async (e) => {
-      console.error(e);
-      await prisma.user.deleteMany({
-        where: {
-          username: {
-            contains: "insights-user-",
-          },
+  await createPerformanceData().catch(async (e) => {
+    console.error(e);
+    await prisma.user.deleteMany({
+      where: {
+        username: {
+          contains: "insights-user-",
         },
-      });
-      await prisma.$disconnect();
-      process.exit(1);
+      },
     });
+    await prisma.$disconnect();
+    process.exit(1);
+  });
 }
 
 async function runEverything() {
