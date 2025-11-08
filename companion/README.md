@@ -12,8 +12,9 @@ The companion app provides a native mobile experience and web interface for mana
 - **Chrome Extension**: Web UI packaged as a Chrome extension using wxt.dev
 - **Shared Codebase**: Maximum code sharing between mobile and web platforms
 - **Native Components**: Uses React Native components for optimal performance
+- **Cal.com API v2 Integration**: Fetches real data from your Cal.com account
 - **Bottom Navigation**: Four main sections:
-  - **Event Types** (Link Icon): Manage your event types and scheduling configurations
+  - **Event Types** (Link Icon): View and manage your event types with real-time data from Cal.com API v2
   - **Bookings** (Calendar Icon): View and manage your bookings
   - **Availability** (Clock Icon): Configure your availability schedules
   - **More** (Three Dots Icon): Additional settings and options
@@ -57,6 +58,31 @@ companion/
 cd companion
 npm install
 ```
+
+### API Configuration
+
+The companion app integrates with Cal.com API v2 to fetch your event types, bookings, and availability data.
+
+#### Getting Your API Key
+
+1. Log in to your Cal.com account at https://app.cal.com
+2. Navigate to Settings → Developer → API Keys
+3. Create a new API key with appropriate permissions
+4. Copy the generated API key
+
+#### Configuring the API Key
+
+Currently, the API key needs to be configured in the source code. In a future update, this will be moved to environment variables and app settings.
+
+**For Development:**
+
+Edit `src/services/calApi.ts` and add your API key:
+
+```typescript
+const API_KEY = 'cal_live_your_api_key_here';
+```
+
+**Note:** Never commit your API key to version control. This is a temporary solution for development purposes.
 
 ### Development
 
@@ -140,12 +166,15 @@ The app is designed to maximize code sharing between platforms:
 
 ## Future Enhancements
 
-- Integration with Cal.com API for real data
+- ✅ Integration with Cal.com API v2 for event types (completed)
+- Environment variable configuration for API keys
+- Secure storage for API credentials
 - Authentication and user management
 - Push notifications for booking updates
 - Offline support with local data caching
 - Calendar synchronization
 - Real-time booking updates
+- Complete API integration for bookings and availability screens
 
 ## Contributing
 

@@ -15,6 +15,7 @@
     "@expo/vector-icons": "^15.0.3",
     "@react-navigation/bottom-tabs": "^7.8.4",
     "@react-navigation/native": "^7.1.19",
+    "axios": "^1.13.2",
     "expo": "~54.0.23",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
