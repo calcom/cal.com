@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -346,9 +346,8 @@ export async function handler(req: NextRequest) {
                   {
                     content: generateIcsString({ event, status: "CONFIRMED" }) || "",
                     filename: "event.ics",
-                    type: "text/calendar; method=REQUEST",
+                    contentType: "text/calendar; charset=UTF-8; method=REQUEST",
                     disposition: "attachment",
-                    contentId: uuidv4(),
                   },
                 ]
               : undefined,

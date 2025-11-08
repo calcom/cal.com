@@ -184,7 +184,7 @@ export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingF
 
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
-export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypes"]["heavy"]["update"];
+export type EventTypeUpdateInput = RouterInputs["viewer"]["eventTypesHeavy"]["update"];
 export type TabMap = {
   advanced: React.ReactNode;
   ai?: React.ReactNode;
@@ -254,6 +254,7 @@ const calVideoSettingsSchema = z
     disableTranscriptionForGuests: z.boolean().nullish(),
     disableTranscriptionForOrganizer: z.boolean().nullish(),
     redirectUrlOnExit: z.string().url().nullish(),
+    requireEmailForGuests: z.boolean().nullish(),
   })
   .optional()
   .nullable();
@@ -301,4 +302,5 @@ export interface CalVideoSettings {
   disableTranscriptionForGuests?: boolean;
   disableTranscriptionForOrganizer?: boolean;
   redirectUrlOnExit?: string;
+  requireEmailForGuests?: boolean;
 }

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { CreateEventTypeFormValues } from "@calcom/lib/hooks/useCreateEventType";
+import type { CreateEventTypeFormValues } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -46,7 +46,7 @@ export const TeamEventTypeForm = ({
 
   return (
     <Form form={form} handleSubmit={handleSubmit}>
-      <div className="mt-1 space-y-6">
+      <div className="mb-6 mt-1 space-y-6">
         <TextField
           type="hidden"
           labelProps={{ style: { display: "none" } }}
