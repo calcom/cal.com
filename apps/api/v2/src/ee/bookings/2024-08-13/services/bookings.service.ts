@@ -1,5 +1,5 @@
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { CalendarLink } from "@/ee/bookings/2024-08-13/outputs/calendar-links.output";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
@@ -13,9 +13,8 @@ import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/ge
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
+import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
@@ -49,6 +48,7 @@ import {
   confirmBookingHandler,
   getCalendarLinks,
 } from "@calcom/platform-libraries";
+import { PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,
@@ -64,6 +64,7 @@ import {
   RescheduleBookingInput,
   CancelBookingInput,
 } from "@calcom/platform-types";
+import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, User, Team } from "@calcom/prisma/client";
 
@@ -107,12 +108,11 @@ export class BookingsService_2024_08_13 {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly teamsRepository: TeamsRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
-    private readonly membershipsRepository: MembershipsRepository,
-    private readonly membershipsService: MembershipsService,
     private readonly errorsBookingsService: ErrorsBookingsService_2024_08_13,
     private readonly regularBookingService: RegularBookingService,
     private readonly recurringBookingService: RecurringBookingService,
-    private readonly instantBookingCreateService: InstantBookingCreateService
+    private readonly instantBookingCreateService: InstantBookingCreateService,
+    private readonly eventTypeAccessService: EventTypeAccessService
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
@@ -126,7 +126,7 @@ export class BookingsService_2024_08_13 {
         this.errorsBookingsService.handleEventTypeToBeBookedNotFound(body);
       }
       const userIsEventTypeAdminOrOwner = authUser
-        ? await this.userIsEventTypeAdminOrOwner(authUser, eventType)
+        ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(authUser, eventType)
         : false;
       await this.checkBookingRequiresAuthenticationSetting(eventType, authUser, userIsEventTypeAdminOrOwner);
 
@@ -193,44 +193,6 @@ export class BookingsService_2024_08_13 {
         "checkBookingRequiresAuthentication - user is not authorized to access this event type. User has to be either event type owner, host, team admin or owner or org admin or owner."
       );
     }
-  }
-
-  async userIsEventTypeAdminOrOwner(authUser: ApiAuthGuardUser, eventType: EventType) {
-    const authUserId = authUser.id;
-    const authUserRole = authUser.role;
-    const eventTypeId = eventType.id;
-    const teamId = eventType.teamId;
-    const eventTypeOwnerId = eventType.userId || null;
-
-    if (authUserRole === "ADMIN") return true;
-
-    if (eventTypeOwnerId === authUserId) return true;
-
-    if (eventTypeId) {
-      const [isUserHost, isUserAssigned] = await Promise.all([
-        this.eventTypesRepository.isUserHostOfEventType(authUserId, eventTypeId),
-        this.eventTypesRepository.isUserAssignedToEventType(authUserId, eventTypeId),
-      ]);
-
-      if (isUserHost || isUserAssigned) return true;
-    }
-
-    if (teamId) {
-      const membership = await this.membershipsRepository.getUserAdminOrOwnerTeamMembership(
-        authUserId,
-        teamId
-      );
-      if (membership) return true;
-    }
-
-    if (
-      eventTypeOwnerId &&
-      (await this.membershipsService.isUserOrgAdminOrOwnerOfAnotherUser(authUserId, eventTypeOwnerId))
-    ) {
-      return true;
-    }
-
-    return false;
   }
 
   async getBookedEventType(body: CreateBookingInput) {
@@ -614,7 +576,7 @@ export class BookingsService_2024_08_13 {
     const booking = await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid);
     const userIsEventTypeAdminOrOwner =
       authUser && booking?.eventType
-        ? await this.userIsEventTypeAdminOrOwner(authUser, booking.eventType)
+        ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(authUser, booking.eventType)
         : false;
 
     if (booking) {
@@ -762,16 +724,26 @@ export class BookingsService_2024_08_13 {
     authUser: AuthOptionalUser
   ) {
     try {
-      await this.canRescheduleBooking(bookingUid);
+      const isIndividualSeatRequest = this.isRescheduleSeatedBody(body);
+      const isIndividualSeatReschedule = await this.shouldRescheduleIndividualSeat(
+        bookingUid,
+        isIndividualSeatRequest,
+        authUser
+      );
+
       const bookingRequest = await this.inputService.createRescheduleBookingRequest(
         request,
         bookingUid,
-        body
+        body,
+        isIndividualSeatReschedule
       );
+
+      await this.canRescheduleBooking(bookingUid);
+
       const booking = await this.regularBookingService.createBooking({
         bookingData: bookingRequest.body,
         bookingMeta: {
-          userId: bookingRequest.userId,
+          userId: bookingRequest.userId ?? authUser?.id,
           hostname: bookingRequest.headers?.host || "",
           platformClientId: bookingRequest.platformClientId,
           platformRescheduleUrl: bookingRequest.platformRescheduleUrl,
@@ -793,7 +765,7 @@ export class BookingsService_2024_08_13 {
 
       const userIsEventTypeAdminOrOwner =
         authUser && databaseBooking.eventType
-          ? await this.userIsEventTypeAdminOrOwner(authUser, databaseBooking.eventType)
+          ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(authUser, databaseBooking.eventType)
           : false;
       const isRecurring = !!databaseBooking.recurringEventId;
       const isSeated = !!databaseBooking.eventType?.seatsPerTimeSlot;
@@ -838,6 +810,57 @@ export class BookingsService_2024_08_13 {
       );
     }
     return booking;
+  }
+
+  async shouldRescheduleIndividualSeat(
+    bookingUid: string,
+    isIndividualSeatReschedule: boolean,
+    authUser: AuthOptionalUser
+  ) {
+    const booking = await this.bookingsRepository.getByUidWithUserIdAndSeatsReferencesCount(bookingUid);
+
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const hasSeatsPresent = booking.seatsReferences.length > 0;
+
+    if (!hasSeatsPresent) return false;
+
+    return await this.isIndividualSeatOrOrgAdminReschedule(
+      isIndividualSeatReschedule,
+      booking.userId,
+      authUser?.id
+    );
+  }
+
+  async isIndividualSeatOrOrgAdminReschedule(
+    isIndividualSeatReschedule: boolean,
+    bookingUserId: number | null,
+    authUserId?: number | null
+  ) {
+    if (isIndividualSeatReschedule) {
+      return true;
+    }
+
+    if (!authUserId) {
+      throw new Error(`No auth user found`);
+    }
+
+    if (!bookingUserId) {
+      throw new Error(`No user found for booking`);
+    }
+
+    const isOrgAdmin = await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+      authUserId,
+      bookingUserId
+    );
+
+    return isOrgAdmin;
+  }
+
+  isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
+    return "seatUid" in body;
   }
 
   async cancelBooking(

@@ -28,7 +28,7 @@ const PaymentStatusView = () => {
     if (organization) {
       setOrganizationCreated(true);
       // Organization is created, redirect to next step
-      router.push(`/settings/organizations`);
+      router.push(`/settings/organizations?newOrganizationModal=true`);
     }
   }, [organization, router, useOnboardingStore]);
 
