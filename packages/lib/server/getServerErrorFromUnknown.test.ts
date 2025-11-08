@@ -99,7 +99,7 @@ describe("getServerErrorFromUnknown", () => {
   });
 
   test("should handle ErrorWithCode with undefined message", () => {
-    const error = new ErrorWithCode(ErrorCode.Unauthorized, undefined as any);
+    const error = new ErrorWithCode(ErrorCode.Unauthorized, undefined);
     const result = getServerErrorFromUnknown(error);
 
     expect(result.statusCode).toBe(401);
@@ -110,7 +110,7 @@ describe("getServerErrorFromUnknown", () => {
     const error = new ErrorWithCode(ErrorCode.InvalidInput, "");
     const result = getServerErrorFromUnknown(error);
 
-    expect(result.statusCode).toBe(400);
+    expect(result.statusCode).toBe(422);
     expect(result.message).toBe("");
   });
 
