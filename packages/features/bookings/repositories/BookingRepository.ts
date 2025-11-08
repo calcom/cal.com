@@ -581,7 +581,7 @@ export class BookingRepository {
     });
   }
 
-  async findBookingForMeetingPage({ bookingUid }: { bookingUid: string }) {
+  async findBookingIncludeCalVideoSettingsAndReferences({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {
         uid: bookingUid,
@@ -595,6 +595,22 @@ export class BookingRepository {
           select: {
             id: true,
             hideOrganizerEmail: true,
+            hosts: {
+              select: {
+                userId: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
+            users: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
             calVideoSettings: {
               select: {
                 disableRecordingForGuests: true,
@@ -604,6 +620,7 @@ export class BookingRepository {
                 disableTranscriptionForGuests: true,
                 disableTranscriptionForOrganizer: true,
                 redirectUrlOnExit: true,
+                requireEmailForGuests: true,
               },
             },
           },
