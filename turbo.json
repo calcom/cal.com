@@ -514,6 +514,7 @@
         "EMBED_PUBLIC_EMBED_VERSION"
       ]
     },
+
     "embed-tests-update-snapshots:ci": {
       "cache": false,
       "dependsOn": [

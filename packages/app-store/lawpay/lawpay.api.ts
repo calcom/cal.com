@@ -1,12 +1,16 @@
+// File: packages/app-store/lawpay/lawpay.api.ts
 import axios from "axios";
 
 const LAWY_PAY_API = "https://api.lawpay.com/v1";
 
 export const createLawPayCharge = async (token: string, amount: number, description: string) => {
+  // convert dollars to cents and round to avoid floating-point errors
+  const amountInCents = Math.round(amount * 100);
+
   const response = await axios.post(
     `${LAWY_PAY_API}/charges`,
     {
-      amount: amount * 100, // LawPay expects cents
+      amount: amountInCents, // LawPay expects integer cents
       currency: "USD",
       description,
     },
