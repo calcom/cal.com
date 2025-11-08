@@ -412,7 +412,7 @@ export const getCancellationReason = (calEvent: Pick<CalendarEvent, "cancellatio
   if (!calEvent.cancellationReason) return "";
   const sanitized = calEvent.cancellationReason.startsWith("$RCH$")
     ? calEvent.cancellationReason.substring(5).trim()
-    : calEvent.cancellationReason;
+    : calEvent.cancellationReason.trim();
   return `${t("cancellation_reason")}:\n${sanitized}`;
 };
 
