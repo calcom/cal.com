@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
 
 import { PhoneNumberService } from "../PhoneNumberService";
@@ -70,12 +71,16 @@ describe("PhoneNumberService", () => {
     it("should validate team permissions when teamId provided", async () => {
       mocks.mockAgentRepository.canManageTeamResources.mockResolvedValue(false);
 
-      await expect(
-        service.importPhoneNumber({
+      const error = await service
+        .importPhoneNumber({
           ...validImportData,
           teamId: 1,
         })
-      ).rejects.toThrow(HttpError);
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(ErrorWithCode);
+      expect(error.code).toBe(ErrorCode.Forbidden);
+      expect(error.message).toBe("You don't have permission to import phone numbers for this team.");
 
       expect(mocks.mockAgentRepository.canManageTeamResources).toHaveBeenCalledWith({
         userId: 1,
@@ -86,12 +91,16 @@ describe("PhoneNumberService", () => {
     it("should validate agent permissions when agentId provided", async () => {
       mocks.mockAgentRepository.findByIdWithUserAccess.mockResolvedValue(null);
 
-      await expect(
-        service.importPhoneNumber({
+      const error = await service
+        .importPhoneNumber({
           ...validImportData,
           agentId: "invalid-agent",
         })
-      ).rejects.toThrow(HttpError);
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(ErrorWithCode);
+      expect(error.code).toBe(ErrorCode.Forbidden);
+      expect(error.message).toBe("You don't have permission to use the selected agent.");
 
       expect(mocks.mockAgentRepository.findByIdWithUserAccess).toHaveBeenCalledWith({
         agentId: "invalid-agent",
@@ -172,13 +181,17 @@ describe("PhoneNumberService", () => {
     it("should throw error if phone number not found", async () => {
       mocks.mockPhoneNumberRepository.findByPhoneNumberAndUserId.mockResolvedValue(null);
 
-      await expect(
-        service.deletePhoneNumber({
+      const error = await service
+        .deletePhoneNumber({
           phoneNumber: "+1234567890",
           userId: 1,
           deleteFromDB: false,
         })
-      ).rejects.toThrow(HttpError);
+        .catch((e) => e);
+
+      expect(error).toBeInstanceOf(ErrorWithCode);
+      expect(error.code).toBe(ErrorCode.ResourceNotFound);
+      expect(error.message).toBe("Phone number not found or you don't have permission to delete it.");
     });
 
     it("should throw error if phone number is still active", async () => {

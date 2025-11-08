@@ -567,7 +567,7 @@ async function handler(
     try {
       await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
     } catch {
-      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "invalid_verification_code");
+      throw new ErrorWithCode(ErrorCode.InvalidVerificationCode, "invalid_verification_code");
     }
   }
 

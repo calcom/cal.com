@@ -1,7 +1,6 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 
 import type {
@@ -259,8 +258,8 @@ export class CallService {
         );
       }
     } catch (error) {
-      // Re-throw HTTP errors (like insufficient credits) as-is
-      if (error instanceof HttpError) {
+      // Re-throw ErrorWithCode errors (like insufficient credits) as-is
+      if (error instanceof ErrorWithCode) {
         throw error;
       }
 

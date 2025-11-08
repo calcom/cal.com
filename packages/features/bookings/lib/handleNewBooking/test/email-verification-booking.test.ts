@@ -17,6 +17,8 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { vi, describe, expect, beforeEach } from "vitest";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 import { getNewBookingHandler } from "./getNewBookingHandler";
@@ -83,12 +85,11 @@ describe("handleNewBooking - Email Verification", () => {
           },
         });
 
-        await expect(handleNewBooking({ bookingData: mockBookingData })).rejects.toThrow(
-          expect.objectContaining({
-            statusCode: 400,
-            message: "email_verification_required",
-          })
-        );
+        const error = await handleNewBooking({ bookingData: mockBookingData }).catch((e) => e);
+
+        expect(error).toBeInstanceOf(ErrorWithCode);
+        expect(error.code).toBe(ErrorCode.RequestBodyInvalid);
+        expect(error.message).toBe("email_verification_required");
 
         expect(verifyCodeUnAuthenticated).not.toHaveBeenCalled();
       },
@@ -146,12 +147,11 @@ describe("handleNewBooking - Email Verification", () => {
           },
         });
 
-        await expect(handleNewBooking({ bookingData: mockBookingData })).rejects.toThrow(
-          expect.objectContaining({
-            statusCode: 400,
-            message: "invalid_verification_code",
-          })
-        );
+        const error = await handleNewBooking({ bookingData: mockBookingData }).catch((e) => e);
+
+        expect(error).toBeInstanceOf(ErrorWithCode);
+        expect(error.code).toBe(ErrorCode.InvalidVerificationCode);
+        expect(error.message).toBe("invalid_verification_code");
 
         expect(verifyCodeUnAuthenticated).toHaveBeenCalledWith(booker.email, "invalid-code");
       },
@@ -272,12 +272,11 @@ describe("handleNewBooking - Email Verification", () => {
           },
         });
 
-        await expect(handleNewBooking({ bookingData: mockBookingData })).rejects.toThrow(
-          expect.objectContaining({
-            statusCode: 400,
-            message: "invalid_verification_code",
-          })
-        );
+        const error = await handleNewBooking({ bookingData: mockBookingData }).catch((e) => e);
+
+        expect(error).toBeInstanceOf(ErrorWithCode);
+        expect(error.code).toBe(ErrorCode.InvalidVerificationCode);
+        expect(error.message).toBe("invalid_verification_code");
 
         expect(verifyCodeUnAuthenticated).toHaveBeenCalledWith(booker.email, "some-code");
       },
