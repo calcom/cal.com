@@ -280,11 +280,13 @@ export default function BookingsScreen() {
 
   const handleBookingPress = (booking: Booking) => {
     const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
+    const startTime = booking.start || booking.startTime || "";
+    const endTime = booking.end || booking.endTime || "";
     Alert.alert(
       booking.title,
-      `${booking.description || "No description"}\n\nTime: ${formatDateTime(
-        booking.startTime
-      )} - ${formatTime(booking.endTime)}\nAttendees: ${attendeesList}\nStatus: ${booking.status}${
+      `${booking.description || "No description"}\n\nTime: ${formatDateTime(startTime)} - ${formatTime(
+        endTime
+      )}\nAttendees: ${attendeesList}\nStatus: ${booking.status}${
         booking.location ? `\nLocation: ${booking.location}` : ""
       }`,
       [{ text: "OK" }]
@@ -303,29 +305,45 @@ export default function BookingsScreen() {
   };
 
   const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    if (!dateString) {
+      return "";
+    }
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid date string:", dateString);
+        return "";
+      }
+      return date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      console.error("Error formatting time:", error, dateString);
+      return "";
+    }
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Today";
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return "Tomorrow";
-    } else {
+    if (!dateString) {
+      return "";
+    }
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        console.warn("Invalid date string:", dateString);
+        return "";
+      }
       return date.toLocaleDateString("en-US", {
         weekday: "long",
-        month: "short",
+        month: "long",
         day: "numeric",
+        year: "numeric",
       });
+    } catch (error) {
+      console.error("Error formatting date:", error, dateString);
+      return "";
     }
   };
 
@@ -362,9 +380,9 @@ export default function BookingsScreen() {
 
       <View style={styles.bookingInfo}>
         <View style={styles.dateTimeSection}>
-          <Text style={styles.dateText}>{formatDate(item.startTime)}</Text>
+          <Text style={styles.dateText}>{formatDate(item.start || item.startTime || "")}</Text>
           <Text style={styles.timeText}>
-            {formatTime(item.startTime)} - {formatTime(item.endTime)}
+            {formatTime(item.start || item.startTime || "")} - {formatTime(item.end || item.endTime || "")}
           </Text>
         </View>
       </View>

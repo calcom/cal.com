@@ -83,6 +83,38 @@ export interface GetBookingsResponse {
   data: Booking[];
 }
 
+export interface ScheduleAvailability {
+  days: string[];
+  startTime: string;
+  endTime: string;
+}
+
+export interface ScheduleOverride {
+  date: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface Schedule {
+  id: number;
+  ownerId: number;
+  name: string;
+  timeZone: string;
+  availability: ScheduleAvailability[];
+  isDefault: boolean;
+  overrides: ScheduleOverride[];
+}
+
+export interface GetSchedulesResponse {
+  status: "success";
+  data: Schedule[];
+}
+
+export interface GetScheduleResponse {
+  status: "success";
+  data: Schedule | null;
+}
+
 export class CalComAPIService {
   // Get current user information
   static async getCurrentUser(): Promise<any> {
@@ -393,6 +425,64 @@ export class CalComAPIService {
         console.error("❌📅 Error message:", error.message);
         console.error("❌📅 Error stack:", error.stack);
       }
+      throw error;
+    }
+  }
+
+  // Get all schedules
+  static async getSchedules(): Promise<Schedule[]> {
+    try {
+      console.log("📅 Fetching schedules...");
+      const response = await this.makeRequest<any>(
+        "/schedules",
+        {
+          headers: {
+            "cal-api-version": "2024-06-11", // Override version for schedules
+          },
+        },
+        "2024-06-11"
+      );
+
+      console.log("📅 Schedules response:", JSON.stringify(response, null, 2));
+
+      let schedulesArray: Schedule[] = [];
+
+      if (Array.isArray(response)) {
+        schedulesArray = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        schedulesArray = response.data;
+      }
+
+      return schedulesArray;
+    } catch (error) {
+      console.error("❌ Failed to fetch schedules:", error);
+      throw error;
+    }
+  }
+
+  // Get default schedule
+  static async getDefaultSchedule(): Promise<Schedule | null> {
+    try {
+      console.log("📅 Fetching default schedule...");
+      const response = await this.makeRequest<any>(
+        "/schedules/default",
+        {
+          headers: {
+            "cal-api-version": "2024-06-11", // Override version for schedules
+          },
+        },
+        "2024-06-11"
+      );
+
+      console.log("📅 Default schedule response:", JSON.stringify(response, null, 2));
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("❌ Failed to fetch default schedule:", error);
       throw error;
     }
   }
