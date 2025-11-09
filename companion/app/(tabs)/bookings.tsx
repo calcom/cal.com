@@ -264,7 +264,7 @@ export default function Bookings() {
         values={filterLabels}
         selectedIndex={activeIndex}
         onChange={handleSegmentChange}
-        className="h-9"
+        style={{ height: 36 }}
       />
     </View>
   );
