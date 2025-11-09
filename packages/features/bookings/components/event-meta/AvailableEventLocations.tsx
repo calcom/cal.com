@@ -89,7 +89,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
             <RenderIcon eventLocationType={eventLocationType} isTooltip={false} />
           )}
           <Tooltip content={translatedLocation}>
-            <p className="line-clamp-1">{translatedLocation}</p>
+            <p className="-ml-0.5 line-clamp-1">{translatedLocation}</p>
           </Tooltip>
         </div>
       );

@@ -339,19 +339,54 @@ export default class ZohoCalendarService implements Calendar {
       // Handle full event deletion (default behavior)
       this.log.info("Deleting entire event", { uid });
 
-      // needed to fetch etag
+      // Fetch event to get etag and check if it's recurring
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
       const existingEventData = await this.handleData(existingEventResponse, this.log);
+
+      if (!existingEventData.events || existingEventData.events.length === 0) {
+        throw new Error("Event not found");
+      }
+
+      // Find the master event (for recurring) or the single event (for non-recurring)
+      const masterEvent = existingEventData.events.find((e) => e.rrule && !e.recurrenceid && !e.estatus);
+
+      const targetEvent = masterEvent || existingEventData.events[0];
+
+      if (!targetEvent) {
+        throw new Error("Could not find event to delete");
+      }
+
+      const isRecurring = !!targetEvent.rrule;
+
+      this.log.debug("Preparing to delete event", {
+        uid,
+        isRecurring,
+        etag: targetEvent.etag,
+        hasRrule: !!targetEvent.rrule,
+      });
+
+      // For deleting entire event (recurring or non-recurring),
+      // we just need to delete with the master event's etag
+      // No need for recurrence_edittype when deleting the master
+      this.log.info(isRecurring ? "Deleting entire recurring series" : "Deleting single event", {
+        uid,
+        etag: targetEvent.etag,
+      });
 
       const response = await this.fetcher(`/calendars/${calendarId}/events/${uid}`, {
         method: "DELETE",
         headers: {
-          etag: existingEventData.events[0].etag,
+          etag: String(targetEvent.etag),
         },
       });
+
       await this.handleData(response, this.log);
 
-      this.log.info("Event deleted successfully", { uid });
+      this.log.info("Event deleted successfully", {
+        uid,
+        isRecurring,
+        deletedType: isRecurring ? "recurring series" : "single event",
+      });
     } catch (error) {
       this.log.error("Error deleting event", { error, uid });
       throw error;
@@ -741,7 +776,7 @@ export default class ZohoCalendarService implements Calendar {
         newTime: event.rescheduleInstance?.newTime,
       });
 
-      // Fetch the event to check if it's recurring and get etag
+      // Fetch the master event to check if it's recurring and get etag
       const existingEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
       const existingEventData = await this.handleData(existingEventResponse, this.log);
 
@@ -749,10 +784,11 @@ export default class ZohoCalendarService implements Calendar {
         throw new Error("Event not found");
       }
 
-      const existingEvent = existingEventData.events[0];
+      // Find the master recurring event (has rrule, no recurrenceid, not deleted)
+      const existingEvent = existingEventData.events.find((e) => e.rrule && !e.recurrenceid && !e.estatus);
 
       // Check if this is a recurring event (has rrule field)
-      if (!existingEvent.rrule) {
+      if (!existingEvent) {
         this.log.warn("Event is not recurring, performing normal update", { uid });
         return await this.updateEvent(uid, event, calendarId);
       }
@@ -771,7 +807,18 @@ export default class ZohoCalendarService implements Calendar {
       // Find the instance that matches the formerTime
       const formerTimeMs = formerTime.getTime();
       const targetInstance = instances.find((instance) => {
-        const instanceStartMs = new Date(instance.dateandtime.start).getTime();
+        const instanceStartStr = instance.dateandtime.start;
+        let instanceStartMs;
+
+        // Check if it's in the compact iCalendar format (e.g., "20251110T150000+0530")
+        if (typeof instanceStartStr === "string" && /^\d{8}T\d{6}[+-]\d{4}$/.test(instanceStartStr)) {
+          // Parse with Day.js using custom format
+          instanceStartMs = dayjs(instanceStartStr, "YYYYMMDDTHHmmssZ").valueOf();
+        } else {
+          // Fallback to direct parsing
+          instanceStartMs = dayjs(instanceStartStr).valueOf();
+        }
+
         return Math.abs(instanceStartMs - formerTimeMs) < 60000; // Within 1 minute
       });
 
@@ -779,7 +826,12 @@ export default class ZohoCalendarService implements Calendar {
         this.log.error("Could not find matching instance", {
           uid,
           formerTime: event.rescheduleInstance!.formerTime,
-          availableInstances: instances.map((i) => i.dateandtime.start),
+          formerTimeMs,
+          availableInstances: instances.map((i) => ({
+            raw: i.dateandtime.start,
+            parsed: dayjs(i.dateandtime.start, "YYYYMMDDTHHmmssZ").toISOString(),
+            ms: dayjs(i.dateandtime.start, "YYYYMMDDTHHmmssZ").valueOf(),
+          })),
         });
         throw new Error(`Could not find instance at ${event.rescheduleInstance!.formerTime}`);
       }
@@ -790,6 +842,7 @@ export default class ZohoCalendarService implements Calendar {
       this.log.debug("Found target instance for update", {
         recurrenceid,
         instanceStart: targetInstance.dateandtime.start,
+        currentEtag: existingEvent.etag,
       });
 
       // Build the update payload with new event details
@@ -861,30 +914,29 @@ export default class ZohoCalendarService implements Calendar {
       });
 
       // Fetch the master event to get etag and check if recurring
-      const masterEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
-      const masterEventData = await this.handleData(masterEventResponse, this.log);
+      let masterEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
+      let masterEventData = await this.handleData(masterEventResponse, this.log);
 
       if (!masterEventData.events || masterEventData.events.length === 0) {
         throw new Error("Master recurring event not found");
       }
 
-      const masterEvent = masterEventData.events[0];
+      let masterEvent = masterEventData.events.find((e) => e.rrule && !e.recurrenceid && !e.estatus);
 
-      // Check if this is a recurring event (has rrule field)
-      if (!masterEvent.rrule) {
-        this.log.warn("Event is not recurring, deleting entire event instead", { uid });
-        await this.deleteEvent(uid, undefined, calendarId);
-        return;
+      if (!masterEvent) {
+        throw new Error("Could not find master recurring event");
       }
 
-      this.log.debug("Fetched master recurring event", {
-        uid,
-        hasRrule: !!masterEvent.rrule,
-      });
+      // Cancel instances SEQUENTIALLY to avoid etag conflicts
+      const cancellationResults: Array<{
+        cancelledDate: string;
+        recurrenceid?: string;
+        success: boolean;
+        error?: string;
+      }> = [];
 
-      // For each cancelled date, fetch instances and delete the matching one
-      const cancellationResults = await Promise.allSettled(
-        cancelledDates.map(async (cancelledDate) => {
+      for (const cancelledDate of cancelledDates) {
+        try {
           const cancelledDateTime = new Date(cancelledDate);
 
           // Use /byinstance API to get instances around this date
@@ -896,16 +948,38 @@ export default class ZohoCalendarService implements Calendar {
           // Find the matching instance
           const cancelledTimeMs = cancelledDateTime.getTime();
           const targetInstance = instances.find((instance) => {
-            const instanceStartMs = new Date(instance.dateandtime.start).getTime();
+            const instanceStartStr = instance.dateandtime.start;
+            let instanceStartMs;
+
+            // Check if it's in the compact iCalendar format (e.g., "20251110T150000+0530")
+            if (typeof instanceStartStr === "string" && /^\d{8}T\d{6}[+-]\d{4}$/.test(instanceStartStr)) {
+              // Parse with Day.js using custom format
+              instanceStartMs = dayjs(instanceStartStr, "YYYYMMDDTHHmmssZ").valueOf();
+            } else {
+              // Fallback to direct parsing
+              instanceStartMs = dayjs(instanceStartStr).valueOf();
+            }
+
             return Math.abs(instanceStartMs - cancelledTimeMs) < 60000; // Within 1 minute
           });
 
           if (!targetInstance) {
             this.log.warn("Could not find instance to cancel", {
               cancelledDate,
-              availableInstances: instances.map((i) => i.dateandtime.start),
+              cancelledTimeMs,
+              availableInstances: instances.map((i) => ({
+                raw: i.dateandtime.start,
+                parsed: dayjs(i.dateandtime.start, "YYYYMMDDTHHmmssZ").toISOString(),
+                ms: dayjs(i.dateandtime.start, "YYYYMMDDTHHmmssZ").valueOf(),
+              })),
             });
-            return;
+
+            cancellationResults.push({
+              cancelledDate,
+              success: false,
+              error: `Could not find instance to cancel for date: ${cancelledDate}`,
+            });
+            continue;
           }
 
           // Delete this specific instance using recurrenceid
@@ -914,6 +988,8 @@ export default class ZohoCalendarService implements Calendar {
           this.log.debug("Deleting instance", {
             cancelledDate,
             recurrenceid,
+            uid,
+            currentEtag: masterEvent.etag,
           });
 
           // Build eventdata with uid and recurrenceid
@@ -937,28 +1013,63 @@ export default class ZohoCalendarService implements Calendar {
 
           await this.handleData(deleteResponse, this.log);
 
-          return {
+          cancellationResults.push({
             cancelledDate,
             recurrenceid,
-          };
-        })
-      );
+            success: true,
+          });
 
-      const successfulCancellations = cancellationResults.filter(
-        (result) => result.status === "fulfilled"
-      ).length;
-      const failedCancellations = cancellationResults.filter((result) => result.status === "rejected");
+          // CRITICAL: Refresh the master event to get the updated etag for next cancellation
+          if (cancelledDates.indexOf(cancelledDate) < cancelledDates.length - 1) {
+            this.log.debug("Refreshing master event etag after successful cancellation");
+
+            masterEventResponse = await this.fetcher(`/calendars/${calendarId}/events/${uid}`);
+            masterEventData = await this.handleData(masterEventResponse, this.log);
+
+            const refreshedMaster = masterEventData.events.find(
+              (e) => e.rrule && !e.recurrenceid && !e.estatus
+            );
+
+            if (refreshedMaster) {
+              masterEvent = refreshedMaster;
+              this.log.debug("Updated etag", {
+                oldEtag: eventdata.etag,
+                newEtag: masterEvent.etag,
+              });
+            } else {
+              this.log.warn("Could not refresh master event etag");
+            }
+          }
+        } catch (error) {
+          // Log detailed error information
+          this.log.error("Failed to cancel instance", {
+            cancelledDate,
+            uid,
+            error: error instanceof Error ? error.message : JSON.stringify(error, null, 2),
+            errorDetails: JSON.stringify(error, null, 2),
+          });
+
+          cancellationResults.push({
+            cancelledDate,
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      const successfulCancellations = cancellationResults.filter((r) => r.success);
+      const failedCancellations = cancellationResults.filter((r) => !r.success);
 
       this.log.info("Completed instance cancellations", {
         uid,
         totalRequested: cancelledDates.length,
-        successful: successfulCancellations,
+        successful: successfulCancellations.length,
         failed: failedCancellations.length,
       });
 
       if (failedCancellations.length > 0) {
         this.log.warn("Some instance cancellations failed", {
-          failures: failedCancellations.map((f) => (f as PromiseRejectedResult).reason),
+          failures: failedCancellations,
         });
       }
     } catch (error) {

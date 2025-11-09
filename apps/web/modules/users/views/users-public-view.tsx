@@ -151,7 +151,7 @@ export function UserPage(props: PageProps) {
           )}>
           <div
             className={classNames(
-              "border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
+              "border-subtle bg-cal-gradient dark:bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-6"
             )}
             style={{
               backgroundImage: headerUrl ? `url(${headerUrl})` : undefined,
@@ -261,8 +261,8 @@ export function UserPage(props: PageProps) {
           {isEventListEmpty && <EmptyPage name={profile.name || "User"} />}
 
           {(!user.hideBranding || user?.bannerUrl) && (
-            <div key="logo" className={classNames("mb-8 flex w-full justify-center [&_img]:h-[32px]")}>
-              <Branding bannerUrl={user?.bannerUrl} />
+            <div key="logo" className={classNames("mb-8 flex w-full justify-center")}>
+              <Branding bannerUrl={user?.bannerUrl} size={user?.bannerUrl ? "sm" : "xs"} />
             </div>
           )}
         </main>

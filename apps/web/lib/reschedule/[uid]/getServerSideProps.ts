@@ -131,8 +131,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const isDisabledRescheduling = booking.eventType?.disableRescheduling;
   // This comes from query param and thus is considered forced
   const canBookThroughCancelledBookingRescheduleLink = booking.eventType?.allowReschedulingCancelledBookings;
-  const isNonRescheduleableBooking =
-    booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED;
+  const isNonRescheduleableBooking = booking.status === BookingStatus.REJECTED;
 
   if (isDisabledRescheduling) {
     return {

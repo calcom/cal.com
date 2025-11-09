@@ -273,7 +273,7 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
         )}
 
         <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
-          <Branding />
+          <Branding size="xs" />
         </div>
       </main>
     </div>
