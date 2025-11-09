@@ -20,7 +20,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@calcom/platform-libraries";
 
 import { getTimeView, getDateRanges, type GetDateRangesParams } from "./insightsDateUtils";
 import { RoutingEventsInsights } from "./routing-events";

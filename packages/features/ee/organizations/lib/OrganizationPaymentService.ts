@@ -13,7 +13,7 @@ import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { UserPermissionRole, type BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
-import { TRPCError } from "@trpc/server";
+import { HttpError } from "@calcom/lib/http-error";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 import type { OnboardingUser } from "./service/onboarding/types";
@@ -179,8 +179,8 @@ export class OrganizationPaymentService {
       this.permissionService.hasModifiedDefaultPayment(input) &&
       !this.permissionService.hasPermissionToModifyDefaultPayment()
     ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
+      throw new HttpError({
+        statusCode: 401,
         message: "You do not have permission to modify the default payment settings",
       });
     }

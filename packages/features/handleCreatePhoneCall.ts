@@ -3,10 +3,9 @@ import { templateTypeEnum } from "@calcom/features/calAIPhone";
 import type { TCreatePhoneCallSchema } from "@calcom/features/calAIPhone";
 import { validatePhoneNumber } from "@calcom/features/calAIPhone/retellAIService";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
-import { TRPCError } from "@trpc/server";
 
 export const handleCreatePhoneCall = async ({
   user,
@@ -16,7 +15,7 @@ export const handleCreatePhoneCall = async ({
   input: TCreatePhoneCallSchema;
 }) => {
   if (!user?.profile?.organization) {
-    throw new TRPCError({ code: "UNAUTHORIZED", message: "User is not part of an organization" });
+    throw new HttpError({ statusCode: 401, message: "User is not part of an organization" });
   }
 
   await checkRateLimitAndThrowError({
