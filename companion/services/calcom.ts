@@ -8,7 +8,8 @@ export interface EventType {
   title: string;
   slug: string;
   description?: string;
-  length: number;
+  length: number; // Deprecated: use lengthInMinutes instead
+  lengthInMinutes?: number; // API returns this field
   locations?: Array<{
     type: string;
     address?: string;
@@ -128,14 +129,18 @@ export class CalComAPIService {
     }
   }
 
-  private static async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private static async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    apiVersion: string = "2024-08-13"
+  ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
     console.log("🌐 Making API request to:", url);
     console.log("🔍 Request headers:", {
       Authorization: `Bearer ${API_KEY.substring(0, 20)}...`,
       "Content-Type": "application/json",
-      "cal-api-version": "2024-08-13",
+      "cal-api-version": apiVersion,
       ...options.headers,
     });
 
@@ -144,7 +149,7 @@ export class CalComAPIService {
       headers: {
         Authorization: `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
-        "cal-api-version": "2024-08-13",
+        "cal-api-version": apiVersion,
         ...options.headers,
       },
     });
@@ -163,7 +168,33 @@ export class CalComAPIService {
 
   static async getEventTypes(): Promise<EventType[]> {
     try {
-      const response = await this.makeRequest<any>("/event-types");
+      // Get current user to extract username
+      let username: string | undefined;
+      try {
+        const currentUser = await this.getCurrentUser();
+        // Extract username from response (could be in data.username or directly in username)
+        if (currentUser?.data?.username) {
+          username = currentUser.data.username;
+        } else if (currentUser?.username) {
+          username = currentUser.username;
+        }
+        console.log("👤 EventTypes: Current user username:", username);
+      } catch (error) {
+        console.warn("⚠️ EventTypes: Could not get current user, proceeding without username:", error);
+      }
+
+      // Build query string with username if available
+      const params = new URLSearchParams();
+      if (username) {
+        params.append("username", username);
+      }
+
+      const queryString = params.toString();
+      const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
+
+      console.log("🌐 EventTypes: Requesting endpoint:", endpoint);
+
+      const response = await this.makeRequest<any>(endpoint, {}, "2024-06-14");
 
       // Handle different possible response structures
       let eventTypesArray: EventType[] = [];
