@@ -8,7 +8,8 @@ export interface EventType {
   title: string;
   slug: string;
   description?: string;
-  length: number;
+  length: number; // Deprecated: use lengthInMinutes instead
+  lengthInMinutes?: number; // API returns this field
   locations?: Array<{
     type: string;
     address?: string;
@@ -82,6 +83,38 @@ export interface GetBookingsResponse {
   data: Booking[];
 }
 
+export interface ScheduleAvailability {
+  days: string[];
+  startTime: string;
+  endTime: string;
+}
+
+export interface ScheduleOverride {
+  date: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface Schedule {
+  id: number;
+  ownerId: number;
+  name: string;
+  timeZone: string;
+  availability: ScheduleAvailability[];
+  isDefault: boolean;
+  overrides: ScheduleOverride[];
+}
+
+export interface GetSchedulesResponse {
+  status: "success";
+  data: Schedule[];
+}
+
+export interface GetScheduleResponse {
+  status: "success";
+  data: Schedule | null;
+}
+
 export class CalComAPIService {
   // Get current user information
   static async getCurrentUser(): Promise<any> {
@@ -128,14 +161,18 @@ export class CalComAPIService {
     }
   }
 
-  private static async makeRequest<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private static async makeRequest<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    apiVersion: string = "2024-08-13"
+  ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
 
     console.log("🌐 Making API request to:", url);
     console.log("🔍 Request headers:", {
       Authorization: `Bearer ${API_KEY.substring(0, 20)}...`,
       "Content-Type": "application/json",
-      "cal-api-version": "2024-08-13",
+      "cal-api-version": apiVersion,
       ...options.headers,
     });
 
@@ -144,7 +181,7 @@ export class CalComAPIService {
       headers: {
         Authorization: `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
-        "cal-api-version": "2024-08-13",
+        "cal-api-version": apiVersion,
         ...options.headers,
       },
     });
@@ -163,7 +200,33 @@ export class CalComAPIService {
 
   static async getEventTypes(): Promise<EventType[]> {
     try {
-      const response = await this.makeRequest<any>("/event-types");
+      // Get current user to extract username
+      let username: string | undefined;
+      try {
+        const currentUser = await this.getCurrentUser();
+        // Extract username from response (could be in data.username or directly in username)
+        if (currentUser?.data?.username) {
+          username = currentUser.data.username;
+        } else if (currentUser?.username) {
+          username = currentUser.username;
+        }
+        console.log("👤 EventTypes: Current user username:", username);
+      } catch (error) {
+        console.warn("⚠️ EventTypes: Could not get current user, proceeding without username:", error);
+      }
+
+      // Build query string with username if available
+      const params = new URLSearchParams();
+      if (username) {
+        params.append("username", username);
+      }
+
+      const queryString = params.toString();
+      const endpoint = `/event-types${queryString ? `?${queryString}` : ""}`;
+
+      console.log("🌐 EventTypes: Requesting endpoint:", endpoint);
+
+      const response = await this.makeRequest<any>(endpoint, {}, "2024-06-14");
 
       // Handle different possible response structures
       let eventTypesArray: EventType[] = [];
@@ -362,6 +425,64 @@ export class CalComAPIService {
         console.error("❌📅 Error message:", error.message);
         console.error("❌📅 Error stack:", error.stack);
       }
+      throw error;
+    }
+  }
+
+  // Get all schedules
+  static async getSchedules(): Promise<Schedule[]> {
+    try {
+      console.log("📅 Fetching schedules...");
+      const response = await this.makeRequest<any>(
+        "/schedules",
+        {
+          headers: {
+            "cal-api-version": "2024-06-11", // Override version for schedules
+          },
+        },
+        "2024-06-11"
+      );
+
+      console.log("📅 Schedules response:", JSON.stringify(response, null, 2));
+
+      let schedulesArray: Schedule[] = [];
+
+      if (Array.isArray(response)) {
+        schedulesArray = response;
+      } else if (response && response.data && Array.isArray(response.data)) {
+        schedulesArray = response.data;
+      }
+
+      return schedulesArray;
+    } catch (error) {
+      console.error("❌ Failed to fetch schedules:", error);
+      throw error;
+    }
+  }
+
+  // Get default schedule
+  static async getDefaultSchedule(): Promise<Schedule | null> {
+    try {
+      console.log("📅 Fetching default schedule...");
+      const response = await this.makeRequest<any>(
+        "/schedules/default",
+        {
+          headers: {
+            "cal-api-version": "2024-06-11", // Override version for schedules
+          },
+        },
+        "2024-06-11"
+      );
+
+      console.log("📅 Default schedule response:", JSON.stringify(response, null, 2));
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("❌ Failed to fetch default schedule:", error);
       throw error;
     }
   }
