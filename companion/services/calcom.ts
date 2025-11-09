@@ -486,4 +486,42 @@ export class CalComAPIService {
       throw error;
     }
   }
+
+  // Update schedule
+  static async updateSchedule(
+    scheduleId: number,
+    data: {
+      name?: string;
+      timeZone?: string;
+      availability?: ScheduleAvailability[];
+      isDefault?: boolean;
+      overrides?: ScheduleOverride[];
+    }
+  ): Promise<Schedule> {
+    try {
+      console.log("📅 Updating schedule:", scheduleId, data);
+      const response = await this.makeRequest<any>(
+        `/schedules/${scheduleId}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify(data),
+          headers: {
+            "cal-api-version": "2024-06-11",
+          },
+        },
+        "2024-06-11"
+      );
+
+      console.log("📅 Update schedule response:", JSON.stringify(response, null, 2));
+
+      if (response && response.data) {
+        return response.data;
+      }
+
+      throw new Error("Failed to update schedule");
+    } catch (error) {
+      console.error("❌ Failed to update schedule:", error);
+      throw error;
+    }
+  }
 }
