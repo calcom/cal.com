@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import { onboardingIndexedDBStorage } from "./onboarding-storage";
+
 export type PlanType = "personal" | "team" | "organization";
 export type InviteRole = "MEMBER" | "ADMIN";
 
@@ -26,6 +28,25 @@ export interface Invite {
   role: InviteRole;
 }
 
+export interface TeamDetails {
+  name: string;
+  slug: string;
+  bio: string;
+}
+
+export interface TeamBrand {
+  color: string;
+  logo: string | null; // base64 or URL
+}
+
+export interface PersonalDetails {
+  name: string;
+  username: string;
+  timezone: string;
+  bio: string;
+  avatar: string | null;
+}
+
 export interface OnboardingState {
   selectedPlan: PlanType | null;
 
@@ -38,6 +59,14 @@ export interface OnboardingState {
   invites: Invite[];
   inviteRole: InviteRole;
 
+  // Team-specific state
+  teamDetails: TeamDetails;
+  teamBrand: TeamBrand;
+  teamInvites: Invite[];
+
+  // Personal user state
+  personalDetails: PersonalDetails;
+
   // Actions
   setSelectedPlan: (plan: PlanType) => void;
   setOrganizationDetails: (details: Partial<OrganizationDetails>) => void;
@@ -45,6 +74,14 @@ export interface OnboardingState {
   setTeams: (teams: Team[]) => void;
   setInvites: (invites: Invite[]) => void;
   setInviteRole: (role: InviteRole) => void;
+
+  // Team actions
+  setTeamDetails: (details: Partial<TeamDetails>) => void;
+  setTeamBrand: (brand: Partial<TeamBrand>) => void;
+  setTeamInvites: (invites: Invite[]) => void;
+
+  // Personal actions
+  setPersonalDetails: (details: Partial<PersonalDetails>) => void;
 
   // Reset
   resetOnboarding: () => void;
@@ -65,6 +102,23 @@ const initialState = {
   teams: [],
   invites: [],
   inviteRole: "MEMBER" as InviteRole,
+  teamDetails: {
+    name: "",
+    slug: "",
+    bio: "",
+  },
+  teamBrand: {
+    color: "#000000",
+    logo: null,
+  },
+  teamInvites: [],
+  personalDetails: {
+    name: "",
+    username: "",
+    timezone: "",
+    bio: "",
+    avatar: null,
+  },
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -90,10 +144,28 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       setInviteRole: (role) => set({ inviteRole: role }),
 
+      setTeamDetails: (details) =>
+        set((state) => ({
+          teamDetails: { ...state.teamDetails, ...details },
+        })),
+
+      setTeamBrand: (brand) =>
+        set((state) => ({
+          teamBrand: { ...state.teamBrand, ...brand },
+        })),
+
+      setTeamInvites: (invites) => set({ teamInvites: invites }),
+
+      setPersonalDetails: (details) =>
+        set((state) => ({
+          personalDetails: { ...state.personalDetails, ...details },
+        })),
+
       resetOnboarding: () => set(initialState),
     }),
     {
-      name: "cal-onboarding-storage", // localStorage key
+      name: "cal-onboarding-storage", // Storage key
+      storage: onboardingIndexedDBStorage, // Use IndexedDB instead of localStorage for larger capacity
       // Optional: Only persist certain fields
       partialize: (state) => ({
         selectedPlan: state.selectedPlan,
@@ -102,6 +174,10 @@ export const useOnboardingStore = create<OnboardingState>()(
         teams: state.teams,
         invites: state.invites,
         inviteRole: state.inviteRole,
+        teamDetails: state.teamDetails,
+        teamBrand: state.teamBrand,
+        teamInvites: state.teamInvites,
+        personalDetails: state.personalDetails,
       }),
     }
   )
