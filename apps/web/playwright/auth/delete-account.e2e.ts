@@ -25,4 +25,11 @@ test("Can delete user account", async ({ page, users }) => {
   ]);
 
   await expect(page.locator(`[id="modal-title"]`)).toHaveText("You've been logged out");
+
+  // Verify if the account was actually deleted
+  await page.goto("/auth/login");
+  await page.fill('input[name="email"]', `${user.username}@example.com`);
+  await page.fill('input[name="password"]', user.username);
+  await page.click('button[type="submit"]');
+  await expect(page.locator("text=Email or password is incorrect.")).toBeVisible();
 });
