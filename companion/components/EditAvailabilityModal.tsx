@@ -155,7 +155,7 @@ export default function EditAvailabilityModal({
     setName(schedule.name);
     setTimeZone(schedule.timeZone);
     setIsDefault(schedule.isDefault);
-  }, [visible]);
+  }, [visible, schedule]);
 
   const toggleDayEnabled = (day: DayOfWeek) => {
     setDayAvailability((prev) => ({
