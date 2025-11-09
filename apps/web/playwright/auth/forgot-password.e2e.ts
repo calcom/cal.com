@@ -6,6 +6,24 @@ import prisma from "@calcom/prisma";
 
 import { test } from "../lib/fixtures";
 
+async function requestPasswordReset(page, email: string) {
+  await page.goto("/auth/forgot-password");
+  await page.waitForSelector("text=Forgot Password?");
+  await page.fill('input[name="email"]', email);
+  await page.press('input[name="email"]', "Enter");
+  await page.waitForLoadState("networkidle");
+  // wait for confirmation
+  await page.waitForSelector("text=Reset link sent");
+}
+
+async function getLatestResetRequest(email: string) {
+  return prisma.resetPasswordRequest.findFirstOrThrow({
+    where: { email },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, expires: true },
+  });
+}
+
 test.describe.configure({ mode: "parallel" });
 
 test.afterEach(({ users }) => users.deleteAll());
@@ -14,30 +32,12 @@ test.describe("Forgot password", async () => {
   test("Can reset forgotten password", async ({ page, users }) => {
     const user = await users.create();
 
-    // Got to reset password flow
-    await page.goto("/auth/forgot-password");
-    await page.waitForSelector("text=Forgot Password?");
-
-    await page.fill('input[name="email"]', `${user.username}@example.com`);
-    await page.press('input[name="email"]', "Enter");
-    await page.waitForLoadState("networkidle");
-
-    // wait for confirm page.
-    await page.waitForSelector("text=Reset link sent");
+    // Request for Password Reset
+    await requestPasswordReset(page, user.email);
 
     // As a workaround, we query the db for the last created password request
     // there should be one, otherwise we throw
-    const { id } = await prisma.resetPasswordRequest.findFirstOrThrow({
-      where: {
-        email: user.email,
-      },
-      select: {
-        id: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    const { id } = await getLatestResetRequest(user.email);
 
     // Test when a user changes his email after starting the password reset flow
     await prisma.user.update({
@@ -100,49 +100,11 @@ test.describe("Forgot password", async () => {
   test("Old tokens are invalidated when new reset link is requested", async ({ page, users }) => {
     const user = await users.create();
 
-    await page.goto("/auth/forgot-password");
-    await page.waitForSelector("text=Forgot Password?");
+    await requestPasswordReset(page, user.email);
+    const firstRequest = await getLatestResetRequest(user.email);
 
-    await page.fill('input[name="email"]', `${user.username}@example.com`);
-    await page.press('input[name="email"]', "Enter");
-    await page.waitForLoadState("networkidle");
-
-    await page.waitForSelector("text=Reset link sent");
-
-    const firstRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
-      where: {
-        email: user.email,
-      },
-      select: {
-        id: true,
-        expires: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    await page.goto("/auth/forgot-password");
-    await page.waitForSelector("text=Forgot Password?");
-
-    await page.fill('input[name="email"]', `${user.username}@example.com`);
-    await page.press('input[name="email"]', "Enter");
-    await page.waitForLoadState("networkidle");
-
-    await page.waitForSelector("text=Reset link sent");
-
-    const secondRequest = await prisma.resetPasswordRequest.findFirstOrThrow({
-      where: {
-        email: user.email,
-      },
-      select: {
-        id: true,
-        expires: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    await requestPasswordReset(page, user.email);
+    const secondRequest = await getLatestResetRequest(user.email);
 
     const firstRequestAfterSecond = await prisma.resetPasswordRequest.findUniqueOrThrow({
       where: {
