@@ -882,9 +882,26 @@ export default class Office365CalendarService implements Calendar {
 
           // Find the matching instance
           const targetInstance = instancesJson.value?.find((instance) => {
-            const instanceStart = new Date(instance.start?.dateTime || "").getTime();
-            const cancelledTimeMs = cancelledDateTime.getTime();
-            return Math.abs(instanceStart - cancelledTimeMs) < 60000; // Within 1 minute
+            if (!instance.start?.dateTime) return false;
+
+            const cancelledISO = dayjs(cancelledDateTime).utc().format("YYYY-MM-DD");
+
+            // Fallback: match by occurrenceId (super reliable on Outlook)
+            if (instance.occurrenceId?.endsWith(cancelledISO)) {
+              return true;
+            }
+
+            // Extract instance timezone or default to UTC
+            const instanceTz = instance.start.timeZone || "UTC";
+
+            // Parse Outlook datetime in its own timezone, then convert to UTC
+            const instanceUtc = dayjs.tz(instance.start.dateTime, instanceTz).utc();
+
+            const instanceMs = instanceUtc.valueOf();
+            const cancelledMs = dayjs(cancelledDateTime).utc().valueOf();
+
+            // Within 1 minute match
+            return Math.abs(instanceMs - cancelledMs) < 60000;
           });
 
           if (!targetInstance || !targetInstance.id) {
@@ -951,61 +968,66 @@ export default class Office365CalendarService implements Calendar {
         newTime: event.rescheduleInstance?.newTime,
       });
 
-      // The uid could be either the master event ID or an instance ID
-      // We need to determine which one and handle accordingly
+      const userEndpoint = await this.getUserEndpoint();
 
-      // First, try to fetch the event to check if it's a recurring event
-      const eventResponse = await this.fetcher(`${await this.getUserEndpoint()}/events/${uid}`);
+      // Grab event definition for UID to determine if this is master or instance
+      const eventResponse = await this.fetcher(`${userEndpoint}/events/${uid}`);
       const eventJson = await handleErrorsJson<Event & { seriesMasterId?: string }>(eventResponse);
 
       let masterEventId: string;
       let instanceId: string | null = null;
 
+      // If UID itself is an instance
       if (eventJson.seriesMasterId) {
-        // This is already an instance
         masterEventId = eventJson.seriesMasterId;
         instanceId = uid;
       } else if (eventJson.recurrence) {
-        // This is the master event, we need to find the specific instance
+        // UID is the master event, we must locate the target instance
         masterEventId = uid;
 
-        // Fetch instances around the former time
-        const formerTime = new Date(event.rescheduleInstance!.formerTime);
-        const instancesUrl = `${await this.getUserEndpoint()}/events/${masterEventId}/instances`;
+        const formerTime = dayjs(event.rescheduleInstance!.formerTime);
+        const searchStart = formerTime.subtract(1, "day").toISOString();
+        const searchEnd = formerTime.add(1, "day").toISOString();
 
-        // Search in a window around the former time
-        const searchStart = new Date(formerTime.getTime() - 24 * 60 * 60 * 1000); // 1 day before
-        const searchEnd = new Date(formerTime.getTime() + 24 * 60 * 60 * 1000); // 1 day after
-
+        const instancesUrl = `${userEndpoint}/events/${masterEventId}/instances`;
         const instancesResponse = await this.fetcher(
-          `${instancesUrl}?startDateTime=${searchStart.toISOString()}&endDateTime=${searchEnd.toISOString()}`
+          `${instancesUrl}?startDateTime=${searchStart}&endDateTime=${searchEnd}`
         );
 
         const instancesJson = await handleErrorsJson<{ value: Event[] }>(instancesResponse);
 
-        // Find the instance matching the former time
-        const targetInstance = instancesJson.value?.find((instance) => {
-          const instanceStart = new Date(instance.start?.dateTime || "").getTime();
-          const formerTimeMs = formerTime.getTime();
-          return Math.abs(instanceStart - formerTimeMs) < 60000; // Within 1 minute
-        });
+        // Attempt match by occurrenceId first (most reliable for Outlook)
+        const formerISODate = formerTime.utc().format("YYYY-MM-DD");
 
-        if (!targetInstance || !targetInstance.id) {
+        let targetInstance =
+          instancesJson.value?.find((inst) => inst.occurrenceId?.endsWith(formerISODate)) ?? null;
+
+        // If not found, fallback to timestamp diff
+        if (!targetInstance) {
+          targetInstance =
+            instancesJson.value?.find((instance) => {
+              if (!instance.start?.dateTime) return false;
+
+              const instanceTz = instance.start.timeZone || "UTC";
+              const instanceUtc = dayjs.tz(instance.start.dateTime, instanceTz).utc();
+              const diff = Math.abs(instanceUtc.valueOf() - formerTime.utc().valueOf());
+              return diff < 60000; // within 1 min
+            }) ?? null;
+        }
+
+        if (!targetInstance?.id) {
           throw new Error(
-            `Could not find instance at ${
-              event.rescheduleInstance!.formerTime
-            } in recurring series ${masterEventId}`
+            `Could not find instance at ${event.rescheduleInstance!.formerTime} in series ${masterEventId}`
           );
         }
 
         instanceId = targetInstance.id;
       } else {
-        // Not a recurring event, just update normally
+        // Not a recurring event, fallback to normal update
         this.log.warn("Event is not recurring, performing normal update", { uid });
         return await this.updateEvent(uid, event);
       }
 
-      // Now update the specific instance
       if (!instanceId) {
         throw new Error("Could not determine instance ID for reschedule");
       }
@@ -1015,7 +1037,7 @@ export default class Office365CalendarService implements Calendar {
         instanceId,
       });
 
-      const updateUrl = `${await this.getUserEndpoint()}/events/${instanceId}`;
+      const updateUrl = `${userEndpoint}/events/${instanceId}`;
       const translatedEvent = this.translateEvent(event);
 
       const response = await this.fetcher(updateUrl, {
