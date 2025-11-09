@@ -10,9 +10,9 @@ import {
   RefreshControl 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { CalComAPIService, EventType } from '../services/calcom';
+import { CalComAPIService, EventType } from '../../services/calcom';
 
-export default function EventTypesScreen() {
+export default function EventTypes() {
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

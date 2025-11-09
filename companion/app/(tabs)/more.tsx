@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function MoreScreen() {
+export default function More() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>More</Text>
