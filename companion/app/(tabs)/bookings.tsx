@@ -13,11 +13,11 @@ import {
   Platform,
 } from "react-native";
 
-import { CalComAPIService, Booking } from "../services/calcom";
+import { CalComAPIService, Booking } from "../../services/calcom";
 
 type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
-export default function BookingsScreen() {
+export default function Bookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

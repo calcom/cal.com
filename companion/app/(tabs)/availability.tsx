@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -8,10 +9,10 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { CalComAPIService, Schedule, ScheduleAvailability } from "../services/calcom";
 
-export default function AvailabilityScreen() {
+import { CalComAPIService, Schedule, ScheduleAvailability } from "../../services/calcom";
+
+export default function Availability() {
   const [schedule, setSchedule] = useState<Schedule | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
