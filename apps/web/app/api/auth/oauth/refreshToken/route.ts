@@ -11,7 +11,7 @@ import { isValidOAuthTokenHeader } from "../../../isValidOAuthTokenHeader";
 
 async function handler(req: NextRequest) {
   const isValidReqContentType = isValidOAuthTokenHeader(req)
-  if (isValidReqContentType) {
+  if (!isValidReqContentType) {
     return NextResponse.json(
       {
         error: "invalid_request",
