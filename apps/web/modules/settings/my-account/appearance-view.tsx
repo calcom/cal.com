@@ -545,8 +545,8 @@ const AppearanceView = ({
                           <div className="flex items-center gap-3">
                             <div className="w-[105px]">
                               <CustomBannerUploader
-                                height={400}
-                                width={400}
+                                // height={400}
+                                // width={400}
                                 target="logo"
                                 fieldName="Logo"
                                 // uploadInstruction={t("org_logo_instructions", { height: 100, width: 400 })}

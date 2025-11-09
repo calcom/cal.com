@@ -129,16 +129,16 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   } = context;
 
   const actions: (ActionType | null)[] = [
-    // {
-    //   id: "reschedule",
-    //   icon: "clock",
-    //   label: t("reschedule_booking"),
-    //   href: `/reschedule/${booking.uid}${
-    //     booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-    //   }`,
-    //   disabled:
-    //     (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
-    // },
+    {
+      id: "reschedule",
+      icon: "clock",
+      label: t("reschedule_booking"),
+      href: `/reschedule/${booking.uid}${
+        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+      }`,
+      disabled:
+        (isBookingInPast && !booking.eventType.allowReschedulingPastBookings) || isDisabledRescheduling,
+    },
     !isRecurring && {
       id: "reschedule_request",
       icon: "send",

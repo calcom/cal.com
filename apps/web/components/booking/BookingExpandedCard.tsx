@@ -47,7 +47,7 @@ export function BookingExpandedCard(props: BookingItemProps) {
 
   const customFields = {};
 
-  if (responses["attendeePhoneNumber"] !== undefined) {
+  if (responses && responses["attendeePhoneNumber"] !== undefined) {
     customFields["Phone Number"] = responses["attendeePhoneNumber"];
   }
   for (const key in bookingFields) {
