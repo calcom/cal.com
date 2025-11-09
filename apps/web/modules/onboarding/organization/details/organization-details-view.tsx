@@ -7,8 +7,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, TextArea } from "@calcom/ui/components/form";
 
-import { OnboardingCard } from "../../personal/_components/OnboardingCard";
-import { OnboardingLayout } from "../../personal/_components/OnboardingLayout";
+import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
+import { OnboardingCard } from "../../components/OnboardingCard";
+import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedOrganizationSlug } from "./validated-organization-slug";
 
@@ -77,6 +78,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
 
   return (
     <OnboardingLayout userEmail={userEmail} currentStep={2}>
+      {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_details_title")}
         subtitle={t("onboarding_org_details_subtitle")}
@@ -134,6 +136,9 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
           </div>
         </div>
       </OnboardingCard>
+
+      {/* Right column - Browser view */}
+      <OnboardingBrowserView />
     </OnboardingLayout>
   );
 };

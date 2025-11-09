@@ -1,7 +1,12 @@
+"use client";
+
 import React, { Suspense } from "react";
 
 import classNames from "@calcom/ui/classNames";
 import { Icon } from "@calcom/ui/components/icon";
+import { Button } from "@calcom/ui/components/button";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouter } from "next/navigation";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -22,6 +27,9 @@ export default function Header({
   borderInShellHeader,
   backButton,
 }: HeaderProps) {
+  const router = useRouter();
+  const { t } = useLocale();
+  
   return (
     <div>
       <header
@@ -33,9 +41,15 @@ export default function Header({
         <div className="flex w-full items-center justify-between gap-2">
           <div className="flex items-center">
             {backButton && (
-              <a href="javascript:history.back()">
-                <Icon name="arrow-left" className="mr-7" />
-              </a>
+              <Button
+                variant="icon"
+                size="sm"
+                color="minimal"
+                onClick={() => router.back()}
+                className="rounded-md ltr:mr-2 rtl:ml-2"
+                StartIcon="arrow-left"
+                aria-label={t("go_back")}
+              />
             )}
             <div>
               {title ? (

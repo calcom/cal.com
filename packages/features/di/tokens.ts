@@ -1,6 +1,6 @@
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { HASHED_LINK_DI_TOKENS } from "@calcom/features/hashedLink/di/tokens";
-
+import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
 import { WATCHLIST_DI_TOKENS } from "./watchlist/Watchlist.tokens";
 
 export const DI_TOKENS = {
@@ -63,4 +63,5 @@ export const DI_TOKENS = {
   ...HASHED_LINK_DI_TOKENS,
   // Watchlist service tokens
   ...WATCHLIST_DI_TOKENS,
+  ...ORGANIZATION_DI_TOKENS,
 };
