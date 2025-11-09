@@ -587,7 +587,7 @@ const BookerComponent = ({
 
           {(!hideBranding || orgBannerUrl) && (
             <div key="logo" className={classNames("my-8 flex w-full justify-center [&_img]:h-[32px]")}>
-              <Branding bannerUrl={orgBannerUrl} />
+              <Branding bannerUrl={orgBannerUrl} size={orgBannerUrl ? "sm" : "xs"}/>
             </div>
           )}
         </div>
