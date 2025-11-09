@@ -37,6 +37,8 @@ export interface Booking {
   description?: string;
   startTime: string;
   endTime: string;
+  start?: string;
+  end?: string;
   eventTypeId: number;
   eventType?: {
     id: number;

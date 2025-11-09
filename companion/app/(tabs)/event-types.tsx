@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   ActivityIndicator,
   Alert,
@@ -99,30 +98,33 @@ export default function EventTypes() {
     const duration = getDuration(item);
 
     return (
-      <TouchableOpacity style={styles.eventTypeCard} onPress={() => handleEventTypePress(item)}>
-        <View style={styles.eventTypeHeader}>
-          <Text style={styles.eventTypeTitle}>{item.title}</Text>
+      <TouchableOpacity
+        className="mb-3 rounded-xl bg-white p-4 shadow-md"
+        onPress={() => handleEventTypePress(item)}
+      >
+        <View className="mb-2 flex-row items-center justify-between">
+          <Text className="flex-1 text-lg font-semibold text-gray-800">{item.title}</Text>
         </View>
 
         {item.description && (
-          <Text style={styles.eventTypeDescription} numberOfLines={2}>
+          <Text className="mb-2 text-sm leading-5 text-gray-500" numberOfLines={2}>
             {item.description}
           </Text>
         )}
 
-        <Text style={styles.eventTypeDurationText}>{formatDuration(duration)}</Text>
+        <Text className="mb-3 text-sm font-medium text-gray-500">{formatDuration(duration)}</Text>
 
-        <View style={styles.eventTypeFooter}>
-          <View style={styles.eventTypeInfo}>
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center gap-2">
             {item.price != null && item.price > 0 && (
-              <Text style={styles.eventTypePrice}>
+              <Text className="text-sm font-semibold text-emerald-500">
                 {item.currency || "$"}
                 {item.price}
               </Text>
             )}
             {item.requiresConfirmation && (
-              <View style={styles.confirmationBadge}>
-                <Text style={styles.confirmationText}>Requires Confirmation</Text>
+              <View className="rounded bg-amber-500 px-2 py-0.5">
+                <Text className="text-[10px] font-medium text-white">Requires Confirmation</Text>
               </View>
             )}
           </View>
@@ -134,21 +136,23 @@ export default function EventTypes() {
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 items-center justify-center bg-gray-50 p-5">
         <ActivityIndicator size="large" color="#000000" />
-        <Text style={styles.loadingText}>Loading event types...</Text>
+        <Text className="mt-4 text-base text-gray-500">Loading event types...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 items-center justify-center bg-gray-50 p-5">
         <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-        <Text style={styles.errorTitle}>Unable to load event types</Text>
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchEventTypes}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+        <Text className="mt-4 mb-2 text-center text-xl font-bold text-gray-800">
+          Unable to load event types
+        </Text>
+        <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
+        <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={fetchEventTypes}>
+          <Text className="text-base font-semibold text-white">Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -156,147 +160,26 @@ export default function EventTypes() {
 
   if (eventTypes.length === 0) {
     return (
-      <View style={styles.centerContainer}>
+      <View className="flex-1 items-center justify-center bg-gray-50 p-5">
         <Ionicons name="calendar-outline" size={64} color="#666" />
-        <Text style={styles.emptyTitle}>No event types found</Text>
-        <Text style={styles.emptyText}>Create your first event type in Cal.com</Text>
+        <Text className="mt-4 mb-2 text-xl font-bold text-gray-800">No event types found</Text>
+        <Text className="text-center text-base text-gray-500">
+          Create your first event type in Cal.com
+        </Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-gray-50">
       <FlatList
         data={eventTypes}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderEventType}
-        contentContainerStyle={styles.listContainer}
+        className="px-4 py-4"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f8f9fa",
-  },
-  listContainer: {
-    padding: 16,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#666",
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-    color: "#333",
-    textAlign: "center",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: "#000000",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-    color: "#333",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-  },
-  eventTypeCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  eventTypeHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  eventTypeTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    flex: 1,
-  },
-  eventTypeDescription: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  eventTypeDurationText: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 12,
-    fontWeight: "500",
-  },
-  eventTypeFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  eventTypeInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  eventTypePrice: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#34C759",
-  },
-  confirmationBadge: {
-    backgroundColor: "#FF9500",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  confirmationText: {
-    fontSize: 10,
-    fontWeight: "500",
-    color: "#fff",
-  },
-});

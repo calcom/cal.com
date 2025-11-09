@@ -4,14 +4,13 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   FlatList,
   ActivityIndicator,
   Alert,
   TouchableOpacity,
   RefreshControl,
-  Platform,
 } from "react-native";
+import type { NativeSyntheticEvent } from "react-native";
 
 import { CalComAPIService, Booking } from "../../services/calcom";
 
@@ -35,14 +34,6 @@ export default function Bookings() {
   const activeIndex = filterOptions.findIndex((option) => option.key === activeFilter);
 
   const getFiltersForActiveTab = () => {
-    const today = new Date();
-    const todayISO = today.toISOString().split("T")[0];
-
-    // Calculate a wider date range for past and cancelled bookings
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    const sixMonthsAgoISO = sixMonthsAgo.toISOString().split("T")[0];
-
     switch (activeFilter) {
       case "upcoming":
         return {
@@ -222,9 +213,11 @@ export default function Bookings() {
     setActiveFilter(filter);
   };
 
-  const handleSegmentChange = (event: any) => {
-    const selectedIndex = event.nativeEvent.selectedSegmentIndex;
-    const selectedFilter = filterOptions[selectedIndex];
+  const handleSegmentChange = (
+    event: NativeSyntheticEvent<{ selectedSegmentIndex: number }>
+  ) => {
+    const { selectedSegmentIndex } = event.nativeEvent;
+    const selectedFilter = filterOptions[selectedSegmentIndex];
     if (selectedFilter) {
       handleFilterChange(selectedFilter.key);
     }
@@ -265,18 +258,16 @@ export default function Bookings() {
     }
   };
 
-  const renderSegmentedControl = () => {
-    return (
-      <View style={styles.segmentedControlContainer}>
-        <SegmentedControl
-          values={filterLabels}
-          selectedIndex={activeIndex}
-          onChange={handleSegmentChange}
-          style={styles.segmentedControl}
-        />
-      </View>
-    );
-  };
+  const renderSegmentedControl = () => (
+    <View className="border-b border-gray-200 bg-white px-4 py-3">
+      <SegmentedControl
+        values={filterLabels}
+        selectedIndex={activeIndex}
+        onChange={handleSegmentChange}
+        className="h-9"
+      />
+    </View>
+  );
 
   const handleBookingPress = (booking: Booking) => {
     const attendeesList = booking.attendees?.map((att) => att.name).join(", ") || "No attendees";
@@ -370,39 +361,49 @@ export default function Bookings() {
   };
 
   const renderBooking = ({ item }: { item: Booking }) => (
-    <TouchableOpacity style={styles.bookingCard} onPress={() => handleBookingPress(item)}>
-      <View style={styles.bookingHeader}>
-        <Text style={styles.bookingTitle}>{item.title}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-          <Text style={styles.statusText}>{formatStatusText(item.status)}</Text>
+    <TouchableOpacity
+      className="mb-3 rounded-xl bg-white p-4 shadow-md"
+      onPress={() => handleBookingPress(item)}
+    >
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="mr-2 flex-1 text-lg font-semibold text-gray-800">{item.title}</Text>
+        <View
+          className="rounded-md px-2 py-1"
+          style={{ backgroundColor: getStatusColor(item.status) }}
+        >
+          <Text className="text-xs font-semibold text-white">{formatStatusText(item.status)}</Text>
         </View>
       </View>
 
-      <View style={styles.bookingInfo}>
-        <View style={styles.dateTimeSection}>
-          <Text style={styles.dateText}>{formatDate(item.start || item.startTime || "")}</Text>
-          <Text style={styles.timeText}>
+      <View className="mb-3">
+        <View className="flex-row items-center">
+          <Text className="mr-3 text-base font-medium text-gray-800">
+            {formatDate(item.start || item.startTime || "")}
+          </Text>
+          <Text className="text-sm text-gray-500">
             {formatTime(item.start || item.startTime || "")} - {formatTime(item.end || item.endTime || "")}
           </Text>
         </View>
       </View>
 
       {item.attendees && item.attendees.length > 0 && (
-        <View style={styles.attendeesSection}>
+        <View className="mb-2 flex-row items-center">
           <Ionicons name="people-outline" size={16} color="#666" />
-          <Text style={styles.attendeesText}>{item.attendees.map((att) => att.name).join(", ")}</Text>
+          <Text className="ml-2 flex-1 text-sm text-gray-500">
+            {item.attendees.map((att) => att.name).join(", ")}
+          </Text>
         </View>
       )}
 
       {item.location && (
-        <View style={styles.locationSection}>
+        <View className="mb-2 flex-row items-center">
           <Ionicons name="location-outline" size={16} color="#666" />
-          <Text style={styles.locationText}>{item.location}</Text>
+          <Text className="ml-2 flex-1 text-sm text-gray-500">{item.location}</Text>
         </View>
       )}
 
-      <View style={styles.bookingFooter}>
-        <Text style={styles.eventTypeText}>{item.eventType?.title || "Event"}</Text>
+      <View className="mt-2 flex-row items-center justify-between border-t border-gray-100 pt-2">
+        <Text className="text-sm font-medium text-gray-700">{item.eventType?.title || "Event"}</Text>
         <Ionicons name="chevron-forward" size={20} color="#666" />
       </View>
     </TouchableOpacity>
@@ -410,11 +411,11 @@ export default function Bookings() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View className="flex-1 bg-gray-50">
         {renderSegmentedControl()}
-        <View style={styles.centerContainer}>
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <ActivityIndicator size="large" color="#000000" />
-          <Text style={styles.loadingText}>Loading {activeFilter} bookings...</Text>
+          <Text className="mt-4 text-base text-gray-500">Loading {activeFilter} bookings...</Text>
         </View>
       </View>
     );
@@ -422,14 +423,16 @@ export default function Bookings() {
 
   if (error) {
     return (
-      <View style={styles.container}>
+      <View className="flex-1 bg-gray-50">
         {renderSegmentedControl()}
-        <View style={styles.centerContainer}>
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
           <Ionicons name="alert-circle" size={64} color="#FF3B30" />
-          <Text style={styles.errorTitle}>Unable to load bookings</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchBookings}>
-            <Text style={styles.retryButtonText}>Retry</Text>
+          <Text className="mt-4 mb-2 text-center text-xl font-bold text-gray-800">
+            Unable to load bookings
+          </Text>
+          <Text className="mb-6 text-center text-base text-gray-500">{error}</Text>
+          <TouchableOpacity className="rounded-lg bg-black px-6 py-3" onPress={fetchBookings}>
+            <Text className="text-base font-semibold text-white">Retry</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -439,187 +442,30 @@ export default function Bookings() {
   if (bookings.length === 0 && !loading) {
     const emptyState = getEmptyStateContent();
     return (
-      <View style={styles.container}>
+      <View className="flex-1 bg-gray-50">
         {renderSegmentedControl()}
-        <View style={styles.centerContainer}>
-          <Ionicons name={emptyState.icon as any} size={64} color="#666" />
-          <Text style={styles.emptyTitle}>{emptyState.title}</Text>
-          <Text style={styles.emptyText}>{emptyState.text}</Text>
+        <View className="flex-1 items-center justify-center bg-gray-50 p-5">
+          <Ionicons name={emptyState.icon as keyof typeof Ionicons.glyphMap} size={64} color="#666" />
+          <Text className="mt-4 mb-2 text-center text-xl font-bold text-gray-800">
+            {emptyState.title}
+          </Text>
+          <Text className="text-center text-base text-gray-500">{emptyState.text}</Text>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-gray-50">
       {renderSegmentedControl()}
       <FlatList
         data={bookings}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderBooking}
-        contentContainerStyle={styles.listContainer}
+        className="px-4 py-4"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
-  segmentedControlContainer: {
-    backgroundColor: "#fff",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-  },
-  segmentedControl: {
-    height: 36,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f8f9fa",
-  },
-  listContainer: {
-    padding: 16,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#666",
-  },
-  errorTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-    color: "#333",
-    textAlign: "center",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: "#000000",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginTop: 16,
-    marginBottom: 8,
-    color: "#333",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-  },
-  bookingCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  bookingHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  bookingTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    flex: 1,
-    marginRight: 8,
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  statusText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  bookingInfo: {
-    marginBottom: 12,
-  },
-  dateTimeSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  dateText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  timeText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  attendeesSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 8,
-  },
-  attendeesText: {
-    fontSize: 14,
-    color: "#666",
-    flex: 1,
-  },
-  locationSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 8,
-  },
-  locationText: {
-    fontSize: 14,
-    color: "#666",
-    flex: 1,
-  },
-  bookingFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  eventTypeText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#000000",
-  },
-});
