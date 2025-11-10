@@ -759,342 +759,341 @@ describe("Organizations Event Types Endpoints", () => {
     }
 
     describe("updating scheduling type", () => {
+      it("should return 400 error if schedulingType: managed is passed", async () => {
+        const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+          title: `teams-event-types-scheduling-collective-${randomString()}`,
+          slug: `teams-event-types-scheduling-collective-${randomString()}`,
+          description: "Test collective event type",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "COLLECTIVE",
+          hosts: [
+            {
+              userId: teamMember1.id,
+            },
+          ],
+        };
 
-    it("should return 400 error if schedulingType: managed is passed", async () => {
-      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
-        title: `teams-event-types-scheduling-collective-${randomString()}`,
-        slug: `teams-event-types-scheduling-collective-${randomString()}`,
-        description: "Test collective event type",
-        lengthInMinutes: 60,
-        locations: [
-          {
-            type: "integration",
-            integration: "cal-video",
-          },
-        ],
-        schedulingType: "COLLECTIVE",
-        hosts: [
-          {
-            userId: teamMember1.id,
-          },
-        ],
-      };
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(createBody)
+          .expect(201);
 
-      const createResponse = await request(app.getHttpServer())
-        .post(`/v2/teams/${team.id}/event-types`)
-        .send(createBody)
-        .expect(201);
+        const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
 
-      const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
+        const updateBody = {
+          schedulingType: "managed",
+        };
 
-      const updateBody = {
-        schedulingType: "MANAGED",
-      } as unknown as UpdateTeamEventTypeInput_2024_06_14;
+        await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
+          .send(updateBody)
+          .expect(400);
 
-      await request(app.getHttpServer())
-        .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-        .send(updateBody)
-        .expect(400);
+        await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
 
-      await eventTypesRepositoryFixture.delete(createdEventType.data.id);
-    });
+      it("should change round robin event type to collective and hosts should be empty array", async () => {
+        const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+          title: `teams-event-types-scheduling-roundrobin-${randomString()}`,
+          slug: `teams-event-types-scheduling-roundrobin-${randomString()}`,
+          description: "Test round robin event type",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "ROUND_ROBIN",
+          hosts: [
+            {
+              userId: teamMember1.id,
+              priority: "high",
+            },
+            {
+              userId: teamMember2.id,
+              priority: "low",
+            },
+          ],
+        };
 
-    it("should change round robin event type to collective and hosts should be empty array", async () => {
-      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
-        title: `teams-event-types-scheduling-roundrobin-${randomString()}`,
-        slug: `teams-event-types-scheduling-roundrobin-${randomString()}`,
-        description: "Test round robin event type",
-        lengthInMinutes: 60,
-        locations: [
-          {
-            type: "integration",
-            integration: "cal-video",
-          },
-        ],
-        schedulingType: "ROUND_ROBIN",
-        hosts: [
-          {
-            userId: teamMember1.id,
-            priority: "high",
-          },
-          {
-            userId: teamMember2.id,
-            priority: "low",
-          },
-        ],
-      };
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(createBody)
+          .expect(201);
 
-      const createResponse = await request(app.getHttpServer())
-        .post(`/v2/teams/${team.id}/event-types`)
-        .send(createBody)
-        .expect(201);
+        const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
 
-      const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
+        const updateBody = {
+          schedulingType: "collective",
+        };
 
-      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
-        schedulingType: "COLLECTIVE",
-      };
+        const updateResponse = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
+          .send(updateBody)
+          .expect(200);
 
-      const updateResponse = await request(app.getHttpServer())
-        .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-        .send(updateBody)
-        .expect(200);
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.schedulingType).toEqual("collective");
+        expect(responseBody.data.hosts).toEqual([]);
 
-      const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data.schedulingType).toEqual("collective");
-      expect(responseBody.data.hosts).toEqual([]);
+        await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
 
-      await eventTypesRepositoryFixture.delete(createdEventType.data.id);
-    });
+      it("should change collective event type to roundRobin and hosts should be empty array", async () => {
+        const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+          title: `teams-event-types-scheduling-collective-${randomString()}`,
+          slug: `teams-event-types-scheduling-collective-${randomString()}`,
+          description: "Test collective event type",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "COLLECTIVE",
+          hosts: [
+            {
+              userId: teamMember1.id,
+            },
+            {
+              userId: teamMember2.id,
+            },
+          ],
+        };
 
-    it("should change collective event type to roundRobin and hosts should be empty array", async () => {
-      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
-        title: `teams-event-types-scheduling-collective-${randomString()}`,
-        slug: `teams-event-types-scheduling-collective-${randomString()}`,
-        description: "Test collective event type",
-        lengthInMinutes: 60,
-        locations: [
-          {
-            type: "integration",
-            integration: "cal-video",
-          },
-        ],
-        schedulingType: "COLLECTIVE",
-        hosts: [
-          {
-            userId: teamMember1.id,
-          },
-          {
-            userId: teamMember2.id,
-          },
-        ],
-      };
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(createBody)
+          .expect(201);
 
-      const createResponse = await request(app.getHttpServer())
-        .post(`/v2/teams/${team.id}/event-types`)
-        .send(createBody)
-        .expect(201);
+        const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
 
-      const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
+        const updateBody = {
+          schedulingType: "roundRobin",
+        };
 
-      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
-        schedulingType: "ROUND_ROBIN",
-      };
+        const updateResponse = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
+          .send(updateBody)
+          .expect(200);
 
-      const updateResponse = await request(app.getHttpServer())
-        .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-        .send(updateBody)
-        .expect(200);
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.schedulingType).toEqual("roundRobin");
+        expect(responseBody.data.hosts).toEqual([]);
 
-      const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data.schedulingType).toEqual("roundRobin");
-      expect(responseBody.data.hosts).toEqual([]);
+        await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
 
-      await eventTypesRepositoryFixture.delete(createdEventType.data.id);
-    });
+      it("should change round robin event type to collective and pass new hosts", async () => {
+        const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+          title: `teams-event-types-scheduling-roundrobin-${randomString()}`,
+          slug: `teams-event-types-scheduling-roundrobin-${randomString()}`,
+          description: "Test round robin event type",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "ROUND_ROBIN",
+          hosts: [
+            {
+              userId: teamMember1.id,
+              priority: "high",
+            },
+          ],
+        };
 
-    it("should change round robin event type to collective and pass new hosts", async () => {
-      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
-        title: `teams-event-types-scheduling-roundrobin-${randomString()}`,
-        slug: `teams-event-types-scheduling-roundrobin-${randomString()}`,
-        description: "Test round robin event type",
-        lengthInMinutes: 60,
-        locations: [
-          {
-            type: "integration",
-            integration: "cal-video",
-          },
-        ],
-        schedulingType: "ROUND_ROBIN",
-        hosts: [
-          {
-            userId: teamMember1.id,
-            priority: "high",
-          },
-        ],
-      };
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(createBody)
+          .expect(201);
 
-      const createResponse = await request(app.getHttpServer())
-        .post(`/v2/teams/${team.id}/event-types`)
-        .send(createBody)
-        .expect(201);
+        const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
 
-      const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
+        const updateBody = {
+          schedulingType: "collective",
+          hosts: [
+            {
+              userId: teamMember2.id,
+            },
+          ],
+        };
 
-      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
-        schedulingType: "COLLECTIVE",
-        hosts: [
-          {
-            userId: teamMember2.id,
-          },
-        ],
-      };
+        const updateResponse = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
+          .send(updateBody)
+          .expect(200);
 
-      const updateResponse = await request(app.getHttpServer())
-        .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-        .send(updateBody)
-        .expect(200);
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.schedulingType).toEqual("collective");
+        expect(responseBody.data.hosts).toHaveLength(1);
+        expect(responseBody.data.hosts[0].userId).toEqual(teamMember2.id);
 
-      const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data.schedulingType).toEqual("collective");
-      expect(responseBody.data.hosts).toHaveLength(1);
-      expect(responseBody.data.hosts[0].userId).toEqual(teamMember2.id);
+        await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
 
-      await eventTypesRepositoryFixture.delete(createdEventType.data.id);
-    });
+      it("should change collective event type to roundRobin and pass new hosts", async () => {
+        const createBody = {
+          title: `teams-event-types-scheduling-collective-${randomString()}`,
+          slug: `teams-event-types-scheduling-collective-${randomString()}`,
+          description: "Test collective event type",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "collective",
+          hosts: [
+            {
+              userId: teamMember1.id,
+            },
+          ],
+        };
 
-    it("should change collective event type to roundRobin and pass new hosts", async () => {
-      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
-        title: `teams-event-types-scheduling-collective-${randomString()}`,
-        slug: `teams-event-types-scheduling-collective-${randomString()}`,
-        description: "Test collective event type",
-        lengthInMinutes: 60,
-        locations: [
-          {
-            type: "integration",
-            integration: "cal-video",
-          },
-        ],
-        schedulingType: "COLLECTIVE",
-        hosts: [
-          {
-            userId: teamMember1.id,
-          },
-        ],
-      };
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(createBody)
+          .expect(201);
 
-      const createResponse = await request(app.getHttpServer())
-        .post(`/v2/teams/${team.id}/event-types`)
-        .send(createBody)
-        .expect(201);
+        const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
 
-      const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
+        const updateBody = {
+          schedulingType: "roundRobin",
+          hosts: [
+            {
+              userId: teamMember2.id,
+              priority: "medium",
+            },
+          ],
+        };
 
-      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
-        schedulingType: "ROUND_ROBIN",
-        hosts: [
-          {
-            userId: teamMember2.id,
-            priority: "medium",
-          },
-        ],
-      };
+        const updateResponse = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
+          .send(updateBody)
+          .expect(200);
 
-      const updateResponse = await request(app.getHttpServer())
-        .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-        .send(updateBody)
-        .expect(200);
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.schedulingType).toEqual("roundRobin");
+        expect(responseBody.data.hosts).toHaveLength(1);
+        expect(responseBody.data.hosts[0].userId).toEqual(teamMember2.id);
 
-      const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data.schedulingType).toEqual("roundRobin");
-      expect(responseBody.data.hosts).toHaveLength(1);
-      expect(responseBody.data.hosts[0].userId).toEqual(teamMember2.id);
+        await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
 
-      await eventTypesRepositoryFixture.delete(createdEventType.data.id);
-    });
+      it("should change collective event type to roundRobin with assignAllTeamMembers: true", async () => {
+        const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+          title: `teams-event-types-scheduling-collective-${randomString()}`,
+          slug: `teams-event-types-scheduling-collective-${randomString()}`,
+          description: "Test collective event type",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "COLLECTIVE",
+          hosts: [
+            {
+              userId: teamMember1.id,
+            },
+          ],
+        };
 
-    it("should change collective event type to roundRobin with assignAllTeamMembers: true", async () => {
-      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
-        title: `teams-event-types-scheduling-collective-${randomString()}`,
-        slug: `teams-event-types-scheduling-collective-${randomString()}`,
-        description: "Test collective event type",
-        lengthInMinutes: 60,
-        locations: [
-          {
-            type: "integration",
-            integration: "cal-video",
-          },
-        ],
-        schedulingType: "COLLECTIVE",
-        hosts: [
-          {
-            userId: teamMember1.id,
-          },
-        ],
-      };
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(createBody)
+          .expect(201);
 
-      const createResponse = await request(app.getHttpServer())
-        .post(`/v2/teams/${team.id}/event-types`)
-        .send(createBody)
-        .expect(201);
+        const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
 
-      const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
+        const updateBody = {
+          schedulingType: "roundRobin",
+          assignAllTeamMembers: true,
+        };
 
-      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
-        schedulingType: "ROUND_ROBIN",
-        assignAllTeamMembers: true,
-      };
+        const updateResponse = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
+          .send(updateBody)
+          .expect(200);
 
-      const updateResponse = await request(app.getHttpServer())
-        .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-        .send(updateBody)
-        .expect(200);
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.schedulingType).toEqual("roundRobin");
+        expect(responseBody.data.hosts).toHaveLength(3);
+        const hostUserIds = responseBody.data.hosts.map((host) => host.userId);
+        expect(hostUserIds).toContain(teamMember1.id);
+        expect(hostUserIds).toContain(teamMember2.id);
+        expect(hostUserIds).toContain(userAdmin.id);
 
-      const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data.schedulingType).toEqual("roundRobin");
-      expect(responseBody.data.hosts).toHaveLength(3);
-      const hostUserIds = responseBody.data.hosts.map((host) => host.userId);
-      expect(hostUserIds).toContain(teamMember1.id);
-      expect(hostUserIds).toContain(teamMember2.id);
-      expect(hostUserIds).toContain(userAdmin.id);
+        await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
 
-      await eventTypesRepositoryFixture.delete(createdEventType.data.id);
-    });
+      it("should change round robin event type to collective with assignAllTeamMembers: true", async () => {
+        const createBody: CreateTeamEventTypeInput_2024_06_14 = {
+          title: `teams-event-types-scheduling-roundrobin-${randomString()}`,
+          slug: `teams-event-types-scheduling-roundrobin-${randomString()}`,
+          description: "Test round robin event type",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "ROUND_ROBIN",
+          hosts: [
+            {
+              userId: teamMember1.id,
+              priority: "high",
+            },
+          ],
+        };
 
-    it("should change round robin event type to collective with assignAllTeamMembers: true", async () => {
-      const createBody: CreateTeamEventTypeInput_2024_06_14 = {
-        title: `teams-event-types-scheduling-roundrobin-${randomString()}`,
-        slug: `teams-event-types-scheduling-roundrobin-${randomString()}`,
-        description: "Test round robin event type",
-        lengthInMinutes: 60,
-        locations: [
-          {
-            type: "integration",
-            integration: "cal-video",
-          },
-        ],
-        schedulingType: "ROUND_ROBIN",
-        hosts: [
-          {
-            userId: teamMember1.id,
-            priority: "high",
-          },
-        ],
-      };
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(createBody)
+          .expect(201);
 
-      const createResponse = await request(app.getHttpServer())
-        .post(`/v2/teams/${team.id}/event-types`)
-        .send(createBody)
-        .expect(201);
+        const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
 
-      const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
+        const updateBody = {
+          schedulingType: "collective",
+          assignAllTeamMembers: true,
+        };
 
-      const updateBody: UpdateTeamEventTypeInput_2024_06_14 = {
-        schedulingType: "COLLECTIVE",
-        assignAllTeamMembers: true,
-      };
+        const updateResponse = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
+          .send(updateBody)
+          .expect(200);
 
-      const updateResponse = await request(app.getHttpServer())
-        .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-        .send(updateBody)
-        .expect(200);
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.schedulingType).toEqual("collective");
+        expect(responseBody.data.hosts).toHaveLength(3);
+        const hostUserIds = responseBody.data.hosts.map((host) => host.userId);
+        expect(hostUserIds).toContain(teamMember1.id);
+        expect(hostUserIds).toContain(teamMember2.id);
+        expect(hostUserIds).toContain(userAdmin.id);
 
-      const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
-      expect(responseBody.status).toEqual(SUCCESS_STATUS);
-      expect(responseBody.data.schedulingType).toEqual("collective");
-      expect(responseBody.data.hosts).toHaveLength(3);
-      const hostUserIds = responseBody.data.hosts.map((host) => host.userId);
-      expect(hostUserIds).toContain(teamMember1.id);
-      expect(hostUserIds).toContain(teamMember2.id);
-      expect(hostUserIds).toContain(userAdmin.id);
-
-      await eventTypesRepositoryFixture.delete(createdEventType.data.id);
-    });
+        await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
     });
 
     afterAll(async () => {

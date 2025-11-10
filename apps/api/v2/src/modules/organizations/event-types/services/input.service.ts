@@ -257,7 +257,8 @@ export class InputOrganizationsEventTypesService {
     if (assignAllTeamMembers) {
       return await this.getAllTeamMembers(teamId, nextSchedulingType);
     }
-    return this.transformInputHosts(hosts, nextSchedulingType);
+    const nextHosts = hosts || [];
+    return this.transformInputHosts(nextHosts, nextSchedulingType);
   }
 
   async getChildEventTypesForManagedEventTypeUpdate(

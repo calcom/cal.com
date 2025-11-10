@@ -11,7 +11,7 @@ import {
   ArrayNotEmpty,
   ArrayUnique,
   IsUrl,
-  IsEnum,
+  IsIn,
 } from "class-validator";
 
 import { SchedulingType } from "@calcom/platform-enums";
@@ -488,7 +488,7 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
     }
     return value;
   })
-  @IsEnum(SchedulingType)
+  @IsIn([SchedulingType.COLLECTIVE, SchedulingType.ROUND_ROBIN])
   @IsOptional()
   @DocsPropertyOptional({
     enum: ["collective", "roundRobin"],
