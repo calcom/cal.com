@@ -38,6 +38,8 @@ import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+
 import {
   getTranslation,
   getAllUserBookings,
@@ -992,48 +994,14 @@ export class BookingsService_2024_08_13 {
     });
   }
 
-  private async checkUserHasAccessToBooking({
-    userId,
-    bookingId,
-  }: {
-    userId: number;
-    bookingId: number;
-  }): Promise<boolean> {
-    const booking = await this.prismaReadService.prisma.booking.findUnique({
-      where: {
-        id: bookingId,
-      },
-      select: {
-        userId: true,
-        eventType: {
-          select: {
-            teamId: true,
-          },
-        },
-      },
-    });
-
-    if (!booking) return false;
-
-    if (userId === booking.userId) return true;
-
-    if (!booking.eventType || !booking.eventType.teamId) return false;
-
-    const isAdminOrUser = await this.teamsRepository.isUserAdminOfTeamOrParentOrg({
-      userId,
-      teamId: booking.eventType.teamId,
-    });
-
-    return isAdminOrUser;
-  }
-
   async reassignBooking(bookingUid: string, requestUser: UserWithProfile) {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const isAllowed = await this.checkUserHasAccessToBooking({
+    const bookingRepo = new BookingRepository(this.prismaReadService.prisma);
+    const isAllowed = await bookingRepo.doesUserIdHaveAccessToBooking({
       userId: requestUser.id,
       bookingId: booking.id,
     });
@@ -1088,7 +1056,8 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const isAllowed = await this.checkUserHasAccessToBooking({
+    const bookingRepo = new BookingRepository(this.prismaReadService.prisma);
+    const isAllowed = await bookingRepo.doesUserIdHaveAccessToBooking({
       userId: reassignedById,
       bookingId: booking.id,
     });
