@@ -47,6 +47,26 @@ export default async function globalSetup() {
       accepted: true,
     });
     console.log("[global-setup] Ensured owner1-acme@example.com has OWNER membership with accepted: true");
+
+    for (let i = 0; i < 10; i++) {
+      const memberEmail = `member${i}-acme@example.com`;
+      const memberUsername = `member${i}-acme`;
+      const memberName = `Member ${i}`;
+
+      await teamRepo.ensureUser({
+        email: memberEmail,
+        username: memberUsername,
+        name: memberName,
+      });
+
+      await teamRepo.ensureMembership({
+        userEmail: memberEmail,
+        organizationId: acmeOrg.id,
+        role: "MEMBER",
+        accepted: true,
+      });
+    }
+    console.log("[global-setup] Ensured all 10 member{0-9}-acme users have MEMBER membership with accepted: true");
   } else {
     console.warn("[global-setup] WARNING: acme org not found!");
   }

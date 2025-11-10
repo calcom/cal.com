@@ -73,6 +73,33 @@ export class TeamRepository {
     });
   }
 
+  async ensureUser({
+    email,
+    username,
+    name,
+  }: {
+    email: string;
+    username: string;
+    name: string;
+  }) {
+    const existingUser = await this.prismaClient.user.findFirst({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return existingUser;
+    }
+
+    return this.prismaClient.user.create({
+      data: {
+        email,
+        username,
+        name,
+        emailVerified: new Date(),
+      },
+    });
+  }
+
   async ensureMembership({
     userEmail,
     organizationId,
@@ -81,7 +108,7 @@ export class TeamRepository {
   }: {
     userEmail: string;
     organizationId: number;
-    role: "OWNER" | "ADMIN";
+    role: "OWNER" | "ADMIN" | "MEMBER";
     accepted: boolean;
   }) {
     const user = await this.prismaClient.user.findFirst({
