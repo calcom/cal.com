@@ -25,7 +25,8 @@ export default defineConfig({
     extensions: [
       prismaExtension({
         schema: "../prisma/schema.prisma",
-        clientGenerator: "client",
+        clientGenerator: "trigger",
+        version: "6.16.1",
       }),
     ],
     external: ["jsdom", "playwright-core", "playwright", "chromium-bidi"],
