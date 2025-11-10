@@ -2,6 +2,8 @@ import type { GetServerSidePropsContext } from "next";
 import z from "zod";
 
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -16,6 +18,12 @@ const paramsSchema = z.object({
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  const requestorIp = getIP(context.req);
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `[orgSlug]/[user]/[type]-${piiHasher.hash(requestorIp)}`,
+  });
+
   const { user: teamOrUserSlugOrDynamicGroup, orgSlug, type } = paramsSchema.parse(ctx.params);
   const team = await prisma.team.findFirst({
     where: {

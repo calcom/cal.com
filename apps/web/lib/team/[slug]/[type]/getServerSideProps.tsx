@@ -9,7 +9,9 @@ import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/li
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getBrandingForEventType } from "@calcom/features/profile/lib/getBranding";
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
@@ -28,6 +30,11 @@ function hasApiV2RouteInEnv() {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const requestorIp = getIP(context.req);
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: `team/[slug]/[type]-${piiHasher.hash(requestorIp)}`,
+  });
   const { req, params, query } = context;
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
