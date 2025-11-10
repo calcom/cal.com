@@ -1,6 +1,7 @@
 import { sessionStorage } from "@calcom/lib/webstorage";
 
 const BOOKING_SUCCESS_STORAGE_KEY_PREFIX = "cal.successfulBooking";
+const DECOY_BOOKING_EXPIRATION_MS = 5 * 60 * 1000;
 
 interface DecoyBookingData {
   booking: {
@@ -12,6 +13,7 @@ interface DecoyBookingData {
     host: { name: string; timeZone?: string } | null;
     location: string | null;
   };
+  timestamp: number;
 }
 
 function getStorageKey(uid: string): string {
@@ -20,12 +22,13 @@ function getStorageKey(uid: string): string {
 
 /**
  * Stores decoy booking data in sessionStorage using the booking's uid
- * Data automatically expires when the browser tab/window is closed
+ * Data automatically expires when the browser tab/window is closed or after 5 minutes
  * @param booking - The booking data to store (must include uid)
  */
 export function storeDecoyBooking(booking: Record<string, unknown> & { uid: string }): void {
   const bookingSuccessData = {
     booking,
+    timestamp: Date.now(),
   };
   const storageKey = getStorageKey(booking.uid);
   sessionStorage.setItem(storageKey, JSON.stringify(bookingSuccessData));
@@ -34,7 +37,7 @@ export function storeDecoyBooking(booking: Record<string, unknown> & { uid: stri
 /**
  * Retrieves decoy booking data from sessionStorage
  * @param uid - The booking uid
- * @returns The stored booking data or null if not found
+ * @returns The stored booking data or null if not found or expired
  */
 export function getDecoyBooking(uid: string): DecoyBookingData | null {
   if (!uid) {
@@ -50,6 +53,13 @@ export function getDecoyBooking(uid: string): DecoyBookingData | null {
 
   try {
     const data: DecoyBookingData = JSON.parse(dataStr);
+
+    const isExpired = Date.now() - data.timestamp > DECOY_BOOKING_EXPIRATION_MS;
+    if (isExpired) {
+      sessionStorage.removeItem(storageKey);
+      return null;
+    }
+
     return data;
   } catch {
     // If parsing fails, remove the corrupted data
