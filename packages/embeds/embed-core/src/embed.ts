@@ -180,8 +180,8 @@ type SingleInstructionMap = {
   off: ["off", allPossibleCallbacksAndActions];
 } & {
   [K in Exclude<keyof CalApi, "on" | "off">]: CalApi[K] extends (...args: never[]) => void
-    ? [K, ...Parameters<CalApi[K]>]
-    : never;
+  ? [K, ...Parameters<CalApi[K]>]
+  : never;
 };
 
 type SingleInstruction = SingleInstructionMap[keyof SingleInstructionMap];
@@ -471,7 +471,6 @@ export class Cal {
       // Try to readjust and scroll into view if more than 25% is hidden.
       // Otherwise we assume that user might have positioned the content appropriately already
       if (top < 0 && Math.abs(top / height) >= 0.25) {
-         
         this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
@@ -602,7 +601,7 @@ export class Cal {
       : 0;
     const crossedReloadThreshold = previousEmbedRenderStartTime
       ? timeSinceLastRender >
-        (prerenderOptions?.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
+      (prerenderOptions?.iframeForceReloadThresholdMs ?? EMBED_MODAL_IFRAME_FORCE_RELOAD_THRESHOLD_MS)
       : false;
 
     const areSlotsStale = previousEmbedRenderStartTime
@@ -948,10 +947,10 @@ class CalApi {
 
     template.innerHTML = `<cal-inline 
       ${generateDataAttributes({
-        pageType,
-        theme,
-        layout,
-      })}
+      pageType,
+      theme,
+      layout,
+    })}
       style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%">
     </cal-inline>
     <style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
@@ -1191,8 +1190,8 @@ class CalApi {
               ...enrichedConfig,
               ...(actionToTake === "connect-no-slots-fetch"
                 ? {
-                    "cal.embed.noSlotsFetchOnConnect": "true",
-                  }
+                  "cal.embed.noSlotsFetchOnConnect": "true",
+                }
                 : {}),
             },
             params: paramsToAdd,
@@ -1234,10 +1233,10 @@ class CalApi {
 
     template.innerHTML = `<cal-modal-box 
       ${generateDataAttributes({
-        pageType,
-        theme,
-        layout,
-      })}
+      pageType,
+      theme,
+      layout,
+    })}
       uid="${uid}">
     </cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
@@ -1297,17 +1296,7 @@ class CalApi {
   }
 
   /**
-   * Closes modal-based embeds programmatically (ModalBox and FloatingButton only).
-   * 
-   * This is the proper public API to close modal embeds, replacing the need to use
-   * the internal `cal.instance.actionManager.fire("__closeIframe")` hack.
-   * 
-   * **Important:** This method only works for modal-based embeds:
-   * - ModalBox (created with `cal("modal", ...)`)
-   * - FloatingButton (created with `cal("floatingButton", ...)`)
-   * 
-   * It does NOT work for inline embeds (created with `cal("inline", ...)`).
-   * Calling this method on an inline embed will throw an error.
+   * Closes modal-based embeds programmatically.
    * 
    * @throws {Error} If called on an inline embed (only works for modal-based embeds)
    * 
