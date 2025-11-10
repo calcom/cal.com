@@ -82,16 +82,12 @@ export class TeamRepository {
     username: string;
     name: string;
   }) {
-    const existingUser = await this.prismaClient.user.findFirst({
+    return this.prismaClient.user.upsert({
       where: { email },
-    });
-
-    if (existingUser) {
-      return existingUser;
-    }
-
-    return this.prismaClient.user.create({
-      data: {
+      update: {
+        name,
+      },
+      create: {
         email,
         username,
         name,
