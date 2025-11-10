@@ -10,7 +10,7 @@ import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-util
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
-type TranslationFunction = (key: string, options?: any) => string;
+type TranslationFunction = (key: string, options?: Record<string, unknown>) => string;
 type CommonParams = { bookingFields: BookingFields; view: View; translateFn?: TranslationFunction };
 
 export const bookingResponse = dbReadResponseSchema;
@@ -163,7 +163,7 @@ function preprocess<T extends z.ZodType>({
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
-        const m = (message: string, options?: any) => {
+        const m = (message: string, options?: Record<string, unknown>) => {
           const translatedMessage = translateFn ? translateFn(message, options) : message;
           return `{${bookingField.name}}${translatedMessage}`;
         };
