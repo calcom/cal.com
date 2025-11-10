@@ -1,3 +1,5 @@
+import { TeamRepository } from "@calcom/lib/server/repository/team";
+
 /**
  * Global setup for integration tests
  * Runs once before all integration tests to seed org-admin state
@@ -6,30 +8,17 @@ export default async function globalSetup() {
   console.log("[global-setup] Starting org-admin seeding");
   console.log("[global-setup] DATABASE_URL exists:", !!process.env.DATABASE_URL);
 
-  const { prisma } = await import("@calcom/prisma");
+  const teamRepo = await TeamRepository.withGlobalPrisma();
 
   console.log("[global-setup] Looking for acme org...");
-  const acmeOrg = await prisma.team.findFirst({
-    where: {
-      slug: "acme",
-      isOrganization: true,
-    },
-  });
+  const acmeOrg = await teamRepo.findOrganizationBySlug("acme");
   console.log("[global-setup] Found acme org:", !!acmeOrg, acmeOrg?.id);
 
   if (acmeOrg) {
-    await prisma.organizationSettings.upsert({
-      where: {
-        organizationId: acmeOrg.id,
-      },
-      update: {
-        isAdminAPIEnabled: true,
-      },
-      create: {
-        organizationId: acmeOrg.id,
-        orgAutoAcceptEmail: "acme.com",
-        isAdminAPIEnabled: true,
-      },
+    await teamRepo.upsertOrganizationSettings({
+      organizationId: acmeOrg.id,
+      isAdminAPIEnabled: true,
+      orgAutoAcceptEmail: "acme.com",
     });
     console.log("[global-setup] Seeded acme org with isAdminAPIEnabled: true");
   } else {
@@ -37,27 +26,14 @@ export default async function globalSetup() {
   }
 
   console.log("[global-setup] Looking for dunder-mifflin org...");
-  const dunderOrg = await prisma.team.findFirst({
-    where: {
-      slug: "dunder-mifflin",
-      isOrganization: true,
-    },
-  });
+  const dunderOrg = await teamRepo.findOrganizationBySlug("dunder-mifflin");
   console.log("[global-setup] Found dunder-mifflin org:", !!dunderOrg, dunderOrg?.id);
 
   if (dunderOrg) {
-    await prisma.organizationSettings.upsert({
-      where: {
-        organizationId: dunderOrg.id,
-      },
-      update: {
-        isAdminAPIEnabled: false,
-      },
-      create: {
-        organizationId: dunderOrg.id,
-        orgAutoAcceptEmail: "dunder-mifflin.com",
-        isAdminAPIEnabled: false,
-      },
+    await teamRepo.upsertOrganizationSettings({
+      organizationId: dunderOrg.id,
+      isAdminAPIEnabled: false,
+      orgAutoAcceptEmail: "dunder-mifflin.com",
     });
     console.log("[global-setup] Seeded dunder-mifflin org with isAdminAPIEnabled: false");
   } else {
@@ -68,9 +44,5 @@ export default async function globalSetup() {
 
   return async () => {
     console.log("[global-setup] Teardown: disconnecting Prisma");
-    try {
-      await prisma.$disconnect();
-    } catch (error) {
-    }
   };
 }
