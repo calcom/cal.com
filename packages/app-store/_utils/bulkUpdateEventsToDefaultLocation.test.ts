@@ -30,19 +30,28 @@ vi.mock("../utils", () => ({
   }),
 }));
 
-const createMockPrisma = () =>
-  ({
-    credential: {
-      findFirst: vi.fn(),
-    },
-    eventType: {
-      findMany: vi.fn(),
-      updateMany: vi.fn(),
-    },
-  } as unknown as PrismaClient);
+type MockPrisma = {
+  credential: {
+    findFirst: ReturnType<typeof vi.fn>;
+  };
+  eventType: {
+    findMany: ReturnType<typeof vi.fn>;
+    updateMany: ReturnType<typeof vi.fn>;
+  };
+};
+
+const createMockPrisma = (): MockPrisma => ({
+  credential: {
+    findFirst: vi.fn(),
+  },
+  eventType: {
+    findMany: vi.fn(),
+    updateMany: vi.fn(),
+  },
+});
 
 describe("bulkUpdateEventsToDefaultLocation", () => {
-  let mockPrisma: PrismaClient;
+  let mockPrisma: MockPrisma;
 
   beforeEach(() => {
     mockPrisma = createMockPrisma();
@@ -59,7 +68,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
       bulkUpdateEventsToDefaultLocation({
         eventTypeIds: [1, 2],
         user,
-        prisma: mockPrisma,
+        prisma: mockPrisma as unknown as PrismaClient,
       })
     ).rejects.toThrow("Default conferencing app not set");
   });
@@ -79,7 +88,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
       bulkUpdateEventsToDefaultLocation({
         eventTypeIds: [1, 2],
         user,
-        prisma: mockPrisma,
+        prisma: mockPrisma as unknown as PrismaClient,
       })
     ).rejects.toThrow("Default conferencing app 'non-existent-app' doesnt exist.");
   });
@@ -108,7 +117,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
     const result = await bulkUpdateEventsToDefaultLocation({
       eventTypeIds: [1, 2],
       user,
-      prisma: mockPrisma,
+      prisma: mockPrisma as unknown as PrismaClient,
     });
 
     expect(result.count).toBe(2);
@@ -175,7 +184,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
     const result = await bulkUpdateEventsToDefaultLocation({
       eventTypeIds: [1, 2, 3],
       user,
-      prisma: mockPrisma,
+      prisma: mockPrisma as unknown as PrismaClient,
     });
 
     expect(result.count).toBe(2);
@@ -240,7 +249,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
     const result = await bulkUpdateEventsToDefaultLocation({
       eventTypeIds: [1, 2],
       user,
-      prisma: mockPrisma,
+      prisma: mockPrisma as unknown as PrismaClient,
     });
 
     expect(result.count).toBe(0);
@@ -267,7 +276,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
     const result = await bulkUpdateEventsToDefaultLocation({
       eventTypeIds: [1],
       user,
-      prisma: mockPrisma,
+      prisma: mockPrisma as unknown as PrismaClient,
     });
 
     expect(result.count).toBe(1);
@@ -311,7 +320,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
     await bulkUpdateEventsToDefaultLocation({
       eventTypeIds: [10, 11, 12],
       user,
-      prisma: mockPrisma,
+      prisma: mockPrisma as unknown as PrismaClient,
     });
 
     expect(mockPrisma.eventType.findMany).toHaveBeenCalledWith({
