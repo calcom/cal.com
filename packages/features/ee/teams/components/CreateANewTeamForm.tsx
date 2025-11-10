@@ -19,8 +19,6 @@ import { useOrgBranding } from "../../organizations/context/provider";
 import { subdomainSuffix } from "../../organizations/lib/orgDomains";
 import type { NewTeamFormValues } from "../lib/types";
 
-const slugRegex = new RegExp("^[a-zA-Z0-9-]*$");
-
 interface CreateANewTeamFormProps {
   onCancel: () => void;
   submitLabel: string;
@@ -120,7 +118,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
-                      newTeamFormMethods.setValue("slug", slugify(e?.target.value));
+                      newTeamFormMethods.setValue("slug", slugify(e?.target.value).replace(/\./g, "-"));
                     }
                   }}
                   autoComplete="off"
@@ -135,13 +133,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
           <Controller
             name="slug"
             control={newTeamFormMethods.control}
-            rules={{
-              required: t("team_url_required"),
-              pattern: {
-                value: slugRegex,
-                message: t("url_alphanumeric_invalid"),
-              },
-            }}
+            rules={{ required: t("team_url_required"), }}
             render={({ field: { value } }) => (
               <TextField
                 name="slug"
@@ -155,7 +147,7 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
                 value={value}
                 defaultValue={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true), {
+                  newTeamFormMethods.setValue("slug", slugify(e?.target.value, true).replace(/\./g, ""), {
                     shouldTouch: true,
                   });
                   newTeamFormMethods.clearErrors("slug");
