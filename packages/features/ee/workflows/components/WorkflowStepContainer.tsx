@@ -381,11 +381,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
-  // Extract current step template from watched steps array
-  const currentStepTemplate = step ? steps?.[step.stepNumber - 1]?.template : null;
-
-  const isReminderTemplate = currentStepTemplate === WorkflowTemplates.REMINDER;
-
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
   const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
 
@@ -1604,6 +1599,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             teamId={teamId}
             form={form}
             eventTypeIds={props.eventTypeOptions?.map((opt) => parseInt(opt.value, 10))}
+            outboundEventTypeId={agentData?.outboundEventTypeId}
           />
         )}
 
