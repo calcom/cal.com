@@ -23,7 +23,6 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
-import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import type { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
@@ -54,6 +53,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let teamUser1: User;
     let teamUser2: User;
     let teamUser3: User;
+    let teamUser1ApiKey: string;
 
     let teamRoundRobinEventTypeId: number;
     let teamRoundRobinFixedHostEventTypeId: number;
@@ -69,12 +69,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let rescheduleReasonBookingInitialHostId: number;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        teamUserEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
-        })
-      )
+      const moduleRef = await Test.createTestingModule({
+        imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+      })
         .overrideGuard(PermissionsGuard)
         .useValue({
           canActivate: () => true,
@@ -126,6 +123,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
         locale: "en",
         name: `reassign-bookings-2024-08-13-user3-${randomString()}`,
       });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(teamUser1.id, null);
+      teamUser1ApiKey = `cal_test_${keyString}`;
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `reassign-bookings-2024-08-13-schedule-${randomString()}`,
@@ -474,6 +474,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${roundRobinBooking.uid}/reassign`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -513,6 +514,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       return request(app.getHttpServer())
         .post(`/v2/bookings/${roundRobinBooking.uid}/reassign/${teamUser1.id}`)
         .send(body)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -563,6 +565,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -612,6 +615,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign/${teamUser3.id}`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -670,6 +674,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign/${reassignToHostId}`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
@@ -705,6 +710,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign`)
+        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
