@@ -142,7 +142,7 @@ export const ReassignDialog = ({
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
         showToast(t("no_available_hosts"), "error");
       } else {
-        showToast(t("unexpected_error_try_again"), "error");
+        showToast(t(error.message), "error");
       }
     },
   });
@@ -157,7 +157,7 @@ export const ReassignDialog = ({
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
         showToast(t("no_available_hosts"), "error");
       } else {
-        showToast(t("unexpected_error_try_again"), "error");
+        showToast(t(error.message), "error");
       }
     },
   });
