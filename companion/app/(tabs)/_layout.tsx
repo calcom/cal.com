@@ -1,58 +1,27 @@
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: '#000000',
-        tabBarInactiveTintColor: '#8E8E93',
-        headerShown: true,
-        headerStyle: {
-          backgroundColor: '#000000',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: '600',
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="event-types"
-        options={{
-          title: 'Event Types',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="link" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="bookings"
-        options={{
-          title: 'Bookings',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="availability"
-        options={{
-          title: 'Availability',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="time" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="more"
-        options={{
-          title: 'More',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="ellipsis-horizontal" size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    <NativeTabs>
+      <NativeTabs.Trigger name="event-types">
+        <Icon sf="link" />
+        <Label>Event Types</Label>
+      </NativeTabs.Trigger>
+      
+      <NativeTabs.Trigger name="bookings">
+        <Icon sf="calendar" />
+        <Label>Bookings</Label>
+      </NativeTabs.Trigger>
+      
+      <NativeTabs.Trigger name="availability">
+        <Icon sf="clock" />
+        <Label>Availability</Label>
+      </NativeTabs.Trigger>
+      
+      <NativeTabs.Trigger name="more">
+        <Icon sf="ellipsis" />
+        <Label>More</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

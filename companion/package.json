@@ -16,7 +16,7 @@
     "@react-native-segmented-control/segmented-control": "^2.5.7",
     "@types/react": "~19.1.10",
     "@types/react-dom": "~19.1.7",
-    "expo": "~54.0.23",
+    "expo": "~54.0.0",
     "expo-constants": "~18.0.10",
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.14",
