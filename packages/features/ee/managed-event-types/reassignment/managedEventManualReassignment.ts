@@ -306,7 +306,7 @@ export async function managedEventManualReassignment({
         reassignLogger.error("All calendar integrations failed during reassignment", {
           eventTypeId: targetEventTypeDetails.id,
           eventTypeSlug: targetEventTypeDetails.slug,
-          userEmail: newUser.email,
+          userId: newUser.id,
           results: results.map((res) => ({
             type: res.type,
             success: res.success,
@@ -316,7 +316,7 @@ export async function managedEventManualReassignment({
       } else if (someFailed) {
         reassignLogger.warn("Some calendar integrations failed during reassignment", {
           eventTypeId: targetEventTypeDetails.id,
-          userEmail: newUser.email,
+          userId: newUser.id,
           failedIntegrations: results
             .filter((res) => !res.success)
             .map((res) => ({
