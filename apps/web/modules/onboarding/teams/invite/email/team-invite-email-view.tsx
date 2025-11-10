@@ -85,7 +85,7 @@ export const TeamInviteEmailView = ({ userEmail }: TeamInviteEmailViewProps) => 
   });
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={3}>
+    <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={3}>
       {/* Left column - Main content */}
       <div className="flex w-full flex-col gap-4">
         <OnboardingCard

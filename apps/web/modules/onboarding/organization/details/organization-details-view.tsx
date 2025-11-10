@@ -77,7 +77,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
   };
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={2}>
+    <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={4}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_details_title")}

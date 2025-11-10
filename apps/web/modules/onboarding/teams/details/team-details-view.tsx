@@ -84,7 +84,7 @@ export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
   return (
     <>
       <OnboardingContinuationPrompt />
-      <OnboardingLayout userEmail={userEmail} currentStep={2}>
+      <OnboardingLayout userEmail={userEmail} currentStep={1} totalSteps={3}>
         {/* Left column - Main content */}
         <OnboardingCard
           title={t("create_your_team")}

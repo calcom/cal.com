@@ -82,7 +82,7 @@ export const OrganizationBrandView = ({ userEmail }: OrganizationBrandViewProps)
   };
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={3}>
+    <OnboardingLayout userEmail={userEmail} currentStep={2} totalSteps={4}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_brand_title")}

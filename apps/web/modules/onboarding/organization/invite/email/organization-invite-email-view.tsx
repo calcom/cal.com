@@ -113,7 +113,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
       : [];
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={3}>
+    <OnboardingLayout userEmail={userEmail} currentStep={4} totalSteps={4}>
       <div className="flex h-full w-full flex-col gap-4">
         <OnboardingCard
           title={t("onboarding_org_invite_title")}

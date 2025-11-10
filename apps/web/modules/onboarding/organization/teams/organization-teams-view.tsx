@@ -65,7 +65,7 @@ export const OrganizationTeamsView = ({ userEmail }: OrganizationTeamsViewProps)
   });
 
   return (
-    <OnboardingLayout userEmail={userEmail} currentStep={4}>
+    <OnboardingLayout userEmail={userEmail} currentStep={3} totalSteps={4}>
       {/* Left column - Main content */}
       <OnboardingCard
         title={t("onboarding_org_teams_title")}

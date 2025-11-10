@@ -1,5 +1,7 @@
 "use client";
 
+import classNames from "classnames";
+
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -104,7 +106,11 @@ export const OnboardingOrganizationBrowserView = ({
               <h2 className="text-emphasis text-xl font-semibold leading-tight">
                 {name || t("organization_name")}
               </h2>
-              <p className="text-default text-sm leading-normal">
+              <p
+                className={classNames("text-sm leading-normal", {
+                  "text-default": bio,
+                  "text-subtle italic": !bio,
+                })}>
                 {bio || t("onboarding_browser_view_default_bio")}
               </p>
             </div>
