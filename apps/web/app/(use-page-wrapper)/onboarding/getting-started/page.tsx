@@ -26,11 +26,9 @@ const ServerPage = async () => {
     return redirect("/auth/login");
   }
 
-  // Hello {username} || there. Not sure how to do this nicely with i18n just yet
-  const userName = session.user.name || "there";
   const userEmail = session.user.email || "";
 
-  return <OnboardingView userName={userName} userEmail={userEmail} />;
+  return <OnboardingView userEmail={userEmail} />;
 };
 
 export default ServerPage;
