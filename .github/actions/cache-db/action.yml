@@ -15,7 +15,7 @@ runs:
       uses: buildjet/cache@v4
       env:
         cache-name: cache-db
-        key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts') }}
+        key-1: ${{ hashFiles('packages/prisma/schema.prisma', 'packages/prisma/migrations/**/**.sql', 'packages/prisma/*.ts', 'scripts/seed.ts') }}
         key-2: ${{ github.event.pull_request.number || github.ref }}
         key-3: ${{ github.event.pull_request.head.sha }}
         DATABASE_URL: ${{ inputs.DATABASE_URL }}
