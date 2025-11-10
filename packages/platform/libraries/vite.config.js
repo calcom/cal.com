@@ -36,6 +36,7 @@ export default defineConfig({
         conferencing: resolve(__dirname, "./conferencing.ts"),
         repositories: resolve(__dirname, "./repositories.ts"),
         bookings: resolve(__dirname, "./bookings.ts"),
+        organizations: resolve(__dirname, "./organizations.ts"),
         "private-links": resolve(__dirname, "./private-links.ts"),
         pbac: resolve(__dirname, "./pbac.ts"),
       },
