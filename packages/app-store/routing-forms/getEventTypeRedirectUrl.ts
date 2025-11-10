@@ -85,7 +85,7 @@ export function getAbsoluteEventTypeRedirectUrl({
   }
 
   if (usernameInRedirectUrl && form.nonOrgUsername) {
-    const hasSameProfileUsername = form.user.username ? form.user.username === form.nonOrgUsername : false;
+    const hasSameProfileUsername = form.user?.username === form.nonOrgUsername;
     const isEventTypeRedirectToOldUser =
       !hasSameProfileUsername && usernameInRedirectUrl === form.nonOrgUsername;
     if (isEventTypeRedirectToOldUser) {
