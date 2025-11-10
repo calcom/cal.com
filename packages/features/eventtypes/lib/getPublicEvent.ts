@@ -552,7 +552,7 @@ export const getPublicEvent = async (
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
-    description: markdownToSafeHTML(eventWithUserProfiles.description),
+    descriptionAsSafeHTML: markdownToSafeHTML(eventWithUserProfiles.description),
     metadata: eventMetaData,
     customInputs: customInputSchema.array().parse(event.customInputs || []),
     locations: privacyFilteredLocations((eventWithUserProfiles.locations || []) as LocationObject[]),
@@ -601,9 +601,9 @@ export const getPublicEvent = async (
   };
 };
 
-const eventData = getPublicEventSelect(true);
+const _eventData = getPublicEventSelect(true);
 
-type Event = Prisma.EventTypeGetPayload<{ select: typeof eventData }>;
+type Event = Prisma.EventTypeGetPayload<{ select: typeof _eventData }>;
 
 type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   hosts?: Event["hosts"];
@@ -762,7 +762,7 @@ export const processEventDataShared = async ({
   return {
     ...eventData,
     bookerLayouts: bookerLayoutsSchema.parse(metadata?.bookerLayouts || null),
-    description: markdownToSafeHTML(eventData.description),
+    descriptionAsSafeHTML: markdownToSafeHTML(eventData.description),
     metadata,
     customInputs: customInputSchema.array().parse(eventData.customInputs || []),
     locations: privacyFilteredLocations((eventData.locations || []) as LocationObject[]),

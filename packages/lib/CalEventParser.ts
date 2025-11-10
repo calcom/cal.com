@@ -1,8 +1,5 @@
-import type { TFunction } from "i18next";
-import short from "short-uuid";
-
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
-import { Prisma } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -12,7 +9,8 @@ import type {
   TeamMember,
   VideoCallData,
 } from "@calcom/types/Calendar";
-
+import type { TFunction } from "i18next";
+import short from "short-uuid";
 import { WEBAPP_URL } from "./constants";
 import isSmsCalEmail from "./isSmsCalEmail";
 import {
@@ -21,6 +19,8 @@ import {
   buildStandardCancelLink,
   buildStandardRescheduleLink,
 } from "./LinkBuilder";
+import { markdownToSafeHTML } from "./markdownToSafeHTML";
+import { stripMarkdown } from "./stripMarkdown";
 
 const translator = short();
 
@@ -93,11 +93,18 @@ export const getWho = (
   }`;
 };
 
-export const getAdditionalNotes = (t: TFunction, additionalNotes?: string | null) => {
+export const getAdditionalNotes = (
+  t: TFunction,
+  additionalNotes?: string | null,
+  stripMarkdownForIcs = false
+) => {
   if (!additionalNotes) {
     return "";
   }
-  return `${t("additional_notes")}:\n${additionalNotes}`;
+  const text = stripMarkdownForIcs
+    ? stripMarkdown(additionalNotes, { preserveNewlines: true })
+    : additionalNotes;
+  return `${t("additional_notes")}:\n${text}`;
 };
 
 export const getUserFieldsResponses = (
@@ -175,12 +182,14 @@ const htmlToPlainText = (html: string): string => {
   );
 };
 
-export const getDescription = (t: TFunction, description?: string | null) => {
+export const getDescription = (t: TFunction, description?: string | null, stripMarkdownForIcs = false) => {
   if (!description) {
     return "";
   }
-  const plainText = htmlToPlainText(description);
-  return `${t("description")}\n${plainText}`;
+  const text = stripMarkdownForIcs
+    ? stripMarkdown(description, { preserveNewlines: true })
+    : htmlToPlainText(description);
+  return `${t("description")}:\n${text}`;
 };
 
 export const getLocation = (calEvent: {
@@ -477,14 +486,20 @@ export const getRichDescriptionHTML = (
   const textToHtml = (text: string) => {
     if (!text) return "";
     const lines = text.split("\n").filter(Boolean);
-    return lines
-      .map((line, index) => {
-        if (index === 0) {
-          return `<p><strong>${line}</strong></p>`;
-        }
-        return `<p>${line}</p>`;
-      })
-      .join("");
+    const firstLine = lines.shift();
+    if (!firstLine) return "";
+    let html = `<p><strong>${firstLine}</strong></p>`;
+    if (lines.length > 0) {
+      html += `<p>${lines.join("<br>")}</p>`;
+    }
+    return html;
+  };
+
+  // Helper function to render markdown content to safe HTML
+  const markdownContentToHTML = (title: string, content: string | null) => {
+    if (!content) return "";
+    const html = markdownToSafeHTML(content);
+    return `<p><strong>${title}</strong></p>${html}`;
   };
 
   // Convert the manage link to a clickable hyperlink
@@ -528,8 +543,8 @@ export const getRichDescriptionHTML = (
         t
       )
     ),
-    textToHtml(getDescription(t, calEvent.description)),
-    textToHtml(getAdditionalNotes(t, calEvent.additionalNotes)),
+    markdownContentToHTML(t("description"), calEvent.description),
+    markdownContentToHTML(t("additional_notes"), calEvent.additionalNotes),
     textToHtml(
       getUserFieldsResponses(
         {
@@ -563,6 +578,7 @@ export const getRichDescription = (
   const t = t_ ?? calEvent.organizer.language.translate;
 
   // Join all parts with single newlines and remove extra whitespace
+  // NOTE: We pass true to strip markdown since this is used for ICS files and plain text emails
   const parts = [
     getCancellationReason(t, calEvent.cancellationReason),
     getWhat(calEvent.title, t),
@@ -591,9 +607,17 @@ export const getRichDescription = (
       location: calEvent.location,
       uid: calEvent.uid,
     })}`,
-    getDescription(t, calEvent.description),
-    getAdditionalNotes(t, calEvent.additionalNotes),
-    getUserFieldsResponses(calEvent, t),
+    getDescription(t, calEvent.description, true),
+    getAdditionalNotes(t, calEvent.additionalNotes, true),
+    getUserFieldsResponses(
+      {
+        customInputs: calEvent.customInputs,
+        userFieldsResponses: calEvent.userFieldsResponses,
+        responses: calEvent.responses,
+        eventTypeId: calEvent.eventTypeId,
+      },
+      t
+    ),
     includeAppStatus ? getAppsStatus(t, calEvent.appsStatus) : "",
     // TODO: Only the original attendee can make changes to the event
     // Guests cannot
