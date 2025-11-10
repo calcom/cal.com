@@ -45,6 +45,13 @@ export interface Booking {
     title: string;
     slug: string;
   };
+  hosts?: Array<{
+    id?: number | string;
+    name?: string;
+    email?: string;
+    username?: string;
+    timeZone?: string;
+  }>;
   user?: {
     id: number;
     email: string;
@@ -52,7 +59,7 @@ export interface Booking {
     timeZone: string;
   };
   attendees?: Array<{
-    id: number;
+    id?: number | string;
     email: string;
     name: string;
     timeZone: string;
@@ -84,6 +91,41 @@ export interface GetBookingsResponse {
   status: "success";
   data: Booking[];
 }
+
+export interface BookingParticipationResult {
+  isOrganizer: boolean;
+  isHost: boolean;
+  isAttendee: boolean;
+  isParticipating: boolean;
+}
+
+export const getBookingParticipation = (
+  booking: Booking,
+  userId?: number,
+  userEmail?: string
+): BookingParticipationResult => {
+  const normalizedUserEmail = userEmail?.toLowerCase();
+  const emailEq = (a?: string, b?: string) => a?.toLowerCase() === b?.toLowerCase();
+  const idEq = (a?: string | number, b?: string | number) =>
+    a !== undefined && b !== undefined && String(a) === String(b);
+
+  const isOrganizer =
+    !!booking.user && (idEq(booking.user.id, userId) || emailEq(booking.user.email, normalizedUserEmail));
+
+  const isHost =
+    Array.isArray(booking.hosts) &&
+    booking.hosts.some((host) => idEq(host.id, userId) || emailEq(host.email, normalizedUserEmail));
+
+  const isAttendee =
+    Array.isArray(booking.attendees) &&
+    booking.attendees.some(
+      (attendee) => idEq(attendee.id, userId) || emailEq(attendee.email, normalizedUserEmail)
+    );
+
+  const isParticipating = isOrganizer || isHost || isAttendee;
+
+  return { isOrganizer, isHost, isAttendee, isParticipating };
+};
 
 export interface ScheduleAvailability {
   days: string[];
@@ -394,15 +436,11 @@ export class CalComAPIService {
 
       // Filter bookings to only show ones where the current user is participating
       const userBookings = bookingsArray.filter((booking) => {
-        // Check if user is the organizer (booking.user matches current user)
-        const isOrganizer = booking.user && (booking.user.id === userId || booking.user.email === userEmail);
-
-        // Check if user is an attendee
-        const isAttendee =
-          booking.attendees &&
-          booking.attendees.some((attendee) => attendee.id === userId || attendee.email === userEmail);
-
-        const isParticipating = isOrganizer || isAttendee;
+        const { isOrganizer, isHost, isAttendee, isParticipating } = getBookingParticipation(
+          booking,
+          userId,
+          userEmail
+        );
 
         if (isParticipating) {
           console.log(
@@ -410,6 +448,8 @@ export class CalComAPIService {
             booking.title,
             "isOrganizer:",
             isOrganizer,
+            "isHost:",
+            isHost,
             "isAttendee:",
             isAttendee
           );
