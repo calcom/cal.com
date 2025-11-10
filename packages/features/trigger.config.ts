@@ -29,7 +29,7 @@ export default defineConfig({
         version: "6.16.1",
       }),
     ],
-    external: ["jsdom", "playwright-core", "playwright", "chromium-bidi"],
+    external: ["nodemailer", "jsdom", "playwright-core", "playwright", "chromium-bidi"],
   },
 
   // Max duration of a task in seconds

@@ -110,6 +110,7 @@ export class CalendarEventBuilder {
           url: videoRef.meetingUrl,
         }
       : undefined;
+    const appsStatus: AppsStatus[] = [];
 
     const organizationId = user.profiles?.[0]?.organizationId ?? null;
     const bookerUrl = await getBookerBaseUrl(eventType.team?.parentId ?? organizationId);
@@ -188,20 +189,28 @@ export class CalendarEventBuilder {
     }
 
     // Video
-    if (videoCallData && videoCallData.id && videoCallData.password && videoCallData.url) {
-      builder
-        .withVideoCallData({
-          ...videoCallData,
-          id: videoCallData.id,
-          password: videoCallData.password,
-          url: videoCallData.url,
-        })
-        .withAppsStatus([
-          { appName: videoCallData.type, type: videoCallData.type, success: 1, failures: 0, errors: [] },
-        ]);
-    } else {
-      builder.withAppsStatus([]);
+    if (videoCallData && videoCallData.id && videoCallData.url) {
+      builder.withVideoCallData({
+        ...videoCallData,
+        id: videoCallData.id,
+        password: videoCallData.password ?? "",
+        url: videoCallData.url,
+      });
     }
+
+    references
+      .filter((r) => r && r.type)
+      .forEach((ref) => {
+        appsStatus.push({
+          appName: ref.type.replace("_", "-"),
+          type: ref.type,
+          success: ref.uid ? 1 : 0,
+          failures: ref.uid ? 0 : 1,
+          errors: [],
+        });
+      });
+
+    builder.withAppsStatus(appsStatus);
 
     // Team & calendars
     if (eventType.team) {

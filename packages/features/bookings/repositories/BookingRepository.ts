@@ -1328,11 +1328,7 @@ export class BookingRepository {
             meetingId: true,
             meetingPassword: true,
             meetingUrl: true,
-          },
-          where: {
-            type: {
-              endsWith: "_video",
-            },
+            uid: true,
           },
         },
         seatsReferences: {
