@@ -4,7 +4,8 @@ import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { prisma } from "@calcom/prisma";
@@ -291,7 +292,7 @@ export const onSubmissionOfFormResponse = async ({
 }) => {
   if (!form.fields) {
     // There is no point in submitting a form that doesn't have fields defined
-    throw new HttpError({ statusCode: 400 });
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid);
   }
   const settings = RoutingFormSettings.parse(form.settings);
   let userWithEmails: string[] = [];

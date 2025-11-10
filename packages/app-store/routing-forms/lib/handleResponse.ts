@@ -2,7 +2,8 @@ import { z } from "zod";
 
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/app-store/_utils/raqb/findTeamMembersMatchingAttributeLogic";
 import { emailSchema } from "@calcom/lib/emailSchema";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -46,7 +47,7 @@ const _handleResponse = async ({
   try {
     if (!form.fields) {
       // There is no point in submitting a form that doesn't have fields defined
-      throw new HttpError({ statusCode: 400 });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid);
     }
 
     const formTeamId = form.teamId;
@@ -61,10 +62,7 @@ const _handleResponse = async ({
       .map((f) => f.label);
 
     if (missingFields.length) {
-      throw new HttpError({
-        statusCode: 400,
-        message: `Missing required fields ${missingFields.join(", ")}`,
-      });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, `Missing required fields ${missingFields.join(", ")}`);
     }
     const invalidFields = serializableFormWithFields.fields
       .filter((field) => {
@@ -86,12 +84,10 @@ const _handleResponse = async ({
       .map((f) => ({ label: f.label, type: f.type, value: response[f.id]?.value }));
 
     if (invalidFields.length) {
-      throw new HttpError({
-        statusCode: 400,
-        message: `Invalid value for fields ${invalidFields
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid,
+        `Invalid value for fields ${invalidFields
           .map((f) => `'${f.label}' with value '${f.value}' should be valid ${f.type}`)
-          .join(", ")}`,
-      });
+          .join(", ")}`);
     }
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
@@ -103,10 +99,7 @@ const _handleResponse = async ({
     let timeTaken: Record<string, number | null> = {};
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Chosen route is a router",
-        });
+        throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Chosen route is a router");
       }
 
       const getRoutedMembers = async () =>
@@ -228,10 +221,7 @@ const _handleResponse = async ({
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
       if (e.code === "P2002") {
-        throw new HttpError({
-          statusCode: 409,
-          message: "Form response already exists",
-        });
+        throw new ErrorWithCode(ErrorCode.ResourceConflict, "Form response already exists");
       }
     }
     throw e;

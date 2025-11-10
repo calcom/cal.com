@@ -79,12 +79,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const parseHeaders = webhookHeadersSchema.safeParse(headers);
     if (!parseHeaders.success) {
       console.error(parseHeaders.error);
-      throw new HttpCode({ statusCode: 400, message: "Bad Request" });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Bad Request");
     }
     const parse = eventSchema.safeParse(JSON.parse(bodyAsString));
     if (!parse.success) {
       console.error(parse.error);
-      throw new HttpCode({ statusCode: 400, message: "Bad Request" });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Bad Request");
     }
 
     const { data: parsedPayload } = parse;

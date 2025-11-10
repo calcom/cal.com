@@ -3,7 +3,8 @@ import z from "zod";
 
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
@@ -25,12 +26,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
 
   if (!stripeCustomer)
-    throw new HttpError({
-      statusCode: 404,
-      message: "Stripe customer not found or deleted",
-      url: req.url,
-      method: req.method,
-    });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Stripe customer not found or deleted");
 
   // first let's try to find user by metadata stripeCustomerId
   let user = await prisma.user.findFirst({
@@ -52,7 +48,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (!user)
-    throw new HttpError({ statusCode: 404, message: "User not found", url: req.url, method: req.method });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "User not found");
 
   if (checkoutSession.payment_status === "paid" && stripeCustomer.metadata.username) {
     try {
@@ -70,9 +66,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
     } catch (error) {
       console.error(error);
-      throw new HttpError({
-        statusCode: 400,
-        url: req.url,
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Payment callback error");
         method: req.method,
         message:
           "We have received your payment. Your premium username could still not be reserved. Please contact support@cal.com and mention your premium username",
