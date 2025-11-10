@@ -2,7 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import qs from "qs";
 import { z } from "zod";
 
-import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 
 const PaymentDataSchema = z.object({

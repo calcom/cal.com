@@ -82,26 +82,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const key = payment.booking?.user?.credentials?.[0].key;
     if (!key) {
-      throw new HttpCode({ statusCode: 204, message: "Credentials not found" });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Credentials not found");
     }
 
     const { isSandbox, prod, sandbox } = key as z.infer<typeof hitpayCredentialKeysSchema>;
     const keyObj = isSandbox ? sandbox : prod;
     if (!keyObj) {
-      throw new HttpCode({
-        statusCode: 204,
-        message: `${isSandbox ? "Sandbox" : "Production"} Credentials not found`,
-      });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, `${isSandbox ? "Sandbox" : "Production"} Credentials not found`);
     }
 
     const { saltKey } = keyObj;
     const signed = generateSignatureArray(saltKey, excluded as ExcludedWebhookReturn);
     if (signed !== obj.hmac) {
-      throw new HttpCode({ statusCode: 400, message: "Bad Request" });
+      throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Bad Request");
     }
 
     if (excluded.status !== "completed") {
-      throw new HttpCode({ statusCode: 204, message: `Payment is ${excluded.status}` });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, `Payment is ${excluded.status}`);
     }
     return await handlePaymentSuccess(payment.id, payment.bookingId);
   } catch (_err) {

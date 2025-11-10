@@ -7,7 +7,8 @@ import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib";
 import parseInvoice from "@calcom/app-store/alby/lib/parseInvoice";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 
 export const config = {
