@@ -11,7 +11,6 @@ import {
   IsEnum,
 } from "class-validator";
 
-import dayjs from "@calcom/dayjs";
 import { SlotFormat } from "@calcom/platform-enums";
 
 export class GetAvailableSlotsInput_2024_09_04 {
@@ -31,9 +30,10 @@ export class GetAvailableSlotsInput_2024_09_04 {
   start!: string;
 
   @Transform(({ value }) => {
-    const maxEndTime = dayjs.utc().add(1, "year");
-    const endTime = dayjs.utc(value);
-    if (endTime.isAfter(maxEndTime)) {
+    const maxEndTime = new Date();
+    maxEndTime.setUTCFullYear(maxEndTime.getUTCFullYear() + 1);
+    const endTime = new Date(value);
+    if (endTime > maxEndTime) {
       return maxEndTime.toISOString();
     }
     return value;
