@@ -1,23 +1,29 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import dayjs from "@calcom/dayjs";
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billing-service";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 // Import mocked prisma
 import { prisma } from "@calcom/prisma";
+import dayjs from "@calcom/dayjs";
 
 import { handler, cleanUpVerificationTokens } from "./verify-email";
 
 // Mock all dependencies
-vi.mock("@calcom/dayjs");
+vi.mock("@calcom/dayjs", () => ({
+  default: vi.fn(),
+}));
 vi.mock("@calcom/features/ee/billing/stripe-billing-service");
 vi.mock("@calcom/features/onboarding/lib/onboarding-path.service");
-vi.mock("@calcom/lib/constants", () => ({
-  WEBAPP_URL: "https://test.cal.com",
-  IS_STRIPE_ENABLED: true,
-}));
+vi.mock("@calcom/lib/constants", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@calcom/lib/constants")>();
+  return {
+    ...actual,
+    WEBAPP_URL: "https://test.cal.com",
+    IS_STRIPE_ENABLED: true,
+  };
+});
 
 vi.mock("@calcom/prisma", () => ({
   prisma: {
@@ -36,6 +42,28 @@ vi.mock("@calcom/prisma", () => ({
     },
   },
 }));
+
+// Helper to create verification token mock data
+const createMockVerificationToken = (
+  overrides: Partial<{
+    id: number;
+    identifier: string;
+    token: string;
+    expires: Date;
+    secondaryEmailId: number | null;
+  }>
+) => ({
+  id: 1,
+  token: "valid-token",
+  expires: new Date("2030-01-01"),
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  teamId: null,
+  secondaryEmailId: null,
+  identifier: "test@example.com",
+  expiresInDays: null,
+  ...overrides,
+});
 
 describe("verify-email handler", () => {
   let req: Partial<NextApiRequest>;
@@ -100,13 +128,11 @@ describe("verify-email handler", () => {
       req.query = { token: "valid-token" };
       const expiredDate = new Date("2020-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "test@example.com",
-        token: "valid-token",
-        expires: expiredDate,
-        secondaryEmailId: null,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({
+          expires: expiredDate,
+        })
+      );
 
       vi.mocked(dayjs).mockReturnValue({
         isBefore: vi.fn().mockReturnValue(true),
@@ -123,15 +149,13 @@ describe("verify-email handler", () => {
   describe("Secondary email verification", () => {
     it("should verify secondary email and redirect to profile page", async () => {
       req.query = { token: "valid-token" };
-      const futureDate = new Date("2030-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "secondary@example.com",
-        token: "valid-token",
-        expires: futureDate,
-        secondaryEmailId: 123,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({
+          identifier: "secondary@example.com",
+          secondaryEmailId: 123,
+        })
+      );
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(prisma.secondaryEmail.update).mockResolvedValue({} as any);
@@ -161,15 +185,10 @@ describe("verify-email handler", () => {
   describe("Primary email verification", () => {
     it("should return 401 if user is not found", async () => {
       req.query = { token: "valid-token" };
-      const futureDate = new Date("2030-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "test@example.com",
-        token: "valid-token",
-        expires: futureDate,
-        secondaryEmailId: null,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({})
+      );
 
       vi.mocked(prisma.user.findFirst).mockResolvedValue(null);
 
@@ -181,15 +200,10 @@ describe("verify-email handler", () => {
 
     it("should verify email and redirect to event-types for completed onboarding", async () => {
       req.query = { token: "valid-token" };
-      const futureDate = new Date("2030-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "test@example.com",
-        token: "valid-token",
-        expires: futureDate,
-        secondaryEmailId: null,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({})
+      );
 
       vi.mocked(prisma.user.findFirst).mockResolvedValue({
         id: 1,
@@ -215,15 +229,10 @@ describe("verify-email handler", () => {
 
     it("should verify email and redirect to getting started for incomplete onboarding", async () => {
       req.query = { token: "valid-token" };
-      const futureDate = new Date("2030-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "test@example.com",
-        token: "valid-token",
-        expires: futureDate,
-        secondaryEmailId: null,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({})
+      );
 
       vi.mocked(prisma.user.findFirst).mockResolvedValue({
         id: 1,
@@ -247,15 +256,10 @@ describe("verify-email handler", () => {
   describe("Email change verification", () => {
     it("should return 401 if new email already exists for another user", async () => {
       req.query = { token: "valid-token" };
-      const futureDate = new Date("2030-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "test@example.com",
-        token: "valid-token",
-        expires: futureDate,
-        secondaryEmailId: null,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({})
+      );
 
       vi.mocked(prisma.user.findFirst).mockResolvedValue({
         id: 1,
@@ -283,15 +287,10 @@ describe("verify-email handler", () => {
 
     it("should return 401 if new email exists as secondary email for another user", async () => {
       req.query = { token: "valid-token" };
-      const futureDate = new Date("2030-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "test@example.com",
-        token: "valid-token",
-        expires: futureDate,
-        secondaryEmailId: null,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({})
+      );
 
       vi.mocked(prisma.user.findFirst).mockResolvedValue({
         id: 1,
@@ -322,15 +321,10 @@ describe("verify-email handler", () => {
 
     it("should update email and update Stripe customer", async () => {
       req.query = { token: "valid-token" };
-      const futureDate = new Date("2030-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "test@example.com",
-        token: "valid-token",
-        expires: futureDate,
-        secondaryEmailId: null,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({})
+      );
 
       vi.mocked(prisma.user.findFirst).mockResolvedValue({
         id: 1,
@@ -379,16 +373,11 @@ describe("verify-email handler", () => {
 
     it("should swap emails when updating to existing secondary email of same user", async () => {
       req.query = { token: "valid-token" };
-      const futureDate = new Date("2030-01-01");
       const oldEmailVerifiedDate = new Date("2020-01-01");
 
-      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue({
-        id: 1,
-        identifier: "test@example.com",
-        token: "valid-token",
-        expires: futureDate,
-        secondaryEmailId: null,
-      });
+      vi.mocked(prisma.verificationToken.findFirst).mockResolvedValue(
+        createMockVerificationToken({})
+      );
 
       vi.mocked(prisma.user.findFirst).mockResolvedValue({
         id: 1,
