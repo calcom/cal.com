@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR } from "@/modules/organizations/event-types/services/input.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -798,7 +799,7 @@ describe("Organizations Event Types Endpoints", () => {
         await eventTypesRepositoryFixture.delete(createdEventType.data.id);
       });
 
-      it("should change round robin event type to collective and hosts should be empty array", async () => {
+      it("should require hosts when changing round robin event type to collective without providing hosts", async () => {
         const createBody: CreateTeamEventTypeInput_2024_06_14 = {
           title: `teams-event-types-scheduling-roundrobin-${randomString()}`,
           slug: `teams-event-types-scheduling-roundrobin-${randomString()}`,
@@ -834,20 +835,17 @@ describe("Organizations Event Types Endpoints", () => {
           schedulingType: "collective",
         };
 
-        const updateResponse = await request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-          .send(updateBody)
-          .expect(200);
+          .send(updateBody);
 
-        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
-        expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        expect(responseBody.data.schedulingType).toEqual("collective");
-        expect(responseBody.data.hosts).toEqual([]);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR);
 
         await eventTypesRepositoryFixture.delete(createdEventType.data.id);
       });
 
-      it("should change collective event type to roundRobin and hosts should be empty array", async () => {
+      it("should require hosts when changing collective event type to roundRobin without providing hosts", async () => {
         const createBody: CreateTeamEventTypeInput_2024_06_14 = {
           title: `teams-event-types-scheduling-collective-${randomString()}`,
           slug: `teams-event-types-scheduling-collective-${randomString()}`,
@@ -881,15 +879,12 @@ describe("Organizations Event Types Endpoints", () => {
           schedulingType: "roundRobin",
         };
 
-        const updateResponse = await request(app.getHttpServer())
+        const response = await request(app.getHttpServer())
           .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
-          .send(updateBody)
-          .expect(200);
+          .send(updateBody);
 
-        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
-        expect(responseBody.status).toEqual(SUCCESS_STATUS);
-        expect(responseBody.data.schedulingType).toEqual("roundRobin");
-        expect(responseBody.data.hosts).toEqual([]);
+        expect(response.status).toBe(400);
+        expect(response.body.error.message).toBe(HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR);
 
         await eventTypesRepositoryFixture.delete(createdEventType.data.id);
       });
@@ -1093,6 +1088,192 @@ describe("Organizations Event Types Endpoints", () => {
         expect(hostUserIds).toContain(userAdmin.id);
 
         await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
+
+      it("should preserve existing hosts when updating without changing scheduling type", async () => {
+        const createBody = {
+          title: `teams-event-types-scheduling-preserve-${randomString()}`,
+          slug: `teams-event-types-scheduling-preserve-${randomString()}`,
+          description: "Test preserve hosts",
+          lengthInMinutes: 60,
+          locations: [
+            {
+              type: "integration",
+              integration: "cal-video",
+            },
+          ],
+          schedulingType: "collective",
+          hosts: [
+            {
+              userId: teamMember1.id,
+            },
+            {
+              userId: teamMember2.id,
+            },
+          ],
+        };
+
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types`)
+          .send(createBody)
+          .expect(201);
+
+        const createdEventType: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = createResponse.body;
+
+        const updateBody = {
+          title: "Updated title",
+        };
+
+        const updateResponse = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${createdEventType.data.id}`)
+          .send(updateBody)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = updateResponse.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.title).toEqual("Updated title");
+        expect(responseBody.data.schedulingType).toEqual("collective");
+        expect(responseBody.data.hosts).toHaveLength(2);
+        expect(responseBody.data.hosts.map((h) => h.userId)).toContain(teamMember1.id);
+        expect(responseBody.data.hosts.map((h) => h.userId)).toContain(teamMember2.id);
+
+        await eventTypesRepositoryFixture.delete(createdEventType.data.id);
+      });
+    });
+
+    describe("should update event type title", () => {
+      it("should preserve hosts when updating collective event type title", async () => {
+        const collectiveEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: `collective-preserve-hosts-${randomString()}`,
+            slug: `collective-preserve-hosts-${randomString()}`,
+            length: 60,
+            team: {
+              connect: {
+                id: team.id,
+              },
+            },
+            schedulingType: "COLLECTIVE",
+            hosts: {
+              create: [
+                {
+                  userId: teamMember1.id,
+                  isFixed: true,
+                },
+                {
+                  userId: teamMember2.id,
+                  isFixed: true,
+                },
+              ],
+            },
+          },
+          userAdmin.id
+        );
+
+        const newTitle = `updated-collective-title-${randomString()}`;
+        const updateBody = {
+          title: newTitle,
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${collectiveEventType.id}`)
+          .send(updateBody)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.title).toEqual(newTitle);
+        expect(responseBody.data.schedulingType).toEqual("collective");
+        expect(responseBody.data.hosts).toHaveLength(2);
+        expect(responseBody.data.hosts.map((h) => h.userId)).toContain(teamMember1.id);
+        expect(responseBody.data.hosts.map((h) => h.userId)).toContain(teamMember2.id);
+
+        await eventTypesRepositoryFixture.delete(collectiveEventType.id);
+      });
+
+      it("should preserve hosts when updating round robin event type title", async () => {
+        const roundRobinEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: `roundrobin-preserve-hosts-${randomString()}`,
+            slug: `roundrobin-preserve-hosts-${randomString()}`,
+            length: 60,
+            team: {
+              connect: {
+                id: team.id,
+              },
+            },
+            schedulingType: "ROUND_ROBIN",
+            hosts: {
+              create: [
+                {
+                  userId: teamMember1.id,
+                  isFixed: false,
+                  priority: 2,
+                },
+                {
+                  userId: teamMember2.id,
+                  isFixed: true,
+                  priority: 1,
+                },
+              ],
+            },
+          },
+          userAdmin.id
+        );
+
+        const newTitle = `updated-roundrobin-title-${randomString()}`;
+        const updateBody = {
+          title: newTitle,
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${roundRobinEventType.id}`)
+          .send(updateBody)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.title).toEqual(newTitle);
+        expect(responseBody.data.schedulingType).toEqual("roundRobin");
+        expect(responseBody.data.hosts).toHaveLength(2);
+        expect(responseBody.data.hosts.map((h) => h.userId)).toContain(teamMember1.id);
+        expect(responseBody.data.hosts.map((h) => h.userId)).toContain(teamMember2.id);
+
+        await eventTypesRepositoryFixture.delete(roundRobinEventType.id);
+      });
+
+      it("should preserve managed event type when updating title", async () => {
+        const managedEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: `managed-preserve-${randomString()}`,
+            slug: `managed-preserve-${randomString()}`,
+            length: 60,
+            team: {
+              connect: {
+                id: team.id,
+              },
+            },
+            schedulingType: "MANAGED",
+          },
+          userAdmin.id
+        );
+
+        const newTitle = `updated-managed-title-${randomString()}`;
+        const updateBody = {
+          title: newTitle,
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/event-types/${managedEventType.id}`)
+          .send(updateBody)
+          .expect(200);
+
+        const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.title).toEqual(newTitle);
+        expect(responseBody.data.schedulingType).toEqual("managed");
+
+        await eventTypesRepositoryFixture.delete(managedEventType.id);
       });
     });
 

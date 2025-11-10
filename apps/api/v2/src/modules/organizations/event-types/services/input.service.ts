@@ -17,6 +17,9 @@ import {
 } from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
 
+export const HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR =
+  "Hosts required when switching schedulingType. Please provide 'hosts' or set 'assignAllTeamMembers: true' to specify how hosts should be configured for the new scheduling type.";
+
 export type TransformedCreateTeamEventTypeInput = Awaited<
   ReturnType<InstanceType<typeof InputOrganizationsEventTypesService>["transformInputCreateTeamEventType"]>
 >;
@@ -250,15 +253,25 @@ export class InputOrganizationsEventTypesService {
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
     const { hosts, assignAllTeamMembers } = inputEventType;
+
     if (dbEventTypeSchedulingType === "MANAGED") {
+      // note(Lauris): we don't populate hosts for managed event-types because they are handled by the event type children
       return undefined;
     }
-    const nextSchedulingType = inputEventType.schedulingType ?? dbEventTypeSchedulingType;
+
+    const isSchedulingTypeChanging =
+      inputEventType.schedulingType && inputEventType.schedulingType !== dbEventTypeSchedulingType;
+
+    if (isSchedulingTypeChanging && !assignAllTeamMembers && !hosts) {
+      throw new BadRequestException(HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR);
+    }
+
+    const nextSchedulingType = inputEventType.schedulingType || dbEventTypeSchedulingType;
     if (assignAllTeamMembers) {
       return await this.getAllTeamMembers(teamId, nextSchedulingType);
     }
-    const nextHosts = hosts || [];
-    return this.transformInputHosts(nextHosts, nextSchedulingType);
+
+    return this.transformInputHosts(hosts, nextSchedulingType);
   }
 
   async getChildEventTypesForManagedEventTypeUpdate(
