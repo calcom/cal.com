@@ -332,13 +332,20 @@ export async function managedEventManualReassignment({
 
     // Extract additional information from calendar creation results
     if (results.length) {
-      additionalInformation.hangoutLink = results[0]?.createdEvent?.hangoutLink;
-      additionalInformation.conferenceData = results[0]?.createdEvent?.conferenceData;
-      additionalInformation.entryPoints = results[0]?.createdEvent?.entryPoints;
+      const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
+        ? results[0]?.updatedEvent[0]
+        : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+        
+      additionalInformation.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
+      additionalInformation.conferenceData = createdOrUpdatedEvent?.conferenceData;
+      additionalInformation.entryPoints = createdOrUpdatedEvent?.entryPoints;
       evt.additionalInformation = additionalInformation;
 
-      // Prefer hangoutLink over videoCallData.url
-      videoCallUrl = additionalInformation.hangoutLink || videoCallUrl;
+      // Build videoCallUrl with the same fallback chain as RegularBookingService
+      videoCallUrl =
+        additionalInformation.hangoutLink ||
+        createdOrUpdatedEvent?.url ||
+        videoCallUrl;
     }
 
     videoCallData = evt.videoCallData;
@@ -353,11 +360,11 @@ export async function managedEventManualReassignment({
         },
       };
 
-      const finalVideoCallUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
-
-      const bookingMetadataUpdate = {
-        videoCallUrl: finalVideoCallUrl || undefined,
-      };
+      // Update booking metadata with video call URL for success page display
+      // This matches the pattern used in RegularBookingService
+      const bookingMetadataUpdate = videoCallUrl
+        ? { videoCallUrl: getVideoCallUrlFromCalEvent(evt) || videoCallUrl }
+        : {};
 
       const referencesToCreateForDb = referencesToCreate.map((reference) => {
         const { credentialId, ...restReference } = reference;
@@ -384,7 +391,7 @@ export async function managedEventManualReassignment({
       reassignLogger.info("Updated booking location and created calendar references", {
         location: bookingLocation,
         referencesCount: referencesToCreate.length,
-        videoCallUrl: finalVideoCallUrl || null,
+        videoCallUrl: bookingMetadataUpdate.videoCallUrl || null,
       });
     } catch (error) {
       reassignLogger.error("Error updating booking location and references", error);
