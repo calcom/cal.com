@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma";
-import { WatchlistSource } from "@calcom/prisma/enums";
+import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
 
+import type { IBookingReportRepository } from "./bookingReport.interface";
 import type {
   IWatchlistRepository,
   CreateWatchlistInput,
@@ -92,7 +93,12 @@ export class WatchlistRepository implements IWatchlistRepository {
     meta: { totalRowCount: number };
   }> {
     const where = {
-      organizationId: params.organizationId,
+      ...(params.organizationId !== undefined && {
+        organizationId: params.organizationId,
+      }),
+      ...(params.isGlobal !== undefined && {
+        isGlobal: params.isGlobal,
+      }),
       ...(params.searchTerm && {
         value: {
           contains: params.searchTerm,
@@ -101,6 +107,9 @@ export class WatchlistRepository implements IWatchlistRepository {
       }),
       ...(params.filters?.type && {
         type: params.filters.type,
+      }),
+      ...(params.filters?.source && {
+        source: params.filters.source,
       }),
     };
 
@@ -246,5 +255,138 @@ export class WatchlistRepository implements IWatchlistRepository {
         where: { id },
       });
     });
+  }
+
+  async bulkDeleteEntries(params: { ids: string[]; userId: number }): Promise<{ deleted: number }> {
+    const entries = await this.prismaClient.watchlist.findMany({
+      where: { id: { in: params.ids } },
+      select: {
+        id: true,
+        type: true,
+        value: true,
+        description: true,
+        action: true,
+      },
+    });
+
+    if (entries.length === 0) {
+      return { deleted: 0 };
+    }
+
+    await this.prismaClient.$transaction(async (tx) => {
+      await tx.watchlistAudit.createMany({
+        data: entries.map((entry) => ({
+          watchlistId: entry.id,
+          type: entry.type,
+          value: entry.value,
+          description: entry.description,
+          action: entry.action,
+          changedByUserId: params.userId,
+        })),
+      });
+
+      await tx.watchlist.deleteMany({
+        where: { id: { in: entries.map((e) => e.id) } },
+      });
+    });
+
+    return { deleted: entries.length };
+  }
+
+  async createEntryFromReport(params: {
+    type: CreateWatchlistInput["type"];
+    value: string;
+    organizationId: number | null;
+    isGlobal: boolean;
+    userId: number;
+    description?: string;
+  }): Promise<{ watchlistEntry: WatchlistEntry; value: string }> {
+    const existing = await this.checkExists({
+      type: params.type,
+      value: params.value,
+      organizationId: params.organizationId,
+      isGlobal: params.isGlobal,
+    });
+
+    const watchlistEntry =
+      existing ??
+      (await this.createEntry({
+        type: params.type,
+        value: params.value,
+        organizationId: params.organizationId,
+        isGlobal: params.isGlobal,
+        action: WatchlistAction.BLOCK,
+        description: params.description,
+        userId: params.userId,
+      }));
+
+    return { watchlistEntry, value: params.value };
+  }
+
+  async addReportsToWatchlist(params: {
+    reportIds: string[];
+    type: CreateWatchlistInput["type"];
+    normalizedValues: Map<string, string>;
+    organizationId: number | null;
+    isGlobal: boolean;
+    userId: number;
+    description?: string;
+    bookingReportRepo: IBookingReportRepository;
+  }): Promise<{
+    success: number;
+    skipped: number;
+    results: Array<{ reportId: string; watchlistId: string; value: string }>;
+  }> {
+    const reports = await params.bookingReportRepo.findReportsByIds({
+      reportIds: params.reportIds,
+      organizationId: params.isGlobal ? undefined : params.organizationId ?? undefined,
+    });
+
+    const reportsToAdd = reports.filter((r) => !r.watchlistId);
+
+    if (reportsToAdd.length === 0) {
+      return { success: 0, skipped: reports.length, results: [] };
+    }
+
+    const results = await Promise.all(
+      reportsToAdd.map(async (report) => {
+        const normalizedValue = params.normalizedValues.get(report.id);
+        if (!normalizedValue) {
+          throw new Error(`Normalized value not found for report ${report.id}`);
+        }
+
+        const { watchlistEntry, value } = await this.createEntryFromReport({
+          type: params.type,
+          value: normalizedValue,
+          organizationId: params.organizationId,
+          isGlobal: params.isGlobal,
+          userId: params.userId,
+          description: params.description,
+        });
+
+        await params.bookingReportRepo.linkWatchlistToReport({
+          reportId: report.id,
+          watchlistId: watchlistEntry.id,
+        });
+
+        await params.bookingReportRepo.updateReportStatus({
+          reportId: report.id,
+          status: "BLOCKED",
+          organizationId: params.isGlobal ? undefined : params.organizationId ?? undefined,
+        });
+
+        return {
+          reportId: report.id,
+          watchlistId: watchlistEntry.id,
+          value,
+        };
+      })
+    );
+
+    return {
+      success: reportsToAdd.length,
+      skipped: reports.length - reportsToAdd.length,
+      results,
+    };
   }
 }

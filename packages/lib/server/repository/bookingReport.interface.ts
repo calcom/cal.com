@@ -84,5 +84,11 @@ export interface IBookingReportRepository {
     organizationId?: number;
   }): Promise<void>;
 
+  bulkUpdateReportStatus(params: {
+    reportIds: string[];
+    status: BookingReportStatus;
+    organizationId?: number;
+  }): Promise<{ updated: number }>;
+
   countPendingReports(params: { organizationId: number }): Promise<number>;
 }

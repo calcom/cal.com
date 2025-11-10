@@ -86,6 +86,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
           createdAt: true,
           status: true,
           watchlistId: true,
+          organizationId: true,
           reportedBy: {
             select: {
               id: true,
@@ -109,6 +110,13 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
               value: true,
               action: true,
               description: true,
+            },
+          },
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
             },
           },
         },
@@ -153,6 +161,7 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
         createdAt: true,
         status: true,
         watchlistId: true,
+        organizationId: true,
         reportedBy: {
           select: {
             id: true,
@@ -176,6 +185,13 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
             value: true,
             action: true,
             description: true,
+          },
+        },
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
           },
         },
       },
@@ -211,6 +227,27 @@ export class PrismaBookingReportRepository implements IBookingReportRepository {
       where,
       data: { status: params.status },
     });
+  }
+
+  async bulkUpdateReportStatus(params: {
+    reportIds: string[];
+    status: "PENDING" | "DISMISSED" | "BLOCKED";
+    organizationId?: number;
+  }): Promise<{ updated: number }> {
+    const where: Prisma.BookingReportWhereInput = {
+      id: { in: params.reportIds },
+    };
+
+    if (params.organizationId !== undefined) {
+      where.organizationId = params.organizationId;
+    }
+
+    const result = await this.prismaClient.bookingReport.updateMany({
+      where,
+      data: { status: params.status },
+    });
+
+    return { updated: result.count };
   }
 
   async countPendingReports(params: { organizationId: number }): Promise<number> {

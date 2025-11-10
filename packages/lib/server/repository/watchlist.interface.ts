@@ -43,12 +43,14 @@ export interface CheckWatchlistInput {
 }
 
 export interface FindAllEntriesInput {
-  organizationId: number;
+  organizationId?: number | null;
+  isGlobal?: boolean;
   limit: number;
   offset: number;
   searchTerm?: string;
   filters?: {
     type?: WatchlistType;
+    source?: WatchlistSource;
   };
 }
 
@@ -75,4 +77,5 @@ export interface IWatchlistRepository {
     auditHistory: WatchlistAuditEntry[];
   }>;
   deleteEntry(id: string, userId: number): Promise<void>;
+  bulkDeleteEntries(params: { ids: string[]; userId: number }): Promise<{ deleted: number }>;
 }
