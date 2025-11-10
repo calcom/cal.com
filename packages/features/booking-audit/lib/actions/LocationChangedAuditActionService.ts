@@ -9,9 +9,7 @@ import { StringChangeSchema } from "../common/changeSchemas";
  */
 export class LocationChangedAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            location: StringChangeSchema,
-        }),
+        location: StringChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof LocationChangedAuditActionService.schema> {
@@ -24,8 +22,8 @@ export class LocationChangedAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof LocationChangedAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Previous Location': data.primary.location.old ?? '-',
-            'New Location': data.primary.location.new ?? '-',
+            'Previous Location': data.location.old ?? '-',
+            'New Location': data.location.new ?? '-',
         };
     }
 }

@@ -9,10 +9,8 @@ import { StringChangeSchema } from "../common/changeSchemas";
  */
 export class RejectedAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            rejectionReason: StringChangeSchema,
-            status: StringChangeSchema,
-        }),
+        rejectionReason: StringChangeSchema,
+        status: StringChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof RejectedAuditActionService.schema> {
@@ -25,8 +23,8 @@ export class RejectedAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof RejectedAuditActionService.schema>, _t: TFunction): Record<string, string> {
         return {
-            'Rejection Reason': data.primary.rejectionReason.new ?? '-',
-            'Previous Reason': data.primary.rejectionReason.old ?? '-',
+            'Rejection Reason': data.rejectionReason.new ?? '-',
+            'Previous Reason': data.rejectionReason.old ?? '-',
         };
     }
 }

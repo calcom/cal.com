@@ -279,15 +279,11 @@ export const roundRobinReassignment = async ({
         String(bookingId),
         createUserActor(reassignedById),
         {
-          primary: {
-            assignedToId: { old: oldUserId, new: reassignedRRHost.id },
-            assignedById: { old: null, new: reassignedById },
-            reassignmentReason: { old: null, new: "Round robin reassignment" },
-          },
-          secondary: {
-            userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
-            title: { old: oldTitle, new: newBookingTitle },
-          },
+          assignedToId: { old: oldUserId, new: reassignedRRHost.id },
+          assignedById: { old: null, new: reassignedById },
+          reassignmentReason: { old: null, new: "Round robin reassignment" },
+          userPrimaryEmail: { old: oldEmail, new: reassignedRRHost.email },
+          title: { old: oldTitle, new: newBookingTitle },
         }
       );
     } catch (error) {

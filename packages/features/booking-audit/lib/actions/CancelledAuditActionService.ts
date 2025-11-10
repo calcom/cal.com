@@ -9,11 +9,9 @@ import { StringChangeSchema } from "../common/changeSchemas";
  */
 export class CancelledAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            cancellationReason: StringChangeSchema,
-            cancelledBy: StringChangeSchema,
-            status: StringChangeSchema,
-        })
+        cancellationReason: StringChangeSchema,
+        cancelledBy: StringChangeSchema,
+        status: StringChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof CancelledAuditActionService.schema> {
@@ -26,9 +24,9 @@ export class CancelledAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof CancelledAuditActionService.schema>, _t: TFunction): Record<string, string> {
         return {
-            'Cancellation Reason': data.primary.cancellationReason.new ?? '-',
-            'Previous Reason': data.primary.cancellationReason.old ?? '-',
-            'Cancelled By': `${data.primary.cancelledBy.old ?? '-'} → ${data.primary.cancelledBy.new ?? '-'}`,
+            'Cancellation Reason': data.cancellationReason.new ?? '-',
+            'Previous Reason': data.cancellationReason.old ?? '-',
+            'Cancelled By': `${data.cancelledBy.old ?? '-'} → ${data.cancelledBy.new ?? '-'}`,
         };
     }
 }

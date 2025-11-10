@@ -9,9 +9,7 @@ import { BooleanChangeSchema } from "../common/changeSchemas";
  */
 export class AttendeeNoShowUpdatedAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            noShowAttendee: BooleanChangeSchema,
-        }),
+        noShowAttendee: BooleanChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof AttendeeNoShowUpdatedAuditActionService.schema> {
@@ -24,7 +22,7 @@ export class AttendeeNoShowUpdatedAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof AttendeeNoShowUpdatedAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Attendee No-Show': `${data.primary.noShowAttendee.old ?? false} → ${data.primary.noShowAttendee.new}`,
+            'Attendee No-Show': `${data.noShowAttendee.old ?? false} → ${data.noShowAttendee.new}`,
         };
     }
 }

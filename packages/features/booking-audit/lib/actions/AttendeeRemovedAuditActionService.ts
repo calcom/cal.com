@@ -9,9 +9,7 @@ import { StringArrayChangeSchema } from "../common/changeSchemas";
  */
 export class AttendeeRemovedAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            removedAttendees: StringArrayChangeSchema,
-        }),
+        removedAttendees: StringArrayChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof AttendeeRemovedAuditActionService.schema> {
@@ -19,13 +17,13 @@ export class AttendeeRemovedAuditActionService {
     }
 
     getDisplaySummary(data: z.infer<typeof AttendeeRemovedAuditActionService.schema>, t: TFunction): string {
-        return t('audit.removed_guests', { count: data.primary.removedAttendees.new.length });
+        return t('audit.removed_guests', { count: data.removedAttendees.new.length });
     }
 
     getDisplayDetails(data: z.infer<typeof AttendeeRemovedAuditActionService.schema>, _t: TFunction): Record<string, string> {
         return {
-            'Removed Guests': data.primary.removedAttendees.new.join(', '),
-            'Count': data.primary.removedAttendees.new.length.toString(),
+            'Removed Guests': data.removedAttendees.new.join(', '),
+            'Count': data.removedAttendees.new.length.toString(),
         };
     }
 }

@@ -197,92 +197,74 @@ enum BookingAuditAction {
 
 ---
 
-## Schema Structure - Primary vs Secondary Changes
+## Schema Structure - Change Tracking
 
 All audit actions follow a consistent structure for tracking changes. This structure ensures complete audit trail coverage by capturing both the old and new values for every tracked field.
 
 ### Core Pattern
 
+Each action stores a flat object with all relevant fields. Each field tracks both old and new values:
+
 ```typescript
 {
-  primary: {
-    field1,  // Each field tracks: { old: T | null, new: T }
-    field2
-  },
-  secondary?: {  // Optional - only if side-effects exist
-    field3
-  }
+  field1: { old: T | null, new: T },
+  field2: { old: T | null, new: T },
+  field3: { old: T | null, new: T }  // Optional fields as needed
 }
 ```
 
-### Field Categories
+### Change Tracking
 
-#### 1. Primary Changes
-Fields that represent the **main intent or purpose** of the action. These are the core changes that define what the action is about.
-
-**Always include old→new tracking** for each field (each field contains `{ old: T | null, new: T }`):
-```typescript
-primary: {
-  fieldName
-}
-```
+**All fields use the same pattern** - `{ old: T | null, new: T }`:
+- `old`: The previous value (null if the field didn't exist before)
+- `new`: The new value after the change
 
 **Examples:**
-- `LOCATION_CHANGED`: The location field is primary (that's what the action is about)
-- `CANCELLED`: The cancellationReason, cancelledBy, and status are primary (the core cancellation data)
-- `REASSIGNMENT`: assignedToId, assignedById, and reassignmentReason are primary (the core assignment changes)
-
-#### 2. Secondary Changes (Optional)
-Fields that serve two purposes:
-1. **Side-effects**: Related fields that changed automatically when the primary action occurred
-2. **Debugging context**: Additional information that helps understand what happened
-
-Each field also contains `{ old: T | null, new: T }`.
-
 ```typescript
-secondary: {
-  fieldName
-}
+// Simple field changes
+status: { old: "ACCEPTED", new: "CANCELLED" }
+location: { old: "Zoom", new: "Google Meet" }
+
+// New fields (old is null)
+cancellationReason: { old: null, new: "Client requested" }
 ```
 
-**Examples:**
-- Side-effects: Status change (ACCEPTED → CANCELLED) when cancelling
-- Side-effects: Title and userPrimaryEmail update when reassigning
-- Debugging: Additional context fields that provide insight into the change
+### Semantic Clarity at Application Layer
+
+**Action Services decide what to display prominently.** Each Action Service has methods like `getDisplayDetails()` that determine:
+- Which fields are most important to show by default
+- Which fields should be available but not emphasized
+- How to format the data for display
+
+This keeps the data structure simple while maintaining semantic clarity where it matters - in the UI.
 
 ### Benefits
 
 1. **Complete Audit Trail**: Full before/after state captured for every change
 2. **Self-Contained Records**: Each record has complete context without querying previous records
-3. **Clear Intent**: Primary vs secondary distinction makes the purpose explicit
-4. **Better UI**: Can display clear before/after comparisons
+3. **Simple Structure**: Flat object, easy to work with and extend
+4. **Better UI**: Action Services decide what to emphasize based on user needs
 5. **State Reconstruction**: Can rebuild booking state at any point in the audit timeline
 6. **Easier Debugging**: See exact state transitions in each record
+7. **Type Safety**: Zod schemas validate the structure while keeping it flexible
 
 ### Examples by Action
 
-#### Simple Action (Single Primary Field)
+#### Simple Action
 ```typescript
 // LOCATION_CHANGED
 {
-  primary: {
-    location  // { old: "Zoom", new: "Google Meet" }
-  }
+  location: { old: "Zoom", new: "Google Meet" }
 }
 ```
 
-#### Action with Side-Effects
+#### Action with Multiple Fields
 ```typescript
 // CANCELLED
 {
-  primary: {
-    cancellationReason,  // { old: null, new: "Client requested" }
-    cancelledBy,         // { old: null, new: "user@example.com" }
-    status               // { old: "ACCEPTED", new: "CANCELLED" }
-  },
-  secondary: {
-    // Could include debugging context if needed
-  }
+  cancellationReason: { old: null, new: "Client requested" },
+  cancelledBy: { old: null, new: "user@example.com" },
+  status: { old: "ACCEPTED", new: "CANCELLED" }
 }
 ```
 
@@ -307,7 +289,7 @@ Used when a booking is initially created. Records the complete state at creation
 
 **Design Decision:** The `status` field accepts any `BookingStatus` value, not just the expected creation statuses (ACCEPTED, PENDING, AWAITING_HOST). This follows the principle of capturing reality rather than enforcing business rules in the audit layer. If a booking is ever created with an unexpected status due to a bug, we want to record that fact for debugging purposes rather than silently skip the audit record.
 
-**Note:** The CREATED action is unique - it captures the initial booking state at creation, so it doesn't use the primary/secondary pattern with `{ old, new }` tracking. It's a flat object with just the initial values: `{ startTime, endTime, status }`.
+**Note:** The CREATED action is unique - it captures the initial booking state at creation, so it doesn't use the `{ old, new }` tracking pattern. It's a flat object with just the initial values: `{ startTime, endTime, status }`.
 
 ---
 
@@ -318,66 +300,43 @@ Used when a booking status changes to accepted.
 
 ```typescript
 {
-  primary: {
-    status
-  }
+  status  // { old: "PENDING", new: "ACCEPTED" }
 }
 ```
-
-**Primary:** Status change (the main action)
 
 #### CANCELLED
 ```typescript
 {
-  primary: {
-    cancellationReason,
-    cancelledBy,
-    status
-  }
+  cancellationReason,  // { old: null, new: "Client requested" }
+  cancelledBy,         // { old: null, new: "user@example.com" }
+  status               // { old: "ACCEPTED", new: "CANCELLED" }
 }
 ```
-
-**Primary:** Cancellation reason, who cancelled it, and status change to CANCELLED
 
 #### REJECTED
 ```typescript
 {
-  primary: {
-    rejectionReason,
-    status
-  }
+  rejectionReason,  // { old: null, new: "Does not meet requirements" }
+  status            // { old: "PENDING", new: "REJECTED" }
 }
 ```
-
-**Primary:** Rejection reason and status change to REJECTED
 
 #### RESCHEDULED
 ```typescript
 {
-  primary: {
-    startTime,
-    endTime
-  }
+  startTime,  // { old: "2024-01-15T10:00:00Z", new: "2024-01-16T14:00:00Z" }
+  endTime     // { old: "2024-01-15T11:00:00Z", new: "2024-01-16T15:00:00Z" }
 }
 ```
-
-**Primary:** Start and end time changes (the core rescheduling data)
 
 #### RESCHEDULE_REQUESTED
 ```typescript
 {
-  primary: {
-    cancellationReason,
-    cancelledBy
-  },
-  secondary?: {
-    rescheduled
-  }
+  cancellationReason,  // { old: null, new: "Need to reschedule" }
+  cancelledBy,         // { old: null, new: "user@example.com" }
+  rescheduled?         // { old: false, new: true } - optional
 }
 ```
-
-**Primary:** Cancellation reason (why rescheduling was requested) and who requested it (the actor)  
-**Secondary:** Rescheduled flag (side-effect)
 
 ---
 
@@ -386,24 +345,20 @@ Used when a booking status changes to accepted.
 #### ATTENDEE_ADDED
 ```typescript
 {
-  primary: {
-    addedAttendees  // { old: null, new: ["email@example.com", ...] }
-  }
+  addedAttendees  // { old: null, new: ["email@example.com", ...] }
 }
 ```
 
-**Primary:** Attendee(s) that were added in this action. Old value is null since we're tracking the delta, not full state.
+Tracks attendee(s) that were added in this action. Old value is null since we're tracking the delta, not full state.
 
 #### ATTENDEE_REMOVED
 ```typescript
 {
-  primary: {
-    removedAttendees  // { old: null, new: ["email@example.com", ...] }
-  }
+  removedAttendees  // { old: null, new: ["email@example.com", ...] }
 }
 ```
 
-**Primary:** Attendee(s) that were removed in this action. Old value is null since we're tracking the delta, not full state.
+Tracks attendee(s) that were removed in this action. Old value is null since we're tracking the delta, not full state.
 
 ---
 
@@ -412,20 +367,13 @@ Used when a booking status changes to accepted.
 #### REASSIGNMENT
 ```typescript
 {
-  primary: {
-    assignedToId,
-    assignedById,
-    reassignmentReason
-  },
-  secondary?: {
-    userPrimaryEmail,
-    title
-  }
+  assignedToId,        // { old: 123, new: 456 }
+  assignedById,        // { old: 789, new: 789 }
+  reassignmentReason,  // { old: null, new: "Coverage needed" }
+  userPrimaryEmail?,   // { old: "old@cal.com", new: "new@cal.com" } - optional
+  title?               // { old: "Meeting with A", new: "Meeting with B" } - optional
 }
 ```
-
-**Primary:** Assigned to user ID (host assignment), assigned by user ID (who performed it), and reason  
-**Secondary:** User primary email and booking title (side-effects of user change)
 
 ---
 
@@ -434,13 +382,9 @@ Used when a booking status changes to accepted.
 #### LOCATION_CHANGED
 ```typescript
 {
-  primary: {
-    location
-  }
+  location  // { old: "Zoom", new: "Google Meet" }
 }
 ```
-
-**Primary:** Location change (the main action)
 
 ---
 
@@ -449,24 +393,16 @@ Used when a booking status changes to accepted.
 #### HOST_NO_SHOW_UPDATED
 ```typescript
 {
-  primary: {
-    noShowHost
-  }
+  noShowHost  // { old: false, new: true }
 }
 ```
-
-**Primary:** Host no-show status change
 
 #### ATTENDEE_NO_SHOW_UPDATED
 ```typescript
 {
-  primary: {
-    noShowAttendee
-  }
+  noShowAttendee  // { old: false, new: true }
 }
 ```
-
-**Primary:** Attendee no-show status change
 
 ---
 
@@ -481,9 +417,9 @@ Used when a booking status changes to accepted.
 
 #### Change Tracking Pattern
 
-**As of the schema migration (2025-11-03), all changes use the `{ old, new }` pattern:**
+**All changes use the `{ old, new }` pattern:**
 
-Each field in `primary` and `secondary` objects tracks both old and new values:
+Each field tracks both old and new values:
 ```typescript
 fieldName: { 
   old: T | null,  // Previous value (null if field didn't exist)
@@ -496,8 +432,7 @@ fieldName: {
 - Self-contained audit entries (no need to query previous records)
 - Clear state transitions
 - Easier debugging and UI display
-
-**Note:** The legacy `ChangeSchema` array pattern has been replaced by the primary/secondary structure with explicit `{ old, new }` tracking for each field.
+- Simple flat structure that's easy to work with
 
 ---
 

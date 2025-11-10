@@ -10,10 +10,8 @@ import { StringChangeSchema } from "../common/changeSchemas";
  */
 export class RescheduledAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            startTime: StringChangeSchema,
-            endTime: StringChangeSchema,
-        }),
+        startTime: StringChangeSchema,
+        endTime: StringChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof RescheduledAuditActionService.schema> {
@@ -21,16 +19,16 @@ export class RescheduledAuditActionService {
     }
 
     getDisplaySummary(data: z.infer<typeof RescheduledAuditActionService.schema>, t: TFunction): string {
-        const formattedDate = dayjs(data.primary.startTime.new).format('MMM D, YYYY');
+        const formattedDate = dayjs(data.startTime.new).format('MMM D, YYYY');
         return t('audit.rescheduled_to', { date: formattedDate });
     }
 
     getDisplayDetails(data: z.infer<typeof RescheduledAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Previous Start': data.primary.startTime.old ? dayjs(data.primary.startTime.old).format('MMM D, YYYY h:mm A') : '-',
-            'New Start': dayjs(data.primary.startTime.new).format('MMM D, YYYY h:mm A'),
-            'Previous End': data.primary.endTime.old ? dayjs(data.primary.endTime.old).format('MMM D, YYYY h:mm A') : '-',
-            'New End': dayjs(data.primary.endTime.new).format('MMM D, YYYY h:mm A'),
+            'Previous Start': data.startTime.old ? dayjs(data.startTime.old).format('MMM D, YYYY h:mm A') : '-',
+            'New Start': dayjs(data.startTime.new).format('MMM D, YYYY h:mm A'),
+            'Previous End': data.endTime.old ? dayjs(data.endTime.old).format('MMM D, YYYY h:mm A') : '-',
+            'New End': dayjs(data.endTime.new).format('MMM D, YYYY h:mm A'),
         };
     }
 }

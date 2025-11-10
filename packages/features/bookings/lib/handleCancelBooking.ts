@@ -487,19 +487,17 @@ async function handler(input: CancelBookingInput) {
         String(updatedBooking.id),
         createUserActor(userId || 0),
         {
-          primary: {
-            cancellationReason: {
-              old: bookingToDelete.cancellationReason,
-              new: cancellationReason ?? null,
-            },
-            cancelledBy: {
-              old: bookingToDelete.cancelledBy,
-              new: cancelledBy ?? null,
-            },
-            status: {
-              old: bookingToDelete.status,
-              new: "CANCELLED",
-            },
+          cancellationReason: {
+            old: bookingToDelete.cancellationReason,
+            new: cancellationReason ?? null,
+          },
+          cancelledBy: {
+            old: bookingToDelete.cancelledBy,
+            new: cancelledBy ?? null,
+          },
+          status: {
+            old: bookingToDelete.status,
+            new: "CANCELLED",
           },
         }
       );

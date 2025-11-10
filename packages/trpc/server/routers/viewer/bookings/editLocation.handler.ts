@@ -304,11 +304,9 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
       String(booking.id),
       createUserActor(loggedInUser.id),
       {
-        primary: {
-          location: {
-            old: oldLocation,
-            new: newLocationInEvtFormat,
-          },
+        location: {
+          old: oldLocation,
+          new: newLocationInEvtFormat,
         },
       }
     );

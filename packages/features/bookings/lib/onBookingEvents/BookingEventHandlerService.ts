@@ -31,19 +31,19 @@ interface BookingEventHandlerDeps {
 function isStatusChangeAuditData(
   data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
 ): data is StatusChangeAuditData {
-  return data !== undefined && "primary" in data && "status" in data.primary;
+  return data !== undefined && "status" in data && !("cancellationReason" in data) && !("rejectionReason" in data);
 }
 
 function isCancelledAuditData(
   data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
 ): data is CancelledAuditData {
-  return data !== undefined && "primary" in data && "cancellationReason" in data.primary;
+  return data !== undefined && "cancellationReason" in data;
 }
 
 function isRejectedAuditData(
   data: StatusChangeAuditData | CancelledAuditData | RejectedAuditData | undefined
 ): data is RejectedAuditData {
-  return data !== undefined && "primary" in data && "rejectionReason" in data.primary;
+  return data !== undefined && "rejectionReason" in data;
 }
 
 export class BookingEventHandlerService {
@@ -90,15 +90,13 @@ export class BookingEventHandlerService {
 
     try {
       const auditData = {
-        primary: {
-          startTime: {
-            old: payload.oldBooking?.startTime.toISOString() ?? null,
-            new: payload.booking.startTime.toISOString(),
-          },
-          endTime: {
-            old: payload.oldBooking?.endTime.toISOString() ?? null,
-            new: payload.booking.endTime.toISOString(),
-          },
+        startTime: {
+          old: payload.oldBooking?.startTime.toISOString() ?? null,
+          new: payload.booking.startTime.toISOString(),
+        },
+        endTime: {
+          old: payload.oldBooking?.endTime.toISOString() ?? null,
+          new: payload.booking.endTime.toISOString(),
         },
       };
       const userId = payload.booking.userId ?? payload.booking.user?.id ?? undefined;

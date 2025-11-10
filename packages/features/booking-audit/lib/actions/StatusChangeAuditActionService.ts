@@ -9,9 +9,7 @@ import { StringChangeSchema } from "../common/changeSchemas";
  */
 export class StatusChangeAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            status: StringChangeSchema,
-        }),
+        status: StringChangeSchema,
     });
 
     parse(data: unknown): z.infer<typeof StatusChangeAuditActionService.schema> {
@@ -24,7 +22,7 @@ export class StatusChangeAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof StatusChangeAuditActionService.schema>, t: TFunction): Record<string, string> {
         return {
-            'Status': `${data.primary.status.old ?? '-'} → ${data.primary.status.new ?? '-'}`,
+            'Status': `${data.status.old ?? '-'} → ${data.status.new ?? '-'}`,
         };
     }
 }

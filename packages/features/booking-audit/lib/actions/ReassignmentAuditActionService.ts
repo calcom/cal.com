@@ -9,15 +9,11 @@ import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas"
  */
 export class ReassignmentAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            assignedToId: NumberChangeSchema,
-            assignedById: NumberChangeSchema,
-            reassignmentReason: StringChangeSchema,
-        }),
-        secondary: z.object({
-            userPrimaryEmail: StringChangeSchema.optional(),
-            title: StringChangeSchema.optional(),
-        }).optional(),
+        assignedToId: NumberChangeSchema,
+        assignedById: NumberChangeSchema,
+        reassignmentReason: StringChangeSchema,
+        userPrimaryEmail: StringChangeSchema.optional(),
+        title: StringChangeSchema.optional(),
     });
 
     parse(data: unknown): z.infer<typeof ReassignmentAuditActionService.schema> {
@@ -30,17 +26,17 @@ export class ReassignmentAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof ReassignmentAuditActionService.schema>, _t: TFunction): Record<string, string> {
         const details: Record<string, string> = {
-            'Assigned To ID': `${data.primary.assignedToId.old ?? '-'} → ${data.primary.assignedToId.new}`,
-            'Assigned By ID': `${data.primary.assignedById.old ?? '-'} → ${data.primary.assignedById.new}`,
-            'Reason': data.primary.reassignmentReason.new ?? '-',
+            'Assigned To ID': `${data.assignedToId.old ?? '-'} → ${data.assignedToId.new}`,
+            'Assigned By ID': `${data.assignedById.old ?? '-'} → ${data.assignedById.new}`,
+            'Reason': data.reassignmentReason.new ?? '-',
         };
 
-        // Add secondary field-level changes if present
-        if (data.secondary?.userPrimaryEmail) {
-            details['Email'] = `${data.secondary.userPrimaryEmail.old ?? '-'} → ${data.secondary.userPrimaryEmail.new ?? '-'}`;
+        // Add optional fields if present
+        if (data.userPrimaryEmail) {
+            details['Email'] = `${data.userPrimaryEmail.old ?? '-'} → ${data.userPrimaryEmail.new ?? '-'}`;
         }
-        if (data.secondary?.title) {
-            details['Title'] = `${data.secondary.title.old ?? '-'} → ${data.secondary.title.new ?? '-'}`;
+        if (data.title) {
+            details['Title'] = `${data.title.old ?? '-'} → ${data.title.new ?? '-'}`;
         }
 
         return details;

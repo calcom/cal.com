@@ -322,11 +322,9 @@ export async function handleConfirmation(args: {
     try {
       const bookingEventHandlerService = getBookingEventHandlerService();
       const auditData: StatusChangeAuditData = {
-        primary: {
-          status: {
-            old: booking.status,
-            new: BookingStatus.ACCEPTED,
-          },
+        status: {
+          old: booking.status,
+          new: BookingStatus.ACCEPTED,
         },
       };
       await bookingEventHandlerService.onBookingAccepted(

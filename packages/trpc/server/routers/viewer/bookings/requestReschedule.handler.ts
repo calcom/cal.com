@@ -163,21 +163,17 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
     const auditData: RescheduleRequestedAuditData = {
-      primary: {
-        cancellationReason: {
-          old: bookingToReschedule.cancellationReason,
-          new: cancellationReason ?? null,
-        },
-        cancelledBy: {
-          old: bookingToReschedule.cancelledBy,
-          new: user.email,
-        },
+      cancellationReason: {
+        old: bookingToReschedule.cancellationReason,
+        new: cancellationReason ?? null,
       },
-      secondary: {
-        rescheduled: {
-          old: bookingToReschedule.rescheduled ?? false,
-          new: true,
-        },
+      cancelledBy: {
+        old: bookingToReschedule.cancelledBy,
+        new: user.email,
+      },
+      rescheduled: {
+        old: bookingToReschedule.rescheduled ?? false,
+        new: true,
       },
     };
     await bookingEventHandlerService.onRescheduleRequested(

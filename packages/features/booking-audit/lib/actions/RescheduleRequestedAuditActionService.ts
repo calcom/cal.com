@@ -9,13 +9,9 @@ import { StringChangeSchema, BooleanChangeSchema } from "../common/changeSchemas
  */
 export class RescheduleRequestedAuditActionService {
     static readonly schema = z.object({
-        primary: z.object({
-            cancellationReason: StringChangeSchema,
-            cancelledBy: StringChangeSchema,
-        }),
-        secondary: z.object({
-            rescheduled: BooleanChangeSchema.optional(),
-        }).optional(),
+        cancellationReason: StringChangeSchema,
+        cancelledBy: StringChangeSchema,
+        rescheduled: BooleanChangeSchema.optional(),
     });
 
     parse(data: unknown): z.infer<typeof RescheduleRequestedAuditActionService.schema> {
@@ -28,14 +24,14 @@ export class RescheduleRequestedAuditActionService {
 
     getDisplayDetails(data: z.infer<typeof RescheduleRequestedAuditActionService.schema>, t: TFunction): Record<string, string> {
         const details: Record<string, string> = {};
-        if (data.primary.cancellationReason) {
-            details['Reason'] = data.primary.cancellationReason.new ?? '-';
+        if (data.cancellationReason) {
+            details['Reason'] = data.cancellationReason.new ?? '-';
         }
-        if (data.primary.cancelledBy) {
-            details['Cancelled By'] = `${data.primary.cancelledBy.old ?? '-'} → ${data.primary.cancelledBy.new ?? '-'}`;
+        if (data.cancelledBy) {
+            details['Cancelled By'] = `${data.cancelledBy.old ?? '-'} → ${data.cancelledBy.new ?? '-'}`;
         }
-        if (data.secondary?.rescheduled) {
-            details['Rescheduled'] = `${data.secondary.rescheduled.old ?? false} → ${data.secondary.rescheduled.new}`;
+        if (data.rescheduled) {
+            details['Rescheduled'] = `${data.rescheduled.old ?? false} → ${data.rescheduled.new}`;
         }
         return details;
     }
