@@ -5,7 +5,7 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { Booking } from "@calcom/prisma/client";
 import { RRTimestampBasis, BookingStatus } from "@calcom/prisma/enums";
 import { bookingMinimalSelect } from "@calcom/prisma/selects/booking";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { credentialForCalendarServiceSelect, safeCredentialSelect } from "@calcom/prisma/selects/credential";
 
 export type FormResponse = Record<
   // Field ID
@@ -610,6 +610,13 @@ export class BookingRepository {
             name: true,
             email: true,
             username: true,
+            locale: true,
+            hideBranding: true,
+            organizationId: true,
+            destinationCalendar: true,
+            credentials: {
+              select: safeCredentialSelect,
+            },
           },
         },
         references: {
@@ -642,7 +649,9 @@ export class BookingRepository {
         uid: true,
         user: {
           select: {
-            credentials: true,
+            credentials: {
+              select: safeCredentialSelect,
+            },
           },
         },
         references: {
@@ -1376,9 +1385,19 @@ export class BookingRepository {
         destinationCalendar: true,
         references: true,
         user: {
-          include: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            organizationId: true,
+            hideBranding: true,
+            username: true,
             destinationCalendar: true,
-            credentials: true,
+            credentials: {
+              select: safeCredentialSelect,
+            },
           },
         },
       },
@@ -1418,9 +1437,19 @@ export class BookingRepository {
           },
         },
         user: {
-          include: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            organizationId: true,
+            hideBranding: true,
+            username: true,
             destinationCalendar: true,
-            credentials: true,
+            credentials: {
+              select: safeCredentialSelect,
+            },
           },
         },
       },

@@ -101,7 +101,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       eventTypeId: booking.eventType?.id ?? 0,
       team: booking.eventType?.team ?? null,
       owner: userWithCredentials ?? null,
-      organizationId: booking.eventType?.team?.parentId ?? null,
+      organizationId: booking.eventType?.team?.parentId ?? userWithCredentials?.organizationId ?? null,
     });
 
     await sendScheduledEmailsAndSMS(
