@@ -125,7 +125,7 @@ export class InputBookingsService_2024_08_13 {
         creationSource: CreationSource.API_V2,
       };
     } else {
-      Object.assign(newRequest, { userId });
+      Object.assign(newRequest, { userId, areCalendarEventsEnabled: true });
       newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
     }
 
