@@ -458,8 +458,6 @@ async function handler(input: CancelBookingInput) {
     (workflow) => workflow as CalIdWorkflow
   );
 
-  console.log("Workflows to process for cancellation:", workflows);
-
   if (workflows.length > 0) {
     await sendCancelledReminders({
       workflows: workflows as CalIdWorkflow[],

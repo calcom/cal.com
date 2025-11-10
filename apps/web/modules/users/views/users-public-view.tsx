@@ -4,6 +4,7 @@ import { Branding } from "@calid/features/ui/Branding";
 import { Avatar } from "@calid/features/ui/components/avatar";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon, type IconName } from "@calid/features/ui/components/icon";
+import ProductHuntBadge from "@calid/features/ui/components/producthunt";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
@@ -30,6 +31,7 @@ import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps> & {
   slug?: string;
 };
+
 interface IconParams {
   icon: IconName;
   color: string;
@@ -50,7 +52,7 @@ function UserNotFound(props: { slug: string }) {
         <div className="bg-default dark:bg-emphasis w-full max-w-xl rounded-lg p-10 text-center shadow-lg">
           <div className="flex flex-col items-center">
             <h2 className="dark:text-emphasis mt-4 text-3xl font-semibold text-gray-800">
-              No man’s land - Conquer it today!
+              No man's land - Conquer it today!
             </h2>
             <p className="dark:text-default mt-4 text-lg text-gray-600">
               Claim username <span className="font-semibold">{`'${slug}'`}</span> on{" "}
@@ -266,6 +268,11 @@ export function UserPage(props: PageProps) {
             </div>
           )}
         </main>
+
+        {/* Floating Product Hunt Badge */}
+        <div className="fixed bottom-4 right-4 z-50">
+          <ProductHuntBadge />
+        </div>
       </div>
     </>
   );

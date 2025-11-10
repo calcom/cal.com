@@ -80,17 +80,19 @@ export function Header({
   if (isMonthView) {
     return (
       <div className="border-subtle flex w-full flex-row items-center gap-2 border-b pb-2 pl-10">
-        <Tooltip content={t("go_back")} side="bottom">
-          <Button
-            variant="icon"
-            brandColor={profile?.brandColor}
-            color="fab"
-            StartIcon="arrow-left"
-            onClick={() => {
-              window.location = removeLastPathSection(window.location);
-            }}
-          />
-        </Tooltip>
+        {!isEmbed && (
+          <Tooltip content={t("go_back")} side="bottom">
+            <Button
+              variant="icon"
+              brandColor={profile?.brandColor}
+              color="fab"
+              StartIcon="arrow-left"
+              onClick={() => {
+                window.location = removeLastPathSection(window.location);
+              }}
+            />
+          </Tooltip>
+        )}
         <div className="flex-1" />
         {isMyLink && !isEmbed ? (
           <Tooltip content={t("troubleshooter_tooltip")} side="bottom">

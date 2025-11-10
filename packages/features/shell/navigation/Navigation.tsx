@@ -303,6 +303,7 @@ export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigat
       <div className="text-subtle mt-0.5 lg:hidden">
         <KBarTrigger />
       </div>
+
       <IntegrationRequests />
     </nav>
   );
