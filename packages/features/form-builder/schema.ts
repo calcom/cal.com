@@ -116,7 +116,7 @@ export const fieldTypesSchemaMap: Partial<
         response: string;
         isPartialSchema: boolean;
         ctx: z.RefinementCtx;
-        m: (key: string, options?: any) => string;
+        m: (key: string, options?: Record<string, unknown>) => string;
       }) => void;
     }
   >
