@@ -34,8 +34,8 @@ function processInlineFormatting(text: string): string {
 
   // Bold (**text**)
   processed = processed.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  // Italic (__text__)
-  processed = processed.replace(/__(.+?)__/g, "<em>$1</em>");
+  // Bold (__text__)
+  processed = processed.replace(/__(.+?)__/g, "<strong>$1</strong>");
 
   // Italic (*text* or _text_) - must be careful not to conflict with bold
   processed = processed.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, "<em>$1</em>");
@@ -96,35 +96,38 @@ function parseMarkdown(markdown: string | null): string {
   const result: string[] = [];
   let inCodeBlock = false;
   let codeBlockLines: string[] = [];
-  let currentListItems: string[] = [];
-  let currentListType: "ul" | "ol" | "task" | null = null;
+  const listStack: { type: "ul" | "ol" | "task"; indent: number }[] = [];
 
-  function closeList() {
-    if (currentListItems.length > 0 && currentListType) {
-      const tag = currentListType === "ol" ? "ol" : "ul";
-      result.push(`<${tag}>${currentListItems.join("")}</${tag}>`);
-      currentListItems = [];
-      currentListType = null;
+  function getIndent(line: string): number {
+    const match = line.match(/^(\s*)/);
+    return match ? match[1].length : 0;
+  }
+
+  function closeList(indent: number) {
+    while (listStack.length > 0 && indent <= listStack[listStack.length - 1].indent) {
+      const list = listStack.pop();
+      if (list) {
+        const tag = list.type === "ol" ? "ol" : "ul";
+        result.push(`${" ".repeat(list.indent)}</${tag}>`);
+      }
     }
   }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const indent = getIndent(line);
     const trimmed = line.trim();
 
     // Code blocks
     if (trimmed.startsWith("```")) {
+      closeList(-1); // Close all lists
       if (inCodeBlock) {
-        // End code block
         const code = codeBlockLines.join("\n");
-        // Escape HTML entities inside the code block
         const escaped = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         result.push(`<pre><code>${escaped}</code></pre>`);
         codeBlockLines = [];
         inCodeBlock = false;
       } else {
-        // Start code block
-        closeList();
         inCodeBlock = true;
       }
       continue;
@@ -135,91 +138,91 @@ function parseMarkdown(markdown: string | null): string {
       continue;
     }
 
-    // Empty line - close list
-    if (trimmed === "") {
-      closeList();
-      result.push(""); // Add an empty line to preserve spacing, will be handled by sanitizer
-      continue;
+    // Headers, HR, Blockquotes are not indented
+    if (indent === 0) {
+      closeList(-1);
+      if (trimmed === "") {
+        result.push("");
+        continue;
+      }
+      const headerMatch = trimmed.match(/^(#{1,6})\s+(.+)$/) || trimmed.match(/^(#{1,6})$/);
+      if (headerMatch) {
+        const level = headerMatch[1].length;
+        const content = headerMatch[2] ? processInlineFormatting(headerMatch[2]) : "";
+        result.push(`<h${level}>${content}</h${level}>`);
+        continue;
+      }
+      if (trimmed === "---" || trimmed === "***" || trimmed === "___") {
+        result.push("<hr>");
+        continue;
+      }
+      if (trimmed.startsWith("> ")) {
+        const content = processInlineFormatting(trimmed.substring(2));
+        result.push(`<blockquote>${content}</blockquote>`);
+        continue;
+      }
     }
 
-    // Headers (# ## ### etc.)
-    const headerMatch = trimmed.match(/^(#{1,6})\s+(.+)$/) || trimmed.match(/^(#{1,6})$/);
-    if (headerMatch) {
-      closeList();
-      const level = headerMatch[1].length;
-      const content = headerMatch[2] ? processInlineFormatting(headerMatch[2]) : "";
-      result.push(`<h${level}>${content}</h${level}>`);
-      continue;
-    }
-
-    // Horizontal rules
-    if (trimmed === "---" || trimmed === "***" || trimmed === "___") {
-      closeList();
-      result.push("<hr>");
-      continue;
-    }
-
-    // Blockquotes
-    if (trimmed.startsWith("> ")) {
-      closeList();
-      // Handle multi-line blockquotes (simple version)
-      const content = processInlineFormatting(trimmed.substring(2));
-      result.push(`<blockquote>${content}</blockquote>`);
-      continue;
-    }
-
-    // Task lists (- [ ] or - [x])
     const taskMatch = trimmed.match(/^[-*•]\s+\[([ xX])\]\s+(.+)$/);
-    if (taskMatch) {
-      const checked = taskMatch[1].toLowerCase() === "x";
-      const content = processInlineFormatting(taskMatch[2]);
-      const checkbox = `<input type="checkbox" disabled${checked ? " checked" : ""} />`;
-
-      if (currentListType !== "task") {
-        closeList();
-        currentListType = "task";
-      }
-      currentListItems.push(`<li>${checkbox} ${content}</li>`);
-      continue;
-    }
-
-    // Unordered lists (- or * or •)
-    const ulMatch = trimmed.match(/^[-*•]\s+(.+)$/);
-    if (ulMatch) {
-      const content = processInlineFormatting(ulMatch[1]);
-
-      if (currentListType !== "ul") {
-        closeList();
-        currentListType = "ul";
-      }
-      currentListItems.push(`<li>${content}</li>`);
-      continue;
-    }
-
-    // Ordered lists (1. 2. etc.)
-    // Fixed: Removed the redundant/buggy check for escaped periods.
+    const ulMatch = !taskMatch && trimmed.match(/^[-*•]\s+(.+)$/);
     const olMatch = trimmed.match(/^(\d+)\.\s+(.+)$/);
-    if (olMatch) {
-      const content = processInlineFormatting(olMatch[2] || "");
-      const startValue = olMatch[1]; // Capture the number
 
-      if (currentListType !== "ol") {
-        closeList();
-        currentListType = "ol";
+    if (taskMatch || ulMatch || olMatch) {
+      const listType = taskMatch ? "task" : ulMatch ? "ul" : "ol";
+      const currentIndent = listStack.length > 0 ? listStack[listStack.length - 1].indent : -1;
+      const currentType = listStack.length > 0 ? listStack[listStack.length - 1].type : null;
+
+      if (indent > currentIndent) {
+        // Start a new nested list
+        listStack.push({ type: listType, indent });
+        const tag = listType === "ol" ? "ol" : "ul";
+        result.push(`${" ".repeat(indent)}<${tag}>`);
+      } else if (indent < currentIndent) {
+        // Close nested lists
+        closeList(indent);
+        // Check if we need to start a new list of the same type
+        if (listStack.length === 0 || listStack[listStack.length - 1].indent !== indent) {
+          listStack.push({ type: listType, indent });
+          const tag = listType === "ol" ? "ol" : "ul";
+          result.push(`${" ".repeat(indent)}<${tag}>`);
+        }
+      } else if (listType !== currentType) {
+        // Same indent, but different list type
+        closeList(indent);
+        listStack.push({ type: listType, indent });
+        const tag = listType === "ol" ? "ol" : "ul";
+        result.push(`${" ".repeat(indent)}<${tag}>`);
       }
-      // Add the "value" attribute to force the correct number
-      currentListItems.push(`<li value="${startValue}">${content}</li>`);
-      continue;
-    }
 
-    // Regular paragraph
-    closeList();
-    const processed = processInlineFormatting(trimmed);
-    result.push(`<p>${processed}</p>`);
+      let content = "";
+      let startValue = "";
+      if (taskMatch) {
+        const checked = taskMatch[1].toLowerCase() === "x";
+        content = processInlineFormatting(taskMatch[2]);
+        const checkbox = `<input type="checkbox" disabled${checked ? " checked" : ""} />`;
+        content = `${checkbox} ${content}`;
+      } else if (ulMatch) {
+        content = processInlineFormatting(ulMatch[1]);
+      } else if (olMatch) {
+        content = processInlineFormatting(olMatch[2] || "");
+        startValue = olMatch[1];
+      }
+
+      const liTag = startValue ? `<li value="${startValue}">` : `<li>`;
+      result.push(`${" ".repeat(indent + 2)}${liTag}${content}</li>`);
+    } else if (trimmed !== "") {
+      closeList(-1);
+      const processed = processInlineFormatting(trimmed);
+      result.push(`<p>${processed}</p>`);
+    } else {
+      // Empty line, might be for spacing between list items or paragraphs.
+      closeList(-1);
+      result.push("");
+    }
   }
 
-  // Close any remaining list or code block
-  closeList();
+  // Close any remaining lists or code blocks
+  closeList(-1);
   if (inCodeBlock && codeBlockLines.length > 0) {
     const code = codeBlockLines.join("\n");
     const escaped = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -297,6 +300,20 @@ export function markdownToSafeHTML(markdown: string | null) {
       ul: ["style"],
       ol: ["style"],
       li: ["style", "value"],
+    },
+    allowedStyles: {
+      "*": {
+        // Allow all styles used in the STYLES object
+        color: [/.*/],
+        "font-weight": [/.*/],
+        "line-height": [/.*/],
+        margin: [/.*/],
+        "margin-left": [/.*/],
+        "margin-bottom": [/.*/],
+        "font-size": [/.*/],
+        "list-style-position": [/.*/],
+        "list-style-type": [/.*/],
+      },
     },
     allowedSchemes: ["http", "https", "mailto", "tel"],
     transformTags: {
