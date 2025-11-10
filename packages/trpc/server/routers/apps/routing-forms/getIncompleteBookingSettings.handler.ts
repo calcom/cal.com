@@ -1,6 +1,7 @@
 import { enabledIncompleteBookingApps } from "@calcom/app-store/routing-forms/lib/enabledIncompleteBookingApps";
 import type { PrismaClient } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
+import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -17,7 +18,7 @@ interface GetIncompleteBookingSettingsOptions {
 
 const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBookingSettingsOptions) => {
   const {
-    ctx: { prisma },
+    ctx: { prisma, user },
     input,
   } = options;
 
@@ -28,9 +29,12 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
         formId: input.formId,
       },
     }),
-    prisma.app_RoutingForms_Form.findUnique({
+    prisma.app_RoutingForms_Form.findFirst({
       where: {
-        id: input.formId,
+        AND: [
+          entityPrismaWhereClause({ userId: user.id }),
+          { id: input.formId },
+        ],
       },
       select: {
         userId: true,
@@ -85,7 +89,11 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
       },
     });
 
-    return { incompleteBookingActions, credentials };
+    const sanitized = credentials.map((c) =>
+      Object.fromEntries(Object.entries(c).filter(([k]) => k !== "key"))
+    );
+
+    return { incompleteBookingActions, credentials: sanitized };
   }
 
   if (userId) {
@@ -102,7 +110,11 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
       },
     });
 
-    return { incompleteBookingActions, credentials: credential ? [{ ...credential, team: null }] : [] };
+    const sanitized = credential
+      ? (Object.fromEntries(Object.entries(credential).filter(([k]) => k !== "key")) as typeof credential)
+      : null;
+
+    return { incompleteBookingActions, credentials: sanitized ? [{ ...sanitized, team: null }] : [] };
   }
 };
 

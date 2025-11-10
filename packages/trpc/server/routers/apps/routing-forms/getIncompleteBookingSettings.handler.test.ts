@@ -18,16 +18,12 @@ describe("getIncompleteBookingSettings.handler", () => {
 
   describe("Authorization - Personal Forms", () => {
     it("should throw NOT_FOUND when user tries to access another user's personal form", async () => {
-      const userA = { id: 1 };
+      const _userA = { id: 1 };
       const userB = { id: 2 };
       const formId = "form-123";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
-        id: formId,
-        userId: userA.id,
-        teamId: null,
-      });
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue(null);
 
       await expect(
         getIncompleteBookingSettingsHandler({
@@ -58,7 +54,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       };
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: user.id,
         teamId: null,
@@ -84,17 +80,13 @@ describe("getIncompleteBookingSettings.handler", () => {
 
   describe("Authorization - Team Forms", () => {
     it("should throw NOT_FOUND when non-team-member tries to access team form", async () => {
-      const teamMember = { id: 1 };
+      const _teamMember = { id: 1 };
       const nonMember = { id: 2 };
-      const teamId = 100;
+      const _teamId = 100;
       const formId = "team-form-123";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
-        id: formId,
-        userId: teamMember.id,
-        teamId: teamId,
-      });
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue(null);
 
       await expect(
         getIncompleteBookingSettingsHandler({
@@ -123,7 +115,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       ];
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: teamMember.id,
         teamId: teamId,
@@ -170,7 +162,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       };
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: user.id,
         teamId: null,
@@ -210,7 +202,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       ];
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: teamMember.id,
         teamId: teamId,
@@ -237,7 +229,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       const formId = "team-form-123";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: teamMember.id,
         teamId: teamId,
@@ -305,7 +297,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       ];
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: teamMember.id,
         teamId: teamId,
@@ -342,7 +334,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       const formId = "team-form-123";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: teamMember.id,
         teamId: teamId,
@@ -376,7 +368,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       const formId = "form-123";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: user.id,
         teamId: null,
@@ -405,7 +397,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       const formId = "team-form-123";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: teamMember.id,
         teamId: teamId,
@@ -439,7 +431,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       const formId = "form-123";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: user.id,
         teamId: null,
@@ -461,7 +453,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       const formId = "team-form-123";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: teamMember.id,
         teamId: teamId,
@@ -486,7 +478,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       const formId = "non-existent-form";
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue([]);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue(null);
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue(null);
 
       await expect(
         getIncompleteBookingSettingsHandler({
@@ -512,7 +504,7 @@ describe("getIncompleteBookingSettings.handler", () => {
       ];
 
       prisma.app_RoutingForms_IncompleteBookingActions.findMany.mockResolvedValue(mockActions);
-      prisma.app_RoutingForms_Form.findUnique.mockResolvedValue({
+      prisma.app_RoutingForms_Form.findFirst.mockResolvedValue({
         id: formId,
         userId: user.id,
         teamId: null,
