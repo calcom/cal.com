@@ -142,7 +142,14 @@ function parseMarkdown(markdown: string | null): string {
 
     // Headers, HR, Blockquotes are not indented
     if (indent === 0) {
-      closeList(-1);
+      // Check if this is a list item before closing lists
+      const isListItem =
+        /^[-*•]\s+\[([ xX])\]\s+/.test(trimmed) || /^[-*•]\s+/.test(trimmed) || /^\d+\.\s+/.test(trimmed);
+
+      if (!isListItem) {
+        closeList(-1);
+      }
+
       if (trimmed === "") {
         result.push("");
         continue;
