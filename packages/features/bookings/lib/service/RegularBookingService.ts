@@ -23,7 +23,6 @@ import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/sc
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
-import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import type { BookingDataSchemaGetter } from "@calcom/features/bookings/lib/dto/types";
 import type {
   CreateRegularBookingData,
@@ -154,7 +153,9 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   return originalRescheduledBooking.iCalSequence + 1;
 }
 
-type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
+type CreatedBooking = Booking & {
+  isShortCircuitedBooking?: boolean;
+} & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
 type ReturnTypeCreateBooking = Awaited<ReturnType<typeof createBooking>>;
 export const buildDryRunBooking = ({
   eventTypeId,
@@ -1481,31 +1482,66 @@ async function handler(
     return {
       id: 0,
       uid,
-      title: eventName,
-      description: eventType.description || "",
-      startTime: reqBody.start,
-      endTime: reqBody.end,
-      location: bookingLocation,
-      isShortCircuitedBooking: true, // Renamed from isSpamDecoy to avoid exposing spam detection to blocked users
-      isDryRun: false,
-      paymentRequired: false,
-      paymentUid: null,
-      userPrimaryEmail: null,
+      iCalUID: "",
+      status: BookingStatus.ACCEPTED,
+      eventTypeId: eventType.id,
       user: {
         name: randomOrganizerName,
         timeZone: "UTC",
         email: null,
       },
-      status: BookingStatus.ACCEPTED,
-      responses: null,
+      userId: null,
+      title: eventName,
+      startTime: new Date(reqBody.start),
+      endTime: new Date(reqBody.end),
+      createdAt: new Date(),
+      updatedAt: new Date(),
       attendees: [
         {
+          id: 0,
           email: bookerEmail,
           name: fullName,
           timeZone: reqBody.timeZone,
+          locale: null,
+          phoneNumber: null,
+          bookingId: null,
+          noShow: null,
         },
       ],
-      iCalUID: "",
+      oneTimePassword: null,
+      smsReminderNumber: null,
+      metadata: {},
+      idempotencyKey: null,
+      userPrimaryEmail: null,
+      description: eventType.description || null,
+      customInputs: null,
+      responses: null,
+      location: bookingLocation,
+      paid: false,
+      cancellationReason: null,
+      rejectionReason: null,
+      dynamicEventSlugRef: null,
+      dynamicGroupSlugRef: null,
+      fromReschedule: null,
+      recurringEventId: null,
+      scheduledJobs: [],
+      rescheduledBy: null,
+      destinationCalendarId: null,
+      reassignReason: null,
+      reassignById: null,
+      rescheduled: false,
+      isRecorded: false,
+      iCalSequence: 0,
+      rating: null,
+      ratingFeedback: null,
+      noShowHost: null,
+      cancelledBy: null,
+      creationSource: CreationSource.WEBAPP,
+      references: [],
+      payment: [],
+      isDryRun: false,
+      paymentRequired: false,
+      paymentUid: undefined,
       luckyUsers: [],
       paymentId: undefined,
       seatReferenceUid: undefined,
