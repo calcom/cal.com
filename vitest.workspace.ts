@@ -29,6 +29,9 @@ const workspaces = packagedEmbedTestsOnly
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
           globalSetup: new URL("./tests/integration/global-setup.ts", import.meta.url).pathname,
           setupFiles: ["setupVitest.ts"],
+          sequence: {
+            concurrent: false,
+          },
         },
         resolve: {
           alias: {
