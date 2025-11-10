@@ -46,7 +46,7 @@ function generateSignatureArray<T>(secret: string, vals: T) {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
+      throw new ErrorWithCode(ErrorCode.InvalidOperation, "Method Not Allowed");
     }
 
     const obj: WebhookReturn = req.body as WebhookReturn;
@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!payment) {
-      throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+      throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Payment not found");
     }
     const key = payment.booking?.user?.credentials?.[0].key;
     if (!key) {

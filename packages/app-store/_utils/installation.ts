@@ -1,6 +1,6 @@
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { UserProfile } from "@calcom/types/UserProfile";

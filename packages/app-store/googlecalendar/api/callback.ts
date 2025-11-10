@@ -11,9 +11,9 @@ import {
   WEBAPP_URL,
   WEBAPP_URL_FOR_OAUTH,
 } from "@calcom/lib/constants";
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { Prisma } from "@calcom/prisma/client";
@@ -57,7 +57,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     const hasMissingRequiredScopes = GOOGLE_CALENDAR_SCOPES.some((scope) => !grantedScopes.includes(scope));
     if (hasMissingRequiredScopes) {
       if (!state?.fromApp) {
-        throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "You must grant all permissions to use this integration");
+        throw new ErrorWithCode(
+          ErrorCode.RequestBodyInvalid,
+          "You must grant all permissions to use this integration"
+        );
       }
       res.redirect(
         getSafeRedirectUrl(state.onErrorReturnTo) ??
