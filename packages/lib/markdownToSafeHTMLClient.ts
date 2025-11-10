@@ -5,25 +5,30 @@ import DOMPurify from "dompurify";
 function processInlineFormatting(text: string): string {
   if (!text) return "";
 
-  // Escape HTML entities FIRST to prevent XSS in content
-  let processed = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let processed = text;
 
-  // Process inline code FIRST (to protect content inside)
+  // Step 1: Process inline code FIRST (to protect content inside)
   const codeBlocks: string[] = [];
   processed = processed.replace(/`([^`]+)`/g, (match, code) => {
     const placeholder = `___CODE_${codeBlocks.length}___`;
-    // Escape HTML inside code
+    // Escape HTML inside the raw code content
     const escapedCode = code.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     codeBlocks.push(`<code>${escapedCode}</code>`);
     return placeholder;
   });
 
+  // Step 2: Escape the rest of the HTML entities to prevent XSS
+  processed = processed
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
   // Links [text](url) - process before bold/italic
   processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
-    // Unescape the URL and link text
-    const cleanUrl = url.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-    const cleanText = linkText.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
-    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer">${cleanText}</a>`;
+    // The linkText and url are already escaped from the previous step.
+    // We don't un-escape them, to avoid re-introducing vulnerabilities.
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${linkText}</a>`;
   });
 
   // Bold (**text**)
@@ -38,7 +43,7 @@ function processInlineFormatting(text: string): string {
   // Strikethrough (~~text~~)
   processed = processed.replace(/~~(.+?)~~/g, "<s>$1</s>");
 
-  // Restore code blocks
+  // Step 3: Restore code blocks
   codeBlocks.forEach((code, i) => {
     processed = processed.replace(`___CODE_${i}___`, code);
   });

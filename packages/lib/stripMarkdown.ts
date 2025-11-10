@@ -22,7 +22,7 @@ export function stripMarkdown(
 
     // Additional cleanup for any remaining markdown artifacts
     stripped = stripped.replace(/\\/g, ""); // Remove escape characters
-    stripped = stripped.replace(/[*_~`#>]{1,}/g, ""); // Remove any remaining markdown syntax
+    stripped = stripped.replace(/[*_~`#>]{1,}/g, " "); // Remove any remaining markdown syntax
     stripped = stripped.replace(/[[\]()]/g, " "); // Remove brackets from links
 
     // Restore newlines
