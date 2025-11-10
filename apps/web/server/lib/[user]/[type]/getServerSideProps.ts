@@ -322,7 +322,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const requestorIp = getIP(context.req);
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: piiHasher.hash(requestorIp),
+    identifier: `[user]/[type]-${piiHasher.hash(requestorIp)}`,
   });
 
   const { user } = paramsSchema.parse(context.params);

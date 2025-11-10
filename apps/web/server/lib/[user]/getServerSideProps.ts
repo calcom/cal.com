@@ -84,7 +84,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const requestorIp = getIP(context.req);
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: piiHasher.hash(requestorIp),
+    identifier: `[user]-${piiHasher.hash(requestorIp)}`,
   });
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);
