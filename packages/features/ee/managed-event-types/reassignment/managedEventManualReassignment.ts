@@ -332,19 +332,17 @@ export async function managedEventManualReassignment({
 
     // Extract additional information from calendar creation results
     if (results.length) {
-      const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
-        ? results[0]?.updatedEvent[0]
-        : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+      const createdEvent = results[0]?.createdEvent;
         
-      additionalInformation.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
-      additionalInformation.conferenceData = createdOrUpdatedEvent?.conferenceData;
-      additionalInformation.entryPoints = createdOrUpdatedEvent?.entryPoints;
+      additionalInformation.hangoutLink = createdEvent?.hangoutLink;
+      additionalInformation.conferenceData = createdEvent?.conferenceData;
+      additionalInformation.entryPoints = createdEvent?.entryPoints;
       evt.additionalInformation = additionalInformation;
 
-      // Build videoCallUrl with the same fallback chain as RegularBookingService
+      // Build videoCallUrl with fallback chain
       videoCallUrl =
         additionalInformation.hangoutLink ||
-        createdOrUpdatedEvent?.url ||
+        createdEvent?.url ||
         videoCallUrl;
     }
 
