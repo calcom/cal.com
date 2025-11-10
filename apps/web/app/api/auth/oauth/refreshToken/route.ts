@@ -7,7 +7,7 @@ import type { NextRequest } from "next/server";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
-import { isValidOAuthTokenHeader } from "../../../isValidOAuthTokenHeader";
+import { isValidOAuthTokenHeader } from "app/api/isValidOAuthTokenHeader";
 
 async function handler(req: NextRequest) {
   const isValidReqContentType = isValidOAuthTokenHeader(req)
