@@ -18,6 +18,8 @@
     "@types/react-dom": "~19.1.7",
     "expo": "~54.0.0",
     "expo-constants": "~18.0.10",
+    "expo-device": "^8.0.9",
+    "expo-glass-effect": "~0.1.6",
     "expo-linking": "~8.0.8",
     "expo-router": "~6.0.14",
     "expo-status-bar": "~3.0.8",

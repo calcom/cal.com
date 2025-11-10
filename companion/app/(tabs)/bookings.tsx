@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Platform,
+  TextInput,
 } from "react-native";
 
 import { CalComAPIService, Booking } from "../../services/calcom";
@@ -19,6 +20,8 @@ type BookingFilter = "upcoming" | "unconfirmed" | "past" | "cancelled";
 
 export default function Bookings() {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +77,6 @@ export default function Bookings() {
 
   const fetchBookings = async () => {
     try {
-      console.log("🎯 BookingsScreen: Starting fetch for filter:", activeFilter);
       setError(null);
 
       // First, test the raw bookings API call (only on first load)
@@ -83,30 +85,13 @@ export default function Bookings() {
       }
 
       const filters = getFiltersForActiveTab();
-      console.log("🎯 BookingsScreen: Using filters:", filters);
 
       const data = await CalComAPIService.getBookings(filters);
 
-      console.log("🎯 BookingsScreen: Raw data received for", activeFilter, ":", data);
-      console.log("🎯 BookingsScreen: Data type:", typeof data);
-      console.log("🎯 BookingsScreen: Data is array:", Array.isArray(data));
-      console.log("🎯 BookingsScreen: Data length:", data?.length);
 
       // Log individual bookings to see what we're getting
       if (Array.isArray(data) && data.length > 0) {
-        console.log(
-          "🎯 BookingsScreen: First few bookings for",
-          activeFilter,
-          ":",
-          data.slice(0, 3).map((b) => ({
-            title: b.title,
-            status: b.status,
-            startTime: b.startTime,
-            endTime: b.endTime,
-          }))
-        );
       } else {
-        console.log("🎯 BookingsScreen: No data returned from API for", activeFilter);
       }
 
       if (Array.isArray(data)) {
@@ -114,18 +99,6 @@ export default function Bookings() {
         const now = new Date();
 
         // Log all bookings before filtering
-        console.log(
-          "🎯 BookingsScreen: All bookings before client filtering for",
-          activeFilter,
-          ":",
-          data.map((b) => ({
-            title: b.title,
-            status: b.status,
-            startTime: b.startTime,
-            endTime: b.endTime,
-            isPast: new Date(b.endTime) < now,
-          }))
-        );
 
         // Server already filters by status correctly, so we only need to sort
         // The server's logic:
@@ -160,24 +133,12 @@ export default function Bookings() {
             break;
         }
 
-        console.log(
-          "🎯 BookingsScreen: After client filtering for",
-          activeFilter,
-          ":",
-          filteredBookings.length,
-          "bookings"
-        );
 
         setBookings(filteredBookings);
-        console.log(
-          "🎯 BookingsScreen: State updated with",
-          filteredBookings.length,
-          activeFilter,
-          "bookings"
-        );
+        setFilteredBookings(filteredBookings);
       } else {
-        console.log("🎯 BookingsScreen: Data is not an array, setting empty array");
         setBookings([]);
+        setFilteredBookings([]);
       }
     } catch (err) {
       console.error("🎯 BookingsScreen: Error fetching bookings:", err);
@@ -185,17 +146,15 @@ export default function Bookings() {
     } finally {
       setLoading(false);
       setRefreshing(false);
-      console.log("🎯 BookingsScreen: Fetch completed, loading set to false");
     }
   };
 
   useEffect(() => {
-    console.log("🎯 BookingsScreen: Component mounted, starting fetch...");
     fetchBookings();
   }, []);
 
   useEffect(() => {
-    console.log("🎯 BookingsScreen: Filter changed to:", activeFilter);
+    setSearchQuery(""); // Clear search when filter changes
     if (!loading) {
       setLoading(true);
       fetchBookings();
@@ -203,19 +162,42 @@ export default function Bookings() {
   }, [activeFilter]);
 
   useEffect(() => {
-    console.log(
-      "🎯 BookingsScreen: State changed - loading:",
-      loading,
-      "error:",
-      error,
-      "bookings count:",
-      bookings.length
-    );
   }, [loading, error, bookings]);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchBookings();
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    if (query.trim() === "") {
+      setFilteredBookings(bookings);
+    } else {
+      const filtered = bookings.filter((booking) =>
+        // Search in booking title
+        booking.title?.toLowerCase().includes(query.toLowerCase()) ||
+        // Search in booking description
+        booking.description?.toLowerCase().includes(query.toLowerCase()) ||
+        // Search in event type title
+        booking.eventType?.title?.toLowerCase().includes(query.toLowerCase()) ||
+        // Search in attendee names
+        (booking.attendees && booking.attendees.some(attendee => 
+          attendee.name?.toLowerCase().includes(query.toLowerCase())
+        )) ||
+        // Search in attendee emails
+        (booking.attendees && booking.attendees.some(attendee => 
+          attendee.email?.toLowerCase().includes(query.toLowerCase())
+        )) ||
+        // Search in location
+        booking.location?.toLowerCase().includes(query.toLowerCase()) ||
+        // Search in user name
+        booking.user?.name?.toLowerCase().includes(query.toLowerCase()) ||
+        // Search in user email
+        booking.user?.email?.toLowerCase().includes(query.toLowerCase())
+      );
+      setFilteredBookings(filtered);
+    }
   };
 
   const handleFilterChange = (filter: BookingFilter) => {
@@ -267,14 +249,28 @@ export default function Bookings() {
 
   const renderSegmentedControl = () => {
     return (
-      <View style={styles.segmentedControlContainer}>
-        <SegmentedControl
-          values={filterLabels}
-          selectedIndex={activeIndex}
-          onChange={handleSegmentChange}
-          style={styles.segmentedControl}
-        />
-      </View>
+      <>
+        <View style={styles.segmentedControlContainer}>
+          <SegmentedControl
+            values={filterLabels}
+            selectedIndex={activeIndex}
+            onChange={handleSegmentChange}
+            style={styles.segmentedControl}
+          />
+        </View>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchBar}
+            placeholder="Search bookings"
+            placeholderTextColor="#8E8E93"
+            value={searchQuery}
+            onChangeText={handleSearch}
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+          />
+        </View>
+      </>
     );
   };
 
@@ -450,11 +446,24 @@ export default function Bookings() {
     );
   }
 
+  if (filteredBookings.length === 0 && searchQuery.trim() !== "" && !loading) {
+    return (
+      <View style={styles.container}>
+        {renderSegmentedControl()}
+        <View style={styles.centerContainer}>
+          <Ionicons name="search-outline" size={64} color="#666" />
+          <Text style={styles.emptyTitle}>No results found</Text>
+          <Text style={styles.emptyText}>Try searching with different keywords</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {renderSegmentedControl()}
       <FlatList
-        data={bookings}
+        data={filteredBookings}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderBooking}
         contentContainerStyle={styles.listContainer}
@@ -474,11 +483,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingVertical: 12,
     paddingHorizontal: 16,
+    paddingTop: 64,
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
   segmentedControl: {
     height: 36,
+  },
+  searchContainer: {
+    backgroundColor: "#F2F2F7",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#C6C6C8",
+  },
+  searchBar: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 17,
+    color: "#000",
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
   },
   centerContainer: {
     flex: 1,
