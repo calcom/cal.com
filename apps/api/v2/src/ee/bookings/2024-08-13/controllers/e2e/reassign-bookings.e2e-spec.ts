@@ -54,6 +54,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let teamUser2: User;
     let teamUser3: User;
     let teamUser1ApiKey: string;
+    let teamUser2ApiKey: string;
 
     let teamRoundRobinEventTypeId: number;
     let teamRoundRobinFixedHostEventTypeId: number;
@@ -126,6 +127,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(teamUser1.id, null);
       teamUser1ApiKey = `cal_test_${keyString}`;
+
+      const { keyString: keyString2 } = await apiKeysRepositoryFixture.createApiKey(teamUser2.id, null);
+      teamUser2ApiKey = `cal_test_${keyString2}`;
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: `reassign-bookings-2024-08-13-schedule-${randomString()}`,
@@ -565,7 +569,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       return request(app.getHttpServer())
         .post(`/v2/bookings/${bookingUid}/reassign`)
-        .set("Authorization", `Bearer ${teamUser1ApiKey}`)
+        .set("Authorization", `Bearer ${teamUser2ApiKey}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
         .expect(200)
         .then(async (response) => {
