@@ -1,10 +1,10 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-export class TeamRepository {
+export class TestTeamRepository {
   constructor(private prismaClient: PrismaClient) {}
 
   static async withGlobalPrisma() {
-    return new TeamRepository((await import("@calcom/prisma")).prisma);
+    return new TestTeamRepository((await import("@calcom/prisma")).prisma);
   }
 
   async findOrganizationBySlug(slug: string) {
