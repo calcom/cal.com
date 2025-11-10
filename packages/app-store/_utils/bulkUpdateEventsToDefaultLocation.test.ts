@@ -1,5 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
+import type { PrismaClient } from "@calcom/prisma";
+
 import { bulkUpdateEventsToDefaultLocation } from "./bulkUpdateEventsToDefaultLocation";
 
 vi.mock("../utils", () => ({
@@ -28,18 +30,19 @@ vi.mock("../utils", () => ({
   }),
 }));
 
-const createMockPrisma = () => ({
-  credential: {
-    findFirst: vi.fn(),
-  },
-  eventType: {
-    findMany: vi.fn(),
-    updateMany: vi.fn(),
-  },
-});
+const createMockPrisma = () =>
+  ({
+    credential: {
+      findFirst: vi.fn(),
+    },
+    eventType: {
+      findMany: vi.fn(),
+      updateMany: vi.fn(),
+    },
+  } as unknown as PrismaClient);
 
 describe("bulkUpdateEventsToDefaultLocation", () => {
-  let mockPrisma: ReturnType<typeof createMockPrisma>;
+  let mockPrisma: PrismaClient;
 
   beforeEach(() => {
     mockPrisma = createMockPrisma();

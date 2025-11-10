@@ -1,5 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
+import type { Prisma } from "@calcom/prisma/client";
+
 import { filterEventTypesWhereLocationUpdateIsAllowed, getBulkUserEventTypes } from "./getBulkEventTypes";
 
 vi.mock("@calcom/prisma", () => ({
@@ -210,38 +212,40 @@ describe("getBulkUserEventTypes", () => {
       {
         id: 1,
         title: "Regular Event",
-        locations: [{ type: "integrations:daily" }],
-        metadata: {},
+        locations: [{ type: "integrations:daily" }] as Prisma.JsonValue,
+        metadata: {} as Prisma.JsonValue,
         parentId: null,
       },
       {
         id: 2,
         title: "Child Event - Unlocked",
-        locations: [{ type: "integrations:google:meet" }],
+        locations: [{ type: "integrations:google:meet" }] as Prisma.JsonValue,
         metadata: {
           managedEventConfig: {
             unlockedFields: {
               locations: true,
             },
           },
-        },
+        } as Prisma.JsonValue,
         parentId: 100,
       },
       {
         id: 3,
         title: "Child Event - Locked",
-        locations: [{ type: "integrations:daily" }],
+        locations: [{ type: "integrations:daily" }] as Prisma.JsonValue,
         metadata: {
           managedEventConfig: {
             unlockedFields: {
             },
           },
-        },
+        } as Prisma.JsonValue,
         parentId: 100,
       },
     ];
 
-    vi.mocked(prisma.eventType.findMany).mockResolvedValue(mockEventTypes);
+    vi.mocked(prisma.eventType.findMany).mockResolvedValue(
+      mockEventTypes as unknown as Awaited<ReturnType<typeof prisma.eventType.findMany>>
+    );
 
     const result = await getBulkUserEventTypes(userId);
 
@@ -274,20 +278,22 @@ describe("getBulkUserEventTypes", () => {
       {
         id: 10,
         title: "Event 1",
-        locations: [{ type: "integrations:daily" }],
-        metadata: {},
+        locations: [{ type: "integrations:daily" }] as Prisma.JsonValue,
+        metadata: {} as Prisma.JsonValue,
         parentId: null,
       },
       {
         id: 11,
         title: "Event 2",
-        locations: [{ type: "integrations:daily" }],
-        metadata: {},
+        locations: [{ type: "integrations:daily" }] as Prisma.JsonValue,
+        metadata: {} as Prisma.JsonValue,
         parentId: null,
       },
     ];
 
-    vi.mocked(prisma.eventType.findMany).mockResolvedValue(mockEventTypes);
+    vi.mocked(prisma.eventType.findMany).mockResolvedValue(
+      mockEventTypes as unknown as Awaited<ReturnType<typeof prisma.eventType.findMany>>
+    );
 
     const result = await getBulkUserEventTypes(userId);
 
@@ -301,30 +307,32 @@ describe("getBulkUserEventTypes", () => {
       {
         id: 20,
         title: "Locked Event 1",
-        locations: [{ type: "integrations:daily" }],
+        locations: [{ type: "integrations:daily" }] as Prisma.JsonValue,
         metadata: {
           managedEventConfig: {
             unlockedFields: {},
           },
-        },
+        } as Prisma.JsonValue,
         parentId: 100,
       },
       {
         id: 21,
         title: "Locked Event 2",
-        locations: [{ type: "integrations:daily" }],
+        locations: [{ type: "integrations:daily" }] as Prisma.JsonValue,
         metadata: {
           managedEventConfig: {
             unlockedFields: {
               locations: false,
             },
           },
-        },
+        } as Prisma.JsonValue,
         parentId: 100,
       },
     ];
 
-    vi.mocked(prisma.eventType.findMany).mockResolvedValue(mockEventTypes);
+    vi.mocked(prisma.eventType.findMany).mockResolvedValue(
+      mockEventTypes as unknown as Awaited<ReturnType<typeof prisma.eventType.findMany>>
+    );
 
     const result = await getBulkUserEventTypes(userId);
 
@@ -337,13 +345,15 @@ describe("getBulkUserEventTypes", () => {
       {
         id: 30,
         title: "Event with null location",
-        locations: null,
-        metadata: {},
+        locations: null as unknown as Prisma.JsonValue,
+        metadata: {} as Prisma.JsonValue,
         parentId: null,
       },
     ];
 
-    vi.mocked(prisma.eventType.findMany).mockResolvedValue(mockEventTypes);
+    vi.mocked(prisma.eventType.findMany).mockResolvedValue(
+      mockEventTypes as unknown as Awaited<ReturnType<typeof prisma.eventType.findMany>>
+    );
 
     const result = await getBulkUserEventTypes(userId);
 
