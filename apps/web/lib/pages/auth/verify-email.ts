@@ -45,7 +45,6 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
 
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = verifySchema.parse(req.query);
-  const billingService = getBillingProviderService();
 
   const foundToken = await prisma.verificationToken.findFirst({
     where: {
@@ -133,6 +132,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
     });
 
     if (IS_STRIPE_ENABLED && userMetadataParsed.stripeCustomerId) {
+      const billingService = getBillingProviderService();
       await billingService.updateCustomer({
         customerId: userMetadataParsed.stripeCustomerId,
         email: updatedEmail,
