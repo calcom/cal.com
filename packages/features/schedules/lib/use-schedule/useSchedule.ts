@@ -76,8 +76,6 @@ export const useSchedule = ({
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
     : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
-  const _cacheParam = searchParams?.get("cal.cache");
-  const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const queuedFormResponseId = searchParams?.get("cal.queuedFormResponseId");
@@ -108,7 +106,6 @@ export const useSchedule = ({
     teamMemberEmail,
     routedTeamMemberIds,
     skipContactOwner,
-    _shouldServeCache,
     ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
     // Ensures that connectVersion causes a refresh of the data
