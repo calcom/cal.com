@@ -351,9 +351,9 @@ export const getRichDescriptionHTML = (
   };
 
   // Helper function to render markdown content to safe HTML
-  const markdownContentToHTML = (title: string, content: string | null) => {
+  const markdownContentToHTML = (title: string, content: string | null | undefined) => {
     if (!content) return "";
-    const html = markdownToSafeHTML(content);
+    const html = markdownToSafeHTML(content as string | null);
     return `<p><strong>${title}</strong></p>${html}`;
   };
 
