@@ -15,6 +15,7 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
@@ -295,6 +296,36 @@ export async function managedEventManualReassignment({
     const createManager = await newEventManager.create(evt);
     const results = createManager.results || [];
     const referencesToCreate = createManager.referencesToCreate || [];
+
+    // Check for calendar integration failures
+    if (results.length > 0) {
+      const allFailed = results.every((res) => !res.success);
+      const someFailed = results.some((res) => !res.success);
+
+      if (allFailed) {
+        reassignLogger.error("All calendar integrations failed during reassignment", {
+          eventTypeId: targetEventTypeDetails.id,
+          eventTypeSlug: targetEventTypeDetails.slug,
+          userEmail: newUser.email,
+          results: results.map((res) => ({
+            type: res.type,
+            success: res.success,
+            error: res.error,
+          })),
+        });
+      } else if (someFailed) {
+        reassignLogger.warn("Some calendar integrations failed during reassignment", {
+          eventTypeId: targetEventTypeDetails.id,
+          userEmail: newUser.email,
+          failedIntegrations: results
+            .filter((res) => !res.success)
+            .map((res) => ({
+              type: res.type,
+              error: res.error,
+            })),
+        });
+      }
+    }
     
     // Extract videoCallUrl from evt.videoCallData first (Cal Video, Teams, etc.)
     videoCallUrl = evt.videoCallData?.url ?? null;
@@ -310,7 +341,6 @@ export async function managedEventManualReassignment({
       videoCallUrl = additionalInformation.hangoutLink || videoCallUrl;
     }
 
-
     videoCallData = evt.videoCallData;
     
     // Update booking with location, references, and metadata in a single database call
@@ -323,8 +353,10 @@ export async function managedEventManualReassignment({
         },
       };
 
+      const finalVideoCallUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
+
       const bookingMetadataUpdate = {
-        videoCallUrl: videoCallUrl || undefined,
+        videoCallUrl: finalVideoCallUrl || undefined,
       };
 
       const referencesToCreateForDb = referencesToCreate.map((reference) => {
@@ -352,7 +384,7 @@ export async function managedEventManualReassignment({
       reassignLogger.info("Updated booking location and created calendar references", {
         location: bookingLocation,
         referencesCount: referencesToCreate.length,
-        videoCallUrl: videoCallUrl || null,
+        videoCallUrl: finalVideoCallUrl || null,
       });
     } catch (error) {
       reassignLogger.error("Error updating booking location and references", error);
@@ -534,7 +566,7 @@ export async function managedEventManualReassignment({
     reassignLogger.error("Error recording assignment reason", error);
   }
 
-  // TODO: 13. Send webhook event BOOKING_REASSIGNED
+  // TODO: Send webhook event BOOKING_REASSIGNED
 
   reassignLogger.info("Reassignment completed successfully", {
     originalBookingId: cancelledBooking.id,

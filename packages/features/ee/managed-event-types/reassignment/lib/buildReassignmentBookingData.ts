@@ -6,6 +6,7 @@ import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { APP_NAME } from "@calcom/lib/constants";
 import type { Booking, EventType, User, Attendee, Payment, Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -104,8 +105,8 @@ export async function buildReassignmentBookingData({
         data: attendeesData,
       },
     },
-    iCalUID: originalBooking.iCalUID || "",
-    iCalSequence: (originalBooking.iCalSequence || 0) + 1,
+    iCalUID: `${uid}@${APP_NAME}`,
+    iCalSequence: 0,
     user: {
       connect: { id: newUser.id },
     },
