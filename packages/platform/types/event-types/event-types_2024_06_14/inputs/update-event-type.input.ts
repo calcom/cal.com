@@ -489,6 +489,7 @@ export class UpdateTeamEventTypeInput_2024_06_14 extends BaseUpdateEventTypeInpu
     return value;
   })
   @IsEnum(SchedulingType)
+  @IsOptional()
   @DocsPropertyOptional({
     enum: ["collective", "roundRobin"],
     example: "collective",
