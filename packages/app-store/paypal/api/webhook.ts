@@ -7,7 +7,8 @@ import { paypalCredentialKeysSchema } from "@calcom/app-store/paypal/lib";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 
 export const config = {
@@ -31,7 +32,7 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  if (!payment?.bookingId) throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+  if (!payment?.bookingId) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Payment not found");
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -42,10 +43,10 @@ export async function handlePaypalPaymentSuccess(
     },
   });
 
-  if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
+  if (!booking) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "No booking found");
   // Probably booking it's already paid from /capture but we need to send confirmation email
   const foundCredentials = await findPaymentCredentials(booking.id);
-  if (!foundCredentials) throw new HttpCode({ statusCode: 204, message: "No credentials found" });
+  if (!foundCredentials) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "No credentials found");
   const { webhookId, ...credentials } = foundCredentials;
 
   const paypalClient = new Paypal(credentials);
@@ -68,7 +69,7 @@ export async function handlePaypalPaymentSuccess(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method !== "POST") {
-      throw new HttpCode({ statusCode: 405, message: "Method Not Allowed" });
+      throw new ErrorWithCode(ErrorCode.InvalidOperation, "Method Not Allowed");
     }
 
     const bodyRaw = await getRawBody(req);

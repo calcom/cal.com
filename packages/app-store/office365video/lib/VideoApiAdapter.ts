@@ -5,7 +5,8 @@ import {
   CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
 import { handleErrorsRaw } from "@calcom/lib/errors";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -234,10 +235,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
       const resultObject = JSON.parse(resultString);
 
       if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
-        throw new HttpError({
-          statusCode: 500,
-          message: `Error creating MS Teams meeting: ${resultObject.error.message}`,
-        });
+        throw new ErrorWithCode(ErrorCode.InternalServerError, `Error creating MS Teams meeting: ${resultObject.error.message}`);
       }
 
       return Promise.resolve({

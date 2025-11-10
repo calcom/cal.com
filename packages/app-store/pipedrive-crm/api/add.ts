@@ -2,7 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import appConfig from "../config.json";
@@ -18,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { teamId } = req.query;
   const user = req.session?.user;
   if (!user) {
-    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "You must be logged in to do this");
   }
   const userId = user.id;
   await createDefaultInstallation({
