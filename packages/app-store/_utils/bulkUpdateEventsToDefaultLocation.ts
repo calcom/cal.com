@@ -6,6 +6,8 @@ import type { LocationObject } from "../locations";
 import { getAppFromSlug } from "../utils";
 import { filterEventTypesWhereLocationUpdateIsAllowed } from "./getBulkEventTypes";
 
+type PrismaLike = Pick<PrismaClient, "credential" | "eventType">;
+
 export const bulkUpdateEventsToDefaultLocation = async ({
   eventTypeIds,
   user,
@@ -13,7 +15,7 @@ export const bulkUpdateEventsToDefaultLocation = async ({
 }: {
   eventTypeIds: number[];
   user: Pick<User, "id" | "metadata">;
-  prisma: PrismaClient;
+  prisma: PrismaLike;
 }) => {
   const defaultApp = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
 
