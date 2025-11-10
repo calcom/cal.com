@@ -380,11 +380,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     name: "steps",
   });
 
-  // Extract current step template from watched steps array
-  const currentStepTemplate = step ? steps?.[step.stepNumber - 1]?.template : null;
-
-  const isReminderTemplate = currentStepTemplate === WorkflowTemplates.REMINDER;
-
   const hasAiAction = hasCalAIAction(steps);
   const hasEmailToHostAction = steps.some((s) => s.action === WorkflowActions.EMAIL_HOST);
   const hasWhatsappAction = steps.some((s) => isWhatsappAction(s.action));
@@ -1335,7 +1330,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       refEmailSubject.current = e;
                     }}
                     rows={2}
-                    disabled={props.readOnly || (!hasActiveTeamPlan && !isReminderTemplate)}
+                    disabled={props.readOnly || !hasActiveTeamPlan}
                     className="my-0 focus:ring-transparent"
                     required
                     {...restEmailSubjectForm}
@@ -1368,7 +1363,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 editable={
                   !props.readOnly &&
                   !isWhatsappAction(step.action) &&
-                  (hasActiveTeamPlan || isSMSAction(step.action) || isReminderTemplate)
+                  (hasActiveTeamPlan || isSMSAction(step.action))
                 }
                 excludedToolbarItems={
                   !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]

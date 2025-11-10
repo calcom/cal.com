@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
-import { useCalendarStore } from "../state/store";
+import { CalendarStoreContext, createCalendarStore, useCalendarStore } from "../state/store";
 import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
@@ -16,7 +16,7 @@ import { HorizontalLines } from "./horizontalLines";
 import { Spinner } from "./spinner/Spinner";
 import { VerticalLines } from "./verticalLines";
 
-export function Calendar(props: CalendarComponentProps) {
+function CalendarInner(props: CalendarComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
@@ -44,7 +44,7 @@ export function Calendar(props: CalendarComponentProps) {
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
   const hourSize = 58;
 
-  // Initalise State on initial mount
+  // Initalise State on initial mount and when props change
   useEffect(() => {
     initialState(props);
   }, [props, initialState]);
@@ -167,6 +167,27 @@ export function Calendar(props: CalendarComponentProps) {
         </div>
       </div>
     </MobileNotSupported>
+  );
+}
+
+export function Calendar(props: CalendarComponentProps) {
+  const storeRef = useRef<ReturnType<typeof createCalendarStore> | null>(null);
+
+  if (!storeRef.current) {
+    storeRef.current = createCalendarStore();
+    storeRef.current.getState().initState(props);
+  }
+
+  useEffect(() => {
+    if (storeRef.current) {
+      storeRef.current.getState().initState(props);
+    }
+  }, [props]);
+
+  return (
+    <CalendarStoreContext.Provider value={storeRef.current}>
+      <CalendarInner {...props} />
+    </CalendarStoreContext.Provider>
   );
 }
 
