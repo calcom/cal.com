@@ -27,7 +27,7 @@ const workspaces = packagedEmbedTestsOnly
           name: `IntegrationTests`,
           include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          globalSetup: ["./tests/integration/global-setup.ts"],
+          globalSetup: "tests/integration/global-setup.ts",
           setupFiles: ["setupVitest.ts"],
         },
         resolve: {
