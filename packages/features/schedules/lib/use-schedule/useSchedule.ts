@@ -1,6 +1,7 @@
 import { useSearchParams } from "next/navigation";
 
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
+import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
@@ -28,6 +29,19 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
   enabled?: boolean;
+};
+
+const getAvailabilityLoadedEventPayload = ({
+  eventId,
+  eventSlug,
+}: {
+  eventId: number;
+  eventSlug: string;
+}) => {
+  return {
+    eventId,
+    eventSlug,
+  };
 };
 
 export const useSchedule = ({
@@ -62,8 +76,6 @@ export const useSchedule = ({
     ? getRoutedTeamMemberIdsFromSearchParams(new URLSearchParams(searchParams.toString()))
     : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
-  const _cacheParam = searchParams?.get("cal.cache");
-  const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const utils = trpc.useUtils();
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const queuedFormResponseId = searchParams?.get("cal.queuedFormResponseId");
@@ -94,7 +106,6 @@ export const useSchedule = ({
     teamMemberEmail,
     routedTeamMemberIds,
     skipContactOwner,
-    _shouldServeCache,
     ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
     // Ensures that connectVersion causes a refresh of the data
@@ -148,6 +159,13 @@ export const useSchedule = ({
       slotsQuery: teamScheduleV2,
     });
 
+    if (teamScheduleV2.isSuccess && eventId && eventSlug) {
+      sdkActionManager?.fire(
+        "availabilityLoaded",
+        getAvailabilityLoadedEventPayload({ eventId, eventSlug })
+      );
+    }
+
     return {
       ...teamScheduleV2,
       /**
@@ -163,6 +181,13 @@ export const useSchedule = ({
     bookerState,
     slotsQuery: schedule,
   });
+
+  if (schedule.isSuccess && eventId && eventSlug) {
+    sdkActionManager?.fire(
+      "availabilityLoaded",
+      getAvailabilityLoadedEventPayload({ eventId, eventSlug })
+    );
+  }
 
   return {
     ...schedule,
