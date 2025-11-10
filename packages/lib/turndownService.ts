@@ -1,6 +1,13 @@
 import TurndownService from "turndown";
 
-const turndownService = new TurndownService();
+const turndownService = new TurndownService({
+  headingStyle: "atx", // Use # for headers
+  hr: "---",
+  bulletListMarker: "-",
+  codeBlockStyle: "fenced",
+  emDelimiter: "_", // Use _ for italic
+  strongDelimiter: "**", // Use ** for bold
+});
 
 function turndown(html: string | TurndownService.Node): string {
   let result = turndownService.turndown(html);
@@ -28,13 +35,6 @@ turndownService.addRule("enter", {
   },
   replacement: function () {
     return "<p><br></p>";
-  },
-});
-
-turndownService.addRule("ignoreEmphasized", {
-  filter: "em",
-  replacement: function (content) {
-    return content;
   },
 });
 
