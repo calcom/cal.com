@@ -1,6 +1,7 @@
 import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../oauth/decodeOAuthState";
@@ -22,7 +23,7 @@ const createOAuthAppCredential = async (
 ) => {
   const userId = req.session?.user.id;
   if (!userId) {
-    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "You must be logged in to do this");
   }
   // For OAuth flows, see if a teamId was passed through the state
   const state = decodeOAuthState(req);

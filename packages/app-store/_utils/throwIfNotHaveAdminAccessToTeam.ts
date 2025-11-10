@@ -1,5 +1,6 @@
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 
 export const throwIfNotHaveAdminAccessToTeam = async ({
@@ -18,6 +19,6 @@ export const throwIfNotHaveAdminAccessToTeam = async ({
   const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((id) => id === teamId);
 
   if (!hasAdminAccessToTeam) {
-    throw new HttpError({ statusCode: 401, message: "You must be an admin of the team to do this" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "You must be an admin of the team to do this");
   }
 };

@@ -1,5 +1,6 @@
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { UserProfile } from "@calcom/types/UserProfile";
@@ -7,7 +8,7 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 export async function checkInstalled(slug: string, userId: number) {
   const alreadyInstalled = await CredentialRepository.findByAppIdAndUserId({ appId: slug, userId });
   if (alreadyInstalled) {
-    throw new HttpError({ statusCode: 422, message: "Already installed" });
+    throw new ErrorWithCode(ErrorCode.InvalidInput, "Already installed");
   }
 }
 

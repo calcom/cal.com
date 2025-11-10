@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -17,7 +18,7 @@ export async function getStripeCustomerIdFromUserId(userId: number) {
     },
   });
 
-  if (!user?.email) throw new HttpError({ statusCode: 404, message: "User email not found" });
+  if (!user?.email) throw new ErrorWithCode(ErrorCode.ResourceNotFound, "User email not found");
 
   const customerId = await getStripeCustomerId(user);
 

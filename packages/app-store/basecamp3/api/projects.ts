@@ -7,12 +7,13 @@ import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 
 async function handler(req: NextApiRequest) {
   const userId = req.session?.user?.id;
   if (!userId) {
-    throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+    throw new ErrorWithCode(ErrorCode.Unauthorized, "Unauthorized");
   }
 
   const { user_agent } = await getAppKeysFromSlug("basecamp3");
@@ -23,7 +24,7 @@ async function handler(req: NextApiRequest) {
   });
 
   if (!credential) {
-    throw new HttpError({ statusCode: 403, message: "No credential found for user" });
+    throw new ErrorWithCode(ErrorCode.Forbidden, "No credential found for user");
   }
 
   let credentialKey = credential.key as BasecampToken;
@@ -42,7 +43,7 @@ async function handler(req: NextApiRequest) {
   });
 
   if (!resp.ok) {
-    throw new HttpError({ statusCode: 400, message: "Failed to fetch Basecamp projects" });
+    throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Failed to fetch Basecamp projects");
   }
 
   const projects = await resp.json();

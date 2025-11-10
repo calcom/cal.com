@@ -1,11 +1,12 @@
-import { HttpError } from "@calcom/lib/http-error";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 const checkGiphyApiKey = async () => {
   const appKeys = await getAppKeysFromSlug("giphy");
   if (typeof appKeys.api_key === "string") return appKeys.api_key;
-  throw new HttpError({ statusCode: 400, message: "Missing Giphy api_key" });
+  throw new ErrorWithCode(ErrorCode.RequestBodyInvalid, "Missing Giphy api_key");
 };
 
 export const searchGiphy = async (locale: string, keyword: string, offset = 0) => {
