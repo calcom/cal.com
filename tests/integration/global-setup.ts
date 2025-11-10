@@ -35,10 +35,18 @@ export default async function globalSetup() {
       organizationId: acmeOrg.id,
     });
     console.log(
-      "[global-setup] owner1-acme@example.com memberships in acme org:",
+      "[global-setup] owner1-acme@example.com memberships in acme org BEFORE ensure:",
       owner1Memberships.length,
       owner1Memberships.map((m) => ({ role: m.role, accepted: m.accepted }))
     );
+
+    await teamRepo.ensureMembership({
+      userEmail: "owner1-acme@example.com",
+      organizationId: acmeOrg.id,
+      role: "OWNER",
+      accepted: true,
+    });
+    console.log("[global-setup] Ensured owner1-acme@example.com has OWNER membership with accepted: true");
   } else {
     console.warn("[global-setup] WARNING: acme org not found!");
   }

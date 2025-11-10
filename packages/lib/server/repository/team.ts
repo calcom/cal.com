@@ -72,4 +72,50 @@ export class TeamRepository {
       },
     });
   }
+
+  async ensureMembership({
+    userEmail,
+    organizationId,
+    role,
+    accepted,
+  }: {
+    userEmail: string;
+    organizationId: number;
+    role: "OWNER" | "ADMIN";
+    accepted: boolean;
+  }) {
+    const user = await this.prismaClient.user.findFirst({
+      where: { email: userEmail },
+    });
+
+    if (!user) {
+      throw new Error(`User with email ${userEmail} not found`);
+    }
+
+    const existingMembership = await this.prismaClient.membership.findFirst({
+      where: {
+        userId: user.id,
+        teamId: organizationId,
+      },
+    });
+
+    if (existingMembership) {
+      return this.prismaClient.membership.update({
+        where: { id: existingMembership.id },
+        data: {
+          role,
+          accepted,
+        },
+      });
+    }
+
+    return this.prismaClient.membership.create({
+      data: {
+        userId: user.id,
+        teamId: organizationId,
+        role,
+        accepted,
+      },
+    });
+  }
 }
