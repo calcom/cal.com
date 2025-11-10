@@ -1,5 +1,6 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
+import ProductHuntBadge from "@calid/features/ui/components/producthunt";
 import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
@@ -303,7 +304,9 @@ export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigat
       <div className="text-subtle mt-0.5 lg:hidden">
         <KBarTrigger />
       </div>
+
       <IntegrationRequests />
+      <ProductHuntBadge />
     </nav>
   );
 };
