@@ -11,6 +11,9 @@ describe("getAbsoluteEventTypeRedirectUrl", () => {
     nonOrgTeamslug: null,
     userOrigin: "https://user.cal.com",
     teamOrigin: "https://team.cal.com",
+    user: {
+      username: null,
+    },
   };
 
   const defaultParams = {
