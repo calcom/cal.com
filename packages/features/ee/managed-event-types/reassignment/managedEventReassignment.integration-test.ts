@@ -3,7 +3,16 @@ import { describe, it, vi, expect, beforeAll, afterAll, afterEach } from "vitest
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
-vi.mock("@calcom/features/bookings/lib/EventManager");
+const mockEventManagerCreate = vi.fn().mockResolvedValue({ referencesToCreate: [] });
+const mockEventManagerDelete = vi.fn().mockResolvedValue({});
+
+vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
+  default: class MockEventManager {
+    create = mockEventManagerCreate;
+    deleteEventsAndMeetings = mockEventManagerDelete;
+  },
+}));
+
 vi.mock("@calcom/emails");
 
 let testTeamId: number;
@@ -12,9 +21,8 @@ const eventTypeIds: number[] = [];
 const bookingIds: number[] = [];
 
 const mockEventManager = async () => {
-  const EventManager = (await import("@calcom/features/bookings/lib/EventManager")).default;
-  vi.spyOn(EventManager.prototype, "create").mockResolvedValue({ referencesToCreate: [] });
-  vi.spyOn(EventManager.prototype, "deleteEventsAndMeetings").mockResolvedValue({});
+  mockEventManagerCreate.mockResolvedValue({ referencesToCreate: [] });
+  mockEventManagerDelete.mockResolvedValue({});
 };
 
 const mockEmails = async () => {
