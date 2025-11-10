@@ -441,7 +441,7 @@ const AppearanceView = ({
                   return (
                     <div className="flex flex-col items-start">
                       <Label className="font-semibold">{t("booking_page_header_background")}</Label>
-                      <span className="text-subtle mb-8 text-sm">
+                      <span className="mt-1 text-subtle mb-8 text-sm">
                         {t("booking_page_header_background_description")}
                       </span>
                       <div className="bg-muted mb-8 flex h-60 w-full items-center justify-start rounded-lg">
