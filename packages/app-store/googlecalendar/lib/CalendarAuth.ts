@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 import { calendar_v3 } from "@googleapis/calendar";
 import { OAuth2Client, JWT } from "googleapis-common";
 
@@ -127,11 +127,25 @@ export class CalendarAuth {
 
       let delegationError: CalendarAppDelegationCredentialError;
 
-      if ((error as any).response?.data?.error === "unauthorized_client") {
+      const getGoogleAuthErrorCode = (e: unknown): "unauthorized_client" | "invalid_grant" | undefined => {
+        if (typeof e !== "object" || e === null || !("response" in e)) return undefined;
+        const resp = (e as { response?: unknown }).response;
+        if (typeof resp !== "object" || resp === null || !("data" in resp)) return undefined;
+        const data = (resp as { data?: unknown }).data;
+        if (typeof data !== "object" || data === null || !("error" in data)) return undefined;
+        const errorCode = (data as { error?: unknown }).error;
+        return typeof errorCode === "string" &&
+          (errorCode === "unauthorized_client" || errorCode === "invalid_grant")
+          ? errorCode
+          : undefined;
+      };
+
+      const errorCode = getGoogleAuthErrorCode(error);
+      if (errorCode === "unauthorized_client") {
         delegationError = new CalendarAppDelegationCredentialClientIdNotAuthorizedError(
           "Make sure that the Client ID for the delegation credential is added to the Google Workspace Admin Console"
         );
-      } else if ((error as any).response?.data?.error === "invalid_grant") {
+      } else if (errorCode === "invalid_grant") {
         delegationError = new CalendarAppDelegationCredentialInvalidGrantError(
           `User ${emailToImpersonate} might not exist in Google Workspace`
         );
