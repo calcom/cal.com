@@ -23,7 +23,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 import {
   ConflictException,
   ForbiddenException,
@@ -37,8 +37,6 @@ import { BadRequestException } from "@nestjs/common";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
-
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 
 import {
   getTranslation,
@@ -994,17 +992,22 @@ export class BookingsService_2024_08_13 {
     });
   }
 
-  async reassignBooking(bookingUid: string, requestUser: UserWithProfile) {
-    const booking = await this.bookingsRepository.getByUid(bookingUid);
+  async reassignBooking(bookingUid: string, reassignedByUser: ApiAuthGuardUser) {
+    const booking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
-    const bookingRepo = new BookingRepository(this.prismaReadService.prisma);
-    const isAllowed = await bookingRepo.doesUserIdHaveAccessToBooking({
-      userId: requestUser.id,
-      bookingId: booking.id,
-    });
+    if (!booking.eventType) {
+      throw new BadRequestException(
+        `Event type with id=${booking.eventTypeId} was not found in the database`
+      );
+    }
+
+    const isAllowed = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+      reassignedByUser,
+      booking.eventType
+    );
 
     if (!isAllowed) {
       throw new ForbiddenException("You do not have permission to reassign this booking");
@@ -1016,7 +1019,7 @@ export class BookingsService_2024_08_13 {
 
     const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
 
-    const profile = this.usersService.getUserMainProfile(requestUser);
+    const profile = this.usersService.getUserMainProfile(reassignedByUser);
 
     try {
       await roundRobinReassignment({
@@ -1024,7 +1027,7 @@ export class BookingsService_2024_08_13 {
         orgId: profile?.organizationId || null,
         emailsEnabled,
         platformClientParams,
-        reassignedById: requestUser.id,
+        reassignedById: reassignedByUser.id,
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -1048,19 +1051,23 @@ export class BookingsService_2024_08_13 {
   async reassignBookingToUser(
     bookingUid: string,
     newUserId: number,
-    reassignedById: number,
+    reassignedByUser: ApiAuthGuardUser,
     body: ReassignToUserBookingInput_2024_08_13
   ) {
-    const booking = await this.bookingsRepository.getByUid(bookingUid);
+    const booking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
+    if (!booking.eventType) {
+      throw new BadRequestException(
+        `Event type with id=${booking.eventTypeId} was not found in the database`
+      );
+    }
 
-    const bookingRepo = new BookingRepository(this.prismaReadService.prisma);
-    const isAllowed = await bookingRepo.doesUserIdHaveAccessToBooking({
-      userId: reassignedById,
-      bookingId: booking.id,
-    });
+    const isAllowed = await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
+      reassignedByUser,
+      booking.eventType
+    );
 
     if (!isAllowed) {
       throw new ForbiddenException("You do not have permission to reassign this booking");
@@ -1085,7 +1092,7 @@ export class BookingsService_2024_08_13 {
         newUserId,
         orgId: profile?.organizationId || null,
         reassignReason: body.reason,
-        reassignedById,
+        reassignedById: reassignedByUser.id,
         emailsEnabled,
         platformClientParams,
       });
