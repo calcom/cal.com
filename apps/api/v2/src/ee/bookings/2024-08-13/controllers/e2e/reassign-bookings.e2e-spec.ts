@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
+import { BOOKING_REASSIGN_PERMISSION_ERROR } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -11,6 +12,7 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { HostsRepositoryFixture } from "test/fixtures/repository/hosts.repository.fixture";
@@ -23,12 +25,9 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-
-
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import type { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import type { Booking, User, PlatformOAuthClient, Team } from "@calcom/prisma/client";
-
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Reassign bookings", () => {
@@ -47,6 +46,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let hostsRepositoryFixture: HostsRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
     const teamUserEmail = `reassign-bookings-2024-08-13-user1-${randomString()}@api.com`;
     const teamUserEmail2 = `reassign-bookings-2024-08-13-user2-${randomString()}@api.com`;
@@ -90,6 +90,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await organizationsRepositoryFixture.create({
@@ -722,6 +723,51 @@ describe("Bookings Endpoints 2024-08-13", () => {
           expect(autoReassigned?.title).toEqual(expectedAutoReassignedTitle);
           expect(autoReassigned?.title).not.toContain("Nameless");
         });
+    });
+
+    it("should return 403 when unauthorized user tries to reassign booking", async () => {
+      const unauthorizedUserEmail = `fake-user-${randomString()}@api.com`;
+      const unauthorizedUser = await userRepositoryFixture.create({
+        email: unauthorizedUserEmail,
+        locale: "en",
+        name: `fake-user-${randomString()}`,
+      });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+      const unauthorizedApiKeyString = `cal_test_${keyString}`;
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${roundRobinBooking.uid}/reassign`)
+        .set("Authorization", `Bearer ${unauthorizedApiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(403);
+
+      expect(response.body.error.message).toBe(BOOKING_REASSIGN_PERMISSION_ERROR);
+
+      await userRepositoryFixture.deleteByEmail(unauthorizedUserEmail);
+    });
+
+    it("should return 403 when unauthorized user tries to reassign booking to specific user", async () => {
+      const unauthorizedUserEmail = `fake-user-${randomString()}@api.com`;
+      const unauthorizedUser = await userRepositoryFixture.create({
+        email: unauthorizedUserEmail,
+        locale: "en",
+        name: `fake-user-${randomString()}`,
+      });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(unauthorizedUser.id, null);
+      const unauthorizedApiKeyString = `cal_test_${keyString}`;
+
+      const response = await request(app.getHttpServer())
+        .post(`/v2/bookings/${roundRobinBooking.uid}/reassign/${teamUser2.id}`)
+        .send({ reason: "Testing unauthorized access" })
+        .set("Authorization", `Bearer ${unauthorizedApiKeyString}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(403);
+
+      expect(response.body.error.message).toBe(BOOKING_REASSIGN_PERMISSION_ERROR);
+
+      await userRepositoryFixture.deleteByEmail(unauthorizedUserEmail);
     });
 
     async function createOAuthClient(organizationId: number) {

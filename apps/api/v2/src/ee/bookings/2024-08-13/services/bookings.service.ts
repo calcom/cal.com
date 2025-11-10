@@ -38,6 +38,8 @@ import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+export const BOOKING_REASSIGN_PERMISSION_ERROR = "You do not have permission to reassign this booking";
+
 import {
   getTranslation,
   getAllUserBookings,
@@ -1010,7 +1012,7 @@ export class BookingsService_2024_08_13 {
     );
 
     if (!isAllowed) {
-      throw new ForbiddenException("You do not have permission to reassign this booking");
+      throw new ForbiddenException(BOOKING_REASSIGN_PERMISSION_ERROR);
     }
 
     const platformClientParams = booking.eventTypeId
@@ -1070,7 +1072,7 @@ export class BookingsService_2024_08_13 {
     );
 
     if (!isAllowed) {
-      throw new ForbiddenException("You do not have permission to reassign this booking");
+      throw new ForbiddenException(BOOKING_REASSIGN_PERMISSION_ERROR);
     }
 
     const user = await this.usersRepository.findByIdWithProfile(newUserId);
