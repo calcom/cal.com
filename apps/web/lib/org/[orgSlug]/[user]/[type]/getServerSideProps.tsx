@@ -19,7 +19,7 @@ const paramsSchema = z.object({
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  const requestorIp = getIP(ctx.req as Request);
+  const requestorIp = getIP(ctx.req as unknown as Request);
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
     identifier: `[orgSlug]/[user]/[type]-${piiHasher.hash(requestorIp)}`,

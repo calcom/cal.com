@@ -83,7 +83,7 @@ type UserPageProps = {
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
   // handle IP based rate limiting
-  const requestorIp = getIP(context.req as Request);
+  const requestorIp = getIP(context.req as unknown as Request);
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
     identifier: `[user]-${piiHasher.hash(requestorIp)}`,
