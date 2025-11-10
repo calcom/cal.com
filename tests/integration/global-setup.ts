@@ -1,6 +1,8 @@
-import { beforeAll } from "vitest";
-
-beforeAll(async () => {
+/**
+ * Global setup for integration tests
+ * Runs once before all integration tests to seed org-admin state
+ */
+export default async function globalSetup() {
   if (!process.env.DATABASE_URL) {
     return;
   }
@@ -52,4 +54,11 @@ beforeAll(async () => {
       },
     });
   }
-});
+
+  return async () => {
+    try {
+      await prisma.$disconnect();
+    } catch (error) {
+    }
+  };
+}
