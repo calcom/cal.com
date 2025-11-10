@@ -2,8 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import qs from "qs";
 import { z } from "zod";
 
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 
 const PaymentDataSchema = z.object({
@@ -16,7 +16,7 @@ const PaymentDataSchema = z.object({
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { reference, status } = req.query;
   if (!reference) {
-    throw new HttpCode({ statusCode: 204, message: "Reference not found" });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Reference not found");
   }
 
   const payment = await prisma.payment.findFirst({
@@ -54,15 +54,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   if (!payment) {
-    throw new HttpCode({ statusCode: 204, message: "Payment not found" });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Payment not found");
   }
   const key = payment.booking?.user?.credentials?.[0].key;
   if (!key) {
-    throw new HttpCode({ statusCode: 204, message: "Credential not found" });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Credential not found");
   }
 
   if (!payment.booking || !payment.booking.user || !payment.booking.eventType) {
-    throw new HttpCode({ statusCode: 204, message: "Booking not correct" });
+    throw new ErrorWithCode(ErrorCode.ResourceNotFound, "Booking not correct");
   }
 
   if (status !== "completed") {
