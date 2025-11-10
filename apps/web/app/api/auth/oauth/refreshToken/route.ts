@@ -7,7 +7,7 @@ import type { NextRequest } from "next/server";
 import prisma from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 import type { OAuthTokenPayload } from "@calcom/types/oauth";
-import { isValidOAuthTokenHeader } from "app/api/isValidOAuthTokenHeader";
+import { isValidOAuthTokenHeader, VALID_REQ_CONTENT_TYPE } from "app/api/isValidOAuthTokenHeader";
 
 async function handler(req: NextRequest) {
   const isValidReqContentType = isValidOAuthTokenHeader(req)
@@ -15,7 +15,7 @@ async function handler(req: NextRequest) {
     return NextResponse.json(
       {
         error: "invalid_request",
-        error_description: "content-type must be application/x-www-form-urlencoded",
+        error_description: `content-type must be ${VALID_REQ_CONTENT_TYPE}`,
       },
       { status: 400, headers: { "Cache-Control": "no-store", "Pragma": "no-cache" } }
     );

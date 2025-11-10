@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-const VALID_REQ_CONTENT_TYPE = "application/x-www-form-urlencoded";
+export const VALID_REQ_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
 export const isValidOAuthTokenHeader = (req: NextRequest): boolean => {
   const headerValue = req.headers.get("content-type");
