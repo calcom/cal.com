@@ -116,7 +116,7 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, locations, emailSettings, ...rest } = inputEventType;
+    const { assignAllTeamMembers, locations, emailSettings, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
 
@@ -140,12 +140,7 @@ export class InputOrganizationsEventTypesService {
 
     const teamEventType = {
       ...eventType,
-      // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
-      hosts: !(rest.schedulingType === "MANAGED")
-        ? assignAllTeamMembers
-          ? await this.getAllTeamMembers(teamId, inputEventType.schedulingType)
-          : this.transformInputHosts(hosts, inputEventType.schedulingType)
-        : undefined,
+      hosts: await this.transformInputCreateTeamEventTypeHosts(teamId, inputEventType),
       assignAllTeamMembers,
       locations: this.transformInputTeamLocations(locations || defaultLocations),
       metadata,
@@ -153,6 +148,24 @@ export class InputOrganizationsEventTypesService {
     };
 
     return teamEventType;
+  }
+
+  private async transformInputCreateTeamEventTypeHosts(
+    teamId: number,
+    inputEventType: CreateTeamEventTypeInput_2024_06_14
+  ) {
+    const { hosts, assignAllTeamMembers, schedulingType } = inputEventType;
+
+    // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children - each child managed event type is associated with
+    // a specific user and hosts property is only for team event types e.g round robin and collective.
+    if (schedulingType === "MANAGED") {
+      return undefined;
+    }
+
+    if (assignAllTeamMembers) {
+      return await this.getAllTeamMembers(teamId, inputEventType.schedulingType);
+    }
+    return this.transformInputHosts(hosts, inputEventType.schedulingType);
   }
 
   private addEmailSettingsToMetadata(
