@@ -3,6 +3,7 @@ import { Retell } from "retell-sdk";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import type { CalAiPhoneNumber, User, Team, Agent } from "@calcom/prisma/client";
+import { CreditUsageType } from "@calcom/prisma/enums";
 
 import { POST } from "../route";
 
@@ -71,12 +72,20 @@ vi.mock("retell-sdk", () => ({
 
 const mockHasAvailableCredits = vi.fn();
 const mockChargeCredits = vi.fn();
+const mockSendCreditBalanceLimitReachedEmails = vi.fn();
+const mockSendCreditBalanceLowWarningEmails = vi.fn();
 
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
   CreditService: vi.fn().mockImplementation(() => ({
     hasAvailableCredits: mockHasAvailableCredits,
     chargeCredits: mockChargeCredits,
   })),
+}));
+
+vi.mock("@calcom/emails/email-manager", () => ({
+  sendCreditBalanceLimitReachedEmails: (...args: unknown[]) =>
+    mockSendCreditBalanceLimitReachedEmails(...args),
+  sendCreditBalanceLowWarningEmails: (...args: unknown[]) => mockSendCreditBalanceLowWarningEmails(...args),
 }));
 
 const mockFindByPhoneNumber = vi.fn();
@@ -231,6 +240,7 @@ describe("Retell AI Webhook Handler", () => {
         credits: 58, // 120 seconds = 2 minutes * $0.29 = $0.58 = 58 credits
         callDuration: 120,
         externalRef: "retell:test-call-id",
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
       })
     );
   });
@@ -288,6 +298,7 @@ describe("Retell AI Webhook Handler", () => {
         credits: 87, // 180 seconds = 3 minutes * $0.29 = $0.87 = 87 credits
         callDuration: 180,
         externalRef: "retell:test-call-id",
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
       })
     );
   });
@@ -471,6 +482,7 @@ describe("Retell AI Webhook Handler", () => {
           credits: expectedCredits,
           callDuration: durationSeconds,
           externalRef: expect.stringMatching(/^retell:test-call-/),
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     }
@@ -517,7 +529,12 @@ describe("Retell AI Webhook Handler", () => {
     const response = await callPOST(createMockRequest(body, "valid-signature"));
     expect(response.status).toBe(200);
     expect(mockChargeCredits).toHaveBeenCalledWith(
-      expect.objectContaining({ userId: 42, credits: 61, callDuration: 125 }) // 125s = 2.083 minutes * $0.29 = $0.604 = 61 credits (rounded up)
+      expect.objectContaining({
+        userId: 42,
+        credits: 61,
+        callDuration: 125,
+        creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
+      }) // 125s = 2.083 minutes * $0.29 = $0.604 = 61 credits (rounded up)
     );
   });
 
@@ -574,6 +591,7 @@ describe("Retell AI Webhook Handler", () => {
           credits: 29, // 60 seconds = 1 minute * $0.29 = $0.29 = 29 credits
           callDuration: 60,
           externalRef: "retell:test-idempotency-call",
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     });
@@ -696,7 +714,15 @@ describe("Retell AI Webhook Handler", () => {
   describe("Web Call Tests", () => {
     const mockAgent: Pick<
       Agent,
-      "id" | "name" | "providerAgentId" | "enabled" | "userId" | "teamId" | "createdAt" | "updatedAt" | "inboundEventTypeId"
+      | "id"
+      | "name"
+      | "providerAgentId"
+      | "enabled"
+      | "userId"
+      | "teamId"
+      | "createdAt"
+      | "updatedAt"
+      | "inboundEventTypeId"
     > = {
       id: "agent-123",
       name: "Test Agent",
@@ -752,6 +778,7 @@ describe("Retell AI Webhook Handler", () => {
           credits: 4, // 7 seconds = 0.117 minutes * $0.29 = $0.034 = 4 credits (rounded up)
           callDuration: 7,
           externalRef: "retell:call_bcd94f5a50832873a5fd68cb1aa",
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     });
@@ -786,6 +813,7 @@ describe("Retell AI Webhook Handler", () => {
           teamId: 10,
           credits: 29, // 60 seconds = 1 minute * $0.29 = 29 credits
           callDuration: 60,
+          creditFor: CreditUsageType.CAL_AI_PHONE_CALL,
         })
       );
     });

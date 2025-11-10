@@ -1,5 +1,5 @@
-import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
