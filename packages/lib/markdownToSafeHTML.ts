@@ -96,7 +96,8 @@ function parseMarkdown(markdown: string | null): string {
   const result: string[] = [];
   let inCodeBlock = false;
   let codeBlockLines: string[] = [];
-  const listStack: { type: "ul" | "ol" | "task"; indent: number }[] = [];
+  const listStack: { type: "ul" | "ol" | "task"; indent: number; loose?: boolean }[] = [];
+  let consecutiveBlankLines = 0;
 
   function getIndent(line: string): number {
     const match = line.match(/^(\s*)/);
@@ -120,6 +121,7 @@ function parseMarkdown(markdown: string | null): string {
 
     // Code blocks
     if (trimmed.startsWith("```")) {
+      consecutiveBlankLines = 0;
       closeList(-1); // Close all lists
       if (inCodeBlock) {
         const code = codeBlockLines.join("\n");
@@ -168,6 +170,7 @@ function parseMarkdown(markdown: string | null): string {
     const olMatch = trimmed.match(/^(\d+)\.\s+(.+)$/);
 
     if (taskMatch || ulMatch || olMatch) {
+      consecutiveBlankLines = 0;
       const listType = taskMatch ? "task" : ulMatch ? "ul" : "ol";
       const currentIndent = listStack.length > 0 ? listStack[listStack.length - 1].indent : -1;
       const currentType = listStack.length > 0 ? listStack[listStack.length - 1].type : null;
@@ -207,17 +210,42 @@ function parseMarkdown(markdown: string | null): string {
         content = processInlineFormatting(olMatch[2] || "");
         startValue = olMatch[1];
       }
-
+      const isLoose = listStack.length > 0 && listStack[listStack.length - 1].loose;
       const liTag = startValue ? `<li value="${startValue}">` : `<li>`;
-      result.push(`${" ".repeat(indent + 2)}${liTag}${content}</li>`);
+      result.push(`${" ".repeat(indent + 2)}${liTag}${isLoose ? `<p>${content}</p>` : content}</li>`);
     } else if (trimmed !== "") {
+      consecutiveBlankLines = 0;
       closeList(-1);
       const processed = processInlineFormatting(trimmed);
       result.push(`<p>${processed}</p>`);
     } else {
-      // Empty line, might be for spacing between list items or paragraphs.
-      closeList(-1);
-      result.push("");
+      consecutiveBlankLines++;
+      if (listStack.length > 0) {
+        if (consecutiveBlankLines === 1) {
+          const currentList = listStack[listStack.length - 1];
+          if (!currentList.loose) {
+            currentList.loose = true;
+            for (let j = result.length - 1; j >= 0; j--) {
+              const res = result[j];
+              const itemIndent = getIndent(res);
+              if (itemIndent > currentList.indent) {
+                if (res.trim().startsWith("<li")) {
+                  result[j] = res.replace(/<li>(.*)<\/li>/, "<li><p>$1</p></li>");
+                }
+              } else if (itemIndent <= currentList.indent) {
+                break;
+              }
+            }
+          }
+          result.push("");
+        } else {
+          closeList(-1);
+          result.push("");
+        }
+      } else {
+        closeList(-1);
+        result.push("");
+      }
     }
   }
 
