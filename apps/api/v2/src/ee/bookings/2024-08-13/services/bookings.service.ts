@@ -38,6 +38,8 @@ import { Request } from "express";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+
 import {
   getTranslation,
   getAllUserBookings,
@@ -998,6 +1000,16 @@ export class BookingsService_2024_08_13 {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
     }
 
+    const bookingRepo = new BookingRepository(this.prismaReadService.prisma);
+    const isAllowed = await bookingRepo.doesUserIdHaveAccessToBooking({
+      userId: requestUser.id,
+      bookingId: booking.id,
+    });
+
+    if (!isAllowed) {
+      throw new ForbiddenException("You do not have permission to reassign this booking");
+    }
+
     const platformClientParams = booking.eventTypeId
       ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
@@ -1042,6 +1054,16 @@ export class BookingsService_2024_08_13 {
     const booking = await this.bookingsRepository.getByUid(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} was not found in the database`);
+    }
+
+    const bookingRepo = new BookingRepository(this.prismaReadService.prisma);
+    const isAllowed = await bookingRepo.doesUserIdHaveAccessToBooking({
+      userId: reassignedById,
+      bookingId: booking.id,
+    });
+
+    if (!isAllowed) {
+      throw new ForbiddenException("You do not have permission to reassign this booking");
     }
 
     const user = await this.usersRepository.findByIdWithProfile(newUserId);
