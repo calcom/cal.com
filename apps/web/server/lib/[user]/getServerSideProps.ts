@@ -8,20 +8,22 @@ import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 import { getBrandingForUser } from "@calcom/features/profile/lib/getBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import getIP from "@calcom/lib/getIP";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { prisma } from "@calcom/prisma";
 import type { EventType, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
-import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
-import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
@@ -151,8 +153,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     theme: branding.theme,
     brandColor: branding.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
-    darkBrandColor:
-      branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    darkBrandColor: branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: user.profile.organization,

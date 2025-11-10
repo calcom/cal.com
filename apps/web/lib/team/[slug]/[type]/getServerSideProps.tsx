@@ -11,6 +11,7 @@ import { getBrandingForEventType } from "@calcom/features/profile/lib/getBrandin
 import { shouldHideBrandingForTeamEvent } from "@calcom/features/profile/lib/hideBranding";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import getIP from "@calcom/lib/getIP";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
