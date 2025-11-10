@@ -318,7 +318,7 @@ const paramsSchema = z.object({
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const requestorIp = getIP(context.req);
+  const requestorIp = getIP(context.req as Request);
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
     identifier: `[user]/[type]-${piiHasher.hash(requestorIp)}`,
