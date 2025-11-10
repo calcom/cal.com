@@ -1,12 +1,18 @@
 import { enabledIncompleteBookingApps } from "@calcom/app-store/routing-forms/lib/enabledIncompleteBookingApps";
+import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
+import type { Credential } from "@calcom/kysely/types";
 import type { PrismaClient } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
-import { entityPrismaWhereClause } from "@calcom/features/pbac/lib/entityPermissionUtils.server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
+
+type SanitizedCredential = Credential & {
+  user?: { email: string; name: string | null } | null;
+  team?: { name: string | null } | null;
+};
 
 interface GetIncompleteBookingSettingsOptions {
   ctx: {
@@ -31,10 +37,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
     }),
     prisma.app_RoutingForms_Form.findFirst({
       where: {
-        AND: [
-          entityPrismaWhereClause({ userId: user.id }),
-          { id: input.formId },
-        ],
+        AND: [entityPrismaWhereClause({ userId: user.id }), { id: input.formId }],
       },
       select: {
         userId: true,
@@ -89,11 +92,20 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
       },
     });
 
-    const sanitized = credentials.map((c) =>
-      Object.fromEntries(Object.entries(c).filter(([k]) => k !== "key"))
+    const sanitized: SanitizedCredential[] = credentials.map(
+      (c) =>
+        Object.fromEntries(Object.entries(c).filter(([k]) => k !== "key")) as unknown as SanitizedCredential
     );
 
-    return { incompleteBookingActions, credentials: sanitized };
+    return {
+      incompleteBookingActions,
+      credentials: sanitized.map((c) => ({
+        ...c,
+        id: Number(c.id),
+        teamId: c.teamId ? Number(c.teamId) : null,
+        userId: c.userId ? Number(c.userId) : null,
+      })),
+    };
   }
 
   if (userId) {
@@ -111,10 +123,24 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
     });
 
     const sanitized = credential
-      ? (Object.fromEntries(Object.entries(credential).filter(([k]) => k !== "key")) as typeof credential)
+      ? (Object.fromEntries(
+          Object.entries(credential).filter(([k]) => k !== "key")
+        ) as unknown as SanitizedCredential)
       : null;
 
-    return { incompleteBookingActions, credentials: sanitized ? [{ ...sanitized, team: null }] : [] };
+    return {
+      incompleteBookingActions,
+      credentials: sanitized
+        ? [
+            {
+              ...sanitized,
+              team: null,
+              id: Number(sanitized.id),
+              userId: sanitized.userId ? Number(sanitized.userId) : null,
+            },
+          ]
+        : [],
+    };
   }
 };
 
