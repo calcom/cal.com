@@ -1,5 +1,3 @@
-import { TeamRepository } from "@calcom/lib/server/repository/team";
-
 /**
  * Global setup for integration tests
  * Runs once before all integration tests to seed org-admin state
@@ -7,6 +5,16 @@ import { TeamRepository } from "@calcom/lib/server/repository/team";
 export default async function globalSetup() {
   console.log("[global-setup] Starting org-admin seeding");
   console.log("[global-setup] DATABASE_URL exists:", !!process.env.DATABASE_URL);
+
+  let TeamRepository;
+  try {
+    const module = await import("../../packages/lib/server/repository/team");
+    TeamRepository = module.TeamRepository;
+    console.log("[global-setup] TeamRepository imported successfully");
+  } catch (e) {
+    console.error("[global-setup] Failed to import TeamRepository:", e);
+    throw e;
+  }
 
   const teamRepo = await TeamRepository.withGlobalPrisma();
 
