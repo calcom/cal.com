@@ -371,10 +371,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     const eventTypeIdForBranding = booking.eventTypeId ?? null;
     let hideBranding = false;
 
-    if (!eventTypeIdForBranding) {
-      console.warn("Booking missing eventTypeId, defaulting hideBranding to false");
-      hideBranding = false;
-    } else {
+    if (eventTypeIdForBranding) {
       hideBranding = await shouldHideBrandingForEventWithPrisma({
         eventTypeId: eventTypeIdForBranding,
         team: booking.eventType?.team ?? null,

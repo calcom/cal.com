@@ -1385,6 +1385,48 @@ export class BookingRepository {
     });
   }
 
+  async findByIdIncludeDestinationCalendarAndBranding(bookingId: number) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        attendees: true,
+        destinationCalendar: true,
+        references: true,
+        eventType: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                parentId: true,
+                hideBranding: true,
+                parent: {
+                  select: {
+                    id: true,
+                    hideBranding: true,
+                  },
+                },
+              },
+            },
+            owner: {
+              select: {
+                id: true,
+                hideBranding: true,
+              },
+            },
+          },
+        },
+        user: {
+          include: {
+            destinationCalendar: true,
+            credentials: true,
+          },
+        },
+      },
+    });
+  }
+
   async updateBookingAttendees({
     bookingId,
     newAttendees,

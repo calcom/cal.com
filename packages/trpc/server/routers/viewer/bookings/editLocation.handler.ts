@@ -289,10 +289,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   try {
     const eventTypeId = booking.eventTypeId;
     let hideBranding = false;
-    if (!eventTypeId) {
-      logger.warn("Booking missing eventTypeId, defaulting hideBranding to false");
-      hideBranding = false;
-    } else {
+    if (eventTypeId) {
       hideBranding = await shouldHideBrandingForEventWithPrisma({
         eventTypeId,
         team: booking.eventType?.team ?? null,

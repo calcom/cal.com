@@ -4,8 +4,6 @@ import dayjs from "@calcom/dayjs";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { shouldHideBrandingForEventWithPrisma } from "@calcom/features/profile/lib/hideBranding";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -34,7 +32,9 @@ type AddGuestsOptions = {
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
 };
-type Booking = NonNullable<Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendar"]>>>;
+type Booking = NonNullable<
+  Awaited<ReturnType<BookingRepository["findByIdIncludeDestinationCalendarAndBranding"]>>
+>;
 type OrganizerData = Awaited<ReturnType<typeof getOrganizerData>>;
 
 export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: AddGuestsOptions) => {
@@ -82,50 +82,10 @@ export const addGuestsHandler = async ({ ctx, input, emailsEnabled = true }: Add
 
 async function getBooking(bookingId: number) {
   const bookingRepository = new BookingRepository(prisma);
-  const booking = await bookingRepository.findByIdIncludeDestinationCalendar(bookingId);
+  const booking = await bookingRepository.findByIdIncludeDestinationCalendarAndBranding(bookingId);
 
   if (!booking || !booking.user) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
-  }
-
-  // Fetch additional data needed for branding logic via repositories
-  const teamRepository = new TeamRepository(prisma);
-  const userRepository = new UserRepository(prisma);
-  const eventTypeRepository = new EventTypeRepository(prisma);
-
-  const [teamBranding, userWithBranding, ownerBranding] = await Promise.all([
-    booking.eventType?.teamId
-      ? teamRepository.findTeamWithParentHideBranding({ teamId: booking.eventType.teamId })
-      : Promise.resolve(null),
-    booking.userId
-      ? userRepository.findUserWithHideBranding({ userId: booking.userId })
-      : Promise.resolve(null),
-    booking.eventTypeId
-      ? eventTypeRepository.findOwnerHideBranding({ eventTypeId: booking.eventTypeId })
-      : Promise.resolve(null),
-  ]);
-
-  // Attach fetched data to booking object with proper type handling
-  if (teamBranding && booking.eventType) {
-    (
-      booking.eventType as typeof booking.eventType & {
-        team: typeof teamBranding;
-      }
-    ).team = teamBranding;
-  }
-
-  if (ownerBranding && booking.eventType) {
-    (
-      booking.eventType as typeof booking.eventType & {
-        owner: NonNullable<typeof ownerBranding>["owner"] | null;
-      }
-    ).owner = ownerBranding.owner ?? null;
-  }
-
-  if (userWithBranding && booking.user) {
-    (
-      booking.user as typeof booking.user & { organizationId: number | null; hideBranding: boolean | null }
-    ).hideBranding = userWithBranding.hideBranding;
   }
 
   return booking;
@@ -369,39 +329,21 @@ async function sendGuestNotifications(
 ): Promise<void> {
   const eventTypeId = booking.eventTypeId;
   let hideBranding = false;
-  if (!eventTypeId) {
-    logger.warn("Booking missing eventTypeId, defaulting hideBranding to false");
-    hideBranding = false;
-  } else {
-    // Type assertion needed because repository doesn't include team/owner in type
-    const eventType = booking.eventType as
-      | (typeof booking.eventType & {
-          team?: {
-            parentId: number | null;
-            hideBranding: boolean | null;
-            parent: { hideBranding: boolean | null } | null;
-          } | null;
-          owner?: { id: number; hideBranding: boolean | null } | null;
-        })
-      | null;
-    const user = booking.user as
-      | (typeof booking.user & {
-          organizationId: number | null;
-        })
-      | null;
-    const organizationId = eventType?.team?.parentId ?? user?.organizationId ?? null;
-    // Convert team to match TeamWithBranding type (parent must be object or null, not undefined)
-    const team = eventType?.team
+  if (eventTypeId) {
+    const team = booking.eventType?.team
       ? {
-          hideBranding: eventType.team.hideBranding,
-          parent: eventType.team.parent ?? null,
+          hideBranding: booking.eventType.team.hideBranding,
+          parent: booking.eventType.team.parent ?? null,
         }
       : null;
+
+    const organizationId = booking.eventType?.team?.parentId ?? null;
+
     hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId,
       team,
-      owner: eventType?.owner ?? null,
-      organizationId: organizationId,
+      owner: booking.eventType?.owner ?? null,
+      organizationId,
     });
   }
 

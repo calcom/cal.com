@@ -262,10 +262,7 @@ async function handler(input: CancelBookingInput) {
 
   let hideBranding = false;
 
-  if (!bookingToDelete.eventTypeId) {
-    log.warn("Booking missing eventTypeId, defaulting hideBranding to false");
-    hideBranding = false;
-  } else {
+  if (bookingToDelete.eventTypeId) {
     hideBranding = await shouldHideBrandingForEventWithPrisma({
       eventTypeId: bookingToDelete.eventTypeId,
       team: bookingToDelete.eventType?.team ?? null,
@@ -273,11 +270,6 @@ async function handler(input: CancelBookingInput) {
       organizationId: organizationId,
     });
   }
-
-  log.debug("Computed hideBranding", {
-    hideBranding,
-    eventTypeId: bookingToDelete.eventTypeId,
-  });
 
   const evt: CalendarEvent = {
     bookerUrl,
