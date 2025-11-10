@@ -247,7 +247,7 @@ test.describe("Organization", () => {
           orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email: invitedUserEmail,
         });
       });
@@ -265,7 +265,7 @@ test.describe("Organization", () => {
           orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email,
         });
       });
@@ -388,7 +388,7 @@ test.describe("Organization", () => {
           teamId: team.id,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email: invitedUserEmail,
         });
 
@@ -397,7 +397,7 @@ test.describe("Organization", () => {
           orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email: invitedUserEmail,
         });
       });
@@ -419,7 +419,7 @@ test.describe("Organization", () => {
           page,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email: email,
         });
         await expectUserToBeAMemberOfOrganization({
@@ -427,7 +427,7 @@ test.describe("Organization", () => {
           orgSlug: org.slug,
           username: usernameDerivedFromEmail,
           role: "member",
-          isMemberShipAccepted: true,
+          isMemberShipAccepted: false,
           email: email,
         });
       });
