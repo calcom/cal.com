@@ -14,6 +14,9 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/enums";
+import getIP from "@calcom/lib/getIP";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
 
@@ -63,6 +66,7 @@ async function processReschedule({
     (booking?.eventTypeId === props.eventData?.id &&
       (booking.status !== BookingStatus.CANCELLED ||
         allowRescheduleForCancelledBooking ||
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         !!(props.eventData as any)?.allowReschedulingCancelledBookings))
   ) {
     props.booking = booking;
@@ -314,6 +318,13 @@ const paramsSchema = z.object({
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  // handle IP based rate limiting
+  const requestorIp = getIP(context.req);
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: piiHasher.hash(requestorIp),
+  });
+
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
 

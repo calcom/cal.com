@@ -19,8 +19,9 @@ import type { EventType, User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { handleOrgRedirect } from "@lib/handleOrgRedirect";
+import { piiHasher } from "@calcom/lib/server/PiiHasher";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
@@ -79,6 +80,12 @@ type UserPageProps = {
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
+  // handle IP based rate limiting
+  const requestorIp = getIP(context.req);
+  await checkRateLimitAndThrowError({
+    rateLimitingType: "core",
+    identifier: piiHasher.hash(requestorIp),
+  });
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
   const usernameList = getUsernameList(context.query.user as string);
   const isARedirectFromNonOrgLink = context.query.orgRedirection === "true";
